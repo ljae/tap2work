@@ -1,0 +1,311 @@
+{
+  "schemaVersion": 1,
+  "revision": 4,
+  "product": {
+    "name": "tab2work",
+    "tagline": "작은 주방의 첫 출근을, 함께 한 걸음씩.",
+    "phase": "Flutter 기반 첫 출근 프로토타입",
+    "audience": "한국 소규모 F&B · 준비 및 설거지 업무",
+    "outcome": "첫 1시간 오리엔테이션 후 버디와 함께 근무 시작"
+  },
+  "decisions": [
+    {
+      "id": "D-001",
+      "category": "제품",
+      "title": "첫 사용자는 주방 보조 알바생",
+      "status": "confirmed",
+      "decision": "한국의 소규모 F&B 매장, 준비·설거지 업무를 먼저 지원한다.",
+      "reason": "첫 사용자의 작업과 사용 환경을 구체화해 실제 현장에서 검증한다.",
+      "source": "사용자 답변 · Kitchen — prep and dishwashing / South Korea",
+      "updatedAt": "2026-09-19"
+    },
+    {
+      "id": "D-002",
+      "category": "교육",
+      "title": "첫 한 시간의 목표는 버디와 함께 일하기",
+      "status": "confirmed",
+      "decision": "약 1시간의 오리엔테이션 후 기존 직원인 버디와 함께 첫 근무를 시작한다.",
+      "reason": "영상 시청이나 버튼 클릭을 독립 근무 자격으로 취급하지 않는다. 연습과 현장 확인을 구분한다.",
+      "source": "사용자 답변 · Start a first shift with a buddy",
+      "updatedAt": "2026-09-19"
+    },
+    {
+      "id": "D-003",
+      "category": "범위",
+      "title": "첫 버전은 채용 이후 첫 출근에 집중",
+      "status": "confirmed",
+      "decision": "장기적으로 채용과 매장 운영을 모두 지원한다. 첫 버전은 이미 채용된 알바생의 첫 출근 흐름을 구현한다.",
+      "reason": "일자리 중개를 먼저 구축하지 않고 교육·지원·일정의 핵심 경험을 검증할 수 있다.",
+      "source": "사용자 답변 · 둘 다 지원하되, 첫 버전은 채용된 알바생의 첫 출근에 집중",
+      "updatedAt": "2026-09-19"
+    },
+    {
+      "id": "D-004",
+      "category": "UX",
+      "title": "폰에서 직관적이고 부담 없이",
+      "status": "confirmed",
+      "decision": "폰 중심, 종이 없는 진행, 쉬운 설치와 사용을 지향한다. 급구와 워키도키를 참고하며 알바생에게 다음 행동을 명확하게 보여 준다.",
+      "reason": "작업 전후 짧게 확인하는 상황에서 반복 입력과 불필요한 선택을 줄인다.",
+      "source": "사용자 최초 요청 및 Aside CLI 조사 요청",
+      "updatedAt": "2026-09-19"
+    },
+    {
+      "id": "D-005",
+      "category": "기술",
+      "title": "앱은 Flutter로 개발",
+      "status": "confirmed",
+      "decision": "app/ 디렉터리의 Flutter 프로젝트를 앱의 기준 코드로 삼는다. Android·iOS 프로젝트와 웹 미리보기를 함께 유지한다.",
+      "reason": "모바일 앱을 지속 개발하고 같은 Flutter 코드를 웹에서도 검토한다. 최초 HTML 프로토타입은 참고용으로 보존한다.",
+      "source": "사용자 요청 · flutter로 앱 빌드",
+      "updatedAt": "2026-09-19"
+    },
+    {
+      "id": "D-006",
+      "category": "개발 운영",
+      "title": "결정과 개발 이력을 파일 및 웹으로 관리",
+      "status": "confirmed",
+      "decision": "docs/project-state.json을 결정사항과 개발 이력의 기준 파일로 사용한다. 로컬 개발자 웹에서 수정 이유와 함께 저장하고 Flutter 앱 미리보기를 확인한다.",
+      "reason": "다음 개발 세션에서도 맥락을 이어가고 무엇을 왜 바꿨는지 확인할 수 있어야 한다. 웹 저장 시 변경 전후 이력과 복구용 이전 파일을 함께 보관한다.",
+      "source": "사용자 요청 · 주요 결정사항 파일 관리 및 개발자 웹 화면",
+      "updatedAt": "2026-09-19T03:22:14.464Z"
+    },
+    {
+      "id": "D-007",
+      "category": "교육",
+      "title": "매장별 교육 자료 형식",
+      "status": "deferred",
+      "decision": "후보: 짧은 시범 영상 + 자막, 사진 + 짧은 설명, 두 형식 혼합. 아직 선택하지 않았다.",
+      "reason": "매장 사장님이나 기존 직원이 실제로 제작·갱신하기 쉬운 방식을 확인해야 한다.",
+      "source": "이전 대화의 미응답 질문 · 사용자 결정 필요",
+      "updatedAt": "2026-09-19T07:38:08.250Z"
+    },
+    {
+      "id": "D-008",
+      "category": "가입",
+      "title": "매장 초대와 본인 확인 방식",
+      "status": "proposed",
+      "decision": "채용 후 초대 링크 또는 QR로 시작하는 흐름을 제안한다. 전화번호 인증, 초대 유효기간, 계정 복구는 미정이다.",
+      "reason": "쉽게 들어오면서도 다른 직원의 정보에 접근하지 않도록 매장 소속과 권한을 확인해야 한다.",
+      "source": "초기 설계 제안 · 아직 확정하지 않음",
+      "updatedAt": "2026-09-19"
+    },
+    {
+      "id": "D-009",
+      "category": "기술",
+      "title": "운영 백엔드와 실제 알림",
+      "status": "proposed",
+      "decision": "서버·인증 제공자는 아직 선정하지 않는다. 현재 Flutter 앱은 샘플 데이터와 기기 내 진행 저장을 사용한다.",
+      "reason": "가입·직원 권한·매장 운영 요구를 정한 뒤 데이터 동기화와 알림을 설계한다.",
+      "source": "미구현 범위 및 다음 설계 과제",
+      "updatedAt": "2026-09-19"
+    },
+    {
+      "id": "D-010",
+      "category": "범위",
+      "title": "채용 마켓·급여·전자계약 확장",
+      "status": "deferred",
+      "decision": "첫 출근 파일럿 이후 검토한다. 현재 앱에 실지급, 실제 채용, 계약 체결 기능이 있다고 표현하지 않는다.",
+      "reason": "확정된 첫 버전 범위를 유지하면서 각 확장 기능의 운영 요구를 별도로 정한다.",
+      "source": "D-003에 따른 후속 단계",
+      "updatedAt": "2026-09-19"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M-001",
+      "title": "사용자·범위 정의와 경쟁 서비스 조사",
+      "status": "done",
+      "description": "대상 업무, 한국 시장, 버디와 첫 근무, 첫 버전 범위 확정. Aside CLI로 공개 자료 조사."
+    },
+    {
+      "id": "M-002",
+      "title": "Flutter 앱 기반과 첫 근무 흐름",
+      "status": "done",
+      "description": "기존 경험을 Flutter로 옮기고 연습·버디 확인·근무표·도움 흐름과 기기 내 저장 구현."
+    },
+    {
+      "id": "M-003",
+      "title": "개발자 웹과 결정 이력",
+      "status": "done",
+      "description": "기준 JSON 파일을 읽고 쓰는 로컬 웹, 결정 변경 기록, Flutter 미리보기 구축."
+    },
+    {
+      "id": "M-004",
+      "title": "실제 매장 파일럿 준비",
+      "status": "planned",
+      "description": "교육 자료 형식, 초대 방식, 매장별 작업 내용과 버디 운영 확인."
+    }
+  ],
+  "history": [
+    {
+      "id": "H-001",
+      "at": "2026-09-19",
+      "type": "research",
+      "title": "첫 사용자와 제품 범위 확정",
+      "detail": "주방 준비·설거지, 한국 시장, 첫 한 시간 후 버디와 근무, 채용 이후 첫 출근 중심으로 합의했다.",
+      "files": [
+        "PRODUCT.md"
+      ],
+      "verification": "대화에서 사용자가 직접 선택한 내용을 기록."
+    },
+    {
+      "id": "H-002",
+      "at": "2026-09-19",
+      "type": "research",
+      "title": "급구·워키도키 공개 자료 조사",
+      "detail": "Aside CLI로 공식 페이지와 공개 자료를 확인하고 알바생 입장의 UX 원칙을 정리했다. 로그인 이후 앱 흐름은 미검증.",
+      "files": [
+        "RESEARCH.md"
+      ],
+      "verification": "공식 링크와 관찰 범위를 RESEARCH.md에 기록."
+    },
+    {
+      "id": "H-003",
+      "at": "2026-09-19",
+      "type": "implementation",
+      "title": "첫 HTML 프로토타입 구현",
+      "detail": "오늘·일하는 법·근무표·도움, 별도의 연습과 버디 확인을 구현했다. Flutter 전환 후에는 참고용으로 남긴다.",
+      "files": [
+        "index.html",
+        "app.js",
+        "styles.css"
+      ],
+      "verification": "당시 JavaScript 구문 검사와 브라우저 동작 확인. 320/390/430px 폭 확인."
+    },
+    {
+      "id": "H-004",
+      "at": "2026-09-19T02:59:54Z",
+      "type": "decision",
+      "title": "Flutter 전환과 개발 기록 관리 요청 반영",
+      "detail": "사용자의 명시적 요청에 따라 Flutter 앱 프로젝트, 파일 기반 결정 관리, 개발자 웹 구축을 시작했다.",
+      "files": [
+        "docs/project-state.json"
+      ],
+      "verification": "설치된 Flutter 3.41.2 / Dart 3.11.0 확인. 네이티브 배포·스토어 등록은 수행하지 않음."
+    },
+    {
+      "id": "H-4ff5c9d1-60ff-4a63-8eba-b42ad286b436",
+      "at": "2026-09-19T03:22:14.464Z",
+      "type": "decision",
+      "title": "D-006 · 결정과 개발 이력을 파일 및 웹으로 관리 변경",
+      "detail": "결정 관리 구현 완료: 변경 전후 이력, 파일 버전 충돌 검사, 복구 사본을 구현했으며 브라우저에서 실제 저장 흐름을 확인한다.",
+      "decisionId": "D-006",
+      "before": {
+        "id": "D-006",
+        "category": "개발 운영",
+        "title": "결정과 개발 이력을 파일 및 웹으로 관리",
+        "status": "confirmed",
+        "decision": "docs/project-state.json을 결정사항과 개발 이력의 기준 파일로 사용한다. 로컬 개발자 웹에서 수정 이유와 함께 저장하고 Flutter 앱 미리보기를 확인한다.",
+        "reason": "다음 개발 세션에서도 맥락을 이어가고 무엇을 왜 바꿨는지 확인할 수 있어야 한다.",
+        "source": "사용자 요청 · 주요 결정사항 파일 관리 및 개발자 웹 화면",
+        "updatedAt": "2026-09-19"
+      },
+      "after": {
+        "id": "D-006",
+        "category": "개발 운영",
+        "title": "결정과 개발 이력을 파일 및 웹으로 관리",
+        "status": "confirmed",
+        "decision": "docs/project-state.json을 결정사항과 개발 이력의 기준 파일로 사용한다. 로컬 개발자 웹에서 수정 이유와 함께 저장하고 Flutter 앱 미리보기를 확인한다.",
+        "reason": "다음 개발 세션에서도 맥락을 이어가고 무엇을 왜 바꿨는지 확인할 수 있어야 한다. 웹 저장 시 변경 전후 이력과 복구용 이전 파일을 함께 보관한다.",
+        "source": "사용자 요청 · 주요 결정사항 파일 관리 및 개발자 웹 화면",
+        "updatedAt": "2026-09-19T03:22:14.464Z"
+      },
+      "files": [
+        "docs/project-state.json"
+      ],
+      "verification": "개발자 웹에서 변경 이유와 함께 저장."
+    },
+    {
+      "id": "H-005",
+      "at": "2026-09-19T03:23:56Z",
+      "type": "implementation",
+      "title": "Flutter 앱 전환 완료 · 첫 근무 흐름",
+      "detail": "Android·iOS·웹 대상 프로젝트를 생성하고 오늘·일하는 법·근무표·도움과 버디 확인 화면을 Flutter로 옮겼다. 교육 모델, 진행 상태와 저장소, 화면 구성요소를 분리했다. 기기 내 진행 저장을 연결했으며 최초 HTML 프로토타입은 참고용으로 보존했다.",
+      "files": [
+        "app/lib/domain/lesson.dart",
+        "app/lib/state/work_controller.dart",
+        "app/lib/ui/workspace_screen.dart",
+        "app/lib/main.dart",
+        "app/pubspec.lock"
+      ],
+      "verification": "Flutter analyze 문제 없음. 상태·역할·복원·저장 실패 및 화면 흐름 테스트 9개 통과. 320/390/430px 폭에서 네 메뉴 레이아웃 검증. 실제 인증과 알림은 미구현."
+    },
+    {
+      "id": "H-006",
+      "at": "2026-09-19T03:23:56Z",
+      "type": "implementation",
+      "title": "개발자 웹과 지속 개발 기록 연결",
+      "detail": "프로젝트 현황, 결정사항 검색·필터·편집·추가, 개발 이력·변경 전후 비교, 개발 메모 추가, Flutter 미리보기를 구현했다. 기준 JSON에 버전 충돌 검사, 원자적 저장, 복구 사본을 적용했다. 다음 작업자가 읽을 AGENTS.md와 실행 가이드를 작성했다.",
+      "files": [
+        "developer/server.mjs",
+        "developer/store.mjs",
+        "developer/dashboard.js",
+        "docs/project-state.json",
+        "docs/DECISIONS.md",
+        "AGENTS.md",
+        "README.md"
+      ],
+      "verification": "Node 저장·API 테스트 5개 통과. JavaScript 구문 검사 통과. Aside 브라우저에서 D-006 편집·실제 저장·이력 표시와 Flutter 미리보기를 확인했다. 두 개발 단계를 완료로 갱신하고 파일 버전을 r3으로 올렸다."
+    },
+    {
+      "id": "H-007",
+      "at": "2026-09-19T03:23:56Z",
+      "type": "test",
+      "title": "한글 표시 수정 및 웹·iOS 시뮬레이터 빌드 검증",
+      "detail": "최초 Flutter 웹 미리보기에서 한글 글리프가 표시되지 않는 현상을 발견했다. Google Fonts의 Noto Sans KR과 SIL OFL 라이선스를 앱에 포함하고 테마 글꼴을 지정했다. 외부 글꼴 로딩 없이 한글이 보이도록 수정했다.",
+      "files": [
+        "app/assets/fonts/NotoSansKR.ttf",
+        "app/assets/fonts/OFL.txt",
+        "app/pubspec.yaml",
+        "app/lib/main.dart",
+        "app/build/web",
+        "app/build/ios/iphonesimulator/Runner.app"
+      ],
+      "verification": "수정 후 Flutter analyze 및 9개 테스트 재통과. Flutter web release 빌드 성공, iOS simulator debug no-codesign 빌드 성공. 브라우저 스크린샷으로 한글 정상 표시 확인. iOS 기기 실행·스토어 배포를 검증한 것은 아님."
+    },
+    {
+      "id": "H-008",
+      "at": "2026-09-19T03:23:56Z",
+      "type": "note",
+      "title": "다음 작업 전 확인할 환경과 미정 사항",
+      "detail": "Android 도구 체인은 설치되어 있으나 일부 SDK 라이선스가 미동의 상태라 APK 빌드는 이번에 수행하지 않았다. 라이선스 상태를 임의 변경하지 않았다. 교육 자료 형식, 초대·인증 방식, 운영 백엔드는 여전히 논의 중이며 개발용 번들 ID·아이콘은 출시 전 결정해야 한다.",
+      "files": [
+        "README.md",
+        "docs/DECISIONS.md"
+      ],
+      "verification": "flutter doctor -v로 Android 라이선스 상태, Xcode·CocoaPods와 웹 도구 사용 가능 여부 확인. 실기기 연결 없음."
+    },
+    {
+      "id": "H-84ae378f-2341-4f65-a678-0e73359af1b8",
+      "at": "2026-09-19T07:38:08.250Z",
+      "type": "decision",
+      "title": "D-007 · 매장별 교육 자료 형식 변경",
+      "detail": "교육자료를 실제로 빠르게 익힐수 있는 부분과 정형화 할 수 있는 부분을 정확하게 해야합니다. 그래야 해당 메뉴얼 전략이 세워질 수 있습니다.",
+      "decisionId": "D-007",
+      "before": {
+        "id": "D-007",
+        "category": "교육",
+        "title": "매장별 교육 자료 형식",
+        "status": "proposed",
+        "decision": "후보: 짧은 시범 영상 + 자막, 사진 + 짧은 설명, 두 형식 혼합. 아직 선택하지 않았다.",
+        "reason": "매장 사장님이나 기존 직원이 실제로 제작·갱신하기 쉬운 방식을 확인해야 한다.",
+        "source": "이전 대화의 미응답 질문 · 사용자 결정 필요",
+        "updatedAt": "2026-09-19"
+      },
+      "after": {
+        "id": "D-007",
+        "category": "교육",
+        "title": "매장별 교육 자료 형식",
+        "status": "deferred",
+        "decision": "후보: 짧은 시범 영상 + 자막, 사진 + 짧은 설명, 두 형식 혼합. 아직 선택하지 않았다.",
+        "reason": "매장 사장님이나 기존 직원이 실제로 제작·갱신하기 쉬운 방식을 확인해야 한다.",
+        "source": "이전 대화의 미응답 질문 · 사용자 결정 필요",
+        "updatedAt": "2026-09-19T07:38:08.250Z"
+      },
+      "files": [
+        "docs/project-state.json"
+      ],
+      "verification": "개발자 웹에서 변경 이유와 함께 저장."
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+name: 방향 질문 · 새 기능 · 기능 개선
+description: CEO와 팀이 원하는 개발 방향, 새 기능, 업무 경험 개선을 요청합니다.
+title: "[방향 검토] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        이 의견은 공개됩니다. 직원 개인정보, 연락처, 거래처 비밀정보를 포함하지 마세요.
+        의견 접수는 제품 결정 확정을 의미하지 않습니다. 검토 결과는 이슈에 기록하고, 합의된 결정은 프로젝트 기록에 반영합니다.
+  - type: dropdown
+    id: request_type
+    attributes:
+      label: 어떤 의견인가요?
+      options:
+        - 개발 방향 질문 / 제안
+        - 새로운 기능 요청
+        - 기존 기능 개선
+        - 오류 / 불편 사항
+    validations:
+      required: true
+  - type: dropdown
+    id: perspective
+    attributes:
+      label: 어떤 관점에서 보셨나요?
+      options:
+        - CEO / 제품 책임자
+        - 매장 사장님 / 매니저
+        - 버디 / 직원
+        - 개발 / 디자인
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 현재 업무에서 겪는 어려움
+      description: 언제, 누가, 어떤 어려움을 겪는지 적어 주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: direction
+    attributes:
+      label: 원하는 기능 / 변경 / 질문과 이유
+      description: 유지 / 변경 / 보류할 것과 관련 결정 번호(D-xxx)를 적어 주세요.
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 제안 우선순위
+      options:
+        - 다음 개발에서 검토
+        - 파일럿 전 필요
+        - 파일럿 이후 검토
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 잘 해결됐는지 어떻게 확인할까요?
+      description: 현장 관찰 방법이나 성공 기준을 제안해 주세요. 아직 검증하지 않은 가설은 구분해 주세요.
+    validations:
+      required: true

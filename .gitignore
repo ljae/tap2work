@@ -1,0 +1,10 @@
+.DS_Store
+node_modules/
+artifacts/
+*.log
+docs/.project-state-*.tmp
+.local/
+_site/
+.env
+.env.*
+!.env.example

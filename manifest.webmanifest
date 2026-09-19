@@ -1,0 +1,13 @@
+{
+  "id": "./",
+  "name": "tab2work",
+  "short_name": "tab2work",
+  "description": "처음 하는 일도, 함께 한 걸음씩.",
+  "lang": "ko-KR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f5ef",
+  "theme_color": "#203d34",
+  "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

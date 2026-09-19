@@ -1,0 +1,66 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:tab2work/main.dart';
+import 'package:tab2work/state/work_controller.dart';
+import 'work_controller_test.dart' show MemoryStore;
+
+void main() {
+  testWidgets(
+    'worker must acknowledge real practice; buddy action is separate',
+    (tester) async {
+      final work = WorkController(MemoryStore());
+      await tester.pumpWidget(Tab2workApp(controller: work));
+      await tester.tap(find.byKey(const Key('next-task')));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<FilledButton>(find.byKey(const Key('save-lesson')))
+            .onPressed,
+        isNull,
+      );
+      await tester.ensureVisible(find.byKey(const Key('practice-check')));
+      await tester.tap(find.byKey(const Key('practice-check')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('save-lesson')));
+      await tester.tap(find.byKey(const Key('save-lesson')));
+      await tester.pumpAndSettle();
+      expect(work.practiced, {'welcome'});
+      expect(work.approved, isEmpty);
+      work.switchRole(DemoRole.buddy);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('approve-welcome')));
+      await tester.tap(find.byKey(const Key('approve-welcome')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('practice-check')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('save-lesson')));
+      await tester.tap(find.byKey(const Key('save-lesson')));
+      await tester.pumpAndSettle();
+      expect(work.approved, {'welcome'});
+    },
+  );
+
+  for (final width in [320.0, 390.0, 430.0]) {
+    testWidgets('all worker tabs fit a $width pixel phone', (tester) async {
+      tester.view.physicalSize = Size(width, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        Tab2workApp(controller: WorkController(MemoryStore())),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      for (final label in ['일하는 법', '근무표', '도움', '오늘']) {
+        await tester.tap(
+          find.descendant(
+            of: find.byType(NavigationBar),
+            matching: find.text(label),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: '$width / $label');
+      }
+    });
+  }
+}

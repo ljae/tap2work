@@ -1,0 +1,36 @@
+{
+    "name": "tab2work",
+    "short_name": "tab2work",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#f6f5ef",
+    "theme_color": "#203d34",
+    "description": "작은 주방의 첫 근무를 함께 시작하는 tab2work.",
+    "lang": "ko-KR",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
