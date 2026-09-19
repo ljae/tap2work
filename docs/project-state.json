@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 16,
+  "revision": 17,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1320,6 +1320,18 @@
         "PRODUCT.md"
       ],
       "verification": "Flutter analyze 문제 없음 및 전체 위젯 테스트 33개 통과. npm run check, git diff --check 통과. 로컬/공개용 Flutter 웹 빌드 성공 및 원본·에셋·두 빌드의 로고 바이트 일치 확인. Aside 데스크톱 스크린샷에서 앱 헤더의 새 로고 확인. 최종 PNG는 2172×724 RGB 흰 배경이며 투명 이미지가 아님. API 변경이 없어 Node/API 테스트는 재실행하지 않음. 이번 로고 재생성의 커밋·공개 배포·네이티브 아이콘 변경·네이티브 빌드·실기기 검증은 수행하지 않음."
+    },
+    {
+      "id": "H-doodle-logo-deployed",
+      "at": "2026-09-19T13:13:46.088811+00:00",
+      "type": "test",
+      "title": "새 두들 로고 커밋 및 공개 배포 확인",
+      "detail": "사용자의 commit and deploy 요청으로 3190f56을 main에 커밋하고 origin/main에 푸시했다. GitHub Actions 35444980003의 검사·빌드·Pages 배포가 모두 성공했다. 공개 HTTP에서 프로젝트 revision 16과 포털·Flutter의 새 로고가 로컬 원본과 바이트 단위로 일치함을 확인했다.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "GitHub CI: JS 검사, Node/API 테스트, Flutter analyze/test, 공개 웹 빌드와 배포 통과. 공개 로고 두 경로와 버전 검증 성공. HTTPS는 여전히 인증서 호스트명 불일치(curl 60)이며 TLS 검증을 우회하지 않음. 네이티브 빌드·실기기 검증은 수행하지 않음."
     }
   ]
 }

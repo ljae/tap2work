@@ -49,3 +49,7 @@ HTTPS remained unavailable at this verification: certificate hostname mismatch, 
 Commit `a2c8d59` on `main` adds configurable restaurant tables/equipment and the user-supplied `tap2work.png`. [Workflow 35443929355](https://github.com/ljae/tap2work/actions/runs/35443929355) passed checks, Flutter analysis/tests, the public web build and Pages deployment. Live HTTP verification confirmed project revision 14, six sample tables with 24 seats, portal logo markup and byte-identical portal/Flutter logo assets. Public layout drafts remain unsaved. This verification is recorded in project revision 15.
 
 HTTPS still failed hostname validation (`curl` exit 60); Pages reported `https_enforced=false`. Native builds and physical-device testing were not performed.
+
+## Doodle logo release
+
+Commit `3190f56` replaces the logo with the newly generated comforting blob characters and adjusts header sizing. [Workflow 35444980003](https://github.com/ljae/tap2work/actions/runs/35444980003) passed all checks, tests, the public web build and Pages deployment. Live HTTP verification confirmed revision 16 and byte-identical new logo assets at both `/tap2work.png` and `/app/assets/assets/branding/tap2work.png`. This result is recorded in project revision 17. HTTPS still failed hostname validation (`curl` exit 60); native builds and physical-device testing were not performed.
