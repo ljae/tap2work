@@ -43,3 +43,9 @@ Initial publish: workflow 35436895916. Renamed publish: workflow 35437081320 (bo
 Feature commit `0832ba0` was merged into `main` as `fd1ccb9`. [Workflow 35440364916](https://github.com/ljae/tap2work/actions/runs/35440364916) passed all checks, built the public Flutter app, and deployed Pages. Live HTTP checks confirmed project revision 12 and the new dashboard in owner/crew sample responses; financial fields are excluded for crew. This deployment record is saved in revision 13.
 
 HTTPS remained unavailable at this verification: certificate hostname mismatch, and the Pages API rejected HTTPS enforcement because the certificate does not exist yet. HTTP was verified without bypassing TLS validation.
+
+## Restaurant layout and logo release
+
+Commit `a2c8d59` on `main` adds configurable restaurant tables/equipment and the user-supplied `tap2work.png`. [Workflow 35443929355](https://github.com/ljae/tap2work/actions/runs/35443929355) passed checks, Flutter analysis/tests, the public web build and Pages deployment. Live HTTP verification confirmed project revision 14, six sample tables with 24 seats, portal logo markup and byte-identical portal/Flutter logo assets. Public layout drafts remain unsaved. This verification is recorded in project revision 15.
+
+HTTPS still failed hostname validation (`curl` exit 60); Pages reported `https_enforced=false`. Native builds and physical-device testing were not performed.

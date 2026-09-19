@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 14,
+  "revision": 15,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1254,6 +1254,18 @@
         "package.json"
       ],
       "verification": "원본·Flutter 에셋·로컬 HTTP 로고 응답의 바이트 일치 확인. 개발자 콘솔 브랜드 접근성 링크 확인. 헤더 높이 증가로 기존 버튼 탭 테스트 2개 실패 후 기존 높이를 유지하도록 수정, Flutter analyze와 전체 테스트 33개 재통과. Node/API 26개·JS 검사 통과. 원본 로고 포함 로컬/공개 Flutter 웹 빌드 성공. 네이티브 아이콘·네이티브 빌드·이번 변경 공개 배포는 미수행."
+    },
+    {
+      "id": "H-layout-logo-deployed",
+      "at": "2026-09-19T12:51:37.304596+00:00",
+      "type": "test",
+      "title": "매장 배치·사용자 로고 커밋 및 공개 배포 확인",
+      "detail": "사용자의 commit and deploy 요청에 따라 a2c8d59를 main에 커밋하고 origin/main으로 푸시했다. GitHub Actions 35443929355의 검사·빌드·Pages 배포가 성공했다. 공개 HTTP에서 프로젝트 revision 14, 전체 매장 샘플 테이블 6개/24석, 포털 로고 표시 마크업, 포털 및 Flutter 로고 원본 바이트 일치를 확인했다.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "GitHub CI의 JS 검사, Node/API 테스트, Flutter analyze/test, 공개 웹 빌드 및 배포 성공. 공개 HTTP 데이터·로고 검증 통과. HTTPS는 여전히 인증서 호스트명 검증 실패(curl 60), Pages https_enforced=false. TLS 검증을 우회하지 않음. 공개 운영 데이터 저장과 네이티브 빌드·실기기 검증은 수행하지 않음."
     }
   ]
 }
