@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tab2work/domain/lesson.dart';
-import 'package:tab2work/state/work_controller.dart';
+import 'package:tap2work/domain/lesson.dart';
+import 'package:tap2work/state/work_controller.dart';
 
 class MemoryStore implements ProgressStore {
   String? value;

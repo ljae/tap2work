@@ -7,7 +7,7 @@ import { OperationsStore } from '../operations.mjs';
 import { createConsoleServer } from '../server.mjs';
 
 async function setup(t) {
-  const dir = await mkdtemp(path.join(tmpdir(), 'tab2work-ops-test-'));
+  const dir = await mkdtemp(path.join(tmpdir(), 'tap2work-ops-test-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
   let now = new Date('2026-09-19T05:00:00Z');
   const file = path.join(dir, 'operations.json');

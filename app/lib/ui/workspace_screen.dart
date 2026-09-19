@@ -21,7 +21,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     builder: (context, _) => Scaffold(
       appBar: AppBar(
         title: const Text(
-          'tab2work.',
+          'tap2work.',
           style: TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 27,
@@ -678,7 +678,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
         builder: (context) => AlertDialog(
           title: const Text('함께 시작하는 첫 근무'),
           content: const Text(
-            'Flutter로 만든 tab2work 체험 버전이에요.\n\n가상 매장과 예시 인물이며 실제 직원 계정, 초대, 알림, 급여, 교육 영상은 아직 연결하지 않았어요. 진행 기록은 현재 기기에만 저장돼요.',
+            'Flutter로 만든 tap2work 체험 버전이에요.\n\n가상 매장과 예시 인물이며 실제 직원 계정, 초대, 알림, 급여, 교육 영상은 아직 연결하지 않았어요. 진행 기록은 현재 기기에만 저장돼요.',
           ),
           actions: [
             TextButton(

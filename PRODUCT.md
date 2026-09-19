@@ -42,7 +42,7 @@ The layout is schematic sample data. Location names/notes can change, but actual
 
 ### Public development review
 
-The user selected `https://github.com/ljae/tab2work` for development and registered `tab2.work` through Namecheap. The user will share the site with a specific CEO, who can ask direction questions, request new features, and suggest improvements to the work experience. Do not impersonate the CEO or treat AI recommendations as their feedback.
+The user selected `https://github.com/ljae/tap2work` for development and registered `tap2.work` through Namecheap. The user will share the site with a specific CEO, who can ask direction questions, request new features, and suggest improvements to the work experience. Do not impersonate the CEO or treat AI recommendations as their feedback.
 
 The public review page shows product questions, versioned decisions, milestones, and GitHub Issue links for feedback. GitHub Issues is the initial implemented feedback mechanism: the reviewer logs in and explicitly submits a public issue. This is not an anonymous feedback inbox. Feedback does not automatically change confirmed decisions; agreed changes are recorded in the canonical file with reasons and history.
 

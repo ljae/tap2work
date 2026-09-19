@@ -9,6 +9,6 @@
 5. GitHub 로그인 후 내용을 검토하고 직접 제출한다. 이슈는 공개되므로 직원 개인정보·거래처 비밀정보를 포함하지 않는다.
 6. 개발자는 이슈에 질문과 검토 결과를 남긴다. 사용자가 합의한 결정만 `docs/project-state.json`에 변경 전후와 이유를 기록한다. 요청 접수가 자동 승인이나 자동 구현을 의미하지 않는다.
 
-[질문 · 기능 요청 작성](https://github.com/ljae/tab2work/issues/new?template=direction-feedback.yml) · [등록된 의견](https://github.com/ljae/tab2work/issues)
+[질문 · 기능 요청 작성](https://github.com/ljae/tap2work/issues/new?template=direction-feedback.yml) · [등록된 의견](https://github.com/ljae/tap2work/issues)
 
 실제 CEO에게 메시지는 자동 발송하지 않는다. 별도 익명 제출, 비공개 피드백함, 자동 알림 연동은 구현하지 않았다.

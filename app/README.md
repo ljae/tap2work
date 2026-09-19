@@ -1,4 +1,4 @@
-# tab2work Flutter app
+# tap2work Flutter app
 
 프로젝트의 제품 결정과 개발 이력은 상위 [`docs/project-state.json`](../docs/project-state.json)을 기준으로 합니다. 전체 실행 방법은 상위 [README](../README.md)를 확인하세요.
 

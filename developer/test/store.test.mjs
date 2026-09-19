@@ -12,7 +12,7 @@ const fixture = {
 };
 const update = { revision: 1, category: '교육', title: '교육 자료', status: 'confirmed', decision: '사진과 짧은 설명', reason: '제작과 갱신이 쉬움', changeReason: '테스트 매장의 제작 여건 확인' };
 async function setup(t) {
-  const dir = await mkdtemp(path.join(tmpdir(), 'tab2work-console-test-'));
+  const dir = await mkdtemp(path.join(tmpdir(), 'tap2work-console-test-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
   const filename = path.join(dir, 'project-state.json');
   await writeFile(filename, JSON.stringify(fixture));

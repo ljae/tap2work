@@ -84,7 +84,7 @@ function render(focusMain = false) {
   $('#role-label').textContent = state.role === 'buddy' ? '버디 모드' : '신입 모드';
   $('.profile-button .avatar').textContent = state.role === 'buddy' ? '민' : '지';
   $('#main').innerHTML = `<div class="page-enter">${({ today, learn, shifts, team })[current]()}</div>`;
-  document.title = `tab2work — ${tabs.find(tab => tab[0] === current)[1]}`;
+  document.title = `tap2work — ${tabs.find(tab => tab[0] === current)[1]}`;
   if (focusMain) { $('#main').focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
 }
 function showStep(id) {

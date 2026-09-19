@@ -13,7 +13,7 @@ await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 await cp(path.join(root, 'site'), output, { recursive: true });
 await cp(appBuild, path.join(output, 'app'), { recursive: true });
-// Relative base serves the same artifact at /tab2work/app/ and /app/.
+// Relative base serves the same artifact at /tap2work/app/ and /app/.
 const appIndex = path.join(output, 'app/index.html');
 await writeFile(appIndex, (await readFile(appIndex, 'utf8')).replace('<base href="/app/">', '<base href="./">'));
 await mkdir(path.join(output, 'fonts'), { recursive: true });
@@ -24,7 +24,7 @@ await mkdir(path.join(output, 'docs'), { recursive: true });
 await cp(path.join(root, 'docs/CEO-REVIEW.md'), path.join(output, 'docs/CEO-REVIEW.md'));
 await writeFile(path.join(output, '.nojekyll'), '');
 // Always generate from code in a fresh temporary directory, never from .local/.
-const temporary = await mkdtemp(path.join(tmpdir(), 'tab2work-public-seed-'));
+const temporary = await mkdtemp(path.join(tmpdir(), 'tap2work-public-seed-'));
 try {
   const store = new OperationsStore(path.join(temporary, 'sample.json'), () => new Date('2026-09-19T09:00:00Z'));
   const dataRoot = path.join(output, 'app/review-data');

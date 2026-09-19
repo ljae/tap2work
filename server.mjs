@@ -16,4 +16,4 @@ http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': `${mime[path.extname(name)] || 'application/octet-stream'}; charset=utf-8`, 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' });
     res.end(body);
   } catch { res.writeHead(500); res.end('Unable to load this page'); }
-}).listen(port, '0.0.0.0', () => console.log(`tab2work is ready at http://localhost:${port}`));
+}).listen(port, '0.0.0.0', () => console.log(`tap2work is ready at http://localhost:${port}`));

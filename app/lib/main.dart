@@ -11,17 +11,17 @@ Future<void> main() async {
   final controller = WorkController(DeviceProgressStore());
   await controller.initialize();
   final operations = OperationsController();
-  runApp(Tab2workApp(controller: controller, operations: operations));
+  runApp(Tap2workApp(controller: controller, operations: operations));
   operations.start();
 }
 
-class Tab2workApp extends StatelessWidget {
-  const Tab2workApp({super.key, required this.controller, this.operations});
+class Tap2workApp extends StatelessWidget {
+  const Tap2workApp({super.key, required this.controller, this.operations});
   final WorkController controller;
   final OperationsController? operations;
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'tab2work',
+    title: 'tap2work',
     debugShowCheckedModeBanner: false,
     locale: const Locale('ko', 'KR'),
     supportedLocales: const [Locale('ko', 'KR'), Locale('en', 'US')],

@@ -1,10 +1,10 @@
-# tab2work
+# tap2work
 
 한국 소규모 F&B 매장의 직원·할 일·재고·발주를 한곳에서 다루는 Flutter 앱입니다. 기존의 ‘첫 한 시간 후 버디와 함께 근무’ 흐름을 유지하면서, 2026-09-19 사용자 요청으로 일상 매장 운영까지 체험 범위를 확장했습니다.
 
 ## 공개 개발 리뷰와 CEO 피드백
 
-개발 저장소는 https://github.com/ljae/tab2work 이며 사용자 등록 도메인은 `tab2.work` (Namecheap)입니다. GitHub Pages 배포는 `.github/workflows/pages.yml`에서 `main` 변경마다 분석·테스트 후 실행합니다. 도메인의 실제 연결 상태는 GitHub Pages 설정과 DNS로 확인하세요.
+개발 저장소는 https://github.com/ljae/tap2work 이며 사용자 등록 도메인은 `tap2.work` (Namecheap)입니다. GitHub Pages 배포는 `.github/workflows/pages.yml`에서 `main` 변경마다 분석·테스트 후 실행합니다. 도메인의 실제 연결 상태는 GitHub Pages 설정과 DNS로 확인하세요.
 
 - 공개 페이지: `site/`의 개발 방향 질문, 단계, 결정 기록과 피드백 링크.
 - CEO는 방향 질문 / 새 기능 / 기존 기능 개선을 GitHub 이슈 양식으로 직접 제출합니다. GitHub 로그인이 필요하며 의견은 공개됩니다. 제출이 제품 방향의 자동 확정은 아닙니다.
@@ -111,3 +111,5 @@ Flutter 앱의 다섯 메뉴는 오늘 · 할 일 · 재고/발주 · 우리 팀
 첫 출근 진행은 기존처럼 기기 내 저장입니다. 공유 업무 완료와 개인별 교육 이수는 서로 다른 기록이며 교육 완료를 공유 체크리스트로 대체하지 않습니다.
 
 Flutter 체험 기록과 최초 HTML 프로토타입의 브라우저 기록은 별개입니다. 자동 마이그레이션하지 않습니다. 참고용 HTML 프로토타입은 `npm run dev:prototype`으로 http://localhost:3000 에서 열 수 있습니다.
+
+프로젝트 표시 이름과 Dart 패키지는 `tap2work`입니다. 기존 설치와 연습 기록을 유지하기 위해 Android/iOS 번들 식별자 `com.tab2work.tab2work` 및 브라우저 저장 키는 이전 값을 유지합니다. 로컬 작업 폴더 경로는 `/Volumes/ORICO/tab2work`입니다.

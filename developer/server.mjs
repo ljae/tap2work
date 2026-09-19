@@ -91,5 +91,5 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const port = Number(process.env.DEV_CONSOLE_PORT || 3100);
   const server = createConsoleServer();
   server.on('error', error => { console.error(`개발자 웹을 열지 못했습니다: ${error.message}`); process.exitCode = 1; });
-  server.listen(port, '127.0.0.1', () => console.log(`tab2work 개발자 웹: http://localhost:${port}\n기준 파일: docs/project-state.json\nFlutter 미리보기: http://localhost:${port}/app/`));
+  server.listen(port, '127.0.0.1', () => console.log(`tap2work 개발자 웹: http://localhost:${port}\n기준 파일: docs/project-state.json\nFlutter 미리보기: http://localhost:${port}/app/`));
 }

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "revision": 10,
+  "revision": 9,
   "product": {
-    "name": "tap2work",
+    "name": "tab2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
     "phase": "통합 매장 운영 프로토타입",
     "audience": "한국 소규모 F&B · 준비 및 설거지 업무",
@@ -192,12 +192,12 @@
     {
       "id": "D-019",
       "category": "개발 운영",
-      "title": "tap2work 저장소와 tap2.work 개발 사이트",
+      "title": "GitHub 저장소와 tab2.work 개발 사이트",
       "status": "confirmed",
-      "decision": "개발 저장소 https://github.com/ljae/tap2work와 Namecheap에 등록한 tap2.work 도메인을 사용한다. 프로젝트명은 tap2work로 변경한다. 공개 리뷰 페이지와 읽기 전용 Flutter 샘플은 GitHub Pages로 배포한다. 실제 DNS·HTTPS 상태는 개발 이력에서 확인한다.",
-      "reason": "사용자가 실제 등록 도메인은 tap2.work임을 확인한 뒤 프로젝트명도 tap2work로 바꾸도록 요청했다.",
+      "decision": "사용자가 생성한 https://github.com/ljae/tab2work 저장소와 Namecheap의 tab2.work 도메인을 개발 리뷰 사이트로 사용한다. 정적 공개 페이지와 읽기 전용 Flutter 샘플을 GitHub Pages로 배포하는 구성을 구현한다. 실제 배포 및 DNS 결과는 개발 이력에서 확인한다.",
+      "reason": "사용자가 저장소와 도메인을 등록하고 개발 사이트로 사용하도록 요청했다.",
       "source": "사용자 요청 및 후속 설명 · 2026-09-19",
-      "updatedAt": "2026-09-19T10:18:24.760415+00:00"
+      "updatedAt": "2026-09-19T10:03:33.754569+00:00"
     },
     {
       "id": "D-020",
@@ -884,70 +884,6 @@
         "AGENTS.md"
       ],
       "verification": "JavaScript 구문 검사 통과. Node/API 16개 테스트 통과(초기 sandbox localhost bind EPERM 후 권한 실행으로 통과). Flutter analyze 문제 없음, 테스트 19개 통과, 공개용 웹 release 빌드 성공. 네이티브 빌드/실기기 검증 미수행. CEO 피드백 제출·외부 메시지 전송 없음. 브라우저 및 공개 배포 검증은 진행 중."
-    },
-    {
-      "id": "H-tap2work-domain-correction",
-      "at": "2026-09-19T10:18:24.760415+00:00",
-      "type": "decision",
-      "title": "D-019 · 프로젝트 이름과 도메인 정정",
-      "decisionId": "D-019",
-      "detail": "사용자가 실제 등록 도메인은 tap2.work임을 확인한 뒤 프로젝트명도 tap2work로 바꾸도록 요청했다.",
-      "before": {
-        "id": "D-019",
-        "category": "개발 운영",
-        "title": "GitHub 저장소와 tab2.work 개발 사이트",
-        "status": "confirmed",
-        "decision": "사용자가 생성한 https://github.com/ljae/tab2work 저장소와 Namecheap의 tab2.work 도메인을 개발 리뷰 사이트로 사용한다. 정적 공개 페이지와 읽기 전용 Flutter 샘플을 GitHub Pages로 배포하는 구성을 구현한다. 실제 배포 및 DNS 결과는 개발 이력에서 확인한다.",
-        "reason": "사용자가 저장소와 도메인을 등록하고 개발 사이트로 사용하도록 요청했다.",
-        "source": "사용자 요청 및 후속 설명 · 2026-09-19",
-        "updatedAt": "2026-09-19T10:03:33.754569+00:00"
-      },
-      "after": {
-        "id": "D-019",
-        "category": "개발 운영",
-        "title": "tap2work 저장소와 tap2.work 개발 사이트",
-        "status": "confirmed",
-        "decision": "개발 저장소 https://github.com/ljae/tap2work와 Namecheap에 등록한 tap2.work 도메인을 사용한다. 프로젝트명은 tap2work로 변경한다. 공개 리뷰 페이지와 읽기 전용 Flutter 샘플은 GitHub Pages로 배포한다. 실제 DNS·HTTPS 상태는 개발 이력에서 확인한다.",
-        "reason": "사용자가 실제 등록 도메인은 tap2.work임을 확인한 뒤 프로젝트명도 tap2work로 바꾸도록 요청했다.",
-        "source": "사용자 요청 및 후속 설명 · 2026-09-19",
-        "updatedAt": "2026-09-19T10:18:24.760415+00:00"
-      },
-      "files": [
-        "docs/project-state.json",
-        "PRODUCT.md",
-        "README.md",
-        "AGENTS.md"
-      ],
-      "verification": "Namecheap 계정에 tap2.work 등록 확인. 사용자 명시적 확인 및 이름 변경 요청. GitHub 저장소를 tap2work로 변경하고 origin을 갱신했다."
-    },
-    {
-      "id": "H-tap2work-name",
-      "at": "2026-09-19T10:18:24.760415+00:00",
-      "type": "implementation",
-      "title": "프로젝트명 tab2work → tap2work",
-      "detail": "사용자 요청에 따라 앱·웹·로컬 개발자 콘솔 표시, Dart/npm 패키지, 앱 클래스·테스트 import, 문서와 GitHub 링크를 tap2work로 바꿨다. 이전 개발 이력과 복구 사본은 보존한다. 기존 설치와 연습 기록을 유지하기 위해 번들 ID·저장 키·로컬 작업 폴더 경로는 유지한다.",
-      "changes": {
-        "product.name": {
-          "before": "tab2work",
-          "after": "tap2work"
-        },
-        "repository": {
-          "before": "https://github.com/ljae/tab2work",
-          "after": "https://github.com/ljae/tap2work"
-        },
-        "domain": {
-          "before": "tab2.work",
-          "after": "tap2.work"
-        }
-      },
-      "files": [
-        "app/",
-        "site/",
-        "developer/",
-        "package.json",
-        "docs/project-state.json"
-      ],
-      "verification": "JavaScript 구문 검사와 Node/API 16개 테스트 통과. 이름 변경 후 Flutter 분석·테스트·웹 재빌드 진행 중."
     }
   ]
 }

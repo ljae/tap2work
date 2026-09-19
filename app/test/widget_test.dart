@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tab2work/main.dart';
-import 'package:tab2work/state/work_controller.dart';
+import 'package:tap2work/main.dart';
+import 'package:tap2work/state/work_controller.dart';
 import 'work_controller_test.dart' show MemoryStore;
 
 void main() {
@@ -9,7 +9,7 @@ void main() {
     'worker must acknowledge real practice; buddy action is separate',
     (tester) async {
       final work = WorkController(MemoryStore());
-      await tester.pumpWidget(Tab2workApp(controller: work));
+      await tester.pumpWidget(Tap2workApp(controller: work));
       await tester.tap(find.byKey(const Key('next-task')));
       await tester.pumpAndSettle();
       expect(
@@ -47,7 +47,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
-        Tab2workApp(controller: WorkController(MemoryStore())),
+        Tap2workApp(controller: WorkController(MemoryStore())),
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);

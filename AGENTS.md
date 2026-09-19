@@ -1,4 +1,4 @@
-# tab2work development continuity
+# tap2work development continuity
 
 Before making product or architecture changes, read `docs/project-state.json` and `PRODUCT.md`. `docs/project-state.json` is the canonical, versioned project decision and development history file. `RESEARCH.md` contains the scoped competitor research.
 
@@ -15,7 +15,7 @@ Before making product or architecture changes, read `docs/project-state.json` an
 - Developer console source: `developer/`. Start with `npm run dev:console`; Flutter preview is served from `app/build/web` at `/app/` after `npm run build:app`.
 - Run Flutter analysis and relevant tests for app changes. Run `npm run test:console` when changing decision persistence or APIs. Use `npm run check` for JavaScript checks.
 - Never place production employee data or credentials in the demo state, development history, or source files.
-- Development repository: `https://github.com/ljae/tab2work`; requested domain: `tab2.work` (Namecheap). `site/` is the public review portal; `.github/workflows/pages.yml` builds and deploys GitHub Pages. `npm run build:site` creates a separate read-only Flutter review build and freshly seeded samples; never publish `.local/` or expose the local write APIs.
+- Development repository: `https://github.com/ljae/tap2work`; requested domain: `tap2.work` (Namecheap). `site/` is the public review portal; `.github/workflows/pages.yml` builds and deploys GitHub Pages. `npm run build:site` creates a separate read-only Flutter review build and freshly seeded samples; never publish `.local/` or expose the local write APIs.
 - The user will share the portal with a specific CEO for direction questions, new features and improvements. GitHub issue forms collect explicitly submitted public feedback. Do not invent CEO feedback or automatically convert requests into confirmed product decisions.
 
 Routine reversible implementation work remains authorized. These instructions do not impose an extra approval process.

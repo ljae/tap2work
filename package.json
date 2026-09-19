@@ -1,8 +1,8 @@
 {
-  "name": "tab2work",
+  "name": "tap2work",
   "version": "0.3.0",
   "private": true,
-  "description": "tab2work Flutter app and local decision/development workspace.",
+  "description": "tap2work Flutter app and local decision/development workspace.",
   "scripts": {
     "dev": "node developer/server.mjs",
     "start": "node developer/server.mjs",

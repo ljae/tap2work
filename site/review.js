@@ -7,7 +7,7 @@ function renderDecisions() {
   const filter = document.querySelector('#decision-filter').value;
   const items = project.decisions.filter(item => filter === 'all' || (filter === 'pending' ? ['proposed', 'deferred'].includes(item.status) : item.status === filter));
   document.querySelector('#decision-list').innerHTML = items.map(item => {
-    const url = new URL('https://github.com/ljae/tab2work/issues/new');
+    const url = new URL('https://github.com/ljae/tap2work/issues/new');
     url.searchParams.set('template', 'direction-feedback.yml');
     url.searchParams.set('title', `[방향 검토] ${item.id} · ${item.title}`);
     return `<article class="decision"><div class="meta"><span>${escape(item.id)} / ${escape(item.category)}</span><span>${escape(labels[item.status] || item.status)}</span></div><h3>${escape(item.title)}</h3><p>${escape(item.decision)}</p><details><summary>배경과 근거</summary><p>${escape(item.reason)}</p><p>출처 · ${escape(item.source)}</p></details><a href="${escape(url.href)}">이 결정에 의견 남기기 ↗</a></article>`;
@@ -25,7 +25,7 @@ async function load() {
     document.querySelector('#history').innerHTML = [...project.history].reverse().slice(0, 5).map(item => `<article><time datetime="${escape(item.at)}">${escape(date(item.at))}</time><div><h3>${escape(item.title)}</h3><p>${escape(item.detail)}</p>${item.verification ? `<details><summary>실제 검증 결과</summary><p>${escape(item.verification)}</p></details>` : ''}</div></article>`).join('');
   } catch {
     document.querySelector('#build-status').textContent = '개발 기록을 불러오지 못했습니다.';
-    for (const id of ['milestones', 'decision-list', 'history']) document.getElementById(id).innerHTML = '<p>기록을 불러오지 못했습니다. 새로고침하거나 <a href="https://github.com/ljae/tab2work/blob/main/docs/project-state.json">GitHub 기록</a>을 확인해 주세요.</p>';
+    for (const id of ['milestones', 'decision-list', 'history']) document.getElementById(id).innerHTML = '<p>기록을 불러오지 못했습니다. 새로고침하거나 <a href="https://github.com/ljae/tap2work/blob/main/docs/project-state.json">GitHub 기록</a>을 확인해 주세요.</p>';
   }
 }
 document.querySelector('#decision-filter').addEventListener('change', () => { if (project) renderDecisions(); });

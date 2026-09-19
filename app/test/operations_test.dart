@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:tab2work/main.dart';
-import 'package:tab2work/state/operations_controller.dart';
-import 'package:tab2work/state/work_controller.dart';
+import 'package:tap2work/main.dart';
+import 'package:tap2work/state/operations_controller.dart';
+import 'package:tap2work/state/work_controller.dart';
 import 'work_controller_test.dart' show MemoryStore;
 
 Json sample([String actor = 'owner']) => {
@@ -130,7 +130,7 @@ void main() {
     );
     addTearDown(ops.dispose);
     await ops.refresh();
-    await tester.pumpWidget(Tab2workApp(controller: WorkController(MemoryStore()), operations: ops));
+    await tester.pumpWidget(Tap2workApp(controller: WorkController(MemoryStore()), operations: ops));
     expect(find.textContaining('공개 미리보기 · 샘플 데이터'), findsOneWidget);
     await tester.tap(find.descendant(of: find.byType(NavigationBar), matching: find.text('재고/발주')));
     await tester.pumpAndSettle();
@@ -255,7 +255,7 @@ void main() {
       await ops.refresh();
       addTearDown(ops.dispose);
       await tester.pumpWidget(
-        Tab2workApp(controller: WorkController(MemoryStore()), operations: ops),
+        Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
@@ -296,7 +296,7 @@ void main() {
     await ops.refresh();
     addTearDown(ops.dispose);
     await tester.pumpWidget(
-      Tab2workApp(controller: WorkController(MemoryStore()), operations: ops),
+      Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
     );
     await tester.tap(
       find.descendant(

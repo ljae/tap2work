@@ -95,7 +95,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     builder: (context, _) => Scaffold(
       appBar: AppBar(
         title: const Text(
-          'tab2work',
+          'tap2work',
           style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -1),
         ),
         actions: [
