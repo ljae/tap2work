@@ -3,6 +3,7 @@ import '../state/operations_controller.dart';
 import '../state/work_controller.dart';
 import 'components.dart';
 import 'workspace_screen.dart';
+import 'store_dashboard.dart';
 
 const roleLabels = {
   'all': '누구나',
@@ -171,7 +172,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         padding: const EdgeInsets.fromLTRB(18, 22, 18, 28),
                         child: Center(
                           child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 680),
+                            constraints: BoxConstraints(
+                              maxWidth: tab == 0 ? 1240 : 680,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -305,66 +308,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
   );
 
   List<Widget> today() {
-    final unfinished = ops
-        .rows('tasks')
-        .where((t) => t['completedAt'] == null)
-        .length;
     return [
-      PageHeading(
-        '작은주방 · 연남  /  ${ops.data!['day']}',
-        '${ops.actor['name']}님, 좋은 하루예요 ${ops.actor['emoji']}',
-        '지금 알아야 할 일만, 한눈에 확인해요.',
-      ),
-      Surface(
-        color: AppColors.green,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '우리 매장, 지금은',
-              style: TextStyle(color: AppColors.lime, fontSize: 12),
-            ),
-            gap(14),
-            Text(
-              gaps.isEmpty
-                  ? '오늘의 빈자리를\n모두 채웠어요 🌿'
-                  : '${gaps.first['time']}\n함께할 동료가 필요해요',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 23,
-                height: 1.5,
-              ),
-            ),
-            gap(10),
-            Text(
-              gaps.isEmpty
-                  ? '근무 변경이 생기면 이곳에서 함께 확인해요.'
-                  : '${gaps.first['person']}님 휴가 · 개인 사유는 공유하지 않아요',
-              style: const TextStyle(color: Color(0xFFCDD9C9), fontSize: 12),
-            ),
-            gap(12),
-            FilledButton.tonal(
-              onPressed: () => go(3),
-              child: Text(gaps.isEmpty ? '오늘 근무표 보기' : '공석과 대체 근무 보기 →'),
-            ),
-          ],
-        ),
-      ),
-      gap(20),
-      actionCard(
-        '✅',
-        '함께 확인할 일 $unfinished개',
-        '시간대와 담당에 맞게 · 완료한 사람도 보여요',
-        () => go(1),
-      ),
-      actionCard(
-        '🥕',
-        '보충을 살펴볼 재료 ${lowStock.length}개',
-        '재고 확인 → 모아 발주 → 입고 확인',
-        () => go(2),
-        color: const Color(0xFFFFEFE4),
-      ),
+      StoreDashboard(operations: ops, onNavigate: go),
+      gap(24),
       actionCard(
         '🐣',
         '오늘 처음 왔나요?',
