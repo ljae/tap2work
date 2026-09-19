@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 11,
+  "revision": 12,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -184,10 +184,10 @@
       "category": "권한",
       "title": "상세 역할별 열람·발주 권한",
       "status": "proposed",
-      "decision": "데모: 사장님만 예시 인건비·메모, 사장님/매니저만 단가·발주·입고·업무 설정, 모든 직원은 재고 확인·공석·완료 내역 열람. 실제 매장 권한 정책과 인증은 미정이다.",
+      "decision": "데모: 사장님만 매출 금액·평균 결제액·예시 인건비·메모, 사장님/매니저만 구매 단가·발주·입고·업무 설정, 모든 직원은 메뉴 주문 수량·조리 상태·재고·공석·완료 내역 열람. 매출 금액과 원시 가격 포함 주문은 비사장 역할의 서버 응답에서 제거한다. 실제 매장 권한 정책과 인증은 미정이다.",
       "reason": "공유할 운영 상황과 비공개 개인정보를 구체적으로 정하고 실제 계정으로 강제해야 한다.",
       "source": "현재 구현 제안 · 사용자 결정 필요",
-      "updatedAt": "2026-09-19T09:33:22Z"
+      "updatedAt": "2026-09-19T11:27:34.773056+00:00"
     },
     {
       "id": "D-019",
@@ -208,6 +208,26 @@
       "reason": "사용자 설명: I will inform the person(CEO) ... function or update function for better work experience.",
       "source": "사용자 요청 및 후속 설명 · 2026-09-19",
       "updatedAt": "2026-09-19T10:03:33.754569+00:00"
+    },
+    {
+      "id": "D-021",
+      "category": "범위",
+      "title": "메뉴별 매출·주문과 식당 전체 현황을 한 화면에서",
+      "status": "confirmed",
+      "decision": "메뉴별 매출과 메뉴 주문 현황, 직원·업무·재고·발주 등 식당 운영 정보를 한 화면에 취합한다. 기존 오늘 화면을 통합 현황판으로 확장하고 첫 출근 가이드를 유지한다.",
+      "reason": "사용자가 식당 전체 메뉴별 매출 및 주문 현황 등 모든 정보를 한 화면에서 보도록 요청했다.",
+      "source": "사용자 요청 · 식당 전체 메뉴별 매출 및 메뉴 주문 현황등 모든 정보를 취합하여 한 화면에서 현황을 볼 수 있도록 꾸며주세요.",
+      "updatedAt": "2026-09-19T11:27:34.773056+00:00"
+    },
+    {
+      "id": "D-022",
+      "category": "매출·주문 연동",
+      "title": "실제 POS·배달 플랫폼 및 매출 집계 정책",
+      "status": "proposed",
+      "decision": "현재는 7일 샘플 주문을 취합하는 데모다. 오늘/최근 7일·채널 필터, 할인·환불 반영 순매출, 메뉴 순위·주문 수량·시간대 그래프와 현재 주문 대기를 제공한다. 실제 POS/배달 업체, 가져오기 방식, 부분 결제·환불일 기준 정산·부가세·수수료 처리, 레시피 기반 재고 차감은 미정이며 미구현이다.",
+      "reason": "통합 화면 요청이 특정 외부 연동이나 정산·원가 계산 규칙의 승인은 아니다. 실제 매장 요구를 확인해야 한다.",
+      "source": "현재 데모 구현 및 후속 설계 제안 · 사용자 승인 아님",
+      "updatedAt": "2026-09-19T11:27:34.773056+00:00"
     }
   ],
   "milestones": [
@@ -252,6 +272,12 @@
       "title": "공개 개발 리뷰와 CEO 피드백",
       "status": "in_progress",
       "description": "공개 리뷰·CEO 질문/기능 요청 양식·읽기 전용 Flutter 게시, tap2work 이름과 tap2.work DNS 연결 검증 완료. GitHub HTTPS 인증서 발급·강제 HTTPS 확인 대기."
+    },
+    {
+      "id": "M-008",
+      "title": "메뉴 매출·주문 통합 현황판 데모",
+      "status": "done",
+      "description": "오늘/7일·채널 집계, 전체 메뉴 검색·분류·정렬, 시간대 그래프, 조리 대기, 운영 요약을 Flutter 한 화면에 구현. 샘플 데이터만 사용하며 실제 POS 연동·정산은 미구현."
     }
   ],
   "history": [
@@ -961,6 +987,108 @@
         "docs/project-state.json"
       ],
       "verification": "이름 변경 후 Flutter analyze 문제 없음, Flutter 테스트 19개 통과, Node/API 16개·JS 구문 검사 통과. 생성 캐시에 이전 package import가 남아 첫 웹 빌드 실패 후 해당 생성 캐시를 지우고 공개/로컬 web release 모두 성공. GitHub Actions 35436895916 및 35437081320 성공. DNS 권한 서버에서 A 4개·www CNAME 확인, GitHub apex/www DNS 모두 valid 및 HTTPS eligible. HTTPS 인증서 미발급으로 정상 TLS 검증 실패, HTTPS 강제 설정 API는 certificate does not exist yet(404) 응답. 네이티브 빌드·실기기 검증 미수행."
+    },
+    {
+      "id": "H-dashboard-D-021",
+      "at": "2026-09-19T11:27:34.773056+00:00",
+      "type": "decision",
+      "title": "D-021 · 메뉴별 매출·주문과 식당 전체 현황을 한 화면에서",
+      "decisionId": "D-021",
+      "detail": "사용자가 식당 전체 메뉴별 매출 및 주문 현황 등 모든 정보를 한 화면에서 보도록 요청했다.",
+      "before": null,
+      "after": {
+        "id": "D-021",
+        "category": "범위",
+        "title": "메뉴별 매출·주문과 식당 전체 현황을 한 화면에서",
+        "status": "confirmed",
+        "decision": "메뉴별 매출과 메뉴 주문 현황, 직원·업무·재고·발주 등 식당 운영 정보를 한 화면에 취합한다. 기존 오늘 화면을 통합 현황판으로 확장하고 첫 출근 가이드를 유지한다.",
+        "reason": "사용자가 식당 전체 메뉴별 매출 및 주문 현황 등 모든 정보를 한 화면에서 보도록 요청했다.",
+        "source": "사용자 요청 · 식당 전체 메뉴별 매출 및 메뉴 주문 현황등 모든 정보를 취합하여 한 화면에서 현황을 볼 수 있도록 꾸며주세요.",
+        "updatedAt": "2026-09-19T11:27:34.773056+00:00"
+      },
+      "files": [
+        "docs/project-state.json",
+        "PRODUCT.md"
+      ],
+      "verification": "요청한 화면 범위만 확정. 연동과 상세 권한은 proposed 유지."
+    },
+    {
+      "id": "H-dashboard-D-022",
+      "at": "2026-09-19T11:27:34.773056+00:00",
+      "type": "decision",
+      "title": "D-022 · 실제 POS·배달 플랫폼 및 매출 집계 정책",
+      "decisionId": "D-022",
+      "detail": "통합 화면 요청이 특정 외부 연동이나 정산·원가 계산 규칙의 승인은 아니다. 실제 매장 요구를 확인해야 한다.",
+      "before": null,
+      "after": {
+        "id": "D-022",
+        "category": "매출·주문 연동",
+        "title": "실제 POS·배달 플랫폼 및 매출 집계 정책",
+        "status": "proposed",
+        "decision": "현재는 7일 샘플 주문을 취합하는 데모다. 오늘/최근 7일·채널 필터, 할인·환불 반영 순매출, 메뉴 순위·주문 수량·시간대 그래프와 현재 주문 대기를 제공한다. 실제 POS/배달 업체, 가져오기 방식, 부분 결제·환불일 기준 정산·부가세·수수료 처리, 레시피 기반 재고 차감은 미정이며 미구현이다.",
+        "reason": "통합 화면 요청이 특정 외부 연동이나 정산·원가 계산 규칙의 승인은 아니다. 실제 매장 요구를 확인해야 한다.",
+        "source": "현재 데모 구현 및 후속 설계 제안 · 사용자 승인 아님",
+        "updatedAt": "2026-09-19T11:27:34.773056+00:00"
+      },
+      "files": [
+        "docs/project-state.json",
+        "PRODUCT.md"
+      ],
+      "verification": "요청한 화면 범위만 확정. 연동과 상세 권한은 proposed 유지."
+    },
+    {
+      "id": "H-dashboard-D-018",
+      "at": "2026-09-19T11:27:34.773056+00:00",
+      "type": "decision",
+      "title": "D-018 · 상세 역할별 열람·발주 권한",
+      "decisionId": "D-018",
+      "detail": "메뉴·매출 현황판의 현재 데모 열람 범위를 설명하고 proposed 상태를 유지했다.",
+      "before": {
+        "id": "D-018",
+        "category": "권한",
+        "title": "상세 역할별 열람·발주 권한",
+        "status": "proposed",
+        "decision": "데모: 사장님만 예시 인건비·메모, 사장님/매니저만 단가·발주·입고·업무 설정, 모든 직원은 재고 확인·공석·완료 내역 열람. 실제 매장 권한 정책과 인증은 미정이다.",
+        "reason": "공유할 운영 상황과 비공개 개인정보를 구체적으로 정하고 실제 계정으로 강제해야 한다.",
+        "source": "현재 구현 제안 · 사용자 결정 필요",
+        "updatedAt": "2026-09-19T09:33:22Z"
+      },
+      "after": {
+        "id": "D-018",
+        "category": "권한",
+        "title": "상세 역할별 열람·발주 권한",
+        "status": "proposed",
+        "decision": "데모: 사장님만 매출 금액·평균 결제액·예시 인건비·메모, 사장님/매니저만 구매 단가·발주·입고·업무 설정, 모든 직원은 메뉴 주문 수량·조리 상태·재고·공석·완료 내역 열람. 매출 금액과 원시 가격 포함 주문은 비사장 역할의 서버 응답에서 제거한다. 실제 매장 권한 정책과 인증은 미정이다.",
+        "reason": "공유할 운영 상황과 비공개 개인정보를 구체적으로 정하고 실제 계정으로 강제해야 한다.",
+        "source": "현재 구현 제안 · 사용자 결정 필요",
+        "updatedAt": "2026-09-19T11:27:34.773056+00:00"
+      },
+      "files": [
+        "docs/project-state.json",
+        "PRODUCT.md"
+      ],
+      "verification": "요청한 화면 범위만 확정. 연동과 상세 권한은 proposed 유지."
+    },
+    {
+      "id": "H-restaurant-dashboard-implementation",
+      "at": "2026-09-19T11:27:34.773056+00:00",
+      "type": "implementation",
+      "title": "매장 한눈에 · 메뉴 매출·주문·운영 통합 현황판",
+      "detail": "순매출·주문·평균 결제액·처리 중 주문, 메뉴별 매출·주문 수량·비중, 검색/분류/정렬, 시간대 그래프, 기간과 별개인 현재 주문 큐와 상태 필터, 재고/입고/공유 업무/근무표 요약을 추가했다. 한국 날짜 경계와 할인·환불·취소·미결제 기준으로 서버 집계하며 메뉴 합계와 시간대 합계를 검증했다. 기존 공유 데모에 판매 샘플을 한 번만 추가하고 기존 발주·재고·활동은 보존한다. 원시 판매 내역은 역할 응답에 노출하지 않으며 비사장 역할에는 금액도 제거한다. 공개 빌드는 새 샘플만 생성한다. 첫 출근 가이드와 기존 다섯 탭을 유지했다.",
+      "files": [
+        "app/lib/ui/store_dashboard.dart",
+        "app/lib/ui/operations_screen.dart",
+        "developer/sales.mjs",
+        "developer/operations.mjs",
+        "developer/test/sales.test.mjs",
+        "app/test/dashboard_test.dart",
+        "app/test/fixtures/dashboard.json",
+        "PRODUCT.md",
+        "README.md",
+        "site/index.html",
+        "package.json"
+      ],
+      "verification": "Flutter analyze 문제 없음, Flutter 테스트 24개 통과(320/390/430/1440px 현황판 필터·검색·운영 이동 포함), Node/API 테스트 20개 통과, npm run check 및 git diff --check 통과. 로컬/공개 Flutter web release 빌드 성공. Aside 데스크톱 스크린샷으로 두 열 현황판 표시 확인. 브라우저 접근성 활성화는 성공하지 못해 브라우저 필터 자동 조작은 미검증이며 위젯 테스트로 검증. 초기 sandbox의 Node localhost bind·Dart telemetry·Flutter cache 접근 오류는 권한 실행으로 해결. 이번 변경의 네이티브 빌드·실기기 실행·공개 서버 배포·실제 POS 연동은 수행하지 않음."
     }
   ]
 }

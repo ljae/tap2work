@@ -2,6 +2,7 @@ import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
+import { seedSales, salesDashboard } from './sales.mjs';
 
 const dayMs = 86400000;
 export const actors = [
@@ -21,7 +22,7 @@ export function seedOperations(now = new Date()) {
   const earlier = new Date(new Date(now).getTime() - 3 * dayMs).toISOString();
   return {
     schemaVersion: 1, revision: 1, store: { name: '작은주방 · 연남', note: '샘플 매장 · 실제 주문/알림 없음' },
-    actors, day: koreanDate(now),
+    actors, day: koreanDate(now), sales: seedSales(now),
     items: [
       { id: 'tomato', name: '토마토', emoji: '🍅', unit: 'kg', quantity: 2, minimum: 3, orderQuantity: 4, price: 7800, supplier: '싱싱농장', zone: 'fridge', reviewDays: 2, lastOrderedAt: earlier, lastCheckedAt: null },
       { id: 'eggs', name: '달걀', emoji: '🥚', unit: '판', quantity: 1, minimum: 2, orderQuantity: 3, price: 6500, supplier: '싱싱농장', zone: 'fridge', reviewDays: 3, lastOrderedAt: earlier, lastCheckedAt: null },
@@ -63,6 +64,7 @@ function stockReview(item) {
 }
 function ensureDueTasks(state, now) {
   let changed = false;
+  if (!state.sales) { state.sales = seedSales(now); changed = true; }
   const date = koreanDate(now);
   if (state.day !== date) { state.day = date; changed = true; }
   for (const template of state.taskTemplates) {
@@ -108,6 +110,8 @@ export class OperationsStore {
     result.actor = actor;
     result.serverTime = iso(this.clock());
     result.demo = true;
+    result.dashboard = salesDashboard(state.sales, this.clock(), actor.role === 'owner');
+    delete result.sales;
     result.tasks = result.tasks.filter(task => !task.supersededAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day));
     for (const item of result.items) {
       const review = stockReview(item);

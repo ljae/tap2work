@@ -10,7 +10,7 @@
     "dev:console": "node developer/server.mjs",
     "build:app": "cd app && flutter build web --release --base-href /app/ --pwa-strategy=none --no-web-resources-cdn",
     "test:console": "node --test developer/test/*.test.mjs",
-    "check": "node --check developer/server.mjs && node --check developer/store.mjs && node --check developer/operations.mjs && node --check developer/dashboard.js && node --check app.js && node --check server.mjs && node --check sw.js && node --check site/review.js && node --check scripts/build-site.mjs",
+    "check": "node --check developer/server.mjs && node --check developer/store.mjs && node --check developer/operations.mjs && node --check developer/sales.mjs && node --check developer/dashboard.js && node --check app.js && node --check server.mjs && node --check sw.js && node --check site/review.js && node --check scripts/build-site.mjs",
     "build:site": "cd app && flutter build web --release --base-href /app/ --pwa-strategy=none --no-web-resources-cdn --dart-define=PUBLIC_REVIEW=true --output=build/review-web && cd .. && node scripts/build-site.mjs"
   }
 }
