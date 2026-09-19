@@ -20,14 +20,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     listenable: work,
     builder: (context, _) => Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'tap2work.',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            fontSize: 27,
-            letterSpacing: -1.3,
-          ),
-        ),
+        title: const BrandLogo(),
         actions: [
           PopupMenuButton<String>(
             tooltip: '체험 역할과 안내',

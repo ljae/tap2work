@@ -6,6 +6,10 @@ Help a small Korean food and beverage business coordinate people, daily work, st
 
 Kitchen prep and dishwashing remain the starting jobs. Each worker needs their own learning progress and confirmations; tomorrow's new hire reuses the same workplace materials without inheriting someone else's completion status. Shared operational tasks are different: one coworker's inventory check is visible to the whole team and should not be duplicated.
 
+## Brand artwork
+
+The user selected the repository-root `tap2work.png` as the logo. Use the supplied artwork unchanged in Flutter headers (operations and first-shift guide), the public review portal and local developer console. Web favicons use the same image. `scripts/sync-branding.mjs` copies it verbatim into Flutter assets before both web builds; native launcher icons are not changed by this screen-branding update.
+
 ## Phone experience
 
 | Person | Primary action | Supporting actions |
@@ -26,7 +30,7 @@ The latest user request brings staff operations and procurement into the prototy
 | 할 일 | What should we check, and who has done it? | Opening/prep/peak/closing filters, rank filter, recurring task creation, actor/time completion |
 | 재고/발주 | What do we have and what should we order? | Physical count, minimum threshold, review interval, grouped supplier cart, demo order, separate receipt |
 | 우리 팀 | Who is working and where is there a gap? | Shared sample shifts, leave status changes, coverage requests and manager acceptance |
-| 매장 지도 | Where do I go or find equipment? | Sample floor layout, fridge/storage/stove/prep/sink locations, three numbered routes, editable location notes |
+| 매장 지도 | How many tables/seats do we have, and where is each device? | Whole-restaurant grid, table/seat/equipment counts, configurable tables/equipment/storage/entrances/areas, shared layout save |
 
 Inventory flow: **check actual stock → collect needed items → review quantities grouped by supplier → one demo order → acknowledge receipt → later inventory check**. An order never increases on-hand quantity; receipt applies exactly once. An open order blocks duplicate orders for the same item. Partial deliveries, cancellations, price/tax validation and real supplier integration are not implemented.
 
@@ -36,7 +40,9 @@ API reads materialize due tasks; polling is not a production scheduler or push s
 
 Shared information includes names, roles, shift hours, leave status, coverage status, work completion, and stock counts. Private leave reasons are not collected in the shared demo. Owner-only sample labor estimate and memo are stripped from non-owner API responses; purchasing prices are available to owner/manager, not crew/cook. This is an initial permission proposal, not approved production policy. Demo actor selection is intentionally impersonable and therefore **not security for real employee information**.
 
-The layout is schematic sample data. Location names/notes can change, but actual floorplan uploading, geometry editing, machine-specific instructions and route validation remain pending. Never describe sample routes as validated safety or emergency guidance.
+The layout is a configurable schematic, not a measured architectural plan. It now shows the whole restaurant with table count, total configured seats and major equipment count. Owners/managers can set a layout name and grid (8–30 columns/rows), add up to 80 tables/equipment/storage/entrances/areas, change names/notes/position/size and table capacity (1–20), move a selected object by tapping an empty cell or using arrow buttons, and delete unlinked objects. Overview supports pinch zoom and a full-size item list. Existing example routes remain available only when every referenced place still exists; they are not obstacle-aware or validated safety/emergency guidance.
+
+Editing uses a separate draft and the opening revision; polling cannot replace the draft, cancellation discards it, and stale saves fail with an explicit reload option. The server validates permissions, unique IDs/table names, integer geometry, bounds, seats and overlap. Areas may overlap as backgrounds; other objects may not. Places linked by inventory or current/historical tasks cannot be deleted or reclassified. The old kitchen sketch upgrades once while preserving IDs, names and notes, adding six sample dining tables (24 seats). Table count and capacity reflect configuration, not live occupancy or a POS table assignment. Public reviewers can experiment with a disposable draft but cannot save or call write APIs. Floorplan image uploads, real measurements, walls/multiple floors, configurable route authoring, production identity and live occupancy remain unimplemented.
 
 ## Restaurant overview and sales prototype
 

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
 import { seedSales, salesDashboard } from './sales.mjs';
+import { ensureLayout, validateLayout } from './layout.mjs';
 
 const dayMs = 86400000;
 export const actors = [
@@ -63,7 +64,7 @@ function stockReview(item) {
   return { id: `stock-${item.id}-${item.lastOrderId || new Date(item.lastOrderedAt).getTime()}`, dueAt: new Date(new Date(item.lastOrderedAt).getTime() + item.reviewDays * dayMs).toISOString() };
 }
 function ensureDueTasks(state, now) {
-  let changed = false;
+  let changed = ensureLayout(state);
   if (!state.sales) { state.sales = seedSales(now); changed = true; }
   const date = koreanDate(now);
   if (state.day !== date) { state.day = date; changed = true; }
@@ -149,6 +150,14 @@ export class OperationsStore {
       const activity = message => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message });
       const itemFor = id => { const item = state.items.find(item => item.id === id); if (!item) fail('재료를 찾지 못했어요.', 404); return item; };
       switch (input.action) {
+        case 'save_layout': {
+          leadership(actor);
+          const updated = validateLayout(input, state);
+          state.layout = { ...updated.layout, updatedAt: iso(now), updatedBy: who };
+          state.zones = updated.zones;
+          activity(`매장 배치 저장 · 테이블 ${state.zones.filter(zone => zone.kind === 'table').length}개`);
+          break;
+        }
         case 'complete_task': {
           const task = state.tasks.find(task => task.id === input.taskId);
           if (!task) fail('업무를 찾지 못했어요.', 404);
@@ -223,7 +232,10 @@ export class OperationsStore {
         }
         case 'edit_zone': {
           leadership(actor); const zone = state.zones.find(zone => zone.id === input.zoneId); if (!zone) fail('위치를 찾지 못했어요.', 404);
-          zone.name = text(input.name, '장소 이름', 30); zone.description = text(input.description, '위치 안내', 500); activity(`${zone.name} 위치 안내 업데이트`); break;
+          zone.name = text(input.name, '장소 이름', 30); zone.description = text(input.description, '위치 안내', 500);
+          validateLayout({ layout: state.layout, zones: state.zones }, state);
+          state.layout.updatedAt = iso(now); state.layout.updatedBy = who;
+          activity(`${zone.name} 위치 안내 업데이트`); break;
         }
         default: fail('지원하지 않는 작업이에요.');
       }

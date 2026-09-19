@@ -1,5 +1,18 @@
 import 'package:flutter/material.dart';
 
+class BrandLogo extends StatelessWidget {
+  const BrandLogo({super.key});
+
+  @override
+  Widget build(BuildContext context) => Image.asset(
+    'assets/branding/tap2work.png',
+    width: 104,
+    height: 56,
+    fit: BoxFit.contain,
+    semanticLabel: 'tap2.work 로고',
+  );
+}
+
 abstract final class AppColors {
   static const paper = Color(0xFFF6F5EF);
   static const white = Color(0xFFFFFEFA);

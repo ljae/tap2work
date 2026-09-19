@@ -4,6 +4,7 @@ import '../state/work_controller.dart';
 import 'components.dart';
 import 'workspace_screen.dart';
 import 'store_dashboard.dart';
+import 'floor_plan.dart';
 
 const roleLabels = {
   'all': '누구나',
@@ -31,7 +32,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
   int tab = 0;
   String slot = '전체';
   String role = '전체';
-  String route = '재료 준비';
   final Map<String, double> cart = {};
   Json? item(String id) =>
       ops.rows('items').where((i) => i['id'] == id).firstOrNull;
@@ -95,10 +95,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     listenable: ops,
     builder: (context, _) => Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'tap2work',
-          style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -1),
-        ),
+        title: const BrandLogo(),
         actions: [
           PopupMenuButton<String>(
             enabled: !ops.busy,
@@ -173,7 +170,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         child: Center(
                           child: ConstrainedBox(
                             constraints: BoxConstraints(
-                              maxWidth: tab == 0 ? 1240 : 680,
+                              maxWidth: tab == 0
+                                  ? 1240
+                                  : tab == 4
+                                  ? 1000
+                                  : 680,
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -835,135 +836,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     ),
   ];
 
-  List<Widget> floorPlan() {
-    final routes = {
-      '재료 준비': ['storage', 'fridge', 'prep', 'stove'],
-      '설거지': ['pass', 'sink', 'storage'],
-      '첫 출근': ['entrance', 'exit', 'sink', 'prep'],
-    };
-    final path = routes[route]!;
-    return [
-      const PageHeading(
-        'KNOW YOUR PLACE',
-        '어디에 있는지, 바로 🗺️',
-        '장소를 누르면 도구와 보관 안내를 볼 수 있어요.',
-      ),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final key in routes.keys)
-            ChoiceChip(
-              label: Text(key),
-              selected: key == route,
-              onSelected: (_) => setState(() => route = key),
-            ),
-        ],
-      ),
-      gap(),
-      Surface(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(8),
-              child: Text(
-                '작은주방 배치 예시 · 실제 도면 아님',
-                style: TextStyle(fontSize: 11, color: AppColors.muted),
-              ),
-            ),
-            LayoutBuilder(
-              builder: (context, constraints) => SizedBox(
-                height: 416,
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: CustomPaint(
-                        painter: _RoutePainter(ops.rows('zones'), path),
-                      ),
-                    ),
-                    for (final zone in ops.rows('zones'))
-                      Positioned(
-                        left:
-                            constraints.maxWidth *
-                            (zone['x'] as num).toDouble(),
-                        top: 416 * (zone['y'] as num).toDouble(),
-                        width: constraints.maxWidth * .41,
-                        height: 79,
-                        child: Material(
-                          color: path.contains(zone['id'])
-                              ? AppColors.lime
-                              : AppColors.paper,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            side: BorderSide(
-                              color: path.contains(zone['id'])
-                                  ? AppColors.green
-                                  : AppColors.line,
-                            ),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: InkWell(
-                            onTap: () => zoneDetails(zone),
-                            child: Padding(
-                              padding: const EdgeInsets.all(7),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '${zone['emoji']}${path.contains(zone['id']) ? '  ${path.indexOf(zone['id']) + 1}' : ''}',
-                                    style: const TextStyle(fontSize: 20),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    zone['name'],
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      gap(14),
-      Surface(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '$route 순서',
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-            gap(8),
-            for (var n = 0; n < path.length; n++)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: Text(
-                  '${n + 1}. ${zoneName(path[n])}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-          ],
-        ),
-      ),
-      gap(),
-      const Information(
-        '예시 동선이에요. 실제 장비 사용법과 안전·비상 동선은 현장에서 버디와 확인해 주세요. 실제 매장 도면 등록은 다음 단계예요.',
-      ),
-    ];
-  }
+  List<Widget> floorPlan() => [FloorPlanView(operations: ops)];
 
   Future<void> checkStock(Json i, {String? taskId}) async {
     final controller = TextEditingController(text: qty(i['quantity']));
@@ -1206,48 +1079,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
     name.dispose();
   }
 
-  Future<void> zoneDetails(Json zone) async {
-    final name = TextEditingController(text: zone['name']);
-    final description = TextEditingController(text: zone['description']);
-    final values = await formDialog(
-      '${zone['emoji']} ${zone['name']}',
-      [
-        if (ops.isLeader) ...[
-          TextField(
-            controller: name,
-            maxLength: 30,
-            decoration: const InputDecoration(labelText: '장소 이름'),
-          ),
-          gap(),
-          TextField(
-            controller: description,
-            maxLines: 4,
-            maxLength: 500,
-            decoration: const InputDecoration(labelText: '도구·위치 안내'),
-          ),
-        ] else
-          Text(zone['description'], style: const TextStyle(height: 1.8)),
-        if (ops.rows('items').any((i) => i['zone'] == zone['id'])) ...[
-          gap(),
-          small(
-            '보관 재료: ${ops.rows('items').where((i) => i['zone'] == zone['id']).map((i) => i['name']).join(', ')}',
-          ),
-        ],
-      ],
-      () => name.text.trim().isEmpty || description.text.trim().isEmpty
-          ? null
-          : {
-              'zoneId': zone['id'],
-              'name': name.text.trim(),
-              'description': description.text.trim(),
-            },
-      confirm: ops.isLeader ? '안내 저장' : '확인',
-    );
-    if (values != null && ops.isLeader) await act('edit_zone', values);
-    name.dispose();
-    description.dispose();
-  }
-
   Future<Json?> formDialog(
     String heading,
     List<Widget> children,
@@ -1313,31 +1144,4 @@ class _OperationsScreenState extends State<OperationsScreen> {
     await dialogRoute.completed;
     return result;
   }
-}
-
-class _RoutePainter extends CustomPainter {
-  _RoutePainter(this.zones, this.route);
-  final List<Json> zones;
-  final List<String> route;
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.green.withValues(alpha: .35)
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-    final points = route.map((id) {
-      final z = zones.firstWhere((z) => z['id'] == id);
-      return Offset(
-        size.width * ((z['x'] as num).toDouble() + .205),
-        size.height * (z['y'] as num).toDouble() + 39,
-      );
-    }).toList();
-    for (var n = 1; n < points.length; n++) {
-      canvas.drawLine(points[n - 1], points[n], paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _RoutePainter oldDelegate) =>
-      oldDelegate.route != route || oldDelegate.zones != zones;
 }

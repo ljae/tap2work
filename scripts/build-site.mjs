@@ -19,6 +19,7 @@ await writeFile(appIndex, (await readFile(appIndex, 'utf8')).replace('<base href
 await mkdir(path.join(output, 'fonts'), { recursive: true });
 await cp(path.join(root, 'app/assets/fonts'), path.join(output, 'fonts'), { recursive: true });
 await cp(path.join(root, 'icon.svg'), path.join(output, 'icon.svg'));
+await cp(path.join(root, 'tap2work.png'), path.join(output, 'tap2work.png'));
 await cp(path.join(root, 'docs/project-state.json'), path.join(output, 'project-state.json'));
 await mkdir(path.join(output, 'docs'), { recursive: true });
 await cp(path.join(root, 'docs/CEO-REVIEW.md'), path.join(output, 'docs/CEO-REVIEW.md'));

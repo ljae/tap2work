@@ -66,6 +66,8 @@ export function createConsoleServer({ stateFile = path.join(root, 'docs/project-
         const relative = route.slice(5) || 'index.html';
         filename = path.resolve(appRoot, relative);
         if (!filename.startsWith(path.resolve(appRoot) + path.sep)) throw new StoreError('잘못된 경로입니다.', 400);
+      } else if (route === '/tap2work.png') {
+        filename = path.join(root, 'tap2work.png');
       } else if (route.startsWith('/reference/')) {
         const documents = { 'decisions': 'docs/DECISIONS.md', 'product': 'PRODUCT.md', 'research': 'RESEARCH.md', 'readme': 'README.md' };
         const document = documents[route.slice(11)];

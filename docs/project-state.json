@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 13,
+  "revision": 14,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -184,10 +184,10 @@
       "category": "권한",
       "title": "상세 역할별 열람·발주 권한",
       "status": "proposed",
-      "decision": "데모: 사장님만 매출 금액·평균 결제액·예시 인건비·메모, 사장님/매니저만 구매 단가·발주·입고·업무 설정, 모든 직원은 메뉴 주문 수량·조리 상태·재고·공석·완료 내역 열람. 매출 금액과 원시 가격 포함 주문은 비사장 역할의 서버 응답에서 제거한다. 실제 매장 권한 정책과 인증은 미정이다.",
+      "decision": "데모: 사장님만 매출 금액·평균 결제액·예시 인건비·메모, 사장님/매니저만 구매 단가·발주·입고·업무 설정, 모든 직원은 메뉴 주문 수량·조리 상태·재고·공석·완료 내역 열람. 매출 금액과 원시 가격 포함 주문은 비사장 역할의 서버 응답에서 제거한다. 실제 매장 권한 정책과 인증은 미정이다. 매장 배치 저장은 사장님/매니저 체험 역할만 허용하고, 다른 직원은 전체 배치를 조회한다. 공개 리뷰에서는 배치 초안을 체험하되 저장은 불가하다.",
       "reason": "공유할 운영 상황과 비공개 개인정보를 구체적으로 정하고 실제 계정으로 강제해야 한다.",
       "source": "현재 구현 제안 · 사용자 결정 필요",
-      "updatedAt": "2026-09-19T11:27:34.773056+00:00"
+      "updatedAt": "2026-09-19T12:44:43.664996+00:00"
     },
     {
       "id": "D-019",
@@ -228,6 +228,26 @@
       "reason": "통합 화면 요청이 특정 외부 연동이나 정산·원가 계산 규칙의 승인은 아니다. 실제 매장 요구를 확인해야 한다.",
       "source": "현재 데모 구현 및 후속 설계 제안 · 사용자 승인 아님",
       "updatedAt": "2026-09-19T11:27:34.773056+00:00"
+    },
+    {
+      "id": "D-023",
+      "category": "매장 배치",
+      "title": "전체 테이블과 주요 기기를 사용자가 배치",
+      "status": "confirmed",
+      "decision": "식당 전체 테이블 수와 주요 기기 위치가 보이는 레이아웃을 제공한다. 사용자가 테이블·주요 기기·매장 배치를 설정할 수 있도록 한다. 현재 구현은 좌석 수·위치·크기·이름·안내와 격자 배치를 편집하는 공유 데모다. 실측 도면이나 실시간 착석 정보는 아니다.",
+      "reason": "사용자가 식당 전체의 테이블 수와 주요 기기 위치를 보여주고 직접 설정하는 레이아웃을 요청했다.",
+      "source": "사용자 요청 · 식당 전체의 테이블 수와 주요 기기 위치를 보여주는 레이아웃, 사용자가 주요 기기 및 레이아웃 설정",
+      "updatedAt": "2026-09-19T12:44:43.664996+00:00"
+    },
+    {
+      "id": "D-024",
+      "category": "브랜드",
+      "title": "tap2work.png를 로고로 사용",
+      "status": "confirmed",
+      "decision": "사용자가 제공한 루트 tap2work.png를 로고 원본으로 사용한다. 현재는 원본을 변형하지 않고 Flutter 운영·첫 출근 화면, 공개 리뷰 사이트와 개발자 콘솔 및 웹 파비콘에 적용한다.",
+      "reason": "사용자가 use tap2work.png as logo를 명시했다.",
+      "source": "사용자 요청 · use tap2work.png as logo",
+      "updatedAt": "2026-09-19T12:44:43.664996+00:00"
     }
   ],
   "milestones": [
@@ -278,6 +298,12 @@
       "title": "메뉴 매출·주문 통합 현황판 데모",
       "status": "done",
       "description": "오늘/7일·채널 집계, 전체 메뉴 검색·분류·정렬, 시간대 그래프, 조리 대기, 운영 요약을 Flutter 한 화면에 구현. 샘플 데이터만 사용하며 실제 POS 연동·정산은 미구현."
+    },
+    {
+      "id": "M-009",
+      "title": "전체 테이블·기기 배치 설정 데모",
+      "status": "done",
+      "description": "테이블/좌석/기기 수, 격자 지도·확대, 항목 추가·이동·크기/좌석 편집·삭제, 서버 저장과 충돌 검사 구현. 공개 리뷰는 저장 없는 초안 체험. 실측 도면·다층·실시간 착석은 미구현."
     }
   ],
   "history": [
@@ -1101,6 +1127,133 @@
         "docs/DEPLOYMENT.md"
       ],
       "verification": "GitHub CI: JS 검사, Node/API 테스트, Flutter analyze/test, 공개 web release 빌드와 Pages 배포 성공. 공개 HTTP 응답의 새 현황판과 역할별 샘플 검증 성공. HTTPS는 호스트명 인증서 검증 실패이며 https_enforced 설정 API도 certificate does not exist yet(404)로 거절됨. SSL 검증을 우회하지 않음. 네이티브 빌드·실기기·실제 POS 연동은 수행하지 않음."
+    },
+    {
+      "id": "H-layout-brand-D-023",
+      "at": "2026-09-19T12:44:43.664996+00:00",
+      "type": "decision",
+      "title": "D-023 · 전체 테이블과 주요 기기를 사용자가 배치",
+      "decisionId": "D-023",
+      "detail": "사용자가 식당 전체의 테이블 수와 주요 기기 위치를 보여주고 직접 설정하는 레이아웃을 요청했다.",
+      "before": null,
+      "after": {
+        "id": "D-023",
+        "category": "매장 배치",
+        "title": "전체 테이블과 주요 기기를 사용자가 배치",
+        "status": "confirmed",
+        "decision": "식당 전체 테이블 수와 주요 기기 위치가 보이는 레이아웃을 제공한다. 사용자가 테이블·주요 기기·매장 배치를 설정할 수 있도록 한다. 현재 구현은 좌석 수·위치·크기·이름·안내와 격자 배치를 편집하는 공유 데모다. 실측 도면이나 실시간 착석 정보는 아니다.",
+        "reason": "사용자가 식당 전체의 테이블 수와 주요 기기 위치를 보여주고 직접 설정하는 레이아웃을 요청했다.",
+        "source": "사용자 요청 · 식당 전체의 테이블 수와 주요 기기 위치를 보여주는 레이아웃, 사용자가 주요 기기 및 레이아웃 설정",
+        "updatedAt": "2026-09-19T12:44:43.664996+00:00"
+      },
+      "files": [
+        "docs/project-state.json",
+        "PRODUCT.md"
+      ],
+      "verification": "사용자가 요청한 범위와 로고 선택을 기록. 상세 운영 권한과 미구현 연동은 확정하지 않음."
+    },
+    {
+      "id": "H-layout-brand-D-024",
+      "at": "2026-09-19T12:44:43.664996+00:00",
+      "type": "decision",
+      "title": "D-024 · tap2work.png를 로고로 사용",
+      "decisionId": "D-024",
+      "detail": "사용자가 use tap2work.png as logo를 명시했다.",
+      "before": null,
+      "after": {
+        "id": "D-024",
+        "category": "브랜드",
+        "title": "tap2work.png를 로고로 사용",
+        "status": "confirmed",
+        "decision": "사용자가 제공한 루트 tap2work.png를 로고 원본으로 사용한다. 현재는 원본을 변형하지 않고 Flutter 운영·첫 출근 화면, 공개 리뷰 사이트와 개발자 콘솔 및 웹 파비콘에 적용한다.",
+        "reason": "사용자가 use tap2work.png as logo를 명시했다.",
+        "source": "사용자 요청 · use tap2work.png as logo",
+        "updatedAt": "2026-09-19T12:44:43.664996+00:00"
+      },
+      "files": [
+        "docs/project-state.json",
+        "PRODUCT.md"
+      ],
+      "verification": "사용자가 요청한 범위와 로고 선택을 기록. 상세 운영 권한과 미구현 연동은 확정하지 않음."
+    },
+    {
+      "id": "H-layout-brand-D-018",
+      "at": "2026-09-19T12:44:43.664996+00:00",
+      "type": "decision",
+      "title": "D-018 · 상세 역할별 열람·발주 권한",
+      "decisionId": "D-018",
+      "detail": "배치 편집 구현에 따른 데모 열람·저장 범위를 추가하며 proposed 상태를 유지했다.",
+      "before": {
+        "id": "D-018",
+        "category": "권한",
+        "title": "상세 역할별 열람·발주 권한",
+        "status": "proposed",
+        "decision": "데모: 사장님만 매출 금액·평균 결제액·예시 인건비·메모, 사장님/매니저만 구매 단가·발주·입고·업무 설정, 모든 직원은 메뉴 주문 수량·조리 상태·재고·공석·완료 내역 열람. 매출 금액과 원시 가격 포함 주문은 비사장 역할의 서버 응답에서 제거한다. 실제 매장 권한 정책과 인증은 미정이다.",
+        "reason": "공유할 운영 상황과 비공개 개인정보를 구체적으로 정하고 실제 계정으로 강제해야 한다.",
+        "source": "현재 구현 제안 · 사용자 결정 필요",
+        "updatedAt": "2026-09-19T11:27:34.773056+00:00"
+      },
+      "after": {
+        "id": "D-018",
+        "category": "권한",
+        "title": "상세 역할별 열람·발주 권한",
+        "status": "proposed",
+        "decision": "데모: 사장님만 매출 금액·평균 결제액·예시 인건비·메모, 사장님/매니저만 구매 단가·발주·입고·업무 설정, 모든 직원은 메뉴 주문 수량·조리 상태·재고·공석·완료 내역 열람. 매출 금액과 원시 가격 포함 주문은 비사장 역할의 서버 응답에서 제거한다. 실제 매장 권한 정책과 인증은 미정이다. 매장 배치 저장은 사장님/매니저 체험 역할만 허용하고, 다른 직원은 전체 배치를 조회한다. 공개 리뷰에서는 배치 초안을 체험하되 저장은 불가하다.",
+        "reason": "공유할 운영 상황과 비공개 개인정보를 구체적으로 정하고 실제 계정으로 강제해야 한다.",
+        "source": "현재 구현 제안 · 사용자 결정 필요",
+        "updatedAt": "2026-09-19T12:44:43.664996+00:00"
+      },
+      "files": [
+        "docs/project-state.json",
+        "PRODUCT.md"
+      ],
+      "verification": "사용자가 요청한 범위와 로고 선택을 기록. 상세 운영 권한과 미구현 연동은 확정하지 않음."
+    },
+    {
+      "id": "H-configurable-restaurant-layout",
+      "at": "2026-09-19T12:44:43.664996+00:00",
+      "type": "implementation",
+      "title": "식당 전체 테이블·주요 기기 배치 편집",
+      "detail": "매장 지도에 테이블·좌석·기기 수와 전체 식당 격자를 표시한다. 사장님/매니저가 테이블·기기·보관·출입구·구역을 추가하고 이름·안내·위치·크기·좌석 수를 설정하며 빈 칸 탭과 방향 버튼으로 이동한다. 새 항목은 빈 공간에 우선 배치한다. 초안 취소, 개별 삭제, 매장 크기·이름 설정, 저장 시 버전 충돌·경계·겹침·좌석·중복 이름·참조 장소 삭제 검사를 구현했다. 기존 장소 ID와 이름·안내를 유지하는 1회 전환으로 샘플 테이블 6개/24석을 추가했다. 지도 전체 보기와 확대, 누락 장소가 있는 예시 동선 숨김, 읽기 전용 공개 초안 체험을 지원한다.",
+      "files": [
+        "app/lib/ui/floor_plan.dart",
+        "app/lib/ui/operations_screen.dart",
+        "developer/layout.mjs",
+        "developer/operations.mjs",
+        "app/test/floor_plan_test.dart",
+        "app/test/fixtures/layout.json",
+        "developer/test/layout.test.mjs",
+        "PRODUCT.md",
+        "README.md",
+        "AGENTS.md",
+        "site/index.html"
+      ],
+      "verification": "Flutter analyze 문제 없음. Flutter 전체 테스트 33개, Node/API 26개, npm run check와 git diff --check 통과. 320/390/430/1440px 편집·추가·이동·좌석·크기·저장·취소·권한·공개 저장 차단·충돌 보존 검증. 초기 Dart lint 경고를 수정하고 재통과. 지도 높이 보완 후 배치 테스트 9개 재통과, 로고 적용 후에도 전체 33개 재통과. 로컬/공개 web release 빌드 성공. Aside 데스크톱에서 전체 6테이블과 기기 배치 시각 확인. 로컬 API 및 공개용 4역할 샘플에서 6테이블/24석 확인. 네이티브 빌드·실기기·이번 변경 공개 배포는 수행하지 않음."
+    },
+    {
+      "id": "H-user-logo-applied",
+      "at": "2026-09-19T12:44:43.664996+00:00",
+      "type": "implementation",
+      "title": "사용자 제공 로고를 앱·리뷰 사이트·개발자 콘솔에 적용",
+      "detail": "tap2work.png 원본을 공통 Flutter BrandLogo와 공개 리뷰 헤더/푸터, 개발자 콘솔, 웹 파비콘에 적용했다. 빌드 전 sync-branding.mjs로 Flutter 에셋을 원본 그대로 복사하고 공개 사이트에도 원본을 포함한다. 그림을 자르거나 재생성하지 않았다. 네이티브 런처 아이콘은 이번 화면 로고 적용에서 변경하지 않았다.",
+      "files": [
+        "tap2work.png",
+        "app/assets/branding/tap2work.png",
+        "app/pubspec.yaml",
+        "app/lib/ui/components.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/lib/ui/workspace_screen.dart",
+        "app/web/index.html",
+        "site/index.html",
+        "site/styles.css",
+        "developer/index.html",
+        "developer/styles.css",
+        "developer/server.mjs",
+        "scripts/sync-branding.mjs",
+        "scripts/build-site.mjs",
+        "package.json"
+      ],
+      "verification": "원본·Flutter 에셋·로컬 HTTP 로고 응답의 바이트 일치 확인. 개발자 콘솔 브랜드 접근성 링크 확인. 헤더 높이 증가로 기존 버튼 탭 테스트 2개 실패 후 기존 높이를 유지하도록 수정, Flutter analyze와 전체 테스트 33개 재통과. Node/API 26개·JS 검사 통과. 원본 로고 포함 로컬/공개 Flutter 웹 빌드 성공. 네이티브 아이콘·네이티브 빌드·이번 변경 공개 배포는 미수행."
     }
   ]
 }
