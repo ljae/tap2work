@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 12,
+  "revision": 13,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1089,6 +1089,18 @@
         "package.json"
       ],
       "verification": "Flutter analyze 문제 없음, Flutter 테스트 24개 통과(320/390/430/1440px 현황판 필터·검색·운영 이동 포함), Node/API 테스트 20개 통과, npm run check 및 git diff --check 통과. 로컬/공개 Flutter web release 빌드 성공. Aside 데스크톱 스크린샷으로 두 열 현황판 표시 확인. 브라우저 접근성 활성화는 성공하지 못해 브라우저 필터 자동 조작은 미검증이며 위젯 테스트로 검증. 초기 sandbox의 Node localhost bind·Dart telemetry·Flutter cache 접근 오류는 권한 실행으로 해결. 이번 변경의 네이티브 빌드·실기기 실행·공개 서버 배포·실제 POS 연동은 수행하지 않음."
+    },
+    {
+      "id": "H-dashboard-deployed",
+      "at": "2026-09-19T11:34:54.848258+00:00",
+      "type": "test",
+      "title": "통합 현황판 커밋·main 병합·GitHub Pages 배포 확인",
+      "detail": "사용자의 commit and merge and then deploy 요청에 따라 feat/restaurant-dashboard에 0832ba0 커밋을 만들고 main에 fd1ccb9로 병합해 origin/main에 푸시했다. GitHub Actions 35440364916의 검사·빌드·배포가 모두 성공했다. http://tap2.work/project-state.json에서 r12, /app/review-data/owner.json에서 현황판과 사장님 매출, crew.json에서 금액 필드 제거 및 원시 판매 내역 비노출을 확인했다.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "GitHub CI: JS 검사, Node/API 테스트, Flutter analyze/test, 공개 web release 빌드와 Pages 배포 성공. 공개 HTTP 응답의 새 현황판과 역할별 샘플 검증 성공. HTTPS는 호스트명 인증서 검증 실패이며 https_enforced 설정 API도 certificate does not exist yet(404)로 거절됨. SSL 검증을 우회하지 않음. 네이티브 빌드·실기기·실제 POS 연동은 수행하지 않음."
     }
   ]
 }
