@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 10,
+  "revision": 11,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -251,7 +251,7 @@
       "id": "M-007",
       "title": "공개 개발 리뷰와 CEO 피드백",
       "status": "in_progress",
-      "description": "리뷰 페이지·방향/기능 이슈 양식·읽기 전용 Flutter 샘플 구현 및 로컬 검증 완료. GitHub Pages 게시와 Namecheap 도메인 연결 확인 중."
+      "description": "공개 리뷰·CEO 질문/기능 요청 양식·읽기 전용 Flutter 게시, tap2work 이름과 tap2.work DNS 연결 검증 완료. GitHub HTTPS 인증서 발급·강제 HTTPS 확인 대기."
     }
   ],
   "history": [
@@ -948,6 +948,19 @@
         "docs/project-state.json"
       ],
       "verification": "JavaScript 구문 검사와 Node/API 16개 테스트 통과. 이름 변경 후 Flutter 분석·테스트·웹 재빌드 진행 중."
+    },
+    {
+      "id": "H-tap2work-public-verification",
+      "at": "2026-09-19T10:23:52.580221+00:00",
+      "type": "test",
+      "title": "tap2work 공개 배포·DNS·CEO 양식 검증",
+      "detail": "GitHub 저장소 tap2work와 main 자동 배포를 확인했다. Namecheap의 기본 주차 CNAME 및 URL 리디렉션을 GitHub Pages A 4개와 www CNAME으로 바꿨다. tap2.work HTTP에서 새 이름과 r10 기록, Flutter 역할 샘플 응답을 확인했다. 실제 GitHub에서 CEO 방향/기능 요청 양식이 정상 렌더링됨을 확인했으며 제출하지 않았다. 모바일 320/390px 포털의 가로 넘침이 없고 좁은 화면의 제목·버튼 줄바꿈을 개선했다.",
+      "files": [
+        "docs/DEPLOYMENT.md",
+        "site/styles.css",
+        "docs/project-state.json"
+      ],
+      "verification": "이름 변경 후 Flutter analyze 문제 없음, Flutter 테스트 19개 통과, Node/API 16개·JS 구문 검사 통과. 생성 캐시에 이전 package import가 남아 첫 웹 빌드 실패 후 해당 생성 캐시를 지우고 공개/로컬 web release 모두 성공. GitHub Actions 35436895916 및 35437081320 성공. DNS 권한 서버에서 A 4개·www CNAME 확인, GitHub apex/www DNS 모두 valid 및 HTTPS eligible. HTTPS 인증서 미발급으로 정상 TLS 검증 실패, HTTPS 강제 설정 API는 certificate does not exist yet(404) 응답. 네이티브 빌드·실기기 검증 미수행."
     }
   ]
 }
