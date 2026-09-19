@@ -6,8 +6,8 @@ class BrandLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Image.asset(
     'assets/branding/tap2work.png',
-    width: 104,
-    height: 56,
+    width: 156,
+    height: 52,
     fit: BoxFit.contain,
     semanticLabel: 'tap2.work 로고',
   );

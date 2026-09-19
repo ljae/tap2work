@@ -8,7 +8,7 @@ Kitchen prep and dishwashing remain the starting jobs. Each worker needs their o
 
 ## Brand artwork
 
-The user selected the repository-root `tap2work.png` as the logo. Use the supplied artwork unchanged in Flutter headers (operations and first-shift guide), the public review portal and local developer console. Web favicons use the same image. `scripts/sync-branding.mjs` copies it verbatim into Flutter assets before both web builds; native launcher icons are not changed by this screen-branding update.
+The current repository-root `tap2work.png` is a newly generated horizontal doodle logo, requested by the user to carry forward the original's comforting, messy-but-charming blob characters. A tired blue character holds hands with a cheerful yellow companion beside “tap2.work” and “we all need a minute”. The earlier supplied artwork is preserved in `docs/branding/tap2work-original.png`; generation prompts and provenance are in `docs/branding/README.md`. Flutter headers (operations and first-shift guide), the public review portal, local developer console and web favicons use the new artwork. `scripts/sync-branding.mjs` copies it verbatim into Flutter assets before both web builds; native launcher icons remain unchanged.
 
 ## Phone experience
 

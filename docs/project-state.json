@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 15,
+  "revision": 16,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -242,12 +242,12 @@
     {
       "id": "D-024",
       "category": "브랜드",
-      "title": "tap2work.png를 로고로 사용",
+      "title": "위로하는 블롭 캐릭터의 새 로고 적용",
       "status": "confirmed",
-      "decision": "사용자가 제공한 루트 tap2work.png를 로고 원본으로 사용한다. 현재는 원본을 변형하지 않고 Flutter 운영·첫 출근 화면, 공개 리뷰 사이트와 개발자 콘솔 및 웹 파비콘에 적용한다.",
-      "reason": "사용자가 use tap2work.png as logo를 명시했다.",
-      "source": "사용자 요청 · use tap2work.png as logo",
-      "updatedAt": "2026-09-19T12:44:43.664996+00:00"
+      "decision": "사용자가 제공한 tap2work.png의 어설프지만 다정한 블롭 캐릭터, 손을 잡아 위로하는 상호작용과 유머를 반영한 새 로고를 생성해 적용한다. 현재 로고는 파란 캐릭터와 노란 캐릭터, tap2.work와 we all need a minute 문구를 담은 흰 배경 가로형 PNG이며 앱·리뷰 사이트·콘솔·웹 파비콘에 사용한다. 이전 원본은 docs/branding/tap2work-original.png로 보관한다.",
+      "reason": "사용자가 기존 느낌을 반영한 어울리는 로고를 새로 생성해서 반영하도록 요청했다.",
+      "source": "사용자 요청 · 해당 느낌을 반영하여 어울리는 로고를 새로 생성해서 반영해주세요; minimalist doodle, messy but charming blob characters, comforting hand-holding.",
+      "updatedAt": "2026-09-19T13:08:04.796220+00:00"
     }
   ],
   "milestones": [
@@ -1266,6 +1266,60 @@
         "docs/DEPLOYMENT.md"
       ],
       "verification": "GitHub CI의 JS 검사, Node/API 테스트, Flutter analyze/test, 공개 웹 빌드 및 배포 성공. 공개 HTTP 데이터·로고 검증 통과. HTTPS는 여전히 인증서 호스트명 검증 실패(curl 60), Pages https_enforced=false. TLS 검증을 우회하지 않음. 공개 운영 데이터 저장과 네이티브 빌드·실기기 검증은 수행하지 않음."
+    },
+    {
+      "id": "H-doodle-logo-direction",
+      "at": "2026-09-19T13:08:04.796220+00:00",
+      "type": "decision",
+      "title": "D-024 · 기존 원본 그대로 사용에서 새 두들 로고 생성으로 변경",
+      "decisionId": "D-024",
+      "detail": "사용자가 기존 느낌을 반영한 어울리는 로고를 새로 생성해서 반영하도록 요청했다.",
+      "before": {
+        "id": "D-024",
+        "category": "브랜드",
+        "title": "tap2work.png를 로고로 사용",
+        "status": "confirmed",
+        "decision": "사용자가 제공한 루트 tap2work.png를 로고 원본으로 사용한다. 현재는 원본을 변형하지 않고 Flutter 운영·첫 출근 화면, 공개 리뷰 사이트와 개발자 콘솔 및 웹 파비콘에 적용한다.",
+        "reason": "사용자가 use tap2work.png as logo를 명시했다.",
+        "source": "사용자 요청 · use tap2work.png as logo",
+        "updatedAt": "2026-09-19T12:44:43.664996+00:00"
+      },
+      "after": {
+        "id": "D-024",
+        "category": "브랜드",
+        "title": "위로하는 블롭 캐릭터의 새 로고 적용",
+        "status": "confirmed",
+        "decision": "사용자가 제공한 tap2work.png의 어설프지만 다정한 블롭 캐릭터, 손을 잡아 위로하는 상호작용과 유머를 반영한 새 로고를 생성해 적용한다. 현재 로고는 파란 캐릭터와 노란 캐릭터, tap2.work와 we all need a minute 문구를 담은 흰 배경 가로형 PNG이며 앱·리뷰 사이트·콘솔·웹 파비콘에 사용한다. 이전 원본은 docs/branding/tap2work-original.png로 보관한다.",
+        "reason": "사용자가 기존 느낌을 반영한 어울리는 로고를 새로 생성해서 반영하도록 요청했다.",
+        "source": "사용자 요청 · 해당 느낌을 반영하여 어울리는 로고를 새로 생성해서 반영해주세요; minimalist doodle, messy but charming blob characters, comforting hand-holding.",
+        "updatedAt": "2026-09-19T13:08:04.796220+00:00"
+      },
+      "files": [
+        "docs/project-state.json",
+        "PRODUCT.md",
+        "docs/branding/README.md"
+      ]
+    },
+    {
+      "id": "H-doodle-logo-implemented",
+      "at": "2026-09-19T13:08:04.796220+00:00",
+      "type": "implementation",
+      "title": "손을 잡아 위로하는 가로형 블롭 로고 생성·적용",
+      "detail": "내장 image_gen으로 기존 그림의 분위기를 참고한 3:1 가로형 로고를 생성했다. 첫 결과의 체크무늬 배경이 실제 픽셀로 포함되어 두 번째 생성 편집에서 흰 배경으로 교체했다. 새 원본을 tap2work.png와 Flutter 에셋에 적용하고 앱 156×52, 웹 헤더 216×72 및 모바일/푸터 180×60 표시 크기로 조정했다. 기존 원본과 정확한 생성·수정 프롬프트를 docs/branding에 보관했다.",
+      "files": [
+        "tap2work.png",
+        "app/assets/branding/tap2work.png",
+        "app/lib/ui/components.dart",
+        "site/index.html",
+        "site/styles.css",
+        "developer/index.html",
+        "developer/styles.css",
+        "scripts/sync-branding.mjs",
+        "docs/branding/README.md",
+        "docs/branding/tap2work-original.png",
+        "PRODUCT.md"
+      ],
+      "verification": "Flutter analyze 문제 없음 및 전체 위젯 테스트 33개 통과. npm run check, git diff --check 통과. 로컬/공개용 Flutter 웹 빌드 성공 및 원본·에셋·두 빌드의 로고 바이트 일치 확인. Aside 데스크톱 스크린샷에서 앱 헤더의 새 로고 확인. 최종 PNG는 2172×724 RGB 흰 배경이며 투명 이미지가 아님. API 변경이 없어 Node/API 테스트는 재실행하지 않음. 이번 로고 재생성의 커밋·공개 배포·네이티브 아이콘 변경·네이티브 빌드·실기기 검증은 수행하지 않음."
     }
   ]
 }
