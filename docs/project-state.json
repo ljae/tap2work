@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 24,
+  "revision": 25,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1647,6 +1647,24 @@
         "https://github.com/ljae/tap2work/actions/runs/35511332573",
         "https://github.com/ljae/tap2work/commit/134a331f6797ad91469602474fda2fec9690a1bd",
         "http://tap2.work/app/"
+      ]
+    },
+    {
+      "id": "H-checklist-public-preview-tap",
+      "at": "2026-09-20T13:03:13.000Z",
+      "type": "implementation",
+      "title": "공개 미리보기에서 탭 확인이 동작하지 않던 문제 수정",
+      "detail": "사용자 보고: 체크리스트를 누르면 방법만 나오고 체크가 되지 않았다. 원인은 읽기 전용 공개 리뷰 빌드에서 확인 동그라미가 조용히 비활성화된 것이다. 공개 미리보기에서는 탭 확인을 이 기기에서만 표시(체험 · 저장 안 됨, 첫 탭에 안내 스낵바)하고 되돌리기도 기기 내에서 처리하며 서버로 보내지 않는다. 담당 직급이 아닌 그룹을 탭하면 아무 반응 대신 이유를 스낵바로 안내한다. 로컬·실제 연결에서는 기존처럼 서버에 기록한다.",
+      "files": [
+        "app/lib/ui/checklist_board.dart",
+        "app/test/checklist_test.dart",
+        "PRODUCT.md",
+        "docs/project-state.json"
+      ],
+      "verification": "Flutter analyze 이슈 없음, Flutter 48/48(공개 미리보기 탭·되돌리기·POST 0건, 직급 차단 안내 시나리오 추가). 커밋 a3a02ed 푸시 후 Actions 35512155881 build·deploy 성공(Node 36/36, Flutter 48/48). 공개 main.dart.js에 새 문구(유니코드 이스케이프 형태) 포함과 번들 크기 변화 확인. 실기기 확인은 미수행.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/35512155881",
+        "https://github.com/ljae/tap2work/commit/a3a02ed"
       ]
     }
   ]
