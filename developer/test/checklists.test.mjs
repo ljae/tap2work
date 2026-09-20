@@ -4,8 +4,9 @@ import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { OperationsStore, seedOperations } from '../operations.mjs';
-import { checklistLibrary } from '../checklists.mjs';
+import { checklistLibrary, checklistSlots, libraryTemplates } from '../checklists.mjs';
 import { createConsoleServer } from '../server.mjs';
+const OPEN = 'library-bonejjim-staff-open', PREP = 'library-bonejjim-bone-prep', CLOSE = 'library-bonejjim-kitchen-close';
 async function setup(t) {
   const dir = await mkdtemp(path.join(tmpdir(), 'tap2work-checklists-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
@@ -17,10 +18,39 @@ async function setup(t) {
   return { file, store, act, clock, midnight: () => { now = new Date('2026-09-20T15:00:00Z'); } };
 }
 const draft = state => ({ folders: state.checklistFolders, templates: state.taskTemplates });
+// The shape written by the first shared demo: three flat routine tasks and no manuals.
+function legacySeed(now) {
+  const state = seedOperations(now);
+  delete state.checklistVersion; delete state.checklistFolders;
+  const day = state.day, dueAt = new Date(now).toISOString();
+  state.tasks = [
+    { id: 'opening', title: '오늘의 공석과 인수인계 읽기', emoji: '👋', slot: '오픈', requiredRole: 'all', zone: 'entrance', dueAt, date: day, kind: 'routine', completedAt: null, completedBy: null },
+    { id: 'prep', title: '전처리 도구와 작업대 준비', emoji: '🥣', slot: '준비', requiredRole: 'cook', zone: 'prep', dueAt, date: day, kind: 'routine', completedAt: null, completedBy: null },
+    { id: 'close', title: '설거지 구역 정리 확인', emoji: '🫧', slot: '마감', requiredRole: 'crew', zone: 'sink', dueAt, date: day, kind: 'routine', completedAt: null, completedBy: null },
+  ];
+  state.taskTemplates = structuredClone(state.tasks);
+  return state;
+}
+test('fresh demo starts with the 뼈찜 collection in its own folder, place and role hints applied', async t => {
+  const { store } = await setup(t);
+  const state = await store.snapshot('owner');
+  const bone = checklistLibrary.industries.find(row => row.id === 'bonejjim');
+  assert.equal(bone.tasks.length, 11);
+  assert.deepEqual(state.checklistFolders.map(f => f.id), ['general', 'bonejjim']);
+  assert.equal(state.taskTemplates.length, 11);
+  assert.ok(state.taskTemplates.every(row => row.folderId === 'bonejjim' && row.version === 1));
+  const prep = state.taskTemplates.find(row => row.id === PREP);
+  assert.equal(prep.zone, 'prep'); assert.equal(prep.requiredRole, 'cook'); assert.equal(prep.emoji, '🍖');
+  assert.ok(state.tasks.find(row => row.templateId === 'library-bonejjim-break').slot === '브레이크');
+  assert.ok(checklistSlots.includes('브레이크'));
+  // A store without the hinted place falls back to its first place rather than failing.
+  const other = libraryTemplates('bonejjim', [{ id: 'only' }]);
+  assert.ok(other.templates.every(row => row.zone === 'only'));
+  assert.equal((await store.snapshot('crew')).tasks.find(row => row.templateId === PREP).canComplete, false);
+});
 test('legacy migration preserves completed evidence and upgrades pending manuals once', async t => {
   const { file, store, clock } = await setup(t);
-  const old = seedOperations(clock());
-  old.taskTemplates = structuredClone(old.tasks);
+  const old = legacySeed(clock());
   old.tasks[0].completedAt = clock().toISOString(); old.tasks[0].completedBy = { name: '기존 담당' };
   await writeFile(file, JSON.stringify(old));
   const upgraded = await store.snapshot('owner');
@@ -28,11 +58,12 @@ test('legacy migration preserves completed evidence and upgrades pending manuals
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').steps, undefined);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').completedBy.name, '기존 담당');
   assert.equal(upgraded.tasks.find(t => t.id === 'prep').steps.length, 3);
+  assert.deepEqual(upgraded.checklistFolders, [{ id: 'general', name: '기본 업무' }]);
   assert.deepEqual((await store.snapshot('owner')).revision, upgraded.revision);
 });
 test('steps have independent actors, cannot be bypassed, duplicated or completed by wrong role', async t => {
   const { store, act, file, clock } = await setup(t);
-  const task = (await store.snapshot('owner')).tasks.find(t => t.templateId === 'prep');
+  const task = (await store.snapshot('owner')).tasks.find(t => t.templateId === PREP);
   await assert.rejects(act('complete_task', { taskId: task.id }), { status: 400 });
   await assert.rejects(act('complete_step', { taskId: task.id, stepId: task.steps[0].id }, 'crew'), { status: 403 });
   await assert.rejects(act('complete_step', { taskId: task.id, stepId: 'missing' }), { status: 404 });
@@ -42,33 +73,52 @@ test('steps have independent actors, cannot be bypassed, duplicated or completed
   const reopened = (await new OperationsStore(file, clock).snapshot('owner')).tasks.find(t => t.id === task.id);
   assert.ok(reopened.completedAt); assert.equal(reopened.steps[0].completedBy.name, '현우'); assert.equal(reopened.steps[1].completedBy.name, '서연');
 });
+test('a mis-tapped activity can be reopened by its actor or a leader, only for today, and reopens the group', async t => {
+  const { store, act, midnight } = await setup(t);
+  const task = (await store.snapshot('owner')).tasks.find(t => t.templateId === OPEN);
+  for (const step of task.steps) await act('complete_step', { taskId: task.id, stepId: step.id }, 'crew');
+  assert.ok((await store.snapshot('crew')).tasks.find(t => t.id === task.id).completedAt);
+  await assert.rejects(act('reopen_step', { taskId: task.id, stepId: task.steps[0].id }, 'cook'), { status: 400 });
+  await assert.rejects(act('reopen_step', { taskId: task.id, stepId: 'missing' }, 'crew'), { status: 400 });
+  const own = await act('reopen_step', { taskId: task.id, stepId: task.steps[0].id }, 'crew');
+  const reopened = own.tasks.find(t => t.id === task.id);
+  assert.equal(reopened.completedAt, null); assert.equal(reopened.steps[0].completedAt, undefined); assert.ok(reopened.steps[1].completedAt);
+  assert.equal(reopened.canComplete, true);
+  await assert.rejects(act('reopen_step', { taskId: task.id, stepId: task.steps[0].id }, 'crew'), { status: 400 });
+  const lead = await act('reopen_step', { taskId: task.id, stepId: task.steps[1].id }, 'manager');
+  assert.equal(lead.tasks.find(t => t.id === task.id).steps[1].completedAt, undefined);
+  assert.match(lead.activity[0].message, /되돌림/);
+  await act('complete_step', { taskId: task.id, stepId: task.steps[0].id }, 'cook');
+  midnight();
+  await assert.rejects(act('reopen_step', { taskId: task.id, stepId: task.steps[0].id }, 'cook'), { status: 409 });
+});
 test('editing regenerates unstarted work but preserves started and complete snapshots across Korean midnight', async t => {
   const { store, act, midnight, file } = await setup(t);
   let state = await store.snapshot('owner');
-  const opening = state.tasks.find(t => t.templateId === 'opening');
+  const opening = state.tasks.find(t => t.templateId === OPEN);
   await act('complete_step', { taskId: opening.id, stepId: opening.steps[0].id });
   state = await store.snapshot('owner');
-  const prep = state.tasks.find(t => t.templateId === 'prep');
+  const prep = state.tasks.find(t => t.templateId === PREP);
   const change = draft(state);
-  change.templates.find(t => t.id === 'opening').steps[0].manual = '수정된 인수인계';
-  change.templates.find(t => t.id === 'prep').title = '새 준비 업무';
+  change.templates.find(t => t.id === OPEN).steps[0].manual = '수정된 인수인계';
+  const edited = change.templates.find(t => t.id === PREP); edited.title = '새 준비 업무'; edited.emoji = '🦴';
   const after = await act('save_checklists', change);
   assert.equal(after.tasks.find(t => t.id === opening.id).steps[0].manual, opening.steps[0].manual);
-  assert.ok(after.tasks.find(t => t.title === '새 준비 업무'));
+  assert.equal(after.tasks.find(t => t.title === '새 준비 업무').emoji, '🦴');
   assert.equal(after.tasks.some(t => t.id === prep.id), false);
   await assert.rejects(act('complete_step', { taskId: prep.id, stepId: prep.steps[0].id }), { status: 409 });
   assert.ok(JSON.parse(await readFile(file)).tasks.find(t => t.id === prep.id).archivedAt);
   midnight();
   const next = await store.snapshot('crew');
   assert.equal(next.day, '2026-09-21');
-  const newOpening = next.tasks.find(t => t.templateId === 'opening');
+  const newOpening = next.tasks.find(t => t.templateId === OPEN);
   assert.equal(newOpening.steps[0].manual, '수정된 인수인계'); assert.equal(newOpening.steps[0].completedAt, undefined);
   await assert.rejects(act('complete_step', { taskId: opening.id, stepId: opening.steps[1].id }), { status: 409 });
 });
 test('folder moves, order and deletion are shared by every role without rewriting evidence', async t => {
   const { store, act, midnight, file } = await setup(t);
   let state = await store.snapshot('owner');
-  const task = state.tasks.find(t => t.templateId === 'opening');
+  const task = state.tasks.find(t => t.templateId === OPEN);
   for (const step of task.steps) await act('complete_step', { taskId: task.id, stepId: step.id });
   state = await store.snapshot('owner');
   state.checklistFolders.push({ id: 'kitchen', name: '주방' });
@@ -76,8 +126,8 @@ test('folder moves, order and deletion are shared by every role without rewritin
   await act('save_checklists', draft(state));
   const crew = await store.snapshot('crew');
   assert.equal(crew.taskTemplates, undefined);
-  assert.equal(crew.tasks.find(t => t.templateId === 'close').folderId, 'kitchen');
-  assert.equal(crew.tasks.find(t => t.templateId === 'close').displayOrder, 0);
+  assert.equal(crew.tasks.find(t => t.templateId === 'library-bonejjim-hall-close').folderId, 'kitchen');
+  assert.equal(crew.tasks.find(t => t.templateId === 'library-bonejjim-hall-close').displayOrder, 0);
   const empty = await act('save_checklists', { folders: [{ id: 'general', name: '기본' }], templates: [] });
   assert.equal(empty.tasks.filter(t => t.kind === 'routine').length, 1);
   assert.equal(empty.tasks.find(t => t.id === task.id).completedAt, (await store.snapshot('owner')).tasks.find(t => t.id === task.id).completedAt);
@@ -88,10 +138,10 @@ test('folder moves, order and deletion are shared by every role without rewritin
 test('deleted then reimported templates get distinct occurrence IDs', async t => {
   const { store, act } = await setup(t);
   const before = await store.snapshot('owner');
-  const task = before.tasks.find(t => t.templateId === 'prep');
+  const task = before.tasks.find(t => t.templateId === PREP);
   await act('save_checklists', { folders: before.checklistFolders, templates: [] });
   const after = await act('save_checklists', draft(before));
-  const current = after.tasks.find(t => t.templateId === 'prep');
+  const current = after.tasks.find(t => t.templateId === PREP);
   assert.notEqual(current.id, task.id);
   await act('complete_step', { taskId: current.id, stepId: current.steps[0].id });
 });
@@ -99,41 +149,44 @@ test('stale drafts, forged permissions and invalid checklist data leave state in
   const { store, act } = await setup(t);
   const state = await store.snapshot('owner');
   await assert.rejects(act('save_checklists', draft(state), 'crew'), { status: 403 });
-  for (const alter of [s => s.templates[0].steps = [], s => s.templates[0].steps.push(s.templates[0].steps[0]), s => s.templates[0].steps[0].manual = '', s => s.templates[0].steps[0].tip = '가'.repeat(401), s => s.templates[0].steps[0].tip = 123, s => s.templates[0].zone = 'missing', s => s.templates[0].folderId = 'missing', s => s.folders.push(s.folders[0]), s => s.templates.push(s.templates[0]), s => s.folders = [], s => s.templates[0] = null]) {
+  for (const alter of [s => s.templates[0].steps = [], s => s.templates[0].steps.push(s.templates[0].steps[0]), s => s.templates[0].steps[0].manual = '', s => s.templates[0].steps[0].tip = '가'.repeat(401), s => s.templates[0].steps[0].tip = 123, s => s.templates[0].zone = 'missing', s => s.templates[0].folderId = 'missing', s => s.templates[0].slot = '야식', s => s.folders.push(s.folders[0]), s => s.templates.push(s.templates[0]), s => s.folders = [], s => s.templates[0] = null]) {
     const bad = structuredClone(draft(state)); alter(bad);
     await assert.rejects(act('save_checklists', bad), { status: 400 });
   }
   assert.equal((await store.snapshot('owner')).revision, state.revision);
-  await act('save_checklists', draft(state));
+  const long = structuredClone(draft(state)); long.templates[0].emoji = 'not an emoji';
+  assert.equal((await act('save_checklists', long)).taskTemplates[0].emoji, '📝');
   await assert.rejects(store.mutate('owner', { action: 'save_checklists', revision: state.revision, ...draft(state) }), { status: 409 });
 });
-test('entire catalog validates and saves with sources and detailed instructions', async t => {
-  const { store, file, clock } = await setup(t);
-  const state = await store.snapshot('owner');
+function fullCatalog(state) {
   const payload = draft(state);
   for (const industry of checklistLibrary.industries) {
     assert.ok(industry.tasks.length >= 2);
     for (const task of industry.tasks) {
       assert.ok(task.steps.length >= 3); assert.ok(task.sourceIds.every(id => checklistLibrary.sources.some(s => s.id === id)));
       assert.ok(task.steps.every(step => step.title && step.manual && step.tip));
-      payload.templates.push({ ...task, id: `library-${industry.id}-${task.id}`, folderId: 'general', requiredRole: 'all', zone: 'entrance' });
+      const id = `library-${industry.id}-${task.id}`;
+      if (!payload.templates.some(row => row.id === id)) payload.templates.push({ ...task, id, folderId: 'general', requiredRole: 'all', zone: 'entrance' });
     }
   }
+  return payload;
+}
+test('entire catalog validates and saves with sources and detailed instructions', async t => {
+  const { store } = await setup(t);
+  const state = await store.snapshot('owner');
+  const payload = fullCatalog(state);
   const saved = await store.mutate('owner', { action: 'save_checklists', revision: state.revision, ...payload });
   assert.equal(saved.taskTemplates.length, payload.templates.length);
+  assert.equal(saved.taskTemplates.length, checklistLibrary.industries.reduce((n, i) => n + i.tasks.length, 0));
 });
 test('HTTP accepts checklist drafts larger than the old 64 KiB limit', async t => {
   const { store, file, clock } = await setup(t);
   const state = await store.snapshot('owner');
-  const payload = draft(state);
-  for (const industry of checklistLibrary.industries) for (const task of industry.tasks) {
-    payload.templates.push({ ...task, id: `library-${industry.id}-${task.id}`, folderId: 'general', requiredRole: 'all', zone: 'entrance' });
-  }
+  const payload = structuredClone(fullCatalog(state));
   const server = createConsoleServer({ operationsFile: file, operationsClock: clock });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve)); t.after(() => new Promise(resolve => server.close(resolve)));
   const base = `http://127.0.0.1:${server.address().port}`;
   const snapshot = await fetch(`${base}/api/operations`, { headers: { 'x-demo-actor': 'owner' } }).then(r => r.json());
-  payload.templates = structuredClone(payload.templates);
   for (const template of payload.templates) template.steps[0].manual = '현장 방법과 완료 기준을 확인해요. '.repeat(25);
   const body = JSON.stringify({ action: 'save_checklists', revision: snapshot.revision, ...payload });
   assert.ok(Buffer.byteLength(body) > 65536);

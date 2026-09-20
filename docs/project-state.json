@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 22,
+  "revision": 23,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -264,10 +264,20 @@
       "category": "콘텐츠 검증",
       "title": "매뉴얼의 현장 검수·지역 기준·갱신 정책",
       "status": "proposed",
-      "decision": "현재 25개 업종+외식 공통 53업무/159행위는 공개 자료를 참고한 편집 제안이다. 실제 온도·시간·약품·장비·전문 작업 기준과 검수 담당·재검토 주기는 미정이다. 해외 자료를 한국 법정 기준이나 인증 충족으로 표시하지 않는다. 초기 Aside 조사 에이전트의 크레딧 부족으로 공개 웹 원문 조사 후 Aside REPL 직접 브라우저로 공식 출처 5곳을 재확인했다. S17 첨부 PDF 본문은 미검증이다.",
+      "decision": "현재 뼈찜·감자탕 전문점+25개 업종+외식 공통 64그룹/211활동은 공개 자료를 참고한 편집 제안이다. 뼈찜 컬렉션은 방문 후기(S19)·식품안전나라(S20·S21)·생활법령정보(S23)·배민외식업광장의 식약처 자료 인용(S22)·비공식 커뮤니티 답변(S24)을 근거로 하며, 핏물·초벌 시간, 온도, 소분 무게, 레시피는 '매장 기준' 자리표시자다. 실제 온도·시간·약품·장비·전문 작업 기준과 검수 담당·재검토 주기는 미정이다. 해외 자료를 한국 법정 기준이나 인증 충족으로 표시하지 않는다. Aside 조사 에이전트는 두 차례 402 크레딧 부족이었고 공개 웹 원문과 Aside REPL 직접 브라우저로 확인했다. S17·S21 첨부 PDF 본문은 미검증이다.",
       "reason": "다업종 목록 제공 승인은 개별 작업 절차나 전문 시술의 검수 완료를 뜻하지 않는다.",
       "source": "현재 구현 제안 및 조사 제한 · 사용자 승인 아님",
-      "updatedAt": "2026-09-20T01:57:36.551Z"
+      "updatedAt": "2026-09-20T12:37:03.000Z"
+    },
+    {
+      "id": "D-027",
+      "category": "업무 체크리스트",
+      "title": "탭 확인과 드래그 앤 드롭 체크리스트, 뼈찜 전문점 우선",
+      "status": "confirmed",
+      "decision": "할 일은 폴더 → 그룹 → 활동(간단 매뉴얼) 구조로 표시한다. 직원과 사장님 모두 활동 왼쪽 동그라미를 한 번 탭해 확인하고, 이름을 탭해 방법·노하우를 본다. 잘못 누른 확인은 본인 또는 사장님·매니저가 당일에 되돌릴 수 있다. 편집은 그룹·활동 손잡이 드래그 정렬, 그룹→폴더·활동→그룹 길게 눌러 이동, 메뉴 대체 동작을 제공한다. 시간대에 브레이크를 추가한다. 첫 대상은 뼈찜·뼈곰탕 전문점이며 새 데모 매장과 기본 컬렉션(11그룹·52활동)을 이 업종으로 시작한다. 기존 데모 파일은 유지하고 기본 목록에서 가져올 수 있다.",
+      "reason": "사용자가 전체 과정을 검토해 CEO와 직원이 직관적으로 드래그 앤 드롭·탭 체크로 다루는 체크리스트 UI/UX 재설계와 실제 현장에 가까운 구체적 체크리스트(그룹 → 활동 + 매뉴얼)를 요청했고, 뼈찜 판매 식당(산뼈찜 방문 후기)을 우선하도록 지정했다. 데이터 모델은 유지하고 화면 용어와 상호작용을 바꿨다.",
+      "source": "사용자 요청 · 2026-09-20 · review whole processes and redesign checklist UI & UX ... focus on restaurant selling 뼈찜",
+      "updatedAt": "2026-09-20T12:37:03.000Z"
     }
   ],
   "milestones": [
@@ -336,6 +346,12 @@
       "title": "다업종 노하우 체크리스트 위키 초안",
       "status": "done",
       "description": "25개 업종+외식 공통, 53업무·159행위·18개 출처/후속 참조, 선택 가져오기와 JSON→Markdown 동기화 구현. 공개 웹 원문 조사 후 Aside REPL 직접 브라우저로 공식 출처 5곳 재확인. 현장 검수는 D-026 proposed."
+    },
+    {
+      "id": "M-012",
+      "title": "탭 체크·드래그 앤 드롭 체크리스트와 뼈찜 컬렉션",
+      "status": "in_progress",
+      "description": "그룹 카드·활동 탭 확인·매뉴얼 펼침·되돌리기·진행률·시간대 탭, 그룹/활동 드래그 편집기, 뼈찜 11그룹·52활동 컬렉션과 6개 출처, 뼈찜 샘플 매장 시드 구현. Node 36·Flutter 47·Dart 규칙 26·분석·로컬/공개 웹 빌드 통과, Aside REPL 브라우저 화면 확인. 커밋·공개 배포·실기기·네이티브 빌드는 미수행."
     }
   ],
   "history": [
@@ -1573,6 +1589,36 @@
         "https://github.com/ljae/tap2work/actions/runs/35502625912",
         "http://tap2.work/app/",
         "http://tap2.work/docs/wiki/CHECKLISTS.md"
+      ]
+    },
+    {
+      "id": "H-checklist-tap-dnd-bonejjim",
+      "at": "2026-09-20T12:37:03.000Z",
+      "type": "implementation",
+      "title": "체크리스트 탭 확인·드래그 앤 드롭 재설계와 뼈찜 전문점 컬렉션",
+      "detail": "할 일 화면을 그룹 카드(아이콘·시간대·직급·장소·진행 링)와 활동 행(왼쪽 동그라미 탭 확인, 이름 탭으로 매뉴얼·노하우 펼침)으로 재설계했다. 진행률 카드, 오픈·준비·피크·브레이크·마감 탭의 남은 활동 수, 내 담당만 필터, 완료 그룹 접기, 잘못 누른 확인 되돌리기(서버 reopen_step: 본인 또는 사장님·매니저, 당일만, 활동 기록 남김)를 추가했다. 편집기는 그룹·활동 손잡이 드래그 정렬, 그룹 길게 눌러 폴더로, 활동 길게 눌러 다른 그룹으로 이동, 그룹 정보 시트(아이콘·시간대·직급·장소), 활동 전체화면 편집, 저장 전 초안 전체 검증(그룹·활동 이름 안내, 스낵바 병행)을 제공한다. 서버는 브레이크 시간대, 그룹 아이콘, 라이브러리 장소·직급 힌트, 새 데모의 뼈찜 시드(우리뼈찜 · 서정리, 뼈찜 메뉴·재료 이름, 안정된 ID)를 지원한다. 뼈찜·감자탕 전문점 컬렉션 11그룹·52활동과 출처 S19~S24를 추가하고 위키를 재생성했다. 로컬 .local 데모 파일은 백업(operations-demo.backup-2026-09-20.json) 후 뼈찜 시드로 재생성했다.",
+      "files": [
+        "app/lib/domain/checklist_draft.dart",
+        "app/lib/ui/checklist_board.dart",
+        "app/lib/ui/checklist_editor.dart",
+        "app/lib/ui/checklist_library.dart",
+        "app/test/checklist_test.dart",
+        "app/test/support/checklist_draft_cases.dart",
+        "app/test/checklist_draft_test.dart",
+        "developer/checklists.mjs",
+        "developer/operations.mjs",
+        "developer/sales.mjs",
+        "developer/test/checklists.test.mjs",
+        "developer/test/operations.test.mjs",
+        "docs/wiki/checklist-library.json",
+        "docs/wiki/CHECKLISTS.md",
+        "README.md",
+        "PRODUCT.md",
+        "docs/project-state.json"
+      ],
+      "verification": "Node/API 36/36, 독립 Dart 초안 규칙 26/26, Flutter analyze 이슈 없음, Flutter 위젯·단위 47/47, npm run check(위키 동기화 포함), git diff --check 통과. 로컬 및 PUBLIC_REVIEW Flutter web release 빌드 성공, 공개 샘플 4역할 JSON에 뼈찜 매장·13개 오늘 업무·27개 컬렉션 확인. 로컬 콘솔(3117)에서 Aside REPL 직접 브라우저로 1440×900 화면 캡처: 오늘 현황판, 할 일 그룹 카드·매뉴얼 펼침, 활동 탭 확인 후 '서연 · 21:35 확인'과 1/52 진행, 편집기 그룹·활동 손잡이 화면 확인(.local/shots). 발견한 아이콘 검증 결함(ZWJ 이모지 거부)을 수정하고 재검증. Aside exec 에이전트는 402 Insufficient credits로 미실행. 휴대폰 폭 브라우저 캡처는 REPL 뷰포트 변경 미지원으로 미수행(위젯 테스트 320/390/1440px로 대체). 네이티브 빌드·실기기·커밋·공개 배포 미수행.",
+      "links": [
+        "https://blog.naver.com/yjh97423/224347712759"
       ]
     }
   ]

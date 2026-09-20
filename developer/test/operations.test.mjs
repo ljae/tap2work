@@ -22,7 +22,9 @@ test('private owner data and procurement prices are projected by demo role', asy
   const owner = await store.snapshot('owner');
   const manager = await store.snapshot('manager');
   const crew = await store.snapshot('crew');
-  assert.equal(owner.tasks.length, 5);
+  // Every seeded 뼈찜 group plus the two inventory checks whose order date has passed.
+  assert.equal(owner.tasks.length, owner.taskTemplates.length + 2);
+  assert.equal(owner.tasks.filter(task => task.kind === 'stock').length, 2);
   assert.ok(owner.privateSummary);
   assert.equal(manager.privateSummary, undefined);
   assert.equal(crew.privateSummary, undefined);

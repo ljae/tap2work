@@ -5,7 +5,7 @@ void main() {
   test(
     'whole-draft validation and selected reimport preserve edits and limits',
     () {
-      expect(runChecklistDraftChecks(), 17);
+      expect(runChecklistDraftChecks(), 26);
     },
   );
 }

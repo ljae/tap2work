@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
 import { seedSales, salesDashboard } from './sales.mjs';
 import { ensureLayout, validateLayout } from './layout.mjs';
-import { ensureChecklists, saveChecklists, checklistLibrary } from './checklists.mjs';
+import { ensureChecklists, saveChecklists, checklistLibrary, checklistSlots, checklistRoles, libraryTemplates, reopenStep } from './checklists.mjs';
 
 const dayMs = 86400000;
 export const actors = [
@@ -13,30 +13,47 @@ export const actors = [
   { id: 'cook', name: '현우', role: 'cook', label: '조리 담당', emoji: '🍳' },
   { id: 'crew', name: '지우', role: 'crew', label: '크루', emoji: '🐣' },
 ];
-const slots = ['오픈', '준비', '피크', '마감'];
-const roles = ['all', 'crew', 'cook', 'manager', 'owner'];
+const slots = checklistSlots;
+const roles = checklistRoles;
 const koreanDate = now => new Date(new Date(now).getTime() + 9 * 3600000).toISOString().slice(0, 10);
 const iso = now => new Date(now).toISOString();
 function fail(message, status = 400) { throw new StoreError(message, status); }
 function text(value, name, max = 200) { if (typeof value !== 'string' || !value.trim() || value.length > max) fail(`${name}을 확인해 주세요.`); return value.trim(); }
 function amount(value) { if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 100000) fail('수량은 0~100,000 사이로 입력해 주세요.'); return value; }
+const seedZones = () => [
+  { id: 'storage', name: '창고', emoji: '📦', description: '쌀·감자·포장 용기. 선반별 라벨을 확인해요.', x: .04, y: .04 },
+  { id: 'fridge', name: '냉장고', emoji: '🧊', description: '등뼈·우거지·사리·계란 보관. 생뼈와 손질 채소 칸을 나눠요.', x: .55, y: .04 },
+  { id: 'prep', name: '뼈 전처리대', emoji: '🍖', description: '핏물 빼기·초벌·소분. 생뼈 도구와 채소 도구를 구분해요.', x: .04, y: .28 },
+  { id: 'stove', name: '육수·뼈찜 조리대', emoji: '🍲', description: '육수 솥과 뼈찜 화구. 허용된 장비만 안내를 받고 사용해요.', x: .55, y: .28 },
+  { id: 'sink', name: '세척대', emoji: '🫧', description: '냄비·앞접시·뼈 통을 모으고 매장 절차대로 세척해요.', x: .04, y: .52 },
+  { id: 'pass', name: '배식대·셀프바', emoji: '🍽️', description: '완성 뼈찜 전달, 기본 국물·반찬 셀프바가 있는 구역이에요.', x: .55, y: .52 },
+  { id: 'entrance', name: '입구·탈의', emoji: '🚪', description: '개인 물품 보관과 출근 인사를 나누는 곳이에요.', x: .04, y: .76 },
+  { id: 'exit', name: '비상구', emoji: '🟢', description: '실제 비상 동선은 현장에서 버디와 확인해요.', x: .55, y: .76 },
+];
+// Fresh demo stores start from the 뼈찜 collection; existing files keep their own lists (see ensureChecklists).
+function seedChecklists(zones) {
+  const { folder, templates } = libraryTemplates('bonejjim', zones);
+  return { checklistVersion: 1, checklistFolders: [{ id: 'general', name: '기본 업무' }, folder], taskTemplates: templates };
+}
 export function seedOperations(now = new Date()) {
   const earlier = new Date(new Date(now).getTime() - 3 * dayMs).toISOString();
+  const zones = seedZones();
   return {
-    schemaVersion: 1, revision: 1, store: { name: '작은주방 · 연남', note: '샘플 매장 · 실제 주문/알림 없음' },
+    schemaVersion: 1, revision: 1, store: { name: '우리뼈찜 · 서정리', note: '뼈찜·뼈곰탕 샘플 매장 · 실제 주문/알림 없음' },
     actors, day: koreanDate(now), sales: seedSales(now),
+    // Item IDs stay stable so existing demo files and tests keep working; names follow the 뼈찜 sample store.
     items: [
-      { id: 'tomato', name: '토마토', emoji: '🍅', unit: 'kg', quantity: 2, minimum: 3, orderQuantity: 4, price: 7800, supplier: '싱싱농장', zone: 'fridge', reviewDays: 2, lastOrderedAt: earlier, lastCheckedAt: null },
-      { id: 'eggs', name: '달걀', emoji: '🥚', unit: '판', quantity: 1, minimum: 2, orderQuantity: 3, price: 6500, supplier: '싱싱농장', zone: 'fridge', reviewDays: 3, lastOrderedAt: earlier, lastCheckedAt: null },
-      { id: 'lettuce', name: '상추', emoji: '🥬', unit: '봉', quantity: 5, minimum: 2, orderQuantity: 3, price: 3500, supplier: '싱싱농장', zone: 'fridge', reviewDays: 1, lastOrderedAt: null, lastCheckedAt: null },
+      { id: 'tomato', name: '돼지등뼈', emoji: '🍖', unit: 'kg', quantity: 2, minimum: 3, orderQuantity: 4, price: 7800, supplier: '한돈유통', zone: 'fridge', reviewDays: 2, lastOrderedAt: earlier, lastCheckedAt: null },
+      { id: 'eggs', name: '계란(볶음밥용)', emoji: '🥚', unit: '판', quantity: 1, minimum: 2, orderQuantity: 3, price: 6500, supplier: '싱싱농장', zone: 'fridge', reviewDays: 3, lastOrderedAt: earlier, lastCheckedAt: null },
+      { id: 'lettuce', name: '우거지(시래기)', emoji: '🥬', unit: '봉', quantity: 5, minimum: 2, orderQuantity: 3, price: 3500, supplier: '싱싱농장', zone: 'fridge', reviewDays: 1, lastOrderedAt: null, lastCheckedAt: null },
       { id: 'rice', name: '쌀 20kg', emoji: '🍚', unit: '포', quantity: 2, minimum: 1, orderQuantity: 1, price: 58000, supplier: '우리식자재', zone: 'storage', reviewDays: 7, lastOrderedAt: null, lastCheckedAt: null },
+      { id: 'potato', name: '감자', emoji: '🥔', unit: 'kg', quantity: 6, minimum: 4, orderQuantity: 10, price: 2400, supplier: '싱싱농장', zone: 'storage', reviewDays: 3, lastOrderedAt: null, lastCheckedAt: null },
+      { id: 'udon', name: '우동사리', emoji: '🍜', unit: '봉', quantity: 12, minimum: 10, orderQuantity: 30, price: 900, supplier: '우리식자재', zone: 'fridge', reviewDays: 3, lastOrderedAt: null, lastCheckedAt: null },
+      { id: 'container', name: '포장 용기(대)', emoji: '🥡', unit: '세트', quantity: 40, minimum: 30, orderQuantity: 100, price: 350, supplier: '포장마을', zone: 'storage', reviewDays: 7, lastOrderedAt: null, lastCheckedAt: null },
     ],
-    tasks: [
-      { id: 'opening', title: '오늘의 공석과 인수인계 읽기', emoji: '👋', slot: '오픈', requiredRole: 'all', zone: 'entrance', dueAt: iso(now), date: koreanDate(now), kind: 'routine', completedAt: null, completedBy: null },
-      { id: 'prep', title: '전처리 도구와 작업대 준비', emoji: '🥣', slot: '준비', requiredRole: 'cook', zone: 'prep', dueAt: iso(now), date: koreanDate(now), kind: 'routine', completedAt: null, completedBy: null },
-      { id: 'close', title: '설거지 구역 정리 확인', emoji: '🫧', slot: '마감', requiredRole: 'crew', zone: 'sink', dueAt: iso(now), date: koreanDate(now), kind: 'routine', completedAt: null, completedBy: null },
-    ],
-    taskTemplates: [], orders: [], activity: [],
+    tasks: [],
+    ...seedChecklists(zones),
+    orders: [], activity: [],
     shifts: [
       { id: 's1', person: '민지', role: '매니저', time: '09:00–18:00', status: '근무', covering: null },
       { id: 's2', person: '현우', role: '조리 담당', time: '10:00–19:00', status: '근무', covering: null },
@@ -44,16 +61,7 @@ export function seedOperations(now = new Date()) {
       { id: 's4', person: '가은', role: '크루', time: '18:00–22:00', status: '휴가', covering: null },
     ],
     coverRequests: [],
-    zones: [
-      { id: 'storage', name: '창고', emoji: '📦', description: '쌀과 건식 재료. 선반별 라벨을 확인해요.', x: .04, y: .04 },
-      { id: 'fridge', name: '냉장고', emoji: '🧊', description: '채소와 달걀 보관. 매장별 구분과 표시를 따라요.', x: .55, y: .04 },
-      { id: 'prep', name: '전처리대', emoji: '🥣', description: '도마·칼·저울 위치를 버디와 먼저 확인해요.', x: .04, y: .28 },
-      { id: 'stove', name: '조리 구역', emoji: '🍳', description: '레인지와 오븐. 허용된 장비만 안내를 받고 사용해요.', x: .55, y: .28 },
-      { id: 'sink', name: '세척대', emoji: '🫧', description: '사용한 식기를 모으고 매장 절차대로 세척해요.', x: .04, y: .52 },
-      { id: 'pass', name: '배식대', emoji: '🍽️', description: '완성된 음식을 전달하는 구역이에요.', x: .55, y: .52 },
-      { id: 'entrance', name: '입구·탈의', emoji: '🚪', description: '개인 물품 보관과 출근 인사를 나누는 곳이에요.', x: .04, y: .76 },
-      { id: 'exit', name: '비상구', emoji: '🟢', description: '실제 비상 동선은 현장에서 버디와 확인해요.', x: .55, y: .76 },
-    ],
+    zones,
     privateSummary: { laborEstimate: 326000, note: '사장님 메모 · 가은님의 휴가 승인 완료. 저녁 대체 근무 확인 필요. (예시)' },
   };
 }
@@ -98,7 +106,7 @@ export class OperationsStore {
   constructor(filename, clock = () => new Date()) { this.filename = filename; this.clock = clock; }
   async #read() {
     try { return JSON.parse(await readFile(this.filename, 'utf8')); }
-    catch (error) { if (error.code !== 'ENOENT') throw error; const state = seedOperations(this.clock()); state.taskTemplates = structuredClone(state.tasks); state.tasks = []; await this.#save(state); return state; }
+    catch (error) { if (error.code !== 'ENOENT') throw error; const state = seedOperations(this.clock()); await this.#save(state); return state; }
   }
   async #save(state) {
     await mkdir(path.dirname(this.filename), { recursive: true });
@@ -172,6 +180,13 @@ export class OperationsStore {
         case 'save_checklists': {
           leadership(actor); saveChecklists(input, state, now);
           activity('업무 폴더·카드·매뉴얼 저장'); break;
+        }
+        case 'reopen_step': {
+          const task = state.tasks.find(task => task.id === input.taskId);
+          if (!task) fail('업무를 찾지 못했어요.', 404);
+          if (task.archivedAt || task.date !== state.day) fail('오늘 업무만 되돌릴 수 있어요.', 409);
+          reopenStep(task, input.stepId, actor, ['owner', 'manager'].includes(actor.role));
+          activity(`${task.title} · 확인 되돌림`); break;
         }
         case 'complete_step':
         case 'complete_task': {

@@ -2,15 +2,16 @@
 const dayMs = 86400000;
 const dateKR = value => new Date(new Date(value).getTime() + 9 * 3600000).toISOString().slice(0, 10);
 export function seedSales(now) {
+  // Sample menu of the 뼈찜 demo store. Prices are illustrative, not the real restaurant's price list.
   const menus = [
-    { id: 'bowl', name: '소불고기 덮밥', category: '식사', price: 11000 },
-    { id: 'pork', name: '매콤 제육덮밥', category: '식사', price: 10000 },
-    { id: 'tomato', name: '토마토 달걀덮밥', category: '식사', price: 9000 },
-    { id: 'soup', name: '된장국', category: '곁들임', price: 3000 },
-    { id: 'salad', name: '작은 샐러드', category: '곁들임', price: 4000 },
-    { id: 'tea', name: '유자 에이드', category: '음료', price: 4500 },
-    { id: 'water', name: '탄산수', category: '음료', price: 2000 },
-    { id: 'special', name: '오늘의 계절 메뉴', category: '식사', price: 13000 },
+    { id: 'bowl', name: '산뼈찜 (소)', category: '뼈찜', price: 32000 },
+    { id: 'pork', name: '화산뼈찜 (소) · 매운맛', category: '뼈찜', price: 33000 },
+    { id: 'tomato', name: '산뼈찜 (중)', category: '뼈찜', price: 42000 },
+    { id: 'soup', name: '뼈곰탕', category: '식사', price: 10000 },
+    { id: 'salad', name: '뼈짬뽕', category: '식사', price: 11000 },
+    { id: 'tea', name: '우동사리', category: '추가', price: 3000 },
+    { id: 'water', name: '음료', category: '음료', price: 2000 },
+    { id: 'special', name: '계란볶음밥', category: '추가', price: 4000 },
   ];
   const tickets = [];
   const midnight = new Date(`${dateKR(now)}T00:00:00+09:00`).getTime();
@@ -25,7 +26,7 @@ export function seedSales(now) {
       const menu = menus[(index + day) % 7];
       const status = day === 0 && index > 18 ? ['접수', '조리 중', '조리 중', '준비 완료', '접수'][index - 19] : index === 4 ? '취소' : '완료';
       const lines = [{ menuId: menu.id, name: menu.name, quantity: 1 + index % 3, unitPrice: menu.price, discountPerUnit: index % 9 === 0 ? 500 : 0, returnedQuantity: index === 8 ? 1 : 0 }];
-      if (index % 2 === 0) lines.push({ menuId: 'tea', name: '유자 에이드', quantity: 1, unitPrice: 4500, discountPerUnit: 0, returnedQuantity: 0 });
+      if (index % 2 === 0) lines.push({ menuId: 'tea', name: '우동사리', quantity: 1, unitPrice: 3000, discountPerUnit: 0, returnedQuantity: 0 });
       tickets.push({ id: `S-${day}-${index + 1}`, number: `${day === 0 ? '오늘' : day + '일전'}-${101 + index}`, createdAt: new Date(at).toISOString(), channel: ['매장', '포장', '배달'][index % 3], table: index % 3 === 0 ? `${1 + index % 6}번 테이블` : null, status, payment: index === 23 ? '미결제' : '결제', lines });
     }
   }
