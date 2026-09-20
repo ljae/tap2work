@@ -125,6 +125,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
               child: Text(
                 ops.readOnly
                     ? '공개 미리보기 · 샘플 데이터 · 저장·실제 발주 없음'
+                    : ops.sharedApi != null
+                    ? '공유 데모 서버 연결 · ${ops.sharedApiHost} · 확인이 팀원과 함께 보여요 · 역할 전환은 로그인 아님 · 실제 발주 없음'
                     : '체험 매장 · 역할 전환은 로그인 아님 · 실제 발주 없음',
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 10, color: AppColors.green),

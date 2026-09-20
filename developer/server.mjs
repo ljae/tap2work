@@ -25,7 +25,11 @@ async function body(req, limit = 65536) {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new StoreError('올바른 객체 형식이 필요해요.');
   return parsed;
 }
-export function createConsoleServer({ stateFile = path.join(root, 'docs/project-state.json'), appRoot = path.join(root, 'app/build/web'), operationsFile = path.join(root, '.local/operations-demo.json'), operationsClock } = {}) {
+// Shared demo mode: `DEMO_PUBLIC_ORIGIN` lists browser origins (e.g. http://tap2.work) allowed to call
+// the operations demo API through a tunnel. Only /api/operations is reachable from non-local hosts;
+// the console pages and the project decision APIs stay loopback-only. Demo actors remain impersonable.
+export const publicOriginsFromEnv = value => (value || '').split(',').map(item => item.trim().replace(/\/$/, '')).filter(Boolean);
+export function createConsoleServer({ stateFile = path.join(root, 'docs/project-state.json'), appRoot = path.join(root, 'app/build/web'), operationsFile = path.join(root, '.local/operations-demo.json'), operationsClock, publicOrigins = publicOriginsFromEnv(process.env.DEMO_PUBLIC_ORIGIN) } = {}) {
   const store = new ProjectStore(stateFile);
   const operations = new OperationsStore(operationsFile, operationsClock);
   const token = randomBytes(32).toString('hex');
@@ -33,15 +37,26 @@ export function createConsoleServer({ stateFile = path.join(root, 'docs/project-
     res.setHeader('X-Content-Type-Options', 'nosniff');
     try {
       const host = req.headers.host || '';
-      if (!/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host)) throw new StoreError('로컬 주소로 접속해 주세요.', 403);
+      const local = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host);
       const url = new URL(req.url, `http://${host}`);
       const route = decodeURIComponent(url.pathname);
+      const origin = req.headers.origin;
+      const sharedOrigin = route === '/api/operations' && origin && publicOrigins.includes(origin);
+      if (sharedOrigin) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Vary', 'Origin');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'content-type, x-demo-actor, x-demo-token');
+        res.setHeader('Access-Control-Max-Age', '600');
+        if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
+      }
+      if (!local && !(route === '/api/operations' && publicOrigins.length)) throw new StoreError('로컬 주소로 접속해 주세요.', 403);
       if (route.startsWith('/api/')) {
         if (route === '/api/operations' && req.method === 'GET') {
           return json(res, 200, { ...await operations.snapshot(req.headers['x-demo-actor'] || 'owner'), demoToken: token });
         }
         if (route === '/api/operations' && req.method === 'POST') {
-          if ((req.headers.origin && req.headers.origin !== `http://${host}`) || req.headers['x-demo-token'] !== token) throw new StoreError('매장 화면을 새로고침해 주세요.', 403);
+          if ((origin && origin !== `http://${host}` && !sharedOrigin) || req.headers['x-demo-token'] !== token) throw new StoreError('매장 화면을 새로고침해 주세요.', 403);
           return json(res, 200, { ...await operations.mutate(req.headers['x-demo-actor'], await body(req, 2 * 1024 * 1024)), demoToken: token });
         }
         if (req.method === 'GET' && route === '/api/session') return json(res, 200, { token });
@@ -93,5 +108,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const port = Number(process.env.DEV_CONSOLE_PORT || 3100);
   const server = createConsoleServer();
   server.on('error', error => { console.error(`개발자 웹을 열지 못했습니다: ${error.message}`); process.exitCode = 1; });
-  server.listen(port, '127.0.0.1', () => console.log(`tap2work 개발자 웹: http://localhost:${port}\n기준 파일: docs/project-state.json\nFlutter 미리보기: http://localhost:${port}/app/`));
+  const shared = publicOriginsFromEnv(process.env.DEMO_PUBLIC_ORIGIN);
+  server.listen(port, '127.0.0.1', () => console.log(`tap2work 개발자 웹: http://localhost:${port}\n기준 파일: docs/project-state.json\nFlutter 미리보기: http://localhost:${port}/app/${shared.length ? `\n공유 데모 API 허용 출처: ${shared.join(', ')} · 터널을 열고 공개 앱에 ?api=<터널 주소>를 붙여 접속하세요` : ''}`));
 }

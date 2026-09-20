@@ -53,3 +53,14 @@ HTTPS still failed hostname validation (`curl` exit 60); Pages reported `https_e
 ## Doodle logo release
 
 Commit `3190f56` replaces the logo with the newly generated comforting blob characters and adjusts header sizing. [Workflow 35444980003](https://github.com/ljae/tap2work/actions/runs/35444980003) passed all checks, tests, the public web build and Pages deployment. Live HTTP verification confirmed revision 16 and byte-identical new logo assets at both `/tap2work.png` and `/app/assets/assets/branding/tap2work.png`. This result is recorded in project revision 17. HTTPS still failed hostname validation (`curl` exit 60); native builds and physical-device testing were not performed.
+
+## CEO 데모 · 팀원 간 확인 동기화 (터널)
+
+공개 사이트는 정적이므로 그 자체로는 팀원 간 확인 상태를 공유하지 못합니다. 데모 중에는 사장님 Mac에서 로컬 콘솔을 켜고 터널로 노출해, 같은 공개 앱을 여는 모든 팀원이 한 서버의 상태를 공유하게 합니다.
+
+1. `npm run build:app` 후 `npm run dev:shared` (`DEMO_PUBLIC_ORIGIN`에 tap2.work 출처를 허용한 콘솔, 3100 포트, 루프백 바인딩 유지).
+2. 다른 터미널에서 `npm run tunnel` (`cloudflared tunnel --url http://localhost:3100`). 출력되는 `https://<이름>.trycloudflare.com` 주소를 복사합니다. 빠른 터널 주소는 실행할 때마다 바뀝니다.
+3. 팀원에게 `http://tap2.work/app/?api=https://<이름>.trycloudflare.com` 링크를 보냅니다. 브라우저가 주소를 기억하므로 이후에는 `http://tap2.work/app/`만 열어도 연결됩니다. 연결 해제는 `?api=off`.
+4. 앱 상단 띠에 `공유 데모 서버 연결 · <호스트>`가 보이면 한 명이 활동을 확인할 때 다른 팀원 화면에 5초 안에 같은 확인자·시각이 표시됩니다.
+
+경계: 터널은 `/api/operations`만 외부에 열고, 콘솔 화면과 결정 기록 API(`/api/project`, `/api/decisions`)는 계속 로컬에서만 응답합니다. 데모 역할 선택은 여전히 인증이 아니며, 링크를 아는 누구나 샘플 매장 상태를 바꿀 수 있습니다. 실제 직원 정보는 넣지 마세요. 터널을 닫으면 공개 앱은 연결 실패 배너를 보이며, `?api=off`로 다시 읽기 전용 미리보기로 돌아갑니다.

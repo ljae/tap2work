@@ -176,3 +176,49 @@ test('operations HTTP API enforces token, same origin, demo rank, and revisions'
   assert.equal((await post(headers)).status, 200);
   assert.equal((await post(headers)).status, 409);
 });
+
+// fetch() drops a custom Host header, so tunnel requests are simulated with node:http.
+async function raw(base, method, route, headers = {}, payload) {
+  const { request } = await import('node:http');
+  const { port } = new URL(base);
+  return new Promise((resolve, reject) => {
+    const req = request({ host: '127.0.0.1', port, method, path: route, headers: { Host: 'demo.trycloudflare.com', ...headers } }, res => {
+      let text = ''; res.setEncoding('utf8'); res.on('data', chunk => text += chunk);
+      res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, json: () => JSON.parse(text) }));
+    });
+    req.on('error', reject);
+    if (payload) req.write(payload);
+    req.end();
+  });
+}
+test('shared demo mode exposes only the operations API to allowed browser origins through a tunnel host', async t => {
+  const { file, clock } = await setup(t);
+  const server = createConsoleServer({ operationsFile: file, operationsClock: clock, publicOrigins: ['http://tap2.work'] });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const preflight = await raw(base, 'OPTIONS', '/api/operations', { Origin: 'http://tap2.work', 'Access-Control-Request-Method': 'POST' });
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers['access-control-allow-origin'], 'http://tap2.work');
+  assert.match(preflight.headers['access-control-allow-headers'], /x-demo-token/);
+  const snapshot = await raw(base, 'GET', '/api/operations', { Origin: 'http://tap2.work', 'x-demo-actor': 'crew' });
+  assert.equal(snapshot.status, 200);
+  assert.equal(snapshot.headers['access-control-allow-origin'], 'http://tap2.work');
+  const view = snapshot.json();
+  const task = view.tasks.find(row => row.requiredRole === 'all' && row.kind === 'routine');
+  const post = origin => raw(base, 'POST', '/api/operations', { 'Content-Type': 'application/json', Origin: origin, 'x-demo-actor': 'crew', 'x-demo-token': view.demoToken }, JSON.stringify({ revision: view.revision, action: 'complete_step', taskId: task.id, stepId: task.steps[0].id }));
+  assert.equal((await post('https://evil.example')).status, 403);
+  const denied = await raw(base, 'GET', '/api/operations', { Origin: 'https://evil.example', 'x-demo-actor': 'crew' });
+  assert.equal(denied.headers['access-control-allow-origin'], undefined);
+  assert.equal((await post('http://tap2.work')).status, 200);
+  // A colleague on another device sees the same shared check.
+  const colleague = (await raw(base, 'GET', '/api/operations', { Origin: 'http://tap2.work', 'x-demo-actor': 'owner' })).json();
+  assert.equal(colleague.tasks.find(row => row.id === task.id).steps[0].completedBy.name, '지우');
+  for (const route of ['/api/project', '/api/session', '/api/preview', '/', '/app/']) {
+    assert.equal((await raw(base, 'GET', route)).status, 403, route);
+  }
+  const closed = createConsoleServer({ operationsFile: file, operationsClock: clock, publicOrigins: [] });
+  await new Promise(resolve => closed.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise(resolve => closed.close(resolve)));
+  assert.equal((await raw(`http://127.0.0.1:${closed.address().port}`, 'GET', '/api/operations')).status, 403);
+});

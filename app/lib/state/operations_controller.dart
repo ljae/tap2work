@@ -10,16 +10,24 @@ class OperationsController extends ChangeNotifier {
   OperationsController({
     http.Client? client,
     Uri? endpoint,
-    this.readOnly = const bool.fromEnvironment('PUBLIC_REVIEW'),
+    bool readOnly = const bool.fromEnvironment('PUBLIC_REVIEW'),
+    this.sharedApi,
   }) : _client = client ?? http.Client(),
+       // A shared demo server turns the read-only public build into a live shared client.
+       readOnly = sharedApi == null && readOnly,
        endpoint =
            endpoint ??
            Uri.parse(
-             '${kIsWeb ? Uri.base.origin : const String.fromEnvironment('OPS_API_BASE', defaultValue: 'http://localhost:3100')}/api/operations',
+             '${sharedApi ?? (kIsWeb ? Uri.base.origin : const String.fromEnvironment('OPS_API_BASE', defaultValue: 'http://localhost:3100'))}/api/operations',
            );
   final http.Client _client;
   final Uri endpoint;
   final bool readOnly;
+
+  /// Base URL of a shared demo server reached through a tunnel, or null.
+  final String? sharedApi;
+  String? get sharedApiHost =>
+      sharedApi == null ? null : Uri.parse(sharedApi!).host;
   Json? data;
   String actorId = 'owner';
   String? error;
