@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 23,
+  "revision": 24,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -350,8 +350,8 @@
     {
       "id": "M-012",
       "title": "탭 체크·드래그 앤 드롭 체크리스트와 뼈찜 컬렉션",
-      "status": "in_progress",
-      "description": "그룹 카드·활동 탭 확인·매뉴얼 펼침·되돌리기·진행률·시간대 탭, 그룹/활동 드래그 편집기, 뼈찜 11그룹·52활동 컬렉션과 6개 출처, 뼈찜 샘플 매장 시드 구현. Node 36·Flutter 47·Dart 규칙 26·분석·로컬/공개 웹 빌드 통과, Aside REPL 브라우저 화면 확인. 커밋·공개 배포·실기기·네이티브 빌드는 미수행."
+      "status": "done",
+      "description": "그룹 카드·활동 탭 확인·매뉴얼 펼침·되돌리기·진행률·시간대 탭, 그룹/활동 드래그 편집기, 뼈찜 11그룹·52활동 컬렉션과 6개 출처, 뼈찜 샘플 매장 시드 구현 및 공개 리뷰 배포. Actions에서 Node 36·Flutter 47·분석·공개 웹 빌드 통과, 배포 번들이 로컬 빌드와 SHA-256 일치. 실기기·네이티브 빌드는 미수행."
     }
   ],
   "history": [
@@ -1619,6 +1619,34 @@
       "verification": "Node/API 36/36, 독립 Dart 초안 규칙 26/26, Flutter analyze 이슈 없음, Flutter 위젯·단위 47/47, npm run check(위키 동기화 포함), git diff --check 통과. 로컬 및 PUBLIC_REVIEW Flutter web release 빌드 성공, 공개 샘플 4역할 JSON에 뼈찜 매장·13개 오늘 업무·27개 컬렉션 확인. 로컬 콘솔(3117)에서 Aside REPL 직접 브라우저로 1440×900 화면 캡처: 오늘 현황판, 할 일 그룹 카드·매뉴얼 펼침, 활동 탭 확인 후 '서연 · 21:35 확인'과 1/52 진행, 편집기 그룹·활동 손잡이 화면 확인(.local/shots). 발견한 아이콘 검증 결함(ZWJ 이모지 거부)을 수정하고 재검증. Aside exec 에이전트는 402 Insufficient credits로 미실행. 휴대폰 폭 브라우저 캡처는 REPL 뷰포트 변경 미지원으로 미수행(위젯 테스트 320/390/1440px로 대체). 네이티브 빌드·실기기·커밋·공개 배포 미수행.",
       "links": [
         "https://blog.naver.com/yjh97423/224347712759"
+      ]
+    },
+    {
+      "id": "H-checklist-tap-dnd-deployment-verified",
+      "at": "2026-09-20T12:44:42.000Z",
+      "type": "implementation",
+      "title": "탭 체크·드래그 앤 드롭 체크리스트 공개 배포 완료",
+      "detail": "커밋 134a331f6797ad91469602474fda2fec9690a1bd를 main에 푸시했고 Actions 35511332573(build·deploy)이 성공해 http://tap2.work/app/ 와 위키를 갱신했다. 로컬 .git 쓰기가 다시 가능해 origin/main(3064f68) 위에 직접 커밋했다.",
+      "before": {
+        "id": "M-012",
+        "title": "탭 체크·드래그 앤 드롭 체크리스트와 뼈찜 컬렉션",
+        "status": "in_progress",
+        "description": "그룹 카드·활동 탭 확인·매뉴얼 펼침·되돌리기·진행률·시간대 탭, 그룹/활동 드래그 편집기, 뼈찜 11그룹·52활동 컬렉션과 6개 출처, 뼈찜 샘플 매장 시드 구현. Node 36·Flutter 47·Dart 규칙 26·분석·로컬/공개 웹 빌드 통과, Aside REPL 브라우저 화면 확인. 커밋·공개 배포·실기기·네이티브 빌드는 미수행."
+      },
+      "after": {
+        "id": "M-012",
+        "title": "탭 체크·드래그 앤 드롭 체크리스트와 뼈찜 컬렉션",
+        "status": "done",
+        "description": "그룹 카드·활동 탭 확인·매뉴얼 펼침·되돌리기·진행률·시간대 탭, 그룹/활동 드래그 편집기, 뼈찜 11그룹·52활동 컬렉션과 6개 출처, 뼈찜 샘플 매장 시드 구현 및 공개 리뷰 배포. Actions에서 Node 36·Flutter 47·분석·공개 웹 빌드 통과, 배포 번들이 로컬 빌드와 SHA-256 일치. 실기기·네이티브 빌드는 미수행."
+      },
+      "verification": "Actions 로그: npm run check(위키 동기화 27개 컬렉션·64그룹), Node/API 36/36, Flutter analyze 이슈 없음, Flutter 47/47, PUBLIC_REVIEW 웹 빌드·Pages 배포 성공. 공개 owner 샘플 JSON에 우리뼈찜 · 서정리, 오늘 업무 13개, 템플릿 11개, 컬렉션 27개 확인. 공개 main.dart.js가 로컬 PUBLIC_REVIEW 빌드와 SHA-256 7888a2816fe821b0ddb8413bc2380347445b1e0d020b1c337a4ea4dc35525ee9로 동일. 공개 위키에 뼈찜 항목 24곳 확인. HTTPS 인증서 상태는 M-007 후속 항목 유지. 실기기·네이티브 빌드 미수행.",
+      "files": [
+        "docs/project-state.json"
+      ],
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/35511332573",
+        "https://github.com/ljae/tap2work/commit/134a331f6797ad91469602474fda2fec9690a1bd",
+        "http://tap2.work/app/"
       ]
     }
   ]
