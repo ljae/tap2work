@@ -305,6 +305,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('재고 수량 확인하기'));
     await tester.tap(find.text('재고 수량 확인하기'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), '3.5');

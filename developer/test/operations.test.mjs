@@ -36,13 +36,13 @@ test('shared completion is attributed, durable, and protected against stale dupl
   const { store, file, clock } = await setup(t);
   const before = await store.snapshot('crew');
   const task = before.tasks.find(task => task.requiredRole === 'all' && task.kind === 'routine');
-  const payload = { revision: before.revision, action: 'complete_task', taskId: task.id };
+  const payload = { revision: before.revision, action: 'complete_step', taskId: task.id, stepId: task.steps[0].id };
   const results = await Promise.allSettled([store.mutate('crew', payload), store.mutate('manager', payload)]);
   assert.equal(results[0].status, 'fulfilled');
   assert.equal(results[1].reason.status, 409);
   const reopened = await new OperationsStore(file, clock).snapshot('owner');
-  assert.equal(reopened.tasks.find(row => row.id === task.id).completedBy.name, '지우');
-  assert.ok(reopened.tasks.find(row => row.id === task.id).completedAt);
+  assert.equal(reopened.tasks.find(row => row.id === task.id).steps[0].completedBy.name, '지우');
+  assert.ok(reopened.tasks.find(row => row.id === task.id).steps[0].completedAt);
 });
 
 test('wrong rank cannot complete a task or place an order', async t => {

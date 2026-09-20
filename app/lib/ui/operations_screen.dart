@@ -5,15 +5,7 @@ import 'components.dart';
 import 'workspace_screen.dart';
 import 'store_dashboard.dart';
 import 'floor_plan.dart';
-
-const roleLabels = {
-  'all': '누구나',
-  'crew': '크루',
-  'cook': '조리 담당',
-  'manager': '매니저',
-  'owner': '사장님',
-};
-const slotLabels = ['오픈', '준비', '피크', '마감'];
+import 'checklist_board.dart';
 
 class OperationsScreen extends StatefulWidget {
   const OperationsScreen({
@@ -30,8 +22,6 @@ class OperationsScreen extends StatefulWidget {
 class _OperationsScreenState extends State<OperationsScreen> {
   OperationsController get ops => widget.operations;
   int tab = 0;
-  String slot = '전체';
-  String role = '전체';
   final Map<String, double> cart = {};
   Json? item(String id) =>
       ops.rows('items').where((i) => i['id'] == id).firstOrNull;
@@ -370,131 +360,15 @@ class _OperationsScreenState extends State<OperationsScreen> {
     ];
   }
 
-  List<Widget> tasks() {
-    final visible = ops
-        .rows('tasks')
-        .where(
-          (t) =>
-              (slot == '전체' || t['slot'] == slot) &&
-              (role == '전체' || t['requiredRole'] == role),
-        )
-        .toList();
-    final done = ops
-        .rows('tasks')
-        .where((t) => t['completedAt'] != null)
-        .length;
-    return [
-      PageHeading(
-        'CHECK TOGETHER',
-        '하나씩, 같이 해요 ✅',
-        '오늘 $done/${ops.rows('tasks').length}개 완료 · 동료가 한 일은 다시 하지 않아요.',
-      ),
-      Wrap(
-        spacing: 7,
-        runSpacing: 6,
-        children: [
-          for (final label in ['전체', ...slotLabels])
-            ChoiceChip(
-              label: Text(label),
-              selected: slot == label,
-              onSelected: (_) => setState(() => slot = label),
-            ),
-        ],
-      ),
-      gap(),
-      DropdownButtonFormField<String>(
-        initialValue: role,
-        decoration: const InputDecoration(
-          labelText: '담당 직급',
-          border: OutlineInputBorder(),
-        ),
-        items: [
-          const DropdownMenuItem(value: '전체', child: Text('모든 담당 보기')),
-          for (final entry in roleLabels.entries)
-            DropdownMenuItem(value: entry.key, child: Text(entry.value)),
-        ],
-        onChanged: (value) => setState(() => role = value!),
-      ),
-      gap(18),
-      if (visible.isEmpty) const Information('이 조건에 맞는 할 일이 없어요 🌱'),
-      for (final task in visible) ...[
-        Surface(
-          padding: const EdgeInsets.all(17),
-          color: task['completedAt'] != null
-              ? const Color(0xFFEDF1E6)
-              : AppColors.white,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  badge(task['slot']),
-                  badge(
-                    roleLabels[task['requiredRole']]!,
-                    color: AppColors.paper,
-                  ),
-                  if (task['kind'] == 'stock')
-                    badge('자동 재고 확인', color: const Color(0xFFFFE6D4)),
-                ],
-              ),
-              gap(12),
-              Text(
-                '${task['emoji']} ${task['title']}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
-              gap(7),
-              small(
-                '${zoneName(task['zone'])}${task['kind'] == 'stock' ? ' · 발주 후 정기 확인' : ' · 매일 반복'}',
-              ),
-              gap(12),
-              if (task['completedAt'] != null)
-                Text(
-                  '✓ ${task['completedBy']['name']}님이 ${time(task['completedAt'])} 확인했어요',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.green,
-                    fontWeight: FontWeight.w600,
-                  ),
-                )
-              else
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: ops.busy || task['canComplete'] != true
-                        ? null
-                        : () => task['kind'] == 'stock'
-                              ? checkStock(
-                                  item(task['itemId'])!,
-                                  taskId: task['id'],
-                                )
-                              : act('complete_task', {'taskId': task['id']}),
-                    child: Text(
-                      task['canComplete'] == true
-                          ? task['kind'] == 'stock'
-                                ? '재고 수량 확인하기'
-                                : '확인했어요'
-                          : '${roleLabels[task['requiredRole']]} 담당 업무',
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        gap(10),
-      ],
-      if (ops.isLeader)
-        OutlinedButton.icon(
-          onPressed: ops.busy ? null : createTask,
-          icon: const Icon(Icons.add),
-          label: const Text('시간대·직급별 반복 업무 만들기'),
-        ),
-    ];
-  }
+  List<Widget> tasks() => [
+    ChecklistBoard(
+      ops: ops,
+      onStock: (task) async {
+        final stock = item(task['itemId']);
+        if (stock != null) await checkStock(stock, taskId: task['id']);
+      },
+    ),
+  ];
 
   List<Widget> inventory() => [
     const PageHeading(
@@ -1018,65 +892,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
       confirm: '팀에 반영',
     );
     if (result != null) await act('update_shift', result);
-  }
-
-  Future<void> createTask() async {
-    final name = TextEditingController();
-    var selectedSlot = '오픈';
-    var selectedRole = 'all';
-    var zone = 'entrance';
-    final values = await formDialog(
-      '매일 함께 확인할 일',
-      [
-        TextField(
-          controller: name,
-          maxLength: 100,
-          decoration: const InputDecoration(labelText: '업무 이름'),
-        ),
-        gap(),
-        DropdownButtonFormField<String>(
-          initialValue: selectedSlot,
-          decoration: const InputDecoration(labelText: '시간대'),
-          items: [
-            for (final s in slotLabels)
-              DropdownMenuItem(value: s, child: Text(s)),
-          ],
-          onChanged: (v) => selectedSlot = v!,
-        ),
-        gap(),
-        DropdownButtonFormField<String>(
-          initialValue: selectedRole,
-          decoration: const InputDecoration(labelText: '담당 직급'),
-          items: [
-            for (final e in roleLabels.entries)
-              DropdownMenuItem(value: e.key, child: Text(e.value)),
-          ],
-          onChanged: (v) => selectedRole = v!,
-        ),
-        gap(),
-        DropdownButtonFormField<String>(
-          initialValue: zone,
-          decoration: const InputDecoration(labelText: '장소'),
-          items: [
-            for (final z in ops.rows('zones'))
-              DropdownMenuItem<String>(value: z['id'], child: Text(z['name'])),
-          ],
-          onChanged: (v) => zone = v!,
-        ),
-        gap(),
-        small('매일 새 체크리스트로 나타나요. 사장님·매니저는 모든 담당 업무를 확인할 수 있어요.'),
-      ],
-      () => name.text.trim().isEmpty
-          ? null
-          : {
-              'title': name.text.trim(),
-              'slot': selectedSlot,
-              'requiredRole': selectedRole,
-              'zone': zone,
-            },
-    );
-    if (values != null) await act('create_task', values);
-    name.dispose();
   }
 
   Future<Json?> formDialog(

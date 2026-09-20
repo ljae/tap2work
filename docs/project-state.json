@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 17,
+  "revision": 20,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -122,12 +122,12 @@
     {
       "id": "D-012",
       "category": "업무",
-      "title": "시간대·직급별 공유 체크리스트",
+      "title": "업무·행위·간단 매뉴얼 기반 공유 체크리스트",
       "status": "confirmed",
-      "decision": "시간대·직급별 업무에 완료한 사람과 시각을 표시한다. 일상 운영 체크와 개인별 교육 이수는 구분한다.",
-      "reason": "같은 확인을 중복하지 않고 누가 했는지 매장 전체가 알 수 있어야 한다.",
-      "source": "사용자 최신 통합 매장 운영 요청",
-      "updatedAt": "2026-09-19T09:33:22Z"
+      "decision": "폴더 안의 업무 카드마다 복수 행위와 간단 매뉴얼을 제공한다. 시간대·직급별 조회, 행위별 확인자·시각과 전체 업무 완료를 공유한다. 사장님은 카드 드래그·폴더와 이동 메뉴로 순서·분류·업무·행위를 수정하거나 삭제한다. 일상 운영 확인과 개인 연습·버디 확인은 구분한다.",
+      "reason": "사용자가 업무단위 아래 복수 행위와 짧은 매뉴얼, 카드 드래그 앤 드랍 및 폴더 편집을 요청했다.",
+      "source": "사용자 요청 · 2026-09-20",
+      "updatedAt": "2026-09-19T16:07:16.694Z"
     },
     {
       "id": "D-013",
@@ -248,6 +248,26 @@
       "reason": "사용자가 기존 느낌을 반영한 어울리는 로고를 새로 생성해서 반영하도록 요청했다.",
       "source": "사용자 요청 · 해당 느낌을 반영하여 어울리는 로고를 새로 생성해서 반영해주세요; minimalist doodle, messy but charming blob characters, comforting hand-holding.",
       "updatedAt": "2026-09-19T13:08:04.796220+00:00"
+    },
+    {
+      "id": "D-025",
+      "category": "업무 노하우",
+      "title": "업종별 기본 체크리스트와 출처 위키",
+      "status": "confirmed",
+      "decision": "초보 사장님도 노하우를 배울 수 있는 업종별 상세 기본 목록을 제공하고 매장에 맞게 제거·수정할 수 있게 한다. 다양한 업종의 공개 자료를 조사해 출처가 있는 Markdown 위키로 정리한다. 초기 F&B 파일럿과 통합 운영 범위는 유지한다.",
+      "reason": "사용자가 업종별 노하우 기본 제공, Aside Browser를 활용한 폭넓은 조사와 wiki md 파일을 요청했다.",
+      "source": "사용자 요청 · 2026-09-20",
+      "updatedAt": "2026-09-19T16:07:16.694Z"
+    },
+    {
+      "id": "D-026",
+      "category": "콘텐츠 검증",
+      "title": "매뉴얼의 현장 검수·지역 기준·갱신 정책",
+      "status": "proposed",
+      "decision": "현재 25개 업종+외식 공통 53업무/159행위는 공개 자료를 참고한 편집 제안이다. 실제 온도·시간·약품·장비·전문 작업 기준과 검수 담당·재검토 주기는 미정이다. 해외 자료를 한국 법정 기준이나 인증 충족으로 표시하지 않는다. 초기 Aside 조사 에이전트의 크레딧 부족으로 공개 웹 원문 조사 후 Aside REPL 직접 브라우저로 공식 출처 5곳을 재확인했다. S17 첨부 PDF 본문은 미검증이다.",
+      "reason": "다업종 목록 제공 승인은 개별 작업 절차나 전문 시술의 검수 완료를 뜻하지 않는다.",
+      "source": "현재 구현 제안 및 조사 제한 · 사용자 승인 아님",
+      "updatedAt": "2026-09-20T01:57:36.551Z"
     }
   ],
   "milestones": [
@@ -304,6 +324,18 @@
       "title": "전체 테이블·기기 배치 설정 데모",
       "status": "done",
       "description": "테이블/좌석/기기 수, 격자 지도·확대, 항목 추가·이동·크기/좌석 편집·삭제, 서버 저장과 충돌 검사 구현. 공개 리뷰는 저장 없는 초안 체험. 실측 도면·다층·실시간 착석은 미구현."
+    },
+    {
+      "id": "M-010",
+      "title": "업무·행위 매뉴얼 카드와 폴더 편집",
+      "status": "in_progress",
+      "description": "카드·폴더·행위 매뉴얼 편집, 선택 가져오기·삭제 항목 복원·초안 이탈 보호 구현. Node/API 34검사·Dart 편집 규칙 17검사, Flutter 분석·로컬/리뷰 웹 빌드 완료. Flutter 위젯 테스트는 socket 제한으로 실행 불가; 화면·실기기 검증 남음."
+    },
+    {
+      "id": "M-011",
+      "title": "다업종 노하우 체크리스트 위키 초안",
+      "status": "done",
+      "description": "25개 업종+외식 공통, 53업무·159행위·18개 출처/후속 참조, 선택 가져오기와 JSON→Markdown 동기화 구현. 공개 웹 원문 조사 후 Aside REPL 직접 브라우저로 공식 출처 5곳 재확인. 현장 검수는 D-026 proposed."
     }
   ],
   "history": [
@@ -1332,6 +1364,177 @@
         "docs/DEPLOYMENT.md"
       ],
       "verification": "GitHub CI: JS 검사, Node/API 테스트, Flutter analyze/test, 공개 웹 빌드와 배포 통과. 공개 로고 두 경로와 버전 검증 성공. HTTPS는 여전히 인증서 호스트명 불일치(curl 60)이며 TLS 검증을 우회하지 않음. 네이티브 빌드·실기기 검증은 수행하지 않음."
+    },
+    {
+      "id": "H-checklist-D012",
+      "at": "2026-09-19T16:07:16.694Z",
+      "type": "decision",
+      "title": "D-012 · 업무·행위·매뉴얼 구조로 확장",
+      "decisionId": "D-012",
+      "detail": "사용자가 업무단위 아래 복수 행위와 짧은 매뉴얼, 카드 드래그 앤 드랍 및 폴더 편집을 요청했다.",
+      "before": {
+        "id": "D-012",
+        "category": "업무",
+        "title": "시간대·직급별 공유 체크리스트",
+        "status": "confirmed",
+        "decision": "시간대·직급별 업무에 완료한 사람과 시각을 표시한다. 일상 운영 체크와 개인별 교육 이수는 구분한다.",
+        "reason": "같은 확인을 중복하지 않고 누가 했는지 매장 전체가 알 수 있어야 한다.",
+        "source": "사용자 최신 통합 매장 운영 요청",
+        "updatedAt": "2026-09-19T09:33:22Z"
+      },
+      "after": {
+        "id": "D-012",
+        "category": "업무",
+        "title": "업무·행위·간단 매뉴얼 기반 공유 체크리스트",
+        "status": "confirmed",
+        "decision": "폴더 안의 업무 카드마다 복수 행위와 간단 매뉴얼을 제공한다. 시간대·직급별 조회, 행위별 확인자·시각과 전체 업무 완료를 공유한다. 사장님은 카드 드래그·폴더와 이동 메뉴로 순서·분류·업무·행위를 수정하거나 삭제한다. 일상 운영 확인과 개인 연습·버디 확인은 구분한다.",
+        "reason": "사용자가 업무단위 아래 복수 행위와 짧은 매뉴얼, 카드 드래그 앤 드랍 및 폴더 편집을 요청했다.",
+        "source": "사용자 요청 · 2026-09-20",
+        "updatedAt": "2026-09-19T16:07:16.694Z"
+      },
+      "files": [
+        "docs/project-state.json",
+        "PRODUCT.md"
+      ]
+    },
+    {
+      "id": "H-checklist-D-025",
+      "at": "2026-09-19T16:07:16.694Z",
+      "type": "decision",
+      "title": "D-025 · 업종별 기본 체크리스트와 출처 위키",
+      "decisionId": "D-025",
+      "detail": "사용자가 업종별 노하우 기본 제공, Aside Browser를 활용한 폭넓은 조사와 wiki md 파일을 요청했다.",
+      "before": null,
+      "after": {
+        "id": "D-025",
+        "category": "업무 노하우",
+        "title": "업종별 기본 체크리스트와 출처 위키",
+        "status": "confirmed",
+        "decision": "초보 사장님도 노하우를 배울 수 있는 업종별 상세 기본 목록을 제공하고 매장에 맞게 제거·수정할 수 있게 한다. 다양한 업종의 공개 자료를 조사해 출처가 있는 Markdown 위키로 정리한다. 초기 F&B 파일럿과 통합 운영 범위는 유지한다.",
+        "reason": "사용자가 업종별 노하우 기본 제공, Aside Browser를 활용한 폭넓은 조사와 wiki md 파일을 요청했다.",
+        "source": "사용자 요청 · 2026-09-20",
+        "updatedAt": "2026-09-19T16:07:16.694Z"
+      },
+      "files": [
+        "docs/project-state.json",
+        "PRODUCT.md",
+        "docs/wiki/CHECKLISTS.md"
+      ]
+    },
+    {
+      "id": "H-checklist-D-026",
+      "at": "2026-09-19T16:07:16.694Z",
+      "type": "decision",
+      "title": "D-026 · 매뉴얼의 현장 검수·지역 기준·갱신 정책",
+      "decisionId": "D-026",
+      "detail": "다업종 목록 제공 승인은 개별 작업 절차나 전문 시술의 검수 완료를 뜻하지 않는다.",
+      "before": null,
+      "after": {
+        "id": "D-026",
+        "category": "콘텐츠 검증",
+        "title": "매뉴얼의 현장 검수·지역 기준·갱신 정책",
+        "status": "proposed",
+        "decision": "현재 25개 업종+외식 공통 53업무/159행위는 공개 자료를 참고한 편집 제안이다. 실제 온도·시간·약품·장비·전문 작업 기준과 검수 담당·재검토 주기는 미정이다. 해외 자료를 한국 법정 기준이나 인증 충족으로 표시하지 않는다. Aside 크레딧 부족으로 실제 수집은 공개 웹 검색과 원문 열람을 사용했다.",
+        "reason": "다업종 목록 제공 승인은 개별 작업 절차나 전문 시술의 검수 완료를 뜻하지 않는다.",
+        "source": "현재 구현 제안 및 조사 제한 · 사용자 승인 아님",
+        "updatedAt": "2026-09-19T16:07:16.694Z"
+      },
+      "files": [
+        "docs/project-state.json",
+        "PRODUCT.md",
+        "docs/wiki/CHECKLISTS.md"
+      ]
+    },
+    {
+      "id": "H-checklist-cards-manuals-wiki",
+      "at": "2026-09-19T16:07:16.694Z",
+      "type": "implementation",
+      "title": "업무·행위 매뉴얼 카드, 폴더 편집 및 25개 업종 위키",
+      "detail": "Flutter 할 일에 카드/폴더 보기와 시간대·직급·폴더 필터, 행위별 매뉴얼·노하우·확인자·시각을 구현했다. 사장님/매니저 체험 역할에서 카드 순서 드래그, 폴더 드롭, 이동 메뉴, 폴더·업무·행위 추가/수정/삭제와 업종 미리보기/검색/가져오기를 제공한다. 격리된 초안과 시작 revision으로 저장하며 충돌 시 초안을 유지한다. 미시작 업무만 수정본으로 교체하고 시작·완료 이력은 유지, 삭제 후 재가져오기 ID 충돌을 방지한다. 직원 역할에도 폴더·순서를 동일 투영한다. 공개 리뷰는 편집 체험만 가능하며 저장하지 않는다. JSON 원본에서 Markdown 위키를 생성하고 사이트·콘솔에서 연결했다. Aside 세션 LomGqIsRGaVw04t0는 402 Insufficient credits로 종료; 공개 원문 조사로 18개 출처/후속 참조를 정리했고 현장 검수는 미수행이다.",
+      "files": [
+        "app/lib/ui/checklist_board.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/test/checklist_test.dart",
+        "app/test/operations_test.dart",
+        "developer/checklists.mjs",
+        "developer/operations.mjs",
+        "developer/server.mjs",
+        "developer/test/checklists.test.mjs",
+        "developer/test/operations.test.mjs",
+        "docs/wiki/checklist-library.json",
+        "docs/wiki/CHECKLISTS.md",
+        "scripts/build-checklist-wiki.mjs",
+        "scripts/build-site.mjs",
+        "package.json",
+        "PRODUCT.md",
+        "README.md",
+        "site/index.html",
+        "developer/index.html"
+      ],
+      "verification": "최종 Node/API 34/34 통과(신규 8개), Flutter analyze 문제 없음, npm run check(위키 동기화 포함) 및 git diff --check 통과. 로컬 및 PUBLIC_REVIEW=true Flutter web release 빌드 성공. 공개 역할별 샘플 매뉴얼·권한 투영, 위키 바이트 일치와 operations-demo.json 미포함 검증 통과. 초기 완료 테스트를 행위별 동작에 맞춰 수정, HTTP 본문 크기 테스트의 잘못된 가정을 수정 후 전체 재통과. 중간 Node HTTP 실행은 socket EPERM이 있었으나 최종 통과. Flutter 전체 및 신규 위젯 테스트는 127.0.0.1 socket EPERM으로 시작 실패: 320/390/1440px·드래그·편집·공개 저장 차단 등 신규 8개 검사는 작성/분석만 했고 실행 통과를 주장하지 않음. SDK stamp/telemetry 쓰기 제한은 캐시된 Flutter 도구와 CI=true로 외부 쓰기 없이 분석·웹 빌드 실행. 초기 lint 5건과 카드 분기 결합 오류 수정. 브라우저 시각 검증·네이티브 빌드·실기기·공개 배포 미수행."
+    },
+    {
+      "id": "H-checklist-aside-direct-recheck",
+      "at": "2026-09-20T01:57:36.551Z",
+      "type": "research",
+      "title": "D-026 · Aside 직접 브라우저 재확인과 조사 범위 갱신",
+      "decisionId": "D-026",
+      "detail": "조사 에이전트의 402 오류와 별개로 Aside REPL 직접 브라우저가 작동했다. 공식 FSA 배달(S06), HSE 제빵(S09)·미용(S10), CDC 운동시설(S13), 식품안전나라 안내(S17)를 snapshot으로 재확인해 출처 장부에 경로를 기록했다. S17 PDF 본문과 현장 검수는 여전히 미수행이며 proposed 상태를 유지한다.",
+      "before": {
+        "id": "D-026",
+        "category": "콘텐츠 검증",
+        "title": "매뉴얼의 현장 검수·지역 기준·갱신 정책",
+        "status": "proposed",
+        "decision": "현재 25개 업종+외식 공통 53업무/159행위는 공개 자료를 참고한 편집 제안이다. 실제 온도·시간·약품·장비·전문 작업 기준과 검수 담당·재검토 주기는 미정이다. 해외 자료를 한국 법정 기준이나 인증 충족으로 표시하지 않는다. Aside 크레딧 부족으로 실제 수집은 공개 웹 검색과 원문 열람을 사용했다.",
+        "reason": "다업종 목록 제공 승인은 개별 작업 절차나 전문 시술의 검수 완료를 뜻하지 않는다.",
+        "source": "현재 구현 제안 및 조사 제한 · 사용자 승인 아님",
+        "updatedAt": "2026-09-19T16:07:16.694Z"
+      },
+      "after": {
+        "id": "D-026",
+        "category": "콘텐츠 검증",
+        "title": "매뉴얼의 현장 검수·지역 기준·갱신 정책",
+        "status": "proposed",
+        "decision": "현재 25개 업종+외식 공통 53업무/159행위는 공개 자료를 참고한 편집 제안이다. 실제 온도·시간·약품·장비·전문 작업 기준과 검수 담당·재검토 주기는 미정이다. 해외 자료를 한국 법정 기준이나 인증 충족으로 표시하지 않는다. 초기 Aside 조사 에이전트의 크레딧 부족으로 공개 웹 원문 조사 후 Aside REPL 직접 브라우저로 공식 출처 5곳을 재확인했다. S17 첨부 PDF 본문은 미검증이다.",
+        "reason": "다업종 목록 제공 승인은 개별 작업 절차나 전문 시술의 검수 완료를 뜻하지 않는다.",
+        "source": "현재 구현 제안 및 조사 제한 · 사용자 승인 아님",
+        "updatedAt": "2026-09-20T01:57:36.551Z"
+      },
+      "files": [
+        "docs/wiki/checklist-library.json",
+        "docs/wiki/CHECKLISTS.md",
+        "PRODUCT.md"
+      ]
+    },
+    {
+      "id": "H-checklist-select-import-draft-validation",
+      "at": "2026-09-20T01:57:36.551Z",
+      "type": "implementation",
+      "title": "체크리스트 선택 가져오기, 초안 보호와 전체 행위 검증",
+      "detail": "업종별 필요한 업무만 선택하고 삭제한 항목만 다시 가져오며 기존 수정 내용과 이름을 바꾼 폴더를 보존한다. 화면 밖 마지막 행위까지 제목·매뉴얼을 검증하고 미적용 변경 이탈을 확인한다. 폴더/업무/행위 한도 및 잘못된 노하우 입력을 클라이언트·서버에서 검사하고 업무 장소 표시를 복원했다. 독립 Dart 규칙 검사와 Flutter 위젯 시나리오를 추가했다.",
+      "files": [
+        "app/lib/domain/checklist_draft.dart",
+        "app/lib/ui/checklist_board.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/test/checklist_test.dart",
+        "app/test/checklist_draft_test.dart",
+        "app/test/support/checklist_draft_cases.dart",
+        "app/tool/check_checklist_draft.dart",
+        "developer/checklists.mjs",
+        "developer/test/checklists.test.mjs",
+        "package.json",
+        "README.md",
+        "PRODUCT.md"
+      ],
+      "verification": "Node/API 34/34, 독립 Dart 규칙 17/17, Flutter analyze, npm run check 및 git diff --check 통과. 로컬 및 PUBLIC_REVIEW=true Flutter web release 빌드 성공. Flutter 체크리스트 위젯 테스트는 127.0.0.1 socket EPERM으로 시작 실패; 현재 11개 화면 시나리오는 작성/분석만 수행했다. 로컬 브라우저 서버도 listen EPERM이며 Aside 로컬 앱 연결은 ERR_CONNECTION_REFUSED로 시각 검증하지 못했다. Aside 공식 출처 5곳 원문 snapshot 재확인은 성공. 네이티브 빌드·실기기·공개 배포 미수행."
+    },
+    {
+      "id": "H-checklist-publication-request",
+      "at": "2026-09-20T09:29:37.170Z",
+      "type": "implementation",
+      "title": "체크리스트 공개 리뷰 배포 요청 및 검증 준비",
+      "detail": "사용자가 체크리스트 변경의 공개 배포를 요청했다. 기존 GitHub Pages Actions의 전체 테스트·공개 빌드·배포 순서를 유지한다. 로컬 .git 쓰기가 제한되어 GitHub API로 소스 커밋을 반영한다. 현재 기록 시점에는 배포 대기다.",
+      "verification": "Flutter analyze와 npm run check 통과. 이번 Node/API 재실행은 31개 통과, HTTP 3개는 localhost listen EPERM으로 시작 실패했다(이전 턴 34개 통과 기록 유지). Flutter 위젯 테스트는 앞서 socket 제한으로 미실행. GitHub Actions 전체 테스트 통과 후에만 배포한다. 공개 산출물의 원본/위키 일치·4역할 샘플·비공개 상태 미포함은 이전 단계에서 검증했다."
     }
   ]
 }

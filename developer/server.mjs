@@ -11,12 +11,12 @@ const root = path.resolve(directory, '..');
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.wasm': 'application/wasm', '.ttf': 'font/ttf', '.otf': 'font/otf', '.woff2': 'font/woff2', '.bin': 'application/octet-stream' };
 
 function json(res, status, body) { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(body)); }
-async function body(req) {
+async function body(req, limit = 65536) {
   if (!req.headers['content-type']?.startsWith('application/json')) throw new StoreError('JSON 형식으로 보내 주세요.', 415);
   const chunks = []; let length = 0;
   for await (const chunk of req) {
     length += chunk.length;
-    if (length > 65536) throw new StoreError('한 번에 저장할 수 있는 크기를 초과했어요.', 413);
+    if (length > limit) throw new StoreError('한 번에 저장할 수 있는 크기를 초과했어요.', 413);
     chunks.push(chunk);
   }
   let parsed;
@@ -42,7 +42,7 @@ export function createConsoleServer({ stateFile = path.join(root, 'docs/project-
         }
         if (route === '/api/operations' && req.method === 'POST') {
           if ((req.headers.origin && req.headers.origin !== `http://${host}`) || req.headers['x-demo-token'] !== token) throw new StoreError('매장 화면을 새로고침해 주세요.', 403);
-          return json(res, 200, { ...await operations.mutate(req.headers['x-demo-actor'], await body(req)), demoToken: token });
+          return json(res, 200, { ...await operations.mutate(req.headers['x-demo-actor'], await body(req, 2 * 1024 * 1024)), demoToken: token });
         }
         if (req.method === 'GET' && route === '/api/session') return json(res, 200, { token });
         if (req.method === 'GET' && route === '/api/project') return json(res, 200, await store.read());
@@ -69,7 +69,7 @@ export function createConsoleServer({ stateFile = path.join(root, 'docs/project-
       } else if (route === '/tap2work.png') {
         filename = path.join(root, 'tap2work.png');
       } else if (route.startsWith('/reference/')) {
-        const documents = { 'decisions': 'docs/DECISIONS.md', 'product': 'PRODUCT.md', 'research': 'RESEARCH.md', 'readme': 'README.md' };
+        const documents = { 'decisions': 'docs/DECISIONS.md', 'product': 'PRODUCT.md', 'research': 'RESEARCH.md', 'readme': 'README.md', 'checklists': 'docs/wiki/CHECKLISTS.md' };
         const document = documents[route.slice(11)];
         if (!document) throw new StoreError('문서를 찾지 못했습니다.', 404);
         const text = await readFile(path.join(root, document), 'utf8');

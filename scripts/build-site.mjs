@@ -23,6 +23,7 @@ await cp(path.join(root, 'tap2work.png'), path.join(output, 'tap2work.png'));
 await cp(path.join(root, 'docs/project-state.json'), path.join(output, 'project-state.json'));
 await mkdir(path.join(output, 'docs'), { recursive: true });
 await cp(path.join(root, 'docs/CEO-REVIEW.md'), path.join(output, 'docs/CEO-REVIEW.md'));
+await cp(path.join(root, 'docs/wiki'), path.join(output, 'docs/wiki'), { recursive: true });
 await writeFile(path.join(output, '.nojekyll'), '');
 // Always generate from code in a fresh temporary directory, never from .local/.
 const temporary = await mkdtemp(path.join(tmpdir(), 'tap2work-public-seed-'));

@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
 import { seedSales, salesDashboard } from './sales.mjs';
 import { ensureLayout, validateLayout } from './layout.mjs';
+import { ensureChecklists, saveChecklists, checklistLibrary } from './checklists.mjs';
 
 const dayMs = 86400000;
 export const actors = [
@@ -65,13 +66,14 @@ function stockReview(item) {
 }
 function ensureDueTasks(state, now) {
   let changed = ensureLayout(state);
+  if (ensureChecklists(state)) changed = true;
   if (!state.sales) { state.sales = seedSales(now); changed = true; }
   const date = koreanDate(now);
   if (state.day !== date) { state.day = date; changed = true; }
   for (const template of state.taskTemplates) {
-    const id = `daily-${template.id}-${date}`;
-    if (!state.tasks.some(task => task.id === id)) {
-      state.tasks.push({ ...template, id, date, dueAt: iso(now), kind: 'routine', completedAt: null, completedBy: null }); changed = true;
+    const id = `daily-${template.id}-v${template.version}-${date}`;
+    if (!state.tasks.some(task => task.templateId === template.id && task.date === date && !task.archivedAt)) {
+      state.tasks.push({ ...structuredClone(template), templateId: template.id, id, date, dueAt: iso(now), kind: 'routine', completedAt: null, completedBy: null }); changed = true;
     }
   }
   for (const item of state.items) {
@@ -113,7 +115,7 @@ export class OperationsStore {
     result.demo = true;
     result.dashboard = salesDashboard(state.sales, this.clock(), actor.role === 'owner');
     delete result.sales;
-    result.tasks = result.tasks.filter(task => !task.supersededAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day));
+    result.tasks = result.tasks.filter(task => !task.supersededAt && !task.archivedAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day));
     for (const item of result.items) {
       const review = stockReview(item);
       const task = review && state.tasks.find(task => task.id === review.id);
@@ -122,13 +124,22 @@ export class OperationsStore {
       item.reviewCompletedBy = task?.completedBy ?? null;
       item.reviewCompletedAt = task?.completedAt ?? null;
     }
-    for (const task of result.tasks) task.canComplete = allowed(actor, task) && !task.completedAt;
+    for (const task of result.tasks) {
+      task.canComplete = allowed(actor, task) && !task.completedAt;
+      if (task.kind === 'routine') {
+        const index = state.taskTemplates.findIndex(row => row.id === task.templateId);
+        const current = state.taskTemplates[index];
+        task.folderId = current?.folderId ?? (state.checklistFolders.some(folder => folder.id === task.folderId) ? task.folderId : 'general');
+        task.displayOrder = index < 0 ? state.taskTemplates.length : index;
+      }
+    }
     if (actor.role !== 'owner') delete result.privateSummary;
     if (!['owner', 'manager'].includes(actor.role)) {
       for (const item of result.items) delete item.price;
       for (const order of result.orders) { delete order.total; for (const line of order.lines) delete line.price; }
     }
-    delete result.taskTemplates;
+    result.checklistLibrary = checklistLibrary;
+    if (!['owner', 'manager'].includes(actor.role)) delete result.taskTemplates;
     return result;
   }
   snapshot(actorId) {
@@ -158,13 +169,29 @@ export class OperationsStore {
           activity(`매장 배치 저장 · 테이블 ${state.zones.filter(zone => zone.kind === 'table').length}개`);
           break;
         }
+        case 'save_checklists': {
+          leadership(actor); saveChecklists(input, state, now);
+          activity('업무 폴더·카드·매뉴얼 저장'); break;
+        }
+        case 'complete_step':
         case 'complete_task': {
           const task = state.tasks.find(task => task.id === input.taskId);
           if (!task) fail('업무를 찾지 못했어요.', 404);
+          if (task.archivedAt) fail('업무가 변경되었어요. 최신 카드를 확인해 주세요.', 409);
           if (task.supersededAt || new Date(task.dueAt) > now) fail('발주 기준 확인 예정일이 바뀌었어요. 최신 업무를 확인해 주세요.', 409);
           if (task.kind === 'routine' && task.date !== state.day) fail('오늘 업무를 다시 확인해 주세요.', 409);
           if (task.completedAt) fail(`${task.completedBy.name}님이 이미 확인했어요.`, 409);
           if (!allowed(actor, task)) fail('이 업무의 담당 직급이 아니에요. 매니저에게 알려 주세요.', 403);
+          if (input.action === 'complete_step') {
+            const step = task.steps?.find(row => row.id === input.stepId);
+            if (task.kind !== 'routine' || !step) fail('행위를 찾지 못했어요.', 404);
+            if (step.completedAt) fail('동료가 이미 확인한 행위예요.', 409);
+            step.completedAt = iso(now); step.completedBy = who;
+            activity(`${task.title} · ${step.title} 완료`);
+            if (task.steps.every(row => row.completedAt)) { task.completedAt = iso(now); task.completedBy = who; }
+            break;
+          }
+          if (task.steps?.some(row => !row.completedAt)) fail('각 행위를 먼저 확인해 주세요.');
           if (task.kind === 'stock') { const item = itemFor(task.itemId); item.quantity = amount(input.quantity); item.lastCheckedAt = iso(now); item.checkedBy = who; }
           task.completedAt = iso(now); task.completedBy = who; activity(`${task.title} 완료`); break;
         }
@@ -204,7 +231,7 @@ export class OperationsStore {
         }
         case 'create_task': {
           leadership(actor); if (!slots.includes(input.slot) || !roles.includes(input.requiredRole) || !state.zones.some(zone => zone.id === input.zone)) fail('시간대·담당 직급·위치를 선택해 주세요.');
-          const template = { id: randomUUID(), title: text(input.title, '업무 이름', 100), emoji: '📝', slot: input.slot, requiredRole: input.requiredRole, zone: input.zone };
+          const template = { id: randomUUID(), title: text(input.title, '업무 이름', 100), emoji: '📝', slot: input.slot, requiredRole: input.requiredRole, zone: input.zone, folderId: 'general', version: 1, sourceIds: [], steps: [{ id: randomUUID(), title: text(input.title, '업무 이름', 100), manual: '매장 절차를 버디와 확인한 뒤 진행하고 결과를 확인해요.', tip: '매장에 맞는 방법과 완료 기준을 편집해 주세요.' }] };
           state.taskTemplates.push(template); ensureDueTasks(state, now); activity(`${template.title} · ${template.slot} 반복 업무 등록`); break;
         }
         case 'offer_cover': {
