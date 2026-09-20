@@ -61,7 +61,7 @@ Json fixture() {
       },
     ],
   };
-  return state;
+  return jsonDecode(jsonEncode(state)) as Json;
 }
 
 Future<void> mount(
@@ -156,6 +156,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(submitted?['action'], 'complete_step');
     expect(submitted?['stepId'], 's1');
+    expect(ops.error, isNull);
     expect(find.text('✓ 민지 · 10:00'), findsOneWidget);
   });
   testWidgets('folder drag retains opening revision and conflict keeps draft', (
@@ -220,8 +221,10 @@ void main() {
         .first;
     await tester.ensureVisible(manual);
     await tester.enterText(manual, '우리 매장 도구함에서 꺼내 확인해요.');
-    final remove = find.byTooltip('행위 삭제').last;
+    await tester.pumpAndSettle();
+    final remove = find.widgetWithIcon(IconButton, Icons.delete_outline).last;
     await tester.ensureVisible(remove);
+    await tester.pumpAndSettle();
     await tester.tap(remove);
     await tester.pumpAndSettle();
     await tester.tap(find.text('초안에 적용'));
@@ -303,6 +306,7 @@ void main() {
       find.widgetWithText(TextFormField, '업무 이름'),
       '편집 중인 이름',
     );
+    await tester.pumpAndSettle();
     await tester.pageBack();
     await tester.pumpAndSettle();
     expect(find.text('매뉴얼 편집을 취소할까요?'), findsOneWidget);
