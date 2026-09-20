@@ -252,8 +252,9 @@ void main() {
       expect(find.text('내 담당만'), findsOneWidget);
       expect(find.byIcon(Icons.lock_outline), findsOneWidget);
       await tester.ensureVisible(checkTarget('솥 물량 확인'));
-      await tester.tap(checkTarget('솥 물량 확인'), warnIfMissed: false);
+      await tester.tap(checkTarget('솥 물량 확인'));
       await tester.pumpAndSettle();
+      expect(find.textContaining('담당자나 사장님·매니저가 확인해요'), findsOneWidget);
       await tester.ensureVisible(checkTarget('작업대 닦기'));
       await tester.tap(checkTarget('작업대 닦기'));
       await tester.pumpAndSettle();
@@ -263,6 +264,35 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('육수 올리기'), findsNothing);
       expect(find.text('전처리 준비'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'public preview shows taps on this device only, never posts, and can undo',
+    (tester) async {
+      var posts = 0;
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((request) async {
+          if (request.method == 'POST') posts++;
+          return response(fixture());
+        }),
+      );
+      addTearDown(ops.dispose);
+      await mount(tester, ops);
+      await tester.ensureVisible(checkTarget('도구 나누기'));
+      await tester.tap(checkTarget('도구 나누기'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('확인 · 체험 · 저장 안 됨'), findsOneWidget);
+      expect(find.textContaining('공개 미리보기 · 확인 표시는'), findsOneWidget);
+      expect(find.text('오늘 활동 1 / 3 확인'), findsOneWidget);
+      await tester.tap(checkTarget('도구 나누기'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('되돌리기'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('체험 · 저장 안 됨'), findsNothing);
+      expect(find.text('오늘 활동 0 / 3 확인'), findsOneWidget);
+      expect(posts, 0);
+      expect(ops.error, isNull);
     },
   );
   testWidgets('folder drag retains opening revision and conflict keeps draft', (

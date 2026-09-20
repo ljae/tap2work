@@ -29,8 +29,33 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
   bool mineOnly = false;
   final collapsed = <String>{};
   final openManuals = <String>{};
+  // Public review cannot write; taps are shown on this device only and never saved.
+  final previewChecks = <String, Json>{};
+  bool previewNoticeShown = false;
 
   OperationsController get ops => widget.ops;
+
+  String keyOf(Json task, Json step) => '${task['id']}/${step['id']}';
+
+  /// The step as the viewer sees it, including device-local preview checks.
+  Json effective(Json task, Json step) {
+    final preview = previewChecks[keyOf(task, step)];
+    return preview == null ? step : {...step, ...preview};
+  }
+
+  List<Json> stepsOf(Json task) => [
+    for (final step in rowsOf(task['steps'])) effective(task, step),
+  ];
+
+  bool isComplete(Json task) {
+    final steps = stepsOf(task);
+    return task['completedAt'] != null ||
+        (steps.isNotEmpty && steps.every((s) => s['completedAt'] != null));
+  }
+
+  void notice(String message) => ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(message)));
 
   String folderOf(Json task) => task['kind'] == 'stock'
       ? 'stock'
@@ -62,7 +87,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
         (folder == 'all-filter' || folderOf(t) == folder);
     final visibleGroups = groups.where(matches).toList();
     final visibleStock = stock.where(matches).toList();
-    final steps = [for (final g in groups) ...rowsOf(g['steps'])];
+    final steps = [for (final g in groups) ...stepsOf(g)];
     final doneSteps = steps.where((s) => s['completedAt'] != null).length;
     int remaining(String s) => groups
         .where((g) => s == '전체' || g['slot'] == s)
@@ -83,7 +108,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
         _Progress(
           done: doneSteps,
           total: steps.length,
-          groupsDone: groups.where((g) => g['completedAt'] != null).length,
+          groupsDone: groups.where(isComplete).length,
           groups: groups.length,
         ),
         const SizedBox(height: 14),
@@ -152,8 +177,28 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
   }
 
   Future<void> check(Json task, Json step) async {
-    if (ops.busy || ops.readOnly || task['canComplete'] != true) return;
+    if (ops.busy) return;
+    if (task['canComplete'] != true) {
+      notice(
+        '${checklistRoles[task['requiredRole']]} 담당 그룹이에요. 담당자나 사장님·매니저가 확인해요.',
+      );
+      return;
+    }
     HapticFeedback.mediumImpact();
+    if (ops.readOnly) {
+      setState(() {
+        previewChecks[keyOf(task, step)] = {
+          'completedAt': DateTime.now().toUtc().toIso8601String(),
+          'completedBy': {'id': ops.actor['id'], 'name': ops.actor['name']},
+          'preview': true,
+        };
+      });
+      if (!previewNoticeShown) {
+        previewNoticeShown = true;
+        notice('공개 미리보기 · 확인 표시는 이 기기에서만 보이고 저장되지 않아요.');
+      }
+      return;
+    }
     await ops.act('complete_step', {
       'taskId': task['id'],
       'stepId': step['id'],
@@ -163,15 +208,9 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
   Future<void> undo(Json task, Json step) async {
     final by = step['completedBy'] as Json?;
     final allowed = ops.isLeader || by?['id'] == ops.actor['id'];
-    if (ops.busy || ops.readOnly) return;
+    if (ops.busy) return;
     if (!allowed) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${by?['name'] ?? '동료'}님이 확인한 활동은 본인이나 매니저만 되돌릴 수 있어요.',
-          ),
-        ),
-      );
+      notice('${by?['name'] ?? '동료'}님이 확인한 활동은 본인이나 매니저만 되돌릴 수 있어요.');
       return;
     }
     final confirm = await showDialog<bool>(
@@ -191,18 +230,18 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
         ],
       ),
     );
-    if (confirm == true && mounted) {
-      await ops.act('reopen_step', {
-        'taskId': task['id'],
-        'stepId': step['id'],
-      });
+    if (confirm != true || !mounted) return;
+    if (step['preview'] == true) {
+      setState(() => previewChecks.remove(keyOf(task, step)));
+      return;
     }
+    await ops.act('reopen_step', {'taskId': task['id'], 'stepId': step['id']});
   }
 
   Widget groupCard(Json task) {
-    final steps = rowsOf(task['steps']);
+    final steps = stepsOf(task);
     final done = steps.where((s) => s['completedAt'] != null).length;
-    final complete = task['completedAt'] != null;
+    final complete = isComplete(task);
     final id = task['id'] as String;
     // Finished groups fold away by default; unfinished ones stay open until tapped.
     final isCollapsed = complete
@@ -292,7 +331,9 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
                   child: Text(
-                    '✓ 모든 활동 확인 · ${task['completedBy']?['name'] ?? ''} · ${stampOf(task['completedAt'])}',
+                    task['completedAt'] == null
+                        ? '✓ 모든 활동 확인 · 체험 표시 · 저장 안 됨'
+                        : '✓ 모든 활동 확인 · ${task['completedBy']?['name'] ?? ''} · ${stampOf(task['completedAt'])}',
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.green,
@@ -311,7 +352,8 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
     final done = step['completedAt'] != null;
     final open = openManuals.contains(key);
     final by = step['completedBy'] as Json?;
-    final enabled = !ops.busy && !ops.readOnly && (done || canComplete);
+    // Always tappable so a blocked tap explains itself instead of doing nothing.
+    final enabled = !ops.busy;
     return Column(
       children: [
         InkWell(
@@ -381,7 +423,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                       ),
                       Text(
                         done
-                            ? '${by?['name'] ?? ''} · ${stampOf(step['completedAt'])} 확인'
+                            ? '${by?['name'] ?? ''} · ${stampOf(step['completedAt'])} 확인${step['preview'] == true ? ' · 체험 · 저장 안 됨' : ''}'
                             : open
                             ? '방법 닫기'
                             : '눌러서 방법 보기',
