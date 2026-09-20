@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 21,
+  "revision": 22,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -328,8 +328,8 @@
     {
       "id": "M-010",
       "title": "업무·행위 매뉴얼 카드와 폴더 편집",
-      "status": "in_progress",
-      "description": "카드·폴더·행위 매뉴얼 편집, 선택 가져오기·삭제 항목 복원·초안 이탈 보호 구현. Node/API 34검사·Dart 편집 규칙 17검사, Flutter 분석·로컬/리뷰 웹 빌드 완료. Flutter 위젯 테스트는 socket 제한으로 실행 불가; 화면·실기기 검증 남음."
+      "status": "done",
+      "description": "카드·폴더·행위 매뉴얼 편집, 선택 가져오기·복원·초안 보호 구현 및 공개 리뷰 배포. Actions에서 Flutter 45개·Node/API 34개·분석·공개 웹 빌드 통과. 320/390/1440px 체크리스트 검증 포함. 브라우저 시각·실기기 검증은 미수행."
     },
     {
       "id": "M-011",
@@ -1545,6 +1545,34 @@
       "verification": "최초 원격 실패 로그 확인 후 테스트 수정. 수정본 전체 CI 재실행 대기.",
       "files": [
         "app/test/checklist_test.dart"
+      ]
+    },
+    {
+      "id": "H-checklist-public-deployment-verified",
+      "at": "2026-09-20T09:37:37.847Z",
+      "type": "implementation",
+      "title": "체크리스트 공개 배포 완료와 원격 전체 테스트 검증",
+      "detail": "커밋 985a761ad6813250ae8c5c669cae0181f8055503의 Actions 35502625912가 성공해 http://tap2.work/app/ 및 출처 위키를 배포했다. 첫 CI의 4개 테스트 실패를 고친 뒤 전체 테스트를 통과했다. 공개 리뷰는 새 샘플을 사용하고 저장을 차단한다. 로컬 .git은 쓰기 제한으로 이전 HEAD에 남아 있으며 소스 커밋은 GitHub API로 반영했다.",
+      "before": {
+        "id": "M-010",
+        "title": "업무·행위 매뉴얼 카드와 폴더 편집",
+        "status": "in_progress",
+        "description": "카드·폴더·행위 매뉴얼 편집, 선택 가져오기·삭제 항목 복원·초안 이탈 보호 구현. Node/API 34검사·Dart 편집 규칙 17검사, Flutter 분석·로컬/리뷰 웹 빌드 완료. Flutter 위젯 테스트는 socket 제한으로 실행 불가; 화면·실기기 검증 남음."
+      },
+      "after": {
+        "id": "M-010",
+        "title": "업무·행위 매뉴얼 카드와 폴더 편집",
+        "status": "done",
+        "description": "카드·폴더·행위 매뉴얼 편집, 선택 가져오기·복원·초안 보호 구현 및 공개 리뷰 배포. Actions에서 Flutter 45개·Node/API 34개·분석·공개 웹 빌드 통과. 320/390/1440px 체크리스트 검증 포함. 브라우저 시각·실기기 검증은 미수행."
+      },
+      "verification": "Actions 로그: Flutter 45/45, Node/API 34/34, 분석·JS 검사·PUBLIC_REVIEW 웹 빌드·Pages 배포 통과. HTTP 공개 상태 r21·위키 원본 바이트 일치·26개 업종 컬렉션과 행위 매뉴얼 확인. 공개 main.dart.js가 로컬 PUBLIC_REVIEW 빌드와 SHA-256 c2750410a3153f244208d019911bf6cfdc01433498d14d914c7a12afd28425b7로 동일하다. 최초 문자열 검사는 공개 빌드에서 제거된 저장 액션을 기대해 실패했고 실제 산출물 전체 바이트 비교로 바로잡았다. Aside 시각 확인은 CDP Page.enable 시간 초과로 실패했다. HTTPS는 인증서 호스트 불일치이며 Pages API https_certificate=null/https_enforced=false로 확인되어 기존 M-007 후속 항목을 유지한다. 네이티브 빌드·실기기 검증 미수행.",
+      "files": [
+        "docs/project-state.json"
+      ],
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/35502625912",
+        "http://tap2.work/app/",
+        "http://tap2.work/docs/wiki/CHECKLISTS.md"
       ]
     }
   ]
