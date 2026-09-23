@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 27,
+  "revision": 28,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -341,7 +341,7 @@
       "id": "M-007",
       "title": "공개 개발 리뷰와 CEO 피드백",
       "status": "in_progress",
-      "description": "공개 리뷰·CEO 질문/기능 요청 양식·읽기 전용 Flutter 게시, tap2work 이름과 tap2.work DNS 연결 검증 완료. GitHub HTTPS 인증서 발급·강제 HTTPS 확인 대기."
+      "description": "공개 리뷰·CEO 질문/기능 요청 양식·읽기 전용 Flutter 게시, tap2.work DNS 연결·HTTPS 인증서 승인 및 HTTPS 강제 설정 완료. CEO의 실제 검토·피드백은 아직 대기 중."
     },
     {
       "id": "M-008",
@@ -1761,6 +1761,22 @@
         "docs/project-state.json"
       ],
       "verification": "Flutter analyze 이슈 없음, Flutter 테스트 55/55 통과(자산 해석 및 화면 너비·재고 확인 경로 포함), npm run check 및 콘솔 테스트 37/37 통과. 로컬·공개 리뷰 Flutter 웹 빌드 성공; 공개 자산 SHA-256이 제공 원본 사본과 일치. Chrome headless 캡처는 비동기 이미지 로딩 전 프레임을 잡아 시각 검증으로 사용하지 않았다. 네이티브 빌드·실기기·공개 배포는 미수행."
+    },
+    {
+      "id": "H-tap-system-publication-2026-09-23",
+      "at": "2026-09-23T13:39:20Z",
+      "type": "deployment",
+      "title": "Tap 첫 구현과 사용자 그림 공개 리뷰 배포 및 HTTPS 복구",
+      "detail": "커밋 541acce를 main에 게시하고 GitHub Pages 공개 리뷰를 배포했다. tap2.work에 새 Tap 칸반·5분 계획과 사용자 제공 로고·메뉴 그림이 올라왔다. 기존 GitHub Pages 도메인 인증서가 누락되어 HTTPS가 실패했으나, 기존 도메인을 제거하고 즉시 다시 등록해 인증서를 재발급받고 HTTPS 강제를 켰다. 이것은 정적 공개 리뷰 배포이며 실제 주문·급여·푸시·직원 데이터가 연결된 운영 서비스 출시는 아니다.",
+      "files": [
+        "docs/project-state.json"
+      ],
+      "verification": "Actions 35868059240에서 npm run check, 콘솔 테스트 37/37, Flutter analyze, Flutter 테스트 55/55, 공개 웹 빌드와 Pages deploy 성공. https://tap2.work/가 검증된 TLS로 HTTP 200을 반환했고 GitHub Pages API에서 인증서 approved·https_enforced true를 확인했다. 공개 로고와 메뉴 PNG의 SHA-256이 저장소 원본과 각각 일치한다. 브라우저 시각·네이티브 빌드·실기기 검증은 미수행.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/35868059240",
+        "https://github.com/ljae/tap2work/commit/541acce",
+        "https://tap2.work/"
+      ]
     }
   ]
 }
