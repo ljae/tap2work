@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
+import '../domain/tap_planning.dart';
 import 'components.dart';
 
 const _kinds = {
@@ -133,7 +134,7 @@ class _FloorPlanViewState extends State<FloorPlanView> {
           Padding(
             padding: const EdgeInsets.only(top: 16),
             child: Information(
-              '$route 예시\n${path.indexed.map((p) => '${p.$1 + 1}. ${zones.firstWhere((z) => z['id'] == p.$2)['name']}').join(' → ')}',
+              '$route 예시 · 장애물을 피해 이동 가능한 격자 경로를 표시해요. 막힌 구간은 선이 보이지 않아요.\n${path.indexed.map((p) => '${p.$1 + 1}. ${zones.firstWhere((z) => z['id'] == p.$2)['name']}').join(' → ')}',
             ),
           ),
         const SizedBox(height: 20),
@@ -251,7 +252,7 @@ class _MapCanvasState extends State<_MapCanvas> {
           builder: (context, box) {
             final cols = widget.layout['columns'] as int;
             final rows = widget.layout['rows'] as int;
-          final unit = math.min(box.maxWidth / cols, 420.0 / rows);
+            final unit = math.min(box.maxWidth / cols, 420.0 / rows);
             final sorted = [...widget.zones]
               ..sort(
                 (a, b) => (a['kind'] == 'area' ? 0 : 1).compareTo(
@@ -273,7 +274,7 @@ class _MapCanvasState extends State<_MapCanvas> {
                           (event.localPosition.dy / unit).floor(),
                         ),
                   child: SizedBox(
-                  width: unit * cols,
+                    width: unit * cols,
                     height: unit * rows,
                     child: Stack(
                       children: [
@@ -393,21 +394,60 @@ class _GridPainter extends CustomPainter {
         grid,
       );
     }
-    final points = route
-        .map((id) => zones.where((z) => z['id'] == id).firstOrNull)
-        .whereType<Json>()
-        .map(
-          (z) => Offset(
-            (z['x'] + z['width'] / 2) * size.width / columns,
-            (z['y'] + z['height'] / 2) * size.height / rows,
-          ),
-        )
-        .toList();
     final line = Paint()
       ..color = AppColors.green.withValues(alpha: .5)
-      ..strokeWidth = 2;
-    for (var i = 1; i < points.length; i++) {
-      canvas.drawLine(points[i - 1], points[i], line);
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke;
+    for (var i = 1; i < route.length; i++) {
+      final from = zones.where((z) => z['id'] == route[i - 1]).firstOrNull;
+      final to = zones.where((z) => z['id'] == route[i]).firstOrNull;
+      if (from == null || to == null) continue;
+      GridCell center(Json z) => (
+        x: (z['x'] as int) + (z['width'] as int) ~/ 2,
+        y: (z['y'] as int) + (z['height'] as int) ~/ 2,
+      );
+      final blocked = <GridCell>{};
+      for (final z in zones) {
+        if (z['id'] == from['id'] ||
+            z['id'] == to['id'] ||
+            z['kind'] == 'area' ||
+            z['kind'] == 'entrance') {
+          continue;
+        }
+        for (
+          var x = z['x'] as int;
+          x < (z['x'] as int) + (z['width'] as int);
+          x++
+        ) {
+          for (
+            var y = z['y'] as int;
+            y < (z['y'] as int) + (z['height'] as int);
+            y++
+          ) {
+            blocked.add((x: x, y: y));
+          }
+        }
+      }
+      final cells = shortestGridPath(
+        columns: columns,
+        rows: rows,
+        start: center(from),
+        goal: center(to),
+        blocked: blocked,
+      );
+      if (cells.length < 2) continue;
+      final path = Path()
+        ..moveTo(
+          (cells.first.x + .5) * size.width / columns,
+          (cells.first.y + .5) * size.height / rows,
+        );
+      for (final cell in cells.skip(1)) {
+        path.lineTo(
+          (cell.x + .5) * size.width / columns,
+          (cell.y + .5) * size.height / rows,
+        );
+      }
+      canvas.drawPath(path, line);
     }
   }
 

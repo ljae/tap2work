@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 25,
+  "revision": 27,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -103,11 +103,11 @@
       "id": "D-010",
       "category": "범위",
       "title": "채용 마켓·급여·전자계약 확장",
-      "status": "deferred",
-      "decision": "통합 매장 운영 파일럿 이후 검토한다. 실제 급여 지급·채용 중개·계약 체결은 아직 구현하지 않는다.",
-      "reason": "직원 근무 변경·공석 공유는 이번 통합 범위에 포함한다. 급여·채용·법정 서류는 각각의 운영 요구와 연동을 별도로 정한다.",
+      "status": "superseded",
+      "decision": "D-028이 근무·급여 현황과 템플릿 마켓을 목표 범위로 포함한다. 실제 급여 지급·채용 중개·계약 체결은 아직 구현하지 않는다.",
+      "reason": "2026-09-23 요청에서 근무·급여 대시보드와 템플릿 마켓을 제품 방향에 포함해 이 범위 결정을 D-028로 대체했다. 실제 급여 지급·채용 중개·계약 체결은 여전히 미구현이다.",
       "source": "D-003에 따른 후속 단계",
-      "updatedAt": "2026-09-19T09:33:22Z"
+      "updatedAt": "2026-09-23"
     },
     {
       "id": "D-011",
@@ -242,12 +242,12 @@
     {
       "id": "D-024",
       "category": "브랜드",
-      "title": "위로하는 블롭 캐릭터의 새 로고 적용",
+      "title": "사용자 제공 빨간 배지 로고와 메뉴 그림 적용",
       "status": "confirmed",
-      "decision": "사용자가 제공한 tap2work.png의 어설프지만 다정한 블롭 캐릭터, 손을 잡아 위로하는 상호작용과 유머를 반영한 새 로고를 생성해 적용한다. 현재 로고는 파란 캐릭터와 노란 캐릭터, tap2.work와 we all need a minute 문구를 담은 흰 배경 가로형 PNG이며 앱·리뷰 사이트·콘솔·웹 파비콘에 사용한다. 이전 원본은 docs/branding/tap2work-original.png로 보관한다.",
-      "reason": "사용자가 기존 느낌을 반영한 어울리는 로고를 새로 생성해서 반영하도록 요청했다.",
-      "source": "사용자 요청 · 해당 느낌을 반영하여 어울리는 로고를 새로 생성해서 반영해주세요; minimalist doodle, messy but charming blob characters, comforting hand-holding.",
-      "updatedAt": "2026-09-19T13:08:04.796220+00:00"
+      "decision": "현재 로고는 사용자가 제공한 logo_tap2.png의 빨간 배지 Tap2.work 이미지다. 앱·리뷰 사이트·콘솔·웹 파비콘에 적용하고 작은 화면에서는 원본을 그대로 둔 채 표시 영역만 자른다. menu_tap2.png의 음식 그림을 해당 샘플 메뉴 행에 표시한다. 이전 생성 로고와 최초 원본을 docs/branding에 보존한다. 네이티브 런처 아이콘은 아직 바꾸지 않았다.",
+      "reason": "사용자가 두 PNG 파일로 로고를 변경하고 메뉴에 그림을 사용하도록 명시했다. 메뉴 그림은 실제 이름이 맞는 샘플 음식에 연결하고 나머지 항목에는 일반 이모지를 쓴다.",
+      "source": "사용자 요청 · 2026-09-23 · change logo with /Downloads/logo_tap2.png and use imoticon for menus with /Downloads/menu_tap2.png",
+      "updatedAt": "2026-09-23T13:26:48Z"
     },
     {
       "id": "D-025",
@@ -278,6 +278,26 @@
       "reason": "사용자가 전체 과정을 검토해 CEO와 직원이 직관적으로 드래그 앤 드롭·탭 체크로 다루는 체크리스트 UI/UX 재설계와 실제 현장에 가까운 구체적 체크리스트(그룹 → 활동 + 매뉴얼)를 요청했고, 뼈찜 판매 식당(산뼈찜 방문 후기)을 우선하도록 지정했다. 데이터 모델은 유지하고 화면 용어와 상호작용을 바꿨다.",
       "source": "사용자 요청 · 2026-09-20 · review whole processes and redesign checklist UI & UX ... focus on restaurant selling 뼈찜",
       "updatedAt": "2026-09-20T12:37:03.000Z"
+    },
+    {
+      "id": "D-028",
+      "category": "제품 구조",
+      "title": "Big Tap·Tap·Small Tap 통합 운영 확장",
+      "status": "confirmed",
+      "decision": "Big Tap → Tap → Small Tap 구조와 칸반·5분 계획·2D 매장 배치·근무/급여 현황을 목표 제품 범위에 포함한다. 주문 유입, 지도 동선, 근무 교환, 개인 폰 알림, 템플릿 마켓과 자발적 평판 동의 흐름을 단계적으로 구축한다. 기존 첫 근무 가이드·재고/발주·실물 입고 구분은 유지한다.",
+      "reason": "사용자가 2026-09-23 전체 시스템 구조와 요구사항을 명시해 기존 급여/마켓 확장 보류 결정을 대체했다. 목표 범위 확인은 특정 외부 연동이나 법정 계산이 작동함을 뜻하지 않는다.",
+      "source": "사용자 요청 · Project: Tap2.work - Total System Architecture & Requirements",
+      "updatedAt": "2026-09-23"
+    },
+    {
+      "id": "D-029",
+      "category": "운영 연동·법정 정책",
+      "title": "실제 연동·급여 규칙·개인정보 처리 세부 정책",
+      "status": "proposed",
+      "decision": "Redis/PostGIS·서명 검증 웹훅·토큰 버킷·아웃박스를 목표 아키텍처로 설계한다. 실제 POS/배달 파트너, 인증, 스토어별 급여·휴식·근태 기준, 근무 변경 법정 경고, 개인정보 동의·삭제 정책, 수익 배분·결제 계약은 선택 및 검증 전이다. 1.5배·주간 엄지척·근무 교환 기록만으로 모든 지역 법규 준수를 보장하지 않는다.",
+      "reason": "사용자의 구조 방향을 구현 대상으로 기록하면서 외부 계약과 지역별 법률·급여 세부사항을 임의 확정하지 않기 위해 분리했다.",
+      "source": "사용자 요청 기반 구현 제안 · 세부 운영 정책 미확정",
+      "updatedAt": "2026-09-23"
     }
   ],
   "milestones": [
@@ -352,6 +372,12 @@
       "title": "탭 체크·드래그 앤 드롭 체크리스트와 뼈찜 컬렉션",
       "status": "done",
       "description": "그룹 카드·활동 탭 확인·매뉴얼 펼침·되돌리기·진행률·시간대 탭, 그룹/활동 드래그 편집기, 뼈찜 11그룹·52활동 컬렉션과 6개 출처, 뼈찜 샘플 매장 시드 구현 및 공개 리뷰 배포. Actions에서 Node 36·Flutter 47·분석·공개 웹 빌드 통과, 배포 번들이 로컬 빌드와 SHA-256 일치. 실기기·네이티브 빌드는 미수행."
+    },
+    {
+      "id": "M-013",
+      "title": "Tap 시스템 재구성 첫 단계",
+      "status": "in_progress",
+      "description": "기존 공유 업무를 칸반 3열과 5분 계획 예시로 조회하고 기존 터치 체크리스트로 이어간다. 5분 배치·배타/동시 용량·근무 종료 초과 표시·격자 A* 순수 Dart 규칙과 예시 지도의 장애물 우회 선을 추가했다. 목표 시스템 계약 문서 작성. 실제 주문 웹훅, Redis/PostGIS, 근무 교환, 급여, 푸시, 마켓은 미구현."
     }
   ],
   "history": [
@@ -1666,6 +1692,75 @@
         "https://github.com/ljae/tap2work/actions/runs/35512155881",
         "https://github.com/ljae/tap2work/commit/a3a02ed"
       ]
+    },
+    {
+      "id": "H-tap-system-redesign-2026-09-23",
+      "at": "2026-09-23T13:06:49Z",
+      "type": "implementation",
+      "title": "Tap 시스템 재구성 방향과 칸반·5분 계획 첫 구현",
+      "detail": "사용자 전체 시스템 요구에 따라 기존 오늘 업무를 칸반 3열·5분 계획·기존 터치 확인 화면으로 묶었다. 순수 Dart 5분 배치(배타/동시 용량·근무 종료 초과 표시)와 직교 격자 A* 경로 계산을 추가하고 기존 예시 지도의 직선 연결을 장애물 우회 격자 경로로 교체했다. Big Tap/Tap/Small Tap, 웹훅·중복 방지·속도 제한, 근무 교환·급여, 개인 알림·동의·마켓 목표 구조를 별도 문서에 정의했다. 기존 첫 근무·재고/발주 흐름은 유지한다.",
+      "decisionId": "D-010",
+      "before": {
+        "status": "deferred",
+        "decision": "통합 매장 운영 파일럿 이후 검토한다. 실제 급여 지급·채용 중개·계약 체결은 아직 구현하지 않는다.",
+        "reason": "직원 근무 변경·공석 공유는 이번 통합 범위에 포함한다. 급여·채용·법정 서류는 각각의 운영 요구와 연동을 별도로 정한다."
+      },
+      "after": {
+        "status": "superseded",
+        "decision": "D-028이 근무·급여 현황과 템플릿 마켓을 목표 범위로 포함한다. 실제 급여 지급·채용 중개·계약 체결은 아직 구현하지 않는다.",
+        "reason": "2026-09-23 요청에서 근무·급여 대시보드와 템플릿 마켓을 제품 방향에 포함해 이 범위 결정을 D-028로 대체했다. 실제 급여 지급·채용 중개·계약 체결은 여전히 미구현이다."
+      },
+      "files": [
+        "app/lib/domain/tap_planning.dart",
+        "app/lib/ui/tap_workspace.dart",
+        "app/lib/ui/floor_plan.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/test/tap_planning_test.dart",
+        "app/tool/check_tap_planning.dart",
+        "docs/TAP_SYSTEM_ARCHITECTURE.md",
+        "PRODUCT.md",
+        "docs/project-state.json"
+      ],
+      "verification": "독립 Dart Tap 계획 검사 5/5 통과, CI=true로 실행한 dart analyze lib test 전체 No issues found/종료코드 0. Flutter analyze/test는 Flutter SDK 외부 cache/engine.stamp 및 lockfile 쓰기 거부로 실행 불가. npm run check 통과, npm run test:console 37/37 통과. Flutter 웹·네이티브 빌드, 화면 실기기 검증, 실제 연동은 미수행."
+    },
+    {
+      "id": "H-user-brand-and-menu-art-2026-09-23",
+      "at": "2026-09-23T13:30:50Z",
+      "type": "implementation",
+      "title": "사용자 제공 배지 로고와 메뉴 음식 그림 적용",
+      "detail": "logo_tap2.png 원본 바이트를 루트 로고로 교체하고 Flutter 헤더·공개 리뷰·로컬 콘솔에서 화면 크기에 맞춰 표시한다. 기존 생성 로고는 복구 가능하도록 보관했다. menu_tap2.png 원본을 Flutter 자산으로 추가해 뼈곰탕·뼈짬뽕·산뼈찜·화산뼈찜 예시 메뉴 행에 해당 음식 그림을 표시한다. 이전 Tap 보드 전환으로 첫 화면에서 사라진 재고 확인 버튼도 복원했다.",
+      "decisionId": "D-024",
+      "before": {
+        "title": "위로하는 블롭 캐릭터의 새 로고 적용",
+        "status": "confirmed",
+        "decision": "사용자가 제공한 tap2work.png의 어설프지만 다정한 블롭 캐릭터, 손을 잡아 위로하는 상호작용과 유머를 반영한 새 로고를 생성해 적용한다. 현재 로고는 파란 캐릭터와 노란 캐릭터, tap2.work와 we all need a minute 문구를 담은 흰 배경 가로형 PNG이며 앱·리뷰 사이트·콘솔·웹 파비콘에 사용한다. 이전 원본은 docs/branding/tap2work-original.png로 보관한다.",
+        "reason": "사용자가 기존 느낌을 반영한 어울리는 로고를 새로 생성해서 반영하도록 요청했다."
+      },
+      "after": {
+        "title": "사용자 제공 빨간 배지 로고와 메뉴 그림 적용",
+        "status": "confirmed",
+        "decision": "현재 로고는 사용자가 제공한 logo_tap2.png의 빨간 배지 Tap2.work 이미지다. 앱·리뷰 사이트·콘솔·웹 파비콘에 적용하고 작은 화면에서는 원본을 그대로 둔 채 표시 영역만 자른다. menu_tap2.png의 음식 그림을 해당 샘플 메뉴 행에 표시한다. 이전 생성 로고와 최초 원본을 docs/branding에 보존한다. 네이티브 런처 아이콘은 아직 바꾸지 않았다.",
+        "reason": "사용자가 두 PNG 파일로 로고를 변경하고 메뉴에 그림을 사용하도록 명시했다. 메뉴 그림은 실제 이름이 맞는 샘플 음식에 연결하고 나머지 항목에는 일반 이모지를 쓴다."
+      },
+      "files": [
+        "tap2work.png",
+        "app/assets/branding/tap2work.png",
+        "app/assets/menu/menu_tap2.png",
+        "app/lib/ui/components.dart",
+        "app/lib/ui/menu_artwork.dart",
+        "app/lib/ui/store_dashboard.dart",
+        "app/lib/ui/tap_workspace.dart",
+        "app/pubspec.yaml",
+        "site/index.html",
+        "site/styles.css",
+        "developer/index.html",
+        "developer/styles.css",
+        "docs/branding/README.md",
+        "docs/branding/tap2work-generated-2026-09-20.png",
+        "PRODUCT.md",
+        "docs/project-state.json"
+      ],
+      "verification": "Flutter analyze 이슈 없음, Flutter 테스트 55/55 통과(자산 해석 및 화면 너비·재고 확인 경로 포함), npm run check 및 콘솔 테스트 37/37 통과. 로컬·공개 리뷰 Flutter 웹 빌드 성공; 공개 자산 SHA-256이 제공 원본 사본과 일치. Chrome headless 캡처는 비동기 이미지 로딩 전 프레임을 잡아 시각 검증으로 사용하지 않았다. 네이티브 빌드·실기기·공개 배포는 미수행."
     }
   ]
 }

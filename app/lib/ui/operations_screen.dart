@@ -5,7 +5,7 @@ import 'components.dart';
 import 'workspace_screen.dart';
 import 'store_dashboard.dart';
 import 'floor_plan.dart';
-import 'checklist_board.dart';
+import 'tap_workspace.dart';
 
 class OperationsScreen extends StatefulWidget {
   const OperationsScreen({
@@ -363,7 +363,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 
   List<Widget> tasks() => [
-    ChecklistBoard(
+    TapWorkspace(
       ops: ops,
       onStock: (task) async {
         final stock = item(task['itemId']);

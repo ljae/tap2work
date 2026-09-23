@@ -1,16 +1,124 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 class BrandLogo extends StatelessWidget {
   const BrandLogo({super.key});
 
   @override
-  Widget build(BuildContext context) => Image.asset(
-    'assets/branding/tap2work.png',
+  Widget build(BuildContext context) => const ArtworkCrop(
+    asset: 'assets/branding/tap2work.png',
+    crop: Rect.fromLTWH(550, 440, 1700, 566),
     width: 156,
     height: 52,
-    fit: BoxFit.contain,
     semanticLabel: 'tap2.work 로고',
   );
+}
+
+/// Displays a section of a supplied artwork sheet without altering the file.
+class ArtworkCrop extends StatefulWidget {
+  const ArtworkCrop({
+    super.key,
+    required this.asset,
+    required this.crop,
+    required this.width,
+    required this.height,
+    required this.semanticLabel,
+    this.borderRadius = 0,
+  });
+
+  final String asset;
+  final Rect crop;
+  final double width;
+  final double height;
+  final String semanticLabel;
+  final double borderRadius;
+
+  @override
+  State<ArtworkCrop> createState() => _ArtworkCropState();
+}
+
+class _ArtworkCropState extends State<ArtworkCrop> {
+  ImageStream? _stream;
+  late final ImageStreamListener _listener;
+  ui.Image? _image;
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = ImageStreamListener((info, _) {
+      if (mounted) setState(() => _image = info.image);
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resolve();
+  }
+
+  @override
+  void didUpdateWidget(covariant ArtworkCrop oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.asset != widget.asset) _resolve();
+  }
+
+  void _resolve() {
+    final next = AssetImage(
+      widget.asset,
+    ).resolve(createLocalImageConfiguration(context));
+    if (_stream != null && _stream!.key == next.key) return;
+    _stream?.removeListener(_listener);
+    _stream = next;
+    _image = null;
+    next.addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    _stream?.removeListener(_listener);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: widget.semanticLabel,
+      image: true,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        child: SizedBox(
+          width: widget.width,
+          height: widget.height,
+          child: CustomPaint(
+            painter: _image == null
+                ? null
+                : _ArtworkPainter(_image!, widget.crop),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ArtworkPainter extends CustomPainter {
+  const _ArtworkPainter(this.image, this.crop);
+
+  final ui.Image image;
+  final Rect crop;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawImageRect(
+      image,
+      crop,
+      Offset.zero & size,
+      Paint()..filterQuality = FilterQuality.high,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _ArtworkPainter oldDelegate) =>
+      oldDelegate.image != image || oldDelegate.crop != crop;
 }
 
 abstract final class AppColors {

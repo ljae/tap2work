@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import 'menu_artwork.dart';
 
 String _number(num value) => value.round().toString().replaceAllMapped(
   RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
@@ -351,6 +352,11 @@ class _StoreDashboardState extends State<StoreDashboard> {
                           ),
                         ),
                       ),
+                      MenuArtwork(
+                        menuId: menu['id'] as String,
+                        menuName: menu['name'] as String,
+                      ),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           menu['name'],
@@ -417,9 +423,9 @@ class _StoreDashboardState extends State<StoreDashboard> {
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: note('이 상태에서 처리할 주문이 없어요.'),
             ),
-      for (final order in visible)
-        Container(
-          width: double.infinity,
+          for (final order in visible)
+            Container(
+              width: double.infinity,
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
