@@ -5,12 +5,30 @@ class BrandLogo extends StatelessWidget {
   const BrandLogo({super.key});
 
   @override
-  Widget build(BuildContext context) => const ArtworkCrop(
-    asset: 'assets/branding/tap2work.png',
-    crop: Rect.fromLTWH(550, 440, 1700, 566),
-    width: 156,
-    height: 52,
-    semanticLabel: 'tap2.work 로고',
+  Widget build(BuildContext context) => const FittedBox(
+    fit: BoxFit.scaleDown,
+    alignment: Alignment.centerLeft,
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ArtworkCrop(
+          asset: 'assets/branding/tap2work.png',
+          crop: Rect.fromLTWH(650, 240, 1540, 1140),
+          width: 54,
+          height: 40,
+          semanticLabel: 'tap2.work 로고',
+        ),
+        SizedBox(width: 8),
+        Text(
+          'tap2.work',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -.7,
+          ),
+        ),
+      ],
+    ),
   );
 }
 
@@ -122,14 +140,15 @@ class _ArtworkPainter extends CustomPainter {
 }
 
 abstract final class AppColors {
-  static const paper = Color(0xFFF6F5EF);
-  static const white = Color(0xFFFFFEFA);
+  static const paper = Color(0xFFF7F8FA);
+  static const white = Color(0xFFFFFFFF);
+  static const accent = Color(0xFFC93832);
   static const green = Color(0xFF203D34);
-  static const ink = Color(0xFF253E35);
-  static const muted = Color(0xFF667269);
+  static const ink = Color(0xFF242832);
+  static const muted = Color(0xFF6C7280);
   static const lime = Color(0xFFE1F090);
   static const peach = Color(0xFFF2B28B);
-  static const line = Color(0xFFDDDED6);
+  static const line = Color(0xFFE1E4E8);
 }
 
 class Surface extends StatelessWidget {
@@ -148,7 +167,7 @@ class Surface extends StatelessWidget {
     padding: padding,
     decoration: BoxDecoration(
       color: color,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(14),
       border: Border.all(
         color: color == AppColors.green ? color : AppColors.line,
       ),

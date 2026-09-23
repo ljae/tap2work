@@ -308,7 +308,10 @@ void main() {
     await tester.ensureVisible(find.text('재고 수량 확인하기'));
     await tester.tap(find.text('재고 수량 확인하기'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), '3.5');
+    await tester.enterText(
+      find.descendant(of: find.byType(AlertDialog), matching: find.byType(TextField)),
+      '3.5',
+    );
     await tester.tap(find.text('확인하고 저장'));
     await tester.pumpAndSettle();
     expect(submitted!['quantity'], 3.5);

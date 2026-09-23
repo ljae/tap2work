@@ -56,12 +56,15 @@ class Tap2workApp extends StatelessWidget {
       fontFamily: 'NotoSansKR',
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.green,
-        primary: AppColors.green,
+        seedColor: AppColors.accent,
+        primary: AppColors.accent,
         surface: AppColors.paper,
+        onSurface: AppColors.ink,
+        onSurfaceVariant: AppColors.muted,
       ),
       scaffoldBackgroundColor: AppColors.paper,
       appBarTheme: const AppBarTheme(
+        centerTitle: false,
         backgroundColor: AppColors.paper,
         foregroundColor: AppColors.ink,
         elevation: 0,
@@ -85,7 +88,7 @@ class Tap2workApp extends StatelessWidget {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.white,
-        indicatorColor: AppColors.lime.withValues(alpha: .5),
+        indicatorColor: AppColors.accent.withValues(alpha: .09),
         labelTextStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12)),
       ),
       dividerColor: AppColors.line,

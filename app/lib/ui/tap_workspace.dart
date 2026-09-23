@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import '../domain/checklist_draft.dart';
 import '../domain/tap_planning.dart';
 import '../state/operations_controller.dart';
-import 'checklist_board.dart';
+import 'checklist_board.dart' show rowsOf, stampOf;
+import 'checklist_editor.dart';
 import 'components.dart';
+import 'tap_card.dart';
 
-/// A new view over existing shared checklist data. It does not change the
-/// server's completion model, so the original one-tap flow remains canonical.
+/// Folders, daily tasks and actions share one board and one card component.
+/// Existing IDs, role checks and completion APIs remain the source of truth.
 class TapWorkspace extends StatefulWidget {
   const TapWorkspace({super.key, required this.ops, required this.onStock});
   final OperationsController ops;
@@ -15,155 +18,412 @@ class TapWorkspace extends StatefulWidget {
 }
 
 class _TapWorkspaceState extends State<TapWorkspace> {
-  int view = 0;
-
-  List<Json> get groups => widget.ops
-      .rows('tasks')
-      .where((task) => task['kind'] == 'routine')
-      .toList();
-
-  int total(Json task) => (task['steps'] as List? ?? []).length;
-  int done(Json task) => (task['steps'] as List? ?? [])
-      .where((step) => step['completedAt'] != null)
-      .length;
-  String status(Json task) => done(task) == total(task)
-      ? '완료'
-      : done(task) == 0
-      ? '대기'
-      : '진행';
+  String? folderId, taskId;
+  String query = '';
+  bool timeline = false, mineOnly = false;
+  final search = TextEditingController();
+  final preview = <String, Json>{};
+  OperationsController get ops => widget.ops;
 
   @override
-  Widget build(BuildContext context) {
-    final tasks = groups;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const PageHeading(
-          'TAP BOARD · TODAY',
-          '오늘의 탭을 한눈에',
-          '카드는 업무 묶음, 안의 작은 탭은 실제로 확인할 행동이에요.',
-        ),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final (index, label, icon) in [
-              (0, '칸반 보드', Icons.view_kanban_outlined),
-              (1, '5분 계획', Icons.calendar_view_day_outlined),
-              (2, '작은 탭 확인', Icons.touch_app_outlined),
-            ])
-              ChoiceChip(
-                label: Text(label),
-                avatar: Icon(icon, size: 18),
-                selected: view == index,
-                onSelected: (_) => setState(() => view = index),
-              ),
-          ],
-        ),
-        const SizedBox(height: 18),
-        if (view == 0) _board(tasks),
-        if (view == 1) _timeline(tasks),
-        if (view == 2) ChecklistBoard(ops: widget.ops, onStock: widget.onStock),
-      ],
-    );
+  void dispose() {
+    search.dispose();
+    super.dispose();
   }
 
-  Widget _board(List<Json> tasks) {
-    final stock = widget.ops
-        .rows('tasks')
-        .where((task) => task['kind'] == 'stock' && task['completedAt'] == null)
-        .toList();
-    final lanes = [
-      ('대기', const Color(0xFFE9E8DF), Icons.inbox_outlined),
-      ('진행', const Color(0xFFFBE7D6), Icons.bolt_outlined),
-      ('완료', const Color(0xFFE4EFB7), Icons.check_circle_outline),
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (stock.isNotEmpty) ...[
-          Surface(
-            color: const Color(0xFFFFEFE4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  List<Json> get groups =>
+      ops.rows('tasks').where((t) => t['kind'] == 'routine').toList()..sort(
+        (a, b) => ((a['displayOrder'] ?? 0) as int).compareTo(
+          (b['displayOrder'] ?? 0) as int,
+        ),
+      );
+
+  String previewKey(Json task, Json step) =>
+      '${ops.actorId}/${ops.data?['day']}/${task['id']}/${step['id']}';
+  List<Json> steps(Json task) => [
+    for (final step in rowsOf(task['steps']))
+      {...step, ...?preview[previewKey(task, step)]},
+  ];
+  int total(Json task) => steps(task).length;
+  int done(Json task) =>
+      steps(task).where((s) => s['completedAt'] != null).length;
+  String status(Json task) => total(task) > 0 && done(task) == total(task)
+      ? '완료'
+      : done(task) > 0
+      ? '진행 중'
+      : '할 일';
+  List<Json> inFolder(String id) =>
+      groups.where((t) => (t['folderId'] ?? 'general') == id).toList();
+  List<Json> get folders {
+    final result = ops.rows('checklistFolders').map((f) => {...f}).toList();
+    for (final t in groups) {
+      final id = t['folderId'] ?? 'general';
+      if (!result.any((f) => f['id'] == id)) {
+        result.add({'id': id, 'name': id == 'general' ? '기본 업무' : '기타 업무'});
+      }
+    }
+    result.sort(
+      (a, b) => inFolder(b['id']).length.compareTo(inFolder(a['id']).length),
+    );
+    return result;
+  }
+
+  bool visibleTask(Json task) =>
+      !mineOnly ||
+      ops.isLeader ||
+      task['requiredRole'] == 'all' ||
+      task['requiredRole'] == ops.actor['role'];
+  String place(Json task) =>
+      ops
+              .rows('zones')
+              .where((z) => z['id'] == task['zone'])
+              .firstOrNull?['name']
+          as String? ??
+      '';
+  String role(Json task) => checklistRoles[task['requiredRole']] ?? '누구나';
+  void navigate({String? folder, String? task}) {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      folderId = folder;
+      taskId = task;
+      timeline = false;
+      query = '';
+      search.clear();
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final position = Scrollable.maybeOf(context)?.position;
+      position?.jumpTo(position.minScrollExtent);
+    });
+  }
+
+  void notice(String text) => ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(text)));
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: ops,
+    builder: (context, _) {
+      final folder = folders.where((f) => f['id'] == folderId).firstOrNull;
+      final task = groups
+          .where(
+            (t) =>
+                t['id'] == taskId && (t['folderId'] ?? 'general') == folderId,
+          )
+          .firstOrNull;
+      final level = task != null
+          ? 'SMALL TAP'
+          : folder != null
+          ? 'TAP'
+          : 'BIG TAP';
+      final scoped = (folder == null ? groups : inFolder(folder['id']))
+          .where(visibleTask)
+          .toList();
+      final title = task?['title'] ?? folder?['name'] ?? '우리 매장 보드';
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (folder != null)
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                const Text(
-                  '발주 후 재고 확인',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                TextButton.icon(
+                  onPressed: () => navigate(),
+                  icon: const Icon(Icons.dashboard_outlined, size: 17),
+                  label: const Text('전체 보드'),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  stock.map((task) => task['title']).join(' · '),
-                  style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 16,
+                  color: AppColors.muted,
                 ),
-                const SizedBox(height: 8),
-                OutlinedButton(
-                  onPressed: widget.ops.busy
-                      ? null
-                      : () => widget.onStock(stock.first),
-                  child: const Text('재고 수량 확인하기'),
+                TextButton(
+                  onPressed: () => navigate(folder: folder['id']),
+                  child: Text(folder['name']),
                 ),
-                if (stock.length > 1)
+                if (task != null) ...[
+                  const Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: AppColors.muted,
+                  ),
                   TextButton(
-                    onPressed: () => setState(() => view = 2),
-                    child: Text('다른 재료까지 보기 · ${stock.length}건'),
+                    onPressed: () => navigate(folder: folderId, task: taskId),
+                    child: Text(task['title']),
+                  ),
+                ],
+              ],
+            ),
+          if (folder != null) const SizedBox(height: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -.8,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            task != null
+                ? '${task['slot']} · ${role(task)} · ${place(task)}'
+                : folder != null
+                ? 'Tap을 열어, 해야 할 작은 행동을 확인하세요.'
+                : 'BIG TAP을 열면 업무가, Tap을 열면 작은 행동이 보여요.',
+            style: const TextStyle(
+              color: AppColors.muted,
+              fontSize: 13,
+              height: 1.6,
+            ),
+          ),
+          if (task != null &&
+              (task['customer_memo'] ?? '').toString().isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Information('요청사항 · ${task['customer_memo']}'),
+            ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              ChoiceChip(
+                label: const Text('보드'),
+                selected: !timeline,
+                onSelected: (_) => setState(() => timeline = false),
+              ),
+              ChoiceChip(
+                label: const Text('5분 계획'),
+                selected: timeline,
+                onSelected: (_) => setState(() => timeline = true),
+              ),
+              if (!ops.isLeader)
+                FilterChip(
+                  label: const Text('내 담당만'),
+                  selected: mineOnly,
+                  onSelected: (v) => setState(() => mineOnly = v),
+                ),
+              if (ops.isLeader)
+                TextButton.icon(
+                  onPressed: ops.busy
+                      ? null
+                      : () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => ChecklistEditor(
+                              ops: ops,
+                              initialFolder: folderId,
+                            ),
+                          ),
+                        ),
+                  icon: const Icon(Icons.tune, size: 17),
+                  label: const Text('보드 편집'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (!timeline) ...[
+            TextField(
+              controller: search,
+              onChanged: (v) => setState(() => query = v.trim().toLowerCase()),
+              decoration: InputDecoration(
+                hintText: '이 보드에서 검색',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppColors.line),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '$level · ${task != null
+                        ? '하나의 행동'
+                        : folder != null
+                        ? '하나의 업무'
+                        : '업무 모음'}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      letterSpacing: .7,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ),
+                if (ops.readOnly)
+                  const Text(
+                    '체험 · 저장 안 됨',
+                    style: TextStyle(fontSize: 11, color: AppColors.muted),
                   ),
               ],
             ),
-          ),
-          const SizedBox(height: 14),
+            const SizedBox(height: 12),
+            _board(folder, task, scoped),
+          ] else
+            _timeline(task == null ? scoped : [task]),
+          if (folder == null && task == null) _stock(),
         ],
-        const Information(
-          '상태는 작은 탭 확인 결과로 자동 정리돼요. 카드를 열어 내용을 본 뒤 실제로 끝낸 행동을 터치해 주세요.',
-        ),
-        const SizedBox(height: 15),
-        SingleChildScrollView(
+      );
+    },
+  );
+
+  Widget _board(Json? folder, Json? task, List<Json> scoped) {
+    final entries = <({String id, String state, Widget card})>[];
+    bool matches(String name) => name.toLowerCase().contains(query);
+    if (task != null) {
+      for (final step in steps(task).where((s) => matches(s['title']))) {
+        final checked = step['completedAt'] != null;
+        entries.add((
+          id: step['id'],
+          state: checked ? '완료' : '할 일',
+          card: TapCard(
+            key: ValueKey('small-${step['id']}'),
+            level: 'SMALL TAP',
+            emoji: '✓',
+            title: step['title'],
+            subtitle: checked
+                ? '${step['completedBy']?['name'] ?? ''} · ${stampOf(step['completedAt'])} 확인'
+                : '반복 업무 · 방법 보기',
+            onOpen: () => _manual(task['id'], step['id']),
+            checked: checked,
+            locked: task['canComplete'] != true,
+            onCheck: () => _toggle(task, step),
+          ),
+        ));
+      }
+    } else if (folder != null) {
+      for (final t in scoped.where((t) => matches(t['title']))) {
+        entries.add((
+          id: t['id'],
+          state: status(t),
+          card: TapCard(
+            key: ValueKey('tap-${t['id']}'),
+            level: 'TAP',
+            emoji: t['emoji'] ?? '📋',
+            title: t['title'],
+            subtitle: '${t['slot']} · ${role(t)} · ${place(t)}',
+            total: total(t),
+            done: done(t),
+            footer: 'Small Tap ${done(t)}/${total(t)}',
+            onOpen: () => navigate(folder: folderId, task: t['id']),
+          ),
+        ));
+      }
+    } else {
+      for (final f in folders.where((f) => matches(f['name']))) {
+        final all = inFolder(f['id']);
+        final list = all.where(visibleTask).toList();
+        if (mineOnly && list.isEmpty) continue;
+        final count = all.fold(0, (n, t) => n + total(t));
+        final checked = all.fold(0, (n, t) => n + done(t));
+        entries.add((
+          id: f['id'],
+          state: count > 0 && checked == count
+              ? '완료'
+              : checked > 0
+              ? '진행 중'
+              : '할 일',
+          card: TapCard(
+            key: ValueKey('big-${f['id']}'),
+            level: 'BIG TAP',
+            title: f['name'],
+            subtitle: '${all.length}개의 Tap · 업무 모음',
+            total: count,
+            done: checked,
+            footer: 'Small Tap $checked/$count',
+            onOpen: () => navigate(folder: f['id']),
+          ),
+        ));
+      }
+    }
+    final lanes = task == null ? ['할 일', '진행 중', '완료'] : ['할 일', '완료'];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 760;
+        final width = wide
+            ? (constraints.maxWidth - 12 * (lanes.length - 1)) / lanes.length
+            : (constraints.maxWidth - 20).clamp(230.0, 340.0);
+        return SingleChildScrollView(
+          key: ValueKey('board/$folderId/$taskId'),
           scrollDirection: Axis.horizontal,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (final lane in lanes)
+              for (final (index, lane) in lanes.indexed)
                 Container(
-                  width: 270,
-                  margin: const EdgeInsets.only(right: 12),
+                  width: width,
+                  margin: EdgeInsets.only(
+                    right: index == lanes.length - 1 ? 0 : 12,
+                  ),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: lane.$2,
-                    borderRadius: BorderRadius.circular(20),
+                    color: const Color(0xFFEBEDF0),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
-                        children: [
-                          Icon(lane.$3, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              lane.$1,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(4, 2, 4, 14),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: lane == '완료'
+                                    ? AppColors.green
+                                    : lane == '진행 중'
+                                    ? AppColors.accent
+                                    : AppColors.muted,
                               ),
                             ),
-                          ),
-                          Text(
-                            '${tasks.where((t) => status(t) == lane.$1).length}',
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                lane,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${entries.where((e) => e.state == lane).length}',
+                              style: const TextStyle(
+                                color: AppColors.muted,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 12),
-                      for (final task in tasks.where(
-                        (t) => status(t) == lane.$1,
-                      ))
-                        _taskCard(task),
-                      if (!tasks.any((t) => status(t) == lane.$1))
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20),
+                      for (final entry in entries.where((e) => e.state == lane))
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: entry.card,
+                        ),
+                      if (!entries.any((e) => e.state == lane))
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 24,
+                            horizontal: 8,
+                          ),
                           child: Text(
-                            '지금은 비어 있어요',
-                            style: TextStyle(color: AppColors.muted),
+                            query.isNotEmpty ? '검색 결과가 없어요' : '아직 카드가 없어요',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.muted,
+                            ),
                           ),
                         ),
                     ],
@@ -171,88 +431,174 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 ),
             ],
           ),
-        ),
+        );
+      },
+    );
+  }
+
+  Widget _stock() {
+    final stock = ops
+        .rows('tasks')
+        .where((t) => t['kind'] == 'stock' && t['completedAt'] == null);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final task in stock)
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: Surface(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    task['title'],
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    '발주 후 재고 확인',
+                    style: TextStyle(fontSize: 12, color: AppColors.muted),
+                  ),
+                  TextButton(
+                    onPressed: ops.busy ? null : () => widget.onStock(task),
+                    child: const Text('재고 수량 확인하기'),
+                  ),
+                ],
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _taskCard(Json task) => Padding(
-    padding: const EdgeInsets.only(bottom: 9),
-    child: Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(15),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(15),
-        onTap: () => _details(task),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${task['emoji'] ?? '✓'}  ${task['title']}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  height: 1.35,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${task['slot']} · ${task['requiredRole']} · 작은 탭 ${done(task)}/${total(task)}',
-                style: const TextStyle(fontSize: 12, color: AppColors.muted),
-              ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: total(task) == 0 ? 0 : done(task) / total(task),
-                minHeight: 5,
-                borderRadius: BorderRadius.circular(9),
-                color: AppColors.green,
-                backgroundColor: AppColors.paper,
-              ),
-            ],
-          ),
+  Future<void> _toggle(Json task, Json step) async {
+    if (ops.busy) return;
+    final currentTask = groups.where((t) => t['id'] == task['id']).firstOrNull;
+    final currentStep = currentTask == null
+        ? null
+        : steps(currentTask).where((s) => s['id'] == step['id']).firstOrNull;
+    if (currentTask == null ||
+        currentStep == null ||
+        currentStep['completedAt'] != step['completedAt']) {
+      notice('업무가 변경됐어요. 현재 카드를 다시 확인해 주세요.');
+      return;
+    }
+    task = currentTask;
+    step = currentStep;
+    final openingActor = ops.actorId;
+    final checked = step['completedAt'] != null;
+    if (!checked && task['canComplete'] != true) {
+      notice('${role(task)} 담당 Tap이에요. 담당자나 사장님·매니저가 확인해요.');
+      return;
+    }
+    if (checked) {
+      if (!ops.isLeader && step['completedBy']?['id'] != ops.actor['id']) {
+        notice('확인한 본인이나 사장님·매니저만 되돌릴 수 있어요.');
+        return;
+      }
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (c) => AlertDialog(
+          title: const Text('완료를 되돌릴까요?'),
+          content: Text(step['title']),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(c, false),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: const Text('되돌리기'),
+            ),
+          ],
         ),
-      ),
-    ),
-  );
+      );
+      if (confirmed != true || !mounted) return;
+      if (openingActor != ops.actorId || ops.busy) return;
+    }
+    if (ops.readOnly) {
+      if (checked && step['preview'] != true) {
+        notice('기존 확인 기록은 공개 미리보기에서 변경할 수 없어요.');
+        return;
+      }
+      setState(() {
+        final key = previewKey(task, step);
+        if (checked) {
+          preview.remove(key);
+        } else {
+          preview[key] = {
+            'completedAt': DateTime.now().toUtc().toIso8601String(),
+            'completedBy': {'id': ops.actor['id'], 'name': ops.actor['name']},
+            'preview': true,
+          };
+        }
+      });
+      notice('체험 표시만 변경했어요. 저장되지 않아요.');
+    } else {
+      final success = await ops.act(checked ? 'reopen_step' : 'complete_step', {
+        'taskId': task['id'],
+        'stepId': step['id'],
+      });
+      if (mounted && !success) notice(ops.error ?? '변경하지 못했어요.');
+    }
+  }
 
-  void _details(Json task) {
-    showModalBottomSheet<void>(
+  Future<void> _manual(String id, String stepId) async {
+    final task = groups.where((t) => t['id'] == id).firstOrNull;
+    final step = task == null
+        ? null
+        : steps(task).where((s) => s['id'] == stepId).firstOrNull;
+    if (task == null || step == null) return;
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+      builder: (c) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 28),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
+              const Text(
+                'SMALL TAP · 방법',
+                style: TextStyle(fontSize: 11, color: AppColors.muted),
+              ),
+              const SizedBox(height: 10),
               Text(
-                '${task['emoji'] ?? '✓'} ${task['title']}',
+                step['title'],
                 style: const TextStyle(
-                  fontSize: 21,
+                  fontSize: 23,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 10),
-              Text('${task['slot']} · 작은 탭 ${done(task)}/${total(task)}'),
-              const SizedBox(height: 12),
-              for (final step in (task['steps'] as List? ?? []).take(5))
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Text(
-                    '${step['completedAt'] == null ? '○' : '✓'} ${step['title']}',
-                  ),
-                ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 8),
+              Text(
+                '${task['title']} · ${role(task)}',
+                style: const TextStyle(fontSize: 12, color: AppColors.muted),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                step['manual'] ?? '등록된 방법이 없어요.',
+                style: const TextStyle(height: 1.8),
+              ),
+              if ((step['tip'] ?? '').toString().isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Information('기억해 주세요 · ${step['tip']}'),
+              ],
+              const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: () {
-                  Navigator.pop(context);
-                  setState(() => view = 2);
+                  Navigator.pop(c);
+                  _toggle(task, step);
                 },
-                icon: const Icon(Icons.touch_app_outlined),
-                label: const Text('작은 탭 확인하러 가기'),
+                icon: Icon(
+                  step['completedAt'] == null ? Icons.check : Icons.undo,
+                ),
+                label: Text(
+                  step['completedAt'] == null ? '이 Small Tap 완료' : '완료 되돌리기',
+                ),
               ),
             ],
           ),

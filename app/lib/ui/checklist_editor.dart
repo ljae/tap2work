@@ -17,8 +17,9 @@ class _StepDrag {
 /// Owner/manager editor: folder → group → activities, all reorderable by drag and drop
 /// with equivalent menu actions. Edits live in an isolated draft until a revision-checked save.
 class ChecklistEditor extends StatefulWidget {
-  const ChecklistEditor({super.key, required this.ops});
+  const ChecklistEditor({super.key, required this.ops, this.initialFolder});
   final OperationsController ops;
+  final String? initialFolder;
   @override
   State<ChecklistEditor> createState() => _ChecklistEditorState();
 }
@@ -65,6 +66,9 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
         : 'general';
     dirty = false;
     issue = null;
+    if (folders.any((f) => f['id'] == widget.initialFolder)) {
+      selected = widget.initialFolder!;
+    }
   }
 
   void change(VoidCallback action) => setState(() {
@@ -136,7 +140,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('체크리스트 편집'),
+            title: const Text('보드 편집'),
             actions: [
               TextButton(
                 onPressed: !enabled || ops.readOnly || !dirty ? null : save,
@@ -153,7 +157,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                   const PageHeading(
                     'MAKE IT YOURS',
                     '우리 매장 체크리스트',
-                    '폴더 → 그룹 → 활동과 짧은 매뉴얼. 손잡이를 잡아 끌면 순서가 바뀌고, 그룹을 길게 눌러 다른 폴더에, 활동을 길게 눌러 다른 그룹에 놓을 수 있어요.',
+                    'BIG TAP은 업무 모음, Tap은 업무, Small Tap은 행동이에요. 손잡이로 순서를 바꾸고, 길게 눌러 다른 모음이나 업무로 옮기세요.',
                   ),
                   if (ops.readOnly)
                     const Information(
@@ -190,12 +194,12 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                       OutlinedButton.icon(
                         onPressed: enabled ? () => editGroup() : null,
                         icon: const Icon(Icons.add),
-                        label: const Text('그룹 만들기'),
+                        label: const Text('Tap 만들기'),
                       ),
                       TextButton.icon(
                         onPressed: enabled ? () => editFolder() : null,
                         icon: const Icon(Icons.create_new_folder_outlined),
-                        label: const Text('폴더 추가'),
+                        label: const Text('BIG TAP 추가'),
                       ),
                     ],
                   ),
@@ -465,7 +469,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                       ? () => editStep(task)
                       : null,
                   icon: const Icon(Icons.add),
-                  label: const Text('활동 추가'),
+                  label: const Text('Small Tap 추가'),
                 ),
               ),
             ],
@@ -593,13 +597,13 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
     final name = await showDialog<String>(
       context: context,
       builder: (c) => AlertDialog(
-        title: Text(folder == null ? '새 폴더' : '폴더 이름'),
+        title: Text(folder == null ? '새 BIG TAP' : 'BIG TAP 이름'),
         content: TextFormField(
           initialValue: folderName,
           onChanged: (value) => folderName = value,
           maxLength: 40,
           autofocus: true,
-          decoration: const InputDecoration(labelText: '폴더 이름'),
+          decoration: const InputDecoration(labelText: 'BIG TAP 이름'),
         ),
         actions: [
           TextButton(

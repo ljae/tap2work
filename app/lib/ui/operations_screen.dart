@@ -120,7 +120,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
           children: [
             Container(
               width: double.infinity,
-              color: AppColors.lime.withValues(alpha: .35),
+              color: AppColors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
                 ops.readOnly
@@ -162,7 +162,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         child: Center(
                           child: ConstrainedBox(
                             constraints: BoxConstraints(
-                              maxWidth: tab == 0
+                              maxWidth: tab == 0 || tab == 1
                                   ? 1240
                                   : tab == 4
                                   ? 1000
@@ -364,6 +364,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
 
   List<Widget> tasks() => [
     TapWorkspace(
+      key: ValueKey(ops.actorId),
       ops: ops,
       onStock: (task) async {
         final stock = item(task['itemId']);

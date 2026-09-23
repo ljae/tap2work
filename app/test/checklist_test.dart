@@ -479,7 +479,7 @@ void main() {
     await tester.tap(find.text('저장'));
     await tester.pumpAndSettle();
     expect(find.textContaining('「육수 올리기」 · 활동 30의 매뉴얼'), findsWidgets);
-    expect(find.text('체크리스트 편집'), findsOneWidget);
+    expect(find.text('보드 편집'), findsOneWidget);
     expect(posts, 0);
   });
   testWidgets('back navigation keeps unsaved activity edits until discarded', (
