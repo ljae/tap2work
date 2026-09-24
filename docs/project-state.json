@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 50,
+  "revision": 52,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -2581,7 +2581,42 @@
         "https://github.com/ljae/tap2work/commit/d66824216accf773764647f523ad72d67e417218",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-restaurant-scenarios-integrity-fixes-2026-09-25",
+      "at": "2026-09-24T22:28:56Z",
+      "type": "implementation",
+      "title": "Restaurant workflow scenario review and focused integrity fixes",
+      "detail": "Astra reviewed 22 fictional restaurant opening, ticket, preparation, supplier, staffing, closing, role and failure scenarios against confirmed decisions. Isolated temporary-store reproductions found owner pay amounts in non-owner activity, superseded preparation TAPs accepting output credit, and saved order Small TAP sequences resetting on sync. Sol fixed server role projection (including legacy pay messages), rejected hidden/superseded task actions, preserved saved order step order while placing newly migrated packing before handoff, and aligned public-preview preparation batch sizing. No product decision or real operational record was changed.",
+      "files": [
+        "docs/RESTAURANT_SCENARIOS_2026-09-25.md",
+        "PRODUCT.md",
+        "developer/operations.mjs",
+        "developer/staff.mjs",
+        "developer/order_taps.mjs",
+        "developer/test/operations.test.mjs",
+        "developer/test/prepared_items.test.mjs",
+        "app/lib/state/operations_controller.dart",
+        "app/test/cloud_operations_test.dart",
+        "docs/project-state.json"
+      ],
+      "verification": "Astra reproduced three defects in isolated temporary stores, then removed those stores. After Sol fixes: npm run test:console passed 54/54; Flutter analysis clean; Flutter tests passed 80/80; npm run check, npm run build:site and git diff --check passed. Public review build uses synthetic samples. Native builds, physical-device interaction, authenticated live mutations and deployment were not performed."
+    },
+    {
+      "id": "H-crew-calendar-day-roster-redesign-2026-09-25",
+      "at": "2026-09-24T22:40:57Z",
+      "type": "implementation",
+      "title": "Phone-first crew calendar with readable day roster",
+      "detail": "Aside CLI reviewed public official Homebase, When I Work, 7shifts and Deputy schedule references. Flutter Calendar now opens on phones with a seven-day date strip, selected-day assignment and empty-slot summary, readable role/time/name cards, small Cupertino role icons and an explicit add action. The detailed 06:00 half-hour week grid remains available from 시간표 on phones and visible by default on wider screens; its fixed axis is aligned with the grid header. Monthly view, tap/drag assignment, early/overnight access, server revision checks and read-only preview behavior remain. An empty required slot is not presented as a published shift offer or notification. The prior restaurant scenario fixes recorded at revision 51 are included in the same pending release.",
+      "files": [
+        "app/lib/ui/calendar_screen.dart",
+        "app/test/calendar_test.dart",
+        "PRODUCT.md",
+        "docs/CALENDAR_DESIGN_REFERENCES_2026-09-25.md",
+        "docs/project-state.json"
+      ],
+      "verification": "Flutter analysis clean; Flutter tests 81/81 passed including 320/390/1200px calendar coverage, selected-day roster, mobile assignment and read-only preview. Node console tests 54/54, npm run check, npm run build:site and git diff --check passed. Native builds, physical-device interaction and live deployment were not performed at this revision."
     }
   ],
-  "updatedAt": "2026-09-24T22:16:44Z"
+  "updatedAt": "2026-09-24T22:40:57Z"
 }

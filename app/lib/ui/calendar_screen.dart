@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -15,6 +16,7 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   DateTime? selected;
   bool monthly = false;
+  bool detailed = false;
   final ScrollController weekTimeScroll = ScrollController();
   @override
   void dispose() {
@@ -31,6 +33,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
           .where((t) => t['id'] == id)
           .firstOrNull?['nickname'] ??
       '빈 슬롯';
+  static const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
+  String dutyLabel(String duty) => duty == 'cashier' ? '계산' : duty;
+  IconData dutyIcon(String duty) => duty == '조리'
+      ? CupertinoIcons.flame
+      : duty == 'cashier'
+      ? CupertinoIcons.creditcard
+      : CupertinoIcons.person_2;
+  Color dutyTint(String duty) => duty == '조리'
+      ? const Color(0xFFEAF3EF)
+      : duty == 'cashier'
+      ? const Color(0xFFEDEDF5)
+      : const Color(0xFFFFEFE9);
   bool get editable => ops.isLeader && !ops.readOnly && !ops.busy;
   Future<void> action(String type, Json data) async {
     final ok = await ops.act(type, data);
@@ -630,6 +644,261 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  Json? matchingShift(DateTime day, Json slot) => ops
+      .rows('staffShifts')
+      .where(
+        (s) =>
+            s['date'] == date(day) &&
+            s['slotId'] == slot['id'] &&
+            s['duty'] == slot['duty'] &&
+            s['start'] == slot['start'] &&
+            s['end'] == slot['end'],
+      )
+      .firstOrNull;
+
+  Widget weekStrip(DateTime monday, DateTime selectedDay) => Row(
+    children: [
+      for (var index = 0; index < 7; index++)
+        Expanded(
+          child: Builder(
+            builder: (context) {
+              final day = monday.add(Duration(days: index));
+              final selected = date(day) == date(selectedDay);
+              final filled = ops
+                  .rows('staffingSlots')
+                  .where((slot) => matchingShift(day, slot) != null)
+                  .length;
+              return Padding(
+                padding: EdgeInsets.only(right: index == 6 ? 0 : 4),
+                child: Semantics(
+                  button: true,
+                  selected: selected,
+                  label:
+                      '${day.month}월 ${day.day}일 ${weekdays[index]}, $filled명 배정',
+                  child: InkWell(
+                    key: Key('calendar-day-${date(day)}'),
+                    onTap: () => setState(() => this.selected = day),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      constraints: const BoxConstraints(minHeight: 74),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: selected ? AppColors.ink : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: selected ? AppColors.ink : AppColors.line,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            weekdays[index],
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: selected
+                                  ? Colors.white70
+                                  : AppColors.muted,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${day.day}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: selected ? Colors.white : AppColors.ink,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: filled == 0
+                                  ? (selected ? Colors.white54 : AppColors.line)
+                                  : (selected
+                                        ? const Color(0xFFFFB4A3)
+                                        : AppColors.accent),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+    ],
+  );
+
+  Widget rosterCard(DateTime day, Json slot, Json? shift) {
+    final duty = slot['duty'] as String;
+    final filled = shift != null;
+    return DragTarget<Json>(
+      onWillAcceptWithDetails: (_) => editable && !filled,
+      onAcceptWithDetails: (details) => assign(day, slot, details.data),
+      builder: (context, candidates, _) {
+        final card = Material(
+          color: candidates.isNotEmpty
+              ? const Color(0xFFFCE8E4)
+              : filled
+              ? Colors.white
+              : const Color(0xFFFFFAF5),
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            onTap: () => pick(day, slot, shift),
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 76),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: filled ? AppColors.line : const Color(0xFFEACAB6),
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: dutyTint(duty),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(dutyIcon(duty), size: 19, color: AppColors.ink),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${dutyLabel(duty)} · ${slot['start']}–${slot['end']}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.muted,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          filled ? name(shift['tapperId']) : '빈 슬롯',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.ink,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    filled ? CupertinoIcons.chevron_right : CupertinoIcons.plus,
+                    size: 17,
+                    color: filled ? AppColors.muted : AppColors.accent,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: filled ? drag(shift, card) : card,
+        );
+      },
+    );
+  }
+
+  Widget dayRoster(DateTime day) {
+    final slots = ops.rows('staffingSlots');
+    final filled = slots
+        .where((slot) => matchingShift(day, slot) != null)
+        .length;
+    final extras = ops
+        .rows('staffShifts')
+        .where(
+          (shift) =>
+              shift['date'] == date(day) &&
+              !slots.any(
+                (slot) => matchingShift(day, slot)?['id'] == shift['id'],
+              ),
+        )
+        .toList();
+    final early = earlyShifts(day);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${day.month}월 ${day.day}일 ${weekdays[day.weekday - 1]}요일',
+                    style: const TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '배정 $filled · 빈 슬롯 ${slots.length - filled}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (editable)
+              TextButton.icon(
+                onPressed: () => chooseForDay(day),
+                icon: const Icon(CupertinoIcons.plus, size: 16),
+                label: const Text('근무 추가'),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        for (final slot in slots)
+          rosterCard(day, slot, matchingShift(day, slot)),
+        for (final shift in extras)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                side: const BorderSide(color: AppColors.line),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              tileColor: Colors.white,
+              leading: Icon(dutyIcon(shift['duty']), size: 20),
+              title: Text(
+                '${name(shift['tapperId'])} · ${dutyLabel(shift['duty'])}',
+              ),
+              subtitle: Text('${shift['start']}–${shift['end']} · 별도 근무'),
+              onTap: editable
+                  ? () => editShift(day, shift, shift: shift)
+                  : null,
+            ),
+          ),
+        if (early.isNotEmpty)
+          TextButton.icon(
+            onPressed: () => showEarly(day),
+            icon: const Icon(CupertinoIcons.moon, size: 16),
+            label: Text('새벽·야간 근무 ${early.length}건 보기'),
+          ),
+      ],
+    );
+  }
+
   Widget weekGrid(DateTime monday) {
     const rowHeight = 30.0;
     final compact = MediaQuery.sizeOf(context).width < 600;
@@ -737,6 +1006,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       )
                                       .toList();
                                   return DragTarget<Json>(
+                                    key: Key('week-grid-day-${date(day)}'),
                                     onWillAcceptWithDetails: (_) => editable,
                                     onAcceptWithDetails: (details) => dropShift(
                                       day,
@@ -904,7 +1174,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           Positioned(
             left: 0,
-            top: 76,
+            top: 82,
             width: axisWidth,
             height: 680,
             child: IgnorePointer(
@@ -958,12 +1228,52 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ? DateTime(day.year, day.month, 1)
           : day.subtract(Duration(days: day.weekday - 1));
       final count = monthly ? DateTime(day.year, day.month + 1, 0).day : 7;
+      final compact = MediaQuery.sizeOf(context).width < 600;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const PageHeading('CALENDAR', '크루 근무표', '빈 슬롯을 채우고 함께 일할 사람을 확인하세요.'),
+          const PageHeading('CALENDAR', '크루 근무표', '오늘 함께 일하는 사람과 빈 자리를 확인해요.'),
+          Row(
+            children: [
+              IconButton(
+                tooltip: '이전',
+                onPressed: () => setState(
+                  () => selected = monthly
+                      ? DateTime(day.year, day.month - 1, 1)
+                      : day.subtract(const Duration(days: 7)),
+                ),
+                icon: const Icon(CupertinoIcons.chevron_left, size: 19),
+              ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    monthly
+                        ? '${day.year}년 ${day.month}월'
+                        : '${start.month}월 ${start.day}일 – ${start.add(const Duration(days: 6)).month}월 ${start.add(const Duration(days: 6)).day}일',
+                    maxLines: 1,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: '다음',
+                onPressed: () => setState(
+                  () => selected = monthly
+                      ? DateTime(day.year, day.month + 1, 1)
+                      : day.add(const Duration(days: 7)),
+                ),
+                icon: const Icon(CupertinoIcons.chevron_right, size: 19),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 8,
+            runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               ChoiceChip(
@@ -976,29 +1286,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 selected: monthly,
                 onSelected: (_) => setState(() => monthly = true),
               ),
-              IconButton(
-                tooltip: '이전',
-                onPressed: () => setState(
-                  () => selected = monthly
-                      ? DateTime(day.year, day.month - 1, 1)
-                      : day.subtract(const Duration(days: 7)),
+              if (!monthly && compact)
+                ChoiceChip(
+                  label: const Text('시간표'),
+                  selected: detailed,
+                  onSelected: (_) => setState(() => detailed = !detailed),
                 ),
-                icon: const Icon(Icons.chevron_left),
-              ),
-              Text(monthly ? '${day.year}년 ${day.month}월' : '${date(start)} 주'),
-              IconButton(
-                tooltip: '다음',
-                onPressed: () => setState(
-                  () => selected = monthly
-                      ? DateTime(day.year, day.month + 1, 1)
-                      : day.add(const Duration(days: 7)),
-                ),
-                icon: const Icon(Icons.chevron_right),
-              ),
               if (ops.isLeader)
-                TextButton(
+                TextButton.icon(
                   onPressed: editable ? configure : null,
-                  child: Text(
+                  icon: const Icon(CupertinoIcons.person_2, size: 16),
+                  label: Text(
                     '하루 ${ops.rows('staffingSlots').length}명 · 슬롯 설정',
                   ),
                 ),
@@ -1006,42 +1304,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           if (ops.readOnly)
             const Information('공개 미리보기 · 근무 배정은 로그인 후 저장할 수 있어요.'),
-          const SizedBox(height: 12),
-          const Text('HR POOL · 길게 눌러 빈 슬롯으로 이동'),
-          Wrap(
-            spacing: 8,
-            children: [
-              for (final person
-                  in ops.rows('tappers').where((p) => p['active'] == true))
-                drag(
-                  person,
-                  Chip(
-                    label: Text(
-                      '${person['nickname']} · ${(person['duties'] as List).join('/')}',
-                    ),
-                  ),
-                ),
-              ActionChip(
-                label: const Text('크루 등록 / 관리'),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (_) => Scaffold(
-                      appBar: AppBar(title: const Text('HR Pool')),
-                      body: SingleChildScrollView(
-                        padding: const EdgeInsets.all(20),
-                        child: TeamScreen(operations: ops),
-                      ),
-                    ),
-                  ),
+          const SizedBox(height: 16),
+          if (!monthly) ...[
+            weekStrip(start, day),
+            const SizedBox(height: 22),
+            dayRoster(day),
+            const SizedBox(height: 16),
+            if (!compact || detailed) ...[
+              const Text(
+                '주간 시간표 · 06:00–24:00',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
                 ),
               ),
+              const SizedBox(height: 8),
+              weekGrid(start),
             ],
-          ),
-          const SizedBox(height: 12),
-          if (!monthly)
-            weekGrid(start)
-          else
+          ] else
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: SizedBox(
@@ -1099,6 +1379,47 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 ),
               ),
             ),
+          const SizedBox(height: 20),
+          const Text(
+            '크루 · 길게 눌러 빈 슬롯으로 이동',
+            style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.ink),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              for (final person
+                  in ops.rows('tappers').where((p) => p['active'] == true))
+                drag(
+                  person,
+                  Chip(
+                    label: Text(
+                      '${person['nickname']} · ${(person['duties'] as List).join('/')}',
+                    ),
+                  ),
+                ),
+              ActionChip(
+                avatar: const Icon(
+                  CupertinoIcons.person_crop_circle_badge_plus,
+                  size: 17,
+                ),
+                label: const Text('크루 관리'),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => Scaffold(
+                      appBar: AppBar(title: const Text('크루 관리')),
+                      body: SingleChildScrollView(
+                        padding: const EdgeInsets.all(20),
+                        child: TeamScreen(operations: ops),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       );
     },

@@ -172,6 +172,8 @@ export class OperationsStore {
     if (this.trustedActor) result.actors = [this.trustedActor];
     result.dashboard = salesDashboard(state.sales, this.clock(), actor.role === 'owner');
     delete result.sales;
+    if (actor.role !== 'owner') result.activity = result.activity.filter(entry =>
+      entry.kind !== 'pay' && !/^(?:급여 지급 기록|추가보수) [\d,]+원(?:$|\s)/.test(entry.message));
     result.tasks = result.tasks.filter(task => !task.supersededAt && !task.archivedAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day));
     for (const item of result.items) {
       const review = stockReview(item);
@@ -216,7 +218,7 @@ export class OperationsStore {
       if (ensureDueTasks(state, now)) { state.revision++; await this.#save(state); }
       if (input.revision !== state.revision) fail('다른 동료가 먼저 업데이트했어요. 최신 내용을 확인하고 다시 눌러 주세요.', 409);
       const who = { id: actor.id, name: actor.name, role: actor.label };
-      const activity = message => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message });
+      const activity = (message, kind) => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message, ...(kind ? { kind } : {}) });
       const itemFor = id => { const item = state.items.find(item => item.id === id); if (!item) fail('재료를 찾지 못했어요.', 404); return item; };
       switch (input.action) {
         case 'save_prepared_item': {
@@ -230,7 +232,7 @@ export class OperationsStore {
         case 'complete_preparation': {
           const task = state.tasks.find(t => t.id === input.taskId && t.preparedItemId && !t.archivedAt && t.date === state.day);
           if (!task) fail('준비 Tap을 찾지 못했어요.', 404);
-          if (task.completedAt || !allowed(actor, task)) fail('준비 Tap 상태와 담당자를 확인해 주세요.', 409);
+          if (task.supersededAt || task.completedAt || !allowed(actor, task)) fail('준비 Tap 상태와 담당자를 확인해 주세요.', 409);
           finishPreparation(state, task, input.quantity, now, who);
           for (const step of task.steps) if (!step.completedAt) { step.completedAt = iso(now); step.completedBy = who; }
           task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done';
@@ -238,7 +240,7 @@ export class OperationsStore {
         }
         case 'save_step_manual': {
           leadership(actor);
-          const task = state.tasks.find(t => t.id === input.taskId && !t.archivedAt && t.date === state.day);
+          const task = state.tasks.find(t => t.id === input.taskId && !t.archivedAt && !t.supersededAt && t.date === state.day);
           const step = task?.steps?.find(s => s.id === input.stepId);
           if (!step || step.completedAt) fail('아직 완료하지 않은 오늘 Small Tap만 편집할 수 있어요.', 409);
           const manual = text(input.manual, '매뉴얼', 700);
@@ -270,7 +272,7 @@ export class OperationsStore {
           const task = state.tasks.find(task => task.id === input.taskId);
           if (!task) fail('업무를 찾지 못했어요.', 404);
           if (task.preparedOutputMovementId) fail('완성 수량이 반영된 준비 Tap은 되돌릴 수 없어요. 실제 수량 보정을 사용해 주세요.', 409);
-          if (task.archivedAt || task.date !== state.day) fail('오늘 업무만 되돌릴 수 있어요.', 409);
+          if (task.archivedAt || task.supersededAt || task.date !== state.day) fail('오늘 업무만 되돌릴 수 있어요.', 409);
           reopenStep(task, input.stepId, actor, ['owner', 'manager'].includes(actor.role));
           task.boardStatus = 'processing';
           activity(`${task.title} · 확인 되돌림`); break;
@@ -304,12 +306,12 @@ export class OperationsStore {
           task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; activity(`${task.title} 완료`); break;
         }
         case 'move_tap': {
-          const task = state.tasks.find(row => row.id === input.taskId && row.kind === 'routine' && row.date === state.day && !row.archivedAt);
+          const task = state.tasks.find(row => row.id === input.taskId && row.kind === 'routine' && row.date === state.day && !row.archivedAt && !row.supersededAt);
           if (!task) fail('오늘 Tap을 찾지 못했어요.', 404);
           if (!allowed(actor, task)) fail('이 Tap의 담당자가 아니에요.', 403);
           if (!state.checklistFolders.some(folder => folder.id === input.folderId)) fail('BIG TAP을 찾지 못했어요.');
           if (!['todo', 'processing', 'done', 'keep'].includes(input.status)) fail('Tap 상태를 확인해 주세요.');
-          const moving = task.orderId ? state.tasks.filter(t => t.orderId === task.orderId && !t.archivedAt) : [task];
+          const moving = task.orderId ? state.tasks.filter(t => t.orderId === task.orderId && !t.archivedAt && !t.supersededAt) : [task];
           if (moving.some(t => t.preparedItemId && t.completedAt && !['done', 'keep'].includes(input.status))) fail('완성 수량이 반영된 준비 Tap은 되돌릴 수 없어요.', 409);
           if (moving.some(t => t.preparedItemId && !t.completedAt && input.status === 'done')) fail('실제 완성 수량을 입력해 주세요.');
           for (const task of moving) {
@@ -327,11 +329,11 @@ export class OperationsStore {
           }
           }
           const laneStatus = row => {
-            const group = row.orderId ? state.tasks.filter(t => t.orderId === row.orderId && !t.archivedAt) : [row];
+            const group = row.orderId ? state.tasks.filter(t => t.orderId === row.orderId && !t.archivedAt && !t.supersededAt) : [row];
             return group.every(t => t.completedAt) ? 'done' : row.orderId ? 'order' : 'todo';
           };
           const destinationLane = input.status === 'done' || (input.status === 'keep' && moving.every(t => t.completedAt)) ? 'done' : task.orderId ? 'order' : 'todo';
-          const lane = state.tasks.filter(row => !moving.some(t => t.id === row.id) && row.kind === 'routine' && row.date === state.day && !row.archivedAt && laneStatus(row) === destinationLane)
+          const lane = state.tasks.filter(row => !moving.some(t => t.id === row.id) && row.kind === 'routine' && row.date === state.day && !row.archivedAt && !row.supersededAt && laneStatus(row) === destinationLane)
             .sort((a, b) => (a.boardOrder ?? (state.taskTemplates.findIndex(t => t.id === a.templateId) < 0 ? state.taskTemplates.length : state.taskTemplates.findIndex(t => t.id === a.templateId))) - (b.boardOrder ?? (state.taskTemplates.findIndex(t => t.id === b.templateId) < 0 ? state.taskTemplates.length : state.taskTemplates.findIndex(t => t.id === b.templateId))));
           const before = input.beforeTaskId == null ? lane.length : lane.findIndex(row => row.id === input.beforeTaskId);
           if (before < 0) fail('삽입할 Tap을 찾지 못했어요.', 409);
@@ -342,7 +344,7 @@ export class OperationsStore {
         }
         case 'reorder_small_taps': {
           leadership(actor);
-          const task = state.tasks.find(row => row.id === input.taskId && row.kind === 'routine' && row.date === state.day);
+          const task = state.tasks.find(row => row.id === input.taskId && row.kind === 'routine' && row.date === state.day && !row.archivedAt && !row.supersededAt);
           if (!task || !Array.isArray(input.stepIds) || input.stepIds.length !== task.steps.length || new Set(input.stepIds).size !== task.steps.length || input.stepIds.some(id => !task.steps.some(step => step.id === id))) fail('Small Tap 순서를 확인해 주세요.');
           task.steps.sort((a, b) => input.stepIds.indexOf(a.id) - input.stepIds.indexOf(b.id));
           activity(`${task.title} · Small Tap 순서 변경`); break;

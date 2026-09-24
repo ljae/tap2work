@@ -60,9 +60,18 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
+        expect(find.text('배정 0 · 빈 슬롯 3'), findsOneWidget);
+        expect(find.text('빈 슬롯'), findsNWidgets(3));
+        expect(find.text('하루 3명 · 슬롯 설정'), findsOneWidget);
+        await tester.tap(find.byKey(const Key('calendar-day-2026-09-25')));
+        await tester.pumpAndSettle();
+        expect(find.text('9월 25일 금요일'), findsOneWidget);
+        if (width < 600) {
+          await tester.tap(find.text('시간표'));
+          await tester.pumpAndSettle();
+        }
         expect(find.text('06:00'), findsOneWidget);
         expect(find.text('23:00'), findsOneWidget);
-        expect(find.text('하루 3명 · 슬롯 설정'), findsOneWidget);
         await tester.tap(find.text('월간'));
         await tester.pumpAndSettle();
         expect(find.text('빈 슬롯'), findsNWidgets(90));
@@ -72,6 +81,43 @@ void main() {
       },
     );
   }
+  testWidgets('phone empty slot opens assignment and saves selected crew', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final writes = <Json>[];
+    final ops = OperationsController(
+      client: MockClient((r) async {
+        if (r.method == 'POST') writes.add(jsonDecode(r.body) as Json);
+        return response(calendarData());
+      }),
+    );
+    addTearDown(ops.dispose);
+    await ops.refresh();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(child: CalendarScreen(operations: ops)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('빈 슬롯').first);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('가능 여부는 직접 확인해 주세요'), findsOneWidget);
+    await tester.tap(find.text('현우').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('저장').last);
+    await tester.pumpAndSettle();
+    expect(writes.single['action'], 'save_shift_pattern');
+    expect(writes.single['date'], '2026-09-24');
+    expect(writes.single['tapperId'], 'cook');
+    expect(writes.single['duty'], '조리');
+    expect(tester.takeException(), isNull);
+  });
   testWidgets('tapping the weekly grid saves a bounded shift with revision', (
     tester,
   ) async {
@@ -96,7 +142,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    final day = find.byType(DragTarget<Json>).first;
+    final day = find.byKey(const Key('week-grid-day-2026-09-21'));
     final cell = find.descendant(of: day, matching: find.byType(InkWell)).first;
     await tester.ensureVisible(cell);
     await tester.tap(cell);
@@ -136,7 +182,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    final target = find.byType(DragTarget<Json>).first;
+    final target = find.byKey(const Key('week-grid-day-2026-09-21'));
+    await tester.ensureVisible(target);
     final widget = tester.widget<DragTarget<Json>>(target);
     widget.onAcceptWithDetails!(
       DragTargetDetails<Json>(

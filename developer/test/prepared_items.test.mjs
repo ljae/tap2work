@@ -92,6 +92,30 @@ test('a second prepared item maps to a different menu; count and config keep aud
   await assert.rejects(store.mutate('owner', { action: 'count_prepared_item', revision: stale, id: syrup.id, quantity: 9, reason: '오래된 화면' }), { status: 409 });
 });
 
+test('superseded preparation cannot credit stock or accept hidden Tap edits', async t => {
+  const { store, act, file } = await setup(t);
+  let state = await store.snapshot('owner');
+  const task = prep(state)[0];
+  state = await act('owner', 'count_prepared_item', { id: task.preparedItemId, quantity: 20, reason: '실사' });
+  assert.ok(!state.tasks.some(row => row.id === task.id));
+  const revision = state.revision;
+  const steps = task.steps.map(step => step.id);
+  for (const [action, values, actor, status] of [
+    ['complete_preparation', { quantity: 5 }, 'cook', 409],
+    ['complete_step', { stepId: steps[0] }, 'cook', 409],
+    ['move_tap', { folderId: task.folderId, status: 'processing' }, 'cook', 404],
+    ['reorder_small_taps', { stepIds: [...steps].reverse() }, 'owner', 400],
+    ['save_step_manual', { stepId: steps[0], manual: '새 방법' }, 'owner', 409],
+    ['reopen_step', { stepId: steps[0] }, 'cook', 409],
+  ]) await assert.rejects(act(actor, action, { taskId: task.id, ...values }), { status }, action);
+  state = await store.snapshot('owner');
+  assert.equal(state.revision, revision);
+  assert.equal(balance(state), 20);
+  const disk = JSON.parse(await readFile(file, 'utf8'));
+  assert.ok(disk.tasks.find(row => row.id === task.id).supersededAt);
+  assert.equal(disk.preparedMovements.filter(row => row.taskId === task.id && row.type === 'prepared_output').length, 0);
+});
+
 test('migration keeps prior order evidence and does not retroactively consume a current count', async t => {
   const { store, file } = await setup(t);
   let state = await store.snapshot('owner');

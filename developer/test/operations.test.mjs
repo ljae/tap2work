@@ -243,6 +243,38 @@ test('menu TAPs complete independently, move atomically as an order, and survive
   assert.equal(state.dashboard.queue.find(t => t.id === first.orderId).status, '조리 중');
 });
 
+test('saved order Small Tap order survives snapshots and store reload', async t => {
+  const { store, act, file, clock } = await setup(t);
+  const before = await store.snapshot('owner');
+  const task = before.tasks.find(row => row.orderId && !row.completedAt);
+  const reversed = task.steps.map(step => step.id).reverse();
+  const saved = await act('owner', 'reorder_small_taps', { taskId: task.id, stepIds: reversed });
+  assert.deepEqual(saved.tasks.find(row => row.id === task.id).steps.map(step => step.id), reversed);
+  assert.deepEqual((await store.snapshot('owner')).tasks.find(row => row.id === task.id).steps.map(step => step.id), reversed);
+  assert.deepEqual((await new OperationsStore(file, clock).snapshot('owner')).tasks.find(row => row.id === task.id).steps.map(step => step.id), reversed);
+});
+
+test('pay audit amounts stay visible to owner only, including legacy activity', async t => {
+  const { store, act, file, clock } = await setup(t);
+  const first = await store.snapshot('owner');
+  const tapperId = first.tappers[0].id;
+  await act('owner', 'record_payment', { tapperId, amountWon: 123456 });
+  await act('owner', 'add_pay_adjustment', { tapperId, amountWon: 76543, note: '추가 근무' });
+  const owner = await store.snapshot('owner');
+  assert.ok(owner.activity.some(row => row.message.includes('123456원')));
+  assert.ok(owner.activity.some(row => row.message.includes('76543원')));
+  const disk = JSON.parse(await readFile(file, 'utf8'));
+  disk.activity.unshift({ id: 'legacy-pay', at: clock().toISOString(), actor: { id: 'owner' }, message: '급여 지급 기록 98765원' });
+  await writeFile(file, JSON.stringify(disk));
+  for (const role of ['manager', 'cook', 'crew']) {
+    const view = await new OperationsStore(file, clock).snapshot(role);
+    assert.equal(view.payRecords.length, 0, role);
+    assert.equal(view.payAdjustments.length, 0, role);
+    assert.ok(!view.activity.some(row => /(?:급여 지급 기록|추가보수)/.test(row.message)), role);
+  }
+  assert.ok((await new OperationsStore(file, clock).snapshot('owner')).activity.some(row => row.id === 'legacy-pay'));
+});
+
 test('staffing slots reject overlap, occupied targets, invalid dates, wrong roles and stale assignments', async t => {
   const { store, act } = await setup(t);
   let state = await store.snapshot('owner');
@@ -309,6 +341,7 @@ test('channel migration preserves a completed menu snapshot while upgrading its 
     task.steps = task.steps.filter(s => s.id !== 'pack-check');
     task.steps.find(s => s.id === 'handoff').title = '주문번호 대조·전달';
   }
+  siblings[1].steps = ['cook-check', 'handoff', 'order-check'].map(id => siblings[1].steps.find(step => step.id === id));
   siblings[0].completedAt = first.serverTime;
   siblings[0].completedBy = { id: 'cook', name: '현우' };
   await writeFile(file, JSON.stringify(disk));
@@ -318,6 +351,7 @@ test('channel migration preserves a completed menu snapshot while upgrading its 
   assert.equal(completed.steps.length, 3);
   assert.equal(completed.completedAt, siblings[0].completedAt);
   assert.equal(unfinished.steps.length, 4);
+  assert.deepEqual(unfinished.steps.map(step => step.id), ['cook-check', 'pack-check', 'handoff', 'order-check']);
   assert.match(unfinished.steps.find(s => s.id === 'handoff').title, /기사 전달/);
 });
 

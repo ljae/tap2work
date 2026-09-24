@@ -318,8 +318,9 @@ class OperationsController extends ChangeNotifier {
       if (open != null) continue;
       final generation = ((item['generation'] ?? 0) as num).toInt() + 1;
       item['generation'] = generation;
-      final planned = ((item['target'] as num) - (item['onHand'] as num))
-          .toInt();
+      final gap = ((item['target'] as num) - (item['onHand'] as num)).toInt();
+      final batch = (item['batchQuantity'] as num).toInt();
+      final planned = gap > batch ? gap : batch;
       tasks.add({
         'id': 'preview-prepare-${item['id']}-$generation',
         'preparedItemId': item['id'],
@@ -353,7 +354,12 @@ class OperationsController extends ChangeNotifier {
     final item = rows(
       'preparedItems',
     ).where((i) => i['id'] == task?['preparedItemId']).firstOrNull;
-    if (task == null || item == null || task['completedAt'] != null) return;
+    if (task == null ||
+        item == null ||
+        task['completedAt'] != null ||
+        task['supersededAt'] != null) {
+      return;
+    }
     item['onHand'] = (item['onHand'] as num).toInt() + quantity;
     task['preparedActualQuantity'] = quantity;
     task['preparedOutputMovementId'] = 'preview-$taskId';

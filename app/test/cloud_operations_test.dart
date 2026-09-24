@@ -79,6 +79,50 @@ void main() {
     },
   );
   test(
+    'preview preparation uses batch minimum when target gap is smaller',
+    () async {
+      final source = sample();
+      source['preparedItems'] = [
+        {
+          'id': 'portion',
+          'name': '준비분',
+          'unit': '인분',
+          'onHand': 2,
+          'minimum': 3,
+          'target': 10,
+          'batchQuantity': 12,
+          'generation': 1,
+          'folderId': 'orders',
+          'zone': 'prep',
+          'menuUses': [],
+        },
+      ];
+      source['tasks'] = [
+        {
+          'id': 'prep',
+          'kind': 'routine',
+          'preparedItemId': 'portion',
+          'folderId': 'orders',
+          'boardStatus': 'todo',
+          'completedAt': null,
+          'steps': <Json>[],
+        },
+      ];
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((_) async => response(source)),
+      );
+      addTearDown(ops.dispose);
+      await ops.refresh();
+      ops.previewCompletePreparation('prep', 1);
+      final next = ops
+          .rows('tasks')
+          .firstWhere((task) => task['id'] == 'preview-prepare-portion-2');
+      expect(next['plannedQuantity'], 12);
+      expect(next['title'], '준비분 12인분 준비');
+    },
+  );
+  test(
     'cloud uses refreshed session bearer and ignores demo actor switching',
     () async {
       final requests = <dynamic>[];

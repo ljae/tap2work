@@ -193,7 +193,7 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       if (input.action === 'add_pay_adjustment') {
         row.note = safeText(input.note, 200, '추가보수 설명'); state.payAdjustments.push(row);
       } else state.payRecords.push(row);
-      activity(`${input.action === 'record_payment' ? '급여 지급 기록' : '추가보수'} ${amount}원`); return true;
+      activity(`${input.action === 'record_payment' ? '급여 지급 기록' : '추가보수'} ${amount}원`, 'pay'); return true;
     }
     default: return false;
   }

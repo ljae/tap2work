@@ -36,7 +36,11 @@ export function ensureOrderTaps(state, now) {
           continue;
         }
         const extra = channelSteps(ticket);
-        for (const step of extra) if (!existing.steps.some(s => s.id === step.id)) { existing.steps.push(step); changed = true; }
+        for (const step of extra) if (!existing.steps.some(s => s.id === step.id)) {
+          const handoffIndex = existing.steps.findIndex(s => s.id === 'handoff');
+          existing.steps.splice(handoffIndex < 0 ? existing.steps.length : handoffIndex, 0, step);
+          changed = true;
+        }
         const obsolete = existing.steps.find(s => s.id === 'delivery-handoff');
         if (obsolete) {
           existing.archivedChannelSteps ??= [];
@@ -51,10 +55,6 @@ export function ensureOrderTaps(state, now) {
           const next = handoffStep(ticket);
           if (handoff.title !== next.title || handoff.manual !== next.manual) { Object.assign(handoff, next); changed = true; }
         }
-        const before = existing.steps.map(s => s.id).join('/');
-        const order = ['order-check', 'cook-check', 'pack-check', 'handoff'];
-        existing.steps.sort((a, b) => (order.indexOf(a.id) < 0 ? 100 : order.indexOf(a.id)) - (order.indexOf(b.id) < 0 ? 100 : order.indexOf(b.id)));
-        if (existing.steps.map(s => s.id).join('/') !== before) changed = true;
         if (existing.orderChannel !== ticket.channel || (existing.orderPlatform ?? null) !== (ticket.platform ?? null) || (existing.customerRequest ?? null) !== (ticket.request ?? null)) {
           Object.assign(existing, { orderChannel: ticket.channel, orderPlatform: ticket.platform ?? null, customerRequest: ticket.request ?? null }); changed = true;
         }
