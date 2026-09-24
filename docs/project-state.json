@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 35,
+  "revision": 36,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -2007,7 +2007,24 @@
         "docs/project-state.json"
       ],
       "verification": "npm run check 통과, Flutter analyze 경고·오류 없음, Flutter 테스트 61/61 통과, npm run build:site 성공. _site/index.html의 / base 경로, tap2.work CNAME, fresh review-data와 /app/ 리디렉션을 확인했고 project-state.json, CEO-REVIEW.md, 개발 현황 사이트 파일이 산출물에 없음을 확인했다. 앱 로고는 6.9 MB에서 0.5 MB로 줄였다. GitHub Pages 배포는 아직 확인하지 않았다."
+    },
+    {
+      "id": "H-visual-root-app-deployment-2026-09-24",
+      "at": "2026-09-24T02:45:40Z",
+      "type": "deployment",
+      "title": "미니멀 브랜드와 루트 Flutter 앱 공개 배포",
+      "detail": "838065d를 main에 게시해 새 로고와 아이콘 체계를 반영하고 https://tap2.work/에서 Flutter 앱을 직접 제공했다. 이전 /app/ 주소는 루트로 보내며, 공개 산출물에서 개발 현황·결정 이력 파일을 제외했다.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "GitHub Actions 35948378586에서 Node 검사, 콘솔 테스트, Flutter analyze, Flutter 테스트, public site build와 Pages deploy 모두 성공했다. 실서비스 HTTP 검사에서 https://tap2.work/ 200 및 Flutter bootstrap/root base, /app/ 200 및 클라이언트 리디렉션, 공개 합성 샘플 JSON 200을 확인했다. root HTML에 개발 현황이나 project-state 참조가 없다. 네이티브 빌드·실기기 검증은 미수행.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/35948378586",
+        "https://github.com/ljae/tap2work/commit/838065d",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-24T02:41:49Z"
+  "updatedAt": "2026-09-24T02:45:40Z"
 }

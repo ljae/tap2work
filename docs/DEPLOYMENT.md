@@ -66,3 +66,7 @@ Commit `3190f56` replaces the logo with the newly generated comforting blob char
 4. 앱 상단 띠에 `공유 데모 서버 연결 · <호스트>`가 보이면 한 명이 활동을 확인할 때 다른 팀원 화면에 5초 안에 같은 확인자·시각이 표시됩니다.
 
 경계: 터널은 `/api/operations`만 외부에 열고, 콘솔 화면과 결정 기록 API(`/api/project`, `/api/decisions`)는 계속 로컬에서만 응답합니다. 데모 역할 선택은 여전히 인증이 아니며, 링크를 아는 누구나 샘플 매장 상태를 바꿀 수 있습니다. 실제 직원 정보는 넣지 마세요. 터널을 닫으면 공개 앱은 연결 실패 배너를 보이며, `?api=off`로 다시 읽기 전용 미리보기로 돌아갑니다.
+
+## 미니멀 브랜드와 도메인 루트 앱 · 2026-09-24
+
+Commit `838065d` applied the user-provided `logo_tap2work.png`, a warm white/navy/coral palette, and SF-style monochrome icons, and serves the Flutter app directly at `https://tap2.work/`. The app logo was resized from 6.9 MB to about 0.5 MB. The build no longer publishes the development journal or project decision/history files; `/app/` redirects old links to the root app. [Workflow 35948378586](https://github.com/ljae/tap2work/actions/runs/35948378586) passed all checks, 61 Flutter tests, the web build, and Pages deployment. Live HTTP checks confirmed root `200`, legacy `/app/` redirect page `200`, and synthetic review sample `200`. Native builds and physical-device checks were not performed. This result is recorded in project revision 36.
