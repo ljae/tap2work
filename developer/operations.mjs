@@ -271,9 +271,14 @@ export class OperationsStore {
             }
             task.completedAt = null; task.completedBy = null;
           }
+          const lane = state.tasks.filter(row => row.id !== task.id && row.kind === 'routine' && row.date === state.day && !row.archivedAt && (row.boardFolderId ?? row.folderId) === input.folderId && (row.completedAt ? 'done' : row.boardStatus ?? 'todo') === input.status)
+            .sort((a, b) => (a.boardOrder ?? state.taskTemplates.findIndex(t => t.id === a.templateId)) - (b.boardOrder ?? state.taskTemplates.findIndex(t => t.id === b.templateId)));
+          const before = input.beforeTaskId == null ? lane.length : lane.findIndex(row => row.id === input.beforeTaskId);
+          if (before < 0) fail('삽입할 Tap을 찾지 못했어요.', 409);
           task.boardFolderId = input.folderId;
           task.boardStatus = input.status;
-          task.boardOrder = Math.max(-1, ...state.tasks.filter(row => row.id !== task.id && (row.boardFolderId ?? row.folderId) === input.folderId && (row.boardStatus ?? 'todo') === input.status).map(row => row.boardOrder ?? state.taskTemplates.findIndex(template => template.id === row.templateId))) + 1;
+          lane.splice(before, 0, task);
+          lane.forEach((row, index) => { row.boardOrder = index; });
           activity(`${task.title} · ${input.status} 이동`); break;
         }
         case 'reorder_small_taps': {

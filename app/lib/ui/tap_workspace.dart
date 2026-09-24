@@ -25,6 +25,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   final search = TextEditingController();
   final preview = <String, Json>{};
   final previewMoves = <String, Json>{};
+  final previewOrders = <String, List<String>>{};
   final previewStepOrder = <String, List<String>>{};
   List<String>? previewGroupOrder;
   OperationsController get ops => widget.ops;
@@ -74,8 +75,21 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       previewMoves['${ops.actorId}/${ops.data?['day']}/${task['id']}']?['folderId'] ??
       task['folderId'] ??
       'general';
-  List<Json> inFolder(String id) =>
-      groups.where((t) => folderOf(t) == id).toList();
+  List<Json> inFolder(String id) {
+    final result = groups.where((t) => folderOf(t) == id).toList();
+    final order = previewOrders['${ops.actorId}/${ops.data?['day']}/$id'];
+    if (order != null) {
+      result.sort((a, b) {
+        final ai = order.indexOf(a['id']);
+        final bi = order.indexOf(b['id']);
+        return (ai < 0 ? result.length : ai).compareTo(
+          bi < 0 ? result.length : bi,
+        );
+      });
+    }
+    return result;
+  }
+
   List<Json> get folders {
     final result = ops.rows('checklistFolders').map((f) => {...f}).toList();
     for (final t in groups) {
@@ -440,7 +454,42 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                         ))
                           Padding(
                             padding: const EdgeInsets.only(bottom: 10),
-                            child: entry.card,
+                            child: DragTarget<String>(
+                              onWillAcceptWithDetails: (details) =>
+                                  details.data != entry.id &&
+                                  !details.data.startsWith('folder:'),
+                              onAcceptWithDetails: (details) {
+                                final moving = groups
+                                    .where((row) => row['id'] == details.data)
+                                    .firstOrNull;
+                                if (moving != null) {
+                                  _moveTap(
+                                    moving,
+                                    folder['id'],
+                                    lane == '완료'
+                                        ? 'done'
+                                        : lane == '주문처리중'
+                                        ? 'processing'
+                                        : 'todo',
+                                    beforeTaskId: entry.id,
+                                  );
+                                }
+                              },
+                              builder: (context, candidates, rejected) =>
+                                  DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      border: candidates.isNotEmpty
+                                          ? const Border(
+                                              top: BorderSide(
+                                                color: AppColors.accent,
+                                                width: 3,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                    child: entry.card,
+                                  ),
+                            ),
                           ),
                         if (!entries.any((e) => e.state == lane))
                           Padding(
@@ -470,8 +519,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   Future<void> _moveTap(
     Json task,
     String targetFolder,
-    String targetStatus,
-  ) async {
+    String targetStatus, {
+    String? beforeTaskId,
+  }) async {
     if (!ops.isLeader && task['canComplete'] != true) {
       notice('담당 Tap만 이동할 수 있어요.');
       return;
@@ -481,7 +531,17 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       return;
     }
     if (ops.readOnly) {
+      final current = inFolder(targetFolder)
+          .map((row) => row['id'] as String)
+          .where((id) => id != task['id'])
+          .toList();
+      final insertion = beforeTaskId == null
+          ? current.length
+          : current.indexOf(beforeTaskId);
+      current.insert(insertion < 0 ? current.length : insertion, task['id']);
       setState(() {
+        previewOrders['${ops.actorId}/${ops.data?['day']}/$targetFolder'] =
+            current;
         previewMoves['${ops.actorId}/${ops.data?['day']}/${task['id']}'] = {
           'folderId': targetFolder,
           'status': targetStatus,
@@ -509,11 +569,13 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       notice('체험 표시만 변경했어요. 저장되지 않아요.');
       return;
     }
-    final ok = await ops.act('move_tap', {
+    final payload = <String, dynamic>{
       'taskId': task['id'],
       'folderId': targetFolder,
       'status': targetStatus,
-    });
+    };
+    if (beforeTaskId != null) payload['beforeTaskId'] = beforeTaskId;
+    final ok = await ops.act('move_tap', payload);
     if (!ok && mounted) notice(ops.error ?? '이동하지 못했어요.');
   }
 
