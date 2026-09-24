@@ -124,7 +124,9 @@ test('folder moves, order and deletion are shared by every role without rewritin
   for (const step of task.steps) await act('complete_step', { taskId: task.id, stepId: step.id });
   state = await store.snapshot('owner');
   state.checklistFolders.push({ id: 'kitchen', name: '주방' });
-  state.taskTemplates.reverse(); state.taskTemplates[0].folderId = 'kitchen';
+  const moved = state.taskTemplates.find(t => t.id === 'library-bonejjim-hall-close');
+  state.taskTemplates = [moved, ...state.taskTemplates.filter(t => t.id !== moved.id)];
+  moved.folderId = 'kitchen';
   await act('save_checklists', draft(state));
   const crew = await store.snapshot('crew');
   assert.equal(crew.taskTemplates, undefined);
