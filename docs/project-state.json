@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 52,
+  "revision": 53,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -2616,7 +2616,24 @@
         "docs/project-state.json"
       ],
       "verification": "Flutter analysis clean; Flutter tests 81/81 passed including 320/390/1200px calendar coverage, selected-day roster, mobile assignment and read-only preview. Node console tests 54/54, npm run check, npm run build:site and git diff --check passed. Native builds, physical-device interaction and live deployment were not performed at this revision."
+    },
+    {
+      "id": "H-crew-calendar-restaurant-integrity-deployment-2026-09-25",
+      "at": "2026-09-24T22:45:05Z",
+      "type": "deployment",
+      "title": "Crew calendar redesign and restaurant integrity fixes deployed",
+      "detail": "Published commit ceb5f1b to GitHub Pages at https://tap2.work/ and redeployed the Supabase operations Edge Function from the same source without a schema migration. The release includes the phone-first crew calendar and the scenario integrity fixes recorded at revisions 51 and 52. No production employee records or supplier orders were used.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "GitHub Actions 36068834756 passed JavaScript checks, 54 Node console tests, Flutter analysis, 81 Flutter tests, public web build and Pages deployment. Live HTTPS index.html, main.dart.js and favicon.png matched local _site files byte-for-byte. Deployed operations returned 401 without authentication. Native builds, physical-device interaction and authenticated live mutations were not tested for this release.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36068834756",
+        "https://github.com/ljae/tap2work/commit/ceb5f1b6c4656ea8bdc72691277708880a23af9d",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-24T22:40:57Z"
+  "updatedAt": "2026-09-24T22:45:05Z"
 }
