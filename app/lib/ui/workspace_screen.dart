@@ -20,6 +20,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     listenable: work,
     builder: (context, _) => Scaffold(
       appBar: AppBar(
+        toolbarHeight: 86,
         title: const BrandLogo(),
         actions: [
           PopupMenuButton<String>(

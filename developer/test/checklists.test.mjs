@@ -55,7 +55,7 @@ test('legacy migration preserves completed evidence and upgrades pending manuals
   old.tasks[0].completedAt = clock().toISOString(); old.tasks[0].completedBy = { name: '기존 담당' };
   await writeFile(file, JSON.stringify(old));
   const upgraded = await store.snapshot('owner');
-  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine' && !t.orderId).length, 6);
+  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine' && !t.orderId && !t.preparedItemId).length, 6);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').steps, undefined);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').completedBy.name, '기존 담당');
   assert.equal(upgraded.tasks.find(t => t.id === 'prep').steps.length, 3);
@@ -132,11 +132,11 @@ test('folder moves, order and deletion are shared by every role without rewritin
   assert.equal(crew.taskTemplates, undefined);
   assert.equal(crew.tasks.find(t => t.templateId === 'library-bonejjim-hall-close').folderId, 'kitchen');
   assert.equal(crew.tasks.find(t => t.templateId === 'library-bonejjim-hall-close').displayOrder, 0);
-  const empty = await act('save_checklists', { folders: [{ id: 'general', name: '기본' }], templates: [] });
-  assert.equal(empty.tasks.filter(t => t.kind === 'routine' && !t.orderId).length, 1);
+  const empty = await act('save_checklists', { folders: [{ id: 'general', name: '기본' }, { id: 'bone-preparation', name: '뼈찜 조리' }], templates: [] });
+  assert.equal(empty.tasks.filter(t => t.kind === 'routine' && !t.orderId && !t.preparedItemId).length, 1);
   assert.equal(empty.tasks.find(t => t.id === task.id).completedAt, (await store.snapshot('owner')).tasks.find(t => t.id === task.id).completedAt);
   assert.ok(empty.tasks.some(t => t.kind === 'stock'));
-  midnight(); assert.equal((await store.snapshot('owner')).tasks.filter(t => t.kind === 'routine' && !t.orderId).length, 0);
+  midnight(); assert.equal((await store.snapshot('owner')).tasks.filter(t => t.kind === 'routine' && !t.orderId && !t.preparedItemId).length, 0);
   assert.ok(JSON.parse(await readFile(file)).tasks.find(t => t.id === task.id).completedAt);
 });
 test('deleted then reimported templates get distinct occurrence IDs', async t => {

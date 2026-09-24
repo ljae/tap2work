@@ -61,7 +61,7 @@ export function validateLayout(input, state) {
   });
   for (const zone of state.zones) {
     const replacement = zones.find(z => z.id === zone.id);
-    const referenced = [...state.items, ...state.tasks, ...state.taskTemplates].some(item => item.zone === zone.id);
+    const referenced = [...state.items, ...(state.preparedItems ?? []), ...state.tasks, ...state.taskTemplates].some(item => item.zone === zone.id);
     if (referenced && (!replacement || replacement.kind !== zone.kind)) fail(`${zone.name}은 재고나 업무에 연결되어 있어 삭제하거나 종류를 바꿀 수 없어요. 위치·이름은 바꿀 수 있어요.`);
   }
   for (let i = 0; i < zones.length; i++) {

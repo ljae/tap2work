@@ -10,6 +10,7 @@ void main() {
     (tester) async {
       final work = WorkController(MemoryStore());
       await tester.pumpWidget(Tap2workApp(controller: work));
+      await tester.ensureVisible(find.byKey(const Key('next-task')));
       await tester.tap(find.byKey(const Key('next-task')));
       await tester.pumpAndSettle();
       expect(

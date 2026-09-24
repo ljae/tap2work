@@ -6,6 +6,79 @@ import 'dashboard_test.dart' show dashboard;
 
 void main() {
   test(
+    'prepared portion preview debits once and credits actual output without POST',
+    () async {
+      final source = sample();
+      source['preparedItems'] = [
+        {
+          'id': 'portion',
+          'name': '준비분',
+          'unit': '인분',
+          'onHand': 2,
+          'minimum': 3,
+          'target': 10,
+          'batchQuantity': 8,
+          'generation': 1,
+          'folderId': 'orders',
+          'zone': 'prep',
+          'menuUses': [
+            {'menuId': 'bowl', 'quantity': 2},
+          ],
+        },
+      ];
+      source['tasks'] = [
+        {
+          'id': 'menu',
+          'kind': 'routine',
+          'orderId': 'ticket',
+          'orderLineIndex': 0,
+          'menuId': 'bowl',
+          'menuQuantity': 2,
+          'folderId': 'orders',
+          'boardStatus': 'todo',
+          'steps': [
+            {'id': 'check', 'title': '주문 확인', 'manual': '확인'},
+          ],
+        },
+        {
+          'id': 'prep',
+          'kind': 'routine',
+          'preparedItemId': 'portion',
+          'folderId': 'orders',
+          'boardStatus': 'todo',
+          'steps': [
+            {'id': 'finish', 'title': '준비', 'manual': '준비'},
+          ],
+        },
+      ];
+      var writes = 0;
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((request) async {
+          if (request.method == 'POST') writes++;
+          return response(source);
+        }),
+      );
+      addTearDown(ops.dispose);
+      await ops.refresh();
+      ops.previewToggleStep('menu', 'check');
+      expect(ops.rows('preparedItems').single['onHand'], -2);
+      ops.previewMoveTap('menu', 'orders', 'done');
+      expect(ops.rows('preparedItems').single['onHand'], -2);
+      ops.previewCompletePreparation('prep', 6);
+      expect(ops.rows('preparedItems').single['onHand'], 4);
+      expect(
+        ops
+            .rows('tasks')
+            .firstWhere(
+              (task) => task['id'] == 'prep',
+            )['preparedActualQuantity'],
+        6,
+      );
+      expect(writes, 0);
+    },
+  );
+  test(
     'cloud uses refreshed session bearer and ignores demo actor switching',
     () async {
       final requests = <dynamic>[];

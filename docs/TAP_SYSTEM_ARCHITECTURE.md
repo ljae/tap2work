@@ -53,3 +53,7 @@ Marketplace packages are versioned and signed, with validation on import, previe
 4. Validate attendance/payroll rules per location and employer, then add an auditable calculator. Add consent/reputation and marketplace commerce only after their policies and provider requirements are agreed.
 
 Production release gates include provider retry/idempotency tests, load/burst tests, tenant authorization tests, timezone/shift-boundary tests, route validation after layout changes, and native device notification checks. No step in this document authorizes placing supplier orders or publishing employee performance data.
+
+## Prepared portions and menu usage · 2026-09-24
+
+The user requested the reusable prepared output workflow described in [Prepared workflow](PREPARED_WORKFLOW.md). It keeps menu finishing steps separate from advance preparation. Configurable prepared items map stable menu IDs to per-menu use and generate one replenishment TAP at or below a shortage point. A signed prepared count and attributed movement ledger preserve unmet demand. Batch output uses actual completed quantity exactly once; corrections require a reason. Existing order evidence is retained through migration. This is a sample operations ledger, not purchased raw-material inventory or validated food-safe production control.

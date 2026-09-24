@@ -96,6 +96,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     listenable: ops,
     builder: (context, _) => Scaffold(
       appBar: AppBar(
+        toolbarHeight: 86,
         title: const BrandLogo(),
         actions: [
           if (widget.accountAction != null) widget.accountAction!,
@@ -116,10 +117,13 @@ class _OperationsScreenState extends State<OperationsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  Text(
-                    '${ops.actor['label']}',
-                    style: const TextStyle(fontSize: 13),
-                  ),
+                  if (MediaQuery.sizeOf(context).width >= 390)
+                    Text(
+                      '${ops.actor['label']}',
+                      style: const TextStyle(fontSize: 13),
+                    )
+                  else
+                    const Icon(CupertinoIcons.person_crop_circle, size: 23),
                   const Icon(Icons.expand_more, size: 17),
                 ],
               ),

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
 import { ensureOrderTaps, syncOrderFromTap } from './order_taps.mjs';
+import { ensurePreparedItems, ensurePreparationTaps, consumePreparedForTask, finishPreparation, savePreparedItem, countPreparedItem } from './prepared_items.mjs';
 import { seedSales, salesDashboard } from './sales.mjs';
 import { ensureLayout, validateLayout } from './layout.mjs';
 import { ensureStaff, staffView, mutateStaff } from './staff.mjs';
@@ -117,7 +118,9 @@ function ensureDueTasks(state, now) {
   if (!state.sales) { state.sales = seedSales(now); changed = true; }
   const date = koreanDate(now);
   if (state.day !== date) { state.day = date; changed = true; }
+  if (ensurePreparedItems(state, now)) changed = true;
   if (ensureOrderTaps(state, now)) changed = true;
+  if (ensurePreparationTaps(state, now)) changed = true;
   for (const template of state.taskTemplates) {
     const id = `daily-${template.id}-v${template.version}-${date}`;
     if (!state.tasks.some(task => task.templateId === template.id && task.date === date && !task.archivedAt)) {
@@ -215,6 +218,23 @@ export class OperationsStore {
       const activity = message => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message });
       const itemFor = id => { const item = state.items.find(item => item.id === id); if (!item) fail('재료를 찾지 못했어요.', 404); return item; };
       switch (input.action) {
+        case 'save_prepared_item': {
+          leadership(actor); savePreparedItem(state, input);
+          activity('준비품·메뉴별 사용량 설정'); break;
+        }
+        case 'count_prepared_item': {
+          leadership(actor); countPreparedItem(state, input, now, who);
+          activity('준비품 실제 수량 보정'); break;
+        }
+        case 'complete_preparation': {
+          const task = state.tasks.find(t => t.id === input.taskId && t.preparedItemId && !t.archivedAt && t.date === state.day);
+          if (!task) fail('준비 Tap을 찾지 못했어요.', 404);
+          if (task.completedAt || !allowed(actor, task)) fail('준비 Tap 상태와 담당자를 확인해 주세요.', 409);
+          finishPreparation(state, task, input.quantity, now, who);
+          for (const step of task.steps) if (!step.completedAt) { step.completedAt = iso(now); step.completedBy = who; }
+          task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done';
+          activity(`${task.title} · 실제 ${input.quantity} 완성`); break;
+        }
         case 'save_step_manual': {
           leadership(actor);
           const task = state.tasks.find(t => t.id === input.taskId && !t.archivedAt && t.date === state.day);
@@ -239,13 +259,16 @@ export class OperationsStore {
           break;
         }
         case 'save_checklists': {
-          leadership(actor); saveChecklists(input, state, now);
+          leadership(actor);
+          for (const item of state.preparedItems ?? []) if (!input.folders?.some(folder => folder.id === item.folderId)) fail(`${item.name} 준비 BIG TAP이 연결되어 있어 폴더를 삭제할 수 없어요.`);
+          saveChecklists(input, state, now);
           state.bigTapOrder = [...(state.bigTapOrder ?? []).filter(id => state.checklistFolders.some(folder => folder.id === id)), ...state.checklistFolders.map(folder => folder.id).filter(id => !(state.bigTapOrder ?? []).includes(id))];
           activity('업무 폴더·카드·매뉴얼 저장'); break;
         }
         case 'reopen_step': {
           const task = state.tasks.find(task => task.id === input.taskId);
           if (!task) fail('업무를 찾지 못했어요.', 404);
+          if (task.preparedOutputMovementId) fail('완성 수량이 반영된 준비 Tap은 되돌릴 수 없어요. 실제 수량 보정을 사용해 주세요.', 409);
           if (task.archivedAt || task.date !== state.day) fail('오늘 업무만 되돌릴 수 있어요.', 409);
           reopenStep(task, input.stepId, actor, ['owner', 'manager'].includes(actor.role));
           task.boardStatus = 'processing';
@@ -260,10 +283,14 @@ export class OperationsStore {
           if (task.kind === 'routine' && task.date !== state.day) fail('오늘 업무를 다시 확인해 주세요.', 409);
           if (task.completedAt) fail(`${task.completedBy.name}님이 이미 확인했어요.`, 409);
           if (!allowed(actor, task)) fail('이 업무의 담당 직급이 아니에요. 매니저에게 알려 주세요.', 403);
+          if (task.preparedItemId && input.action === 'complete_task') fail('실제 완성 수량을 입력해 주세요.');
           if (input.action === 'complete_step') {
             const step = task.steps?.find(row => row.id === input.stepId);
             if (task.kind !== 'routine' || !step) fail('행위를 찾지 못했어요.', 404);
             if (step.completedAt) fail('동료가 이미 확인한 행위예요.', 409);
+            if (task.preparedItemId && task.steps.filter(row => !row.completedAt).length === 1) {
+              finishPreparation(state, task, input.quantity, now, who);
+            }
             step.completedAt = iso(now); step.completedBy = who; task.boardStatus = 'processing';
             activity(`${task.title} · ${step.title} 완료`);
             if (task.steps.every(row => row.completedAt)) { task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; }
@@ -282,6 +309,8 @@ export class OperationsStore {
           if (!state.checklistFolders.some(folder => folder.id === input.folderId)) fail('BIG TAP을 찾지 못했어요.');
           if (!['todo', 'processing', 'done'].includes(input.status)) fail('Tap 상태를 확인해 주세요.');
           const moving = task.orderId ? state.tasks.filter(t => t.orderId === task.orderId && !t.archivedAt) : [task];
+          if (moving.some(t => t.preparedItemId && t.completedAt && input.status !== 'done')) fail('완성 수량이 반영된 준비 Tap은 되돌릴 수 없어요.', 409);
+          if (moving.some(t => t.preparedItemId && !t.completedAt && input.status === 'done')) fail('실제 완성 수량을 입력해 주세요.');
           for (const task of moving) {
           if (!allowed(actor, task)) fail('이 Tap의 담당자가 아니에요.', 403);
           if (input.status === 'done' && !task.completedAt) {
@@ -394,6 +423,11 @@ export class OperationsStore {
         default: if (!mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
       }
       if (['move_tap', 'complete_task', 'complete_step', 'reopen_step'].includes(input.action)) syncOrderFromTap(state, input.taskId);
+      if (['move_tap', 'complete_task', 'complete_step'].includes(input.action)) {
+        const task = state.tasks.find(t => t.id === input.taskId);
+        const moving = task?.orderId ? state.tasks.filter(t => t.orderId === task.orderId && !t.archivedAt) : task ? [task] : [];
+        for (const row of moving) consumePreparedForTask(state, row, now, who);
+      }
       state.activity = state.activity.slice(0, 100);
       ensureDueTasks(state, now);
       state.revision++; await this.#save(state);

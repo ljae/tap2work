@@ -188,6 +188,7 @@ class OperationsController extends ChangeNotifier {
         'completedBy': status == 'done' ? actor : null,
         'canComplete': status != 'done',
       });
+      _previewConsumePrepared(task);
     }
     String laneStatus(Json row) {
       final group = row['orderId'] == null
@@ -251,11 +252,107 @@ class OperationsController extends ChangeNotifier {
       'boardStatus': done ? 'done' : 'processing',
       'canComplete': !done,
     });
+    _previewConsumePrepared(task);
     _previewOrder(task);
     _emit();
   }
 
   final _previewTickets = <String, Json>{};
+  void _previewConsumePrepared(Json task) {
+    if (task['orderId'] == null ||
+        task['preparedUsageVersion'] != null ||
+        !['processing', 'done'].contains(task['boardStatus'])) {
+      return;
+    }
+    task['preparedUsageVersion'] = 'preview';
+    final ticket = (data?['dashboard']?['queue'] as List? ?? [])
+        .cast<Json>()
+        .where((row) => row['id'] == task['orderId'])
+        .firstOrNull;
+    final lines = (ticket?['lines'] as List? ?? []).cast<Json>();
+    final index = task['orderLineIndex'] as int? ?? 0;
+    final menuId =
+        task['menuId'] ??
+        (index < lines.length ? lines[index]['menuId'] : null);
+    final quantity =
+        task['menuQuantity'] ??
+        (index < lines.length ? lines[index]['quantity'] : 1);
+    for (final item in rows('preparedItems')) {
+      final use = (item['menuUses'] as List? ?? [])
+          .cast<Json>()
+          .where((row) => row['menuId'] == menuId)
+          .firstOrNull;
+      if (use != null) {
+        item['onHand'] =
+            (item['onHand'] as num).toInt() -
+            (use['quantity'] as num).toInt() * (quantity as num).toInt();
+      }
+    }
+    _previewEnsurePreparation();
+  }
+
+  void _previewEnsurePreparation() {
+    final tasks = rows('tasks');
+    for (final item in rows('preparedItems')) {
+      final open = tasks
+          .where(
+            (t) =>
+                t['preparedItemId'] == item['id'] &&
+                t['completedAt'] == null &&
+                t['supersededAt'] == null,
+          )
+          .firstOrNull;
+      if ((item['onHand'] as num) > (item['minimum'] as num)) {
+        if (open != null) open['supersededAt'] = 'preview';
+        continue;
+      }
+      if (open != null) continue;
+      final generation = ((item['generation'] ?? 0) as num).toInt() + 1;
+      item['generation'] = generation;
+      final planned = ((item['target'] as num) - (item['onHand'] as num))
+          .toInt();
+      tasks.add({
+        'id': 'preview-prepare-${item['id']}-$generation',
+        'preparedItemId': item['id'],
+        'title': '${item['name']} $planned${item['unit']} 준비',
+        'plannedQuantity': planned,
+        'folderId': item['folderId'],
+        'zone': item['zone'],
+        'slot': '준비',
+        'requiredRole': 'cook',
+        'kind': 'routine',
+        'date': data?['day'],
+        'boardStatus': 'todo',
+        'completedAt': null,
+        'canComplete': true,
+        'steps': [
+          {'id': 'check', 'title': '준비 기준 확인', 'manual': '매장 기준을 확인하세요.'},
+          {
+            'id': 'prepare',
+            'title': '${item['name']} 만들기',
+            'manual': item['instructions'] ?? '매장 절차로 준비하세요.',
+          },
+          {'id': 'record', 'title': '완성 수량 확인', 'manual': '실제 완성 수량을 입력하세요.'},
+        ],
+      });
+    }
+  }
+
+  void previewCompletePreparation(String taskId, int quantity) {
+    if (!readOnly || data == null || quantity < 1) return;
+    final task = rows('tasks').where((t) => t['id'] == taskId).firstOrNull;
+    final item = rows(
+      'preparedItems',
+    ).where((i) => i['id'] == task?['preparedItemId']).firstOrNull;
+    if (task == null || item == null || task['completedAt'] != null) return;
+    item['onHand'] = (item['onHand'] as num).toInt() + quantity;
+    task['preparedActualQuantity'] = quantity;
+    task['preparedOutputMovementId'] = 'preview-$taskId';
+    previewMoveTap(taskId, task['folderId'], 'done');
+    _previewEnsurePreparation();
+    _emit();
+  }
+
   void _previewOrder(Json task) {
     if (task['orderId'] == null || data?['dashboard'] == null) return;
     final dashboard = data!['dashboard'] as Json;

@@ -8,6 +8,7 @@ import 'checklist_board.dart' show rowsOf, stampOf;
 import 'checklist_editor.dart';
 import 'components.dart';
 import 'tap_card.dart';
+import 'prepared_inventory.dart';
 
 /// Folders, daily tasks and actions share one board and one card component.
 /// Existing IDs, role checks and completion APIs remain the source of truth.
@@ -244,6 +245,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ],
           ),
           const SizedBox(height: 16),
+          if (folder == null && task == null) PreparedInventory(ops: ops),
           ...[
             if (task == null) ...[_folderBar(), const SizedBox(height: 16)],
             TextField(
@@ -325,13 +327,17 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             done: done(t),
             footer: 'Small Tap ${done(t)}/${total(t)}',
             onOpen: () => navigate(folder: folderOf(t), task: t['id']),
-            onCheck: () => t['orderId'] != null
-                ? _checkMenu(t)
-                : _moveTap(
-                    t,
-                    folderOf(t),
-                    status(t) == '완료' ? 'processing' : 'done',
-                  ),
+            onCheck: t['preparedOutputMovementId'] != null
+                ? null
+                : () => t['preparedItemId'] != null && status(t) != '완료'
+                      ? _finishPreparation(t)
+                      : t['orderId'] != null
+                      ? _checkMenu(t)
+                      : _moveTap(
+                          t,
+                          folderOf(t),
+                          status(t) == '완료' ? 'processing' : 'done',
+                        ),
             checked: status(t) == '완료',
           ),
         ),
@@ -578,6 +584,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     String targetStatus, {
     String? beforeTaskId,
   }) async {
+    if (task['preparedItemId'] != null &&
+        targetStatus == 'done' &&
+        task['completedAt'] == null) {
+      await _finishPreparation(task);
+      return;
+    }
+    if (task['preparedOutputMovementId'] != null && targetStatus != 'done') {
+      notice('완성 수량이 반영된 Tap은 되돌릴 수 없어요. 실제 수량 보정을 사용해 주세요.');
+      return;
+    }
     final ownCompleted =
         task['completedAt'] != null &&
         task['completedBy']?['id'] == ops.actor['id'];
@@ -606,6 +622,67 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     if (beforeTaskId != null) payload['beforeTaskId'] = beforeTaskId;
     final ok = await ops.act('move_tap', payload);
     if (!ok && mounted) notice(ops.error ?? '이동하지 못했어요.');
+  }
+
+  Future<int?> _preparedQuantity(Json task) async {
+    final item = ops
+        .rows('preparedItems')
+        .where((row) => row['id'] == task['preparedItemId'])
+        .firstOrNull;
+    final controller = TextEditingController(
+      text: '${task['plannedQuantity'] ?? 1}',
+    );
+    final result = await showDialog<int>(
+      context: context,
+      builder: (dialog) => AlertDialog(
+        title: Text('${item?['name'] ?? task['title']} 완성 수량'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('실제로 완성해 보관한 수량만 입력하세요.'),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: '완성 수량 · ${item?['unit'] ?? '개'}',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialog),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.pop(dialog, int.tryParse(controller.text)),
+            child: const Text('완료'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (result == null) return null;
+    if (result < 1 || result > 100000) {
+      notice('실제 완성 수량은 1~100,000으로 입력해 주세요.');
+      return null;
+    }
+    return result;
+  }
+
+  Future<void> _finishPreparation(Json task) async {
+    final quantity = await _preparedQuantity(task);
+    if (quantity == null || !mounted) return;
+    if (ops.readOnly) {
+      ops.previewCompletePreparation(task['id'], quantity);
+      return;
+    }
+    final ok = await ops.act('complete_preparation', {
+      'taskId': task['id'],
+      'quantity': quantity,
+    });
+    if (!ok && mounted) notice(ops.error ?? '준비 수량을 기록하지 못했어요.');
   }
 
   Widget _draggable({
@@ -763,7 +840,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           }
         },
         checked: step['completedAt'] != null,
-        locked: task['canComplete'] != true,
+        locked:
+            task['canComplete'] != true ||
+            task['preparedOutputMovementId'] != null,
         onCheck: () {
           setState(() => selectedStepId = step['id']);
           _toggle(task, step);
@@ -991,6 +1070,10 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     step = currentStep;
     final openingActor = ops.actorId;
     final checked = step['completedAt'] != null;
+    if (checked && task['preparedOutputMovementId'] != null) {
+      notice('완성 수량이 반영된 Tap은 되돌릴 수 없어요. 실제 수량 보정을 사용해 주세요.');
+      return;
+    }
     if (!checked && task['canComplete'] != true) {
       notice('${role(task)} 담당 Tap이에요. 담당자나 사장님·매니저가 확인해요.');
       return;
@@ -1025,11 +1108,28 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         notice('기존 확인 기록은 공개 미리보기에서 변경할 수 없어요.');
         return;
       }
-      ops.previewToggleStep(task['id'], step['id']);
+      if (!checked &&
+          task['preparedItemId'] != null &&
+          steps(task).where((s) => s['completedAt'] == null).length == 1) {
+        final quantity = await _preparedQuantity(task);
+        if (quantity != null) {
+          ops.previewCompletePreparation(task['id'], quantity);
+        }
+      } else {
+        ops.previewToggleStep(task['id'], step['id']);
+      }
     } else {
+      int? quantity;
+      if (!checked &&
+          task['preparedItemId'] != null &&
+          steps(task).where((s) => s['completedAt'] == null).length == 1) {
+        quantity = await _preparedQuantity(task);
+        if (quantity == null || !mounted) return;
+      }
       final success = await ops.act(checked ? 'reopen_step' : 'complete_step', {
         'taskId': task['id'],
         'stepId': step['id'],
+        'quantity': ?quantity,
       });
       if (mounted && !success) notice(ops.error ?? '변경하지 못했어요.');
     }
