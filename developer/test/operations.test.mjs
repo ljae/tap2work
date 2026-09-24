@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { OperationsStore } from '../operations.mjs';
@@ -23,7 +23,7 @@ test('private owner data and procurement prices are projected by demo role', asy
   const manager = await store.snapshot('manager');
   const crew = await store.snapshot('crew');
   // Every seeded 뼈찜 group plus the two inventory checks whose order date has passed.
-  assert.equal(owner.tasks.length, owner.taskTemplates.length + 2 + owner.tasks.filter(task => task.orderId).length + owner.tasks.filter(task => task.preparedItemId).length);
+  assert.equal(owner.tasks.length, owner.taskTemplates.filter(template => !template.archivedAt).length + 2 + owner.tasks.filter(task => task.orderId).length + owner.tasks.filter(task => task.preparedItemId).length);
   assert.equal(owner.tasks.filter(task => task.kind === 'stock').length, 2);
   assert.ok(owner.privateSummary);
   assert.equal(manager.privateSummary, undefined);
@@ -265,6 +265,60 @@ test('staffing slots reject overlap, occupied targets, invalid dates, wrong role
   state = await act('owner', 'save_staffing_slots', { slots: [slot] });
   assert.equal(state.staffingSlots.length, 1);
   assert.ok(state.staffShifts.some(s => s.tapperId === 'tapper-manager'), 'configuration preserves existing shifts');
+});
+
+test('repeat shifts are bounded, idempotent, and check overnight overlap for every date', async t => {
+  const { store, act } = await setup(t);
+  const input = { tapperId: 'tapper-sample', duty: '서빙1', date: '2026-09-28', start: '23:00', end: '02:00', employmentType: '시간알바', repeatDays: 7, weekdays: [1, 3, 5] };
+  await assert.rejects(act('crew', 'save_shift_pattern', input), { status: 403 });
+  await assert.rejects(act('owner', 'save_shift_pattern', { ...input, repeatDays: 91 }), { status: 400 });
+  await assert.rejects(act('owner', 'save_shift_pattern', { ...input, start: '23:15' }), { status: 400 });
+  let state = await act('owner', 'save_shift_pattern', input);
+  const created = state.staffShifts.filter(s => s.tapperId === input.tapperId && s.date >= input.date);
+  assert.deepEqual(created.map(s => s.date), ['2026-09-28', '2026-09-30', '2026-10-02']);
+  assert.ok(created.every(s => s.employmentType === '시간알바'));
+  state = await act('owner', 'save_shift_pattern', input);
+  assert.equal(state.staffShifts.filter(s => s.tapperId === input.tapperId && s.date >= input.date).length, 3);
+  await assert.rejects(act('owner', 'save_shift_pattern', { ...input, date: '2026-09-29', start: '01:00', end: '04:00', repeatDays: 1, weekdays: [] }), { status: 409 });
+  const manager = await store.snapshot('manager');
+  assert.equal(manager.tappers[0].gross, undefined);
+  assert.equal(manager.tappers[0].hourlyWon, undefined);
+  assert.equal(manager.tappers[0].payPeriodStart, undefined);
+});
+
+test('customer channels own packing steps and preserve ticket requests', async t => {
+  const { store } = await setup(t);
+  const state = await store.snapshot('owner');
+  const delivery = state.tasks.find(t => t.orderChannel === '배달' && t.customerRequest);
+  assert.ok(delivery);
+  assert.equal(delivery.orderPlatform, '배달의민족');
+  assert.ok(delivery.steps.some(s => s.id === 'pack-check'));
+  assert.equal(delivery.steps.length, 4);
+  assert.match(delivery.steps.find(s => s.id === 'handoff').title, /기사 전달/);
+  assert.ok(!state.tasks.some(t => /(?:^|-)packing$/.test(t.templateId ?? '') && !t.archivedAt));
+});
+
+test('channel migration preserves a completed menu snapshot while upgrading its unfinished sibling', async t => {
+  const { store, file } = await setup(t);
+  const first = await store.snapshot('owner');
+  const menu = first.tasks.find(t => t.orderChannel === '배달' && t.customerRequest);
+  const disk = JSON.parse(await readFile(file, 'utf8'));
+  const siblings = disk.tasks.filter(t => t.orderId === menu.orderId);
+  assert.equal(siblings.length, 2);
+  for (const task of siblings) {
+    task.steps = task.steps.filter(s => s.id !== 'pack-check');
+    task.steps.find(s => s.id === 'handoff').title = '주문번호 대조·전달';
+  }
+  siblings[0].completedAt = first.serverTime;
+  siblings[0].completedBy = { id: 'cook', name: '현우' };
+  await writeFile(file, JSON.stringify(disk));
+  const migrated = await store.snapshot('owner');
+  const completed = migrated.tasks.find(t => t.id === siblings[0].id);
+  const unfinished = migrated.tasks.find(t => t.id === siblings[1].id);
+  assert.equal(completed.steps.length, 3);
+  assert.equal(completed.completedAt, siblings[0].completedAt);
+  assert.equal(unfinished.steps.length, 4);
+  assert.match(unfinished.steps.find(s => s.id === 'handoff').title, /기사 전달/);
 });
 
 test('manual text and external media links persist with revision checks and reusable recipe updates', async t => {

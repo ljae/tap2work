@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 42,
+  "revision": 43,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -314,10 +314,10 @@
       "category": "제품 경험",
       "title": "BIG TAP 폴더와 전체 Tap 상태 보드",
       "status": "confirmed",
-      "decision": "하단 메뉴는 Status, Todo, Team, Calendar, Place 순서로 Cupertino 단색 아이콘만 표시한다. BIG TAP은 주문처리·마케팅·뼈찜 조리·뼈짬뽕 조리·응대·정비·정산 등의 이름 있는 폴더이며, 주문처리는 주문 수행, 뼈찜·뼈짬뽕 조리는 준비 작업 위주다. Todo 첫 화면부터 모든 Tap이 할일 / 주문처리중 / 완료 고정 열에 있고, 폴더 필터와 카드 상태·순서·폴더 이동 Drag & Drop을 제공한다. Tap을 열면 단일 Small Tap 목록과 선택 매뉴얼을 보여준다. Tap 완료 시 미완료 Small Tap도 함께 완료한다. Team에는 Tapper 등록, R&R 근무표, 출퇴근·휴게 기록과 급여 자동 계산이 들어간다. Calendar는 Tap 시간 슬롯과 R&R 근무 시간을 함께 보여준다. Place는 직사각형·L·U형 직교 격자 도형과 드래그 이동·모서리 크기 조정을 지원한다. 홈 가상 주문과 주문 Tap은 같은 주문을 참조하고 완료 상태를 동기화한다. Superseding update 2026-09-24: customer orders contain menu TAPs grouped by order number and moved together; every menu TAP contains Small Taps. Phone manuals are popups with editable text, video and image links. Remove the entire five-minute plan. Calendar now uses weekly/monthly crew coverage, configurable daily role/time slots and a registered HR pool with drag assignment, candidate suggestions and an external recruiting link marked under construction.",
-      "reason": "Explicit user request for menu/order grouping, lightweight manuals, removal of five-minute planning and staffing calendar.",
+      "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서다. BIG TAP은 이름 있는 폴더이며, Todo는 주문 그룹과 사전 준비/일반 업무를 분리한다. 일반 Tap 보드는 할일/완료 두 열을 쓰고, 카드 상단에 Small TAP 완료분수·진행률을 중립→코랄→진한 네이비로 표시한다. 주문의 내부 processing 상태는 준비품 1회 차감에 유지한다. Tap 완료는 남은 Small TAP을 함께 완료한다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다.",
+      "reason": "사용자가 Team 제거, 주문/사전준비 분리, 진행 시각화, Calendar 중심 인력 관리, Place 재료 목록을 명시적으로 요청했다.",
       "source": "사용자 요청과 후속 답변 · 2026-09-24",
-      "updatedAt": "2026-09-24T08:55:45.882439Z"
+      "updatedAt": "2026-09-24T14:01:54Z"
     },
     {
       "id": "D-032",
@@ -354,10 +354,10 @@
       "category": "Product experience",
       "title": "Menu order groups, lightweight manuals and crew slot calendar",
       "status": "confirmed",
-      "decision": "One menu-line TAP per order, with Small Taps and an order-number group that moves together. Phone manuals use text and external HTTPS video/image links with simple editing. Remove five-minute planning. Weekly/monthly calendar shows configurable daily role/time slots; registered crew drag from HR Pool or move between slots. Empty slots suggest qualified existing crew or link to a recruiting site labeled under construction. 주문 메뉴 TAP에는 사전준비 행위를 포함하지 않는다. 사전준비는 별도 준비 TAP으로 수행한다.",
-      "reason": "Explicit user request. Three slots are a configurable demo default, not a confirmed staffing requirement for every restaurant. Actual recipe quantities, crew availability, messaging and recruiting integration are not assumed approved or implemented.",
+      "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. 주간 Calendar는 30분 축과 조리/서빙/Cashier 역할 열을 사용한다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 월간 개요와 외부 매뉴얼 링크는 유지한다.",
+      "reason": "사용자가 주문 채널별 작업 및 연속 시간 그리드와 반복 근무를 명시적으로 요청했다.",
       "source": "User request, 2026-09-24",
-      "updatedAt": "2026-09-24T09:22:56.317865Z"
+      "updatedAt": "2026-09-24T14:01:54Z"
     },
     {
       "id": "D-036",
@@ -368,6 +368,16 @@
       "reason": "사용자가 주문 조리에서 기존 준비 행위를 제외하고, 준비 수량 차감과 부족 시 재준비를 여러 식당에 적용 가능한 구조로 요청했다.",
       "source": "사용자 요청 · 2026-09-24",
       "updatedAt": "2026-09-24T09:22:56.317865Z"
+    },
+    {
+      "id": "D-037",
+      "category": "주문·인력·장소",
+      "title": "주문 채널 작업, 반복 근무와 사장님 인건비 보기",
+      "status": "confirmed",
+      "decision": "매장·포장·배달 주문 채널을 구분한다. 실제 티켓에 있는 배달 플랫폼과 요청사항만 표시한다. 날짜별 근무 반복은 한국 날짜와 30분 단위로 최대 90일, 전체 충돌/역할 검증 후 원자적으로 저장한다. 고용형태(정규직/시간알바/정규알바)는 급여 주기와 별도다. 매니저·크루 서버 응답에서 급여 수치·지급 기록을 제거한다. 실주문/POS·배달 연동 및 법정 급여 규칙은 여전히 미확정이다.",
+      "reason": "사용자 요청 2026-09-24. 샘플 주문과 인력 데이터는 시연용이다.",
+      "source": "사용자 요청 · 2026-09-24",
+      "updatedAt": "2026-09-24T14:01:54Z"
     }
   ],
   "milestones": [
@@ -447,7 +457,7 @@
       "id": "M-013",
       "title": "Tap 시스템 재구성 첫 단계",
       "status": "in_progress",
-      "description": "Demo implemented: folder/status board, menu/order groups, popup recipe manuals with external media and direct editing, Team attendance/pay estimates, weekly/monthly staffing slots and HR pool, orthogonal layout. Five-minute planning removed. Local Flutter 66 and Node 44 tests pass; static web build passes. Deployed to GitHub Pages and the Supabase operations function on 2026-09-24; live verification passed. Real POS, notifications, HR integration, payroll policy and native device validation remain incomplete. Prepared-item ledger, menu usage, actual prep output and one low-stock TAP per item are implemented; source quantities are configurable sample values. Prepared workflow deployed to GitHub Pages and Supabase operations function on 2026-09-24; live public sample and API access check passed."
+      "description": "Demo implemented: folder/status board, menu/order groups, popup recipe manuals with external media and direct editing, Team attendance/pay estimates, weekly/monthly staffing slots and HR pool, orthogonal layout. Five-minute planning removed. Local Flutter 66 and Node 44 tests pass; static web build passes. Deployed to GitHub Pages and the Supabase operations function on 2026-09-24; live verification passed. Real POS, notifications, HR integration, payroll policy and native device validation remain incomplete. Prepared-item ledger, menu usage, actual prep output and one low-stock TAP per item are implemented; source quantities are configurable sample values. Prepared workflow deployed to GitHub Pages and Supabase operations function on 2026-09-24; live public sample and API access check passed. 추가 로컬 구현: 주문 채널별 Small TAP·요청 표시, 주문 진행률과 사전준비 분리, 30분 주간 근무표와 최대 90일 반복, 4개 하단 메뉴, 사장님 Status 인건비, Place 재료 목록. 2026-09-24 로컬 Node 51/51, Flutter 71/71, 분석·JS check·공개 web build 통과. 이 추가 변경은 배포/실기기 검증 전."
     },
     {
       "id": "M-014",
@@ -2274,7 +2284,85 @@
         "https://github.com/ljae/tap2work/commit/f0a223cc5e1fa7acc9bd889b36da4b3ae6bf12db",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-order-calendar-place-2026-09-24",
+      "at": "2026-09-24T14:01:54Z",
+      "type": "implementation",
+      "title": "Order progress, channel work, continuous staffing calendar and material map",
+      "detail": "Separated order groups from prework and removed the processing column while preserving internal processing for one-time prepared debits. Added top card/order progress and completed navy state, ticket platform/request display and per-channel packing/handoff steps. Archived standalone packing templates/tasks without deleting history. Moved crew management to Calendar, added 30-minute weekly role lanes, employment type, repeat shifts and owner-only Status labor records. Place now lists materials after the map. Final review added proportional card/group color with a navy completed surface, channel-specific stable handoff without duplicate delivery steps, protection for completed menu snapshots, and drop-position time selection with 서빙1/2 split in one role lane.",
+      "before": {
+        "decisions": [
+          {
+            "id": "D-031",
+            "category": "제품 경험",
+            "title": "BIG TAP 폴더와 전체 Tap 상태 보드",
+            "status": "confirmed",
+            "decision": "하단 메뉴는 Status, Todo, Team, Calendar, Place 순서로 Cupertino 단색 아이콘만 표시한다. BIG TAP은 주문처리·마케팅·뼈찜 조리·뼈짬뽕 조리·응대·정비·정산 등의 이름 있는 폴더이며, 주문처리는 주문 수행, 뼈찜·뼈짬뽕 조리는 준비 작업 위주다. Todo 첫 화면부터 모든 Tap이 할일 / 주문처리중 / 완료 고정 열에 있고, 폴더 필터와 카드 상태·순서·폴더 이동 Drag & Drop을 제공한다. Tap을 열면 단일 Small Tap 목록과 선택 매뉴얼을 보여준다. Tap 완료 시 미완료 Small Tap도 함께 완료한다. Team에는 Tapper 등록, R&R 근무표, 출퇴근·휴게 기록과 급여 자동 계산이 들어간다. Calendar는 Tap 시간 슬롯과 R&R 근무 시간을 함께 보여준다. Place는 직사각형·L·U형 직교 격자 도형과 드래그 이동·모서리 크기 조정을 지원한다. 홈 가상 주문과 주문 Tap은 같은 주문을 참조하고 완료 상태를 동기화한다. Superseding update 2026-09-24: customer orders contain menu TAPs grouped by order number and moved together; every menu TAP contains Small Taps. Phone manuals are popups with editable text, video and image links. Remove the entire five-minute plan. Calendar now uses weekly/monthly crew coverage, configurable daily role/time slots and a registered HR pool with drag assignment, candidate suggestions and an external recruiting link marked under construction.",
+            "reason": "Explicit user request for menu/order grouping, lightweight manuals, removal of five-minute planning and staffing calendar.",
+            "source": "사용자 요청과 후속 답변 · 2026-09-24",
+            "updatedAt": "2026-09-24T08:55:45.882439Z"
+          },
+          {
+            "id": "D-035",
+            "category": "Product experience",
+            "title": "Menu order groups, lightweight manuals and crew slot calendar",
+            "status": "confirmed",
+            "decision": "One menu-line TAP per order, with Small Taps and an order-number group that moves together. Phone manuals use text and external HTTPS video/image links with simple editing. Remove five-minute planning. Weekly/monthly calendar shows configurable daily role/time slots; registered crew drag from HR Pool or move between slots. Empty slots suggest qualified existing crew or link to a recruiting site labeled under construction. 주문 메뉴 TAP에는 사전준비 행위를 포함하지 않는다. 사전준비는 별도 준비 TAP으로 수행한다.",
+            "reason": "Explicit user request. Three slots are a configurable demo default, not a confirmed staffing requirement for every restaurant. Actual recipe quantities, crew availability, messaging and recruiting integration are not assumed approved or implemented.",
+            "source": "User request, 2026-09-24",
+            "updatedAt": "2026-09-24T09:22:56.317865Z"
+          }
+        ]
+      },
+      "after": {
+        "decisions": [
+          {
+            "id": "D-031",
+            "category": "제품 경험",
+            "title": "BIG TAP 폴더와 전체 Tap 상태 보드",
+            "status": "confirmed",
+            "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서다. BIG TAP은 이름 있는 폴더이며, Todo는 주문 그룹과 사전 준비/일반 업무를 분리한다. 일반 Tap 보드는 할일/완료 두 열을 쓰고, 카드 상단에 Small TAP 완료분수·진행률을 중립→코랄→진한 네이비로 표시한다. 주문의 내부 processing 상태는 준비품 1회 차감에 유지한다. Tap 완료는 남은 Small TAP을 함께 완료한다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다.",
+            "reason": "사용자가 Team 제거, 주문/사전준비 분리, 진행 시각화, Calendar 중심 인력 관리, Place 재료 목록을 명시적으로 요청했다.",
+            "source": "사용자 요청과 후속 답변 · 2026-09-24",
+            "updatedAt": "2026-09-24T14:01:54Z"
+          },
+          {
+            "id": "D-035",
+            "category": "Product experience",
+            "title": "Menu order groups, lightweight manuals and crew slot calendar",
+            "status": "confirmed",
+            "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. 주간 Calendar는 30분 축과 조리/서빙/Cashier 역할 열을 사용한다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 월간 개요와 외부 매뉴얼 링크는 유지한다.",
+            "reason": "사용자가 주문 채널별 작업 및 연속 시간 그리드와 반복 근무를 명시적으로 요청했다.",
+            "source": "User request, 2026-09-24",
+            "updatedAt": "2026-09-24T14:01:54Z"
+          },
+          {
+            "id": "D-037",
+            "category": "주문·인력·장소",
+            "title": "주문 채널 작업, 반복 근무와 사장님 인건비 보기",
+            "status": "confirmed",
+            "decision": "매장·포장·배달 주문 채널을 구분한다. 실제 티켓에 있는 배달 플랫폼과 요청사항만 표시한다. 날짜별 근무 반복은 한국 날짜와 30분 단위로 최대 90일, 전체 충돌/역할 검증 후 원자적으로 저장한다. 고용형태(정규직/시간알바/정규알바)는 급여 주기와 별도다. 매니저·크루 서버 응답에서 급여 수치·지급 기록을 제거한다. 실주문/POS·배달 연동 및 법정 급여 규칙은 여전히 미확정이다.",
+            "reason": "사용자 요청 2026-09-24. 샘플 주문과 인력 데이터는 시연용이다.",
+            "source": "사용자 요청 · 2026-09-24",
+            "updatedAt": "2026-09-24T14:01:54Z"
+          }
+        ]
+      },
+      "files": [
+        "app/lib/ui/",
+        "developer/order_taps.mjs",
+        "developer/staff.mjs",
+        "developer/sales.mjs",
+        "developer/operations.mjs",
+        "developer/test/",
+        "app/test/",
+        "PRODUCT.md",
+        "docs/project-state.json",
+        "docs/TAP_SYSTEM_ARCHITECTURE.md"
+      ],
+      "verification": "Local Flutter analyze clean; Flutter 71/71; Node 51/51; npm run check; npm run build:site; git diff --check passed. No native build, physical-device interaction, live deployment or authenticated production integration test was performed."
     }
   ],
-  "updatedAt": "2026-09-24T09:27:36.718433Z"
+  "updatedAt": "2026-09-24T14:01:54Z"
 }

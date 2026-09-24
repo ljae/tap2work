@@ -9,8 +9,9 @@ const _ranks = {'owner': '사장', 'manager': '매니저', 'crew': '크루'};
 const _periods = {'monthly': '월급', 'weekly': '주급', 'daily': '일급'};
 
 class TeamScreen extends StatefulWidget {
-  const TeamScreen({super.key, required this.operations});
+  const TeamScreen({super.key, required this.operations, this.payOnly = false});
   final OperationsController operations;
+  final bool payOnly;
   @override
   State<TeamScreen> createState() => _TeamScreenState();
 }
@@ -40,6 +41,7 @@ class _TeamScreenState extends State<TeamScreen> {
     final phone = TextEditingController(text: current?['phone'] ?? '');
     var rank = current?['rank'] as String? ?? 'crew';
     var period = current?['payPeriod'] as String? ?? 'monthly';
+    var employment = current?['employmentType'] as String? ?? '시간알바';
     final duties = <String>{
       ...(current?['duties'] as List? ?? ['서빙1']).cast<String>(),
     };
@@ -47,78 +49,102 @@ class _TeamScreenState extends State<TeamScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, update) => AlertDialog(
-          title: Text(current == null ? 'Tapper 등록' : 'Tapper 수정'),
+          title: Text(
+            widget.payOnly
+                ? '인건비 설정'
+                : current == null
+                ? 'Tapper 등록'
+                : 'Tapper 수정',
+          ),
           content: SizedBox(
             width: 430,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextField(
-                    controller: nickname,
-                    onChanged: (_) => update(() {}),
-                    decoration: const InputDecoration(labelText: '별칭(이름)'),
-                  ),
-                  DropdownButtonFormField<String>(
-                    initialValue: rank,
-                    decoration: const InputDecoration(labelText: '직급'),
-                    items: _ranks.entries
-                        .map(
-                          (e) => DropdownMenuItem(
-                            value: e.key,
-                            child: Text(e.value),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) => update(() => rank = v!),
-                  ),
-                  Wrap(
-                    spacing: 6,
-                    children: [
-                      for (final duty in _duties)
-                        FilterChip(
-                          label: Text(duty),
-                          selected: duties.contains(duty),
-                          onSelected: (v) => update(() {
-                            if (v) {
-                              duties.add(duty);
-                            } else {
-                              duties.remove(duty);
-                            }
-                          }),
-                        ),
-                    ],
-                  ),
-                  TextField(
-                    controller: rate,
-                    onChanged: (_) => update(() {}),
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: '시급 · 원'),
-                  ),
-                  DropdownButtonFormField<String>(
-                    initialValue: period,
-                    decoration: const InputDecoration(labelText: '급여방식'),
-                    items: _periods.entries
-                        .map(
-                          (e) => DropdownMenuItem(
-                            value: e.key,
-                            child: Text(e.value),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) => update(() => period = v!),
-                  ),
-                  TextField(
-                    controller: kakao,
-                    decoration: const InputDecoration(
-                      labelText: '카카오톡 HTTPS 링크 · 선택',
+                  if (!widget.payOnly)
+                    TextField(
+                      controller: nickname,
+                      onChanged: (_) => update(() {}),
+                      decoration: const InputDecoration(labelText: '별칭(이름)'),
                     ),
-                  ),
-                  TextField(
-                    controller: phone,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(labelText: '전화번호 · 선택'),
-                  ),
+                  if (!widget.payOnly)
+                    DropdownButtonFormField<String>(
+                      initialValue: rank,
+                      decoration: const InputDecoration(labelText: '직급'),
+                      items: _ranks.entries
+                          .map(
+                            (e) => DropdownMenuItem(
+                              value: e.key,
+                              child: Text(e.value),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => update(() => rank = v!),
+                    ),
+                  if (!widget.payOnly)
+                    DropdownButtonFormField<String>(
+                      initialValue: employment,
+                      decoration: const InputDecoration(labelText: '고용형태'),
+                      items: ['정규직', '시간알바', '정규알바']
+                          .map(
+                            (v) => DropdownMenuItem(value: v, child: Text(v)),
+                          )
+                          .toList(),
+                      onChanged: (v) => update(() => employment = v!),
+                    ),
+                  if (!widget.payOnly)
+                    Wrap(
+                      spacing: 6,
+                      children: [
+                        for (final duty in _duties)
+                          FilterChip(
+                            label: Text(duty),
+                            selected: duties.contains(duty),
+                            onSelected: (v) => update(() {
+                              if (v) {
+                                duties.add(duty);
+                              } else {
+                                duties.remove(duty);
+                              }
+                            }),
+                          ),
+                      ],
+                    ),
+                  if (widget.payOnly)
+                    TextField(
+                      controller: rate,
+                      onChanged: (_) => update(() {}),
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: '시급 · 원'),
+                    ),
+                  if (widget.payOnly)
+                    DropdownButtonFormField<String>(
+                      initialValue: period,
+                      decoration: const InputDecoration(labelText: '급여방식'),
+                      items: _periods.entries
+                          .map(
+                            (e) => DropdownMenuItem(
+                              value: e.key,
+                              child: Text(e.value),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => update(() => period = v!),
+                    ),
+                  if (!widget.payOnly)
+                    TextField(
+                      controller: kakao,
+                      decoration: const InputDecoration(
+                        labelText: '카카오톡 HTTPS 링크 · 선택',
+                      ),
+                    ),
+                  if (!widget.payOnly)
+                    TextField(
+                      controller: phone,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(labelText: '전화번호 · 선택'),
+                    ),
                 ],
               ),
             ),
@@ -138,6 +164,7 @@ class _TeamScreenState extends State<TeamScreen> {
                       if (current != null) 'id': current['id'],
                       'nickname': nickname.text.trim(),
                       'rank': rank,
+                      'employmentType': employment,
                       'duties': duties.toList(),
                       'hourlyWon': int.parse(rate.text),
                       'payPeriod': period,
@@ -317,8 +344,12 @@ class _TeamScreenState extends State<TeamScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const PageHeading('TEAM', '우리 팀', 'Tapper 등록, 근무시간, 출퇴근과 급여 현황'),
-          if (own != null)
+          PageHeading(
+            widget.payOnly ? 'LABOR' : 'CALENDAR',
+            widget.payOnly ? '인건비 기록' : '크루 관리',
+            widget.payOnly ? '사장님만 보는 근태·지급 기록' : 'Tapper 등록과 근무시간 관리',
+          ),
+          if (!widget.payOnly && own != null)
             Surface(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,7 +401,7 @@ class _TeamScreenState extends State<TeamScreen> {
               ),
             ),
           const SizedBox(height: 16),
-          if (ops.isOwner)
+          if (!widget.payOnly && ops.isOwner)
             FilledButton.icon(
               onPressed: ops.busy || ops.readOnly ? null : () => editTapper(),
               icon: const Icon(Icons.person_add_alt),
@@ -395,43 +426,49 @@ class _TeamScreenState extends State<TeamScreen> {
                     Text(
                       '이번 주 계획 ${hours(tapper['plannedMinutes'])} · 실적 ${hours(tapper['weeklyActualMinutes'])}',
                     ),
-                    if (tapper['gross'] != null) ...[
+                    if (widget.payOnly && tapper['gross'] != null) ...[
                       Text(
-                        '시급 ${money(tapper['hourlyWon'])}원 · ${_periods[tapper['payPeriod']]} · ${tapper['payPeriodStart']}부터',
+                        '시급 ${money(tapper['hourlyWon'])}원 · ${_periods[tapper['payPeriod']]}',
                       ),
                       Text(
-                        '이번 달 누적 ${money(tapper['monthlyGross'])}원 · 현재 지급 기간 ${hours(tapper['actualMinutes'])} / ${money(tapper['gross'])}원',
+                        '이번 달 누적 ${money(tapper['monthlyGross'])}원 · 현재 지급 기간 ${money(tapper['gross'])}원',
                       ),
                       Text(
                         '지급 ${money(tapper['paid'])}원 · 잔여 ${money(tapper['remaining'])}원 · 추가보수 ${money(tapper['adjustments'])}원',
                       ),
-                      const Text('근태 기준 계산 예시 · 수당/세금 규칙은 미설정'),
                     ],
                     Wrap(
                       spacing: 6,
                       children: [
-                        if (ops.isOwner)
+                        if (widget.payOnly && ops.isOwner)
+                          TextButton(
+                            onPressed: ops.readOnly
+                                ? null
+                                : () => editTapper(tapper),
+                            child: const Text('인건비 설정'),
+                          ),
+                        if (!widget.payOnly && ops.isOwner)
                           TextButton(
                             onPressed: ops.readOnly
                                 ? null
                                 : () => editTapper(tapper),
                             child: const Text('수정'),
                           ),
-                        if (ops.isLeader)
+                        if (!widget.payOnly && ops.isLeader)
                           TextButton(
                             onPressed: ops.readOnly
                                 ? null
                                 : () => editShift(tapper),
                             child: const Text('근무 배정'),
                           ),
-                        if (ops.isOwner)
+                        if (widget.payOnly && ops.isOwner)
                           TextButton(
                             onPressed: ops.readOnly
                                 ? null
                                 : () => addAmount(tapper, 'add_pay_adjustment'),
                             child: const Text('추가보수'),
                           ),
-                        if (ops.isOwner)
+                        if (widget.payOnly && ops.isOwner)
                           TextButton(
                             onPressed: ops.readOnly
                                 ? null

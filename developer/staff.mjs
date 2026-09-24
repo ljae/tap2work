@@ -7,6 +7,7 @@ const clock = value => new Date(new Date(value).getTime() + 9 * 3600000).toISOSt
 const roles = ['owner', 'manager', 'crew'];
 const duties = ['조리', '서빙1', '서빙2', 'cashier'];
 const periods = ['monthly', 'weekly', 'daily'];
+const employmentTypes = ['정규직', '시간알바', '정규알바'];
 const safeText = (value, max, label, required = true) => {
   if (typeof value !== 'string' || value.length > max || (required && !value.trim())) fail(`${label}을 확인해 주세요.`);
   return value.trim();
@@ -56,8 +57,22 @@ function validShift(input, state) {
   if (!duties.includes(input.duty) || !tapper.duties.includes(input.duty)) fail('담당 R&R을 확인해 주세요.');
   if (typeof input.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(input.date) || (!Number.isFinite(Date.parse(`${input.date}T00:00:00Z`)) || new Date(`${input.date}T00:00:00Z`).toISOString().slice(0, 10) !== input.date)) fail('근무 날짜를 확인해 주세요.');
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.start) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.end) || input.start === input.end) fail('근무 시작·종료 시각을 확인해 주세요.');
-  return { tapperId: tapper.id, duty: input.duty, date: input.date, start: input.start, end: input.end };
+  if (![input.start, input.end].every(v => ['00', '30'].includes(v.slice(3)))) fail('근무 시간은 30분 단위로 입력해 주세요.');
+  const employmentType = input.employmentType ?? tapper.employmentType ?? '시간알바';
+  if (!employmentTypes.includes(employmentType)) fail('고용형태를 확인해 주세요.');
+  return { tapperId: tapper.id, duty: input.duty, date: input.date, start: input.start, end: input.end, employmentType };
 }
+function interval(shift) {
+  const start = Date.parse(`${shift.date}T${shift.start}:00+09:00`);
+  let end = Date.parse(`${shift.date}T${shift.end}:00+09:00`);
+  if (end <= start) end += 86400000;
+  return [start, end];
+}
+function validateOverlap(state, candidate, excluded = new Set()) {
+  const [a, b] = interval(candidate);
+  if (state.staffShifts.some(s => !excluded.has(s.id) && s.tapperId === candidate.tapperId && s.status !== 'leave' && (() => { const [c, d] = interval(s); return a < d && c < b; })())) fail('겹치는 근무가 있어요.', 409);
+}
+const addDays = (date, count) => new Date(Date.parse(`${date}T00:00:00Z`) + count * 86400000).toISOString().slice(0, 10);
 
 export function mutateStaff(state, input, actor, now, who, activity) {
   const leader = ['owner', 'manager'].includes(actor.role);
@@ -67,7 +82,7 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       if (!leader) fail('매니저 이상만 슬롯을 바꿀 수 있어요.', 403);
       if (!Array.isArray(input.slots) || !input.slots.length || input.slots.length > 12) fail('슬롯은 1–12개로 설정해 주세요.');
       const slots = input.slots.map(slot => {
-        if (!duties.includes(slot.duty) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(slot.start) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(slot.end) || slot.start >= slot.end) fail('역할과 당일 시작·종료 시간을 확인해 주세요.');
+        if (!duties.includes(slot.duty) || !/^([01]\d|2[0-3]):(00|30)$/.test(slot.start) || !/^([01]\d|2[0-3]):(00|30)$/.test(slot.end) || slot.start >= slot.end) fail('역할과 30분 단위 시작·종료 시간을 확인해 주세요.');
         return { id: typeof slot.id === 'string' && /^slot-[a-zA-Z0-9-]+$/.test(slot.id) ? slot.id : `slot-${randomUUID()}`, duty: slot.duty, start: slot.start, end: slot.end };
       });
       if (new Set(slots.map(s => s.id)).size !== slots.length) fail('중복 슬롯을 확인해 주세요.');
@@ -87,13 +102,7 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       const source = input.sourceShiftId ? state.staffShifts.find(s => s.id === input.sourceShiftId) : null;
       if (input.sourceShiftId && (!source || source.tapperId !== input.tapperId)) fail('이동할 근무를 다시 확인해 주세요.', 409);
       if (row && row.id !== source?.id) fail('이미 배정된 슬롯이에요. 먼저 배정을 해제해 주세요.', 409);
-      const start = Date.parse(`${next.date}T${next.start}:00+09:00`), end = Date.parse(`${next.date}T${next.end}:00+09:00`);
-      if (state.staffShifts.some(s => {
-        if (s.id === source?.id || s.tapperId !== next.tapperId || s.status === 'leave') return false;
-        const a = Date.parse(`${s.date}T${s.start}:00+09:00`);
-        let b = Date.parse(`${s.date}T${s.end}:00+09:00`); if (b <= a) b += 86400000;
-        return a < end && b > start;
-      })) fail('겹치는 근무가 있어요.', 409);
+      validateOverlap(state, next, new Set(source ? [source.id] : []));
       if (source) Object.assign(source, next, { slotId: slot.id });
       else state.staffShifts.push({ id: randomUUID(), ...next, slotId: slot.id, status: 'planned' });
       activity('근무 슬롯 배정'); return true;
@@ -113,7 +122,8 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       }
       const phone = safeText(input.phone ?? '', 30, '전화번호', false);
       if (phone && !/^\+?[0-9 -]{7,30}$/.test(phone)) fail('전화번호를 확인해 주세요.');
-      const next = { rank: input.rank, nickname: safeText(input.nickname, 40, '별칭'), duties: [...new Set(input.duties)],
+      if (!employmentTypes.includes(input.employmentType ?? row?.employmentType ?? '시간알바')) fail('고용형태를 확인해 주세요.');
+      const next = { rank: input.rank, nickname: safeText(input.nickname, 40, '별칭'), duties: [...new Set(input.duties)], employmentType: input.employmentType ?? row?.employmentType ?? '시간알바',
         hourlyWon: nonnegative(input.hourlyWon, '시급'), payPeriod: input.payPeriod,
         kakaoUrl, phone, active: input.active !== false };
       if (row) Object.assign(row, next); else state.tappers.push({ id: randomUUID(), ...next });
@@ -124,8 +134,33 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       const next = validShift(input, state);
       const row = input.id ? state.staffShifts.find(s => s.id === input.id) : null;
       if (input.id && !row) fail('근무를 찾지 못했어요.', 404);
+      validateOverlap(state, next, new Set(row ? [row.id] : []));
       if (row) Object.assign(row, next); else state.staffShifts.push({ id: randomUUID(), ...next, status: 'planned' });
       activity(`${state.tappers.find(t => t.id === next.tapperId).nickname} 근무 배정`); return true;
+    }
+    case 'save_shift_pattern': {
+      if (!leader) fail('매니저 이상만 근무표를 바꿀 수 있어요.', 403);
+      validShift(input, state);
+      const weekdays = input.weekdays ?? [];
+      if (!Array.isArray(weekdays) || weekdays.some(n => !Number.isInteger(n) || n < 1 || n > 7) || new Set(weekdays).size !== weekdays.length) fail('반복 요일을 확인해 주세요.');
+      const days = input.repeatDays ?? 1;
+      if (!Number.isInteger(days) || days < 1 || days > 90 || (days > 1 && !weekdays.length)) fail('반복 기간은 90일 이내로 선택해 주세요.');
+      const existing = input.id ? state.staffShifts.find(s => s.id === input.id) : null;
+      if (input.id && !existing) fail('근무를 찾지 못했어요.', 404);
+      if (existing && days > 1) fail('반복 근무는 각 근무를 선택해 수정해 주세요.');
+      const proposed = [];
+      for (let n = 0; n < days; n++) {
+        const date = addDays(input.date, n);
+        if (days > 1 && !weekdays.includes(new Date(`${date}T00:00:00Z`).getUTCDay() || 7)) continue;
+        const shift = validShift({ ...input, date }, state);
+        const key = `${shift.tapperId}/${shift.date}/${shift.duty}/${shift.start}/${shift.end}`;
+        if (!existing && state.staffShifts.some(s => `${s.tapperId}/${s.date}/${s.duty}/${s.start}/${s.end}` === key)) continue;
+        validateOverlap(state, shift, new Set(existing ? [existing.id] : []));
+        proposed.push(shift);
+      }
+      if (existing) { Object.assign(existing, proposed[0]); delete existing.slotId; }
+      else for (const shift of proposed) state.staffShifts.push({ id: randomUUID(), ...shift, status: 'planned' });
+      activity(`근무 ${proposed.length}건 저장`); return true;
     }
     case 'clock_in': case 'break_start': case 'break_end': case 'clock_out': {
       const tapper = state.tappers.find(t => t.actorId === actor.id && t.active);
@@ -214,8 +249,8 @@ export function staffView(state, actor, now) {
     const monthAdjustments = state.payAdjustments.filter(a => a.tapperId === t.id && a.date >= periodStart(day, 'monthly') && a.date <= day).reduce((n, a) => n + a.amountWon, 0);
     const view = { ...t, plannedMinutes, actualMinutes, weeklyActualMinutes, payPeriodStart: start,
       attendanceState: state.attendance.filter(e => e.tapperId === t.id && !e.voidedAt).at(-1)?.type ?? 'off_duty' };
-    if (owner || t.id === own?.id) Object.assign(view, { adjustments, paid, gross, remaining: gross - paid, monthlyGross: Math.round(monthlyMinutes * t.hourlyWon / 60) + monthAdjustments });
-    else { delete view.hourlyWon; delete view.payPeriod; delete view.kakaoUrl; delete view.phone; }
+    if (owner) Object.assign(view, { adjustments, paid, gross, remaining: gross - paid, monthlyGross: Math.round(monthlyMinutes * t.hourlyWon / 60) + monthAdjustments });
+    else { delete view.hourlyWon; delete view.payPeriod; delete view.payPeriodStart; delete view.kakaoUrl; delete view.phone; }
     return view;
   });
   return { staffingSlots: staffingSlots(state), tappers, staffShifts: state.staffShifts, attendance: state.attendance.filter(e => owner || e.tapperId === own?.id),

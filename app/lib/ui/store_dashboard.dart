@@ -451,6 +451,27 @@ class _StoreDashboardState extends State<StoreDashboard> {
                           fontSize: 14,
                         ),
                       ),
+                      if ((order['request'] ?? '').toString().isNotEmpty)
+                        IconButton(
+                          tooltip: '요청사항 보기',
+                          icon: const Icon(
+                            Icons.chat_bubble_outline,
+                            color: AppColors.accent,
+                          ),
+                          onPressed: () => showDialog<void>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text('주문 요청사항'),
+                              content: Text(order['request']),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('확인'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -474,7 +495,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                   ),
                   space(7),
                   note(
-                    '${order['channel']}${order['table'] == null ? '' : ' · ${order['table']}'} · 접수 후 ${order['elapsedMinutes']}분',
+                    '${order['channel']}${order['platform'] == null ? '' : ' · 🛵 ${order['platform']}'}${order['table'] == null ? '' : ' · ${order['table']}'} · 접수 후 ${order['elapsedMinutes']}분',
                   ),
                   space(8),
                   for (final line in order['lines'] as List)

@@ -257,7 +257,7 @@ void main() {
   );
 
   for (final width in [320.0, 390.0, 430.0]) {
-    testWidgets('five operations tabs and order dialog fit a $width phone', (
+    testWidgets('four operations tabs and order dialog fit a $width phone', (
       tester,
     ) async {
       tester.view.physicalSize = Size(width, 844);
@@ -276,7 +276,6 @@ void main() {
       expect(tester.takeException(), isNull);
       for (final icon in [
         CupertinoIcons.checkmark_alt_circle,
-        CupertinoIcons.person_2,
         CupertinoIcons.calendar,
         CupertinoIcons.map,
         CupertinoIcons.chart_bar,

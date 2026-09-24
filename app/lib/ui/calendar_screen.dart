@@ -35,12 +35,171 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> assign(DateTime day, Json slot, Json person) =>
-      action('assign_staffing_slot', {
-        'date': date(day),
-        'slotId': slot['id'],
-        'tapperId': person['tapperId'] ?? person['id'],
-        if (person['tapperId'] != null) 'sourceShiftId': person['id'],
-      });
+      editShift(day, person, duty: slot['duty']);
+
+  Future<void> editShift(
+    DateTime day,
+    Json person, {
+    String? duty,
+    Json? shift,
+    String? startAt,
+    String? endAt,
+  }) async {
+    if (!editable) return;
+    final tapperId = person['tapperId'] ?? person['id'];
+    final tapper = ops
+        .rows('tappers')
+        .where((p) => p['id'] == tapperId)
+        .firstOrNull;
+    if (tapper == null) return;
+    final duties = (tapper['duties'] as List).cast<String>();
+    var selectedDuty = duty != null && duties.contains(duty)
+        ? duty
+        : duties.first;
+    var employment =
+        (shift?['employmentType'] ?? tapper['employmentType'] ?? '시간알바')
+            as String;
+    var start = startAt ?? (shift?['start'] ?? '09:00') as String;
+    var end = endAt ?? (shift?['end'] ?? '18:00') as String;
+    var repeat = '한 번';
+    var duration = 28;
+    final times = [
+      for (var hour = 0; hour < 24; hour++)
+        for (final minute in ['00', '30'])
+          '${hour.toString().padLeft(2, '0')}:$minute',
+    ];
+    final save = await showDialog<Json>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, update) => AlertDialog(
+          title: Text('${tapper['nickname']} · ${date(day)} 근무'),
+          content: SizedBox(
+            width: 380,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('고용형태'),
+                  DropdownButton<String>(
+                    value: employment,
+                    isExpanded: true,
+                    items: ['정규직', '시간알바', '정규알바']
+                        .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                        .toList(),
+                    onChanged: (v) => update(() => employment = v!),
+                  ),
+                  const Text('담당 R&R'),
+                  DropdownButton<String>(
+                    value: selectedDuty,
+                    isExpanded: true,
+                    items: duties
+                        .map(
+                          (v) => DropdownMenuItem(
+                            value: v,
+                            child: Text(
+                              v.startsWith('서빙')
+                                  ? '서빙'
+                                  : v == 'cashier'
+                                  ? 'Cashier'
+                                  : v,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => update(() => selectedDuty = v!),
+                  ),
+                  const Text('시작 · 종료 (30분 단위)'),
+                  Row(
+                    children: [
+                      for (final field in [true, false])
+                        Expanded(
+                          child: DropdownButton<String>(
+                            value: field ? start : end,
+                            isExpanded: true,
+                            items: times
+                                .map(
+                                  (v) => DropdownMenuItem(
+                                    value: v,
+                                    child: Text(v),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (v) => update(() {
+                              if (field) {
+                                start = v!;
+                              } else {
+                                end = v!;
+                              }
+                            }),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (shift == null) ...[
+                    const Text('반복'),
+                    DropdownButton<String>(
+                      value: repeat,
+                      isExpanded: true,
+                      items: ['한 번', '월수금', '화목토', '매일', '평일', '주말']
+                          .map(
+                            (v) => DropdownMenuItem(value: v, child: Text(v)),
+                          )
+                          .toList(),
+                      onChanged: (v) => update(() => repeat = v!),
+                    ),
+                    if (repeat != '한 번')
+                      DropdownButton<int>(
+                        value: duration,
+                        isExpanded: true,
+                        items: [7, 14, 28, 90]
+                            .map(
+                              (v) => DropdownMenuItem(
+                                value: v,
+                                child: Text('$v일 동안'),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) => update(() => duration = v!),
+                      ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, {
+                'tapperId': tapperId,
+                'date': date(day),
+                'duty': selectedDuty,
+                'employmentType': employment,
+                'start': start,
+                'end': end,
+                if (shift != null) 'id': shift['id'],
+                'repeatDays': repeat == '한 번' ? 1 : duration,
+                'weekdays': switch (repeat) {
+                  '월수금' => [1, 3, 5],
+                  '화목토' => [2, 4, 6],
+                  '매일' => [1, 2, 3, 4, 5, 6, 7],
+                  '평일' => [1, 2, 3, 4, 5],
+                  '주말' => [6, 7],
+                  _ => <int>[],
+                },
+              }),
+              child: const Text('저장'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (save != null) await action('save_shift_pattern', save);
+  }
+
   Future<void> configure() async {
     final revision = ops.data?['revision'];
     final draft = ops
@@ -87,7 +246,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               if (time != null) {
                                 update(
                                   () => slot[field] =
-                                      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
+                                      '${time.hour.toString().padLeft(2, '0')}:${(time.minute < 30 ? 0 : 30).toString().padLeft(2, '0')}',
                                 );
                               }
                             },
@@ -353,6 +512,297 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  int minute(String value) =>
+      int.parse(value.substring(0, 2)) * 60 + int.parse(value.substring(3, 5));
+  String clockAt(int value) =>
+      '${(value ~/ 60).toString().padLeft(2, '0')}:${(value % 60).toString().padLeft(2, '0')}';
+  void dropShift(
+    DateTime day,
+    Json person,
+    Offset global,
+    BuildContext targetContext,
+  ) {
+    final box = targetContext.findRenderObject() as RenderBox;
+    final local = box.globalToLocal(global);
+    final start = ((local.dy / 30).round() * 30).clamp(0, 1410);
+    final shift = person['tapperId'] == null ? null : person;
+    final oldStart = shift == null ? 540 : minute(shift['start']);
+    final oldEnd = shift == null ? 1080 : minute(shift['end']);
+    final duration = (oldEnd - oldStart + 1440) % 1440;
+    final lane = (local.dx / 120).floor().clamp(0, 2);
+    final duties =
+        (ops
+                        .rows('tappers')
+                        .where(
+                          (p) =>
+                              p['id'] == (person['tapperId'] ?? person['id']),
+                        )
+                        .firstOrNull?['duties']
+                    as List? ??
+                [])
+            .cast<String>();
+    final preferred = lane == 0
+        ? '조리'
+        : lane == 2
+        ? 'cashier'
+        : duties.where((d) => d.startsWith('서빙')).firstOrNull;
+    editShift(
+      day,
+      person,
+      shift: shift,
+      duty: preferred,
+      startAt: clockAt(start),
+      endAt: clockAt((start + duration) % 1440),
+    );
+  }
+
+  Future<void> chooseForDay(DateTime day) async {
+    if (!editable) return;
+    final people = ops
+        .rows('tappers')
+        .where((p) => p['active'] == true)
+        .toList();
+    final person = await showModalBottomSheet<Json>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const ListTile(title: Text('크루 선택')),
+            for (final p in people)
+              ListTile(
+                title: Text(
+                  '${p['nickname']} · ${(p['duties'] as List).join('/')}',
+                ),
+                onTap: () => Navigator.pop(context, p),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (person != null) await editShift(day, person);
+  }
+
+  Widget weekGrid(DateTime monday) {
+    const rowHeight = 30.0;
+    const dayWidth = 360.0;
+    const axisWidth = 55.0;
+    const gridHeight = 48 * rowHeight;
+    final shifts = ops.rows('staffShifts');
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SizedBox(
+        width: axisWidth + dayWidth * 7,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const SizedBox(width: axisWidth),
+                for (var n = 0; n < 7; n++)
+                  SizedBox(
+                    width: dayWidth,
+                    child: Column(
+                      children: [
+                        Text(
+                          '${['월', '화', '수', '목', '금', '토', '일'][n]} ${monday.add(Duration(days: n)).month}/${monday.add(Duration(days: n)).day}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Row(
+                          children: [
+                            for (final role in ['조리', '서빙', 'Cashier'])
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    role,
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            SizedBox(
+              height: 680,
+              child: SingleChildScrollView(
+                child: SizedBox(
+                  height: gridHeight,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: axisWidth,
+                        child: Stack(
+                          children: [
+                            for (var n = 0; n < 48; n++)
+                              Positioned(
+                                top: n * rowHeight,
+                                left: 0,
+                                child: Text(
+                                  n.isEven
+                                      ? '${(n ~/ 2).toString().padLeft(2, '0')}:00'
+                                      : ':30',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.muted,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      for (var n = 0; n < 7; n++)
+                        Builder(
+                          builder: (context) {
+                            final day = monday.add(Duration(days: n));
+                            final dayShifts = shifts
+                                .where(
+                                  (s) =>
+                                      s['date'] == date(day) ||
+                                      s['date'] ==
+                                          date(
+                                            day.subtract(
+                                              const Duration(days: 1),
+                                            ),
+                                          ),
+                                )
+                                .toList();
+                            return DragTarget<Json>(
+                              onWillAcceptWithDetails: (_) => editable,
+                              onAcceptWithDetails: (details) => dropShift(
+                                day,
+                                details.data,
+                                details.offset,
+                                context,
+                              ),
+                              builder: (context, candidates, _) => SizedBox(
+                                width: dayWidth,
+                                height: gridHeight,
+                                child: Stack(
+                                  children: [
+                                    for (var tick = 0; tick < 48; tick++)
+                                      Positioned(
+                                        top: tick * rowHeight,
+                                        left: 0,
+                                        right: 0,
+                                        height: rowHeight,
+                                        child: InkWell(
+                                          onTap: () => chooseForDay(day),
+                                          child: DecoratedBox(
+                                            decoration: BoxDecoration(
+                                              color: candidates.isNotEmpty
+                                                  ? const Color(0xFFFCE8E4)
+                                                  : Colors.white,
+                                              border: Border(
+                                                left: const BorderSide(
+                                                  color: AppColors.line,
+                                                ),
+                                                top: BorderSide(
+                                                  color: AppColors.line,
+                                                  width: tick.isEven ? 1 : .4,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    for (final shift in dayShifts)
+                                      Builder(
+                                        builder: (context) {
+                                          final previous =
+                                              shift['date'] != date(day);
+                                          final start = previous
+                                              ? 0
+                                              : minute(shift['start']);
+                                          final finish = minute(shift['end']);
+                                          final end = previous
+                                              ? finish
+                                              : finish <= start
+                                              ? 1440
+                                              : finish;
+                                          if (previous &&
+                                              finish > minute(shift['start'])) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          final color = shift['duty'] == '조리'
+                                              ? const Color(0xFFE3EDF8)
+                                              : shift['duty'] == 'cashier'
+                                              ? const Color(0xFFE8E8F3)
+                                              : const Color(0xFFFBE9E4);
+                                          final lane = shift['duty'] == '조리'
+                                              ? 0
+                                              : shift['duty'] == 'cashier'
+                                              ? 2
+                                              : 1;
+                                          return Positioned(
+                                            top: start / 30 * rowHeight + 1,
+                                            left:
+                                                lane * 120.0 +
+                                                (lane == 1 &&
+                                                        shift['duty'] == '서빙2'
+                                                    ? 61
+                                                    : 2),
+                                            width: lane == 1 ? 57 : 116,
+                                            height:
+                                                ((end - start) /
+                                                            30 *
+                                                            rowHeight -
+                                                        2)
+                                                    .clamp(28, gridHeight),
+                                            child: drag(
+                                              shift,
+                                              Material(
+                                                color: color,
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                                child: InkWell(
+                                                  onTap: () => editShift(
+                                                    DateTime.parse(shift['date']),
+                                                    shift,
+                                                    shift: shift,
+                                                  ),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(5),
+                                                    child: Text(
+                                                      '${shift['duty'].toString().startsWith('서빙')
+                                                          ? '서빙'
+                                                          : shift['duty'] == 'cashier'
+                                                          ? 'Cashier'
+                                                          : shift['duty']} · ${name(shift['tapperId'])}\n${shift['start']}–${shift['end']}',
+                                                      style: const TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: ops,
@@ -446,63 +896,66 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              width: 1120,
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      for (final label in ['월', '화', '수', '목', '금', '토', '일'])
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Text(label),
+          if (!monthly)
+            weekGrid(start)
+          else
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: 1120,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        for (final label in ['월', '화', '수', '목', '금', '토', '일'])
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Text(label),
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
-                  for (
-                    var row = 0;
-                    row <
-                        ((count + (monthly ? start.weekday - 1 : 0)) / 7)
-                            .ceil();
-                    row++
-                  )
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (var col = 0; col < 7; col++)
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 3,
-                                ),
-                                child: Builder(
-                                  builder: (_) {
-                                    final index =
-                                        row * 7 +
-                                        col -
-                                        (monthly ? start.weekday - 1 : 0);
-                                    return index < 0 || index >= count
-                                        ? const SizedBox()
-                                        : dayCard(
-                                            start.add(Duration(days: index)),
-                                          );
-                                  },
+                      ],
+                    ),
+                    for (
+                      var row = 0;
+                      row <
+                          ((count + (monthly ? start.weekday - 1 : 0)) / 7)
+                              .ceil();
+                      row++
+                    )
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (var col = 0; col < 7; col++)
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 3,
+                                  ),
+                                  child: Builder(
+                                    builder: (_) {
+                                      final index =
+                                          row * 7 +
+                                          col -
+                                          (monthly ? start.weekday - 1 : 0);
+                                      return index < 0 || index >= count
+                                          ? const SizedBox()
+                                          : dayCard(
+                                              start.add(Duration(days: index)),
+                                            );
+                                    },
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       );
     },

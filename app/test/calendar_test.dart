@@ -60,7 +60,8 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.text('빈 슬롯'), findsNWidgets(21));
+        expect(find.text('00:00'), findsOneWidget);
+        expect(find.text('23:00'), findsOneWidget);
         expect(find.text('하루 3명 · 슬롯 설정'), findsOneWidget);
         await tester.tap(find.text('월간'));
         await tester.pumpAndSettle();
@@ -71,46 +72,82 @@ void main() {
       },
     );
   }
-  testWidgets(
-    'dragging a registered crew member assigns a dated slot with revision',
-    (tester) async {
-      tester.view.physicalSize = const Size(1400, 1500);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      final writes = <Json>[];
-      final ops = OperationsController(
-        client: MockClient((r) async {
-          if (r.method == 'POST') writes.add(jsonDecode(r.body) as Json);
-          return response(calendarData());
-        }),
-      );
-      addTearDown(ops.dispose);
-      await ops.refresh();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SingleChildScrollView(child: CalendarScreen(operations: ops)),
-          ),
+  testWidgets('tapping the weekly grid saves a bounded shift with revision', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1500);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final writes = <Json>[];
+    final ops = OperationsController(
+      client: MockClient((r) async {
+        if (r.method == 'POST') writes.add(jsonDecode(r.body) as Json);
+        return response(calendarData());
+      }),
+    );
+    addTearDown(ops.dispose);
+    await ops.refresh();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(child: CalendarScreen(operations: ops)),
         ),
-      );
-      await tester.pumpAndSettle();
-      final source = find.text('현우 · 조리');
-      final target = find.text('빈 슬롯').first;
-      final gesture = await tester.startGesture(tester.getCenter(source));
-      await tester.pump(const Duration(seconds: 1));
-      await gesture.moveBy(const Offset(0, 25));
-      await tester.pump();
-      await gesture.moveTo(tester.getCenter(target));
-      await tester.pump();
-      await gesture.up();
-      await tester.pumpAndSettle();
-      expect(writes.single['action'], 'assign_staffing_slot');
-      expect(writes.single['date'], '2026-09-21');
-      expect(writes.single['tapperId'], 'cook');
-      expect(writes.single['slotId'], 'slot-0');
-      expect(writes.single['revision'], calendarData()['revision']);
-      expect(tester.takeException(), isNull);
-    },
-  );
+      ),
+    );
+    await tester.pumpAndSettle();
+    final day = find.byType(DragTarget<Json>).first;
+    final cell = find.descendant(of: day, matching: find.byType(InkWell)).first;
+    await tester.ensureVisible(cell);
+    await tester.tap(cell);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('현우 · 조리').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('저장').last);
+    await tester.pumpAndSettle();
+    expect(writes.single['action'], 'save_shift_pattern');
+    expect(writes.single['date'], '2026-09-21');
+    expect(writes.single['tapperId'], 'cook');
+    expect(writes.single['employmentType'], '시간알바');
+    expect(writes.single['revision'], calendarData()['revision']);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('dropping crew at a 30-minute row prefills the shift time', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1500);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final writes = <Json>[];
+    final ops = OperationsController(
+      client: MockClient((r) async {
+        if (r.method == 'POST') writes.add(jsonDecode(r.body) as Json);
+        return response(calendarData());
+      }),
+    );
+    addTearDown(ops.dispose);
+    await ops.refresh();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(child: CalendarScreen(operations: ops)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final target = find.byType(DragTarget<Json>).first;
+    final widget = tester.widget<DragTarget<Json>>(target);
+    widget.onAcceptWithDetails!(
+      DragTargetDetails<Json>(
+        data: calendarData()['tappers'][0],
+        offset: tester.getTopLeft(target) + const Offset(20, 300),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('저장').last);
+    await tester.pumpAndSettle();
+    expect(writes.single['start'], '05:00');
+    expect(writes.single['end'], '14:00');
+  });
 }

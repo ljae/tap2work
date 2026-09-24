@@ -167,25 +167,20 @@ void main() {
     },
   );
 
-  testWidgets(
-    'crew can inspect tables and equipment but cannot open settings',
-    (tester) async {
-      final ops = OperationsController(
-        client: MockClient((r) async => response(layoutSample('crew'))),
-      );
-      addTearDown(ops.dispose);
-      await openMap(tester, ops);
-      expect(find.text('총 24석'), findsOneWidget);
-      expect(find.text('배치 설정'), findsNothing);
-      await tapVisible(tester, find.widgetWithText(ListTile, '냉장고'));
-      expect(
-        find.textContaining('보관 재료:'),
-        findsNothing,
-      ); // fixture inventory is stored in storage
-      expect(find.text('냉장고 · 주요 기기'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
+  testWidgets('crew sees map and materials without layout settings', (
+    tester,
+  ) async {
+    final ops = OperationsController(
+      client: MockClient((r) async => response(layoutSample('crew'))),
+    );
+    addTearDown(ops.dispose);
+    await openMap(tester, ops);
+    expect(find.text('총 24석'), findsOneWidget);
+    expect(find.text('배치 설정'), findsNothing);
+    expect(find.text('재료 현황'), findsOneWidget);
+    expect(find.text('전체 테이블과 기기'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'stale layout saves carry original revision and preserve draft after conflict',

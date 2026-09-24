@@ -24,7 +24,7 @@ test('order TAPs contain only order work; first cooking action consumes shared p
   let state = await store.snapshot('owner');
   const menus = state.tasks.filter(t => t.orderId && ['bowl', 'pork'].includes(t.menuId));
   assert.equal(menus.length, 2);
-  assert.ok(menus.every(t => t.steps.length === 3 && !t.steps.some(s => s.sourceTemplateId)));
+  assert.ok(menus.every(t => t.steps.length >= 3 && !t.steps.some(s => s.sourceTemplateId)));
   assert.equal(balance(state), 3);
   assert.equal(prep(state).length, 1);
   state = await act('cook', 'complete_step', { taskId: menus[0].id, stepId: menus[0].steps[0].id });

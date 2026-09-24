@@ -142,24 +142,18 @@ class _FloorPlanViewState extends State<FloorPlanView> {
           ),
         const SizedBox(height: 20),
         const Text(
-          '전체 테이블과 기기',
+          '재료 현황',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
-        // Full-size list targets remain easy to use even with a small overview map.
-        for (final z in zones)
+        for (final item in ops.rows('items'))
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: Icon(_icon(z['kind'])),
-            title: Text(z['name']),
+            leading: const Icon(Icons.inventory_2_outlined),
+            title: Text('${item['name']} · ${item['quantity']}${item['unit']}'),
             subtitle: Text(
-              z['kind'] == 'table'
-                  ? '${z['seats']}인석'
-                  : _kinds[z['kind']] ?? '장소',
+              '마지막 실사 ${_stamp(item['lastCheckedAt'])} · 마지막 발주 ${_stamp(item['lastOrderedAt'])}',
             ),
-            selected: selected == z['id'],
-            trailing: const Icon(Icons.location_on_outlined),
-            onTap: () => setState(() => selected = z['id']),
           ),
         const Information(
           '좌석 수는 설정된 정원이며 실시간 착석 정보가 아니에요. 배치는 개략도이며, 실제 장비 사용법과 안전·비상 동선은 현장에서 확인해 주세요.',
@@ -167,6 +161,14 @@ class _FloorPlanViewState extends State<FloorPlanView> {
       ],
     );
   }
+}
+
+String _stamp(dynamic value) {
+  final date = DateTime.tryParse(
+    '$value',
+  )?.toUtc().add(const Duration(hours: 9));
+  if (date == null) return '기록 없음';
+  return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
 }
 
 IconData _icon(String kind) => switch (kind) {

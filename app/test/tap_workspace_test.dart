@@ -48,6 +48,44 @@ Future<void> openCard(WidgetTester tester, String key) async {
 
 void main() {
   testWidgets(
+    'TAP surface gains color with progress and becomes dark when complete',
+    (tester) async {
+      Future<Color> surface(int done) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: TapCard(
+                level: 'TAP',
+                title: '준비',
+                subtitle: '샘플',
+                total: 4,
+                done: done,
+                onOpen: () {},
+                checked: done == 4,
+              ),
+            ),
+          ),
+        );
+        return tester
+            .widget<Material>(
+              find
+                  .descendant(
+                    of: find.byType(TapCard),
+                    matching: find.byType(Material),
+                  )
+                  .first,
+            )
+            .color!;
+      }
+
+      final empty = await surface(0);
+      final partial = await surface(2);
+      final complete = await surface(4);
+      expect(partial, isNot(empty));
+      expect(complete.computeLuminance(), lessThan(partial.computeLuminance()));
+    },
+  );
+  testWidgets(
     'menu TAPs render in one order group and its touch action moves them together',
     (tester) async {
       final data = fixture();
@@ -55,7 +93,13 @@ void main() {
           (data['tasks'] as List).firstWhere((t) => t['kind'] == 'routine')
               as Json;
       final second = jsonDecode(jsonEncode(first)) as Json;
-      first.addAll({'orderId': 'order-17', 'orderNumber': 'A-17'});
+      first.addAll({
+        'orderId': 'order-17',
+        'orderNumber': 'A-17',
+        'orderChannel': '배달',
+        'orderPlatform': '배달의민족',
+        'customerRequest': '수저 제외',
+      });
       second.addAll({
         'id': 'second-menu',
         'title': '추가 메뉴',
@@ -73,7 +117,13 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops, width: 390);
-      expect(find.text('주문 A-17 · 2 메뉴 ↕'), findsOneWidget);
+      expect(find.textContaining('주문 A-17 ·'), findsOneWidget);
+      expect(find.textContaining('🛵 배달의민족'), findsOneWidget);
+      await tester.tap(find.byTooltip('요청사항 보기'));
+      await tester.pumpAndSettle();
+      expect(find.text('수저 제외'), findsOneWidget);
+      await tester.tap(find.text('확인'));
+      await tester.pumpAndSettle();
       await tester.ensureVisible(find.byTooltip('주문 그룹 이동'));
       await tester.tap(find.byTooltip('주문 그룹 이동'));
       await tester.pumpAndSettle();
@@ -189,7 +239,7 @@ void main() {
       addTearDown(ops.dispose);
       await mountBoard(tester, ops);
       await openGroup(tester, '마감 폴더  ·  0');
-      expect(find.text('아직 카드가 없어요'), findsNWidgets(3));
+      expect(find.text('아직 카드가 없어요'), findsNWidgets(2));
       await tester.tap(find.widgetWithText(TextButton, '전체 보드'));
       await tester.pumpAndSettle();
       await openGroup(tester, '기본 업무  ·  2');

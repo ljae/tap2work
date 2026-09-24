@@ -122,6 +122,7 @@ function ensureDueTasks(state, now) {
   if (ensureOrderTaps(state, now)) changed = true;
   if (ensurePreparationTaps(state, now)) changed = true;
   for (const template of state.taskTemplates) {
+    if (template.archivedAt) continue;
     const id = `daily-${template.id}-v${template.version}-${date}`;
     if (!state.tasks.some(task => task.templateId === template.id && task.date === date && !task.archivedAt)) {
       state.tasks.push({ ...structuredClone(template), templateId: template.id, id, date, dueAt: iso(now), kind: 'routine', boardStatus: 'todo', completedAt: null, completedBy: null }); changed = true;

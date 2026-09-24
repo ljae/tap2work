@@ -27,7 +27,8 @@ export function seedSales(now) {
       const status = day === 0 && index > 18 ? ['접수', '조리 중', '조리 중', '준비 완료', '접수'][index - 19] : index === 4 ? '취소' : '완료';
       const lines = [{ menuId: menu.id, name: menu.name, quantity: 1 + index % 3, unitPrice: menu.price, discountPerUnit: index % 9 === 0 ? 500 : 0, returnedQuantity: index === 8 ? 1 : 0 }];
       if (index % 2 === 0) lines.push({ menuId: 'tea', name: '우동사리', quantity: 1, unitPrice: 3000, discountPerUnit: 0, returnedQuantity: 0 });
-      tickets.push({ id: `S-${day}-${index + 1}`, number: `${day === 0 ? '오늘' : day + '일전'}-${101 + index}`, createdAt: new Date(at).toISOString(), channel: ['매장', '포장', '배달'][index % 3], table: index % 3 === 0 ? `${1 + index % 6}번 테이블` : null, status, payment: index === 23 ? '미결제' : '결제', lines });
+      tickets.push({ id: `S-${day}-${index + 1}`, number: `${day === 0 ? '오늘' : day + '일전'}-${101 + index}`, createdAt: new Date(at).toISOString(), channel: ['매장', '포장', '배달'][index % 3], table: index % 3 === 0 ? `${1 + index % 6}번 테이블` : null, status, payment: index === 23 ? '미결제' : '결제', lines,
+        ...(day === 0 && index === 20 ? { platform: '배달의민족', request: '수저 제외 (샘플 요청)' } : {}) });
     }
   }
   return { source: 'sample', seededAt: new Date(now).toISOString(), menus, tickets };
@@ -81,6 +82,6 @@ export function salesDashboard(sales, now, showMoney) {
     }
   }
   // Active tickets are not limited by the reporting period: yesterday's unfinished work remains visible.
-  const queue = sales.tickets.filter(ticket => ['접수', '조리 중', '준비 완료'].includes(ticket.status) && new Date(ticket.createdAt) <= new Date(now)).sort((a, b) => a.createdAt.localeCompare(b.createdAt)).map(ticket => ({ id: ticket.id, number: ticket.number, channel: ticket.channel, table: ticket.table, status: ticket.status, createdAt: ticket.createdAt, elapsedMinutes: Math.floor((new Date(now) - new Date(ticket.createdAt)) / 60000), lines: ticket.lines.map(line => ({ menuId: line.menuId, name: line.name, quantity: line.quantity })) }));
+  const queue = sales.tickets.filter(ticket => ['접수', '조리 중', '준비 완료'].includes(ticket.status) && new Date(ticket.createdAt) <= new Date(now)).sort((a, b) => a.createdAt.localeCompare(b.createdAt)).map(ticket => ({ id: ticket.id, number: ticket.number, channel: ticket.channel, table: ticket.table, platform: ticket.platform ?? null, request: ticket.request ?? null, status: ticket.status, createdAt: ticket.createdAt, elapsedMinutes: Math.floor((new Date(now) - new Date(ticket.createdAt)) / 60000), lines: ticket.lines.map(line => ({ menuId: line.menuId, name: line.name, quantity: line.quantity })) }));
   return { source: sales.source, seededAt: sales.seededAt, asOf: new Date(now).toISOString(), showMoney, reports, queue };
 }

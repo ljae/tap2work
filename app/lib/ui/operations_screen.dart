@@ -87,6 +87,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
         ? 0
         : value == 3
         ? 2
+        : value == 4
+        ? 3
         : value;
     inventoryOpen = value == 2;
   });
@@ -182,7 +184,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                             constraints: BoxConstraints(
                               maxWidth: tab == 0 || tab == 1
                                   ? 1240
-                                  : tab == 4
+                                  : tab == 3
                                   ? 1000
                                   : 680,
                             ),
@@ -203,8 +205,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                           ]
                                         : today(),
                                   1 => tasks(),
-                                  2 => [TeamScreen(operations: ops)],
-                                  3 => [CalendarScreen(operations: ops)],
+                                  2 => [CalendarScreen(operations: ops)],
                                   _ => floorPlan(),
                                 },
                                 const SizedBox(height: 24),
@@ -242,11 +243,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
             icon: Icon(CupertinoIcons.checkmark_alt_circle),
             selectedIcon: Icon(CupertinoIcons.checkmark_alt_circle_fill),
             label: 'Todo · 할 일',
-          ),
-          NavigationDestination(
-            icon: Icon(CupertinoIcons.person_2),
-            selectedIcon: Icon(CupertinoIcons.person_2_fill),
-            label: 'Team · 우리 팀',
           ),
           NavigationDestination(
             icon: Icon(CupertinoIcons.calendar),
@@ -380,8 +376,30 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
               gap(8),
+              Text(
+                '기록된 근무 기준 급여 합계 ${money(ops.rows('tappers').fold<num>(0, (sum, person) => sum + ((person['gross'] as num?) ?? 0)))}원',
+              ),
+              for (final person in ops.rows('tappers'))
+                Text(
+                  '${person['nickname']} · ${money((person['gross'] as num?) ?? 0)}원',
+                ),
               small(ops.data!['privateSummary']['note']),
               small('급여 계산·정산 기능은 아직 연결되지 않았어요.'),
+              TextButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => Scaffold(
+                      appBar: AppBar(title: const Text('인건비 기록')),
+                      body: SingleChildScrollView(
+                        padding: const EdgeInsets.all(18),
+                        child: TeamScreen(operations: ops, payOnly: true),
+                      ),
+                    ),
+                  ),
+                ),
+                icon: const Icon(CupertinoIcons.money_dollar_circle),
+                label: const Text('근태·지급 기록 열기'),
+              ),
             ],
           ),
         ),
