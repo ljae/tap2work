@@ -15,9 +15,11 @@ class OperationsScreen extends StatefulWidget {
     super.key,
     required this.operations,
     required this.work,
+    this.accountAction,
   });
   final OperationsController operations;
   final WorkController work;
+  final Widget? accountAction;
   @override
   State<OperationsScreen> createState() => _OperationsScreenState();
 }
@@ -96,9 +98,10 @@ class _OperationsScreenState extends State<OperationsScreen> {
       appBar: AppBar(
         title: const BrandLogo(),
         actions: [
+          if (widget.accountAction != null) widget.accountAction!,
           PopupMenuButton<String>(
-            enabled: !ops.busy,
-            tooltip: '체험 역할 바꾸기 · 실제 로그인 아님',
+            enabled: !ops.busy && !ops.cloud,
+            tooltip: ops.cloud ? '내 매장 역할' : '체험 역할 바꾸기 · 실제 로그인 아님',
             onSelected: (id) {
               cart.clear();
               ops.selectActor(id);
@@ -132,7 +135,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
               color: AppColors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
-                ops.readOnly
+                ops.cloud
+                    ? '내 매장 · 클라우드 저장 · 가상 주문'
+                    : ops.readOnly
                     ? '공개 미리보기 · 샘플 데이터 · 저장·실제 발주 없음'
                     : ops.sharedApi != null
                     ? '공유 데모 서버 연결 · ${ops.sharedApiHost} · 확인이 팀원과 함께 보여요 · 역할 전환은 로그인 아님 · 실제 발주 없음'

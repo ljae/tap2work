@@ -34,7 +34,8 @@ Future<void> mountBoard(
 }
 
 Future<void> openGroup(WidgetTester tester, String name) async {
-  await tester.tap(find.widgetWithText(TextButton, name).first);
+  await tester.ensureVisible(find.widgetWithText(ChoiceChip, name).first);
+  await tester.tap(find.widgetWithText(ChoiceChip, name).first);
   await tester.pumpAndSettle();
 }
 
@@ -47,7 +48,7 @@ Future<void> openCard(WidgetTester tester, String key) async {
 
 void main() {
   for (final width in [320.0, 390.0, 1200.0]) {
-    testWidgets('same cards drill into three levels and manual at $width', (
+    testWidgets('root shows Taps immediately and opens manual at $width', (
       tester,
     ) async {
       final ops = OperationsController(
@@ -56,7 +57,7 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops, width: width);
-      await openGroup(tester, '기본 업무  ·  2');
+      expect(find.text('할일'), findsOneWidget);
       expect(
         tester
             .widget<TapCard>(find.byKey(const ValueKey('tap-daily-prep')))

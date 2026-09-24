@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import '../domain/checklist_draft.dart';
 import '../domain/tap_planning.dart';
 import '../state/operations_controller.dart';
@@ -23,9 +25,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   String query = '';
   bool timeline = false, mineOnly = false;
   final search = TextEditingController();
-  final preview = <String, Json>{};
-  final previewMoves = <String, Json>{};
-  final previewOrders = <String, List<String>>{};
   final previewStepOrder = <String, List<String>>{};
   List<String>? previewGroupOrder;
   OperationsController get ops => widget.ops;
@@ -43,12 +42,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         ),
       );
 
-  String previewKey(Json task, Json step) =>
-      '${ops.actorId}/${ops.data?['day']}/${task['id']}/${step['id']}';
   List<Json> steps(Json task) {
     final result = <Json>[
-      for (final step in rowsOf(task['steps']))
-        {...step, ...?preview[previewKey(task, step)]},
+      for (final step in rowsOf(task['steps'])) {...step},
     ];
     final order =
         previewStepOrder['${ops.actorId}/${ops.data?['day']}/${task['id']}'];
@@ -65,30 +61,13 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       steps(task).where((s) => s['completedAt'] != null).length;
   String status(Json task) {
     if (total(task) > 0 && done(task) == total(task)) return '완료';
-    final state =
-        previewMoves['${ops.actorId}/${ops.data?['day']}/${task['id']}']?['status'] ??
-        task['boardStatus'];
+    final state = task['boardStatus'];
     return state == 'processing' ? '주문처리중' : '할일';
   }
 
-  String folderOf(Json task) =>
-      previewMoves['${ops.actorId}/${ops.data?['day']}/${task['id']}']?['folderId'] ??
-      task['folderId'] ??
-      'general';
-  List<Json> inFolder(String id) {
-    final result = groups.where((t) => folderOf(t) == id).toList();
-    final order = previewOrders['${ops.actorId}/${ops.data?['day']}/$id'];
-    if (order != null) {
-      result.sort((a, b) {
-        final ai = order.indexOf(a['id']);
-        final bi = order.indexOf(b['id']);
-        return (ai < 0 ? result.length : ai).compareTo(
-          bi < 0 ? result.length : bi,
-        );
-      });
-    }
-    return result;
-  }
+  String folderOf(Json task) => task['folderId'] ?? 'general';
+  List<Json> inFolder(String id) =>
+      groups.where((t) => folderOf(t) == id).toList();
 
   List<Json> get folders {
     final result = ops.rows('checklistFolders').map((f) => {...f}).toList();
@@ -165,18 +144,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     listenable: ops,
     builder: (context, _) {
       final folder = folders.where((f) => f['id'] == folderId).firstOrNull;
-      final task = groups
-          .where((t) => t['id'] == taskId && folderOf(t) == folderId)
-          .firstOrNull;
-      final level = task != null
-          ? 'SMALL TAP'
-          : folder != null
-          ? 'TAP'
-          : 'BIG TAP';
+      final task = groups.where((t) => t['id'] == taskId).firstOrNull;
+      final level = task != null ? 'SMALL TAP' : 'TAP';
       final scoped = (folder == null ? groups : inFolder(folder['id']))
           .where(visibleTask)
           .toList();
-      final title = task?['title'] ?? folder?['name'] ?? '우리 매장 보드';
+      final title = task?['title'] ?? folder?['name'] ?? '체크리스트';
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -226,7 +199,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 ? '${task['slot']} · ${role(task)} · ${place(task)}'
                 : folder != null
                 ? 'Tap을 열어, 해야 할 작은 행동을 확인하세요.'
-                : 'BIG TAP을 열면 업무가, Tap을 열면 작은 행동이 보여요.',
+                : '오늘의 업무를 한눈에. 카드를 끌어 순서와 상태를 바꾸세요.',
             style: const TextStyle(
               color: AppColors.muted,
               fontSize: 13,
@@ -273,19 +246,23 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                             ),
                           ),
                         ),
-                  icon: const Icon(Icons.tune, size: 17),
+                  icon: const Icon(
+                    CupertinoIcons.slider_horizontal_3,
+                    size: 17,
+                  ),
                   label: const Text('보드 편집'),
                 ),
             ],
           ),
           const SizedBox(height: 16),
           if (!timeline) ...[
+            if (task == null) ...[_folderBar(), const SizedBox(height: 16)],
             TextField(
               controller: search,
               onChanged: (v) => setState(() => query = v.trim().toLowerCase()),
               decoration: InputDecoration(
-                hintText: '이 보드에서 검색',
-                prefixIcon: const Icon(Icons.search, size: 20),
+                hintText: 'Tap 검색',
+                prefixIcon: const Icon(CupertinoIcons.search, size: 20),
                 filled: true,
                 fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(
@@ -307,7 +284,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                         ? '하나의 행동'
                         : folder != null
                         ? '하나의 업무'
-                        : '업무 모음'}',
+                        : '전체 업무'}',
                     style: const TextStyle(
                       fontSize: 11,
                       letterSpacing: .7,
@@ -334,14 +311,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
 
   Widget _board(Json? folder, Json? task, List<Json> scoped) {
     if (task != null) return _smallBoard(task);
-    if (folder == null) return _bigBoard();
+
     final entries = <({String id, String state, Widget card})>[];
     bool matches(String name) => name.toLowerCase().contains(query);
     for (final t in scoped.where((t) => matches(t['title']))) {
       entries.add((
         id: t['id'],
         state: status(t),
-        card: LongPressDraggable<String>(
+        card: _draggable(
           data: t['id'],
           feedback: Material(
             elevation: 8,
@@ -352,14 +329,15 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             level: 'TAP',
             emoji: t['emoji'] ?? '📋',
             title: t['title'],
-            subtitle: '${t['slot']} · ${role(t)} · ${place(t)}',
+            subtitle:
+                '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${t['slot']} · ${role(t)}',
             total: total(t),
             done: done(t),
             footer: 'Small Tap ${done(t)}/${total(t)}',
-            onOpen: () => navigate(folder: folderId, task: t['id']),
+            onOpen: () => navigate(folder: folderOf(t), task: t['id']),
             onCheck: () => _moveTap(
               t,
-              folder['id'],
+              folderOf(t),
               status(t) == '완료' ? 'processing' : 'done',
             ),
             checked: status(t) == '완료',
@@ -382,7 +360,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             children: [
               for (final (index, lane) in lanes.indexed)
                 DragTarget<String>(
-                  onWillAcceptWithDetails: (_) => true,
+                  onWillAcceptWithDetails: (d) =>
+                      !ops.busy && !d.data.startsWith('folder:'),
                   onAcceptWithDetails: (details) {
                     final moving = groups
                         .where((t) => t['id'] == details.data)
@@ -390,7 +369,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                     if (moving != null) {
                       _moveTap(
                         moving,
-                        folder['id'],
+                        folderOf(moving),
                         lane == '완료'
                             ? 'done'
                             : lane == '주문처리중'
@@ -465,7 +444,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                                 if (moving != null) {
                                   _moveTap(
                                     moving,
-                                    folder['id'],
+                                    folderOf(moving),
                                     lane == '완료'
                                         ? 'done'
                                         : lane == '주문처리중'
@@ -522,7 +501,10 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     String targetStatus, {
     String? beforeTaskId,
   }) async {
-    if (!ops.isLeader && task['canComplete'] != true) {
+    final ownCompleted =
+        task['completedAt'] != null &&
+        task['completedBy']?['id'] == ops.actor['id'];
+    if (!ops.isLeader && task['canComplete'] != true && !ownCompleted) {
       notice('담당 Tap만 이동할 수 있어요.');
       return;
     }
@@ -531,42 +513,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       return;
     }
     if (ops.readOnly) {
-      final current = inFolder(targetFolder)
-          .map((row) => row['id'] as String)
-          .where((id) => id != task['id'])
-          .toList();
-      final insertion = beforeTaskId == null
-          ? current.length
-          : current.indexOf(beforeTaskId);
-      current.insert(insertion < 0 ? current.length : insertion, task['id']);
-      setState(() {
-        previewOrders['${ops.actorId}/${ops.data?['day']}/$targetFolder'] =
-            current;
-        previewMoves['${ops.actorId}/${ops.data?['day']}/${task['id']}'] = {
-          'folderId': targetFolder,
-          'status': targetStatus,
-        };
-        if (targetStatus == 'done') {
-          for (final step in steps(task)) {
-            preview.putIfAbsent(
-              previewKey(task, step),
-              () => {
-                'completedAt': DateTime.now().toUtc().toIso8601String(),
-                'completedBy': {
-                  'id': ops.actor['id'],
-                  'name': ops.actor['name'],
-                },
-                'preview': true,
-              },
-            );
-          }
-        } else {
-          for (final step in steps(task)) {
-            if (step['preview'] == true) preview.remove(previewKey(task, step));
-          }
-        }
-      });
-      notice('체험 표시만 변경했어요. 저장되지 않아요.');
+      ops.previewMoveTap(
+        task['id'],
+        targetFolder,
+        targetStatus,
+        beforeTaskId: beforeTaskId,
+      );
       return;
     }
     final payload = <String, dynamic>{
@@ -579,103 +531,100 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     if (!ok && mounted) notice(ops.error ?? '이동하지 못했어요.');
   }
 
-  Widget _bigBoard() => SizedBox(
-    height: 445,
-    child: ListView(
-      scrollDirection: Axis.horizontal,
+  Widget _draggable({
+    required String data,
+    required Widget feedback,
+    required Widget child,
+  }) {
+    final mobile =
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android;
+    final faded = Opacity(opacity: .3, child: child);
+    return MouseRegion(
+      cursor: SystemMouseCursors.grab,
+      child: mobile
+          ? LongPressDraggable<String>(
+              data: data,
+              feedback: feedback,
+              childWhenDragging: faded,
+              maxSimultaneousDrags: ops.busy ? 0 : 1,
+              child: child,
+            )
+          : Draggable<String>(
+              data: data,
+              feedback: feedback,
+              childWhenDragging: faded,
+              maxSimultaneousDrags: ops.busy ? 0 : 1,
+              child: child,
+            ),
+    );
+  }
+
+  Widget _folderBar() => SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: Row(
+      spacing: 8,
       children: [
-        for (final folder in folders.where(
-          (f) =>
-              f['name'].toString().toLowerCase().contains(query) ||
-              inFolder(
-                f['id'],
-              ).any((t) => t['title'].toString().toLowerCase().contains(query)),
-        ))
+        ChoiceChip(
+          label: const Text('전체 Tap'),
+          selected: folderId == null,
+          onSelected: (_) => navigate(),
+        ),
+        for (final folder in folders)
           DragTarget<String>(
-            onWillAcceptWithDetails: (_) => true,
+            onWillAcceptWithDetails: (_) => !ops.busy,
             onAcceptWithDetails: (details) {
               if (details.data.startsWith('folder:')) {
                 _reorderGroup(details.data.substring(7), folder['id']);
-                return;
-              }
-              final task = groups
-                  .where((t) => t['id'] == details.data)
-                  .firstOrNull;
-              if (task != null) {
-                _moveTap(task, folder['id'], task['boardStatus'] ?? 'todo');
+              } else {
+                final task = groups
+                    .where((t) => t['id'] == details.data)
+                    .firstOrNull;
+                if (task != null) {
+                  _moveTap(
+                    task,
+                    folder['id'],
+                    status(task) == '완료'
+                        ? 'done'
+                        : status(task) == '주문처리중'
+                        ? 'processing'
+                        : 'todo',
+                  );
+                }
               }
             },
-            builder: (context, candidates, rejected) => Container(
-              width: 290,
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: candidates.isNotEmpty
-                    ? const Color(0xFFFCE8E4)
-                    : const Color(0xFFEBEDF0),
-                borderRadius: BorderRadius.circular(14),
+            builder: (context, candidates, _) => _draggable(
+              data: 'folder:${folder['id']}',
+              feedback: Material(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(folder['name']),
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  LongPressDraggable<String>(
-                    data: 'folder:${folder['id']}',
-                    feedback: Material(
-                      elevation: 8,
-                      child: Text(folder['name']),
-                    ),
-                    child: TextButton(
-                      onPressed: () => navigate(folder: folder['id']),
-                      child: Text(
-                        '${folder['name']}  ·  ${inFolder(folder['id']).length}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        for (final task
-                            in inFolder(folder['id'])
-                                .where(visibleTask)
-                                .where(
-                                  (t) =>
-                                      query.isEmpty ||
-                                      t['title']
-                                          .toString()
-                                          .toLowerCase()
-                                          .contains(query),
-                                ))
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: LongPressDraggable<String>(
-                              data: task['id'],
-                              feedback: Material(
-                                elevation: 8,
-                                child: SizedBox(
-                                  width: 250,
-                                  child: Text(task['title']),
-                                ),
-                              ),
-                              child: TapCard(
-                                level: 'TAP',
-                                emoji: task['emoji'] ?? '📋',
-                                title: task['title'],
-                                subtitle: '${task['slot']} · ${status(task)}',
-                                total: total(task),
-                                done: done(task),
-                                footer: '${done(task)}/${total(task)}',
-                                onOpen: () => navigate(
-                                  folder: folder['id'],
-                                  task: task['id'],
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
+              child: ChoiceChip(
+                avatar: Icon(
+                  CupertinoIcons.folder,
+                  size: 16,
+                  color: candidates.isNotEmpty
+                      ? AppColors.accent
+                      : AppColors.muted,
+                ),
+                label: Text(
+                  '${folder['name']}  ·  ${inFolder(folder['id']).length}',
+                ),
+                selected: folderId == folder['id'] || candidates.isNotEmpty,
+                onSelected: (_) => navigate(folder: folder['id']),
+              ),
+            ),
+          ),
+        if (ops.isLeader)
+          ActionChip(
+            avatar: const Icon(CupertinoIcons.folder_badge_plus, size: 17),
+            label: const Text('폴더 관리'),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) =>
+                    ChecklistEditor(ops: ops, initialFolder: folderId),
               ),
             ),
           ),
@@ -882,19 +831,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         notice('기존 확인 기록은 공개 미리보기에서 변경할 수 없어요.');
         return;
       }
-      setState(() {
-        final key = previewKey(task, step);
-        if (checked) {
-          preview.remove(key);
-        } else {
-          preview[key] = {
-            'completedAt': DateTime.now().toUtc().toIso8601String(),
-            'completedBy': {'id': ops.actor['id'], 'name': ops.actor['name']},
-            'preview': true,
-          };
-        }
-      });
-      notice('체험 표시만 변경했어요. 저장되지 않아요.');
+      ops.previewToggleStep(task['id'], step['id']);
     } else {
       final success = await ops.act(checked ? 'reopen_step' : 'complete_step', {
         'taskId': task['id'],

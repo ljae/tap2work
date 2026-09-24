@@ -2,6 +2,7 @@ import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
+import { ensureOrderTaps, syncOrderFromTap } from './order_taps.mjs';
 import { seedSales, salesDashboard } from './sales.mjs';
 import { ensureLayout, validateLayout } from './layout.mjs';
 import { ensureStaff, staffView, mutateStaff } from './staff.mjs';
@@ -116,6 +117,7 @@ function ensureDueTasks(state, now) {
   if (!state.sales) { state.sales = seedSales(now); changed = true; }
   const date = koreanDate(now);
   if (state.day !== date) { state.day = date; changed = true; }
+  if (ensureOrderTaps(state, now)) changed = true;
   for (const template of state.taskTemplates) {
     const id = `daily-${template.id}-v${template.version}-${date}`;
     if (!state.tasks.some(task => task.templateId === template.id && task.date === date && !task.archivedAt)) {
@@ -141,25 +143,29 @@ function ensureDueTasks(state, now) {
 }
 export class OperationsStore {
   #queue = Promise.resolve();
-  constructor(filename, clock = () => new Date()) { this.filename = filename; this.clock = clock; }
+  constructor(filename, clock = () => new Date(), { persistence = null, actor = null } = {}) { this.filename = filename; this.clock = clock; this.persistence = persistence; this.trustedActor = actor; this.persistedRevision = null; }
   async #read() {
+    if (this.persistence) { const state = await this.persistence.read(); this.persistedRevision = state.revision; return state; }
     try { return JSON.parse(await readFile(this.filename, 'utf8')); }
     catch (error) { if (error.code !== 'ENOENT') throw error; const state = seedOperations(this.clock()); await this.#save(state); return state; }
   }
   async #save(state) {
+    if (this.persistence) { await this.persistence.save(state, this.persistedRevision); this.persistedRevision = state.revision; return; }
     await mkdir(path.dirname(this.filename), { recursive: true });
     const temporary = `${this.filename}.${randomUUID()}.tmp`;
     await writeFile(temporary, JSON.stringify(state, null, 2) + '\n', { flag: 'wx' });
     await rename(temporary, this.filename);
   }
   #serial(callback) { const operation = this.#queue.then(callback); this.#queue = operation.catch(() => {}); return operation; }
-  #actor(id) { const actor = actors.find(item => item.id === id); if (!actor) fail('체험할 역할을 선택해 주세요.', 403); return actor; }
+  #actor(id) { if (this.trustedActor) return this.trustedActor; const actor = actors.find(item => item.id === id); if (!actor) fail('체험할 역할을 선택해 주세요.', 403); return actor; }
   #view(state, actor) {
     const result = structuredClone(state);
     Object.assign(result, staffView(state, actor, this.clock()));
     result.actor = actor;
     result.serverTime = iso(this.clock());
     result.demo = true;
+    result.authenticated = Boolean(this.trustedActor);
+    if (this.trustedActor) result.actors = [this.trustedActor];
     result.dashboard = salesDashboard(state.sales, this.clock(), actor.role === 'owner');
     delete result.sales;
     result.tasks = result.tasks.filter(task => !task.supersededAt && !task.archivedAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day));
@@ -243,7 +249,7 @@ export class OperationsStore {
             const step = task.steps?.find(row => row.id === input.stepId);
             if (task.kind !== 'routine' || !step) fail('행위를 찾지 못했어요.', 404);
             if (step.completedAt) fail('동료가 이미 확인한 행위예요.', 409);
-            step.completedAt = iso(now); step.completedBy = who;
+            step.completedAt = iso(now); step.completedBy = who; task.boardStatus = 'processing';
             activity(`${task.title} · ${step.title} 완료`);
             if (task.steps.every(row => row.completedAt)) { task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; }
             break;
@@ -266,13 +272,13 @@ export class OperationsStore {
           }
           if (input.status !== 'done' && task.completedAt) {
             if (task.completedBy?.id !== actor.id && !['owner', 'manager'].includes(actor.role)) fail('완료한 본인이나 리더만 되돌릴 수 있어요.', 403);
-            for (const step of task.steps ?? []) if (step.completionSource === 'tap_bulk' && step.completedBy?.id === task.completedBy.id) {
+            for (const step of task.steps ?? []) if (step.completedAt) {
               delete step.completedAt; delete step.completedBy; delete step.completionSource;
             }
             task.completedAt = null; task.completedBy = null;
           }
-          const lane = state.tasks.filter(row => row.id !== task.id && row.kind === 'routine' && row.date === state.day && !row.archivedAt && (row.boardFolderId ?? row.folderId) === input.folderId && (row.completedAt ? 'done' : row.boardStatus ?? 'todo') === input.status)
-            .sort((a, b) => (a.boardOrder ?? state.taskTemplates.findIndex(t => t.id === a.templateId)) - (b.boardOrder ?? state.taskTemplates.findIndex(t => t.id === b.templateId)));
+          const lane = state.tasks.filter(row => row.id !== task.id && row.kind === 'routine' && row.date === state.day && !row.archivedAt && (row.completedAt ? 'done' : row.boardStatus ?? 'todo') === input.status)
+            .sort((a, b) => (a.boardOrder ?? (state.taskTemplates.findIndex(t => t.id === a.templateId) < 0 ? state.taskTemplates.length : state.taskTemplates.findIndex(t => t.id === a.templateId))) - (b.boardOrder ?? (state.taskTemplates.findIndex(t => t.id === b.templateId) < 0 ? state.taskTemplates.length : state.taskTemplates.findIndex(t => t.id === b.templateId))));
           const before = input.beforeTaskId == null ? lane.length : lane.findIndex(row => row.id === input.beforeTaskId);
           if (before < 0) fail('삽입할 Tap을 찾지 못했어요.', 409);
           task.boardFolderId = input.folderId;
@@ -376,6 +382,7 @@ export class OperationsStore {
         }
         default: if (!mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
       }
+      if (['move_tap', 'complete_task', 'complete_step', 'reopen_step'].includes(input.action)) syncOrderFromTap(state, input.taskId);
       state.activity = state.activity.slice(0, 100);
       ensureDueTasks(state, now);
       state.revision++; await this.#save(state);

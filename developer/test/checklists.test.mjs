@@ -38,7 +38,7 @@ test('fresh demo starts with the 뼈찜 collection in its own folder, place and 
   assert.equal(bone.tasks.length, 11);
   assert.ok(state.checklistFolders.some(f => f.id === 'order-work'));
   assert.ok(state.checklistFolders.some(f => f.id === 'bone-preparation'));
-  assert.equal(state.taskTemplates.length, 17);
+  assert.equal(state.taskTemplates.length, 14);
   assert.ok(state.taskTemplates.every(row => row.version === 1));
   const prep = state.taskTemplates.find(row => row.id === PREP);
   assert.equal(prep.zone, 'prep'); assert.equal(prep.requiredRole, 'cook'); assert.equal(prep.emoji, '🍖');
@@ -55,7 +55,7 @@ test('legacy migration preserves completed evidence and upgrades pending manuals
   old.tasks[0].completedAt = clock().toISOString(); old.tasks[0].completedBy = { name: '기존 담당' };
   await writeFile(file, JSON.stringify(old));
   const upgraded = await store.snapshot('owner');
-  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine').length, 9);
+  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine').length, 11);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').steps, undefined);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').completedBy.name, '기존 담당');
   assert.equal(upgraded.tasks.find(t => t.id === 'prep').steps.length, 3);
@@ -133,10 +133,10 @@ test('folder moves, order and deletion are shared by every role without rewritin
   assert.equal(crew.tasks.find(t => t.templateId === 'library-bonejjim-hall-close').folderId, 'kitchen');
   assert.equal(crew.tasks.find(t => t.templateId === 'library-bonejjim-hall-close').displayOrder, 0);
   const empty = await act('save_checklists', { folders: [{ id: 'general', name: '기본' }], templates: [] });
-  assert.equal(empty.tasks.filter(t => t.kind === 'routine').length, 1);
+  assert.equal(empty.tasks.filter(t => t.kind === 'routine' && !t.orderId).length, 1);
   assert.equal(empty.tasks.find(t => t.id === task.id).completedAt, (await store.snapshot('owner')).tasks.find(t => t.id === task.id).completedAt);
   assert.ok(empty.tasks.some(t => t.kind === 'stock'));
-  midnight(); assert.equal((await store.snapshot('owner')).tasks.filter(t => t.kind === 'routine').length, 0);
+  midnight(); assert.equal((await store.snapshot('owner')).tasks.filter(t => t.kind === 'routine' && !t.orderId).length, 0);
   assert.ok(JSON.parse(await readFile(file)).tasks.find(t => t.id === task.id).completedAt);
 });
 test('deleted then reimported templates get distinct occurrence IDs', async t => {
@@ -181,7 +181,7 @@ test('entire catalog validates and saves with sources and detailed instructions'
   const payload = fullCatalog(state);
   const saved = await store.mutate('owner', { action: 'save_checklists', revision: state.revision, ...payload });
   assert.equal(saved.taskTemplates.length, payload.templates.length);
-  assert.equal(saved.taskTemplates.length, checklistLibrary.industries.reduce((n, i) => n + i.tasks.length, 0) + 6);
+  assert.equal(saved.taskTemplates.length, checklistLibrary.industries.reduce((n, i) => n + i.tasks.length, 0) + 3);
 });
 test('HTTP accepts checklist drafts larger than the old 64 KiB limit', async t => {
   const { store, file, clock } = await setup(t);
@@ -196,4 +196,23 @@ test('HTTP accepts checklist drafts larger than the old 64 KiB limit', async t =
   assert.ok(Buffer.byteLength(body) > 65536);
   const response = await fetch(`${base}/api/operations`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: base, 'x-demo-actor': 'owner', 'x-demo-token': snapshot.demoToken }, body });
   assert.equal(response.status, 200); assert.equal((await response.json()).taskTemplates.length, payload.templates.length);
+});
+
+test('global Tap ordering spans folders; linked orders survive folder editing and synchronize Home', async t => {
+  const { store, act } = await setup(t);
+  let state = await store.snapshot('owner');
+  const order = state.tasks.find(t => t.orderId);
+  const preparation = state.tasks.find(t => t.templateId && t.folderId !== order.folderId);
+  state = await act('move_tap', { taskId: order.id, folderId: order.folderId, status: 'todo', beforeTaskId: preparation.id });
+  assert.equal(state.tasks.find(t => t.id === order.id).folderId, order.folderId);
+  assert.equal(state.tasks.find(t => t.id === order.id).displayOrder + 1, state.tasks.find(t => t.id === preparation.id).displayOrder);
+  state = await act('save_checklists', draft(state));
+  assert.ok(state.tasks.some(t => t.id === order.id));
+  state = await act('move_tap', { taskId: order.id, folderId: order.folderId, status: 'done' });
+  assert.ok(state.tasks.find(t => t.id === order.id).steps.every(s => s.completedAt));
+  assert.ok(!state.dashboard.queue.some(t => t.id === order.orderId));
+  state = await act('move_tap', { taskId: order.id, folderId: order.folderId, status: 'processing' });
+  assert.ok(state.tasks.find(t => t.id === order.id).steps.every(s => !s.completedAt));
+  assert.equal(state.dashboard.queue.find(t => t.id === order.orderId).status, '조리 중');
+  assert.equal((await store.snapshot('owner')).tasks.filter(t => t.orderId === order.orderId).length, 1);
 });

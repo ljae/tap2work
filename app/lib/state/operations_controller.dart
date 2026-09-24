@@ -5,13 +5,14 @@ import 'package:http/http.dart' as http;
 
 typedef Json = Map<String, dynamic>;
 
-/// Local shared demo only. Actor selection is deliberately NOT authentication.
+/// Public preview, local demo, or verified Supabase workspace transport.
 class OperationsController extends ChangeNotifier {
   OperationsController({
     http.Client? client,
     Uri? endpoint,
     bool readOnly = const bool.fromEnvironment('PUBLIC_REVIEW'),
     this.sharedApi,
+    this.accessToken,
   }) : _client = client ?? http.Client(),
        // A shared demo server turns the read-only public build into a live shared client.
        readOnly = sharedApi == null && readOnly,
@@ -23,6 +24,8 @@ class OperationsController extends ChangeNotifier {
   final http.Client _client;
   final Uri endpoint;
   final bool readOnly;
+  final Future<String?> Function()? accessToken;
+  bool get cloud => accessToken != null;
 
   /// Base URL of a shared demo server reached through a tunnel, or null.
   final String? sharedApi;
@@ -53,7 +56,7 @@ class OperationsController extends ChangeNotifier {
   }
 
   Future<void> selectActor(String id) async {
-    if (busy || id == actorId) return;
+    if (cloud || busy || id == actorId) return;
     actorId = id;
     _generation++;
     data = null;
@@ -71,13 +74,15 @@ class OperationsController extends ChangeNotifier {
       final response = await _client
           .get(
             readOnly ? Uri.base.resolve('review-data/$actorId.json') : endpoint,
-            headers: readOnly ? {} : {'x-demo-actor': actorId},
+            headers: await _headers(),
           )
           .timeout(const Duration(seconds: 10));
       if (_disposed || generation != _generation) return;
       final body = jsonDecode(utf8.decode(response.bodyBytes)) as Json;
       if (response.statusCode != 200) throw Exception(body['error']);
+      _previewTickets.clear();
       data = body;
+      if (cloud) actorId = body['actor']['id'];
       _token = body['demoToken'] as String?;
       error = null;
     } catch (_) {
@@ -111,11 +116,7 @@ class OperationsController extends ChangeNotifier {
       final response = await _client
           .post(
             endpoint,
-            headers: {
-              'Content-Type': 'application/json',
-              'x-demo-actor': actorId,
-              'x-demo-token': _token ?? '',
-            },
+            headers: {...await _headers(), 'Content-Type': 'application/json'},
             body: jsonEncode({
               ...values,
               'action': action,
@@ -140,6 +141,156 @@ class OperationsController extends ChangeNotifier {
     error = failure;
     _emit();
     return success;
+  }
+
+  Future<Map<String, String>> _headers() async {
+    if (readOnly) return {};
+    if (cloud) {
+      final token = await accessToken!();
+      if (token == null) throw StateError('로그인이 필요해요.');
+      return {'Authorization': 'Bearer $token'};
+    }
+    return {'x-demo-actor': actorId, 'x-demo-token': _token ?? ''};
+  }
+
+  // A preview has one shared in-memory state across Home, Todo and Calendar.
+  void previewMoveTap(
+    String id,
+    String folder,
+    String status, {
+    String? beforeTaskId,
+  }) {
+    if (!readOnly || data == null) return;
+    final task = rows('tasks').firstWhere((t) => t['id'] == id);
+    final wasDone = task['completedAt'] != null;
+    final now = DateTime.now().toUtc().toIso8601String();
+    for (final step in (task['steps'] as List).cast<Json>()) {
+      if (status == 'done' && step['completedAt'] == null) {
+        step.addAll({
+          'completedAt': now,
+          'completedBy': actor,
+          'preview': true,
+        });
+      } else if (wasDone && status != 'done') {
+        step.remove('completedAt');
+        step.remove('completedBy');
+        step.remove('preview');
+      }
+    }
+    task.addAll({
+      'folderId': folder,
+      'boardStatus': status,
+      'completedAt': status == 'done' ? now : null,
+      'completedBy': status == 'done' ? actor : null,
+      'canComplete': status != 'done',
+    });
+    final lane =
+        rows('tasks')
+            .where(
+              (t) =>
+                  t['id'] != id &&
+                  t['kind'] == 'routine' &&
+                  (t['completedAt'] != null
+                          ? 'done'
+                          : t['boardStatus'] ?? 'todo') ==
+                      status,
+            )
+            .toList()
+          ..sort(
+            (a, b) => ((a['displayOrder'] ?? 0) as int).compareTo(
+              (b['displayOrder'] ?? 0) as int,
+            ),
+          );
+    final index = beforeTaskId == null
+        ? lane.length
+        : lane.indexWhere((t) => t['id'] == beforeTaskId);
+    lane.insert(index < 0 ? lane.length : index, task);
+    for (var i = 0; i < lane.length; i++) {
+      lane[i]['displayOrder'] = i;
+    }
+    _previewOrder(task);
+    _emit();
+  }
+
+  void previewToggleStep(String taskId, String stepId) {
+    if (!readOnly || data == null) return;
+    final task = rows('tasks').firstWhere((t) => t['id'] == taskId);
+    final steps = (task['steps'] as List).cast<Json>();
+    final step = steps.firstWhere((s) => s['id'] == stepId);
+    if (step['completedAt'] != null) {
+      step.remove('completedAt');
+      step.remove('completedBy');
+      step.remove('preview');
+    } else {
+      step.addAll({
+        'completedAt': DateTime.now().toUtc().toIso8601String(),
+        'completedBy': actor,
+        'preview': true,
+      });
+    }
+    final done = steps.every((s) => s['completedAt'] != null);
+    task.addAll({
+      'completedAt': done ? DateTime.now().toUtc().toIso8601String() : null,
+      'completedBy': done ? actor : null,
+      'boardStatus': done ? 'done' : 'processing',
+      'canComplete': !done,
+    });
+    _previewOrder(task);
+    _emit();
+  }
+
+  final _previewTickets = <String, Json>{};
+  void _previewOrder(Json task) {
+    if (task['orderId'] == null || data?['dashboard'] == null) return;
+    final dashboard = data!['dashboard'] as Json;
+    final queue = (dashboard['queue'] as List).cast<Json>();
+    final ticket =
+        queue.where((t) => t['id'] == task['orderId']).firstOrNull ??
+        _previewTickets[task['orderId']];
+    if (ticket == null) return;
+    _previewTickets[ticket['id']] = ticket;
+    final oldStatus = ticket['status'];
+    final next = task['completedAt'] != null
+        ? '완료'
+        : task['boardStatus'] == 'processing'
+        ? '조리 중'
+        : '접수';
+    if (oldStatus == next) return;
+    ticket['status'] = next;
+    final delta = (next == '완료' ? 0 : 1) - (oldStatus == '완료' ? 0 : 1);
+    for (final report in (dashboard['reports'] as List).cast<Json>()) {
+      final day = DateTime.parse(ticket['createdAt'])
+          .toUtc()
+          .add(const Duration(hours: 9))
+          .toIso8601String()
+          .substring(0, 10);
+      if (day.compareTo(report['startDay']) < 0 ||
+          day.compareTo(report['endDay']) > 0 ||
+          (report['channel'] != '전체' &&
+              report['channel'] != ticket['channel'])) {
+        continue;
+      }
+      final summary = report['summary'] as Json;
+      summary['activeCount'] = (summary['activeCount'] as int) + delta;
+      final statuses = report['statuses'] as Json;
+      statuses[oldStatus] = (statuses[oldStatus] as int) - 1;
+      statuses[next] = (statuses[next] as int) + 1;
+      for (final line in (ticket['lines'] as List).cast<Json>()) {
+        for (final menu in (report['menus'] as List).cast<Json>().where(
+          (m) => m['id'] == line['menuId'],
+        )) {
+          menu['pendingQuantity'] =
+              (menu['pendingQuantity'] as num) +
+              delta * (line['quantity'] as num);
+        }
+      }
+    }
+    if (next == '완료') {
+      queue.removeWhere((t) => t['id'] == ticket['id']);
+    } else if (!queue.any((t) => t['id'] == ticket['id'])) {
+      queue.add(ticket);
+    }
+    dashboard['queue'] = queue;
   }
 
   void _emit() {

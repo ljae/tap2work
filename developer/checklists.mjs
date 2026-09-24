@@ -1,7 +1,7 @@
-import { readFileSync } from 'node:fs';
+import library from '../docs/wiki/checklist-library.json' with { type: 'json' };
 import { StoreError } from './store.mjs';
 
-export const checklistLibrary = JSON.parse(readFileSync(new URL('../docs/wiki/checklist-library.json', import.meta.url), 'utf8'));
+export const checklistLibrary = library;
 export const checklistSlots = ['오픈', '준비', '피크', '브레이크', '마감'];
 export const checklistRoles = ['all', 'crew', 'cook', 'manager', 'owner'];
 const fail = message => { throw new StoreError(message, 400); };
@@ -79,7 +79,7 @@ export function saveChecklists(input, state, now) {
     const content = row => JSON.stringify([row.title, row.emoji, row.slot, row.requiredRole, row.zone, row.steps, row.sourceIds]);
     template.version = previous ? (previous.version ?? 1) + (content(previous) !== content(template) ? 1 : 0) : Math.max(0, ...state.tasks.filter(row => row.templateId === template.id).map(row => row.version ?? 1)) + 1;
   }
-  for (const task of state.tasks.filter(row => row.kind === 'routine' && !row.archivedAt)) {
+  for (const task of state.tasks.filter(row => row.kind === 'routine' && !row.orderId && !row.archivedAt)) {
     const next = templates.find(row => row.id === task.templateId);
     const started = task.completedAt || task.steps?.some(step => step.completedAt);
     if (!started && (!next || next.version !== task.version)) task.archivedAt = new Date(now).toISOString();

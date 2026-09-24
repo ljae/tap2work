@@ -70,3 +70,7 @@ Commit `3190f56` replaces the logo with the newly generated comforting blob char
 ## 미니멀 브랜드와 도메인 루트 앱 · 2026-09-24
 
 Commit `838065d` applied the user-provided `logo_tap2work.png`, a warm white/navy/coral palette, and SF-style monochrome icons, and serves the Flutter app directly at `https://tap2.work/`. The app logo was resized from 6.9 MB to about 0.5 MB. The build no longer publishes the development journal or project decision/history files; `/app/` redirects old links to the root app. [Workflow 35948378586](https://github.com/ljae/tap2work/actions/runs/35948378586) passed all checks, 61 Flutter tests, the web build, and Pages deployment. Live HTTP checks confirmed root `200`, legacy `/app/` redirect page `200`, and synthetic review sample `200`. Native builds and physical-device checks were not performed. This result is recorded in project revision 36.
+
+## Supabase workspace deployment · 2026-09-24
+
+The root Flutter app now receives only `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` from GitHub repository Variables. Local builds use the same allowlist from `.env`. `npm run backend:deploy` applies the SQL migration and deploys the Auth-verified `operations` Edge Function with a management token. See [SUPABASE.md](SUPABASE.md) for configuration, access controls and current scope. Auth confirmation redirects use `https://tap2.work/`. The Edge Function uses Supabase's server-provided service role key; no service key is included in Pages.

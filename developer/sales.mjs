@@ -81,6 +81,6 @@ export function salesDashboard(sales, now, showMoney) {
     }
   }
   // Active tickets are not limited by the reporting period: yesterday's unfinished work remains visible.
-  const queue = sales.tickets.filter(ticket => ['접수', '조리 중', '준비 완료'].includes(ticket.status) && new Date(ticket.createdAt) <= new Date(now)).sort((a, b) => a.createdAt.localeCompare(b.createdAt)).map(ticket => ({ id: ticket.id, number: ticket.number, channel: ticket.channel, table: ticket.table, status: ticket.status, createdAt: ticket.createdAt, elapsedMinutes: Math.floor((new Date(now) - new Date(ticket.createdAt)) / 60000), lines: ticket.lines.map(line => ({ name: line.name, quantity: line.quantity })) }));
+  const queue = sales.tickets.filter(ticket => ['접수', '조리 중', '준비 완료'].includes(ticket.status) && new Date(ticket.createdAt) <= new Date(now)).sort((a, b) => a.createdAt.localeCompare(b.createdAt)).map(ticket => ({ id: ticket.id, number: ticket.number, channel: ticket.channel, table: ticket.table, status: ticket.status, createdAt: ticket.createdAt, elapsedMinutes: Math.floor((new Date(now) - new Date(ticket.createdAt)) / 60000), lines: ticket.lines.map(line => ({ menuId: line.menuId, name: line.name, quantity: line.quantity })) }));
   return { source: sales.source, seededAt: sales.seededAt, asOf: new Date(now).toISOString(), showMoney, reports, queue };
 }

@@ -13,9 +13,10 @@ class BrandLogo extends StatelessWidget {
       children: [
         ArtworkCrop(
           asset: 'assets/branding/tap2work.png',
-          crop: Rect.fromLTWH(132, 71, 220, 287),
-          width: 30,
-          height: 38,
+          crop: Rect.fromLTWH(248, 114, 246, 240),
+          width: 36,
+          height: 36,
+          borderRadius: 9,
           semanticLabel: 'tap2.work 로고',
         ),
         SizedBox(width: 8),
@@ -140,15 +141,15 @@ class _ArtworkPainter extends CustomPainter {
 }
 
 abstract final class AppColors {
-  static const paper = Color(0xFFF7F7F5);
+  static const paper = Color(0xFFF5F5F7);
   static const white = Color(0xFFFFFFFF);
   static const accent = Color(0xFFE34437);
   static const green = Color(0xFF29364B);
   static const ink = Color(0xFF20232B);
   static const muted = Color(0xFF747985);
-  static const lime = Color(0xFFF3F0E8);
+  static const lime = Color(0xFFF0F1F4);
   static const peach = Color(0xFFFBEAE7);
-  static const line = Color(0xFFE7E7E4);
+  static const line = Color(0xFFE5E5EA);
 }
 
 class Surface extends StatelessWidget {
@@ -237,7 +238,7 @@ class Information extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(15),
     decoration: BoxDecoration(
-      color: const Color(0xFFEBEDE3),
+      color: const Color(0xFFEEEEF2),
       borderRadius: BorderRadius.circular(14),
     ),
     child: Text(

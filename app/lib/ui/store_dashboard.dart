@@ -411,7 +411,11 @@ class _StoreDashboardState extends State<StoreDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          heading('지금 처리할 주문', '전체 채널 ${all.length}건 · 오래된 주문부터 · 기간 필터와 무관'),
+          heading('지금 처리할 주문', '전체 채널 ${all.length}건 · 오래된 주문부터'),
+          TextButton(
+            onPressed: () => widget.onNavigate(1),
+            child: const Text('Tap 보드에서 처리 →'),
+          ),
           chips(
             ['전체', '접수', '조리 중', '준비 완료'],
             queueStatus,

@@ -35,6 +35,44 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
 }
 
 void main() {
+  testWidgets('drag and resize snap to grid and save only the isolated draft', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    Json? posted;
+    final state = layoutSample();
+    final ops = OperationsController(
+      client: MockClient((r) async {
+        if (r.method == 'POST') posted = jsonDecode(r.body) as Json;
+        return response(state);
+      }),
+    );
+    addTearDown(ops.dispose);
+    await openMap(tester, ops);
+    await tapVisible(tester, find.widgetWithText(FilledButton, '배치 설정'));
+    await tapVisible(tester, find.widgetWithText(ChoiceChip, '1번 테이블'));
+    final zone = find.byKey(const ValueKey('move-zone-table-1'));
+    await tester.ensureVisible(zone);
+    final unit = tester.getSize(zone).width / 3;
+    await tester.drag(zone, Offset(0, unit));
+    await tester.pumpAndSettle();
+    final handle = find.byKey(const ValueKey('resize-zone-table-1'));
+    await tester.drag(handle, Offset(unit, 0));
+    await tester.pumpAndSettle();
+    expect(ops.rows('zones').firstWhere((z) => z['id'] == 'table-1')['y'], 1);
+    await tester.tap(find.byKey(const Key('save-layout')));
+    await tester.pumpAndSettle();
+    final saved = (posted!['zones'] as List).firstWhere(
+      (z) => z['id'] == 'table-1',
+    );
+    expect(saved['y'], 2);
+    expect(saved['width'], 4);
+    expect(tester.takeException(), isNull);
+  });
+
   for (final width in [320.0, 390.0, 430.0, 1440.0]) {
     testWidgets('layout counts, editor dialog and draft movement fit $width', (
       tester,

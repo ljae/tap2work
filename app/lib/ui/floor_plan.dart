@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import '../state/operations_controller.dart';
 import '../domain/tap_planning.dart';
 import '../domain/layout_geometry.dart';
@@ -210,6 +212,7 @@ class _MapCanvas extends StatefulWidget {
     required this.onSelect,
     this.selected,
     this.onPlace,
+    this.onTransform,
     this.route = const [],
   });
   final Json layout;
@@ -217,6 +220,7 @@ class _MapCanvas extends StatefulWidget {
   final String? selected;
   final ValueChanged<String> onSelect;
   final void Function(int, int)? onPlace;
+  final void Function(String, int, int, int, int)? onTransform;
   final List<String> route;
   @override
   State<_MapCanvas> createState() => _MapCanvasState();
@@ -224,6 +228,53 @@ class _MapCanvas extends StatefulWidget {
 
 class _MapCanvasState extends State<_MapCanvas> {
   final transform = TransformationController();
+  final canvasKey = GlobalKey();
+  Json? dragOrigin;
+  Offset? dragStart;
+  Offset scene(Offset global) =>
+      (canvasKey.currentContext!.findRenderObject() as RenderBox).globalToLocal(
+        global,
+      );
+  void startTransform(Json zone, DragStartDetails details) {
+    dragOrigin = Map<String, dynamic>.from(zone);
+    dragStart = scene(details.globalPosition);
+    widget.onSelect(zone['id']);
+  }
+
+  void updateTransform(
+    DragUpdateDetails details,
+    double unit, {
+    bool resize = false,
+  }) {
+    final origin = dragOrigin;
+    if (origin == null || dragStart == null) return;
+    final delta = scene(details.globalPosition) - dragStart!;
+    final dx = (delta.dx / unit).round();
+    final dy = (delta.dy / unit).round();
+    widget.onTransform?.call(
+      origin['id'],
+      origin['x'] + (resize ? 0 : dx),
+      origin['y'] + (resize ? 0 : dy),
+      origin['width'] + (resize ? dx : 0),
+      origin['height'] + (resize ? dy : 0),
+    );
+  }
+
+  void cancelTransform() {
+    final origin = dragOrigin;
+    if (origin != null) {
+      widget.onTransform?.call(
+        origin['id'],
+        origin['x'],
+        origin['y'],
+        origin['width'],
+        origin['height'],
+      );
+    }
+    dragOrigin = null;
+    dragStart = null;
+  }
+
   @override
   void dispose() {
     transform.dispose();
@@ -262,97 +313,121 @@ class _MapCanvasState extends State<_MapCanvas> {
               );
             return ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: InteractiveViewer(
-                transformationController: transform,
-                minScale: 1,
-                maxScale: 4,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTapUp: widget.onPlace == null
-                      ? null
-                      : (event) => widget.onPlace!(
-                          (event.localPosition.dx / unit).floor(),
-                          (event.localPosition.dy / unit).floor(),
-                        ),
-                  child: SizedBox(
-                    width: unit * cols,
-                    height: unit * rows,
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: CustomPaint(
-                            painter: _GridPainter(
-                              cols,
-                              rows,
-                              widget.zones,
-                              widget.route,
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  gestureSettings: const DeviceGestureSettings(touchSlop: 6),
+                ),
+                child: InteractiveViewer(
+                  transformationController: transform,
+                  panEnabled: widget.onTransform == null,
+                  minScale: 1,
+                  maxScale: 4,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapUp: widget.onPlace == null
+                        ? null
+                        : (event) => widget.onPlace!(
+                            (event.localPosition.dx / unit).floor(),
+                            (event.localPosition.dy / unit).floor(),
+                          ),
+                    child: SizedBox(
+                      key: canvasKey,
+                      width: unit * cols,
+                      height: unit * rows,
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: _GridPainter(
+                                cols,
+                                rows,
+                                widget.zones,
+                                widget.route,
+                              ),
                             ),
                           ),
-                        ),
-                        for (final z in sorted)
-                          Positioned(
-                            left: (z['x'] as num) * unit,
-                            top: (z['y'] as num) * unit,
-                            width: (z['width'] as num) * unit,
-                            height: (z['height'] as num) * unit,
-                            child: ClipPath(
-                              clipper: _FootprintClipper(z),
-                              child: Padding(
-                                padding: const EdgeInsets.all(2),
-                                child: Material(
-                                  color: z['kind'] == 'area'
-                                      ? const Color(0xFFEDECE2)
-                                      : z['kind'] == 'table'
-                                      ? const Color(0xFFE5EDC6)
-                                      : const Color(0xFFE1E8E4),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      z['kind'] == 'table' ? 10 : 4,
-                                    ),
-                                    side: BorderSide(
-                                      color:
-                                          z['id'] == widget.selected ||
-                                              widget.route.contains(z['id'])
-                                          ? AppColors.green
-                                          : AppColors.line,
-                                      width: z['id'] == widget.selected
-                                          ? 2.5
-                                          : 1,
-                                    ),
-                                  ),
-                                  child: InkWell(
-                                    onTap: () => widget.onSelect(z['id']),
-                                    child: Tooltip(
-                                      message:
-                                          '${z['name']}${z['kind'] == 'table' ? ' · ${z['seats']}인석' : ''}',
-                                      child: Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(3),
-                                          child: FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  _icon(z['kind']),
-                                                  size: 18,
-                                                  color: AppColors.green,
-                                                ),
-                                                Text(
-                                                  '${widget.route.contains(z['id']) ? '${widget.route.indexOf(z['id']) + 1}. ' : ''}${z['name']}',
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                                if (z['kind'] == 'table')
-                                                  Text(
-                                                    '${z['seats']}인석',
-                                                    style: const TextStyle(
-                                                      fontSize: 10,
+                          for (final z in sorted)
+                            Positioned(
+                              left: (z['x'] as num) * unit,
+                              top: (z['y'] as num) * unit,
+                              width: (z['width'] as num) * unit,
+                              height: (z['height'] as num) * unit,
+                              child: GestureDetector(
+                                key: ValueKey('move-zone-${z['id']}'),
+                                dragStartBehavior: DragStartBehavior.down,
+                                onPanStart: widget.onTransform == null
+                                    ? null
+                                    : (d) => startTransform(z, d),
+                                onPanUpdate: widget.onTransform == null
+                                    ? null
+                                    : (d) => updateTransform(d, unit),
+                                onPanEnd: (_) {
+                                  dragOrigin = null;
+                                  dragStart = null;
+                                },
+                                onPanCancel: cancelTransform,
+                                child: ClipPath(
+                                  clipper: _FootprintClipper(z),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(2),
+                                    child: Material(
+                                      color: z['kind'] == 'area'
+                                          ? const Color(0xFFF0F0F2)
+                                          : z['kind'] == 'table'
+                                          ? const Color(0xFFE4EAF3)
+                                          : const Color(0xFFECEDEF),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          z['kind'] == 'table' ? 10 : 4,
+                                        ),
+                                        side: BorderSide(
+                                          color:
+                                              z['id'] == widget.selected ||
+                                                  widget.route.contains(z['id'])
+                                              ? AppColors.green
+                                              : AppColors.line,
+                                          width: z['id'] == widget.selected
+                                              ? 2.5
+                                              : 1,
+                                        ),
+                                      ),
+                                      child: InkWell(
+                                        onTap: () => widget.onSelect(z['id']),
+                                        child: Tooltip(
+                                          message:
+                                              '${z['name']}${z['kind'] == 'table' ? ' · ${z['seats']}인석' : ''}',
+                                          child: Center(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(3),
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      _icon(z['kind']),
+                                                      size: 18,
+                                                      color: AppColors.green,
                                                     ),
-                                                  ),
-                                              ],
+                                                    Text(
+                                                      '${widget.route.contains(z['id']) ? '${widget.route.indexOf(z['id']) + 1}. ' : ''}${z['name']}',
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                    if (z['kind'] == 'table')
+                                                      Text(
+                                                        '${z['seats']}인석',
+                                                        style: const TextStyle(
+                                                          fontSize: 10,
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -362,8 +437,60 @@ class _MapCanvasState extends State<_MapCanvas> {
                                 ),
                               ),
                             ),
-                          ),
-                      ],
+                          if (widget.onTransform != null)
+                            for (final z in sorted.where(
+                              (z) => z['id'] == widget.selected,
+                            ))
+                              Positioned(
+                                left: ((z['x'] + z['width']) * unit - 24).clamp(
+                                  0.0,
+                                  unit * cols - 30,
+                                ),
+                                top: ((z['y'] + z['height']) * unit - 24).clamp(
+                                  0.0,
+                                  unit * rows - 30,
+                                ),
+                                width: 30,
+                                height: 30,
+                                child: Semantics(
+                                  label: '${z['name']} 크기 조정',
+                                  child: MouseRegion(
+                                    cursor: SystemMouseCursors
+                                        .resizeUpLeftDownRight,
+                                    child: GestureDetector(
+                                      key: ValueKey('resize-zone-${z['id']}'),
+                                      dragStartBehavior: DragStartBehavior.down,
+                                      onPanStart: (d) => startTransform(z, d),
+                                      onPanUpdate: (d) => updateTransform(
+                                        d,
+                                        unit,
+                                        resize: true,
+                                      ),
+                                      onPanEnd: (_) {
+                                        dragOrigin = null;
+                                        dragStart = null;
+                                      },
+                                      onPanCancel: cancelTransform,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: AppColors.accent,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          CupertinoIcons
+                                              .arrow_up_left_arrow_down_right,
+                                          color: Colors.white,
+                                          size: 17,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -553,6 +680,54 @@ class _LayoutEditorState extends State<_LayoutEditor> {
       item['y'] = y.clamp(0, math.max(0, layout['rows'] - item['height']));
       dirty = true;
       error = null;
+    });
+  }
+
+  void transformZone(String id, int x, int y, int width, int height) {
+    final zone = zones.firstWhere((z) => z['id'] == id);
+    final previous = Map<String, dynamic>.from(zone);
+    final shaped = (zone['shape'] ?? 'rect') != 'rect';
+    final minBaseWidth = zone['shape'] == 'u'
+        ? 3
+        : shaped
+        ? 2
+        : 1;
+    final minBaseHeight = shaped ? 2 : 1;
+    final rotated = [90, 270].contains(zone['rotation']);
+    final w = width.clamp(
+      rotated ? minBaseHeight : minBaseWidth,
+      layout['columns'] as int,
+    );
+    final h = height.clamp(
+      rotated ? minBaseWidth : minBaseHeight,
+      layout['rows'] as int,
+    );
+    setState(() {
+      zone.addAll({
+        'x': x.clamp(0, layout['columns'] - w),
+        'y': y.clamp(0, layout['rows'] - h),
+        'width': w,
+        'height': h,
+      });
+      if (shaped) {
+        final baseW = rotated ? h : w;
+        final baseH = rotated ? w : h;
+        zone['notchWidth'] = (zone['notchWidth'] as int).clamp(
+          1,
+          baseW - (zone['shape'] == 'u' ? 2 : 1),
+        );
+        zone['notchDepth'] = (zone['notchDepth'] as int).clamp(1, baseH - 1);
+      }
+      final issue = geometryError;
+      if (issue != null) {
+        zone
+          ..clear()
+          ..addAll(previous);
+        error = issue;
+      } else {
+        dirty = true;
+        error = null;
+      }
     });
   }
 
@@ -789,12 +964,20 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                       ],
                     ),
                     const SizedBox(height: 12),
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        '기기를 끌어 이동하고, 선택한 기기의 모서리로 크기를 조정하세요.',
+                        style: TextStyle(fontSize: 12, color: AppColors.muted),
+                      ),
+                    ),
                     _MapCanvas(
                       layout: layout,
                       zones: zones,
                       selected: selected,
                       onSelect: (id) => setState(() => selected = id),
                       onPlace: move,
+                      onTransform: transformZone,
                     ),
                     const SizedBox(height: 12),
                     if (selection != null)

@@ -10,11 +10,12 @@
     "dev:console": "node --env-file-if-exists=.env developer/server.mjs",
     "dev:shared": "DEMO_PUBLIC_ORIGIN=http://tap2.work,https://tap2.work,http://www.tap2.work,https://www.tap2.work node --env-file-if-exists=.env developer/server.mjs",
     "tunnel": "cloudflared tunnel --url http://localhost:3100",
-    "build:app": "node scripts/sync-branding.mjs && cd app && flutter build web --release --base-href /app/ --pwa-strategy=none --no-web-resources-cdn",
+    "build:app": "node scripts/sync-branding.mjs && node --env-file-if-exists=.env scripts/build-flutter.mjs",
     "test:console": "node --test developer/test/*.test.mjs",
-    "check": "node --check developer/server.mjs && node --check developer/store.mjs && node --check developer/operations.mjs && node --check developer/sales.mjs && node --check developer/layout.mjs && node --check developer/layout_geometry.mjs && node --check developer/staff.mjs && node --check developer/dashboard.js && node --check app.js && node --check server.mjs && node --check sw.js && node --check site/review.js && node --check scripts/build-site.mjs && node --check scripts/sync-branding.mjs && node --check developer/checklists.mjs && node --check scripts/build-checklist-wiki.mjs && node scripts/build-checklist-wiki.mjs --check",
-    "build:site": "node scripts/sync-branding.mjs && cd app && flutter build web --release --base-href / --pwa-strategy=none --no-web-resources-cdn --dart-define=PUBLIC_REVIEW=true --output=build/review-web && cd .. && node scripts/build-site.mjs",
+    "check": "node --check developer/server.mjs && node --check developer/store.mjs && node --check developer/operations.mjs && node --check developer/sales.mjs && node --check developer/layout.mjs && node --check developer/layout_geometry.mjs && node --check developer/staff.mjs && node --check developer/dashboard.js && node --check app.js && node --check server.mjs && node --check sw.js && node --check site/review.js && node --check scripts/build-site.mjs && node --check scripts/sync-branding.mjs && node --check developer/checklists.mjs && node --check scripts/build-checklist-wiki.mjs && node scripts/build-checklist-wiki.mjs --check && node --check developer/order_taps.mjs && node --check developer/supabase_backend.mjs && node --check scripts/build-flutter.mjs && node --check scripts/configure-supabase.mjs",
+    "build:site": "node scripts/sync-branding.mjs && node --env-file-if-exists=.env scripts/build-flutter.mjs --review && node scripts/build-site.mjs",
     "build:wiki": "node scripts/build-checklist-wiki.mjs",
-    "test:checklist-draft": "cd app && dart tool/check_checklist_draft.dart"
+    "test:checklist-draft": "cd app && dart tool/check_checklist_draft.dart",
+    "backend:deploy": "node --env-file=.env scripts/configure-supabase.mjs"
   }
 }
