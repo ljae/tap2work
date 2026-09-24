@@ -52,15 +52,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      for (final label in ['일하는 법', '근무표', '도움', '오늘']) {
-        await tester.tap(
-          find.descendant(
-            of: find.byType(NavigationBar),
-            matching: find.text(label),
-          ),
-        );
+      for (final index in [1, 2, 3, 0]) {
+        await tester.tap(find.byKey(ValueKey('floating-menu-$index')));
         await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull, reason: '$width / $label');
+        expect(tester.takeException(), isNull, reason: '$width / $index');
       }
     });
   }

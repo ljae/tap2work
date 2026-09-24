@@ -69,7 +69,6 @@ flutter:
   assets:
     - assets/fonts/OFL.txt
     - assets/branding/tap2work.png
-    - assets/branding/tap2work_wordmark.png
     - assets/menu/menu_tap2.png
 
   # To add assets to your application, add an assets section, like this:

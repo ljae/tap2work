@@ -159,8 +159,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
           children: [
             Container(
               width: double.infinity,
-              color: AppColors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: AppColors.paper,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Text(
                 ops.cloud
                     ? '내 매장 · 클라우드 저장 · 가상 주문'
@@ -170,7 +170,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
                     ? '공유 데모 서버 연결 · ${ops.sharedApiHost} · 확인이 팀원과 함께 보여요 · 역할 전환은 로그인 아님 · 실제 발주 없음'
                     : '체험 매장 · 역할 전환은 로그인 아님 · 실제 발주 없음',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 10, color: AppColors.green),
+                style: const TextStyle(
+                  fontSize: 12,
+                  height: 1.4,
+                  color: AppColors.muted,
+                ),
               ),
             ),
             if (ops.busy) const LinearProgressIndicator(minHeight: 2),
@@ -199,7 +203,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       child: SingleChildScrollView(
                         key: ValueKey(tab),
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(18, 22, 18, 28),
+                        padding: const EdgeInsets.fromLTRB(20, 22, 20, 36),
                         child: Center(
                           child: ConstrainedBox(
                             constraints: BoxConstraints(
@@ -247,34 +251,17 @@ class _OperationsScreenState extends State<OperationsScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: FloatingMenu(
         selectedIndex: tab,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-        onDestinationSelected: (value) => setState(() {
+        onSelected: (value) => setState(() {
           tab = value;
           inventoryOpen = false;
         }),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(CupertinoIcons.chart_bar),
-            selectedIcon: Icon(CupertinoIcons.chart_bar_fill),
-            label: 'Status · 매장 현황',
-          ),
-          NavigationDestination(
-            icon: Icon(CupertinoIcons.checkmark_alt_circle),
-            selectedIcon: Icon(CupertinoIcons.checkmark_alt_circle_fill),
-            label: 'Todo · 할 일',
-          ),
-          NavigationDestination(
-            icon: Icon(CupertinoIcons.calendar),
-            selectedIcon: Icon(CupertinoIcons.calendar_today),
-            label: 'Calendar · 근무 흐름',
-          ),
-          NavigationDestination(
-            icon: Icon(CupertinoIcons.map),
-            selectedIcon: Icon(CupertinoIcons.map_fill),
-            label: 'Place · 매장 지도',
-          ),
+        items: const [
+          FloatingMenuItem('현황', CupertinoIcons.chart_bar),
+          FloatingMenuItem('할 일', CupertinoIcons.checkmark_alt_circle),
+          FloatingMenuItem('근무', CupertinoIcons.calendar),
+          FloatingMenuItem('매장', CupertinoIcons.map),
         ],
       ),
     ),

@@ -37,7 +37,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
   Widget space([double value = 16]) => SizedBox(height: value);
   Widget note(String text) => Text(
     text,
-    style: const TextStyle(fontSize: 12, height: 1.6, color: AppColors.muted),
+    style: const TextStyle(fontSize: 13, height: 1.55, color: AppColors.muted),
   );
   Widget heading(String text, String detail) => Padding(
     padding: const EdgeInsets.only(bottom: 16),
@@ -71,7 +71,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
             selected: value == selected,
             onSelected: (_) => setState(() => select(value)),
             selectedColor: AppColors.lime,
-            labelStyle: const TextStyle(fontSize: 12),
+            labelStyle: const TextStyle(fontSize: 13),
             showCheckmark: false,
             materialTapTargetSize: MaterialTapTargetSize.padded,
           ),

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -274,20 +273,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      for (final icon in [
-        CupertinoIcons.checkmark_alt_circle,
-        CupertinoIcons.calendar,
-        CupertinoIcons.map,
-        CupertinoIcons.chart_bar,
-      ]) {
-        await tester.tap(
-          find.descendant(
-            of: find.byType(NavigationBar),
-            matching: find.byIcon(icon),
-          ),
-        );
+      for (final index in [1, 2, 3, 0]) {
+        await tester.tap(find.byKey(ValueKey('floating-menu-$index')));
         await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull, reason: '$width / $icon');
+        expect(tester.takeException(), isNull, reason: '$width / $index');
       }
       await tester.ensureVisible(find.text('재고와 발주'));
       await tester.tap(find.text('재고와 발주'));
@@ -322,12 +311,7 @@ void main() {
     await tester.pumpWidget(
       Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
     );
-    await tester.tap(
-      find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.byIcon(CupertinoIcons.checkmark_alt_circle),
-      ),
-    );
+    await tester.tap(find.byKey(const ValueKey('floating-menu-1')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('재고 수량 확인하기'));
     await tester.tap(find.text('재고 수량 확인하기'));

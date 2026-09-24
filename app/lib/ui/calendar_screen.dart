@@ -639,7 +639,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     const gridHeight = 36 * rowHeight;
     final shifts = ops.rows('staffShifts');
     return SizedBox(
-      height: 756,
+      height: 762,
       child: Stack(
         children: [
           SingleChildScrollView(
@@ -658,7 +658,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             final early = earlyShifts(day);
                             return SizedBox(
                               width: dayWidth,
-                              height: 76,
+                              height: 82,
                               child: Column(
                                 children: [
                                   Text(

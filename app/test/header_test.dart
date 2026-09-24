@@ -30,7 +30,7 @@ void expectOneCompactAction(WidgetTester tester) {
     tester.getRect(find.byType(BrandLogo)).right,
     lessThan(tester.getRect(find.byType(HeaderAccountButton)).left),
   );
-  expect(tester.getSize(find.byType(AppBar)).height, 80);
+  expect(tester.getSize(find.byType(AppBar)).height, 72);
   expect(tester.takeException(), isNull);
 }
 

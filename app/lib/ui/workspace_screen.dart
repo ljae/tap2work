@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../domain/lesson.dart';
 import '../state/work_controller.dart';
 import 'components.dart';
@@ -41,7 +42,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             constraints: const BoxConstraints(maxWidth: 640),
             child: SingleChildScrollView(
               key: ValueKey('page-$selected-${work.role.name}'),
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 30),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 36),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -49,7 +50,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                     padding: EdgeInsets.symmetric(vertical: 12),
                     child: Text(
                       '체험 버전 · 가상 매장 · 이 기기에만 저장돼요',
-                      style: TextStyle(fontSize: 11, color: AppColors.muted),
+                      style: TextStyle(fontSize: 12, color: AppColors.muted),
                     ),
                   ),
                   if (work.storageWarning != null) ...[
@@ -75,27 +76,14 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: FloatingMenu(
         selectedIndex: selected,
-        onDestinationSelected: (index) => setState(() => selected = index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: '오늘',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            label: '일하는 법',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_today_outlined),
-            label: '근무표',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            label: '도움',
-          ),
+        onSelected: (index) => setState(() => selected = index),
+        items: const [
+          FloatingMenuItem('오늘', CupertinoIcons.house),
+          FloatingMenuItem('배우기', CupertinoIcons.book),
+          FloatingMenuItem('근무', CupertinoIcons.calendar),
+          FloatingMenuItem('도움', CupertinoIcons.question_circle),
         ],
       ),
     ),

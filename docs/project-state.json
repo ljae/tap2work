@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 48,
+  "revision": 49,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -314,10 +314,10 @@
       "category": "제품 경험",
       "title": "BIG TAP 폴더와 전체 Tap 상태 보드",
       "status": "confirmed",
-      "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서다. BIG TAP은 이름 있는 폴더다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. Small TAP 비율만큼 카드에 반투명 코랄을 공간적으로 채우며 완료 카드는 읽기 쉬운 옅은 회색으로 낮춘다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다.",
-      "reason": "2026-09-24 사용자 후속 요청: 3열 주문/준비 구분, 카드 진행 채움과 옅은 완료, 06:00 폰 캘린더, 플랫폼 배지 및 제공 워드마크.",
-      "source": "사용자 후속 요청 · 2026-09-24",
-      "updatedAt": "2026-09-24T14:53:54Z"
+      "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서의 화면을 유지하고, 아이콘과 한국어 이름(현황/할 일/근무/매장)을 함께 표시하는 떠 있는 메뉴로 제공한다. BIG TAP은 이름 있는 폴더다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. Small TAP 비율만큼 카드에 반투명 코랄을 공간적으로 채우며 완료 카드는 읽기 쉬운 옅은 회색으로 낮춘다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다.",
+      "reason": "사용자가 Flutter 앱 전체 디자인, 로고·파비콘, 가독성·메뉴 정렬과 떠 있는 메뉴를 요청했다. Aside CLI로 Trello·Asana·7shifts 공개 UI를 조사한 뒤 적용했다.",
+      "source": "사용자 요청 및 Aside CLI 공개 UI 조사 · 2026-09-25",
+      "updatedAt": "2026-09-24T22:09:34Z"
     },
     {
       "id": "D-032",
@@ -334,10 +334,10 @@
       "category": "브랜드·공개 앱",
       "title": "미니멀 SF 스타일과 도메인 루트 앱",
       "status": "confirmed",
-      "decision": "사용자가 제공한 원형 logo_tap2work_circle.png를 앱 아이콘/파비콘의 현재 로고로 유지하고, logo_letter_tap2work.png 원본을 앱 헤더의 글자 대신 사용한다. 운영 화면과 첫 근무 안내 화면은 80px 높이의 동일한 따뜻한 중립색 헤더와 미세한 하단 선을 공유한다. 원형 로고(46px)와 워드마크(약 132×34px)를 하나의 배경 플라크에 넣어 불투명한 원본 배경이 자연스럽게 이어지게 하고, 320px에서도 하나의 48px 계정 액션만 보이게 한다. 앱의 웜 화이트·잉크/네이비·절제된 코랄 팔레트와 Cupertino 계열 단색 아이콘 및 tap2.work 루트 Flutter 앱을 유지한다.",
-      "reason": "사용자가 모바일 헤더의 중복 프로필과 분리돼 떠 보이는 로고를 수정해 달라고 요청했다.",
-      "source": "사용자 요청 · 2026-09-25",
-      "updatedAt": "2026-09-24T15:17:09Z"
+      "decision": "tap2work 로고를 경로와 두 개의 확인점을 그린 새로운 2 마크로 바꾸고 앱 헤더, 파비콘, PWA, Android/iOS 런처에 같은 도형을 사용한다. 헤더는 72px로 맞추고 이미지 마크 옆에 읽기 쉬운 tap2work 글자를 표시한다. 운영 화면과 첫 근무 화면은 따뜻한 종이색 배경, 짙은 녹색 글자, 절제된 코랄 강조, 가는 동일한 카드/메뉴 테두리, 20px 휴대폰 여백과 한국어 이름이 보이는 떠 있는 하단 메뉴를 공유한다. 실제 기능·역할 경계와 tap2.work 루트 Flutter 앱은 유지한다.",
+      "reason": "사용자가 Flutter 앱 전체 디자인, 로고·파비콘, 가독성·메뉴 정렬과 떠 있는 메뉴를 요청했다. Aside CLI로 Trello·Asana·7shifts 공개 UI를 조사한 뒤 적용했다.",
+      "source": "사용자 요청 및 Aside CLI 공개 UI 조사 · 2026-09-25",
+      "updatedAt": "2026-09-24T22:09:34Z"
     },
     {
       "id": "D-034",
@@ -2518,7 +2518,53 @@
         "https://github.com/ljae/tap2work/commit/c866a7344f8b54bbd55c5ec0e8b890100d9bc29d",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-floating-navigation-brand-redesign-2026-09-25",
+      "at": "2026-09-24T22:09:34Z",
+      "type": "implementation",
+      "title": "Readable Flutter navigation and route-mark identity",
+      "detail": "Reviewed current public Trello, Asana and 7shifts UI through Aside CLI. Replaced icon-only bottom navigation on operations and first-shift screens with one equal-width floating pill and visible Korean labels. Unified 20px gutters, header border, paper/green/coral colors, surface borders and supporting typography. Generated a route-shaped 2 logo and matching favicon/PWA/Android/iOS icons. Kept existing operations and practice flows, roles and demo boundaries. Increased calendar header height to fit larger body text. Removed the superseded raster wordmark from the Flutter bundle; its prior version remains in Git history.",
+      "before": {
+        "decisions": [
+          {
+            "id": "D-031",
+            "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서다. BIG TAP은 이름 있는 폴더다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. Small TAP 비율만큼 카드에 반투명 코랄을 공간적으로 채우며 완료 카드는 읽기 쉬운 옅은 회색으로 낮춘다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다."
+          },
+          {
+            "id": "D-033",
+            "decision": "사용자가 제공한 원형 logo_tap2work_circle.png를 앱 아이콘/파비콘의 현재 로고로 유지하고, logo_letter_tap2work.png 원본을 앱 헤더의 글자 대신 사용한다. 운영 화면과 첫 근무 안내 화면은 80px 높이의 동일한 따뜻한 중립색 헤더와 미세한 하단 선을 공유한다. 원형 로고(46px)와 워드마크(약 132×34px)를 하나의 배경 플라크에 넣어 불투명한 원본 배경이 자연스럽게 이어지게 하고, 320px에서도 하나의 48px 계정 액션만 보이게 한다. 앱의 웜 화이트·잉크/네이비·절제된 코랄 팔레트와 Cupertino 계열 단색 아이콘 및 tap2.work 루트 Flutter 앱을 유지한다."
+          }
+        ]
+      },
+      "after": {
+        "decisions": [
+          {
+            "id": "D-031",
+            "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서의 화면을 유지하고, 아이콘과 한국어 이름(현황/할 일/근무/매장)을 함께 표시하는 떠 있는 메뉴로 제공한다. BIG TAP은 이름 있는 폴더다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. Small TAP 비율만큼 카드에 반투명 코랄을 공간적으로 채우며 완료 카드는 읽기 쉬운 옅은 회색으로 낮춘다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다."
+          },
+          {
+            "id": "D-033",
+            "decision": "tap2work 로고를 경로와 두 개의 확인점을 그린 새로운 2 마크로 바꾸고 앱 헤더, 파비콘, PWA, Android/iOS 런처에 같은 도형을 사용한다. 헤더는 72px로 맞추고 이미지 마크 옆에 읽기 쉬운 tap2work 글자를 표시한다. 운영 화면과 첫 근무 화면은 따뜻한 종이색 배경, 짙은 녹색 글자, 절제된 코랄 강조, 가는 동일한 카드/메뉴 테두리, 20px 휴대폰 여백과 한국어 이름이 보이는 떠 있는 하단 메뉴를 공유한다. 실제 기능·역할 경계와 tap2.work 루트 Flutter 앱은 유지한다."
+          }
+        ]
+      },
+      "files": [
+        "app/lib/main.dart",
+        "app/lib/ui/",
+        "app/assets/branding/",
+        "app/web/",
+        "app/android/app/src/main/res/",
+        "app/ios/Runner/Assets.xcassets/AppIcon.appiconset/",
+        "tap2work.png",
+        "developer/styles.css",
+        "PRODUCT.md",
+        "docs/project-state.json",
+        "app/pubspec.yaml",
+        "app/assets/branding/tap2work_wordmark.png"
+      ],
+      "verification": "Aside CLI inspected official public Trello, Asana and 7shifts documentation/screenshots. Flutter analyze clean; Flutter 79/79 tests passed including 320/390/430px navigation; Node console tests 51/51, npm run check, npm run build:site and git diff --check passed. Initial test run found an 11px narrow-header overflow and a 3px calendar header overflow; both were fixed before the passing run. Native builds, physical-device interaction and live deployment were not performed."
     }
   ],
-  "updatedAt": "2026-09-24T15:22:09.074680Z"
+  "updatedAt": "2026-09-24T22:09:34Z"
 }

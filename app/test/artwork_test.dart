@@ -5,7 +5,7 @@ import 'package:tap2work/ui/menu_artwork.dart';
 
 void main() {
   for (final width in [320.0, 390.0]) {
-    testWidgets('shared header holds one action and both logos at $width', (
+    testWidgets('shared header holds one action and the new brand at $width', (
       tester,
     ) async {
       tester.view.physicalSize = Size(width, 900);
@@ -20,11 +20,10 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('tap2.work'), findsNothing);
-      expect(find.bySemanticsLabel('Tap2.work 워드마크'), findsOneWidget);
+      expect(find.text('tap2work'), findsOneWidget);
       expect(find.bySemanticsLabel('tap2.work 로고'), findsOneWidget);
       expect(find.byType(HeaderAccountButton), findsOneWidget);
-      expect(tester.getSize(find.byType(AppBar)).height, 80);
+      expect(tester.getSize(find.byType(AppBar)).height, 72);
       expect(tester.takeException(), isNull);
     });
   }
@@ -50,10 +49,6 @@ void main() {
         context,
       );
       await precacheImage(
-        const AssetImage('assets/branding/tap2work_wordmark.png'),
-        context,
-      );
-      await precacheImage(
         const AssetImage('assets/menu/menu_tap2.png'),
         context,
       );
@@ -62,7 +57,7 @@ void main() {
     final painters = tester.widgetList<CustomPaint>(find.byType(CustomPaint));
     expect(painters.where((paint) => paint.painter != null).length, 1);
     expect(find.bySemanticsLabel('tap2.work 로고'), findsOneWidget);
-    expect(find.bySemanticsLabel('Tap2.work 워드마크'), findsOneWidget);
+    expect(find.text('tap2work'), findsOneWidget);
     expect(find.bySemanticsLabel('뼈곰탕 그림'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

@@ -87,6 +87,11 @@ class Tap2workApp extends StatelessWidget {
         onSurfaceVariant: AppColors.muted,
       ),
       scaffoldBackgroundColor: AppColors.paper,
+      textTheme: const TextTheme(
+        bodyMedium: TextStyle(fontSize: 14, height: 1.5, color: AppColors.ink),
+        bodyLarge: TextStyle(fontSize: 16, height: 1.45, color: AppColors.ink),
+        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+      ),
       appBarTheme: const AppBarTheme(
         centerTitle: false,
         backgroundColor: AppColors.paper,
