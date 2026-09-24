@@ -106,3 +106,9 @@ Commit `c9c5e66` restored a fixed 주문처리중 / 할일 / 완료 board while 
 Commit `c866a73` replaced the duplicate login/role actions with one contextual account menu. Authenticated cloud users see their account and read-only store role; preview users can open login and clearly labeled demo roles. The circular logo and supplied wordmark now sit together on a restrained brand plaque inside a flat 80px header with one account control. The first-shift screen uses the same header shell. This release changes only Flutter UI, so the Supabase operations function was not redeployed.
 
 [Actions 36019237706](https://github.com/ljae/tap2work/actions/runs/36019237706) passed JavaScript checks, 51 Node tests, Flutter analysis, 79 Flutter tests and Pages deployment. The live HTTPS root returned 200 and its app bundle matched the local public build byte-for-byte. Flutter-rendered 320px and 390px headers were visually inspected before deployment. Native builds, physical-device interaction and an authenticated browser session were not tested.
+
+## Floating navigation and brand release · 2026-09-25
+
+Commit `d668242` adds a labeled floating menu to the operations and first-shift screens, increases supporting text readability, unifies gutters and borders, and replaces the logo and favicon with the route-shaped 2 mark. The same mark is bundled for PWA, Android and iOS launchers. This is a Flutter UI and static-asset release; the Supabase operations function and schema were unchanged.
+
+[Actions 36066191500](https://github.com/ljae/tap2work/actions/runs/36066191500) passed JavaScript checks, 51 Node tests, Flutter analysis, 79 Flutter tests, the public web build and Pages deployment. Live HTTPS returned 200; `index.html`, `main.dart.js`, `favicon.png` and the app logo matched the local public build byte-for-byte. Native builds, physical-device interaction and authenticated live behavior were not tested.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 49,
+  "revision": 50,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -2564,7 +2564,24 @@
         "app/assets/branding/tap2work_wordmark.png"
       ],
       "verification": "Aside CLI inspected official public Trello, Asana and 7shifts documentation/screenshots. Flutter analyze clean; Flutter 79/79 tests passed including 320/390/430px navigation; Node console tests 51/51, npm run check, npm run build:site and git diff --check passed. Initial test run found an 11px narrow-header overflow and a 3px calendar header overflow; both were fixed before the passing run. Native builds, physical-device interaction and live deployment were not performed."
+    },
+    {
+      "id": "H-floating-navigation-brand-deployment-2026-09-25",
+      "at": "2026-09-24T22:16:44Z",
+      "type": "deployment",
+      "title": "Floating navigation and route-mark identity deployed",
+      "detail": "Published Flutter UI and branding commit d668242 to GitHub Pages at https://tap2.work/. The Supabase operations function and schema were unchanged. The live HTTPS app bundle, favicon and app logo matched the local public build byte-for-byte.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "GitHub Actions 36066191500 passed JavaScript checks, 51 Node console tests, Flutter analysis, 79 Flutter tests, the public web build and Pages deployment. Live HTTPS returned 200 and index.html, main.dart.js, favicon.png and app logo matched local _site files by SHA-256. Native builds, physical-device interaction and authenticated live behavior were not tested.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36066191500",
+        "https://github.com/ljae/tap2work/commit/d66824216accf773764647f523ad72d67e417218",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-24T22:09:34Z"
+  "updatedAt": "2026-09-24T22:16:44Z"
 }
