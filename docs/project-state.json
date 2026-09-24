@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 46,
+  "revision": 47,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -334,20 +334,20 @@
       "category": "브랜드·공개 앱",
       "title": "미니멀 SF 스타일과 도메인 루트 앱",
       "status": "confirmed",
-      "decision": "사용자가 제공한 원형 logo_tap2work_circle.png를 앱 아이콘/파비콘의 현재 로고로 유지하고, 새로 제공한 logo_letter_tap2work.png 원본을 앱 헤더의 글자 대신 원형 로고 옆 워드마크 이미지로 표시한다. 앱 화면은 웜 화이트·잉크/네이비·절제된 코랄 레드 팔레트와 Cupertino 계열 단색 아이콘을 유지한다. https://tap2.work/에는 Flutter 샘플 앱을 바로 제공하고 공개 개발 현황과 결정 기록 파일은 배포하지 않는다.",
-      "reason": "2026-09-24 사용자 후속 요청: 3열 주문/준비 구분, 카드 진행 채움과 옅은 완료, 06:00 폰 캘린더, 플랫폼 배지 및 제공 워드마크.",
-      "source": "사용자 후속 요청 · 2026-09-24",
-      "updatedAt": "2026-09-24T14:53:54Z"
+      "decision": "사용자가 제공한 원형 logo_tap2work_circle.png를 앱 아이콘/파비콘의 현재 로고로 유지하고, logo_letter_tap2work.png 원본을 앱 헤더의 글자 대신 사용한다. 운영 화면과 첫 근무 안내 화면은 80px 높이의 동일한 따뜻한 중립색 헤더와 미세한 하단 선을 공유한다. 원형 로고(46px)와 워드마크(약 132×34px)를 하나의 배경 플라크에 넣어 불투명한 원본 배경이 자연스럽게 이어지게 하고, 320px에서도 하나의 48px 계정 액션만 보이게 한다. 앱의 웜 화이트·잉크/네이비·절제된 코랄 팔레트와 Cupertino 계열 단색 아이콘 및 tap2.work 루트 Flutter 앱을 유지한다.",
+      "reason": "사용자가 모바일 헤더의 중복 프로필과 분리돼 떠 보이는 로고를 수정해 달라고 요청했다.",
+      "source": "사용자 요청 · 2026-09-25",
+      "updatedAt": "2026-09-24T15:17:09Z"
     },
     {
       "id": "D-034",
       "category": "백엔드",
       "title": "Supabase Auth와 매장별 클라우드 저장",
       "status": "confirmed",
-      "decision": "사용자가 준비한 Supabase 프로젝트와 로컬 .env를 사용한다. Flutter에는 공개 키만 포함하고 서비스 키는 서버에서만 사용한다. 비로그인 체험과 로그인 후 저장을 구분한다.",
-      "reason": "사용자의 Supabase 사용 지시 및 관리 토큰/서비스 키 입력 완료에 따른 연결 구현.",
-      "source": "2026-09-24 사용자 요청",
-      "updatedAt": "2026-09-24T03:17:55.028Z"
+      "decision": "사용자가 준비한 Supabase 프로젝트와 로컬 .env를 사용한다. Flutter에는 공개 키만 포함하고 서비스 키는 서버에서만 사용한다. 비로그인 체험과 로그인 후 저장을 구분한다. 헤더의 단일 계정 메뉴는 비로그인/공개 체험에서 로그인 진입과 실제 로그인 아닌 데모 역할 전환을 함께 제공하고, 로그인된 클라우드에서는 계정과 서버가 제공한 읽기 전용 역할만 보여준다. 계정 대화상자에서 로그아웃할 수 있으며 긴 이메일은 메뉴에서 생략 표시하고 대화상자에서 전체를 볼 수 있다.",
+      "reason": "사용자가 모바일 헤더의 중복 프로필과 분리돼 떠 보이는 로고를 수정해 달라고 요청했다.",
+      "source": "사용자 요청 · 2026-09-25",
+      "updatedAt": "2026-09-24T15:17:09Z"
     },
     {
       "id": "D-035",
@@ -2458,7 +2458,50 @@
         "https://github.com/ljae/tap2work/commit/c9c5e664f508551284baf94afd3477041defa3b6",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-unified-mobile-header-2026-09-25",
+      "at": "2026-09-24T15:17:09Z",
+      "type": "implementation",
+      "title": "Unified compact brand header and account action",
+      "detail": "Replaced duplicate profile controls with one contextual account menu across operations modes. Public/local preview keeps labeled demo role switching, preview with Auth offers login, and authenticated cloud displays server role without demo switching; login/logout remain in the existing Auth dialog. Operations and first-shift screens share a warm 80px header. The original circular logo and opaque supplied wordmark sit together on a matching plaque; email stays in the menu and truncates safely on narrow phones. Captured and inspected Flutter-rendered 320px and 390px header screenshots; artwork blends and lockup has clear spacing. The test raster uses a square fallback for the Material icon font, so icon glyph appearance itself was not judged from those screenshots.",
+      "before": {
+        "decisions": [
+          {
+            "id": "D-033",
+            "decision": "사용자가 제공한 원형 logo_tap2work_circle.png를 앱 아이콘/파비콘의 현재 로고로 유지하고, 새로 제공한 logo_letter_tap2work.png 원본을 앱 헤더의 글자 대신 원형 로고 옆 워드마크 이미지로 표시한다. 앱 화면은 웜 화이트·잉크/네이비·절제된 코랄 레드 팔레트와 Cupertino 계열 단색 아이콘을 유지한다. https://tap2.work/에는 Flutter 샘플 앱을 바로 제공하고 공개 개발 현황과 결정 기록 파일은 배포하지 않는다."
+          },
+          {
+            "id": "D-034",
+            "decision": "사용자가 준비한 Supabase 프로젝트와 로컬 .env를 사용한다. Flutter에는 공개 키만 포함하고 서비스 키는 서버에서만 사용한다. 비로그인 체험과 로그인 후 저장을 구분한다."
+          }
+        ]
+      },
+      "after": {
+        "decisions": [
+          {
+            "id": "D-033",
+            "decision": "사용자가 제공한 원형 logo_tap2work_circle.png를 앱 아이콘/파비콘의 현재 로고로 유지하고, logo_letter_tap2work.png 원본을 앱 헤더의 글자 대신 사용한다. 운영 화면과 첫 근무 안내 화면은 80px 높이의 동일한 따뜻한 중립색 헤더와 미세한 하단 선을 공유한다. 원형 로고(46px)와 워드마크(약 132×34px)를 하나의 배경 플라크에 넣어 불투명한 원본 배경이 자연스럽게 이어지게 하고, 320px에서도 하나의 48px 계정 액션만 보이게 한다. 앱의 웜 화이트·잉크/네이비·절제된 코랄 팔레트와 Cupertino 계열 단색 아이콘 및 tap2.work 루트 Flutter 앱을 유지한다."
+          },
+          {
+            "id": "D-034",
+            "decision": "사용자가 준비한 Supabase 프로젝트와 로컬 .env를 사용한다. Flutter에는 공개 키만 포함하고 서비스 키는 서버에서만 사용한다. 비로그인 체험과 로그인 후 저장을 구분한다. 헤더의 단일 계정 메뉴는 비로그인/공개 체험에서 로그인 진입과 실제 로그인 아닌 데모 역할 전환을 함께 제공하고, 로그인된 클라우드에서는 계정과 서버가 제공한 읽기 전용 역할만 보여준다. 계정 대화상자에서 로그아웃할 수 있으며 긴 이메일은 메뉴에서 생략 표시하고 대화상자에서 전체를 볼 수 있다."
+          }
+        ]
+      },
+      "files": [
+        "app/lib/ui/components.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/lib/ui/workspace_screen.dart",
+        "app/lib/ui/cloud_workspace.dart",
+        "app/lib/main.dart",
+        "app/test/artwork_test.dart",
+        "app/test/header_test.dart",
+        "PRODUCT.md",
+        "docs/project-state.json"
+      ],
+      "verification": "Flutter analyze clean; Flutter tests 79/79 including 320px/390px preview, cloud and onboarding menus plus 320px long-email 1.6× text scale; npm run check; console tests 51/51; npm run build:site; git diff --check passed. Temporary raster screenshots at /tmp/tap-header-320.png and /tmp/tap-header-390.png were visually inspected. No native build, physical-device test, push or deployment."
     }
   ],
-  "updatedAt": "2026-09-24T14:59:16.020692Z"
+  "updatedAt": "2026-09-24T15:17:09Z"
 }

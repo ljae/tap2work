@@ -15,11 +15,13 @@ class OperationsScreen extends StatefulWidget {
     super.key,
     required this.operations,
     required this.work,
-    this.accountAction,
+    this.onAccountPressed,
+    this.accountEmail,
   });
   final OperationsController operations;
   final WorkController work;
-  final Widget? accountAction;
+  final Future<void> Function(BuildContext context)? onAccountPressed;
+  final String? accountEmail;
   @override
   State<OperationsScreen> createState() => _OperationsScreenState();
 }
@@ -97,41 +99,60 @@ class _OperationsScreenState extends State<OperationsScreen> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: ops,
     builder: (context, _) => Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 86,
-        title: const BrandLogo(),
-        actions: [
-          if (widget.accountAction != null) widget.accountAction!,
-          PopupMenuButton<String>(
-            enabled: !ops.busy && !ops.cloud,
-            tooltip: ops.cloud ? '내 매장 역할' : '체험 역할 바꾸기 · 실제 로그인 아님',
-            onSelected: (id) {
-              cart.clear();
-              ops.selectActor(id);
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'owner', child: Text('서연 · 사장님')),
-              PopupMenuItem(value: 'manager', child: Text('민지 · 매니저')),
-              PopupMenuItem(value: 'cook', child: Text('현우 · 조리 담당')),
-              PopupMenuItem(value: 'crew', child: Text('지우 · 크루')),
-            ],
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  if (MediaQuery.sizeOf(context).width >= 390)
-                    Text(
-                      '${ops.actor['label']}',
-                      style: const TextStyle(fontSize: 13),
-                    )
-                  else
-                    const Icon(CupertinoIcons.person_crop_circle, size: 23),
-                  const Icon(Icons.expand_more, size: 17),
-                ],
-              ),
+      appBar: BrandHeader(
+        action: PopupMenuButton<String>(
+          key: const ValueKey('header-account-menu'),
+          enabled: !ops.busy,
+          constraints: BoxConstraints(
+            minWidth: 200,
+            maxWidth: (MediaQuery.sizeOf(context).width - 32).clamp(
+              200.0,
+              320.0,
             ),
           ),
-        ],
+          tooltip: ops.cloud ? '내 계정' : '계정과 체험 역할',
+          onSelected: (id) async {
+            if (id == 'account') {
+              await widget.onAccountPressed?.call(context);
+            } else {
+              cart.clear();
+              ops.selectActor(id);
+            }
+          },
+          itemBuilder: (_) => [
+            if (ops.cloud)
+              PopupMenuItem<String>(
+                enabled: false,
+                child: Text(
+                  '내 매장 · ${ops.actor['label'] ?? ops.actor['role'] ?? ''}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            if (widget.onAccountPressed != null)
+              PopupMenuItem<String>(
+                value: 'account',
+                child: Text(
+                  widget.accountEmail == null
+                      ? '내 매장 로그인'
+                      : '계정 · ${widget.accountEmail}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            if (!ops.cloud) ...[
+              const PopupMenuItem<String>(
+                enabled: false,
+                child: Text('체험 역할 · 실제 로그인 아님'),
+              ),
+              const PopupMenuItem(value: 'owner', child: Text('서연 · 사장님')),
+              const PopupMenuItem(value: 'manager', child: Text('민지 · 매니저')),
+              const PopupMenuItem(value: 'cook', child: Text('현우 · 조리 담당')),
+              const PopupMenuItem(value: 'crew', child: Text('지우 · 크루')),
+            ],
+          ],
+          child: const HeaderAccountButton(),
+        ),
       ),
       body: SafeArea(
         child: Column(

@@ -62,11 +62,13 @@ class Tap2workApp extends StatelessWidget {
     super.key,
     required this.controller,
     this.operations,
-    this.accountAction,
+    this.onAccountPressed,
+    this.accountEmail,
   });
   final WorkController controller;
   final OperationsController? operations;
-  final Widget? accountAction;
+  final Future<void> Function(BuildContext context)? onAccountPressed;
+  final String? accountEmail;
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'tap2work',
@@ -173,7 +175,8 @@ class Tap2workApp extends StatelessWidget {
         : OperationsScreen(
             operations: operations!,
             work: controller,
-            accountAction: accountAction,
+            onAccountPressed: onAccountPressed,
+            accountEmail: accountEmail,
           ),
   );
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
@@ -69,45 +68,37 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
     key: ValueKey(userId ?? 'preview'),
     controller: widget.work,
     operations: ops,
-    accountAction: _AccountAction(client: widget.client),
+    onAccountPressed: (context) => openAccount(context, widget.client),
+    accountEmail: widget.client.auth.currentUser?.email,
   );
 }
 
-class _AccountAction extends StatelessWidget {
-  const _AccountAction({required this.client});
-  final SupabaseClient client;
-  @override
-  Widget build(BuildContext context) => IconButton(
-    tooltip: client.auth.currentUser == null ? '내 매장 로그인' : '계정',
-    icon: const Icon(CupertinoIcons.person_crop_circle, size: 24),
-    onPressed: () async {
-      if (client.auth.currentUser != null) {
-        final logout = await showDialog<bool>(
-          context: context,
-          builder: (c) => AlertDialog(
-            title: const Text('내 계정'),
-            content: Text(client.auth.currentUser?.email ?? ''),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(c),
-                child: const Text('닫기'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(c, true),
-                child: const Text('로그아웃'),
-              ),
-            ],
+Future<void> openAccount(BuildContext context, SupabaseClient client) async {
+  if (client.auth.currentUser != null) {
+    final logout = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('내 계정'),
+        content: Text(client.auth.currentUser?.email ?? ''),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c),
+            child: const Text('닫기'),
           ),
-        );
-        if (logout == true) await client.auth.signOut();
-      } else {
-        await showDialog<void>(
-          context: context,
-          builder: (_) => _SignInDialog(client: client),
-        );
-      }
-    },
-  );
+          TextButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('로그아웃'),
+          ),
+        ],
+      ),
+    );
+    if (logout == true) await client.auth.signOut();
+  } else {
+    await showDialog<void>(
+      context: context,
+      builder: (_) => _SignInDialog(client: client),
+    );
+  }
 }
 
 class _SignInDialog extends StatefulWidget {

@@ -19,43 +19,19 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: work,
     builder: (context, _) => Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 86,
-        title: const BrandLogo(),
-        actions: [
-          PopupMenuButton<String>(
-            tooltip: '체험 역할과 안내',
-            onSelected: _menu,
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'worker', child: Text('신입 · 지우로 체험')),
-              PopupMenuItem(value: 'buddy', child: Text('버디 · 민지로 체험')),
-              PopupMenuItem(value: 'about', child: Text('체험 버전 안내')),
-              PopupMenuItem(value: 'reset', child: Text('체험 기록 초기화')),
-            ],
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    radius: 14,
-                    backgroundColor: AppColors.peach,
-                    child: Text(
-                      work.role == DemoRole.worker ? '지' : '민',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                  const SizedBox(width: 7),
-                  Text(
-                    work.role == DemoRole.worker ? '신입' : '버디',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  const Icon(Icons.expand_more, size: 18),
-                ],
-              ),
-            ),
-          ),
-        ],
+      appBar: BrandHeader(
+        action: PopupMenuButton<String>(
+          key: const ValueKey('header-account-menu'),
+          tooltip: '체험 역할과 안내',
+          onSelected: _menu,
+          itemBuilder: (_) => const [
+            PopupMenuItem(value: 'worker', child: Text('신입 · 지우로 체험')),
+            PopupMenuItem(value: 'buddy', child: Text('버디 · 민지로 체험')),
+            PopupMenuItem(value: 'about', child: Text('체험 버전 안내')),
+            PopupMenuItem(value: 'reset', child: Text('체험 기록 초기화')),
+          ],
+          child: const HeaderAccountButton(),
+        ),
       ),
       body: SafeArea(
         top: false,

@@ -8,7 +8,7 @@ Kitchen prep and dishwashing remain the starting jobs. Each worker needs their o
 
 ## Brand artwork
 
-The current repository-root `tap2work.png` is a 512 px copy of the user-supplied `~/Downloads/logo_tap2work_circle.png` (2026-09-24). The complete circular image is displayed without cropping. The app header pairs it with the user's original `logo_letter_tap2work.png` wordmark, copied into Flutter assets as `app/assets/branding/tap2work_wordmark.png`. Flutter assets, web favicon/PWA icons, Android and iOS launcher artwork and the reference prototype use this brand. Superseded logo archives were removed; their history remains in Git. Native icon builds have not been verified. The supplied menu artwork remains bundled separately.
+The current repository-root `tap2work.png` is a 512 px copy of the user-supplied `~/Downloads/logo_tap2work_circle.png` (2026-09-24). The complete circular image is displayed without cropping. The app header pairs it with the user's original `logo_letter_tap2work.png` wordmark, copied into Flutter assets as `app/assets/branding/tap2work_wordmark.png`. The header places both original images together on one warm neutral plaque, matching the wordmark's opaque background. Flutter assets, web favicon/PWA icons, Android and iOS launcher artwork and the reference prototype use this brand. Superseded logo archives were removed; their history remains in Git. Native icon builds have not been verified. The supplied menu artwork remains bundled separately.
 
 The confirmed visual direction is a calm, precise utility: cool off-white surfaces, ink and navy text, the logo's coral red for primary actions, restrained thin SF Symbols-style monochrome icons, fine dividers and modest corner radii. Functional navigation and task cards use Cupertino glyphs rather than colorful emoji; actual dish art remains where it identifies a menu item. The public domain root serves the Flutter app directly. The public build excludes the development journal and project decision/history files; the local developer console remains a development tool.
 
@@ -48,7 +48,7 @@ Starting menu cooking uses its configured ready portions once. A shortage create
 
 The demo's 뼈찜 sample begins with an illustrative count and sample menu usage; the store must confirm actual portions, yields, storage and recipes before using these as operational facts. Current sales orders are synthetic, with no POS or automatic supplier order integration.
 
-The top-level app header is 86 px high, with a 62 px full-circle logo and the user-supplied raster wordmark displayed at about 145 × 37 px. Small screens scale the lockup and collapse the role label while retaining usable account controls.
+The operations and first-shift screens share an 80 px warm neutral header with a fine bottom border. The brand plaque contains the full 46 px circular logo and supplied raster wordmark at about 132 × 34 px; it scales down on narrow phones without separating the artwork. A single 48 px action opens a contextual menu. In a preview with Auth available, that menu offers login and clearly labeled demo roles; local preview offers demo roles. Once authenticated, it shows the account and server-provided role without a demo role selector. The account dialog retains login/logout, and role or email text stays inside the menu to prevent duplicate profile controls on phones.
 
 ## Integrated operations prototype
 

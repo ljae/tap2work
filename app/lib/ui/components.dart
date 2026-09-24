@@ -8,26 +8,76 @@ class BrandLogo extends StatelessWidget {
   Widget build(BuildContext context) => FittedBox(
     alignment: Alignment.centerLeft,
     fit: BoxFit.scaleDown,
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Image.asset(
-          'assets/branding/tap2work.png',
-          width: 62,
-          height: 62,
-          semanticLabel: 'tap2.work 로고',
-          fit: BoxFit.contain,
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFEAE7),
+        border: Border.all(color: const Color(0xFFE5DFDB)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/branding/tap2work.png',
+              width: 46,
+              height: 46,
+              semanticLabel: 'tap2.work 로고',
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 7),
+            Image.asset(
+              'assets/branding/tap2work_wordmark.png',
+              width: 132,
+              height: 34,
+              fit: BoxFit.contain,
+              semanticLabel: 'Tap2.work 워드마크',
+            ),
+          ],
         ),
-        const SizedBox(width: 10),
-        Image.asset(
-          'assets/branding/tap2work_wordmark.png',
-          width: 145,
-          height: 37,
-          fit: BoxFit.contain,
-          semanticLabel: 'Tap2.work 워드마크',
-        ),
-      ],
+      ),
     ),
+  );
+}
+
+class BrandHeader extends StatelessWidget implements PreferredSizeWidget {
+  const BrandHeader({super.key, required this.action});
+  final Widget action;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(80);
+
+  @override
+  Widget build(BuildContext context) => AppBar(
+    toolbarHeight: 80,
+    backgroundColor: const Color(0xFFF8F6F4),
+    surfaceTintColor: Colors.transparent,
+    elevation: 0,
+    scrolledUnderElevation: 0,
+    shape: const Border(bottom: BorderSide(color: Color(0xFFE7E3E0))),
+    titleSpacing: 16,
+    title: const BrandLogo(),
+    actions: [
+      Padding(padding: const EdgeInsets.only(right: 16), child: action),
+    ],
+  );
+}
+
+class HeaderAccountButton extends StatelessWidget {
+  const HeaderAccountButton({super.key});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 48,
+    height: 48,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border.all(color: const Color(0xFFE0DBD7)),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: const Icon(Icons.person_outline, size: 22, color: AppColors.ink),
   );
 }
 
