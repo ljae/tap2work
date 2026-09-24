@@ -48,7 +48,7 @@ Future<void> openCard(WidgetTester tester, String key) async {
 
 void main() {
   testWidgets(
-    'TAP surface gains color with progress and becomes dark when complete',
+    'TAP surface fills with progress and completed cards become pale',
     (tester) async {
       Future<Color> surface(int done) async {
         await tester.pumpWidget(
@@ -66,6 +66,13 @@ void main() {
             ),
           ),
         );
+        expect(
+          find.descendant(
+            of: find.byType(TapCard),
+            matching: find.byType(FractionallySizedBox),
+          ),
+          done > 0 && done < 4 ? findsOneWidget : findsNothing,
+        );
         return tester
             .widget<Material>(
               find
@@ -81,8 +88,9 @@ void main() {
       final empty = await surface(0);
       final partial = await surface(2);
       final complete = await surface(4);
-      expect(partial, isNot(empty));
-      expect(complete.computeLuminance(), lessThan(partial.computeLuminance()));
+      expect(empty, Colors.white);
+      expect(partial, Colors.white);
+      expect(complete, const Color(0xFFF0F2F4));
     },
   );
   testWidgets(
@@ -100,6 +108,10 @@ void main() {
         'orderPlatform': '배달의민족',
         'customerRequest': '수저 제외',
       });
+      for (final step in first['steps'] as List) {
+        (step as Json)['completedAt'] = '2026-09-24T09:00:00Z';
+      }
+      first['completedAt'] = '2026-09-24T09:00:00Z';
       second.addAll({
         'id': 'second-menu',
         'title': '추가 메뉴',
@@ -118,7 +130,34 @@ void main() {
       addTearDown(ops.dispose);
       await mountBoard(tester, ops, width: 390);
       expect(find.textContaining('주문 A-17 ·'), findsOneWidget);
-      expect(find.textContaining('🛵 배달의민족'), findsOneWidget);
+      expect(find.text('주문처리중'), findsOneWidget);
+      expect(find.text('할일'), findsOneWidget);
+      expect(find.text('완료'), findsWidgets);
+      expect(find.text('2/4'), findsOneWidget);
+      expect(find.textContaining('🩵 배달의민족'), findsOneWidget);
+      final orderLane = tester.widget<DragTarget<String>>(
+        find.byKey(const ValueKey('lane-주문처리중')),
+      );
+      final prepLane = tester.widget<DragTarget<String>>(
+        find.byKey(const ValueKey('lane-할일')),
+      );
+      expect(
+        orderLane.onWillAcceptWithDetails!(
+          DragTargetDetails(data: 'daily-broth', offset: Offset.zero),
+        ),
+        isFalse,
+      );
+      expect(
+        prepLane.onWillAcceptWithDetails!(
+          DragTargetDetails(data: 'daily-prep', offset: Offset.zero),
+        ),
+        isFalse,
+      );
+      await tester.enterText(find.byType(TextField), '추가 메뉴');
+      await tester.pumpAndSettle();
+      expect(find.text('2/4'), findsOneWidget);
+      expect(find.byKey(const ValueKey('tap-daily-prep')), findsOneWidget);
+      expect(find.byKey(const ValueKey('tap-second-menu')), findsOneWidget);
       await tester.tap(find.byTooltip('요청사항 보기'));
       await tester.pumpAndSettle();
       expect(find.text('수저 제외'), findsOneWidget);
@@ -239,7 +278,7 @@ void main() {
       addTearDown(ops.dispose);
       await mountBoard(tester, ops);
       await openGroup(tester, '마감 폴더  ·  0');
-      expect(find.text('아직 카드가 없어요'), findsNWidgets(2));
+      expect(find.text('아직 카드가 없어요'), findsNWidgets(3));
       await tester.tap(find.widgetWithText(TextButton, '전체 보드'));
       await tester.pumpAndSettle();
       await openGroup(tester, '기본 업무  ·  2');

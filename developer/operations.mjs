@@ -308,9 +308,9 @@ export class OperationsStore {
           if (!task) fail('오늘 Tap을 찾지 못했어요.', 404);
           if (!allowed(actor, task)) fail('이 Tap의 담당자가 아니에요.', 403);
           if (!state.checklistFolders.some(folder => folder.id === input.folderId)) fail('BIG TAP을 찾지 못했어요.');
-          if (!['todo', 'processing', 'done'].includes(input.status)) fail('Tap 상태를 확인해 주세요.');
+          if (!['todo', 'processing', 'done', 'keep'].includes(input.status)) fail('Tap 상태를 확인해 주세요.');
           const moving = task.orderId ? state.tasks.filter(t => t.orderId === task.orderId && !t.archivedAt) : [task];
-          if (moving.some(t => t.preparedItemId && t.completedAt && input.status !== 'done')) fail('완성 수량이 반영된 준비 Tap은 되돌릴 수 없어요.', 409);
+          if (moving.some(t => t.preparedItemId && t.completedAt && !['done', 'keep'].includes(input.status))) fail('완성 수량이 반영된 준비 Tap은 되돌릴 수 없어요.', 409);
           if (moving.some(t => t.preparedItemId && !t.completedAt && input.status === 'done')) fail('실제 완성 수량을 입력해 주세요.');
           for (const task of moving) {
           if (!allowed(actor, task)) fail('이 Tap의 담당자가 아니에요.', 403);
@@ -318,7 +318,7 @@ export class OperationsStore {
             for (const step of task.steps ?? []) if (!step.completedAt) { step.completedAt = iso(now); step.completedBy = who; step.completionSource = 'tap_bulk'; }
             task.completedAt = iso(now); task.completedBy = who;
           }
-          if (input.status !== 'done' && task.completedAt) {
+          if (input.status !== 'done' && input.status !== 'keep' && task.completedAt) {
             if (task.completedBy?.id !== actor.id && !['owner', 'manager'].includes(actor.role)) fail('완료한 본인이나 리더만 되돌릴 수 있어요.', 403);
             for (const step of task.steps ?? []) if (step.completedAt) {
               delete step.completedAt; delete step.completedBy; delete step.completionSource;
@@ -328,13 +328,14 @@ export class OperationsStore {
           }
           const laneStatus = row => {
             const group = row.orderId ? state.tasks.filter(t => t.orderId === row.orderId && !t.archivedAt) : [row];
-            return group.every(t => t.completedAt) ? 'done' : group.some(t => t.completedAt || t.boardStatus === 'processing') ? 'processing' : 'todo';
+            return group.every(t => t.completedAt) ? 'done' : row.orderId ? 'order' : 'todo';
           };
-          const lane = state.tasks.filter(row => !moving.some(t => t.id === row.id) && row.kind === 'routine' && row.date === state.day && !row.archivedAt && laneStatus(row) === input.status)
+          const destinationLane = input.status === 'done' || (input.status === 'keep' && moving.every(t => t.completedAt)) ? 'done' : task.orderId ? 'order' : 'todo';
+          const lane = state.tasks.filter(row => !moving.some(t => t.id === row.id) && row.kind === 'routine' && row.date === state.day && !row.archivedAt && laneStatus(row) === destinationLane)
             .sort((a, b) => (a.boardOrder ?? (state.taskTemplates.findIndex(t => t.id === a.templateId) < 0 ? state.taskTemplates.length : state.taskTemplates.findIndex(t => t.id === a.templateId))) - (b.boardOrder ?? (state.taskTemplates.findIndex(t => t.id === b.templateId) < 0 ? state.taskTemplates.length : state.taskTemplates.findIndex(t => t.id === b.templateId))));
           const before = input.beforeTaskId == null ? lane.length : lane.findIndex(row => row.id === input.beforeTaskId);
           if (before < 0) fail('삽입할 Tap을 찾지 못했어요.', 409);
-          for (const member of moving) { member.boardFolderId = input.folderId; member.boardStatus = input.status; }
+          for (const member of moving) { member.boardFolderId = input.folderId; if (input.status !== 'keep') member.boardStatus = input.status; }
           lane.splice(before, 0, ...moving);
           lane.forEach((row, index) => { row.boardOrder = index; });
           activity(`${task.title} · ${input.status} 이동`); break;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 44,
+  "revision": 45,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -314,10 +314,10 @@
       "category": "제품 경험",
       "title": "BIG TAP 폴더와 전체 Tap 상태 보드",
       "status": "confirmed",
-      "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서다. BIG TAP은 이름 있는 폴더이며, Todo는 주문 그룹과 사전 준비/일반 업무를 분리한다. 일반 Tap 보드는 할일/완료 두 열을 쓰고, 카드 상단에 Small TAP 완료분수·진행률을 중립→코랄→진한 네이비로 표시한다. 주문의 내부 processing 상태는 준비품 1회 차감에 유지한다. Tap 완료는 남은 Small TAP을 함께 완료한다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다.",
-      "reason": "사용자가 Team 제거, 주문/사전준비 분리, 진행 시각화, Calendar 중심 인력 관리, Place 재료 목록을 명시적으로 요청했다.",
-      "source": "사용자 요청과 후속 답변 · 2026-09-24",
-      "updatedAt": "2026-09-24T14:01:54Z"
+      "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서다. BIG TAP은 이름 있는 폴더다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. Small TAP 비율만큼 카드에 반투명 코랄을 공간적으로 채우며 완료 카드는 읽기 쉬운 옅은 회색으로 낮춘다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다.",
+      "reason": "2026-09-24 사용자 후속 요청: 3열 주문/준비 구분, 카드 진행 채움과 옅은 완료, 06:00 폰 캘린더, 플랫폼 배지 및 제공 워드마크.",
+      "source": "사용자 후속 요청 · 2026-09-24",
+      "updatedAt": "2026-09-24T14:53:54Z"
     },
     {
       "id": "D-032",
@@ -334,10 +334,10 @@
       "category": "브랜드·공개 앱",
       "title": "미니멀 SF 스타일과 도메인 루트 앱",
       "status": "confirmed",
-      "decision": "2026-09-24 사용자가 제공한 logo_tap2work.png를 현재 로고로 사용한다. 이전 logo_tap2.png 배지 로고에서 빨간 가방 심볼과 tap2.work 워드마크 로고로 바꾸고, 앱 화면은 웜 화이트·잉크/네이비·절제된 코랄 레드 팔레트, Cupertino SF Symbols 계열 단색 아이콘, 가는 구분선과 절제된 모서리로 통일한다. 기능 안내 이모지는 UI 아이콘으로 대체하고 메뉴 식별용 음식 그림은 유지한다. https://tap2.work/에는 Flutter 샘플 앱을 바로 제공하고 공개 개발 현황과 결정 기록 파일은 배포하지 않는다. 예전 /app/ 링크는 /로 연결한다. Current logo supersedes the previous artwork: use logo_tap2work_circle.png as a 512px whole-circle app image, replace favicon/PWA/native launcher artwork, and remove old logo files while preserving Git history.",
-      "reason": "User explicitly supplied the circular logo and requested replacement of logo/favicon and removal of old assets. Existing visual style and root app hosting remain.",
-      "source": "사용자 요청 · 2026-09-24 · logo_tap2work.png, Apple-like minimal icons, app at tap2.work root, remove development status",
-      "updatedAt": "2026-09-24T08:55:45.882439Z"
+      "decision": "사용자가 제공한 원형 logo_tap2work_circle.png를 앱 아이콘/파비콘의 현재 로고로 유지하고, 새로 제공한 logo_letter_tap2work.png 원본을 앱 헤더의 글자 대신 원형 로고 옆 워드마크 이미지로 표시한다. 앱 화면은 웜 화이트·잉크/네이비·절제된 코랄 레드 팔레트와 Cupertino 계열 단색 아이콘을 유지한다. https://tap2.work/에는 Flutter 샘플 앱을 바로 제공하고 공개 개발 현황과 결정 기록 파일은 배포하지 않는다.",
+      "reason": "2026-09-24 사용자 후속 요청: 3열 주문/준비 구분, 카드 진행 채움과 옅은 완료, 06:00 폰 캘린더, 플랫폼 배지 및 제공 워드마크.",
+      "source": "사용자 후속 요청 · 2026-09-24",
+      "updatedAt": "2026-09-24T14:53:54Z"
     },
     {
       "id": "D-034",
@@ -354,10 +354,10 @@
       "category": "Product experience",
       "title": "Menu order groups, lightweight manuals and crew slot calendar",
       "status": "confirmed",
-      "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. 주간 Calendar는 30분 축과 조리/서빙/Cashier 역할 열을 사용한다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 월간 개요와 외부 매뉴얼 링크는 유지한다.",
-      "reason": "사용자가 주문 채널별 작업 및 연속 시간 그리드와 반복 근무를 명시적으로 요청했다.",
-      "source": "User request, 2026-09-24",
-      "updatedAt": "2026-09-24T14:01:54Z"
+      "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. 주간 Calendar는 06:00부터 30분 고정 왼쪽 축과 가로 스크롤되는 조리/서빙/Cashier 역할 열을 사용한다. 새벽·야간 및 자정 넘김 근무는 날짜별 요약에서 접근할 수 있다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 드롭 위치는 06:00 기준 30분 단위로 맞춘다. 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 월간 개요와 외부 매뉴얼 링크는 유지한다.",
+      "reason": "2026-09-24 사용자 후속 요청: 3열 주문/준비 구분, 카드 진행 채움과 옅은 완료, 06:00 폰 캘린더, 플랫폼 배지 및 제공 워드마크.",
+      "source": "사용자 후속 요청 · 2026-09-24",
+      "updatedAt": "2026-09-24T14:53:54Z"
     },
     {
       "id": "D-036",
@@ -374,10 +374,10 @@
       "category": "주문·인력·장소",
       "title": "주문 채널 작업, 반복 근무와 사장님 인건비 보기",
       "status": "confirmed",
-      "decision": "매장·포장·배달 주문 채널을 구분한다. 실제 티켓에 있는 배달 플랫폼과 요청사항만 표시한다. 날짜별 근무 반복은 한국 날짜와 30분 단위로 최대 90일, 전체 충돌/역할 검증 후 원자적으로 저장한다. 고용형태(정규직/시간알바/정규알바)는 급여 주기와 별도다. 매니저·크루 서버 응답에서 급여 수치·지급 기록을 제거한다. 실주문/POS·배달 연동 및 법정 급여 규칙은 여전히 미확정이다.",
-      "reason": "사용자 요청 2026-09-24. 샘플 주문과 인력 데이터는 시연용이다.",
-      "source": "사용자 요청 · 2026-09-24",
-      "updatedAt": "2026-09-24T14:01:54Z"
+      "decision": "매장·포장·배달 주문 채널을 구분한다. 실제 티켓에 있는 배달 플랫폼과 요청사항만 표시한다. 배달의민족/배민, 쿠팡이츠, 요기요는 브랜드를 연상시키는 색의 상징 이모지와 읽을 수 있는 이름을 함께 표시하며, 그 외 알려진 플랫폼 문자열은 🛵와 정확한 이름을 보인다. 날짜별 근무 반복은 한국 날짜와 30분 단위로 최대 90일, 전체 충돌/역할 검증 후 원자적으로 저장한다. 고용형태(정규직/시간알바/정규알바)는 급여 주기와 별도다. 매니저·크루 서버 응답에서 급여 수치·지급 기록을 제거한다. 실주문/POS·배달 연동 및 법정 급여 규칙은 여전히 미확정이다.",
+      "reason": "2026-09-24 사용자 후속 요청: 3열 주문/준비 구분, 카드 진행 채움과 옅은 완료, 06:00 폰 캘린더, 플랫폼 배지 및 제공 워드마크.",
+      "source": "사용자 후속 요청 · 2026-09-24",
+      "updatedAt": "2026-09-24T14:53:54Z"
     }
   ],
   "milestones": [
@@ -2379,7 +2379,69 @@
         "https://github.com/ljae/tap2work/commit/445a945358e1fc1101249c8286afec819ac949fb",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-todo-three-lanes-calendar-wordmark-2026-09-24",
+      "at": "2026-09-24T14:53:54Z",
+      "type": "implementation",
+      "title": "Three-lane Todo, compact morning calendar and supplied wordmark",
+      "detail": "Restored fixed order / prework / completed Todo lanes without triggering internal processing on display. Order groups use all sibling menu tasks for aggregate progress and completion; wrong-type drops are rejected, completion and undo route to the correct lane, and ordering preserves state. Cards use fractional translucent fill and a pale completed surface. Known delivery platforms show symbolic colored badges with their exact name; ticket requests remain the source. Calendar fixes the left time axis at 06:00, compacts phone columns, preserves access to early/overnight shifts and snaps drag placement to 30-minute time cells. The original user-supplied raster wordmark replaces header text alongside the round logo.",
+      "before": {
+        "decisions": [
+          {
+            "id": "D-031",
+            "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서다. BIG TAP은 이름 있는 폴더이며, Todo는 주문 그룹과 사전 준비/일반 업무를 분리한다. 일반 Tap 보드는 할일/완료 두 열을 쓰고, 카드 상단에 Small TAP 완료분수·진행률을 중립→코랄→진한 네이비로 표시한다. 주문의 내부 processing 상태는 준비품 1회 차감에 유지한다. Tap 완료는 남은 Small TAP을 함께 완료한다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다."
+          },
+          {
+            "id": "D-033",
+            "decision": "2026-09-24 사용자가 제공한 logo_tap2work.png를 현재 로고로 사용한다. 이전 logo_tap2.png 배지 로고에서 빨간 가방 심볼과 tap2.work 워드마크 로고로 바꾸고, 앱 화면은 웜 화이트·잉크/네이비·절제된 코랄 레드 팔레트, Cupertino SF Symbols 계열 단색 아이콘, 가는 구분선과 절제된 모서리로 통일한다. 기능 안내 이모지는 UI 아이콘으로 대체하고 메뉴 식별용 음식 그림은 유지한다. https://tap2.work/에는 Flutter 샘플 앱을 바로 제공하고 공개 개발 현황과 결정 기록 파일은 배포하지 않는다. 예전 /app/ 링크는 /로 연결한다. Current logo supersedes the previous artwork: use logo_tap2work_circle.png as a 512px whole-circle app image, replace favicon/PWA/native launcher artwork, and remove old logo files while preserving Git history."
+          },
+          {
+            "id": "D-035",
+            "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. 주간 Calendar는 30분 축과 조리/서빙/Cashier 역할 열을 사용한다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 월간 개요와 외부 매뉴얼 링크는 유지한다."
+          },
+          {
+            "id": "D-037",
+            "decision": "매장·포장·배달 주문 채널을 구분한다. 실제 티켓에 있는 배달 플랫폼과 요청사항만 표시한다. 날짜별 근무 반복은 한국 날짜와 30분 단위로 최대 90일, 전체 충돌/역할 검증 후 원자적으로 저장한다. 고용형태(정규직/시간알바/정규알바)는 급여 주기와 별도다. 매니저·크루 서버 응답에서 급여 수치·지급 기록을 제거한다. 실주문/POS·배달 연동 및 법정 급여 규칙은 여전히 미확정이다."
+          }
+        ]
+      },
+      "after": {
+        "decisions": [
+          {
+            "id": "D-031",
+            "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서다. BIG TAP은 이름 있는 폴더다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. Small TAP 비율만큼 카드에 반투명 코랄을 공간적으로 채우며 완료 카드는 읽기 쉬운 옅은 회색으로 낮춘다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다."
+          },
+          {
+            "id": "D-033",
+            "decision": "사용자가 제공한 원형 logo_tap2work_circle.png를 앱 아이콘/파비콘의 현재 로고로 유지하고, 새로 제공한 logo_letter_tap2work.png 원본을 앱 헤더의 글자 대신 원형 로고 옆 워드마크 이미지로 표시한다. 앱 화면은 웜 화이트·잉크/네이비·절제된 코랄 레드 팔레트와 Cupertino 계열 단색 아이콘을 유지한다. https://tap2.work/에는 Flutter 샘플 앱을 바로 제공하고 공개 개발 현황과 결정 기록 파일은 배포하지 않는다."
+          },
+          {
+            "id": "D-035",
+            "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. 주간 Calendar는 06:00부터 30분 고정 왼쪽 축과 가로 스크롤되는 조리/서빙/Cashier 역할 열을 사용한다. 새벽·야간 및 자정 넘김 근무는 날짜별 요약에서 접근할 수 있다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 드롭 위치는 06:00 기준 30분 단위로 맞춘다. 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 월간 개요와 외부 매뉴얼 링크는 유지한다."
+          },
+          {
+            "id": "D-037",
+            "decision": "매장·포장·배달 주문 채널을 구분한다. 실제 티켓에 있는 배달 플랫폼과 요청사항만 표시한다. 배달의민족/배민, 쿠팡이츠, 요기요는 브랜드를 연상시키는 색의 상징 이모지와 읽을 수 있는 이름을 함께 표시하며, 그 외 알려진 플랫폼 문자열은 🛵와 정확한 이름을 보인다. 날짜별 근무 반복은 한국 날짜와 30분 단위로 최대 90일, 전체 충돌/역할 검증 후 원자적으로 저장한다. 고용형태(정규직/시간알바/정규알바)는 급여 주기와 별도다. 매니저·크루 서버 응답에서 급여 수치·지급 기록을 제거한다. 실주문/POS·배달 연동 및 법정 급여 규칙은 여전히 미확정이다."
+          }
+        ]
+      },
+      "files": [
+        "PRODUCT.md",
+        "docs/project-state.json",
+        "app/lib/ui/tap_workspace.dart",
+        "app/lib/ui/tap_card.dart",
+        "app/lib/ui/calendar_screen.dart",
+        "app/lib/ui/components.dart",
+        "app/lib/state/operations_controller.dart",
+        "app/assets/branding/tap2work_wordmark.png",
+        "app/pubspec.yaml",
+        "app/test/",
+        "developer/operations.mjs",
+        "developer/test/checklists.test.mjs"
+      ],
+      "verification": "Local flutter analyze clean; Flutter 72/72; npm run check; Node 51/51; npm run build:site passed. git diff --check passed. Native builds, physical-device interaction, live deployment and authenticated production integration were not tested."
     }
   ],
-  "updatedAt": "2026-09-24T14:16:47.664448Z"
+  "updatedAt": "2026-09-24T14:53:54Z"
 }

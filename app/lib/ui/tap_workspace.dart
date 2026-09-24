@@ -119,6 +119,22 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           as String? ??
       '';
   String role(Json task) => checklistRoles[task['requiredRole']] ?? '누구나';
+  String platformBadge(String value) {
+    if (value.contains('배달의민족') || value.contains('배민')) return '🩵 $value';
+    if (value.contains('쿠팡이츠')) return '🧡 $value';
+    if (value.contains('요기요')) return '❤️ $value';
+    return '🛵 $value';
+  }
+
+  Color platformColor(String value) {
+    if (value.contains('배달의민족') || value.contains('배민')) {
+      return const Color(0xFF157B81);
+    }
+    if (value.contains('쿠팡이츠')) return const Color(0xFFA95015);
+    if (value.contains('요기요')) return const Color(0xFFB33348);
+    return AppColors.ink;
+  }
+
   void navigate({String? folder, String? task}) {
     FocusScope.of(context).unfocus();
     setState(() {
@@ -304,12 +320,25 @@ class _TapWorkspaceState extends State<TapWorkspace> {
 
     final entries = <({String id, String state, Widget card})>[];
     bool matches(String name) => name.toLowerCase().contains(query);
-    for (final t in scoped.where(
-      (t) => matches('${t['title']} ${t['orderNumber'] ?? ''}'),
-    )) {
+    final matched = scoped
+        .where((t) => matches('${t['title']} ${t['orderNumber'] ?? ''}'))
+        .toList();
+    final visibleOrderIds = matched
+        .map((t) => t['orderId'])
+        .whereType<String>()
+        .toSet();
+    final boardTasks = [
+      ...matched.where((t) => t['orderId'] == null),
+      ...groups.where((t) => visibleOrderIds.contains(t['orderId'])),
+    ];
+    for (final t in boardTasks) {
       entries.add((
         id: t['id'],
-        state: status(t),
+        state: t['orderId'] != null
+            ? '주문처리중'
+            : status(t) == '완료'
+            ? '완료'
+            : '할일',
         card: _draggable(
           data: t['id'],
           feedback: Material(
@@ -336,30 +365,26 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                       : _moveTap(
                           t,
                           folderOf(t),
-                          status(t) == '완료' ? 'processing' : 'done',
+                          status(t) == '완료' ? 'todo' : 'done',
                         ),
             checked: status(t) == '완료',
           ),
         ),
       ));
     }
-    final orderIds = scoped
-        .map((t) => t['orderId'])
-        .whereType<String>()
-        .toSet();
-    for (final orderId in orderIds) {
-      final members = scoped.where((t) => t['orderId'] == orderId).toList();
+    for (final orderId in visibleOrderIds) {
+      final members = groups.where((t) => t['orderId'] == orderId).toList();
       final cards = entries
           .where((e) => members.any((t) => t['id'] == e.id))
           .toList();
       if (cards.isEmpty) continue;
       final first = members.first;
-      const state = '주문';
+      final state = members.every((t) => status(t) == '완료') ? '완료' : '주문처리중';
       final count = members.fold<int>(0, (sum, t) => sum + total(t));
       final completed = members.fold<int>(0, (sum, t) => sum + done(t));
       final progress = count == 0 ? 0.0 : completed / count;
       final complete = count > 0 && completed == count;
-      final groupText = complete ? Colors.white : AppColors.ink;
+      const groupText = AppColors.ink;
       final request = (first['customerRequest'] ?? '').toString();
       final position = entries.indexWhere(
         (e) => members.any((t) => t['id'] == e.id),
@@ -371,12 +396,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         card: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: complete
-                ? const Color(0xFF203652)
-                : Color.lerp(Colors.white, const Color(0xFFF6CEC2), progress),
+            color: complete ? const Color(0xFFF0F2F4) : Colors.white,
+            gradient: complete
+                ? null
+                : LinearGradient(
+                    colors: const [Color(0x66E98B76), Colors.transparent],
+                    stops: [progress, progress],
+                  ),
             border: Border.all(
               color: complete
-                  ? AppColors.ink
+                  ? AppColors.line
                   : completed > 0
                   ? AppColors.accent
                   : AppColors.line,
@@ -403,9 +432,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                         child: LinearProgressIndicator(
                           value: progress,
                           minHeight: 5,
-                          color: complete ? Colors.white : AppColors.accent,
+                          color: complete ? AppColors.muted : AppColors.accent,
                           backgroundColor: complete
-                              ? const Color(0xFF617189)
+                              ? Colors.white
                               : AppColors.paper,
                         ),
                       ),
@@ -417,55 +446,94 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 feedback: Material(child: Text('주문 ${first['orderNumber']}')),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          '주문 ${first['orderNumber']} · ${first['orderChannel']} ${first['orderPlatform'] == null ? '' : '· 🛵 ${first['orderPlatform']}'} · ${members.length} 메뉴 ↕',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: groupText,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '주문 ${first['orderNumber']} · ${first['orderChannel']} · ${members.length} 메뉴 ↕',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: groupText,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      if (request.isNotEmpty)
-                        IconButton(
-                          tooltip: '요청사항 보기',
-                          icon: Icon(
-                            CupertinoIcons.exclamationmark_bubble,
-                            color: complete ? Colors.white : AppColors.accent,
-                          ),
-                          onPressed: () => showDialog<void>(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: const Text('주문 요청사항'),
-                              content: Text(request),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('확인'),
+                          if (request.isNotEmpty)
+                            IconButton(
+                              tooltip: '요청사항 보기',
+                              icon: Icon(
+                                CupertinoIcons.exclamationmark_bubble,
+                                color: AppColors.accent,
+                              ),
+                              onPressed: () => showDialog<void>(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text('주문 요청사항'),
+                                  content: Text(request),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('확인'),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
+                            ),
+                          PopupMenuButton<String>(
+                            iconColor: groupText,
+                            tooltip: '주문 그룹 이동',
+                            onSelected: (value) =>
+                                _moveTap(first, folderOf(first), value),
+                            itemBuilder: (_) => [
+                              if (complete)
+                                const PopupMenuItem(
+                                  value: 'todo',
+                                  child: Text('전체 다시 열기'),
+                                ),
+                              if (!complete)
+                                const PopupMenuItem(
+                                  value: 'processing',
+                                  child: Text('전체 조리 시작'),
+                                ),
+                              if (!complete)
+                                const PopupMenuItem(
+                                  value: 'done',
+                                  child: Text('전체 완료'),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      if (first['orderChannel'] == '배달' &&
+                          (first['orderPlatform'] ?? '')
+                              .toString()
+                              .trim()
+                              .isNotEmpty)
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Color.lerp(
+                              platformColor(first['orderPlatform']),
+                              Colors.white,
+                              .88,
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            platformBadge(first['orderPlatform']),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: platformColor(first['orderPlatform']),
                             ),
                           ),
                         ),
-                      PopupMenuButton<String>(
-                        iconColor: groupText,
-                        tooltip: '주문 그룹 이동',
-                        onSelected: (value) =>
-                            _moveTap(first, folderOf(first), value),
-                        itemBuilder: (_) => const [
-                          PopupMenuItem(
-                            value: 'todo',
-                            child: Text('전체 할일로 이동'),
-                          ),
-                          PopupMenuItem(
-                            value: 'processing',
-                            child: Text('전체 조리 시작'),
-                          ),
-                          PopupMenuItem(value: 'done', child: Text('전체 완료')),
-                        ],
-                      ),
                     ],
                   ),
                 ),
@@ -476,187 +544,165 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         ),
       ));
     }
-    final orders = entries.where((e) => e.state == '주문').toList();
-    final work = entries.where((e) => e.state != '주문').toList();
-    final lanes = ['할일', '완료'];
+    const lanes = ['주문처리중', '할일', '완료'];
+    String? targetStatus(Json moving, String lane) {
+      final isOrder = moving['orderId'] != null;
+      final complete = isOrder
+          ? groups
+                .where((t) => t['orderId'] == moving['orderId'])
+                .every((t) => status(t) == '완료')
+          : status(moving) == '완료';
+      if (lane == '주문처리중' && !isOrder) return null;
+      if (lane == '할일' && isOrder) return null;
+      if (lane == '완료') return complete ? 'keep' : 'done';
+      return complete ? 'todo' : 'keep';
+    }
+
+    Json? movingTask(String id) =>
+        groups.where((t) => t['id'] == id).firstOrNull;
+    bool canDrop(String id, String lane, {String? before}) {
+      final moving = movingTask(id);
+      if (moving == null || ops.busy || targetStatus(moving, lane) == null) {
+        return false;
+      }
+      final target = before == null ? null : movingTask(before);
+      return target == null ||
+          (target['id'] != id &&
+              (target['orderId'] == null ||
+                  target['orderId'] != moving['orderId']));
+    }
+
+    void drop(String id, String lane, {String? before}) {
+      final moving = movingTask(id);
+      final next = moving == null ? null : targetStatus(moving, lane);
+      if (moving == null || next == null) {
+        notice('이 열에는 놓을 수 없어요.');
+        return;
+      }
+      _moveTap(moving, folderOf(moving), next, beforeTaskId: before);
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 760;
         final width = wide
             ? (constraints.maxWidth - 12 * (lanes.length - 1)) / lanes.length
             : (constraints.maxWidth - 20).clamp(230.0, 340.0);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (orders.isNotEmpty) ...[
-              const Padding(
-                padding: EdgeInsets.only(bottom: 10),
-                child: Text(
-                  '주문 · 메뉴별 진행',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                ),
-              ),
-              for (final order in orders)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: order.card,
-                ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 10),
-                child: Text(
-                  '사전 준비와 일반 업무',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-            SingleChildScrollView(
-              key: ValueKey('board/$folderId/$taskId'),
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (final (index, lane) in lanes.indexed)
-                    DragTarget<String>(
-                      onWillAcceptWithDetails: (d) =>
-                          !ops.busy && !d.data.startsWith('folder:'),
-                      onAcceptWithDetails: (details) {
-                        final moving = groups
-                            .where((t) => t['id'] == details.data)
-                            .firstOrNull;
-                        if (moving != null) {
-                          _moveTap(
-                            moving,
-                            folderOf(moving),
-                            lane == '완료'
-                                ? 'done'
-                                : lane == '주문처리중'
-                                ? 'processing'
-                                : 'todo',
-                          );
-                        }
-                      },
-                      builder: (context, candidates, rejected) => Container(
-                        width: width,
-                        margin: EdgeInsets.only(
-                          right: index == lanes.length - 1 ? 0 : 12,
+        return SingleChildScrollView(
+          key: ValueKey('board/$folderId/$taskId'),
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final (index, lane) in lanes.indexed)
+                DragTarget<String>(
+                  key: ValueKey('lane-$lane'),
+                  onWillAcceptWithDetails: (d) => canDrop(d.data, lane),
+                  onAcceptWithDetails: (details) => drop(details.data, lane),
+                  builder: (context, candidates, rejected) => Container(
+                    width: width,
+                    margin: EdgeInsets.only(
+                      right: index == lanes.length - 1 ? 0 : 12,
+                    ),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: candidates.isNotEmpty
+                          ? const Color(0xFFFCE8E4)
+                          : rejected.isNotEmpty
+                          ? const Color(0xFFFBE8E8)
+                          : const Color(0xFFEBEDF0),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(4, 2, 4, 14),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: lane == '완료'
+                                      ? AppColors.ink
+                                      : AppColors.muted,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  lane,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '${entries.where((e) => e.state == lane).length}',
+                                style: const TextStyle(
+                                  color: AppColors.muted,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: candidates.isNotEmpty
-                              ? const Color(0xFFFCE8E4)
-                              : const Color(0xFFEBEDF0),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(4, 2, 4, 14),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 7,
-                                    height: 7,
+                        if (rejected.isNotEmpty)
+                          const Text(
+                            '이 열에는 놓을 수 없어요',
+                            style: TextStyle(
+                              color: AppColors.accent,
+                              fontSize: 11,
+                            ),
+                          ),
+                        for (final entry in entries.where(
+                          (e) => e.state == lane,
+                        ))
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: DragTarget<String>(
+                              onWillAcceptWithDetails: (details) =>
+                                  canDrop(details.data, lane, before: entry.id),
+                              onAcceptWithDetails: (details) =>
+                                  drop(details.data, lane, before: entry.id),
+                              builder: (context, candidates, rejected) =>
+                                  DecoratedBox(
                                     decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: lane == '완료'
-                                          ? AppColors.ink
-                                          : AppColors.muted,
+                                      border: candidates.isNotEmpty
+                                          ? const Border(
+                                              top: BorderSide(
+                                                color: AppColors.accent,
+                                                width: 3,
+                                              ),
+                                            )
+                                          : null,
                                     ),
+                                    child: entry.card,
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      lane,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '${work.where((e) => e.state == lane || (lane == '할일' && e.state == '주문처리중')).length}',
-                                    style: const TextStyle(
-                                      color: AppColors.muted,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
+                            ),
+                          ),
+                        if (!entries.any((e) => e.state == lane))
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 24,
+                              horizontal: 8,
+                            ),
+                            child: Text(
+                              query.isNotEmpty ? '검색 결과가 없어요' : '아직 카드가 없어요',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.muted,
                               ),
                             ),
-                            for (final entry in work.where(
-                              (e) =>
-                                  e.state == lane ||
-                                  (lane == '할일' && e.state == '주문처리중'),
-                            ))
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: DragTarget<String>(
-                                  onWillAcceptWithDetails: (details) =>
-                                      details.data != entry.id &&
-                                      !details.data.startsWith('folder:'),
-                                  onAcceptWithDetails: (details) {
-                                    final moving = groups
-                                        .where(
-                                          (row) => row['id'] == details.data,
-                                        )
-                                        .firstOrNull;
-                                    if (moving != null) {
-                                      _moveTap(
-                                        moving,
-                                        folderOf(moving),
-                                        lane == '완료'
-                                            ? 'done'
-                                            : lane == '주문처리중'
-                                            ? 'processing'
-                                            : 'todo',
-                                        beforeTaskId: entry.id,
-                                      );
-                                    }
-                                  },
-                                  builder: (context, candidates, rejected) =>
-                                      DecoratedBox(
-                                        decoration: BoxDecoration(
-                                          border: candidates.isNotEmpty
-                                              ? const Border(
-                                                  top: BorderSide(
-                                                    color: AppColors.accent,
-                                                    width: 3,
-                                                  ),
-                                                )
-                                              : null,
-                                        ),
-                                        child: entry.card,
-                                      ),
-                                ),
-                              ),
-                            if (!work.any(
-                              (e) =>
-                                  e.state == lane ||
-                                  (lane == '할일' && e.state == '주문처리중'),
-                            ))
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 24,
-                                  horizontal: 8,
-                                ),
-                                child: Text(
-                                  query.isNotEmpty
-                                      ? '검색 결과가 없어요'
-                                      : '아직 카드가 없어요',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.muted,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
+                          ),
+                      ],
                     ),
-                ],
-              ),
-            ),
-          ],
+                  ),
+                ),
+            ],
+          ),
         );
       },
     );
@@ -698,7 +744,10 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       notice('담당 Tap만 이동할 수 있어요.');
       return;
     }
-    if (query.isNotEmpty) {
+    if (query.isNotEmpty &&
+        (beforeTaskId != null ||
+            targetStatus == 'keep' ||
+            targetFolder != folderOf(task))) {
       notice('검색을 지운 뒤 순서를 바꿔 주세요.');
       return;
     }
@@ -832,15 +881,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                     .where((t) => t['id'] == details.data)
                     .firstOrNull;
                 if (task != null) {
-                  _moveTap(
-                    task,
-                    folder['id'],
-                    status(task) == '완료'
-                        ? 'done'
-                        : status(task) == '주문처리중'
-                        ? 'processing'
-                        : 'todo',
-                  );
+                  _moveTap(task, folder['id'], 'keep');
                 }
               }
             },

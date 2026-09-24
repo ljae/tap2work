@@ -168,6 +168,10 @@ class OperationsController extends ChangeNotifier {
     for (final task in moving) {
       final wasDone = task['completedAt'] != null;
       final now = DateTime.now().toUtc().toIso8601String();
+      if (status == 'keep') {
+        task['folderId'] = folder;
+        continue;
+      }
       for (final step in (task['steps'] as List).cast<Json>()) {
         if (status == 'done' && step['completedAt'] == null) {
           step.addAll({
@@ -184,8 +188,8 @@ class OperationsController extends ChangeNotifier {
       task.addAll({
         'folderId': folder,
         'boardStatus': status,
-        'completedAt': status == 'done' ? now : null,
-        'completedBy': status == 'done' ? actor : null,
+        'completedAt': status == 'done' ? (task['completedAt'] ?? now) : null,
+        'completedBy': status == 'done' ? (task['completedBy'] ?? actor) : null,
         'canComplete': status != 'done',
       });
       _previewConsumePrepared(task);
@@ -196,13 +200,18 @@ class OperationsController extends ChangeNotifier {
           : rows('tasks').where((t) => t['orderId'] == row['orderId']);
       return group.every((t) => t['completedAt'] != null)
           ? 'done'
-          : group.any(
-              (t) =>
-                  t['completedAt'] != null || t['boardStatus'] == 'processing',
-            )
-          ? 'processing'
+          : row['orderId'] != null
+          ? 'order'
           : 'todo';
     }
+
+    final destinationLane =
+        status == 'done' ||
+            (status == 'keep' && moving.every((t) => t['completedAt'] != null))
+        ? 'done'
+        : task['orderId'] != null
+        ? 'order'
+        : 'todo';
 
     final lane =
         rows('tasks')
@@ -210,7 +219,7 @@ class OperationsController extends ChangeNotifier {
               (t) =>
                   !moving.contains(t) &&
                   t['kind'] == 'routine' &&
-                  laneStatus(t) == status,
+                  laneStatus(t) == destinationLane,
             )
             .toList()
           ..sort(

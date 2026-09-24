@@ -19,16 +19,12 @@ class BrandLogo extends StatelessWidget {
           fit: BoxFit.contain,
         ),
         const SizedBox(width: 10),
-        const Text(
-          'tap2.work',
-          maxLines: 1,
-          style: TextStyle(
-            fontFamily: 'NotoSansKR',
-            fontSize: 27,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -1.2,
-            color: AppColors.ink,
-          ),
+        Image.asset(
+          'assets/branding/tap2work_wordmark.png',
+          width: 145,
+          height: 37,
+          fit: BoxFit.contain,
+          semanticLabel: 'Tap2.work 워드마크',
         ),
       ],
     ),

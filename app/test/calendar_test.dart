@@ -32,7 +32,7 @@ Json calendarData() => {
   'staffShifts': [],
 };
 void main() {
-  for (final width in [320.0, 1200.0]) {
+  for (final width in [320.0, 390.0, 1200.0]) {
     testWidgets(
       'weekly and monthly staffing calendar fits $width and keeps preview read-only',
       (tester) async {
@@ -60,7 +60,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.text('00:00'), findsOneWidget);
+        expect(find.text('06:00'), findsOneWidget);
         expect(find.text('23:00'), findsOneWidget);
         expect(find.text('하루 3명 · 슬롯 설정'), findsOneWidget);
         await tester.tap(find.text('월간'));
@@ -147,7 +147,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('저장').last);
     await tester.pumpAndSettle();
-    expect(writes.single['start'], '05:00');
-    expect(writes.single['end'], '14:00');
+    expect(writes.single['start'], '11:00');
+    expect(writes.single['end'], '20:00');
   });
 }

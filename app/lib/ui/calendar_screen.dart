@@ -15,6 +15,13 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   DateTime? selected;
   bool monthly = false;
+  final ScrollController weekTimeScroll = ScrollController();
+  @override
+  void dispose() {
+    weekTimeScroll.dispose();
+    super.dispose();
+  }
+
   OperationsController get ops => widget.operations;
   String date(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -524,12 +531,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
   ) {
     final box = targetContext.findRenderObject() as RenderBox;
     final local = box.globalToLocal(global);
-    final start = ((local.dy / 30).round() * 30).clamp(0, 1410);
+    final start = (360 + (local.dy / 30).round() * 30).clamp(0, 1410);
     final shift = person['tapperId'] == null ? null : person;
     final oldStart = shift == null ? 540 : minute(shift['start']);
     final oldEnd = shift == null ? 1080 : minute(shift['end']);
     final duration = (oldEnd - oldStart + 1440) % 1440;
-    final lane = (local.dx / 120).floor().clamp(0, 2);
+    final roleWidth = MediaQuery.sizeOf(context).width < 600 ? 70.0 : 120.0;
+    final lane = (local.dx / roleWidth).floor().clamp(0, 2);
     final duties =
         (ops
                         .rows('tappers')
@@ -583,222 +591,357 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (person != null) await editShift(day, person);
   }
 
+  List<Json> earlyShifts(DateTime day) => ops.rows('staffShifts').where((s) {
+    if (s['date'] == date(day)) return minute(s['start']) < 360;
+    if (s['date'] == date(day.subtract(const Duration(days: 1)))) {
+      return minute(s['end']) <= minute(s['start']) && minute(s['end']) > 0;
+    }
+    return false;
+  }).toList();
+
+  Future<void> showEarly(DateTime day) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            ListTile(title: Text('${date(day)} · 06:00 이전 / 야간 근무')),
+            for (final shift in earlyShifts(day))
+              ListTile(
+                title: Text('${shift['duty']} · ${name(shift['tapperId'])}'),
+                subtitle: Text(
+                  '${shift['date']} ${shift['start']}–${shift['end']}',
+                ),
+                onTap: !editable
+                    ? null
+                    : () {
+                        Navigator.pop(context);
+                        editShift(
+                          DateTime.parse(shift['date']),
+                          shift,
+                          shift: shift,
+                        );
+                      },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget weekGrid(DateTime monday) {
     const rowHeight = 30.0;
-    const dayWidth = 360.0;
-    const axisWidth = 55.0;
-    const gridHeight = 48 * rowHeight;
+    final compact = MediaQuery.sizeOf(context).width < 600;
+    final dayWidth = compact ? 210.0 : 360.0;
+    final roleWidth = dayWidth / 3;
+    const axisWidth = 48.0;
+    const gridHeight = 36 * rowHeight;
     final shifts = ops.rows('staffShifts');
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SizedBox(
-        width: axisWidth + dayWidth * 7,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                const SizedBox(width: axisWidth),
-                for (var n = 0; n < 7; n++)
-                  SizedBox(
-                    width: dayWidth,
-                    child: Column(
-                      children: [
-                        Text(
-                          '${['월', '화', '수', '목', '금', '토', '일'][n]} ${monday.add(Duration(days: n)).month}/${monday.add(Duration(days: n)).day}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Row(
-                          children: [
-                            for (final role in ['조리', '서빙', 'Cashier'])
-                              Expanded(
-                                child: Center(
-                                  child: Text(
-                                    role,
-                                    style: const TextStyle(fontSize: 11),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-            SizedBox(
-              height: 680,
-              child: SingleChildScrollView(
-                child: SizedBox(
-                  height: gridHeight,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return SizedBox(
+      height: 756,
+      child: Stack(
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: axisWidth + dayWidth * 7,
+              child: Column(
+                children: [
+                  Row(
                     children: [
-                      SizedBox(
-                        width: axisWidth,
-                        child: Stack(
-                          children: [
-                            for (var n = 0; n < 48; n++)
-                              Positioned(
-                                top: n * rowHeight,
-                                left: 0,
-                                child: Text(
-                                  n.isEven
-                                      ? '${(n ~/ 2).toString().padLeft(2, '0')}:00'
-                                      : ':30',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.muted,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
+                      const SizedBox(width: axisWidth),
                       for (var n = 0; n < 7; n++)
                         Builder(
                           builder: (context) {
                             final day = monday.add(Duration(days: n));
-                            final dayShifts = shifts
-                                .where(
-                                  (s) =>
-                                      s['date'] == date(day) ||
-                                      s['date'] ==
-                                          date(
-                                            day.subtract(
-                                              const Duration(days: 1),
-                                            ),
-                                          ),
-                                )
-                                .toList();
-                            return DragTarget<Json>(
-                              onWillAcceptWithDetails: (_) => editable,
-                              onAcceptWithDetails: (details) => dropShift(
-                                day,
-                                details.data,
-                                details.offset,
-                                context,
-                              ),
-                              builder: (context, candidates, _) => SizedBox(
-                                width: dayWidth,
-                                height: gridHeight,
-                                child: Stack(
-                                  children: [
-                                    for (var tick = 0; tick < 48; tick++)
-                                      Positioned(
-                                        top: tick * rowHeight,
-                                        left: 0,
-                                        right: 0,
-                                        height: rowHeight,
-                                        child: InkWell(
-                                          onTap: () => chooseForDay(day),
-                                          child: DecoratedBox(
-                                            decoration: BoxDecoration(
-                                              color: candidates.isNotEmpty
-                                                  ? const Color(0xFFFCE8E4)
-                                                  : Colors.white,
-                                              border: Border(
-                                                left: const BorderSide(
-                                                  color: AppColors.line,
-                                                ),
-                                                top: BorderSide(
-                                                  color: AppColors.line,
-                                                  width: tick.isEven ? 1 : .4,
-                                                ),
+                            final early = earlyShifts(day);
+                            return SizedBox(
+                              width: dayWidth,
+                              height: 76,
+                              child: Column(
+                                children: [
+                                  Text(
+                                    '${['월', '화', '수', '목', '금', '토', '일'][n]} ${day.month}/${day.day}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      for (final role in [
+                                        '조리',
+                                        '서빙',
+                                        'Cashier',
+                                      ])
+                                        Expanded(
+                                          child: Center(
+                                            child: Text(
+                                              role,
+                                              style: const TextStyle(
+                                                fontSize: 11,
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    for (final shift in dayShifts)
-                                      Builder(
-                                        builder: (context) {
-                                          final previous =
-                                              shift['date'] != date(day);
-                                          final start = previous
-                                              ? 0
-                                              : minute(shift['start']);
-                                          final finish = minute(shift['end']);
-                                          final end = previous
-                                              ? finish
-                                              : finish <= start
-                                              ? 1440
-                                              : finish;
-                                          if (previous &&
-                                              finish > minute(shift['start'])) {
-                                            return const SizedBox.shrink();
-                                          }
-                                          final color = shift['duty'] == '조리'
-                                              ? const Color(0xFFE3EDF8)
-                                              : shift['duty'] == 'cashier'
-                                              ? const Color(0xFFE8E8F3)
-                                              : const Color(0xFFFBE9E4);
-                                          final lane = shift['duty'] == '조리'
-                                              ? 0
-                                              : shift['duty'] == 'cashier'
-                                              ? 2
-                                              : 1;
-                                          return Positioned(
-                                            top: start / 30 * rowHeight + 1,
-                                            left:
-                                                lane * 120.0 +
-                                                (lane == 1 &&
-                                                        shift['duty'] == '서빙2'
-                                                    ? 61
-                                                    : 2),
-                                            width: lane == 1 ? 57 : 116,
-                                            height:
-                                                ((end - start) /
-                                                            30 *
-                                                            rowHeight -
-                                                        2)
-                                                    .clamp(28, gridHeight),
-                                            child: drag(
-                                              shift,
-                                              Material(
-                                                color: color,
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                                child: InkWell(
-                                                  onTap: () => editShift(
-                                                    DateTime.parse(shift['date']),
-                                                    shift,
-                                                    shift: shift,
-                                                  ),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(5),
-                                                    child: Text(
-                                                      '${shift['duty'].toString().startsWith('서빙')
-                                                          ? '서빙'
-                                                          : shift['duty'] == 'cashier'
-                                                          ? 'Cashier'
-                                                          : shift['duty']} · ${name(shift['tapperId'])}\n${shift['start']}–${shift['end']}',
-                                                      style: const TextStyle(
-                                                        fontSize: 11,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
+                                    ],
+                                  ),
+                                  if (early.isNotEmpty)
+                                    SizedBox(
+                                      height: 24,
+                                      child: InkWell(
+                                        onTap: () => showEarly(day),
+                                        child: Center(
+                                          child: Text(
+                                            '새벽·야간 ${early.length}',
+                                            style: const TextStyle(
+                                              fontSize: 10,
                                             ),
-                                          );
-                                        },
+                                          ),
+                                        ),
                                       ),
-                                  ],
-                                ),
+                                    )
+                                  else
+                                    const SizedBox(height: 24),
+                                ],
                               ),
                             );
                           },
                         ),
                     ],
                   ),
+                  SizedBox(
+                    height: 680,
+                    child: SingleChildScrollView(
+                      controller: weekTimeScroll,
+                      child: SizedBox(
+                        height: gridHeight,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(width: axisWidth),
+                            for (var n = 0; n < 7; n++)
+                              Builder(
+                                builder: (context) {
+                                  final day = monday.add(Duration(days: n));
+                                  final dayShifts = shifts
+                                      .where(
+                                        (s) =>
+                                            s['date'] == date(day) ||
+                                            s['date'] ==
+                                                date(
+                                                  day.subtract(
+                                                    const Duration(days: 1),
+                                                  ),
+                                                ),
+                                      )
+                                      .toList();
+                                  return DragTarget<Json>(
+                                    onWillAcceptWithDetails: (_) => editable,
+                                    onAcceptWithDetails: (details) => dropShift(
+                                      day,
+                                      details.data,
+                                      details.offset,
+                                      context,
+                                    ),
+                                    builder: (context, candidates, _) => SizedBox(
+                                      width: dayWidth,
+                                      height: gridHeight,
+                                      child: Stack(
+                                        children: [
+                                          for (var tick = 12; tick < 48; tick++)
+                                            Positioned(
+                                              top: (tick - 12) * rowHeight,
+                                              left: 0,
+                                              right: 0,
+                                              height: rowHeight,
+                                              child: InkWell(
+                                                onTap: () => chooseForDay(day),
+                                                child: DecoratedBox(
+                                                  decoration: BoxDecoration(
+                                                    color: candidates.isNotEmpty
+                                                        ? const Color(
+                                                            0xFFFCE8E4,
+                                                          )
+                                                        : Colors.white,
+                                                    border: Border(
+                                                      left: const BorderSide(
+                                                        color: AppColors.line,
+                                                      ),
+                                                      top: BorderSide(
+                                                        color: AppColors.line,
+                                                        width: tick.isEven
+                                                            ? 1
+                                                            : .4,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          for (final shift in dayShifts)
+                                            Builder(
+                                              builder: (context) {
+                                                final previous =
+                                                    shift['date'] != date(day);
+                                                final start = previous
+                                                    ? 0
+                                                    : minute(shift['start']);
+                                                final finish = minute(
+                                                  shift['end'],
+                                                );
+                                                final end = previous
+                                                    ? finish
+                                                    : finish <= start
+                                                    ? 1440
+                                                    : finish;
+                                                if ((previous &&
+                                                        finish >
+                                                            minute(
+                                                              shift['start'],
+                                                            )) ||
+                                                    end <= 360) {
+                                                  return const SizedBox.shrink();
+                                                }
+                                                final visibleStart = start < 360
+                                                    ? 360
+                                                    : start;
+                                                final color =
+                                                    shift['duty'] == '조리'
+                                                    ? const Color(0xFFE3EDF8)
+                                                    : shift['duty'] == 'cashier'
+                                                    ? const Color(0xFFE8E8F3)
+                                                    : const Color(0xFFFBE9E4);
+                                                final lane =
+                                                    shift['duty'] == '조리'
+                                                    ? 0
+                                                    : shift['duty'] == 'cashier'
+                                                    ? 2
+                                                    : 1;
+                                                return Positioned(
+                                                  top:
+                                                      (visibleStart - 360) /
+                                                          30 *
+                                                          rowHeight +
+                                                      1,
+                                                  left:
+                                                      lane * roleWidth +
+                                                      (lane == 1 &&
+                                                              shift['duty'] ==
+                                                                  '서빙2'
+                                                          ? roleWidth / 2 + 1
+                                                          : 2),
+                                                  width: lane == 1
+                                                      ? roleWidth / 2 - 4
+                                                      : roleWidth - 4,
+                                                  height:
+                                                      ((end - visibleStart) /
+                                                                  30 *
+                                                                  rowHeight -
+                                                              2)
+                                                          .clamp(
+                                                            28,
+                                                            gridHeight,
+                                                          ),
+                                                  child: drag(
+                                                    shift,
+                                                    Material(
+                                                      color: color,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6,
+                                                          ),
+                                                      child: InkWell(
+                                                        onTap: () => editShift(
+                                                          DateTime.parse(
+                                                            shift['date'],
+                                                          ),
+                                                          shift,
+                                                          shift: shift,
+                                                        ),
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets.all(
+                                                                5,
+                                                              ),
+                                                          child: Text(
+                                                            compact
+                                                                ? '${name(shift['tapperId'])}${lane == 1 ? '' : '\n${shift['start']}–${shift['end']}'}'
+                                                                : '${shift['duty'].toString().startsWith('서빙')
+                                                                      ? '서빙'
+                                                                      : shift['duty'] == 'cashier'
+                                                                      ? 'Cashier'
+                                                                      : shift['duty']} · ${name(shift['tapperId'])}\n${shift['start']}–${shift['end']}',
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 10,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            top: 76,
+            width: axisWidth,
+            height: 680,
+            child: IgnorePointer(
+              child: ColoredBox(
+                color: Colors.white,
+                child: ClipRect(
+                  child: AnimatedBuilder(
+                    animation: weekTimeScroll,
+                    builder: (context, _) {
+                      final offset = weekTimeScroll.hasClients
+                          ? weekTimeScroll.offset
+                          : 0.0;
+                      return Stack(
+                        children: [
+                          for (var n = 12; n < 48; n++)
+                            Positioned(
+                              top: (n - 12) * rowHeight - offset,
+                              left: 2,
+                              child: Text(
+                                n.isEven
+                                    ? '${(n ~/ 2).toString().padLeft(2, '0')}:00'
+                                    : ':30',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.muted,
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

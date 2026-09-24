@@ -198,14 +198,15 @@ test('HTTP accepts checklist drafts larger than the old 64 KiB limit', async t =
   assert.equal(response.status, 200); assert.equal((await response.json()).taskTemplates.length, payload.templates.length);
 });
 
-test('global Tap ordering spans folders; linked orders survive folder editing and synchronize Home', async t => {
+test('order and prep lanes stay separate; linked orders survive folder editing and synchronize Home', async t => {
   const { store, act } = await setup(t);
   let state = await store.snapshot('owner');
   const order = state.tasks.find(t => t.orderId);
   const preparation = state.tasks.find(t => t.templateId && t.folderId !== order.folderId);
-  state = await act('move_tap', { taskId: order.id, folderId: order.folderId, status: 'todo', beforeTaskId: preparation.id });
+  await assert.rejects(act('move_tap', { taskId: order.id, folderId: order.folderId, status: 'keep', beforeTaskId: preparation.id }), /삽입할 Tap/);
+  state = await act('move_tap', { taskId: order.id, folderId: order.folderId, status: 'keep' });
   assert.equal(state.tasks.find(t => t.id === order.id).folderId, order.folderId);
-  assert.equal(state.tasks.find(t => t.id === order.id).displayOrder + 1, state.tasks.find(t => t.id === preparation.id).displayOrder);
+  assert.equal(state.tasks.find(t => t.id === order.id).boardStatus, order.boardStatus);
   state = await act('save_checklists', draft(state));
   assert.ok(state.tasks.some(t => t.id === order.id));
   state = await act('move_tap', { taskId: order.id, folderId: order.folderId, status: 'done' });
