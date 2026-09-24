@@ -144,6 +144,7 @@ void main() {
       await tester.ensureVisible(find.text('재고와 발주'));
       await tester.tap(find.text('재고와 발주'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('부족한 재료 담기'));
       await tester.tap(find.text('부족한 재료 담기'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('발주함 보기 (1)'));
@@ -285,6 +286,7 @@ void main() {
       await tester.ensureVisible(find.text('재고와 발주'));
       await tester.tap(find.text('재고와 발주'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('부족한 재료 담기'));
       await tester.tap(find.text('부족한 재료 담기'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('발주함 보기 (1)'));

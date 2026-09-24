@@ -240,7 +240,7 @@ void main() {
         tester,
         find.widgetWithText(OutlinedButton, '테이블·기기 추가'),
       );
-      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.tap(find.byType(DropdownButtonFormField<String>).first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('주요 기기').last);
       await tester.pumpAndSettle();
