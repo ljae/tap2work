@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 31,
+  "revision": 32,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1916,7 +1916,23 @@
         "docs/SAN_BONEJJIM_TAP_RESEARCH_2026-09-24.md",
         "docs/project-state.json"
       ],
-      "verification": "현재까지 Flutter analyze, npm run check, npm run build:site 통과. 관련 테스트는 이번 작업에서 직접 실행하지 않았다. 공개 배포와 CI 결과는 확인 전이며 네이티브 빌드·실기기 검증은 미수행."
+      "verification": "로컬 flutter analyze, npm run check, npm run build:site 통과. GitHub Actions 35943439395에서 npm run check, Node 37/37, Flutter analyze, Flutter 61/61, 공개 웹 빌드, Pages 배포 모두 성공. 공개 https://tap2.work/app/ HTTP 200 확인. 네이티브 빌드·실기기 검증은 미수행."
+    },
+    {
+      "id": "H-revision-deployment-2026-09-24",
+      "at": "2026-09-24T01:37:00Z",
+      "type": "deployment",
+      "title": "2026-09-24 Tap/Team/Calendar/Place 개편 공개 리뷰 배포",
+      "detail": "커밋 4ad90f9까지 main에 게시했고 공개 Flutter 리뷰와 문서 사이트를 배포했다. 공개 사이트는 가상 샘플을 읽는 정적 리뷰로, 공유 데모 API·실제 발주·인증된 직원 급여 지급과 연결되지 않는다.",
+      "files": [
+        "docs/project-state.json"
+      ],
+      "verification": "GitHub Actions 35943439395에서 Node 37/37, Flutter 61/61, Flutter analyze, npm run check, 공개 웹 빌드와 Pages deploy 성공. https://tap2.work/app/ HTTP 200 확인. 브라우저 수동 조작·네이티브 빌드·실기기 검증은 미수행.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/35943439395",
+        "https://github.com/ljae/tap2work/commit/4ad90f9",
+        "https://tap2.work/app/"
+      ]
     }
   ],
   "updatedAt": "2026-09-24T00:00:00Z"
