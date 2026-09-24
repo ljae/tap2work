@@ -13,9 +13,9 @@ class BrandLogo extends StatelessWidget {
       children: [
         ArtworkCrop(
           asset: 'assets/branding/tap2work.png',
-          crop: Rect.fromLTWH(650, 240, 1540, 1140),
-          width: 54,
-          height: 40,
+          crop: Rect.fromLTWH(132, 71, 220, 287),
+          width: 30,
+          height: 38,
           semanticLabel: 'tap2.work 로고',
         ),
         SizedBox(width: 8),
@@ -140,15 +140,15 @@ class _ArtworkPainter extends CustomPainter {
 }
 
 abstract final class AppColors {
-  static const paper = Color(0xFFF7F8FA);
+  static const paper = Color(0xFFF7F7F5);
   static const white = Color(0xFFFFFFFF);
-  static const accent = Color(0xFFC93832);
-  static const green = Color(0xFF203D34);
-  static const ink = Color(0xFF242832);
-  static const muted = Color(0xFF6C7280);
-  static const lime = Color(0xFFE1F090);
-  static const peach = Color(0xFFF2B28B);
-  static const line = Color(0xFFE1E4E8);
+  static const accent = Color(0xFFE34437);
+  static const green = Color(0xFF29364B);
+  static const ink = Color(0xFF20232B);
+  static const muted = Color(0xFF747985);
+  static const lime = Color(0xFFF3F0E8);
+  static const peach = Color(0xFFFBEAE7);
+  static const line = Color(0xFFE7E7E4);
 }
 
 class Surface extends StatelessWidget {
@@ -167,7 +167,7 @@ class Surface extends StatelessWidget {
     padding: padding,
     decoration: BoxDecoration(
       color: color,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       border: Border.all(
         color: color == AppColors.green ? color : AppColors.line,
       ),

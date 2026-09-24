@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../domain/checklist_draft.dart';
 import '../state/operations_controller.dart';
@@ -367,7 +368,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${task['emoji'] ?? '📝'} ${task['title']}',
+                        '${task['title']}',
                         style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
@@ -488,7 +489,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
           width: 260,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Text('${task['emoji'] ?? '📝'} ${task['title']}'),
+            child: Text('${task['title']}'),
           ),
         ),
       ),
@@ -743,14 +744,18 @@ class _GroupSheetState extends State<_GroupSheet> {
             children: [
               SizedBox(
                 width: 72,
-                child: TextFormField(
-                  initialValue: task['emoji'] ?? '📝',
-                  maxLength: 2,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 22),
-                  decoration: const InputDecoration(labelText: '아이콘'),
-                  onChanged: (v) =>
-                      task['emoji'] = v.trim().isEmpty ? '📝' : v.trim(),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        CupertinoIcons.list_bullet,
+                        color: AppColors.green,
+                      ),
+                      const SizedBox(height: 6),
+                      Text('그룹', style: Theme.of(context).textTheme.labelSmall),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: 12),

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import '../state/work_controller.dart';
@@ -72,9 +73,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            success ? '매장에 함께 반영했어요 🌿' : ops.error ?? '저장하지 못했어요.',
-          ),
+          content: Text(success ? '매장에 함께 반영했어요' : ops.error ?? '저장하지 못했어요.'),
         ),
       );
     }
@@ -105,17 +104,17 @@ class _OperationsScreenState extends State<OperationsScreen> {
               ops.selectActor(id);
             },
             itemBuilder: (_) => const [
-              PopupMenuItem(value: 'owner', child: Text('🌻 서연 · 사장님')),
-              PopupMenuItem(value: 'manager', child: Text('🌿 민지 · 매니저')),
-              PopupMenuItem(value: 'cook', child: Text('🍳 현우 · 조리 담당')),
-              PopupMenuItem(value: 'crew', child: Text('🐣 지우 · 크루')),
+              PopupMenuItem(value: 'owner', child: Text('서연 · 사장님')),
+              PopupMenuItem(value: 'manager', child: Text('민지 · 매니저')),
+              PopupMenuItem(value: 'cook', child: Text('현우 · 조리 담당')),
+              PopupMenuItem(value: 'crew', child: Text('지우 · 크루')),
             ],
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
                   Text(
-                    '${ops.actor['emoji']} ${ops.actor['label']}',
+                    '${ops.actor['label']}',
                     style: const TextStyle(fontSize: 13),
                   ),
                   const Icon(Icons.expand_more, size: 17),
@@ -201,7 +200,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                 },
                                 const SizedBox(height: 24),
                                 const Text(
-                                  '🌱 작은 확인이 모여, 함께 일하기 편한 하루',
+                                  '작은 확인이 모여, 함께 일하기 편한 하루',
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.muted,
@@ -226,23 +225,28 @@ class _OperationsScreenState extends State<OperationsScreen> {
         }),
         destinations: const [
           NavigationDestination(
-            icon: Text('📊', style: TextStyle(fontSize: 24)),
+            icon: Icon(CupertinoIcons.chart_bar),
+            selectedIcon: Icon(CupertinoIcons.chart_bar_fill),
             label: 'Status · 매장 현황',
           ),
           NavigationDestination(
-            icon: Text('✅', style: TextStyle(fontSize: 24)),
+            icon: Icon(CupertinoIcons.checkmark_alt_circle),
+            selectedIcon: Icon(CupertinoIcons.checkmark_alt_circle_fill),
             label: 'Todo · 할 일',
           ),
           NavigationDestination(
-            icon: Text('👥', style: TextStyle(fontSize: 24)),
+            icon: Icon(CupertinoIcons.person_2),
+            selectedIcon: Icon(CupertinoIcons.person_2_fill),
             label: 'Team · 우리 팀',
           ),
           NavigationDestination(
-            icon: Text('📅', style: TextStyle(fontSize: 24)),
+            icon: Icon(CupertinoIcons.calendar),
+            selectedIcon: Icon(CupertinoIcons.calendar_today),
             label: 'Calendar · 근무 흐름',
           ),
           NavigationDestination(
-            icon: Text('🗺️', style: TextStyle(fontSize: 24)),
+            icon: Icon(CupertinoIcons.map),
+            selectedIcon: Icon(CupertinoIcons.map_fill),
             label: 'Place · 매장 지도',
           ),
         ],
@@ -282,7 +286,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     ),
   );
   Widget actionCard(
-    String emoji,
+    IconData icon,
     String heading,
     String detail,
     VoidCallback onTap, {
@@ -292,7 +296,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     child: Material(
       color: color,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: AppColors.line),
       ),
       clipBehavior: Clip.antiAlias,
@@ -302,7 +306,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
           padding: const EdgeInsets.all(18),
           child: Row(
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 27)),
+              Icon(icon, size: 21, color: AppColors.green),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -320,7 +324,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, size: 20),
+              const Icon(CupertinoIcons.chevron_right, size: 17),
             ],
           ),
         ),
@@ -332,14 +336,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
     return [
       StoreDashboard(operations: ops, onNavigate: go),
       actionCard(
-        '📦',
+        CupertinoIcons.cube_box,
         '재고와 발주',
         '재고 확인 · 데모 발주 · 입고 기록',
         () => setState(() => inventoryOpen = true),
       ),
       gap(24),
       actionCard(
-        '🐣',
+        CupertinoIcons.hand_raised,
         '오늘 처음 왔나요?',
         '버디와 첫 출근 가이드 열기',
         () => Navigator.of(context).push(
@@ -348,9 +352,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
           ),
         ),
       ),
-      actionCard('🗺️', '냉장고, 창고가 어디에 있나요?', '매장 배치와 일하는 동선 알아보기', () => go(4)),
+      actionCard(
+        CupertinoIcons.map,
+        '냉장고, 창고가 어디에 있나요?',
+        '매장 배치와 일하는 동선 알아보기',
+        () => go(4),
+      ),
       if (ops.isOwner && ops.data!['privateSummary'] != null) ...[
-        title('🔒 사장님만 보는 공간'),
+        title('사장님만 보는 공간'),
         Surface(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -368,7 +377,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
           ),
         ),
       ],
-      title('💬 함께 업데이트했어요'),
+      title('함께 업데이트했어요'),
       if (ops.rows('activity').isEmpty)
         const Information('아직 새 소식이 없어요. 재고나 할 일을 확인하면 누가 했는지 이곳에 남아요.'),
       for (final event in ops.rows('activity').take(4))
@@ -377,7 +386,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('🌿  '),
+              const Icon(
+                CupertinoIcons.checkmark_circle,
+                size: 16,
+                color: AppColors.green,
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,7 +476,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
           children: [
             Row(
               children: [
-                Text(i['emoji'], style: const TextStyle(fontSize: 30)),
+                const Icon(
+                  CupertinoIcons.cube_box,
+                  size: 24,
+                  color: AppColors.muted,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -570,7 +587,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
       ),
       gap(12),
     ],
-    title('📦 발주와 입고 내역'),
+    title('발주와 입고 내역'),
     if (ops.rows('orders').isEmpty)
       const Information('아직 발주 내역이 없어요. 발주함에서 수량을 확인한 뒤 한 번에 데모 발주해 보세요.'),
     for (final order in ops.rows('orders').take(10)) ...[
@@ -754,7 +771,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     final values = await formDialog(
       '실제로 몇 ${i['unit']} 있나요?',
       [
-        small('${i['emoji']} ${i['name']} · ${zoneName(i['zone'])}'),
+        small('${i['name']} · ${zoneName(i['zone'])}'),
         gap(),
         TextField(
           controller: controller,
@@ -843,7 +860,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         .map((e) => item(e.key)!['supplier'] as String)
         .toSet();
     final values = await formDialog(
-      '모아서 데모 발주 📦',
+      '모아서 데모 발주',
       [
         const Information(
           '실제 공급처로 전송하거나 결제하지 않아요. 발주 기록만 생성하며 입고 확인 전에는 재고가 늘지 않아요.',

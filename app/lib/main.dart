@@ -74,7 +74,7 @@ class Tap2workApp extends StatelessWidget {
         style: FilledButton.styleFrom(
           minimumSize: const Size(48, 50),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
@@ -82,13 +82,13 @@ class Tap2workApp extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(48, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.white,
-        indicatorColor: AppColors.accent.withValues(alpha: .09),
+        indicatorColor: AppColors.accent.withValues(alpha: .10),
         labelTextStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12)),
       ),
       dividerColor: AppColors.line,

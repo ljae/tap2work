@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
@@ -19,7 +20,10 @@ Future<void> openMap(WidgetTester tester, OperationsController ops) async {
     Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
   );
   await tester.tap(
-    find.descendant(of: find.byType(NavigationBar), matching: find.text('🗺️')),
+    find.descendant(
+      of: find.byType(NavigationBar),
+      matching: find.byIcon(CupertinoIcons.map),
+    ),
   );
   await tester.pumpAndSettle();
 }

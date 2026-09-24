@@ -1,4 +1,4 @@
-name: Development review site
+name: tap2work Flutter app
 on:
   push:
     branches: [main]
@@ -50,6 +50,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy review site
+      - name: Deploy tap2work
         id: deployment
         uses: actions/deploy-pages@v4

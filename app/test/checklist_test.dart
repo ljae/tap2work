@@ -311,7 +311,7 @@ void main() {
     );
     addTearDown(ops.dispose);
     await mount(tester, ops, editor: true, width: 900);
-    final card = find.text('🥣 전처리 준비');
+    final card = find.text('전처리 준비');
     await tester.ensureVisible(card);
     await longDrag(tester, card, find.text('마감 폴더 · 0'));
     expect(find.text('마감 폴더 · 1'), findsOneWidget);
@@ -340,13 +340,13 @@ void main() {
       addTearDown(ops.dispose);
       await mount(tester, ops, editor: true, width: 900);
       await tester.ensureVisible(find.text('도구 나누기'));
-      await longDrag(tester, find.text('도구 나누기'), find.text('🍲 육수 올리기'));
+      await longDrag(tester, find.text('도구 나누기'), find.text('육수 올리기'));
       expect(find.textContaining('· 1개 활동'), findsOneWidget);
       expect(find.textContaining('· 2개 활동'), findsOneWidget);
       await tester.ensureVisible(find.text('솥 물량 확인'));
-      await longDrag(tester, find.text('솥 물량 확인'), find.text('🥣 전처리 준비'));
+      await longDrag(tester, find.text('솥 물량 확인'), find.text('전처리 준비'));
       await tester.ensureVisible(find.text('도구 나누기'));
-      await longDrag(tester, find.text('도구 나누기'), find.text('🥣 전처리 준비'));
+      await longDrag(tester, find.text('도구 나누기'), find.text('전처리 준비'));
       expect(find.text('그룹에는 활동이 하나 이상 남아야 해요.'), findsOneWidget);
       await tester.tap(find.text('저장'));
       await tester.pumpAndSettle();
@@ -369,8 +369,8 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mount(tester, ops, editor: true, width: 900);
-      await tester.ensureVisible(find.text('🥣 전처리 준비'));
-      await tester.tap(find.text('🥣 전처리 준비'));
+      await tester.ensureVisible(find.text('전처리 준비'));
+      await tester.tap(find.text('전처리 준비'));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.widgetWithText(TextFormField, '그룹 이름'),
@@ -380,7 +380,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('그룹 정보 적용'));
       await tester.pumpAndSettle();
-      expect(find.text('🥣 내 매장 준비'), findsOneWidget);
+      expect(find.text('내 매장 준비'), findsOneWidget);
       await tester.ensureVisible(find.text('도구 나누기'));
       await tester.tap(find.text('도구 나누기'));
       await tester.pumpAndSettle();

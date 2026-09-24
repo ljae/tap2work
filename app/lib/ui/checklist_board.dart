@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../domain/checklist_draft.dart';
@@ -102,7 +103,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
       children: [
         const PageHeading(
           'TODAY · TAP TO CHECK',
-          '탭 한 번으로, 확인 완료 ✅',
+          '탭 한 번으로 확인을 기록해요',
           '그룹을 열고, 활동을 실제로 마친 뒤 왼쪽 동그라미를 눌러요. 이름을 누르면 방법과 노하우가 보여요.',
         ),
         _Progress(
@@ -169,7 +170,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
         ),
         const SizedBox(height: 16),
         if (visibleGroups.isEmpty && visibleStock.isEmpty)
-          const Information('이 조건에 맞는 할 일이 없어요 🌱'),
+          const Information('이 조건에 맞는 할 일이 없어요.'),
         for (final g in visibleGroups) groupCard(g),
         for (final t in visibleStock) stockCard(t),
       ],
@@ -274,9 +275,10 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                 padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
                 child: Row(
                   children: [
-                    Text(
-                      '${task['emoji'] ?? '📝'}',
-                      style: const TextStyle(fontSize: 26),
+                    const Icon(
+                      CupertinoIcons.checkmark_circle,
+                      size: 22,
+                      color: AppColors.muted,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -494,7 +496,11 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
         color: complete ? const Color(0xFFEDF1E6) : AppColors.white,
         child: Row(
           children: [
-            Text('${task['emoji']}', style: const TextStyle(fontSize: 26)),
+            const Icon(
+              CupertinoIcons.cube_box,
+              size: 22,
+              color: AppColors.muted,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

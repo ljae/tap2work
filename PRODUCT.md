@@ -8,7 +8,9 @@ Kitchen prep and dishwashing remain the starting jobs. Each worker needs their o
 
 ## Brand artwork
 
-The current repository-root `tap2work.png` is the user-supplied red badge logo from `logo_tap2.png` (2026-09-23). It replaces the generated blue/yellow doodle logo, which is preserved in `docs/branding/tap2work-generated-2026-09-20.png`; the earlier original remains in `docs/branding/tap2work-original.png`. Flutter headers, the public review portal, local developer console and web favicons use the new image. Compact headers crop the supplied image at display time so the badge remains visible; `scripts/sync-branding.mjs` copies the source file verbatim into Flutter assets before web builds. Native launcher icons remain unchanged. The user-supplied `menu_tap2.png` is bundled as `app/assets/menu/menu_tap2.png`; matching dish illustrations appear beside sample menu sales rows, while unmatched add-ons and drinks use neutral emoji.
+The current repository-root `tap2work.png` is a 768 px wide derivative of the user-supplied red sling-bag and wordmark image `logo_tap2work.png` (2026-09-24), replacing the prior supplied red badge image. The full-resolution user file remains in Downloads. This smaller version reduces the logo asset from 6.9 MB to about 0.5 MB. The Flutter app and web favicon use it; the compact header crops the image at display time. `scripts/sync-branding.mjs` copies it into Flutter assets before builds. Native launcher icons remain unchanged. The user-supplied `menu_tap2.png` is bundled as `app/assets/menu/menu_tap2.png` for matching sample dish rows.
+
+The confirmed visual direction is a calm, precise utility: warm off-white surfaces, ink and navy text, the logo's coral red for primary actions, restrained thin SF Symbols-style monochrome icons, fine dividers and modest corner radii. Functional navigation and task cards use Cupertino glyphs rather than colorful emoji; actual dish art remains where it identifies a menu item. The public domain root serves the Flutter app directly. The public build excludes the development journal and project decision/history files; the local developer console remains a development tool.
 
 ## Phone experience
 
@@ -18,7 +20,7 @@ The current repository-root `tap2work.png` is the user-supplied red badge logo f
 | Buddy | Demonstrate and observe practice | Confirm a step; respond to help |
 | Owner/manager | Prepare a reusable role template | Invite workers; assign buddies and shifts |
 
-The app has five bottom destinations in this order: Status, Todo, Team, Calendar, Place. The bottom bar shows emoji icons only, with accessible labels for screen readers. Status provides the inventory and procurement entry point. The existing first-shift guide (오늘, 일하는 법, 근무표, 도움) remains accessible from Status. Administrative actions are separate from worker actions. Use short Korean text and large touch targets. The guide’s video/photo format remains deferred in D-007.
+The app has five bottom destinations in this order: Status, Todo, Team, Calendar, Place. The bottom bar shows SF Symbols-style icons only, with accessible labels for screen readers. Status provides the inventory and procurement entry point. The existing first-shift guide (오늘, 일하는 법, 근무표, 도움) remains accessible from Status. Administrative actions are separate from worker actions. Use short Korean text and large touch targets. The guide’s video/photo format remains deferred in D-007.
 
 The 2026-09-24 revision uses Big Tap → Tap → Small Tap. The root board shows group columns, including 주문처리, 마케팅, 뼈찜 조리, 뼈짬뽕 조리, 응대, 정비 and 정산. A group opens a Tap board with fixed 할일 / 주문처리중 / 완료 lanes. A Tap opens one Small Tap list and a selected manual panel. Completing a Tap checks its remaining Small Taps together. The existing checklist IDs, stock-count workflow and first-shift guide remain. Team now has a demo Tapper register, structured R&R shifts, server-recorded clock events and hourly pay estimates; Calendar shows shifts alongside manually assigned Tap time slots. Place supports rectangle, L and U footprints on integer grid cells. These are shared demo operations, not authenticated employee records, live orders or production payroll. Verified webhooks, marketplace, personal push and statutory pay policy remain planned; see [Tap system architecture](docs/TAP_SYSTEM_ARCHITECTURE.md).
 
@@ -70,11 +72,11 @@ The active queue retains unfinished orders from earlier days, independent of per
 
 ## Current storage and integration boundaries
 
-### Public development review
+### Public app and local development workspace
 
 The user selected `https://github.com/ljae/tap2work` for development and registered `tap2.work` through Namecheap. The user will share the site with a specific CEO, who can ask direction questions, request new features, and suggest improvements to the work experience. Do not impersonate the CEO or treat AI recommendations as their feedback.
 
-The public review page shows product questions, versioned decisions, milestones, and GitHub Issue links for feedback. GitHub Issues is the initial implemented feedback mechanism: the reviewer logs in and explicitly submits a public issue. This is not an anonymous feedback inbox. Feedback does not automatically change confirmed decisions; agreed changes are recorded in the canonical file with reasons and history.
+The public domain root serves the read-only Flutter app with synthetic samples. It does not publish the development journal, decision history, or project status. The local developer console remains available for development; any product feedback or future CEO direction must still be explicitly provided by the user and recorded as a decision only after confirmation.
 
 GitHub Pages hosts a separate static Flutter review build with fresh code-generated role samples. Operational writes are blocked in this build, and there is no shared public operations API. Onboarding practice remains browser-local. The localhost console and its editable canonical decisions stay local. Public hosting is a development preview, not production deployment of staff operations.
 
@@ -132,7 +134,7 @@ Add InventoryItem, StockCheck, Supplier, PurchaseOrder/Line/Receipt, TaskTemplat
 
 ## Access and communication proposal
 
-The user selected Flutter on 2026-09-19. The primary app lives in `app/` and targets Android and iOS; a Flutter web build is used for development review. The original root HTML prototype remains a reference. The canonical decisions and history live in `docs/project-state.json`; `developer/` provides the local web workspace for reviewing and recording decisions.
+The user selected Flutter on 2026-09-19. The primary app lives in `app/` and targets Android and iOS; the same Flutter app is served from `https://tap2.work/`. The original root HTML prototype remains a reference. The canonical decisions and history live in `docs/project-state.json`; `developer/` provides the local web workspace for reviewing and recording decisions.
 
 A worker could start from a manager invitation. Joining, deep links, authentication, invitation expiry, shared phones, app installation, and account recovery need decisions before implementation. Do not put private employee data behind a publicly reusable store QR code. The exact invitation and installation experience is still proposed, not confirmed.
 

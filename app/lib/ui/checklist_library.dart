@@ -108,9 +108,7 @@ Future<void> showChecklistLibrary(
                                         importError = null;
                                       }),
                               ),
-                              title: Text(
-                                '${task['emoji'] ?? '📝'} ${task['title']}',
-                              ),
+                              title: Text(task['title']),
                               subtitle: Text(
                                 templates.any(
                                       (t) =>

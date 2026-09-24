@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -273,15 +274,21 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      for (final emoji in ['✅', '👥', '📅', '🗺️', '📊']) {
+      for (final icon in [
+        CupertinoIcons.checkmark_alt_circle,
+        CupertinoIcons.person_2,
+        CupertinoIcons.calendar,
+        CupertinoIcons.map,
+        CupertinoIcons.chart_bar,
+      ]) {
         await tester.tap(
           find.descendant(
             of: find.byType(NavigationBar),
-            matching: find.text(emoji),
+            matching: find.byIcon(icon),
           ),
         );
         await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull, reason: '$width / $emoji');
+        expect(tester.takeException(), isNull, reason: '$width / $icon');
       }
       await tester.ensureVisible(find.text('재고와 발주'));
       await tester.tap(find.text('재고와 발주'));
@@ -317,7 +324,10 @@ void main() {
       Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
     );
     await tester.tap(
-      find.descendant(of: find.byType(NavigationBar), matching: find.text('✅')),
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.byIcon(CupertinoIcons.checkmark_alt_circle),
+      ),
     );
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('재고 수량 확인하기'));

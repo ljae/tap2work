@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'components.dart';
 
@@ -28,7 +29,7 @@ class TapCard extends StatelessWidget {
   Widget build(BuildContext context) => Material(
     color: Colors.white,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       side: const BorderSide(color: AppColors.line),
     ),
     clipBehavior: Clip.antiAlias,
@@ -41,7 +42,15 @@ class TapCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text(emoji, style: const TextStyle(fontSize: 20)),
+                Icon(
+                  level.toLowerCase().contains('small')
+                      ? CupertinoIcons.checkmark_circle
+                      : level.toLowerCase().contains('tap')
+                      ? CupertinoIcons.list_bullet
+                      : CupertinoIcons.folder,
+                  size: 18,
+                  color: AppColors.muted,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -55,8 +64,8 @@ class TapCard extends StatelessWidget {
                   ),
                 ),
                 const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 12,
+                  CupertinoIcons.chevron_right,
+                  size: 14,
                   color: AppColors.muted,
                 ),
               ],

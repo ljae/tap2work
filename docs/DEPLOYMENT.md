@@ -3,10 +3,12 @@
 - Repository: https://github.com/ljae/tap2work
 - Domain: tap2.work (Namecheap BasicDNS)
 - Public review: GitHub Pages; `.github/workflows/pages.yml` checks and deploys `main`.
-- Public Flutter: `/app/`, fixed sample data, operational writes disabled.
+- Public Flutter: `https://tap2.work/`, fixed sample data, operational writes disabled.
 - Feedback: explicit public GitHub issue submission; CEO is contacted by the user.
 
 ## DNS
+
+The deployed public app is served directly at `https://tap2.work/`. The Pages artifact is built from Flutter at the root; it no longer includes the former development journal or project-state files. `/app/` redirects to `/` for older links. The app remains a read-only sample build.
 
 | Type | Host | Value |
 | --- | --- | --- |
@@ -60,7 +62,7 @@ Commit `3190f56` replaces the logo with the newly generated comforting blob char
 
 1. `npm run build:app` 후 `npm run dev:shared` (`DEMO_PUBLIC_ORIGIN`에 tap2.work 출처를 허용한 콘솔, 3100 포트, 루프백 바인딩 유지).
 2. 다른 터미널에서 `npm run tunnel` (`cloudflared tunnel --url http://localhost:3100`). 출력되는 `https://<이름>.trycloudflare.com` 주소를 복사합니다. 빠른 터널 주소는 실행할 때마다 바뀝니다.
-3. 팀원에게 `http://tap2.work/app/?api=https://<이름>.trycloudflare.com` 링크를 보냅니다. 브라우저가 주소를 기억하므로 이후에는 `http://tap2.work/app/`만 열어도 연결됩니다. 연결 해제는 `?api=off`.
+3. 팀원에게 `https://tap2.work/?api=https://<이름>.trycloudflare.com` 링크를 보냅니다. 브라우저가 주소를 기억하므로 이후에는 `https://tap2.work/`만 열어도 연결됩니다. 연결 해제는 `?api=off`.
 4. 앱 상단 띠에 `공유 데모 서버 연결 · <호스트>`가 보이면 한 명이 활동을 확인할 때 다른 팀원 화면에 5초 안에 같은 확인자·시각이 표시됩니다.
 
 경계: 터널은 `/api/operations`만 외부에 열고, 콘솔 화면과 결정 기록 API(`/api/project`, `/api/decisions`)는 계속 로컬에서만 응답합니다. 데모 역할 선택은 여전히 인증이 아니며, 링크를 아는 누구나 샘플 매장 상태를 바꿀 수 있습니다. 실제 직원 정보는 넣지 마세요. 터널을 닫으면 공개 앱은 연결 실패 배너를 보이며, `?api=off`로 다시 읽기 전용 미리보기로 돌아갑니다.

@@ -1,6 +1,6 @@
 # Brand artwork history
 
-The current logo is the user's `logo_tap2.png` supplied on 2026-09-23. Its exact bytes live at `../../tap2work.png` and are copied to Flutter during builds. The user's `menu_tap2.png` lives at `../../app/assets/menu/menu_tap2.png`; Flutter displays selected dish tiles by cropping at render time, without rewriting the sheet. Compact logo headers likewise crop the badge at render time. Native launcher icons were not changed.
+The current logo was supplied as `logo_tap2work.png` on 2026-09-24. The original remains in the user's Downloads folder; the checked-in `../../tap2work.png` is resized to 768 px wide to keep app loading light and copied to Flutter during builds. The user's `menu_tap2.png` lives at `../../app/assets/menu/menu_tap2.png`; Flutter displays selected dish tiles by cropping at render time, without rewriting the sheet. Compact logo headers crop just the bag mark and pair it with the wordmark. Native launcher icons were not changed.
 
 The previous generated doodle logo is archived as `tap2work-generated-2026-09-20.png`. The notes below describe that archived artwork, not the current logo. The still earlier user-supplied image remains `tap2work-original.png`.
 

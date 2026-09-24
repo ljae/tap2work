@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'components.dart';
 
 /// Supplied menu sheet: use dish art only for matching sample menu items.
@@ -20,12 +20,6 @@ class MenuArtwork extends StatelessWidget {
   Widget build(BuildContext context) {
     final crop = _art[menuId];
     if (crop == null) {
-      final emoji = switch (menuId) {
-        'tea' => '🍜',
-        'water' => '🥤',
-        'special' => '🍳',
-        _ => '🍽️',
-      };
       return Semantics(
         label: '$menuName 그림',
         image: true,
@@ -33,11 +27,15 @@ class MenuArtwork extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: const Color(0xFFF7EEE1),
+            color: AppColors.lime,
             borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.center,
-          child: Text(emoji, style: const TextStyle(fontSize: 24)),
+          child: const Icon(
+            CupertinoIcons.cube_box,
+            color: AppColors.muted,
+            size: 22,
+          ),
         ),
       );
     }
