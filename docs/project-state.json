@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 41,
+  "revision": 42,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -447,7 +447,7 @@
       "id": "M-013",
       "title": "Tap 시스템 재구성 첫 단계",
       "status": "in_progress",
-      "description": "Demo implemented: folder/status board, menu/order groups, popup recipe manuals with external media and direct editing, Team attendance/pay estimates, weekly/monthly staffing slots and HR pool, orthogonal layout. Five-minute planning removed. Local Flutter 66 and Node 44 tests pass; static web build passes. Deployed to GitHub Pages and the Supabase operations function on 2026-09-24; live verification passed. Real POS, notifications, HR integration, payroll policy and native device validation remain incomplete. Prepared-item ledger, menu usage, actual prep output and one low-stock TAP per item are implemented; source quantities are configurable sample values."
+      "description": "Demo implemented: folder/status board, menu/order groups, popup recipe manuals with external media and direct editing, Team attendance/pay estimates, weekly/monthly staffing slots and HR pool, orthogonal layout. Five-minute planning removed. Local Flutter 66 and Node 44 tests pass; static web build passes. Deployed to GitHub Pages and the Supabase operations function on 2026-09-24; live verification passed. Real POS, notifications, HR integration, payroll policy and native device validation remain incomplete. Prepared-item ledger, menu usage, actual prep output and one low-stock TAP per item are implemented; source quantities are configurable sample values. Prepared workflow deployed to GitHub Pages and Supabase operations function on 2026-09-24; live public sample and API access check passed."
     },
     {
       "id": "M-014",
@@ -2257,7 +2257,24 @@
         "docs/TAP_SYSTEM_ARCHITECTURE.md"
       ],
       "verification": "Final Flutter analysis clean; Flutter 69/69 tests, Node 48/48 tests, npm run check, npm run build:site and git diff --check passed. Native builds, physical-device interaction and live deployment verification were not performed at this revision."
+    },
+    {
+      "id": "H-prepared-workflow-deployment-2026-09-24",
+      "at": "2026-09-24T09:27:36.718433Z",
+      "type": "deployment",
+      "title": "Prepared-item workflow and taller brand header deployed",
+      "detail": "Published f0a223c on main to GitHub Pages and redeployed the Supabase operations Edge Function from that source without a schema migration.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "Actions 35981038854 succeeded: JavaScript check, 48 Node tests, Flutter analysis, 69 Flutter tests and public build. Live HTTPS root returned 200; deployed main.dart.js and favicon bytes matched the local public build. Live review sample contained one prepared item, one auto-generated prep TAP and three Small TAPs per menu order. Unauthenticated operations function returned 401. Authenticated live prep mutations, native builds and physical-device interaction were not tested.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/35981038854",
+        "https://github.com/ljae/tap2work/commit/f0a223cc5e1fa7acc9bd889b36da4b3ae6bf12db",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-24T09:22:56.317865Z"
+  "updatedAt": "2026-09-24T09:27:36.718433Z"
 }
