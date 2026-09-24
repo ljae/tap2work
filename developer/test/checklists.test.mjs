@@ -55,7 +55,7 @@ test('legacy migration preserves completed evidence and upgrades pending manuals
   old.tasks[0].completedAt = clock().toISOString(); old.tasks[0].completedBy = { name: '기존 담당' };
   await writeFile(file, JSON.stringify(old));
   const upgraded = await store.snapshot('owner');
-  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine').length, 11);
+  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine' && !t.orderId).length, 6);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').steps, undefined);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').completedBy.name, '기존 담당');
   assert.equal(upgraded.tasks.find(t => t.id === 'prep').steps.length, 3);

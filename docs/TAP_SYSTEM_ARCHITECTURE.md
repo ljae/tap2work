@@ -2,9 +2,9 @@
 
 ## Shared demo implementation · 2026-09-24
 
-The Flutter review now uses a seven-group BIG TAP board, fixed Tap lanes (`todo`, `processing`, `done`), and a single Small Tap list with a selected manual. The Node demo keeps template IDs separate from dated task IDs and records a bulk Tap completion on the remaining steps. It stores Tap moves and daily Small Tap order under optimistic revision checks. `주문처리` demo Taps are manually seeded samples, not POS orders; the preparation groups hold prep work. The [menu research](SAN_BONEJJIM_TAP_RESEARCH_2026-09-24.md) documents observations and conflicting reports.
+The Flutter review now uses a seven-group BIG TAP board, fixed Tap lanes (`todo`, `processing`, `done`), and a single Small Tap list with a selected manual. The Node demo keeps template IDs separate from dated task IDs and records a bulk Tap completion on the remaining steps. It stores Tap moves and daily Small Tap order under optimistic revision checks. `주문처리` menu TAPs derive from synthetic tickets and move as order-number groups; they are not real POS orders; the preparation groups hold prep work. The [menu research](SAN_BONEJJIM_TAP_RESEARCH_2026-09-24.md) documents observations and conflicting reports.
 
-The demo Team data has separate Tapper IDs, rank, R&R, structured shifts, attendance events and hourly pay estimates. `clock_in`, `break_start`, `break_end` and `clock_out` use server time and reject invalid transitions. Calendar displays R&R shifts and manually scheduled Taps. Pay period, statutory premiums, withholding, payable closure and verified employee identity need a confirmed store policy and production implementation. Demo actor headers do not authenticate a worker. Place uses integer grid cells and rectangle, L or U orthogonal footprints for placement, overlap and route obstacles; the physical size of a cell is unspecified.
+The demo Team data has separate Tapper IDs, rank, R&R, structured shifts, attendance events and hourly pay estimates. `clock_in`, `break_start`, `break_end` and `clock_out` use server time and reject invalid transitions. Calendar displays weekly/monthly staffing slots and an HR pool with drag assignment. Pay period, statutory premiums, withholding, payable closure and verified employee identity need a confirmed store policy and production implementation. Demo actor headers do not authenticate a worker. Place uses integer grid cells and rectangle, L or U orthogonal footprints for placement, overlap and route obstacles; the physical size of a cell is unspecified.
 
 This is the target architecture for the 2026-09-23 request. The Flutter app and local Node JSON server remain a **demo**, not an authenticated POS, payroll, notification, or marketplace service. The existing first-shift guide, inventory ordering/receipt rule, and shared checklist history remain in scope.
 
@@ -29,7 +29,7 @@ A token bucket at the gateway is scoped by verified provider and store, with sep
 
 ## Planning and routing
 
-The proposed production scheduling service uses five-minute cells in the store's timezone. Exclusive Taps cannot overlap for one assigned Tapper; concurrent Taps share at most `max_concurrent` slots. Order acceptance, assignment, reassignment, start, completion and undo are durable events. If a real-time order would extend beyond shift end, planning marks the excess segment as overtime and keeps the order on the active timeline; it does not silently carry it to the next day. This flag is an operational estimate until actual attendance is reconciled. The current demo Calendar shows manually scheduled task slots; the Todo estimate view still uses a fixed 09:00 example.
+The user removed the five-minute plan on 2026-09-24. Its UI, planner and task scheduling endpoint have been removed. Staffing now uses configurable daily role/time slots with weekly/monthly views; slot assignments use revision checks and server-side qualification, occupancy and time-overlap checks. Existing unrelated shifts are retained. Unfilled slots suggest qualified crew or link to an external HR site marked as an unfinished integration. No messages or requests are sent automatically.
 
 The routing service rasterizes validated orthogonal Place footprints into blocked grid cells. A* uses Manhattan distance and four-way moves; routes are recomputed when layout versions change. A route is an efficiency suggestion, not an emergency or food-safety instruction. PostgreSQL/PostGIS geometry and GiST indexes support spatial lookup of places/obstacles; the pathfinder operates on the rasterized grid. Recheck any route when the map is edited. Current demo layout is a schematic with rectangular zones; L/U polygons and persisted obstacle paths are future production work.
 
@@ -37,7 +37,7 @@ The routing service rasterizes validated orthogonal Place footprints into blocke
 
 Weekly/monthly calendar: proposed swap → target employee acceptance → manager approval or rejection. Acceptance is not approval. A server job expires unapproved requests at the earlier of the configurable deadline and shift start. Every transition stores actor, timestamp, old/new shift IDs, and the policy version used for warnings. Rest-gap and work-hour warnings are computed before approval; the manager sees the affected shifts and must explicitly resolve or reject. Do not label this audit trail a guaranteed legal defense.
 
-Payroll separates scheduled hours, verified attendance, premium-eligible minutes, base rate, approved adjustments, paid amount, and remaining amount. A five-minute task plan cannot establish payable hours by itself. Jurisdiction, employer size, contract terms, breaks, rounding, overtime eligibility, premium rates and pay periods require store-specific legal/payroll review before any statutory calculation is enabled. The requested `1.5x` is a configurable policy candidate, not a universal legal constant. No live payroll values should be displayed to workers from the current demo shift strings.
+Payroll separates scheduled hours, verified attendance, premium-eligible minutes, base rate, approved adjustments, paid amount, and remaining amount. Planned staffing hours do not establish payable hours. Jurisdiction, employer size, contract terms, breaks, rounding, overtime eligibility, premium rates and pay periods require store-specific legal/payroll review before any statutory calculation is enabled. The requested `1.5x` is a configurable policy candidate, not a universal legal constant. No live payroll values should be displayed to workers from the current demo shift strings.
 
 ## Device and marketplace boundaries
 
@@ -47,7 +47,7 @@ Marketplace packages are versioned and signed, with validation on import, previe
 
 ## Delivery sequence
 
-1. Formalize Big Tap/Tap/Small Tap schema and migrate existing checklists with stable historical IDs; ship Kanban and five-minute planning against store data.
+1. Formalize Big Tap/Tap/Small Tap schema and migrate existing checklists with stable historical IDs; ship grouped menu TAPs, popup manuals and staffing calendars against store data.
 2. Add production identity, tenant isolation, PostgreSQL/PostGIS, Redis, event outbox, provider adapters and verified webhook tests. Select real POS/delivery partners and obtain their contracts/specifications.
 3. Add order-based assignment, personal push, versioned layout routing, and shift swap workflow with a real scheduler.
 4. Validate attendance/payroll rules per location and employer, then add an auditable calculator. Add consent/reputation and marketplace commerce only after their policies and provider requirements are agreed.

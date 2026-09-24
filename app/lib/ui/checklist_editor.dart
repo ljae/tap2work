@@ -944,6 +944,19 @@ class _ActivityEditorState extends State<_ActivityEditor> {
                   issue = null;
                 }),
               ),
+              for (final field in ['videoUrl', 'imageUrl'])
+                TextFormField(
+                  initialValue: step[field] ?? '',
+                  decoration: InputDecoration(
+                    labelText: field == 'videoUrl'
+                        ? '영상 HTTPS 링크 (선택)'
+                        : '사진 HTTPS 링크 (선택)',
+                    helperText: 'YouTube·Drive 등 기존 도구의 공유 링크',
+                  ),
+                  onChanged: (v) => setState(() {
+                    step[field] = v.trim();
+                  }),
+                ),
               TextFormField(
                 initialValue: step['tip'],
                 minLines: 1,

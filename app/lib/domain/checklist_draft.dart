@@ -31,6 +31,19 @@ String? checklistTaskIssue(ChecklistJson task) {
     if (!valid(step['manual'], 700)) {
       return '활동 ${index + 1}의 매뉴얼을 1~700자로 입력해 주세요.';
     }
+    for (final field in ['videoUrl', 'imageUrl']) {
+      final value = step[field] ?? '';
+      if (value is! String) return '영상·사진 링크를 확인해 주세요.';
+      if (value.isEmpty) continue;
+      final uri = Uri.tryParse(value);
+      if (value.length > 2000 ||
+          uri == null ||
+          uri.scheme != 'https' ||
+          uri.host.isEmpty ||
+          uri.userInfo.isNotEmpty) {
+        return 'HTTPS 영상·사진 링크를 입력해 주세요.';
+      }
+    }
     if (step['tip'] is! String || (step['tip'] as String).length > 400) {
       return '활동 ${index + 1}의 노하우는 400자 이내로 적어 주세요.';
     }

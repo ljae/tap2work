@@ -5,8 +5,8 @@ import path from 'node:path';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const port = Number(process.env.PORT || 3000);
-const files = new Set(['index.html', 'styles.css', 'app.js', 'icon.svg', 'manifest.webmanifest', 'sw.js']);
-const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
+const files = new Set(['index.html', 'styles.css', 'app.js', 'tap2work.png', 'manifest.webmanifest', 'sw.js']);
+const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');

@@ -32,7 +32,7 @@ void main() {
     });
     await tester.pumpAndSettle();
     final painters = tester.widgetList<CustomPaint>(find.byType(CustomPaint));
-    expect(painters.where((paint) => paint.painter != null).length, 2);
+    expect(painters.where((paint) => paint.painter != null).length, 1);
     expect(find.bySemanticsLabel('tap2.work 로고'), findsOneWidget);
     expect(find.bySemanticsLabel('뼈곰탕 그림'), findsOneWidget);
     expect(tester.takeException(), isNull);

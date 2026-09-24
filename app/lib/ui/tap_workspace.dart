@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import '../domain/checklist_draft.dart';
-import '../domain/tap_planning.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import 'checklist_board.dart' show rowsOf, stampOf;
 import 'checklist_editor.dart';
@@ -23,7 +23,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   String? folderId, taskId;
   String? selectedStepId;
   String query = '';
-  bool timeline = false, mineOnly = false;
+  bool mineOnly = false;
   final search = TextEditingController();
   final previewStepOrder = <String, List<String>>{};
   List<String>? previewGroupOrder;
@@ -124,7 +124,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       folderId = folder;
       taskId = task;
       selectedStepId = null;
-      timeline = false;
       query = '';
       search.clear();
     });
@@ -218,16 +217,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              ChoiceChip(
-                label: const Text('보드'),
-                selected: !timeline,
-                onSelected: (_) => setState(() => timeline = false),
-              ),
-              ChoiceChip(
-                label: const Text('5분 계획'),
-                selected: timeline,
-                onSelected: (_) => setState(() => timeline = true),
-              ),
               if (!ops.isLeader)
                 FilterChip(
                   label: const Text('내 담당만'),
@@ -255,7 +244,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ],
           ),
           const SizedBox(height: 16),
-          if (!timeline) ...[
+          ...[
             if (task == null) ...[_folderBar(), const SizedBox(height: 16)],
             TextField(
               controller: search,
@@ -301,8 +290,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ),
             const SizedBox(height: 12),
             _board(folder, task, scoped),
-          ] else
-            _timeline(task == null ? scoped : [task]),
+          ],
           if (folder == null && task == null) _stock(),
         ],
       );
@@ -314,7 +302,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
 
     final entries = <({String id, String state, Widget card})>[];
     bool matches(String name) => name.toLowerCase().contains(query);
-    for (final t in scoped.where((t) => matches(t['title']))) {
+    for (final t in scoped.where(
+      (t) => matches('${t['title']} ${t['orderNumber'] ?? ''}'),
+    )) {
       entries.add((
         id: t['id'],
         state: status(t),
@@ -335,12 +325,86 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             done: done(t),
             footer: 'Small Tap ${done(t)}/${total(t)}',
             onOpen: () => navigate(folder: folderOf(t), task: t['id']),
-            onCheck: () => _moveTap(
-              t,
-              folderOf(t),
-              status(t) == '완료' ? 'processing' : 'done',
-            ),
+            onCheck: () => t['orderId'] != null
+                ? _checkMenu(t)
+                : _moveTap(
+                    t,
+                    folderOf(t),
+                    status(t) == '완료' ? 'processing' : 'done',
+                  ),
             checked: status(t) == '완료',
+          ),
+        ),
+      ));
+    }
+    final orderIds = scoped
+        .map((t) => t['orderId'])
+        .whereType<String>()
+        .toSet();
+    for (final orderId in orderIds) {
+      final members = scoped.where((t) => t['orderId'] == orderId).toList();
+      final cards = entries
+          .where((e) => members.any((t) => t['id'] == e.id))
+          .toList();
+      if (cards.isEmpty) continue;
+      final first = members.first;
+      final state = members.every((t) => status(t) == '완료')
+          ? '완료'
+          : members.any((t) => status(t) != '할일')
+          ? '주문처리중'
+          : '할일';
+      final position = entries.indexWhere(
+        (e) => members.any((t) => t['id'] == e.id),
+      );
+      entries.removeWhere((e) => members.any((t) => t['id'] == e.id));
+      entries.insert(position, (
+        id: first['id'],
+        state: state,
+        card: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: AppColors.line),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _draggable(
+                data: first['id'],
+                feedback: Material(child: Text('주문 ${first['orderNumber']}')),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '주문 ${first['orderNumber']} · ${members.length} 메뉴 ↕',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      PopupMenuButton<String>(
+                        tooltip: '주문 그룹 이동',
+                        onSelected: (value) =>
+                            _moveTap(first, folderOf(first), value),
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(
+                            value: 'todo',
+                            child: Text('전체 할일로 이동'),
+                          ),
+                          PopupMenuItem(
+                            value: 'processing',
+                            child: Text('전체 조리 시작'),
+                          ),
+                          PopupMenuItem(value: 'done', child: Text('전체 완료')),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              for (final card in cards) card.card,
+            ],
           ),
         ),
       ));
@@ -493,6 +557,19 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         );
       },
     );
+  }
+
+  Future<void> _checkMenu(Json task) async {
+    if (status(task) == '완료') {
+      await _toggle(task, steps(task).first);
+    } else if (ops.readOnly) {
+      for (final step in steps(task).where((s) => s['completedAt'] == null)) {
+        ops.previewToggleStep(task['id'], step['id']);
+      }
+    } else {
+      final ok = await ops.act('complete_task', {'taskId': task['id']});
+      if (!ok && mounted) notice(ops.error ?? '완료하지 못했어요.');
+    }
   }
 
   Future<void> _moveTap(
@@ -669,7 +746,22 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         subtitle: step['completedAt'] == null
             ? '방법 보기'
             : '${step['completedBy']?['name'] ?? ''} · ${stampOf(step['completedAt'])} 확인',
-        onOpen: () => setState(() => selectedStepId = step['id']),
+        onOpen: () {
+          setState(() => selectedStepId = step['id']);
+          if (MediaQuery.sizeOf(context).width < 700) {
+            showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              showDragHandle: true,
+              builder: (context) => SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: _manual(task, step),
+                ),
+              ),
+            );
+          }
+        },
         checked: step['completedAt'] != null,
         locked: task['canComplete'] != true,
         onCheck: () {
@@ -706,31 +798,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         : Column(children: [for (final step in all) card(step)]);
     Widget detail = selected == null
         ? const Information('Small Tap을 선택해 주세요.')
-        : Surface(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  selected['title'],
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(selected['manual'] ?? '등록된 방법이 없어요.'),
-                if ((selected['tip'] ?? '').toString().isNotEmpty) ...[
-                  const SizedBox(height: 14),
-                  Text('팁 · ${selected['tip']}'),
-                ],
-                const SizedBox(height: 14),
-                Text(
-                  '${place(task)} · ${role(task)}',
-                  style: const TextStyle(color: AppColors.muted),
-                ),
-              ],
-            ),
-          );
+        : Surface(child: _manual(task, selected));
     return LayoutBuilder(
       builder: (context, constraints) => constraints.maxWidth >= 700
           ? Row(
@@ -741,9 +809,135 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 Expanded(child: detail),
               ],
             )
-          : Column(children: [list, const SizedBox(height: 12), detail]),
+          : list,
     );
   }
+
+  Widget _manual(Json task, Json step) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        step['title'],
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 16),
+      Text(step['manual'] ?? '등록된 방법이 없어요.'),
+      if ((step['tip'] ?? '').toString().isNotEmpty) Text('팁 · ${step['tip']}'),
+      if (ops.isLeader && step['completedAt'] == null)
+        TextButton.icon(
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('매뉴얼 바로 수정'),
+          onPressed: ops.readOnly
+              ? null
+              : () async {
+                  final revision = ops.data?['revision'];
+                  final manual = TextEditingController(text: step['manual']);
+                  final video = TextEditingController(
+                    text: step['videoUrl'] ?? '',
+                  );
+                  final photo = TextEditingController(
+                    text: step['imageUrl'] ?? '',
+                  );
+                  final result = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(step['title']),
+                      content: SizedBox(
+                        width: 480,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                controller: manual,
+                                minLines: 3,
+                                maxLines: 8,
+                                maxLength: 700,
+                                decoration: const InputDecoration(
+                                  labelText: '방법과 완료 기준',
+                                ),
+                              ),
+                              TextField(
+                                controller: video,
+                                decoration: const InputDecoration(
+                                  labelText: '영상 HTTPS 링크',
+                                ),
+                              ),
+                              TextField(
+                                controller: photo,
+                                decoration: const InputDecoration(
+                                  labelText: '사진 HTTPS 링크',
+                                ),
+                              ),
+                              const Text(
+                                '연결된 기본 레시피도 갱신해 다음 주문에 사용해요. 완료 기록은 유지돼요.',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('취소'),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('저장'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (result == true) {
+                    final ok = await ops.act('save_step_manual', {
+                      'revision': revision,
+                      'taskId': task['id'],
+                      'stepId': step['id'],
+                      'manual': manual.text.trim(),
+                      'videoUrl': video.text.trim(),
+                      'imageUrl': photo.text.trim(),
+                    });
+                    if (mounted) {
+                      notice(
+                        ok
+                            ? '매뉴얼을 저장했어요. 다시 열면 새 내용이 보여요.'
+                            : ops.error ?? '저장하지 못했어요.',
+                      );
+                    }
+                  }
+                  manual.dispose();
+                  video.dispose();
+                  photo.dispose();
+                },
+        ),
+      for (final field in ['videoUrl', 'imageUrl'])
+        if ((step[field] ?? '').toString().isNotEmpty)
+          TextButton.icon(
+            icon: Icon(
+              field == 'videoUrl'
+                  ? Icons.play_circle_outline
+                  : Icons.image_outlined,
+            ),
+            label: Text(field == 'videoUrl' ? '영상 열기' : '사진 열기'),
+            onPressed: () async {
+              final uri = Uri.tryParse(step[field]);
+              if (uri == null || uri.scheme != 'https') return;
+              try {
+                if (!await launchUrl(
+                      uri,
+                      mode: LaunchMode.externalApplication,
+                    ) &&
+                    mounted) {
+                  notice('링크를 열지 못했어요.');
+                }
+              } catch (_) {
+                if (mounted) notice('링크를 열지 못했어요.');
+              }
+            },
+          ),
+    ],
+  );
 
   Widget _stock() {
     final stock = ops
@@ -839,62 +1033,5 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       });
       if (mounted && !success) notice(ops.error ?? '변경하지 못했어요.');
     }
-  }
-
-  Widget _timeline(List<Json> tasks) {
-    final pending = tasks.where((t) => status(t) != '완료').toList();
-    final blocks = planTaps(
-      [
-        for (final t in pending)
-          PlannedTap(
-            id: t['id'] as String,
-            durationMinutes: 5 * (total(t) - done(t)).clamp(1, 120),
-          ),
-      ],
-      startMinute: 9 * 60,
-      shiftEndMinute: 18 * 60,
-    );
-    String clock(int minute) =>
-        '${(minute ~/ 60).toString().padLeft(2, '0')}:${(minute % 60).toString().padLeft(2, '0')}';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Information(
-          '계획 예시 · 미완료 작은 탭당 5분, 09:00 시작으로 배치했어요. 실제 주문·담당자·근무표와 연결된 자동 배정 또는 근태 기록은 아직 아니에요.',
-        ),
-        const SizedBox(height: 14),
-        if (blocks.isEmpty) const Information('남은 탭이 없어요.'),
-        for (final block in blocks)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 7),
-            child: Surface(
-              padding: const EdgeInsets.all(14),
-              color: block.overtime ? const Color(0xFFFFE7DC) : AppColors.white,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 106,
-                    child: Text(
-                      '${clock(block.startMinute)}\n${clock(block.endMinute)}',
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      pending.firstWhere((t) => t['id'] == block.id)['title']
-                          as String,
-                    ),
-                  ),
-                  if (block.overtime)
-                    const Text(
-                      '예시 연장',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF9A4B32)),
-                    ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
   }
 }

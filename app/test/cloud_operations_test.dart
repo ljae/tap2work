@@ -74,4 +74,56 @@ void main() {
       expect(writes, 0);
     },
   );
+  test(
+    'preview menu completion keeps siblings open and group moves update every menu without POST',
+    () async {
+      final d = dashboard();
+      final ticket = (d['queue'] as List).first as Json;
+      var writes = 0;
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((r) async {
+          if (r.method == 'POST') writes++;
+          return response({
+            ...sample(),
+            'dashboard': d,
+            'tasks': [
+              for (var i = 0; i < 2; i++)
+                {
+                  'id': 'menu-$i',
+                  'kind': 'routine',
+                  'orderId': ticket['id'],
+                  'folderId': 'orders',
+                  'boardStatus': 'todo',
+                  'steps': [
+                    {'id': 'step', 'title': '조리', 'manual': '확인'},
+                  ],
+                },
+            ],
+          });
+        }),
+      );
+      addTearDown(ops.dispose);
+      await ops.refresh();
+      ops.previewToggleStep('menu-0', 'step');
+      expect(
+        (ops.data!['dashboard']['queue'] as List).any(
+          (t) => t['id'] == ticket['id'],
+        ),
+        true,
+      );
+      expect(ops.rows('tasks')[1]['completedAt'], isNull);
+      ops.previewMoveTap('menu-1', 'orders', 'done');
+      expect(ops.rows('tasks').every((t) => t['completedAt'] != null), true);
+      expect(
+        (ops.data!['dashboard']['queue'] as List).any(
+          (t) => t['id'] == ticket['id'],
+        ),
+        false,
+      );
+      ops.previewMoveTap('menu-0', 'orders', 'processing');
+      expect(ops.rows('tasks').every((t) => t['completedAt'] == null), true);
+      expect(writes, 0);
+    },
+  );
 }

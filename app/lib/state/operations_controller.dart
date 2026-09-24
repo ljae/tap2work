@@ -162,38 +162,54 @@ class OperationsController extends ChangeNotifier {
   }) {
     if (!readOnly || data == null) return;
     final task = rows('tasks').firstWhere((t) => t['id'] == id);
-    final wasDone = task['completedAt'] != null;
-    final now = DateTime.now().toUtc().toIso8601String();
-    for (final step in (task['steps'] as List).cast<Json>()) {
-      if (status == 'done' && step['completedAt'] == null) {
-        step.addAll({
-          'completedAt': now,
-          'completedBy': actor,
-          'preview': true,
-        });
-      } else if (wasDone && status != 'done') {
-        step.remove('completedAt');
-        step.remove('completedBy');
-        step.remove('preview');
+    final moving = task['orderId'] == null
+        ? [task]
+        : rows('tasks').where((t) => t['orderId'] == task['orderId']).toList();
+    for (final task in moving) {
+      final wasDone = task['completedAt'] != null;
+      final now = DateTime.now().toUtc().toIso8601String();
+      for (final step in (task['steps'] as List).cast<Json>()) {
+        if (status == 'done' && step['completedAt'] == null) {
+          step.addAll({
+            'completedAt': now,
+            'completedBy': actor,
+            'preview': true,
+          });
+        } else if (wasDone && status != 'done') {
+          step.remove('completedAt');
+          step.remove('completedBy');
+          step.remove('preview');
+        }
       }
+      task.addAll({
+        'folderId': folder,
+        'boardStatus': status,
+        'completedAt': status == 'done' ? now : null,
+        'completedBy': status == 'done' ? actor : null,
+        'canComplete': status != 'done',
+      });
     }
-    task.addAll({
-      'folderId': folder,
-      'boardStatus': status,
-      'completedAt': status == 'done' ? now : null,
-      'completedBy': status == 'done' ? actor : null,
-      'canComplete': status != 'done',
-    });
+    String laneStatus(Json row) {
+      final group = row['orderId'] == null
+          ? [row]
+          : rows('tasks').where((t) => t['orderId'] == row['orderId']);
+      return group.every((t) => t['completedAt'] != null)
+          ? 'done'
+          : group.any(
+              (t) =>
+                  t['completedAt'] != null || t['boardStatus'] == 'processing',
+            )
+          ? 'processing'
+          : 'todo';
+    }
+
     final lane =
         rows('tasks')
             .where(
               (t) =>
-                  t['id'] != id &&
+                  !moving.contains(t) &&
                   t['kind'] == 'routine' &&
-                  (t['completedAt'] != null
-                          ? 'done'
-                          : t['boardStatus'] ?? 'todo') ==
-                      status,
+                  laneStatus(t) == status,
             )
             .toList()
           ..sort(
@@ -204,7 +220,7 @@ class OperationsController extends ChangeNotifier {
     final index = beforeTaskId == null
         ? lane.length
         : lane.indexWhere((t) => t['id'] == beforeTaskId);
-    lane.insert(index < 0 ? lane.length : index, task);
+    lane.insertAll(index < 0 ? lane.length : index, moving);
     for (var i = 0; i < lane.length; i++) {
       lane[i]['displayOrder'] = i;
     }
@@ -250,9 +266,12 @@ class OperationsController extends ChangeNotifier {
     if (ticket == null) return;
     _previewTickets[ticket['id']] = ticket;
     final oldStatus = ticket['status'];
-    final next = task['completedAt'] != null
+    final group = rows('tasks').where((t) => t['orderId'] == task['orderId']);
+    final next = group.every((t) => t['completedAt'] != null)
         ? '완료'
-        : task['boardStatus'] == 'processing'
+        : group.any(
+            (t) => t['completedAt'] != null || t['boardStatus'] == 'processing',
+          )
         ? '조리 중'
         : '접수';
     if (oldStatus == next) return;

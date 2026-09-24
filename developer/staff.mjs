@@ -19,7 +19,16 @@ const iso = value => new Date(value).toISOString();
 const minutes = (a, b) => Math.max(0, Math.round((new Date(b) - new Date(a)) / 60000));
 
 export function ensureStaff(state, now) {
-  if (state.staffVersion === 1) return false;
+  if (state.staffVersion === 1) {
+    if (state.staffingSlots) return false;
+    state.staffingSlots = staffingSlots(state);
+    const occupied = new Set();
+    for (const shift of state.staffShifts) {
+      const slot = state.staffingSlots.find(slot => slot.duty === shift.duty && slot.start === shift.start && slot.end === shift.end && !occupied.has(`${shift.date}/${slot.id}`));
+      if (slot) { shift.slotId = slot.id; occupied.add(`${shift.date}/${slot.id}`); }
+    }
+    return true;
+  }
   state.tappers = [
     { id: 'tapper-owner', actorId: 'owner', rank: 'owner', nickname: '서연', duties: ['cashier'], hourlyWon: 12000, payPeriod: 'monthly', kakaoUrl: '', phone: '', active: true },
     { id: 'tapper-manager', actorId: 'manager', rank: 'manager', nickname: '민지', duties: ['서빙1', 'cashier'], hourlyWon: 11000, payPeriod: 'monthly', kakaoUrl: '', phone: '', active: true },
@@ -37,6 +46,7 @@ export function ensureStaff(state, now) {
   state.payRecords = [];
   state.payPolicy = { rounding: 'nearest_won', breaksPaid: false, statutoryPremiumsConfigured: false };
   state.staffVersion = 1;
+  ensureStaff(state, now);
   return true;
 }
 
@@ -44,7 +54,7 @@ function validShift(input, state) {
   const tapper = state.tappers.find(row => row.id === input.tapperId && row.active);
   if (!tapper) fail('Tapper를 찾지 못했어요.', 404);
   if (!duties.includes(input.duty) || !tapper.duties.includes(input.duty)) fail('담당 R&R을 확인해 주세요.');
-  if (typeof input.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !Number.isFinite(Date.parse(`${input.date}T00:00:00Z`))) fail('근무 날짜를 확인해 주세요.');
+  if (typeof input.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(input.date) || (!Number.isFinite(Date.parse(`${input.date}T00:00:00Z`)) || new Date(`${input.date}T00:00:00Z`).toISOString().slice(0, 10) !== input.date)) fail('근무 날짜를 확인해 주세요.');
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.start) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.end) || input.start === input.end) fail('근무 시작·종료 시각을 확인해 주세요.');
   return { tapperId: tapper.id, duty: input.duty, date: input.date, start: input.start, end: input.end };
 }
@@ -53,6 +63,42 @@ export function mutateStaff(state, input, actor, now, who, activity) {
   const leader = ['owner', 'manager'].includes(actor.role);
   const owner = actor.role === 'owner';
   switch (input.action) {
+    case 'save_staffing_slots': {
+      if (!leader) fail('매니저 이상만 슬롯을 바꿀 수 있어요.', 403);
+      if (!Array.isArray(input.slots) || !input.slots.length || input.slots.length > 12) fail('슬롯은 1–12개로 설정해 주세요.');
+      const slots = input.slots.map(slot => {
+        if (!duties.includes(slot.duty) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(slot.start) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(slot.end) || slot.start >= slot.end) fail('역할과 당일 시작·종료 시간을 확인해 주세요.');
+        return { id: typeof slot.id === 'string' && /^slot-[a-zA-Z0-9-]+$/.test(slot.id) ? slot.id : `slot-${randomUUID()}`, duty: slot.duty, start: slot.start, end: slot.end };
+      });
+      if (new Set(slots.map(s => s.id)).size !== slots.length) fail('중복 슬롯을 확인해 주세요.');
+      for (const shift of state.staffShifts) if (shift.slotId && !slots.some(s => s.id === shift.slotId && s.duty === shift.duty && s.start === shift.start && s.end === shift.end)) delete shift.slotId;
+      state.staffingSlots = slots; activity('일일 필요 인원 슬롯 저장'); return true;
+    }
+    case 'assign_staffing_slot': {
+      if (!leader) fail('매니저 이상만 배정할 수 있어요.', 403);
+      const slot = staffingSlots(state).find(s => s.id === input.slotId);
+      if (!slot) fail('슬롯을 확인해 주세요.');
+      const row = state.staffShifts.find(s => s.date === input.date && s.slotId === slot.id);
+      if (input.tapperId === null) {
+        if (row) state.staffShifts = state.staffShifts.filter(s => s.id !== row.id);
+        activity('슬롯 배정 해제'); return true;
+      }
+      const next = validShift({ ...slot, date: input.date, tapperId: input.tapperId }, state);
+      const source = input.sourceShiftId ? state.staffShifts.find(s => s.id === input.sourceShiftId) : null;
+      if (input.sourceShiftId && (!source || source.tapperId !== input.tapperId)) fail('이동할 근무를 다시 확인해 주세요.', 409);
+      if (row && row.id !== source?.id) fail('이미 배정된 슬롯이에요. 먼저 배정을 해제해 주세요.', 409);
+      const start = Date.parse(`${next.date}T${next.start}:00+09:00`), end = Date.parse(`${next.date}T${next.end}:00+09:00`);
+      if (state.staffShifts.some(s => {
+        if (s.id === source?.id || s.tapperId !== next.tapperId || s.status === 'leave') return false;
+        const a = Date.parse(`${s.date}T${s.start}:00+09:00`);
+        let b = Date.parse(`${s.date}T${s.end}:00+09:00`); if (b <= a) b += 86400000;
+        return a < end && b > start;
+      })) fail('겹치는 근무가 있어요.', 409);
+      if (source) Object.assign(source, next, { slotId: slot.id });
+      else state.staffShifts.push({ id: randomUUID(), ...next, slotId: slot.id, status: 'planned' });
+      activity('근무 슬롯 배정'); return true;
+    }
+
     case 'save_tapper': {
       if (!owner) fail('사장님만 직원 정보를 바꿀 수 있어요.', 403);
       const row = input.id ? state.tappers.find(t => t.id === input.id) : null;
@@ -172,6 +218,14 @@ export function staffView(state, actor, now) {
     else { delete view.hourlyWon; delete view.payPeriod; delete view.kakaoUrl; delete view.phone; }
     return view;
   });
-  return { tappers, staffShifts: state.staffShifts, attendance: state.attendance.filter(e => owner || e.tapperId === own?.id),
+  return { staffingSlots: staffingSlots(state), tappers, staffShifts: state.staffShifts, attendance: state.attendance.filter(e => owner || e.tapperId === own?.id),
     payAdjustments: owner ? state.payAdjustments : [], payRecords: owner ? state.payRecords : [], payPolicy: owner ? state.payPolicy : undefined };
+}
+
+function staffingSlots(state) {
+  return state.staffingSlots ?? [
+    { id: 'slot-0', duty: '조리', start: '09:00', end: '18:00' },
+    { id: 'slot-1', duty: '서빙1', start: '09:00', end: '18:00' },
+    { id: 'slot-2', duty: 'cashier', start: '09:00', end: '18:00' },
+  ];
 }

@@ -63,7 +63,7 @@ export function validateChecklists(input, state) {
   if (!folders.some(row => row.id === 'general')) fail('기본 업무 폴더는 유지해 주세요.');
   const templates = list(input.templates, 0, 150, '업무').map(row => {
     if (!row || !checklistSlots.includes(row.slot) || !checklistRoles.includes(row.requiredRole) || !state.zones.some(zone => zone.id === row.zone) || !folders.some(folder => folder.id === row.folderId)) fail('업무의 시간대·직급·장소·폴더를 확인해 주세요.');
-    const steps = list(row.steps, 1, 30, '행위').map(step => ({ id: text(step?.id, 100, '행위 ID'), title: text(step?.title, 100, '행위 이름'), manual: text(step?.manual, 700, '간단 매뉴얼'), tip: optionalText(step?.tip, 400, '노하우') }));
+    const steps = list(row.steps, 1, 30, '행위').map(step => ({ id: text(step?.id, 100, '행위 ID'), title: text(step?.title, 100, '행위 이름'), manual: text(step?.manual, 700, '간단 매뉴얼'), tip: optionalText(step?.tip, 400, '노하우'), videoUrl: mediaLink(step?.videoUrl), imageUrl: mediaLink(step?.imageUrl) }));
     unique(steps);
     const sourceIds = Array.isArray(row.sourceIds) ? [...new Set(row.sourceIds.filter(id => checklistLibrary.sources.some(source => source.id === id)))] : [];
     return { id: text(row.id, 100, '업무 ID'), title: text(row.title, 100, '업무 이름'), emoji: emoji(row.emoji), folderId: row.folderId, slot: row.slot, requiredRole: row.requiredRole, zone: row.zone, steps, sourceIds };
@@ -95,4 +95,11 @@ export function reopenStep(task, stepId, actor, isLeader) {
   if (step.completedBy?.id !== actor.id && !isLeader) fail(`${step.completedBy?.name ?? '동료'}님이 확인한 행위는 본인이나 매니저만 되돌릴 수 있어요.`);
   delete step.completedAt; delete step.completedBy;
   task.completedAt = null; task.completedBy = null;
+}
+
+export function mediaLink(value) {
+  if (!value) return '';
+  if (typeof value !== 'string' || value.length > 2000) throw new StoreError('미디어 링크를 확인해 주세요.', 400);
+  try { const url = new URL(value); if (url.protocol === 'https:' && !url.username && !url.password) return url.href; } catch {}
+  throw new StoreError('HTTPS 영상·사진 링크를 입력해 주세요.', 400);
 }

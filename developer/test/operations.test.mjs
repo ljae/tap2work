@@ -222,3 +222,64 @@ test('shared demo mode exposes only the operations API to allowed browser origin
   t.after(() => new Promise(resolve => closed.close(resolve)));
   assert.equal((await raw(`http://127.0.0.1:${closed.address().port}`, 'GET', '/api/operations')).status, 403);
 });
+
+test('menu TAPs complete independently, move atomically as an order, and survive Korean midnight', async t => {
+  const { store, act, advance } = await setup(t);
+  let state = await store.snapshot('owner');
+  const first = state.tasks.find(t => t.orderId && state.tasks.filter(s => s.orderId === t.orderId).length > 1);
+  assert.ok(first, 'sample must include a multiple-menu ticket');
+  const members = state.tasks.filter(s => s.orderId === first.orderId);
+  assert.ok(members.every(t => t.steps.length >= 3));
+  state = await act('cook', 'complete_task', { taskId: first.id });
+  assert.ok(state.dashboard.queue.some(t => t.id === first.orderId), 'one menu must not complete the ticket');
+  advance(86400000);
+  state = await store.snapshot('owner');
+  assert.equal(state.tasks.filter(s => s.orderId === first.orderId).length, members.length);
+  state = await act('cook', 'move_tap', { taskId: members[1].id, status: 'done', folderId: 'order-work' });
+  assert.ok(state.tasks.filter(s => s.orderId === first.orderId).every(t => t.completedAt));
+  assert.ok(!state.dashboard.queue.some(t => t.id === first.orderId));
+  state = await act('cook', 'move_tap', { taskId: first.id, status: 'processing', folderId: 'order-work' });
+  assert.ok(state.tasks.filter(s => s.orderId === first.orderId).every(t => !t.completedAt));
+  assert.equal(state.dashboard.queue.find(t => t.id === first.orderId).status, '조리 중');
+});
+
+test('staffing slots reject overlap, occupied targets, invalid dates, wrong roles and stale assignments', async t => {
+  const { store, act } = await setup(t);
+  let state = await store.snapshot('owner');
+  const slot = state.staffingSlots.find(s => s.duty === '조리');
+  const payload = { slotId: slot.id, tapperId: 'tapper-cook', date: '2026-09-21' };
+  await assert.rejects(act('crew', 'assign_staffing_slot', payload), { status: 403 });
+  await assert.rejects(act('owner', 'assign_staffing_slot', { ...payload, date: '2026-02-30' }), { status: 400 });
+  state = await act('owner', 'assign_staffing_slot', payload);
+  const shift = state.staffShifts.find(s => s.slotId === slot.id && s.date === payload.date);
+  assert.ok(shift);
+  await assert.rejects(act('owner', 'assign_staffing_slot', payload), { status: 409 });
+  const oldRevision = state.revision;
+  state = await act('manager', 'assign_staffing_slot', { ...payload, date: '2026-09-22', sourceShiftId: shift.id });
+  assert.equal(state.staffShifts.filter(s => s.id === shift.id).length, 1);
+  assert.equal(state.staffShifts.find(s => s.id === shift.id).date, '2026-09-22');
+  await assert.rejects(store.mutate('owner', { ...payload, revision: oldRevision, action: 'assign_staffing_slot' }), { status: 409 });
+  await assert.rejects(act('owner', 'assign_staffing_slot', { ...payload, date: '2026-09-19' }), { status: 409 });
+  state = await act('owner', 'assign_staffing_slot', { ...payload, date: '2026-09-22', tapperId: null });
+  assert.ok(!state.staffShifts.some(s => s.id === shift.id));
+  state = await act('owner', 'save_staffing_slots', { slots: [slot] });
+  assert.equal(state.staffingSlots.length, 1);
+  assert.ok(state.staffShifts.some(s => s.tapperId === 'tapper-manager'), 'configuration preserves existing shifts');
+});
+
+test('manual text and external media links persist with revision checks and reusable recipe updates', async t => {
+  const { store, act } = await setup(t);
+  const state = await store.snapshot('owner');
+  const task = state.tasks.find(t => t.templateId && t.steps?.length);
+  const step = task.steps[0];
+  const payload = { taskId: task.id, stepId: step.id, manual: '매장 승인 레시피 문서 확인', videoUrl: 'https://example.com/video', imageUrl: 'https://example.com/photos' };
+  await assert.rejects(act('crew', 'save_step_manual', payload), { status: 403 });
+  await assert.rejects(act('owner', 'save_step_manual', { ...payload, videoUrl: 'javascript:alert(1)' }), { status: 400 });
+  const next = await act('owner', 'save_step_manual', payload);
+  assert.equal(next.tasks.find(t => t.id === task.id).steps[0].imageUrl, payload.imageUrl);
+  assert.equal(next.taskTemplates.find(t => t.id === task.templateId).steps[0].videoUrl, payload.videoUrl);
+  assert.equal(next.tasks.find(t => t.id === task.id).steps[0].manualHistory[0].manual, step.manual);
+  await assert.rejects(store.mutate('owner', { ...payload, action: 'save_step_manual', revision: state.revision }), { status: 409 });
+  await act('owner', 'complete_step', { taskId: task.id, stepId: step.id });
+  await assert.rejects(act('owner', 'save_step_manual', payload), { status: 409 });
+});

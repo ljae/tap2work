@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 38,
+  "revision": 39,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -314,10 +314,10 @@
       "category": "제품 경험",
       "title": "BIG TAP 폴더와 전체 Tap 상태 보드",
       "status": "confirmed",
-      "decision": "하단 메뉴는 Status, Todo, Team, Calendar, Place 순서로 Cupertino 단색 아이콘만 표시한다. BIG TAP은 주문처리·마케팅·뼈찜 조리·뼈짬뽕 조리·응대·정비·정산 등의 이름 있는 폴더이며, 주문처리는 주문 수행, 뼈찜·뼈짬뽕 조리는 준비 작업 위주다. Todo 첫 화면부터 모든 Tap이 할일 / 주문처리중 / 완료 고정 열에 있고, 폴더 필터와 카드 상태·순서·폴더 이동 Drag & Drop을 제공한다. Tap을 열면 단일 Small Tap 목록과 선택 매뉴얼을 보여준다. Tap 완료 시 미완료 Small Tap도 함께 완료한다. Team에는 Tapper 등록, R&R 근무표, 출퇴근·휴게 기록과 급여 자동 계산이 들어간다. Calendar는 Tap 시간 슬롯과 R&R 근무 시간을 함께 보여준다. Place는 직사각형·L·U형 직교 격자 도형과 드래그 이동·모서리 크기 조정을 지원한다. 홈 가상 주문과 주문 Tap은 같은 주문을 참조하고 완료 상태를 동기화한다.",
-      "reason": "사용자가 BIG TAP을 폴더로 바꾸고 체크리스트에서 전체 Tap을 바로 보여주며 순서 드래그, 매장 드래그/크기 조정, 홈 주문 연동을 요청했다.",
+      "decision": "하단 메뉴는 Status, Todo, Team, Calendar, Place 순서로 Cupertino 단색 아이콘만 표시한다. BIG TAP은 주문처리·마케팅·뼈찜 조리·뼈짬뽕 조리·응대·정비·정산 등의 이름 있는 폴더이며, 주문처리는 주문 수행, 뼈찜·뼈짬뽕 조리는 준비 작업 위주다. Todo 첫 화면부터 모든 Tap이 할일 / 주문처리중 / 완료 고정 열에 있고, 폴더 필터와 카드 상태·순서·폴더 이동 Drag & Drop을 제공한다. Tap을 열면 단일 Small Tap 목록과 선택 매뉴얼을 보여준다. Tap 완료 시 미완료 Small Tap도 함께 완료한다. Team에는 Tapper 등록, R&R 근무표, 출퇴근·휴게 기록과 급여 자동 계산이 들어간다. Calendar는 Tap 시간 슬롯과 R&R 근무 시간을 함께 보여준다. Place는 직사각형·L·U형 직교 격자 도형과 드래그 이동·모서리 크기 조정을 지원한다. 홈 가상 주문과 주문 Tap은 같은 주문을 참조하고 완료 상태를 동기화한다. Superseding update 2026-09-24: customer orders contain menu TAPs grouped by order number and moved together; every menu TAP contains Small Taps. Phone manuals are popups with editable text, video and image links. Remove the entire five-minute plan. Calendar now uses weekly/monthly crew coverage, configurable daily role/time slots and a registered HR pool with drag assignment, candidate suggestions and an external recruiting link marked under construction.",
+      "reason": "Explicit user request for menu/order grouping, lightweight manuals, removal of five-minute planning and staffing calendar.",
       "source": "사용자 요청과 후속 답변 · 2026-09-24",
-      "updatedAt": "2026-09-24T03:17:55.028Z"
+      "updatedAt": "2026-09-24T08:55:45.882439Z"
     },
     {
       "id": "D-032",
@@ -334,10 +334,10 @@
       "category": "브랜드·공개 앱",
       "title": "미니멀 SF 스타일과 도메인 루트 앱",
       "status": "confirmed",
-      "decision": "2026-09-24 사용자가 제공한 logo_tap2work.png를 현재 로고로 사용한다. 이전 logo_tap2.png 배지 로고에서 빨간 가방 심볼과 tap2.work 워드마크 로고로 바꾸고, 앱 화면은 웜 화이트·잉크/네이비·절제된 코랄 레드 팔레트, Cupertino SF Symbols 계열 단색 아이콘, 가는 구분선과 절제된 모서리로 통일한다. 기능 안내 이모지는 UI 아이콘으로 대체하고 메뉴 식별용 음식 그림은 유지한다. https://tap2.work/에는 Flutter 샘플 앱을 바로 제공하고 공개 개발 현황과 결정 기록 파일은 배포하지 않는다. 예전 /app/ 링크는 /로 연결한다.",
-      "reason": "사용자가 구식이고 디자인 컨셉이 부족하다고 지적하며 Apple 스타일의 미니멀하고 트렌디한 이모티콘/아이콘을 요청했고, 이전에 지정한 logo_tap2work.png를 적용하고 도메인 루트에서 앱을 바로 열며 개발 현황을 제거하도록 요청했다.",
+      "decision": "2026-09-24 사용자가 제공한 logo_tap2work.png를 현재 로고로 사용한다. 이전 logo_tap2.png 배지 로고에서 빨간 가방 심볼과 tap2.work 워드마크 로고로 바꾸고, 앱 화면은 웜 화이트·잉크/네이비·절제된 코랄 레드 팔레트, Cupertino SF Symbols 계열 단색 아이콘, 가는 구분선과 절제된 모서리로 통일한다. 기능 안내 이모지는 UI 아이콘으로 대체하고 메뉴 식별용 음식 그림은 유지한다. https://tap2.work/에는 Flutter 샘플 앱을 바로 제공하고 공개 개발 현황과 결정 기록 파일은 배포하지 않는다. 예전 /app/ 링크는 /로 연결한다. Current logo supersedes the previous artwork: use logo_tap2work_circle.png as a 512px whole-circle app image, replace favicon/PWA/native launcher artwork, and remove old logo files while preserving Git history.",
+      "reason": "User explicitly supplied the circular logo and requested replacement of logo/favicon and removal of old assets. Existing visual style and root app hosting remain.",
       "source": "사용자 요청 · 2026-09-24 · logo_tap2work.png, Apple-like minimal icons, app at tap2.work root, remove development status",
-      "updatedAt": "2026-09-24"
+      "updatedAt": "2026-09-24T08:55:45.882439Z"
     },
     {
       "id": "D-034",
@@ -348,6 +348,16 @@
       "reason": "사용자의 Supabase 사용 지시 및 관리 토큰/서비스 키 입력 완료에 따른 연결 구현.",
       "source": "2026-09-24 사용자 요청",
       "updatedAt": "2026-09-24T03:17:55.028Z"
+    },
+    {
+      "id": "D-035",
+      "category": "Product experience",
+      "title": "Menu order groups, lightweight manuals and crew slot calendar",
+      "status": "confirmed",
+      "decision": "One menu-line TAP per order, with Small Taps and an order-number group that moves together. Phone manuals use text and external HTTPS video/image links with simple editing. Remove five-minute planning. Weekly/monthly calendar shows configurable daily role/time slots; registered crew drag from HR Pool or move between slots. Empty slots suggest qualified existing crew or link to a recruiting site labeled under construction.",
+      "reason": "Explicit user request. Three slots are a configurable demo default, not a confirmed staffing requirement for every restaurant. Actual recipe quantities, crew availability, messaging and recruiting integration are not assumed approved or implemented.",
+      "source": "User request, 2026-09-24",
+      "updatedAt": "2026-09-24T08:55:45.882439Z"
     }
   ],
   "milestones": [
@@ -427,7 +437,7 @@
       "id": "M-013",
       "title": "Tap 시스템 재구성 첫 단계",
       "status": "in_progress",
-      "description": "3단계 보드, 그룹·상태 드래그, Tap 일괄 완료, Team 근태·급여 예상, Calendar와 직교 도형 배치를 공유 데모에 구현 중. 로컬 정적 빌드 성공. 기존 검증·공개 배포 결과 확인 전."
+      "description": "Demo implemented: folder/status board, menu/order groups, popup recipe manuals with external media and direct editing, Team attendance/pay estimates, weekly/monthly staffing slots and HR pool, orthogonal layout. Five-minute planning removed. Local Flutter 66 and Node 44 tests pass; static web build passes. This revision is not deployed. Real POS, notifications, HR integration, payroll policy and native device validation remain incomplete."
     },
     {
       "id": "M-014",
@@ -2089,7 +2099,92 @@
         "https://github.com/ljae/tap2work/commit/5f5fd73",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-menu-manual-staffing-calendar-2026-09-24",
+      "at": "2026-09-24T08:55:45.882439Z",
+      "type": "implementation",
+      "title": "Circular brand, grouped menu TAPs, popup manuals and crew calendar",
+      "detail": "Replaced app/web/native icon artwork and removed superseded logo files. Menu TAPs move atomically under order numbers while individual menu completion waits for siblings before completing the ticket. Legacy whole-order records are archived; active menu groups survive Korean midnight. Added phone manual popups, HTTPS media links, direct leader edits with opening revisions and linked recipe template updates. Removed the five-minute UI, planner and scheduling endpoint; retained independent grid routing. Added week/month staffing slots, crew registration entry, drag/tap assignment, role/time-based suggestions and an external HR link labeled under construction. Server validates role, slot occupancy, overlap and revision; slot configuration retains existing shifts.",
+      "before": {
+        "decisions": [
+          {
+            "id": "D-031",
+            "category": "제품 경험",
+            "title": "BIG TAP 폴더와 전체 Tap 상태 보드",
+            "status": "confirmed",
+            "decision": "하단 메뉴는 Status, Todo, Team, Calendar, Place 순서로 Cupertino 단색 아이콘만 표시한다. BIG TAP은 주문처리·마케팅·뼈찜 조리·뼈짬뽕 조리·응대·정비·정산 등의 이름 있는 폴더이며, 주문처리는 주문 수행, 뼈찜·뼈짬뽕 조리는 준비 작업 위주다. Todo 첫 화면부터 모든 Tap이 할일 / 주문처리중 / 완료 고정 열에 있고, 폴더 필터와 카드 상태·순서·폴더 이동 Drag & Drop을 제공한다. Tap을 열면 단일 Small Tap 목록과 선택 매뉴얼을 보여준다. Tap 완료 시 미완료 Small Tap도 함께 완료한다. Team에는 Tapper 등록, R&R 근무표, 출퇴근·휴게 기록과 급여 자동 계산이 들어간다. Calendar는 Tap 시간 슬롯과 R&R 근무 시간을 함께 보여준다. Place는 직사각형·L·U형 직교 격자 도형과 드래그 이동·모서리 크기 조정을 지원한다. 홈 가상 주문과 주문 Tap은 같은 주문을 참조하고 완료 상태를 동기화한다.",
+            "reason": "사용자가 BIG TAP을 폴더로 바꾸고 체크리스트에서 전체 Tap을 바로 보여주며 순서 드래그, 매장 드래그/크기 조정, 홈 주문 연동을 요청했다.",
+            "source": "사용자 요청과 후속 답변 · 2026-09-24",
+            "updatedAt": "2026-09-24T03:17:55.028Z"
+          },
+          {
+            "id": "D-033",
+            "category": "브랜드·공개 앱",
+            "title": "미니멀 SF 스타일과 도메인 루트 앱",
+            "status": "confirmed",
+            "decision": "2026-09-24 사용자가 제공한 logo_tap2work.png를 현재 로고로 사용한다. 이전 logo_tap2.png 배지 로고에서 빨간 가방 심볼과 tap2.work 워드마크 로고로 바꾸고, 앱 화면은 웜 화이트·잉크/네이비·절제된 코랄 레드 팔레트, Cupertino SF Symbols 계열 단색 아이콘, 가는 구분선과 절제된 모서리로 통일한다. 기능 안내 이모지는 UI 아이콘으로 대체하고 메뉴 식별용 음식 그림은 유지한다. https://tap2.work/에는 Flutter 샘플 앱을 바로 제공하고 공개 개발 현황과 결정 기록 파일은 배포하지 않는다. 예전 /app/ 링크는 /로 연결한다.",
+            "reason": "사용자가 구식이고 디자인 컨셉이 부족하다고 지적하며 Apple 스타일의 미니멀하고 트렌디한 이모티콘/아이콘을 요청했고, 이전에 지정한 logo_tap2work.png를 적용하고 도메인 루트에서 앱을 바로 열며 개발 현황을 제거하도록 요청했다.",
+            "source": "사용자 요청 · 2026-09-24 · logo_tap2work.png, Apple-like minimal icons, app at tap2.work root, remove development status",
+            "updatedAt": "2026-09-24"
+          }
+        ]
+      },
+      "after": {
+        "decisions": [
+          {
+            "id": "D-031",
+            "category": "제품 경험",
+            "title": "BIG TAP 폴더와 전체 Tap 상태 보드",
+            "status": "confirmed",
+            "decision": "하단 메뉴는 Status, Todo, Team, Calendar, Place 순서로 Cupertino 단색 아이콘만 표시한다. BIG TAP은 주문처리·마케팅·뼈찜 조리·뼈짬뽕 조리·응대·정비·정산 등의 이름 있는 폴더이며, 주문처리는 주문 수행, 뼈찜·뼈짬뽕 조리는 준비 작업 위주다. Todo 첫 화면부터 모든 Tap이 할일 / 주문처리중 / 완료 고정 열에 있고, 폴더 필터와 카드 상태·순서·폴더 이동 Drag & Drop을 제공한다. Tap을 열면 단일 Small Tap 목록과 선택 매뉴얼을 보여준다. Tap 완료 시 미완료 Small Tap도 함께 완료한다. Team에는 Tapper 등록, R&R 근무표, 출퇴근·휴게 기록과 급여 자동 계산이 들어간다. Calendar는 Tap 시간 슬롯과 R&R 근무 시간을 함께 보여준다. Place는 직사각형·L·U형 직교 격자 도형과 드래그 이동·모서리 크기 조정을 지원한다. 홈 가상 주문과 주문 Tap은 같은 주문을 참조하고 완료 상태를 동기화한다. Superseding update 2026-09-24: customer orders contain menu TAPs grouped by order number and moved together; every menu TAP contains Small Taps. Phone manuals are popups with editable text, video and image links. Remove the entire five-minute plan. Calendar now uses weekly/monthly crew coverage, configurable daily role/time slots and a registered HR pool with drag assignment, candidate suggestions and an external recruiting link marked under construction.",
+            "reason": "Explicit user request for menu/order grouping, lightweight manuals, removal of five-minute planning and staffing calendar.",
+            "source": "사용자 요청과 후속 답변 · 2026-09-24",
+            "updatedAt": "2026-09-24T08:55:45.882439Z"
+          },
+          {
+            "id": "D-033",
+            "category": "브랜드·공개 앱",
+            "title": "미니멀 SF 스타일과 도메인 루트 앱",
+            "status": "confirmed",
+            "decision": "2026-09-24 사용자가 제공한 logo_tap2work.png를 현재 로고로 사용한다. 이전 logo_tap2.png 배지 로고에서 빨간 가방 심볼과 tap2.work 워드마크 로고로 바꾸고, 앱 화면은 웜 화이트·잉크/네이비·절제된 코랄 레드 팔레트, Cupertino SF Symbols 계열 단색 아이콘, 가는 구분선과 절제된 모서리로 통일한다. 기능 안내 이모지는 UI 아이콘으로 대체하고 메뉴 식별용 음식 그림은 유지한다. https://tap2.work/에는 Flutter 샘플 앱을 바로 제공하고 공개 개발 현황과 결정 기록 파일은 배포하지 않는다. 예전 /app/ 링크는 /로 연결한다. Current logo supersedes the previous artwork: use logo_tap2work_circle.png as a 512px whole-circle app image, replace favicon/PWA/native launcher artwork, and remove old logo files while preserving Git history.",
+            "reason": "User explicitly supplied the circular logo and requested replacement of logo/favicon and removal of old assets. Existing visual style and root app hosting remain.",
+            "source": "사용자 요청 · 2026-09-24 · logo_tap2work.png, Apple-like minimal icons, app at tap2.work root, remove development status",
+            "updatedAt": "2026-09-24T08:55:45.882439Z"
+          },
+          {
+            "id": "D-035",
+            "category": "Product experience",
+            "title": "Menu order groups, lightweight manuals and crew slot calendar",
+            "status": "confirmed",
+            "decision": "One menu-line TAP per order, with Small Taps and an order-number group that moves together. Phone manuals use text and external HTTPS video/image links with simple editing. Remove five-minute planning. Weekly/monthly calendar shows configurable daily role/time slots; registered crew drag from HR Pool or move between slots. Empty slots suggest qualified existing crew or link to a recruiting site labeled under construction.",
+            "reason": "Explicit user request. Three slots are a configurable demo default, not a confirmed staffing requirement for every restaurant. Actual recipe quantities, crew availability, messaging and recruiting integration are not assumed approved or implemented.",
+            "source": "User request, 2026-09-24",
+            "updatedAt": "2026-09-24T08:55:45.882439Z"
+          }
+        ]
+      },
+      "files": [
+        "app/",
+        "developer/order_taps.mjs",
+        "developer/operations.mjs",
+        "developer/staff.mjs",
+        "developer/checklists.mjs",
+        "developer/test/",
+        "tap2work.png",
+        "index.html",
+        "manifest.webmanifest",
+        "server.mjs",
+        "sw.js",
+        "site/styles.css",
+        "PRODUCT.md",
+        "RESEARCH.md",
+        "docs/TAP_SYSTEM_ARCHITECTURE.md",
+        "docs/branding/README.md",
+        "docs/project-state.json"
+      ],
+      "verification": "Final Flutter analyze clean; Flutter 66/66; Node 44/44; npm run check; npm run build:site; git diff --check passed. Tests cover phone popup and board at 320/390/1200px, week/month calendar at 320/1200px, widget drag requests, preview zero POST, independent menu completion/group movement/Korean midnight, staffing overlap/occupancy/permissions/stale revisions, and manual HTTPS/persistence/template updates. Initial old logo/card-count expectations and a second-pass staffing migration revision failure were fixed and rechecked. Intermediate style warnings and wrong-directory/pipe failures were superseded by successful final checks. Browser manual interaction, native build/device checks, and Pages/Supabase deployment were not performed."
     }
   ],
-  "updatedAt": "2026-09-24T03:22:05.540Z"
+  "updatedAt": "2026-09-24T08:55:45.882439Z"
 }

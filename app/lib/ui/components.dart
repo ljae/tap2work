@@ -5,31 +5,12 @@ class BrandLogo extends StatelessWidget {
   const BrandLogo({super.key});
 
   @override
-  Widget build(BuildContext context) => const FittedBox(
-    fit: BoxFit.scaleDown,
-    alignment: Alignment.centerLeft,
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ArtworkCrop(
-          asset: 'assets/branding/tap2work.png',
-          crop: Rect.fromLTWH(248, 114, 246, 240),
-          width: 36,
-          height: 36,
-          borderRadius: 9,
-          semanticLabel: 'tap2.work 로고',
-        ),
-        SizedBox(width: 8),
-        Text(
-          'tap2.work',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -.7,
-          ),
-        ),
-      ],
-    ),
+  Widget build(BuildContext context) => Image.asset(
+    'assets/branding/tap2work.png',
+    width: 48,
+    height: 48,
+    semanticLabel: 'tap2.work 로고',
+    fit: BoxFit.contain,
   );
 }
 

@@ -6,7 +6,7 @@ import { ensureOrderTaps, syncOrderFromTap } from './order_taps.mjs';
 import { seedSales, salesDashboard } from './sales.mjs';
 import { ensureLayout, validateLayout } from './layout.mjs';
 import { ensureStaff, staffView, mutateStaff } from './staff.mjs';
-import { ensureChecklists, saveChecklists, checklistLibrary, checklistSlots, checklistRoles, libraryTemplates, reopenStep } from './checklists.mjs';
+import { ensureChecklists, saveChecklists, checklistLibrary, checklistSlots, checklistRoles, libraryTemplates, reopenStep, mediaLink } from './checklists.mjs';
 
 const dayMs = 86400000;
 export const actors = [
@@ -215,6 +215,21 @@ export class OperationsStore {
       const activity = message => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message });
       const itemFor = id => { const item = state.items.find(item => item.id === id); if (!item) fail('재료를 찾지 못했어요.', 404); return item; };
       switch (input.action) {
+        case 'save_step_manual': {
+          leadership(actor);
+          const task = state.tasks.find(t => t.id === input.taskId && !t.archivedAt && t.date === state.day);
+          const step = task?.steps?.find(s => s.id === input.stepId);
+          if (!step || step.completedAt) fail('아직 완료하지 않은 오늘 Small Tap만 편집할 수 있어요.', 409);
+          const manual = text(input.manual, '매뉴얼', 700);
+          const videoUrl = mediaLink(input.videoUrl), imageUrl = mediaLink(input.imageUrl);
+          step.manualHistory ??= [];
+          step.manualHistory.push({ manual: step.manual, videoUrl: step.videoUrl ?? '', imageUrl: step.imageUrl ?? '', at: iso(now), actor: who });
+          Object.assign(step, { manual, videoUrl, imageUrl });
+          const template = state.taskTemplates.find(t => t.id === (step.sourceTemplateId ?? task.templateId));
+          const source = template?.steps.find(s => s.id === (step.sourceStepId ?? step.id));
+          if (source) { Object.assign(source, { manual, videoUrl, imageUrl }); template.version++; }
+          activity(`${task.title} · ${step.title} 매뉴얼 저장`); break;
+        }
         case 'save_layout': {
           leadership(actor);
           const updated = validateLayout(input, state);
@@ -266,6 +281,9 @@ export class OperationsStore {
           if (!allowed(actor, task)) fail('이 Tap의 담당자가 아니에요.', 403);
           if (!state.checklistFolders.some(folder => folder.id === input.folderId)) fail('BIG TAP을 찾지 못했어요.');
           if (!['todo', 'processing', 'done'].includes(input.status)) fail('Tap 상태를 확인해 주세요.');
+          const moving = task.orderId ? state.tasks.filter(t => t.orderId === task.orderId && !t.archivedAt) : [task];
+          for (const task of moving) {
+          if (!allowed(actor, task)) fail('이 Tap의 담당자가 아니에요.', 403);
           if (input.status === 'done' && !task.completedAt) {
             for (const step of task.steps ?? []) if (!step.completedAt) { step.completedAt = iso(now); step.completedBy = who; step.completionSource = 'tap_bulk'; }
             task.completedAt = iso(now); task.completedBy = who;
@@ -277,13 +295,17 @@ export class OperationsStore {
             }
             task.completedAt = null; task.completedBy = null;
           }
-          const lane = state.tasks.filter(row => row.id !== task.id && row.kind === 'routine' && row.date === state.day && !row.archivedAt && (row.completedAt ? 'done' : row.boardStatus ?? 'todo') === input.status)
+          }
+          const laneStatus = row => {
+            const group = row.orderId ? state.tasks.filter(t => t.orderId === row.orderId && !t.archivedAt) : [row];
+            return group.every(t => t.completedAt) ? 'done' : group.some(t => t.completedAt || t.boardStatus === 'processing') ? 'processing' : 'todo';
+          };
+          const lane = state.tasks.filter(row => !moving.some(t => t.id === row.id) && row.kind === 'routine' && row.date === state.day && !row.archivedAt && laneStatus(row) === input.status)
             .sort((a, b) => (a.boardOrder ?? (state.taskTemplates.findIndex(t => t.id === a.templateId) < 0 ? state.taskTemplates.length : state.taskTemplates.findIndex(t => t.id === a.templateId))) - (b.boardOrder ?? (state.taskTemplates.findIndex(t => t.id === b.templateId) < 0 ? state.taskTemplates.length : state.taskTemplates.findIndex(t => t.id === b.templateId))));
           const before = input.beforeTaskId == null ? lane.length : lane.findIndex(row => row.id === input.beforeTaskId);
           if (before < 0) fail('삽입할 Tap을 찾지 못했어요.', 409);
-          task.boardFolderId = input.folderId;
-          task.boardStatus = input.status;
-          lane.splice(before, 0, task);
+          for (const member of moving) { member.boardFolderId = input.folderId; member.boardStatus = input.status; }
+          lane.splice(before, 0, ...moving);
           lane.forEach((row, index) => { row.boardOrder = index; });
           activity(`${task.title} · ${input.status} 이동`); break;
         }
@@ -299,17 +321,6 @@ export class OperationsStore {
           if (!Array.isArray(input.folderIds) || input.folderIds.length !== state.checklistFolders.length || new Set(input.folderIds).size !== input.folderIds.length || input.folderIds.some(id => !state.checklistFolders.some(folder => folder.id === id))) fail('BIG TAP 순서를 확인해 주세요.');
           state.bigTapOrder = input.folderIds;
           activity('BIG TAP 순서 변경'); break;
-        }
-        case 'schedule_tap': {
-          leadership(actor);
-          const task = state.tasks.find(row => row.id === input.taskId && row.kind === 'routine' && row.date === state.day && !row.archivedAt);
-          const tapper = state.tappers.find(row => row.id === input.tapperId && row.active);
-          if (!task || !tapper) fail('Tap 또는 Tapper를 찾지 못했어요.', 404);
-          if (!['조리', '서빙1', '서빙2', 'cashier'].includes(input.duty) || !tapper.duties.includes(input.duty)) fail('담당 R&R을 확인해 주세요.');
-          if (typeof input.start !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.start)) fail('시작 시각을 확인해 주세요.');
-          if (!Number.isInteger(input.durationMinutes) || input.durationMinutes < 5 || input.durationMinutes > 480 || input.durationMinutes % 5) fail('5분 단위 예상 시간을 입력해 주세요.');
-          task.schedule = { tapperId: tapper.id, duty: input.duty, date: state.day, start: input.start, durationMinutes: input.durationMinutes, setBy: who, setAt: iso(now) };
-          activity(`${task.title} · ${tapper.nickname} 일정 배정`); break;
         }
         case 'check_stock': {
           const item = itemFor(input.itemId); item.quantity = amount(input.quantity); item.lastCheckedAt = iso(now); item.checkedBy = who;

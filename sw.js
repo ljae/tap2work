@@ -1,5 +1,5 @@
-const CACHE = 'tab2work-demo-v2';
-const ASSETS = ['./', './index.html', './styles.css', './app.js', './icon.svg', './manifest.webmanifest'];
+const CACHE = 'tab2work-demo-v3';
+const ASSETS = ['./', './index.html', './styles.css', './app.js', './tap2work.png', './manifest.webmanifest'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS))));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('tab2work-demo-') && key !== CACHE).map(key => caches.delete(key))))));
 self.addEventListener('fetch', event => {
