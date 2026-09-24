@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 37,
+  "revision": 38,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -2071,7 +2071,25 @@
         "docs/SUPABASE.md"
       ],
       "verification": "npm run check 통과, Node 41/41, Flutter analyze 문제 없음, Flutter 64/64, Flutter public web build 성공. 모바일 390px 보드/로그인 및 데스크톱 화면 브라우저 확인. 작은 이동의 gesture threshold 실패를 수정하여 드래그/리사이즈 저장 테스트 통과. Supabase 실서비스에서 임시 사용자 2명의 Auth/매장 분리/완료 저장/409 충돌/원본 접근 거부 확인 후 삭제. 공개 산출물에서 설정된 서비스·secret·관리 토큰 문자열 미포함 확인. Pages 배포 대기. 실제 가입 메일 수신·네이티브 빌드 미검증."
+    },
+    {
+      "id": "H-cloud-pages-deployment-2026-09-24",
+      "at": "2026-09-24T03:22:05.540Z",
+      "type": "deployment",
+      "title": "Supabase 연동 앱 공개 배포 완료",
+      "detail": "5f5fd73의 BIG TAP 폴더/직접 상태 보드, 배치 드래그와 크기 조정, 연결된 주문 Tap, Supabase 로그인·저장을 tap2.work에 배포했다. .env의 SUPABASE_API service_role 유형을 확인했으며 서버 전용으로 유지한다.",
+      "files": [
+        "README.md",
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "GitHub Actions 35950908223 build/deploy 성공. CI에서 Node 검사·41 테스트, Flutter analyze·64 테스트, public build 통과. Supabase 실서비스 임시 두 계정의 격리·완료 저장·409 충돌·직접 원본 접근 거부 재확인 후 삭제. 로컬 브라우저 드래그로 주문 완료 후 홈 처리 중 주문 5→4건 연동 확인. 네이티브 빌드·가입 확인 메일 실수신은 미검증. 공개 실주소 루트와 /app/ 리디렉션, 배포 JS의 공개 키/URL 포함 및 비밀키 미포함, orderId 샘플을 HTTP로 확인했다.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/35950908223",
+        "https://github.com/ljae/tap2work/commit/5f5fd73",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-24T03:17:55.028Z"
+  "updatedAt": "2026-09-24T03:22:05.540Z"
 }
