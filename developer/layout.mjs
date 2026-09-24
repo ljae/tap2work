@@ -1,4 +1,5 @@
 import { StoreError } from './store.mjs';
+import { occupiedCells } from './layout_geometry.mjs';
 
 const kinds = ['table', 'equipment', 'storage', 'entrance', 'area'];
 const icons = { table: '🪑', equipment: '⚙️', storage: '📦', entrance: '🚪', area: '▧' };
@@ -45,9 +46,13 @@ export function validateLayout(input, state) {
       x: integer(zone.x, 0, layout.columns - 1, '가로 위치'), y: integer(zone.y, 0, layout.rows - 1, '세로 위치'),
       width: integer(zone.width, 1, layout.columns, '가로 크기'), height: integer(zone.height, 1, layout.rows, '세로 크기'),
       seats: zone.kind === 'table' ? integer(zone.seats, 1, 20, '좌석 수') : 0,
+      shape: zone.shape ?? 'rect', rotation: zone.rotation ?? 0,
+      notchWidth: zone.shape && zone.shape !== 'rect' ? zone.notchWidth : 0,
+      notchDepth: zone.shape && zone.shape !== 'rect' ? zone.notchDepth : 0,
       emoji: state.zones.find(old => old.id === zone.id && old.kind === zone.kind)?.emoji || icons[zone.kind],
     };
     if (result.x + result.width > layout.columns || result.y + result.height > layout.rows) fail(`${result.name}이 매장 경계를 벗어나요.`);
+    occupiedCells(result);
     if (zone.kind === 'table') {
       if (tableNames.has(result.name)) fail('테이블 이름은 서로 다르게 정해 주세요.');
       tableNames.add(result.name);
@@ -64,7 +69,8 @@ export function validateLayout(input, state) {
       const z = zones[i];
       // Areas may contain equipment/tables; physical objects may not overlap.
       if (z.kind === 'area' || other.kind === 'area') continue;
-      if (z.x < other.x + other.width && z.x + z.width > other.x && z.y < other.y + other.height && z.y + z.height > other.y) fail(`${z.name}과 ${other.name}의 위치가 겹쳐요.`);
+      const occupied = occupiedCells(z);
+      if ([...occupiedCells(other)].some(cell => occupied.has(cell))) fail(`${z.name}과 ${other.name}의 위치가 겹쳐요.`);
     }
   }
   return { layout, zones };

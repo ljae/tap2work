@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import '../domain/tap_planning.dart';
+import '../domain/layout_geometry.dart';
 import 'components.dart';
 
 const _kinds = {
@@ -294,60 +295,65 @@ class _MapCanvasState extends State<_MapCanvas> {
                             top: (z['y'] as num) * unit,
                             width: (z['width'] as num) * unit,
                             height: (z['height'] as num) * unit,
-                            child: Padding(
-                              padding: const EdgeInsets.all(2),
-                              child: Material(
-                                color: z['kind'] == 'area'
-                                    ? const Color(0xFFEDECE2)
-                                    : z['kind'] == 'table'
-                                    ? const Color(0xFFE5EDC6)
-                                    : const Color(0xFFE1E8E4),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    z['kind'] == 'table' ? 10 : 4,
+                            child: ClipPath(
+                              clipper: _FootprintClipper(z),
+                              child: Padding(
+                                padding: const EdgeInsets.all(2),
+                                child: Material(
+                                  color: z['kind'] == 'area'
+                                      ? const Color(0xFFEDECE2)
+                                      : z['kind'] == 'table'
+                                      ? const Color(0xFFE5EDC6)
+                                      : const Color(0xFFE1E8E4),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      z['kind'] == 'table' ? 10 : 4,
+                                    ),
+                                    side: BorderSide(
+                                      color:
+                                          z['id'] == widget.selected ||
+                                              widget.route.contains(z['id'])
+                                          ? AppColors.green
+                                          : AppColors.line,
+                                      width: z['id'] == widget.selected
+                                          ? 2.5
+                                          : 1,
+                                    ),
                                   ),
-                                  side: BorderSide(
-                                    color:
-                                        z['id'] == widget.selected ||
-                                            widget.route.contains(z['id'])
-                                        ? AppColors.green
-                                        : AppColors.line,
-                                    width: z['id'] == widget.selected ? 2.5 : 1,
-                                  ),
-                                ),
-                                child: InkWell(
-                                  onTap: () => widget.onSelect(z['id']),
-                                  child: Tooltip(
-                                    message:
-                                        '${z['name']}${z['kind'] == 'table' ? ' · ${z['seats']}인석' : ''}',
-                                    child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(3),
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                _icon(z['kind']),
-                                                size: 18,
-                                                color: AppColors.green,
-                                              ),
-                                              Text(
-                                                '${widget.route.contains(z['id']) ? '${widget.route.indexOf(z['id']) + 1}. ' : ''}${z['name']}',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w700,
+                                  child: InkWell(
+                                    onTap: () => widget.onSelect(z['id']),
+                                    child: Tooltip(
+                                      message:
+                                          '${z['name']}${z['kind'] == 'table' ? ' · ${z['seats']}인석' : ''}',
+                                      child: Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(3),
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  _icon(z['kind']),
+                                                  size: 18,
+                                                  color: AppColors.green,
                                                 ),
-                                              ),
-                                              if (z['kind'] == 'table')
                                                 Text(
-                                                  '${z['seats']}인석',
+                                                  '${widget.route.contains(z['id']) ? '${widget.route.indexOf(z['id']) + 1}. ' : ''}${z['name']}',
                                                   style: const TextStyle(
-                                                    fontSize: 10,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
-                                            ],
+                                                if (z['kind'] == 'table')
+                                                  Text(
+                                                    '${z['seats']}인석',
+                                                    style: const TextStyle(
+                                                      fontSize: 10,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -368,6 +374,32 @@ class _MapCanvasState extends State<_MapCanvas> {
       ],
     ),
   );
+}
+
+class _FootprintClipper extends CustomClipper<Path> {
+  const _FootprintClipper(this.zone);
+  final Json zone;
+  @override
+  Path getClip(Size size) {
+    final unitX = size.width / (zone['width'] as int);
+    final unitY = size.height / (zone['height'] as int);
+    final path = Path();
+    for (final cell in occupiedLayoutCells(zone)) {
+      path.addRect(
+        Rect.fromLTWH(
+          (cell.x - (zone['x'] as int)) * unitX,
+          (cell.y - (zone['y'] as int)) * unitY,
+          unitX,
+          unitY,
+        ),
+      );
+    }
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant _FootprintClipper oldClipper) =>
+      oldClipper.zone != zone;
 }
 
 class _GridPainter extends CustomPainter {
@@ -402,10 +434,18 @@ class _GridPainter extends CustomPainter {
       final from = zones.where((z) => z['id'] == route[i - 1]).firstOrNull;
       final to = zones.where((z) => z['id'] == route[i]).firstOrNull;
       if (from == null || to == null) continue;
-      GridCell center(Json z) => (
-        x: (z['x'] as int) + (z['width'] as int) ~/ 2,
-        y: (z['y'] as int) + (z['height'] as int) ~/ 2,
-      );
+      GridCell center(Json z) {
+        final cells = occupiedLayoutCells(z).toList();
+        final x = (z['x'] as int) + (z['width'] as int) ~/ 2;
+        final y = (z['y'] as int) + (z['height'] as int) ~/ 2;
+        cells.sort(
+          (a, b) => ((a.x - x).abs() + (a.y - y).abs()).compareTo(
+            (b.x - x).abs() + (b.y - y).abs(),
+          ),
+        );
+        return (x: cells.first.x, y: cells.first.y);
+      }
+
       final blocked = <GridCell>{};
       for (final z in zones) {
         if (z['id'] == from['id'] ||
@@ -414,19 +454,7 @@ class _GridPainter extends CustomPainter {
             z['kind'] == 'entrance') {
           continue;
         }
-        for (
-          var x = z['x'] as int;
-          x < (z['x'] as int) + (z['width'] as int);
-          x++
-        ) {
-          for (
-            var y = z['y'] as int;
-            y < (z['y'] as int) + (z['height'] as int);
-            y++
-          ) {
-            blocked.add((x: x, y: y));
-          }
-        }
+        blocked.addAll(occupiedLayoutCells(z).map((c) => (x: c.x, y: c.y)));
       }
       final cells = shortestGridPath(
         columns: columns,
@@ -531,6 +559,21 @@ class _LayoutEditorState extends State<_LayoutEditor> {
   String? get geometryError {
     final tableNames = <String>{};
     for (final z in zones) {
+      final rotation = z['rotation'] ?? 0;
+      final shape = z['shape'] ?? 'rect';
+      final baseWidth = rotation == 90 || rotation == 270
+          ? z['height']
+          : z['width'];
+      final baseHeight = rotation == 90 || rotation == 270
+          ? z['width']
+          : z['height'];
+      if (shape != 'rect' &&
+          ((z['notchWidth'] ?? 0) < 1 ||
+              (z['notchDepth'] ?? 0) < 1 ||
+              z['notchWidth'] > baseWidth - (shape == 'u' ? 2 : 1) ||
+              z['notchDepth'] >= baseHeight)) {
+        return '${z['name']}의 도형 홈 크기를 확인해 주세요.';
+      }
       if (z['x'] + z['width'] > layout['columns'] ||
           z['y'] + z['height'] > layout['rows']) {
         return '${z['name']}이 매장 경계를 벗어나요. 위치나 크기를 수정해 주세요.';
@@ -542,10 +585,9 @@ class _LayoutEditorState extends State<_LayoutEditor> {
         if (z == other || z['kind'] == 'area' || other['kind'] == 'area') {
           continue;
         }
-        if (z['x'] < other['x'] + other['width'] &&
-            z['x'] + z['width'] > other['x'] &&
-            z['y'] < other['y'] + other['height'] &&
-            z['y'] + z['height'] > other['y']) {
+        if (occupiedLayoutCells(
+          z,
+        ).intersection(occupiedLayoutCells(other)).isNotEmpty) {
           return '${z['name']}과 ${other['name']}의 위치가 겹쳐요. 빈 칸으로 옮겨 주세요.';
         }
       }
@@ -856,12 +898,17 @@ class _ItemDialog extends StatefulWidget {
 class _ItemDialogState extends State<_ItemDialog> {
   final form = GlobalKey<FormState>();
   late String kind;
+  late String shape;
+  late int rotation;
   late TextEditingController name, description, x, y, width, height, seats;
+  late TextEditingController notchWidth, notchDepth;
   @override
   void initState() {
     super.initState();
     final item = widget.item;
     kind = item?['kind'] ?? 'table';
+    shape = item?['shape'] ?? 'rect';
+    rotation = item?['rotation'] ?? 0;
     name = TextEditingController(text: item?['name'] ?? '새 테이블');
     description = TextEditingController(text: item?['description'] ?? '');
     x = TextEditingController(
@@ -875,11 +922,27 @@ class _ItemDialogState extends State<_ItemDialog> {
     seats = TextEditingController(
       text: '${item?['seats'] == 0 ? 4 : item?['seats'] ?? 4}',
     );
+    notchWidth = TextEditingController(
+      text: '${item?['notchWidth'] == 0 ? 1 : item?['notchWidth'] ?? 1}',
+    );
+    notchDepth = TextEditingController(
+      text: '${item?['notchDepth'] == 0 ? 1 : item?['notchDepth'] ?? 1}',
+    );
   }
 
   @override
   void dispose() {
-    for (final c in [name, description, x, y, width, height, seats]) {
+    for (final c in [
+      name,
+      description,
+      x,
+      y,
+      width,
+      height,
+      seats,
+      notchWidth,
+      notchDepth,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -920,6 +983,36 @@ class _ItemDialogState extends State<_ItemDialog> {
                     .toList(),
                 onChanged: (v) => setState(() => kind = v!),
               ),
+              DropdownButtonFormField<String>(
+                initialValue: shape,
+                decoration: const InputDecoration(labelText: '격자 도형'),
+                items: const [
+                  DropdownMenuItem(value: 'rect', child: Text('직사각형')),
+                  DropdownMenuItem(value: 'l', child: Text('L자')),
+                  DropdownMenuItem(value: 'u', child: Text('U자')),
+                ],
+                onChanged: (v) => setState(() => shape = v!),
+              ),
+              if (shape != 'rect') ...[
+                DropdownButtonFormField<int>(
+                  initialValue: rotation,
+                  decoration: const InputDecoration(labelText: '회전'),
+                  items: const [
+                    DropdownMenuItem(value: 0, child: Text('0°')),
+                    DropdownMenuItem(value: 90, child: Text('90°')),
+                    DropdownMenuItem(value: 180, child: Text('180°')),
+                    DropdownMenuItem(value: 270, child: Text('270°')),
+                  ],
+                  onChanged: (v) => setState(() => rotation = v!),
+                ),
+                Wrap(
+                  spacing: 12,
+                  children: [
+                    number('홈 너비 (칸)', notchWidth, widget.layout['columns']),
+                    number('홈 깊이 (칸)', notchDepth, widget.layout['rows']),
+                  ],
+                ),
+              ],
               if (kind == 'equipment')
                 Wrap(
                   spacing: 4,
@@ -968,6 +1061,21 @@ class _ItemDialogState extends State<_ItemDialog> {
       FilledButton(
         onPressed: () {
           if (!form.currentState!.validate()) return;
+          final baseWidth = rotation == 90 || rotation == 270
+              ? int.parse(height.text)
+              : int.parse(width.text);
+          final baseHeight = rotation == 90 || rotation == 270
+              ? int.parse(width.text)
+              : int.parse(height.text);
+          if (shape != 'rect' &&
+              (int.parse(notchWidth.text) >
+                      baseWidth - (shape == 'u' ? 2 : 1) ||
+                  int.parse(notchDepth.text) >= baseHeight)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('도형의 홈이 바깥 경계를 넘어가요.')),
+            );
+            return;
+          }
           Navigator.pop(context, <String, dynamic>{
             'id':
                 widget.item?['id'] ??
@@ -979,6 +1087,10 @@ class _ItemDialogState extends State<_ItemDialog> {
             'y': int.parse(y.text) - 1,
             'width': int.parse(width.text),
             'height': int.parse(height.text),
+            'shape': shape,
+            'rotation': shape == 'rect' ? 0 : rotation,
+            'notchWidth': shape == 'rect' ? 0 : int.parse(notchWidth.text),
+            'notchDepth': shape == 'rect' ? 0 : int.parse(notchDepth.text),
             'seats': kind == 'table' ? int.parse(seats.text) : 0,
           });
         },

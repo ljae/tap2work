@@ -6,6 +6,8 @@ import 'workspace_screen.dart';
 import 'store_dashboard.dart';
 import 'floor_plan.dart';
 import 'tap_workspace.dart';
+import 'team_screen.dart';
+import 'calendar_screen.dart';
 
 class OperationsScreen extends StatefulWidget {
   const OperationsScreen({
@@ -22,6 +24,7 @@ class OperationsScreen extends StatefulWidget {
 class _OperationsScreenState extends State<OperationsScreen> {
   OperationsController get ops => widget.operations;
   int tab = 0;
+  bool inventoryOpen = false;
   final Map<String, double> cart = {};
   Json? item(String id) =>
       ops.rows('items').where((i) => i['id'] == id).firstOrNull;
@@ -78,7 +81,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
     return success;
   }
 
-  void go(int value) => setState(() => tab = value);
+  void go(int value) => setState(() {
+    tab = value == 2
+        ? 0
+        : value == 3
+        ? 2
+        : value;
+    inventoryOpen = value == 2;
+  });
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -172,10 +182,21 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 ...switch (tab) {
-                                  0 => today(),
+                                  0 =>
+                                    inventoryOpen
+                                        ? [
+                                            TextButton(
+                                              onPressed: () => setState(
+                                                () => inventoryOpen = false,
+                                              ),
+                                              child: const Text('현황으로 돌아가기'),
+                                            ),
+                                            ...inventory(),
+                                          ]
+                                        : today(),
                                   1 => tasks(),
-                                  2 => inventory(),
-                                  3 => team(),
+                                  2 => [TeamScreen(operations: ops)],
+                                  3 => [CalendarScreen(operations: ops)],
                                   _ => floorPlan(),
                                 },
                                 const SizedBox(height: 24),
@@ -198,25 +219,32 @@ class _OperationsScreenState extends State<OperationsScreen> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: tab,
-        onDestinationSelected: go,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+        onDestinationSelected: (value) => setState(() {
+          tab = value;
+          inventoryOpen = false;
+        }),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.wb_sunny_outlined),
-            label: '오늘',
+            icon: Text('📊', style: TextStyle(fontSize: 24)),
+            label: 'Status · 매장 현황',
           ),
           NavigationDestination(
-            icon: Icon(Icons.checklist_rounded),
-            label: '할 일',
+            icon: Text('✅', style: TextStyle(fontSize: 24)),
+            label: 'Todo · 할 일',
           ),
           NavigationDestination(
-            icon: Icon(Icons.shopping_basket_outlined),
-            label: '재고/발주',
+            icon: Text('👥', style: TextStyle(fontSize: 24)),
+            label: 'Team · 우리 팀',
           ),
           NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            label: '우리 팀',
+            icon: Text('📅', style: TextStyle(fontSize: 24)),
+            label: 'Calendar · 근무 흐름',
           ),
-          NavigationDestination(icon: Icon(Icons.map_outlined), label: '매장 지도'),
+          NavigationDestination(
+            icon: Text('🗺️', style: TextStyle(fontSize: 24)),
+            label: 'Place · 매장 지도',
+          ),
         ],
       ),
     ),
@@ -303,6 +331,12 @@ class _OperationsScreenState extends State<OperationsScreen> {
   List<Widget> today() {
     return [
       StoreDashboard(operations: ops, onNavigate: go),
+      actionCard(
+        '📦',
+        '재고와 발주',
+        '재고 확인 · 데모 발주 · 입고 기록',
+        () => setState(() => inventoryOpen = true),
+      ),
       gap(24),
       actionCard(
         '🐣',

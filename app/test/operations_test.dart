@@ -102,46 +102,58 @@ http.Response response(Json value, [int code = 200]) => http.Response(
 );
 
 void main() {
-  test('public review loads role samples and never submits mutations', () async {
-    final requests = <http.Request>[];
-    final ops = OperationsController(
-      readOnly: true,
-      client: MockClient((request) async {
-        requests.add(request);
-        return response(sample(request.url.path.endsWith('crew.json') ? 'crew' : 'owner'));
-      }),
-    );
-    addTearDown(ops.dispose);
-    await ops.start();
-    expect(requests.single.url.path, endsWith('review-data/owner.json'));
-    await ops.selectActor('crew');
-    expect(requests.last.url.path, endsWith('review-data/crew.json'));
-    expect(ops.isOwner, false);
-    expect(await ops.act('place_order', {'lines': []}), false);
-    expect(requests.every((request) => request.method == 'GET'), true);
-    expect(requests, hasLength(2));
-    expect(ops.error, contains('공개 미리보기'));
-  });
+  test(
+    'public review loads role samples and never submits mutations',
+    () async {
+      final requests = <http.Request>[];
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((request) async {
+          requests.add(request);
+          return response(
+            sample(request.url.path.endsWith('crew.json') ? 'crew' : 'owner'),
+          );
+        }),
+      );
+      addTearDown(ops.dispose);
+      await ops.start();
+      expect(requests.single.url.path, endsWith('review-data/owner.json'));
+      await ops.selectActor('crew');
+      expect(requests.last.url.path, endsWith('review-data/crew.json'));
+      expect(ops.isOwner, false);
+      expect(await ops.act('place_order', {'lines': []}), false);
+      expect(requests.every((request) => request.method == 'GET'), true);
+      expect(requests, hasLength(2));
+      expect(ops.error, contains('공개 미리보기'));
+    },
+  );
 
-  testWidgets('public review shows its boundary and disables order submission', (tester) async {
-    final ops = OperationsController(
-      readOnly: true,
-      client: MockClient((request) async => response(sample())),
-    );
-    addTearDown(ops.dispose);
-    await ops.refresh();
-    await tester.pumpWidget(Tap2workApp(controller: WorkController(MemoryStore()), operations: ops));
-    expect(find.textContaining('공개 미리보기 · 샘플 데이터'), findsOneWidget);
-    await tester.tap(find.descendant(of: find.byType(NavigationBar), matching: find.text('재고/발주')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('부족한 재료 담기'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('발주함 보기 (1)'));
-    await tester.pumpAndSettle();
-    final submit = tester.widget<FilledButton>(find.widgetWithText(FilledButton, '미리보기 · 저장 불가'));
-    expect(submit.onPressed, isNull);
-    expect(tester.takeException(), isNull);
-  });
+  testWidgets(
+    'public review shows its boundary and disables order submission',
+    (tester) async {
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((request) async => response(sample())),
+      );
+      addTearDown(ops.dispose);
+      await ops.refresh();
+      await tester.pumpWidget(
+        Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
+      );
+      expect(find.textContaining('공개 미리보기 · 샘플 데이터'), findsOneWidget);
+      await tester.tap(find.text('재고와 발주'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('부족한 재료 담기'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('발주함 보기 (1)'));
+      await tester.pumpAndSettle();
+      final submit = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, '미리보기 · 저장 불가'),
+      );
+      expect(submit.onPressed, isNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
   test(
     'role switching fetches a new projection, and actions carry revision and token',
     () async {
@@ -259,16 +271,18 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      for (final label in ['할 일', '우리 팀', '매장 지도', '재고/발주']) {
+      for (final emoji in ['✅', '👥', '📅', '🗺️', '📊']) {
         await tester.tap(
           find.descendant(
             of: find.byType(NavigationBar),
-            matching: find.text(label),
+            matching: find.text(emoji),
           ),
         );
         await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull, reason: '$width / $label');
+        expect(tester.takeException(), isNull, reason: '$width / $emoji');
       }
+      await tester.tap(find.text('재고와 발주'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('부족한 재료 담기'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('발주함 보기 (1)'));
@@ -309,7 +323,10 @@ void main() {
     await tester.tap(find.text('재고 수량 확인하기'));
     await tester.pumpAndSettle();
     await tester.enterText(
-      find.descendant(of: find.byType(AlertDialog), matching: find.byType(TextField)),
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
       '3.5',
     );
     await tester.tap(find.text('확인하고 저장'));

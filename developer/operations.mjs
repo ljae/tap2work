@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
 import { seedSales, salesDashboard } from './sales.mjs';
 import { ensureLayout, validateLayout } from './layout.mjs';
+import { ensureStaff, staffView, mutateStaff } from './staff.mjs';
 import { ensureChecklists, saveChecklists, checklistLibrary, checklistSlots, checklistRoles, libraryTemplates, reopenStep } from './checklists.mjs';
 
 const dayMs = 86400000;
@@ -34,6 +35,41 @@ const seedZones = () => [
 function seedChecklists(zones) {
   const { folder, templates } = libraryTemplates('bonejjim', zones);
   return { checklistVersion: 1, checklistFolders: [{ id: 'general', name: '기본 업무' }, folder], taskTemplates: templates };
+}
+const tapGroups = [
+  ['order-work', '주문처리'], ['marketing', '마케팅'], ['bone-preparation', '뼈찜 조리'],
+  ['noodle-preparation', '뼈짬뽕 조리'], ['service', '응대'], ['maintenance', '정비'], ['settlement', '정산'],
+];
+const tapFolder = id => ({
+  'kitchen-peak': 'order-work', packing: 'order-work', 'hall-peak': 'service',
+  'bone-prep': 'bone-preparation', broth: 'bone-preparation', 'sauce-side': 'bone-preparation',
+  'staff-open': 'maintenance', 'hall-open': 'service', break: 'maintenance',
+  'kitchen-close': 'maintenance', 'hall-close': 'maintenance',
+})[id.replace('library-bonejjim-', '')];
+function ensureTapBoard(state) {
+  if (state.tapBoardVersion === 1) return false;
+  state.checklistFolders ??= [];
+  for (const [id, name] of tapGroups) if (!state.checklistFolders.some(folder => folder.id === id)) state.checklistFolders.push({ id, name });
+  for (const template of state.taskTemplates ?? []) {
+    const target = tapFolder(template.id);
+    if (target && template.folderId === 'bonejjim') template.folderId = target;
+  }
+  const make = (id, title, folderId, zone, steps) => ({ id: `demo-${id}`, title, emoji: '🍲', folderId,
+    slot: '준비', requiredRole: 'cook', zone, version: 1, sourceIds: ['S19'],
+    steps: steps.map((title, index) => ({ id: `step-${index + 1}`, title,
+      manual: '오늘 매장 기준과 주문표를 확인한 뒤 담당자와 진행해요. 후기의 제공 사례는 현재 매장 절차가 아닙니다.', tip: '수량·시간·온도는 매장 검수 후 입력해 주세요.' })) });
+  const samples = [
+    make('bone-order', '샘플 주문 · 산뼈찜 2인', 'order-work', 'stove', ['주문번호·메뉴·수량 확인', '사이즈·제외 요청 확인', '조리 완료 기준 확인', '당일 소스·사리 제공 기준 확인', '본품·추가품 대조 후 전달']),
+    make('spicy-order', '샘플 주문 · 화산뼈찜', 'order-work', 'stove', ['맵기·추가 토핑 확인', '조리 완료 기준 확인', '당일 국물·소스 기준 확인', '본품과 추가품 대조 후 전달']),
+    make('noodle-order', '샘플 주문 · 뼈짬뽕', 'order-work', 'stove', ['면 또는 밥 요청 확인', '준비분과 주문 대조', '조리 완료 기준 확인', '동반품 대조 후 전달']),
+    make('noodle-prep', '뼈짬뽕 · 국물·면/밥 준비', 'noodle-preparation', 'stove', ['오늘 판매·면/밥 변경 기준 확인', '승인된 국물·뼈 준비분 확인', '면·밥 준비분 확인', '채소·그릇·도구 확인', '조리 라인에 인계']),
+    make('marketing', '오늘 메뉴 안내 준비', 'marketing', 'pass', ['오늘 판매 메뉴 확인', '품절·변경 사항 확인', '안내 문구 확인']),
+    make('settlement', '마감 정산 준비', 'settlement', 'pass', ['오늘 주문 내역 확인', '확인 필요한 차이 기록', '담당자에게 인계']),
+  ];
+  for (const sample of samples) if (!state.taskTemplates.some(template => template.id === sample.id)) state.taskTemplates.push(sample);
+  state.bigTapOrder = [...tapGroups.map(([id]) => id), ...state.checklistFolders.map(folder => folder.id).filter(id => !tapGroups.some(([group]) => group === id))];
+  state.tapBoardVersion = 1;
+  return true;
 }
 export function seedOperations(now = new Date()) {
   const earlier = new Date(new Date(now).getTime() - 3 * dayMs).toISOString();
@@ -74,14 +110,16 @@ function stockReview(item) {
 }
 function ensureDueTasks(state, now) {
   let changed = ensureLayout(state);
+  if (ensureStaff(state, now)) changed = true;
   if (ensureChecklists(state)) changed = true;
+  if (ensureTapBoard(state)) changed = true;
   if (!state.sales) { state.sales = seedSales(now); changed = true; }
   const date = koreanDate(now);
   if (state.day !== date) { state.day = date; changed = true; }
   for (const template of state.taskTemplates) {
     const id = `daily-${template.id}-v${template.version}-${date}`;
     if (!state.tasks.some(task => task.templateId === template.id && task.date === date && !task.archivedAt)) {
-      state.tasks.push({ ...structuredClone(template), templateId: template.id, id, date, dueAt: iso(now), kind: 'routine', completedAt: null, completedBy: null }); changed = true;
+      state.tasks.push({ ...structuredClone(template), templateId: template.id, id, date, dueAt: iso(now), kind: 'routine', boardStatus: 'todo', completedAt: null, completedBy: null }); changed = true;
     }
   }
   for (const item of state.items) {
@@ -118,6 +156,7 @@ export class OperationsStore {
   #actor(id) { const actor = actors.find(item => item.id === id); if (!actor) fail('체험할 역할을 선택해 주세요.', 403); return actor; }
   #view(state, actor) {
     const result = structuredClone(state);
+    Object.assign(result, staffView(state, actor, this.clock()));
     result.actor = actor;
     result.serverTime = iso(this.clock());
     result.demo = true;
@@ -137,8 +176,9 @@ export class OperationsStore {
       if (task.kind === 'routine') {
         const index = state.taskTemplates.findIndex(row => row.id === task.templateId);
         const current = state.taskTemplates[index];
-        task.folderId = current?.folderId ?? (state.checklistFolders.some(folder => folder.id === task.folderId) ? task.folderId : 'general');
-        task.displayOrder = index < 0 ? state.taskTemplates.length : index;
+        task.folderId = task.boardFolderId ?? current?.folderId ?? (state.checklistFolders.some(folder => folder.id === task.folderId) ? task.folderId : 'general');
+        task.displayOrder = task.boardOrder ?? (index < 0 ? state.taskTemplates.length : index);
+        task.boardStatus = task.completedAt ? 'done' : task.boardStatus ?? (task.steps?.some(step => step.completedAt) ? 'processing' : 'todo');
       }
     }
     if (actor.role !== 'owner') delete result.privateSummary;
@@ -179,6 +219,7 @@ export class OperationsStore {
         }
         case 'save_checklists': {
           leadership(actor); saveChecklists(input, state, now);
+          state.bigTapOrder = [...(state.bigTapOrder ?? []).filter(id => state.checklistFolders.some(folder => folder.id === id)), ...state.checklistFolders.map(folder => folder.id).filter(id => !(state.bigTapOrder ?? []).includes(id))];
           activity('업무 폴더·카드·매뉴얼 저장'); break;
         }
         case 'reopen_step': {
@@ -186,6 +227,7 @@ export class OperationsStore {
           if (!task) fail('업무를 찾지 못했어요.', 404);
           if (task.archivedAt || task.date !== state.day) fail('오늘 업무만 되돌릴 수 있어요.', 409);
           reopenStep(task, input.stepId, actor, ['owner', 'manager'].includes(actor.role));
+          task.boardStatus = 'processing';
           activity(`${task.title} · 확인 되돌림`); break;
         }
         case 'complete_step':
@@ -203,12 +245,60 @@ export class OperationsStore {
             if (step.completedAt) fail('동료가 이미 확인한 행위예요.', 409);
             step.completedAt = iso(now); step.completedBy = who;
             activity(`${task.title} · ${step.title} 완료`);
-            if (task.steps.every(row => row.completedAt)) { task.completedAt = iso(now); task.completedBy = who; }
+            if (task.steps.every(row => row.completedAt)) { task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; }
             break;
           }
-          if (task.steps?.some(row => !row.completedAt)) fail('각 행위를 먼저 확인해 주세요.');
+          if (task.kind === 'routine') for (const step of task.steps ?? []) if (!step.completedAt) {
+            step.completedAt = iso(now); step.completedBy = who; step.completionSource = 'tap_bulk';
+          }
           if (task.kind === 'stock') { const item = itemFor(task.itemId); item.quantity = amount(input.quantity); item.lastCheckedAt = iso(now); item.checkedBy = who; }
-          task.completedAt = iso(now); task.completedBy = who; activity(`${task.title} 완료`); break;
+          task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; activity(`${task.title} 완료`); break;
+        }
+        case 'move_tap': {
+          const task = state.tasks.find(row => row.id === input.taskId && row.kind === 'routine' && row.date === state.day && !row.archivedAt);
+          if (!task) fail('오늘 Tap을 찾지 못했어요.', 404);
+          if (!allowed(actor, task)) fail('이 Tap의 담당자가 아니에요.', 403);
+          if (!state.checklistFolders.some(folder => folder.id === input.folderId)) fail('BIG TAP을 찾지 못했어요.');
+          if (!['todo', 'processing', 'done'].includes(input.status)) fail('Tap 상태를 확인해 주세요.');
+          if (input.status === 'done' && !task.completedAt) {
+            for (const step of task.steps ?? []) if (!step.completedAt) { step.completedAt = iso(now); step.completedBy = who; step.completionSource = 'tap_bulk'; }
+            task.completedAt = iso(now); task.completedBy = who;
+          }
+          if (input.status !== 'done' && task.completedAt) {
+            if (task.completedBy?.id !== actor.id && !['owner', 'manager'].includes(actor.role)) fail('완료한 본인이나 리더만 되돌릴 수 있어요.', 403);
+            for (const step of task.steps ?? []) if (step.completionSource === 'tap_bulk' && step.completedBy?.id === task.completedBy.id) {
+              delete step.completedAt; delete step.completedBy; delete step.completionSource;
+            }
+            task.completedAt = null; task.completedBy = null;
+          }
+          task.boardFolderId = input.folderId;
+          task.boardStatus = input.status;
+          task.boardOrder = Math.max(-1, ...state.tasks.filter(row => row.id !== task.id && (row.boardFolderId ?? row.folderId) === input.folderId && (row.boardStatus ?? 'todo') === input.status).map(row => row.boardOrder ?? state.taskTemplates.findIndex(template => template.id === row.templateId))) + 1;
+          activity(`${task.title} · ${input.status} 이동`); break;
+        }
+        case 'reorder_small_taps': {
+          leadership(actor);
+          const task = state.tasks.find(row => row.id === input.taskId && row.kind === 'routine' && row.date === state.day);
+          if (!task || !Array.isArray(input.stepIds) || input.stepIds.length !== task.steps.length || new Set(input.stepIds).size !== task.steps.length || input.stepIds.some(id => !task.steps.some(step => step.id === id))) fail('Small Tap 순서를 확인해 주세요.');
+          task.steps.sort((a, b) => input.stepIds.indexOf(a.id) - input.stepIds.indexOf(b.id));
+          activity(`${task.title} · Small Tap 순서 변경`); break;
+        }
+        case 'reorder_big_taps': {
+          leadership(actor);
+          if (!Array.isArray(input.folderIds) || input.folderIds.length !== state.checklistFolders.length || new Set(input.folderIds).size !== input.folderIds.length || input.folderIds.some(id => !state.checklistFolders.some(folder => folder.id === id))) fail('BIG TAP 순서를 확인해 주세요.');
+          state.bigTapOrder = input.folderIds;
+          activity('BIG TAP 순서 변경'); break;
+        }
+        case 'schedule_tap': {
+          leadership(actor);
+          const task = state.tasks.find(row => row.id === input.taskId && row.kind === 'routine' && row.date === state.day && !row.archivedAt);
+          const tapper = state.tappers.find(row => row.id === input.tapperId && row.active);
+          if (!task || !tapper) fail('Tap 또는 Tapper를 찾지 못했어요.', 404);
+          if (!['조리', '서빙1', '서빙2', 'cashier'].includes(input.duty) || !tapper.duties.includes(input.duty)) fail('담당 R&R을 확인해 주세요.');
+          if (typeof input.start !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.start)) fail('시작 시각을 확인해 주세요.');
+          if (!Number.isInteger(input.durationMinutes) || input.durationMinutes < 5 || input.durationMinutes > 480 || input.durationMinutes % 5) fail('5분 단위 예상 시간을 입력해 주세요.');
+          task.schedule = { tapperId: tapper.id, duty: input.duty, date: state.day, start: input.start, durationMinutes: input.durationMinutes, setBy: who, setAt: iso(now) };
+          activity(`${task.title} · ${tapper.nickname} 일정 배정`); break;
         }
         case 'check_stock': {
           const item = itemFor(input.itemId); item.quantity = amount(input.quantity); item.lastCheckedAt = iso(now); item.checkedBy = who;
@@ -279,7 +369,7 @@ export class OperationsStore {
           state.layout.updatedAt = iso(now); state.layout.updatedBy = who;
           activity(`${zone.name} 위치 안내 업데이트`); break;
         }
-        default: fail('지원하지 않는 작업이에요.');
+        default: if (!mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
       }
       state.activity = state.activity.slice(0, 100);
       ensureDueTasks(state, now);

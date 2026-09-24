@@ -36,9 +36,10 @@ test('fresh demo starts with the 뼈찜 collection in its own folder, place and 
   const state = await store.snapshot('owner');
   const bone = checklistLibrary.industries.find(row => row.id === 'bonejjim');
   assert.equal(bone.tasks.length, 11);
-  assert.deepEqual(state.checklistFolders.map(f => f.id), ['general', 'bonejjim']);
-  assert.equal(state.taskTemplates.length, 11);
-  assert.ok(state.taskTemplates.every(row => row.folderId === 'bonejjim' && row.version === 1));
+  assert.ok(state.checklistFolders.some(f => f.id === 'order-work'));
+  assert.ok(state.checklistFolders.some(f => f.id === 'bone-preparation'));
+  assert.equal(state.taskTemplates.length, 17);
+  assert.ok(state.taskTemplates.every(row => row.version === 1));
   const prep = state.taskTemplates.find(row => row.id === PREP);
   assert.equal(prep.zone, 'prep'); assert.equal(prep.requiredRole, 'cook'); assert.equal(prep.emoji, '🍖');
   assert.ok(state.tasks.find(row => row.templateId === 'library-bonejjim-break').slot === '브레이크');
@@ -54,17 +55,18 @@ test('legacy migration preserves completed evidence and upgrades pending manuals
   old.tasks[0].completedAt = clock().toISOString(); old.tasks[0].completedBy = { name: '기존 담당' };
   await writeFile(file, JSON.stringify(old));
   const upgraded = await store.snapshot('owner');
-  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine').length, 3);
+  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine').length, 9);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').steps, undefined);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').completedBy.name, '기존 담당');
   assert.equal(upgraded.tasks.find(t => t.id === 'prep').steps.length, 3);
-  assert.deepEqual(upgraded.checklistFolders, [{ id: 'general', name: '기본 업무' }]);
+  assert.ok(upgraded.checklistFolders.some(f => f.id === 'general'));
+  assert.ok(upgraded.checklistFolders.some(f => f.id === 'order-work'));
   assert.deepEqual((await store.snapshot('owner')).revision, upgraded.revision);
 });
 test('steps have independent actors, cannot be bypassed, duplicated or completed by wrong role', async t => {
   const { store, act, file, clock } = await setup(t);
   const task = (await store.snapshot('owner')).tasks.find(t => t.templateId === PREP);
-  await assert.rejects(act('complete_task', { taskId: task.id }), { status: 400 });
+  await assert.rejects(act('complete_task', { taskId: task.id }, 'crew'), { status: 403 });
   await assert.rejects(act('complete_step', { taskId: task.id, stepId: task.steps[0].id }, 'crew'), { status: 403 });
   await assert.rejects(act('complete_step', { taskId: task.id, stepId: 'missing' }), { status: 404 });
   await act('complete_step', { taskId: task.id, stepId: task.steps[0].id }, 'cook');
@@ -177,7 +179,7 @@ test('entire catalog validates and saves with sources and detailed instructions'
   const payload = fullCatalog(state);
   const saved = await store.mutate('owner', { action: 'save_checklists', revision: state.revision, ...payload });
   assert.equal(saved.taskTemplates.length, payload.templates.length);
-  assert.equal(saved.taskTemplates.length, checklistLibrary.industries.reduce((n, i) => n + i.tasks.length, 0));
+  assert.equal(saved.taskTemplates.length, checklistLibrary.industries.reduce((n, i) => n + i.tasks.length, 0) + 6);
 });
 test('HTTP accepts checklist drafts larger than the old 64 KiB limit', async t => {
   const { store, file, clock } = await setup(t);

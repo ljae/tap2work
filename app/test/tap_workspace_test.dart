@@ -33,6 +33,11 @@ Future<void> mountBoard(
   await tester.pumpAndSettle();
 }
 
+Future<void> openGroup(WidgetTester tester, String name) async {
+  await tester.tap(find.widgetWithText(TextButton, name).first);
+  await tester.pumpAndSettle();
+}
+
 Future<void> openCard(WidgetTester tester, String key) async {
   final card = find.byKey(ValueKey(key));
   await tester.ensureVisible(card);
@@ -51,11 +56,7 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops, width: width);
-      expect(
-        tester.widget<TapCard>(find.byKey(const ValueKey('big-general'))).level,
-        'BIG TAP',
-      );
-      await openCard(tester, 'big-general');
+      await openGroup(tester, '기본 업무  ·  2');
       expect(
         tester
             .widget<TapCard>(find.byKey(const ValueKey('tap-daily-prep')))
@@ -86,7 +87,7 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops);
-      await openCard(tester, 'big-general');
+      await openGroup(tester, '기본 업무  ·  2');
       await openCard(tester, 'tap-daily-prep');
       await tester.tap(
         find.descendant(
@@ -109,11 +110,8 @@ void main() {
       );
       await tester.tap(find.widgetWithText(TextButton, '전체 보드'));
       await tester.pumpAndSettle();
-      expect(
-        tester.widget<TapCard>(find.byKey(const ValueKey('big-general'))).done,
-        1,
-      );
-      await openCard(tester, 'big-general');
+      expect(find.textContaining('기본 업무'), findsWidgets);
+      await openGroup(tester, '기본 업무  ·  2');
       await openCard(tester, 'tap-daily-prep');
       await tester.tap(
         find.descendant(
@@ -141,11 +139,11 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops);
-      await openCard(tester, 'big-close');
+      await openGroup(tester, '마감 폴더  ·  0');
       expect(find.text('아직 카드가 없어요'), findsNWidgets(3));
       await tester.tap(find.widgetWithText(TextButton, '전체 보드'));
       await tester.pumpAndSettle();
-      await openCard(tester, 'big-general');
+      await openGroup(tester, '기본 업무  ·  2');
       await openCard(tester, 'tap-daily-broth');
       await tester.tap(
         find.descendant(
@@ -178,7 +176,7 @@ void main() {
     );
     addTearDown(ops.dispose);
     await mountBoard(tester, ops);
-    await openCard(tester, 'big-general');
+    await openGroup(tester, '기본 업무  ·  2');
     await openCard(tester, 'tap-daily-prep');
     await tester.tap(
       find.descendant(

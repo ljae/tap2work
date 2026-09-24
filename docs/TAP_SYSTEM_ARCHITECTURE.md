@@ -1,5 +1,11 @@
 # Tap2.work system architecture · proposed implementation contract
 
+## Shared demo implementation · 2026-09-24
+
+The Flutter review now uses a seven-group BIG TAP board, fixed Tap lanes (`todo`, `processing`, `done`), and a single Small Tap list with a selected manual. The Node demo keeps template IDs separate from dated task IDs and records a bulk Tap completion on the remaining steps. It stores Tap moves and daily Small Tap order under optimistic revision checks. `주문처리` demo Taps are manually seeded samples, not POS orders; the preparation groups hold prep work. The [menu research](SAN_BONEJJIM_TAP_RESEARCH_2026-09-24.md) documents observations and conflicting reports.
+
+The demo Team data has separate Tapper IDs, rank, R&R, structured shifts, attendance events and hourly pay estimates. `clock_in`, `break_start`, `break_end` and `clock_out` use server time and reject invalid transitions. Calendar displays R&R shifts and manually scheduled Taps. Pay period, statutory premiums, withholding, payable closure and verified employee identity need a confirmed store policy and production implementation. Demo actor headers do not authenticate a worker. Place uses integer grid cells and rectangle, L or U orthogonal footprints for placement, overlap and route obstacles; the physical size of a cell is unspecified.
+
 This is the target architecture for the 2026-09-23 request. The Flutter app and local Node JSON server remain a **demo**, not an authenticated POS, payroll, notification, or marketplace service. The existing first-shift guide, inventory ordering/receipt rule, and shared checklist history remain in scope.
 
 ## Product objects
@@ -23,7 +29,7 @@ A token bucket at the gateway is scoped by verified provider and store, with sep
 
 ## Planning and routing
 
-The scheduling service uses five-minute cells in the store's timezone. Exclusive Taps cannot overlap for one assigned Tapper; concurrent Taps share at most `max_concurrent` slots. Order acceptance, assignment, reassignment, start, completion and undo are durable events. If a real-time order would extend beyond shift end, planning marks the excess segment as overtime and keeps the order on the active timeline; it does not silently carry it to the next day. This flag is an operational estimate until actual attendance is reconciled. The Flutter demo currently shows a fixed 09:00 example with five minutes per unchecked step; it does not assign people or calculate pay.
+The proposed production scheduling service uses five-minute cells in the store's timezone. Exclusive Taps cannot overlap for one assigned Tapper; concurrent Taps share at most `max_concurrent` slots. Order acceptance, assignment, reassignment, start, completion and undo are durable events. If a real-time order would extend beyond shift end, planning marks the excess segment as overtime and keeps the order on the active timeline; it does not silently carry it to the next day. This flag is an operational estimate until actual attendance is reconciled. The current demo Calendar shows manually scheduled task slots; the Todo estimate view still uses a fixed 09:00 example.
 
 The routing service rasterizes validated orthogonal Place footprints into blocked grid cells. A* uses Manhattan distance and four-way moves; routes are recomputed when layout versions change. A route is an efficiency suggestion, not an emergency or food-safety instruction. PostgreSQL/PostGIS geometry and GiST indexes support spatial lookup of places/obstacles; the pathfinder operates on the rasterized grid. Recheck any route when the map is edited. Current demo layout is a schematic with rectangular zones; L/U polygons and persisted obstacle paths are future production work.
 

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "reviewedAt": "2026-09-20",
-  "researchMethod": "Initial Aside research agent returned 402 Insufficient credits; public web search and original page reading used. Subsequently, Aside REPL direct browser snapshots rechecked S06, S09, S10, S13 and S17 on 2026-09-20; S17 attachment contents remain unverified. On 2026-09-20 (second pass) the Aside exec agent returned 402 again; the 산뼈찜 blog was read as public web text and S20–S24 were read with Aside REPL direct browser snapshots.",
+  "researchMethod": "Initial Aside research agent returned 402 Insufficient credits; public web search and original page reading used. Subsequently, Aside REPL direct browser snapshots rechecked S06, S09, S10, S13 and S17 on 2026-09-20; S17 attachment contents remain unverified. On 2026-09-20 (second pass) the Aside exec agent returned 402 again; the 산뼈찜 blog was read as public web text and S20–S24 were read with Aside REPL direct browser snapshots. On 2026-09-24 Aside CLI browser research compared seven public visitor accounts; differing side-dish/sauce/noodle observations are treated as examples, not confirmed store SOP.",
   "sources": [
     {
       "id": "S01",
@@ -157,9 +157,9 @@
       "title": "산뼈찜(평택 서정리) 방문 후기 · 진꼬 아카이브",
       "url": "https://blog.naver.com/yjh97423/224347712759",
       "region": "한국 · 개인 블로그",
-      "verified": "메뉴 구성(산뼈찜·화산뼈찜 소/중/대, 뼈곰탕, 뼈짬뽕, 우동사리, 계란볶음밥), 앞접시·밑반찬 셀프, 주문 후 기본 제공 뼈곰탕 국물, 셀프바 옆 소금·후추, 산뼈찜 전용 특제소스(화산뼈찜 미제공), 사리는 별도 제공, 영업 11:30~22:00·브레이크 14:00~16:00(주말 제외)·라스트오더 21:30, 매장 내 주차. 개인 방문 후기이며 매장 공식 매뉴얼·가격표가 아님.",
-      "checkedAt": "2026-09-20",
-      "verificationMethod": "공개 웹 원문(HTTP 본문) · Aside 에이전트는 402로 미실행"
+      "verified": "화산뼈찜 소·우동사리·계란볶음밥 주문, 앞접시·반찬 셀프, 우동사리 별도 제공, 국물 수령 사례를 확인. 국물이 모든 주문에 기본 제공된다는 말은 작성자의 추정이며 산뼈찜 특제소스는 전언. 식사 후 볶음밥 표현이 글 앞뒤에서 모호하다.",
+      "checkedAt": "2026-09-24",
+      "verificationMethod": "Aside CLI 브라우저 본문 재확인 · 방문 후기"
     },
     {
       "id": "S20",
@@ -205,6 +205,51 @@
       "verified": "비공개 사용자 답변 1건(2025-12-31): 설탕 넣은 찬물에 1시간 이상 담가 핏물 제거, 월계수잎·소주·통후추 넣은 끓는 물에 5분 초벌, 잡내·불순물 제거 목적. 검증되지 않은 가정 요리 답변이며 매장 기준 시간·방법은 사장님 레시피로 확정해야 함.",
       "checkedAt": "2026-09-20",
       "verificationMethod": "Aside REPL 직접 브라우저 snapshot · 비공식 참고"
+    },
+    {
+      "id": "S25",
+      "title": "산뼈찜 소·칼국수사리 방문 후기",
+      "url": "https://blog.naver.com/estj_engr/223532066464",
+      "region": "한국 · 개인 방문 후기",
+      "verified": "산뼈찜 소·칼국수사리·계란볶음밥 주문. 주문기기와 반찬 셀프, 식후 칼국수를 본품에 넣은 경험. 주방 조리법은 확인되지 않음.",
+      "checkedAt": "2026-09-24",
+      "verificationMethod": "Aside CLI 공개 웹 본문 확인"
+    },
+    {
+      "id": "S26",
+      "title": "기본 산뼈찜·소스 방문 후기",
+      "url": "https://blog.naver.com/yamyam1003/223679051530",
+      "region": "한국 · 개인 방문 후기",
+      "verified": "산뼈찜 중과 간장 겨자 소스, 고추 제외 요청, 칼국수사리·식후 볶음밥 사례. 현재 고정 구성은 확인되지 않음.",
+      "checkedAt": "2026-09-24",
+      "verificationMethod": "Aside CLI 공개 웹 본문 확인"
+    },
+    {
+      "id": "S27",
+      "title": "화산뼈찜·우동사리 방문 후기",
+      "url": "https://blog.naver.com/freefrog6350/223714528282",
+      "region": "한국 · 개인 방문 후기",
+      "verified": "화산뼈찜 소 맵기 선택·우동·떡튀김·주먹밥 주문. 우동이 본품과 함께 나옴. 콩나물국 품절로 고기 국물을 받은 사례.",
+      "checkedAt": "2026-09-24",
+      "verificationMethod": "Aside CLI 공개 웹 본문 확인"
+    },
+    {
+      "id": "S28",
+      "title": "뼈곰탕·뼈짬뽕 방문 후기",
+      "url": "https://blog.naver.com/soultree_i/224041252548",
+      "region": "한국 · 개인 방문 후기",
+      "verified": "뼈곰탕과 뼈짬뽕 실제 주문. 뼈짬뽕 면 대신 밥 선택 사례, 숙주·양배추와 뼈 관찰. 현재 고정 수량·추가금 미확인.",
+      "checkedAt": "2026-09-24",
+      "verificationMethod": "Aside CLI 공개 웹 본문 확인"
+    },
+    {
+      "id": "S29",
+      "title": "화산뼈찜·마요소스 방문 후기",
+      "url": "https://m.blog.naver.com/hana0603/223722331179",
+      "region": "한국 · 개인 방문 후기",
+      "verified": "불화산맛 화산뼈찜, 계란볶음밥, 콩나물국과 마요소스 수령 사례. 다른 후기의 특제소스와 동일한지 확인되지 않음.",
+      "checkedAt": "2026-09-24",
+      "verificationMethod": "Aside CLI 공개 웹 본문 확인"
     }
   ],
   "industries": [
@@ -311,7 +356,7 @@
     {
       "id": "bonejjim",
       "name": "뼈찜·감자탕 전문점",
-      "basis": "방문 후기(S19)와 공개 위생 자료를 참고한 편집 제안 · 매장 레시피·시간·온도 기준은 사장님 확정 필요",
+      "basis": "방문 후기 S19·S25~S29의 제공 사례 비교와 공개 위생 자료를 참고한 편집 제안. 매장 레시피·현재 메뉴·제공 방식은 책임자 검수 필요.",
       "tasks": [
         {
           "id": "staff-open",
@@ -449,7 +494,9 @@
           "requiredRole": "cook",
           "sourceIds": [
             "S19",
-            "S24"
+            "S24",
+            "S27",
+            "S29"
           ],
           "steps": [
             {
@@ -467,7 +514,7 @@
             {
               "id": "step-3",
               "title": "기본 제공 국물 준비",
-              "manual": "주문 직후 손님에게 나가는 뼈곰탕 국물을 보온통에 옮기고 매장 기준 온도로 유지해요. 국자·그릇을 배식대에 세팅해요.",
+              "manual": "오늘 주문에 제공할 식전 국물 종류와 품절 대체 기준을 담당자에게 확인해요. 여러 방문 후기에 뼈 국물·콩나물국·미제공 사례가 있어 모든 주문의 기본 제공으로 표시하지 않아요.",
               "tip": "보온통 바닥에 남은 어제 국물을 새 국물에 섞지 않아요."
             },
             {
@@ -486,25 +533,29 @@
           "zone": "prep",
           "requiredRole": "cook",
           "sourceIds": [
-            "S19"
+            "S19",
+            "S25",
+            "S26",
+            "S27",
+            "S29"
           ],
           "steps": [
             {
               "id": "step-1",
               "title": "뼈찜 양념장 소분",
-              "manual": "산뼈찜용·화산뼈찜(매운맛)용 양념장을 사이즈별 정량으로 소분하고 매운 단계 라벨을 붙여요.",
+              "manual": "산뼈찜과 화산뼈찜의 오늘 판매 옵션·매운 단계와 매장 승인 양념 준비 기준을 확인하고 용기별 이름을 표시해요. 배합·정량은 매장 레시피가 확정된 뒤 입력해요.",
               "tip": "비슷한 색의 양념장은 위치가 아니라 라벨로 구분해요."
             },
             {
               "id": "step-2",
               "title": "특제소스 준비",
-              "manual": "산뼈찜 주문에 나가는 특제소스를 소스통에 채우고 배식대에 둬요. 화산뼈찜에는 제공하지 않는 메뉴 규칙을 다시 확인해요.",
-              "tip": "손님이 화산뼈찜에도 소스를 요청할 수 있어요. 주문 시 안내 문구를 맞춰요."
+              "manual": "오늘 메뉴별 소스 제공 기준을 담당자에게 확인하고 종류별 준비분을 식별해요. 후기에는 산뼈찜 간장 겨자 소스와 화산뼈찜 마요소스 등 다른 사례가 있어 고정하지 않아요.",
+              "tip": "소스 종류와 제공 여부를 주문별로 확인해요. 화산뼈찜에 마요소스가 제공된 후기 사례도 있어요."
             },
             {
               "id": "step-3",
               "title": "사리·볶음밥 재료 확인",
-              "manual": "우동사리·라면사리 개수와 계란볶음밥용 밥·계란·김·참기름을 확인하고 부족하면 보충 요청을 남겨요.",
+              "manual": "오늘 판매하는 우동·칼국수사리와 계란볶음밥·식후 볶음밥을 구분해 준비분을 확인해요. 사리의 별도/함께 제공과 시점은 주문표 및 매장 기준을 확인해요.",
               "tip": "피크에 사리가 떨어지면 주문을 못 받아요. 준비 시간에 세는 것이 가장 쉬워요."
             },
             {
@@ -529,32 +580,37 @@
           "zone": "stove",
           "requiredRole": "cook",
           "sourceIds": [
-            "S19"
+            "S19",
+            "S25",
+            "S26",
+            "S27",
+            "S28",
+            "S29"
           ],
           "steps": [
             {
               "id": "step-1",
               "title": "주문표 읽기",
-              "manual": "메뉴(산뼈찜·화산뼈찜·뼈곰탕·뼈짬뽕), 사이즈(소·중·대), 사리 추가, 볶음밥, 매운맛 요청, 특제소스 여부를 주문표에서 한 줄로 확인해요.",
+              "manual": "주문번호·테이블과 메뉴(산뼈찜·화산뼈찜·뼈곰탕·뼈짬뽕), 수량·사이즈·맵기·면/밥 선택·사리·볶음밥 구분·제외 요청을 주문표에서 확인해요.",
               "tip": "사이즈와 인원수를 헷갈리지 않게 주문표의 표기 방식을 통일해요."
             },
             {
               "id": "step-2",
               "title": "뼈찜 조리",
-              "manual": "사이즈별 초벌 등뼈에 양념장과 감자·우거지 등을 넣고 매장 기준 시간·화력으로 조리해요. 완성 기준은 살이 젓가락으로 쉽게 떨어지는 정도예요.",
-              "tip": "화산뼈찜은 마늘향 매콤한 양념이 타기 쉬워요. 불을 줄이고 자주 확인해요."
+              "manual": "주문 메뉴와 사이즈·맵기·제외 요청을 준비분에 대조하고 매장 책임자가 승인한 조리 절차와 완료 기준을 확인해요. 후기만으로 시간·화력·원재료를 정하지 않아요.",
+              "tip": "조리 시간·화력·완료 판정은 매장 책임자가 승인한 매뉴얼에서 확인해요."
             },
             {
               "id": "step-3",
               "title": "완성 확인과 마무리",
-              "manual": "국물 농도·간을 확인하고 고명과 깃발을 올려요. 우동사리는 별도 그릇에 담아 함께 내고, 특제소스는 산뼈찜에만 붙여요.",
-              "tip": "사리를 냄비에 미리 넣으면 매운맛이 면에 몰려요. 별도 제공 규칙을 지켜요."
+              "manual": "본품과 주문표를 대조한 뒤 오늘 매장 기준에 맞는 동반 소스·국물·사리의 종류와 별도/함께 제공 방식을 확인해요. 후기에 서로 다른 제공 사례가 있어 한 방식으로 고정하지 않아요.",
+              "tip": "우동사리가 별도로 나온 후기와 본품에 함께 나온 후기가 있어요. 오늘 기준을 확인해요."
             },
             {
               "id": "step-4",
               "title": "볶음밥 타이밍 맞추기",
-              "manual": "계란볶음밥은 손님이 요청한 시점(식사 중·식후)을 홀에서 전달받아 조리해요. 남은 뼈찜 국물에 볶는지, 별도 조리인지 매장 규칙을 따라요.",
-              "tip": "식후 볶음밥을 너무 일찍 내면 식어요. 홀 콜을 기다려요."
+              "manual": "계란볶음밥 추가 주문과 식후 볶음밥 요청을 별개 항목으로 확인해요. 실제 상품 관계와 조리·제공 시점은 매장 기준을 따르고 주문 변경 시 홀과 다시 맞춰요.",
+              "tip": "식후 요청이 실제로 들어온 뒤 주문번호와 테이블을 대조해요."
             },
             {
               "id": "step-5",
@@ -572,25 +628,30 @@
           "zone": "pass",
           "requiredRole": "crew",
           "sourceIds": [
-            "S19"
+            "S19",
+            "S25",
+            "S26",
+            "S27",
+            "S28",
+            "S29"
           ],
           "steps": [
             {
               "id": "step-1",
               "title": "자리 안내와 주문 받기",
-              "manual": "인원수를 확인해 자리를 안내하고 메뉴·사이즈·매운맛·사리·볶음밥을 순서대로 여쭤요. 특제소스는 산뼈찜에만 제공된다고 미리 안내해요.",
-              "tip": "소·중·대 인분 기준을 한 문장으로 설명할 수 있게 연습해요."
+              "manual": "주문에서 메뉴·사이즈·맵기·사리·면/밥 선택·볶음밥·제외 요청을 확인해요. 소스와 식전 국물 제공은 오늘 매장 기준을 확인해 안내해요.",
+              "tip": "방문 후기에서 확인된 옵션만 오늘 판매 메뉴라고 단정하지 않아요."
             },
             {
               "id": "step-2",
               "title": "기본 국물과 셀프바 안내",
-              "manual": "주문 직후 뼈곰탕 국물을 인원수대로 내고, 앞접시·반찬은 셀프바에서 가져오도록 안내해요. 소금·후추 위치도 알려요.",
-              "tip": "국물은 뜨거워요. 어린이 동반 테이블은 손잡이 방향을 안쪽으로 둬요."
+              "manual": "오늘 매장 기준에 따라 식전 국물 제공 여부와 셀프바 이용 방법을 안내해요. 국물 종류·품절 대체·미제공 사례가 방문 후기에 달라 임의로 기본 제공이라고 말하지 않아요.",
+              "tip": "국물 품절 시 승인된 대체 제공품과 안내 문구를 확인해요."
             },
             {
               "id": "step-3",
               "title": "뼈찜 세팅",
-              "manual": "냄비를 받침 위에 놓고 집게·가위·앞접시·뼈 버리는 통을 확인해요. 사리와 소스가 주문과 맞는지 다시 봐요.",
+              "manual": "뜨거운 본품과 주문표의 사리·소스·추가품을 대조해요. 사리의 제공 시점과 별도/함께 여부는 매장 기준과 주문 요청을 확인해요.",
               "tip": "냄비를 내려놓기 전에 테이블 위 물컵을 먼저 치워요."
             },
             {
