@@ -141,6 +141,7 @@ void main() {
         Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
       );
       expect(find.textContaining('공개 미리보기 · 샘플 데이터'), findsOneWidget);
+      await tester.ensureVisible(find.text('재고와 발주'));
       await tester.tap(find.text('재고와 발주'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('부족한 재료 담기'));
@@ -281,6 +282,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull, reason: '$width / $emoji');
       }
+      await tester.ensureVisible(find.text('재고와 발주'));
       await tester.tap(find.text('재고와 발주'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('부족한 재료 담기'));
@@ -313,10 +315,7 @@ void main() {
       Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
     );
     await tester.tap(
-      find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.text('할 일'),
-      ),
+      find.descendant(of: find.byType(NavigationBar), matching: find.text('✅')),
     );
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('재고 수량 확인하기'));

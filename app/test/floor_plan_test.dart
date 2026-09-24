@@ -19,10 +19,7 @@ Future<void> openMap(WidgetTester tester, OperationsController ops) async {
     Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
   );
   await tester.tap(
-    find.descendant(
-      of: find.byType(NavigationBar),
-      matching: find.text('매장 지도'),
-    ),
+    find.descendant(of: find.byType(NavigationBar), matching: find.text('🗺️')),
   );
   await tester.pumpAndSettle();
 }
