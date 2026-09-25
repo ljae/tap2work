@@ -201,26 +201,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               ],
             ),
           if (folder != null) const SizedBox(height: 8),
-          Text(
+          PageHeading(
+            level,
             title,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -.8,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
             task != null
                 ? '${task['slot']} · ${role(task)} · ${place(task)}'
                 : folder != null
                 ? 'Tap을 열어, 해야 할 작은 행동을 확인하세요.'
                 : '오늘의 업무를 한눈에. 카드를 끌어 순서와 상태를 바꾸세요.',
-            style: const TextStyle(
-              color: AppColors.muted,
-              fontSize: 13,
-              height: 1.6,
-            ),
           ),
           if (task != null &&
               (task['customer_memo'] ?? '').toString().isNotEmpty)

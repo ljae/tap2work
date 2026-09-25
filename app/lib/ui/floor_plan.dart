@@ -81,16 +81,11 @@ class _FloorPlanViewState extends State<FloorPlanView> {
           ],
         ),
         const SizedBox(height: 14),
-        Wrap(
-          spacing: 6,
-          children: [
-            for (final name in ['전체 배치', ...availableRoutes.map((r) => r.key)])
-              ChoiceChip(
-                label: Text(name),
-                selected: route == name,
-                onSelected: (_) => setState(() => route = name),
-              ),
-          ],
+        AppChoiceGroup<String>(
+          values: ['전체 배치', ...availableRoutes.map((r) => r.key)],
+          selected: route,
+          labelOf: (name) => name,
+          onSelected: (name) => setState(() => route = name),
         ),
         const SizedBox(height: 12),
         _MapCanvas(
@@ -1157,9 +1152,9 @@ class _ItemDialogState extends State<_ItemDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              DropdownButtonFormField<String>(
-                initialValue: kind,
-                decoration: const InputDecoration(labelText: '종류'),
+              AppPicker<String>(
+                label: '종류',
+                value: kind,
                 items: _kinds.entries
                     .map(
                       (e) =>
@@ -1168,9 +1163,9 @@ class _ItemDialogState extends State<_ItemDialog> {
                     .toList(),
                 onChanged: (v) => setState(() => kind = v!),
               ),
-              DropdownButtonFormField<String>(
-                initialValue: shape,
-                decoration: const InputDecoration(labelText: '격자 도형'),
+              AppPicker<String>(
+                label: '격자 도형',
+                value: shape,
                 items: const [
                   DropdownMenuItem(value: 'rect', child: Text('직사각형')),
                   DropdownMenuItem(value: 'l', child: Text('L자')),
@@ -1179,9 +1174,9 @@ class _ItemDialogState extends State<_ItemDialog> {
                 onChanged: (v) => setState(() => shape = v!),
               ),
               if (shape != 'rect') ...[
-                DropdownButtonFormField<int>(
-                  initialValue: rotation,
-                  decoration: const InputDecoration(labelText: '회전'),
+                AppPicker<int>(
+                  label: '회전',
+                  value: rotation,
                   items: const [
                     DropdownMenuItem(value: 0, child: Text('0°')),
                     DropdownMenuItem(value: 90, child: Text('90°')),

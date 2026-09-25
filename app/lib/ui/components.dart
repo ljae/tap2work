@@ -351,14 +351,14 @@ class PageHeading extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Eyebrow(kicker),
+        Eyebrow(kicker.toUpperCase()),
         const SizedBox(height: 9),
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 30,
+          style: TextStyle(
+            fontSize: MediaQuery.sizeOf(context).width < 600 ? 26 : 30,
             height: 1.3,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             letterSpacing: -1.1,
             color: AppColors.ink,
           ),
@@ -367,13 +367,114 @@ class PageHeading extends StatelessWidget {
         Text(
           subtitle,
           style: const TextStyle(
-            fontSize: 15,
+            fontSize: 14,
             height: 1.6,
             color: AppColors.muted,
           ),
         ),
       ],
     ),
+  );
+}
+
+class SectionHeading extends StatelessWidget {
+  const SectionHeading(this.title, this.subtitle, {super.key});
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -.5,
+            color: AppColors.ink,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          subtitle,
+          style: const TextStyle(
+            fontSize: 13,
+            height: 1.55,
+            color: AppColors.muted,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class AppPicker<T> extends StatelessWidget {
+  const AppPicker({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+  final String label;
+  final T? value;
+  final List<DropdownMenuItem<T>> items;
+  final ValueChanged<T?> onChanged;
+
+  @override
+  Widget build(BuildContext context) => DropdownButtonFormField<T>(
+    key: ValueKey(value),
+    initialValue: value,
+    isExpanded: true,
+    decoration: InputDecoration(labelText: label),
+    borderRadius: BorderRadius.circular(12),
+    dropdownColor: AppColors.white,
+    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.green),
+    items: items,
+    onChanged: onChanged,
+  );
+}
+
+class AppChoiceGroup<T> extends StatelessWidget {
+  const AppChoiceGroup({
+    super.key,
+    required this.values,
+    required this.selected,
+    required this.labelOf,
+    required this.onSelected,
+  });
+  final List<T> values;
+  final T selected;
+  final String Function(T) labelOf;
+  final ValueChanged<T> onSelected;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final columns = (box.maxWidth / 108).floor().clamp(1, values.length);
+      final width = (box.maxWidth - (columns - 1) * 8) / columns;
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final value in values)
+            SizedBox(
+              width: width,
+              child: ChoiceChip(
+                label: SizedBox(
+                  width: double.infinity,
+                  child: Text(labelOf(value), textAlign: TextAlign.center),
+                ),
+                selected: selected == value,
+                onSelected: (_) => onSelected(value),
+              ),
+            ),
+        ],
+      );
+    },
   );
 }
 

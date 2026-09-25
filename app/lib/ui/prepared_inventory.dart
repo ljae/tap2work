@@ -70,9 +70,9 @@ class PreparedInventory extends StatelessWidget {
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(labelText: title),
                     ),
-                  DropdownButtonFormField<String>(
-                    initialValue: folder,
-                    decoration: const InputDecoration(labelText: '준비 BIG TAP'),
+                  AppPicker<String>(
+                    label: '준비 BIG TAP',
+                    value: folder,
                     items: [
                       for (final f in ops.rows('checklistFolders'))
                         DropdownMenuItem(
@@ -82,9 +82,9 @@ class PreparedInventory extends StatelessWidget {
                     ],
                     onChanged: (v) => set(() => folder = v!),
                   ),
-                  DropdownButtonFormField<String>(
-                    initialValue: zone,
-                    decoration: const InputDecoration(labelText: '준비 장소'),
+                  AppPicker<String>(
+                    label: '준비 장소',
+                    value: zone,
                     items: [
                       for (final z in ops.rows('zones'))
                         DropdownMenuItem(

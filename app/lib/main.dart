@@ -132,6 +132,7 @@ class Tap2workApp extends StatelessWidget {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.white,
+        constraints: const BoxConstraints(minHeight: 48),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
@@ -151,16 +152,25 @@ class Tap2workApp extends StatelessWidget {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.white,
-        selectedColor: AppColors.peach,
+        selectedColor: AppColors.green,
         side: const BorderSide(color: AppColors.line),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         labelStyle: const TextStyle(
           fontSize: 13,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w700,
           color: AppColors.ink,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        secondaryLabelStyle: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: AppColors.white,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         showCheckmark: false,
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.paper,

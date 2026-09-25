@@ -206,13 +206,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         padding: const EdgeInsets.fromLTRB(20, 22, 20, 36),
                         child: Center(
                           child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: tab == 0 || tab == 1
-                                  ? 1240
-                                  : tab == 3
-                                  ? 1000
-                                  : 680,
-                            ),
+                            constraints: const BoxConstraints(maxWidth: 1240),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [

@@ -69,9 +69,9 @@ class _TeamScreenState extends State<TeamScreen> {
                       decoration: const InputDecoration(labelText: '별칭(이름)'),
                     ),
                   if (!widget.payOnly)
-                    DropdownButtonFormField<String>(
-                      initialValue: rank,
-                      decoration: const InputDecoration(labelText: '직급'),
+                    AppPicker<String>(
+                      label: '직급',
+                      value: rank,
                       items: _ranks.entries
                           .map(
                             (e) => DropdownMenuItem(
@@ -83,9 +83,9 @@ class _TeamScreenState extends State<TeamScreen> {
                       onChanged: (v) => update(() => rank = v!),
                     ),
                   if (!widget.payOnly)
-                    DropdownButtonFormField<String>(
-                      initialValue: employment,
-                      decoration: const InputDecoration(labelText: '고용형태'),
+                    AppPicker<String>(
+                      label: '고용형태',
+                      value: employment,
                       items: ['정규직', '시간알바', '정규알바']
                           .map(
                             (v) => DropdownMenuItem(value: v, child: Text(v)),
@@ -119,9 +119,9 @@ class _TeamScreenState extends State<TeamScreen> {
                       decoration: const InputDecoration(labelText: '시급 · 원'),
                     ),
                   if (widget.payOnly)
-                    DropdownButtonFormField<String>(
-                      initialValue: period,
-                      decoration: const InputDecoration(labelText: '급여방식'),
+                    AppPicker<String>(
+                      label: '급여방식',
+                      value: period,
                       items: _periods.entries
                           .map(
                             (e) => DropdownMenuItem(
@@ -198,7 +198,7 @@ class _TeamScreenState extends State<TeamScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextButton(
+              OutlinedButton(
                 onPressed: () async {
                   final next = await showDatePicker(
                     context: context,
@@ -212,7 +212,8 @@ class _TeamScreenState extends State<TeamScreen> {
                   '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
                 ),
               ),
-              DropdownButton<String>(
+              AppPicker<String>(
+                label: '담당',
                 value: duty,
                 items: (tapper['duties'] as List)
                     .map(
@@ -222,7 +223,7 @@ class _TeamScreenState extends State<TeamScreen> {
                     .toList(),
                 onChanged: (v) => update(() => duty = v!),
               ),
-              TextButton(
+              OutlinedButton(
                 onPressed: () async {
                   final next = await showTimePicker(
                     context: context,
@@ -232,7 +233,7 @@ class _TeamScreenState extends State<TeamScreen> {
                 },
                 child: Text('시작 ${start.format(context)}'),
               ),
-              TextButton(
+              OutlinedButton(
                 onPressed: () async {
                   final next = await showTimePicker(
                     context: context,

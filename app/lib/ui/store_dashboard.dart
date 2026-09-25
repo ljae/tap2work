@@ -39,44 +39,16 @@ class _StoreDashboardState extends State<StoreDashboard> {
     text,
     style: const TextStyle(fontSize: 13, height: 1.55, color: AppColors.muted),
   );
-  Widget heading(String text, String detail) => Padding(
-    padding: const EdgeInsets.only(bottom: 16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -.5,
-          ),
-        ),
-        const SizedBox(height: 5),
-        note(detail),
-      ],
-    ),
-  );
+  Widget heading(String text, String detail) => SectionHeading(text, detail);
   Widget chips(
     List<String> values,
     String selected,
     ValueChanged<String> select,
-  ) => Wrap(
-    spacing: 6,
-    runSpacing: 4,
-    children: values
-        .map(
-          (value) => ChoiceChip(
-            label: Text(value),
-            selected: value == selected,
-            onSelected: (_) => setState(() => select(value)),
-            selectedColor: AppColors.lime,
-            labelStyle: const TextStyle(fontSize: 13),
-            showCheckmark: false,
-            materialTapTargetSize: MaterialTapTargetSize.padded,
-          ),
-        )
-        .toList(),
+  ) => AppChoiceGroup<String>(
+    values: values,
+    selected: selected,
+    labelOf: (value) => value,
+    onSelected: (value) => setState(() => select(value)),
   );
   Widget adaptive(List<Widget> children, {double minWidth = 240}) =>
       LayoutBuilder(
@@ -135,19 +107,28 @@ class _StoreDashboardState extends State<StoreDashboard> {
     final money = dashboard['showMoney'] == true;
     final allQueue = (dashboard['queue'] as List).cast<Json>();
     return [
-      Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 16,
-        runSpacing: 8,
-        children: [
-          chips(
+      LayoutBuilder(
+        builder: (context, box) {
+          final period = chips(
             ['오늘', '최근 7일'],
             days == 1 ? '오늘' : '최근 7일',
             (value) => days = value == '오늘' ? 1 : 7,
-          ),
-          chips(['전체', '매장', '포장', '배달'], channel, (value) => channel = value),
-        ],
+          );
+          final channels = chips(
+            ['전체', '매장', '포장', '배달'],
+            channel,
+            (value) => channel = value,
+          );
+          return box.maxWidth < 720
+              ? Column(children: [period, const SizedBox(height: 8), channels])
+              : Row(
+                  children: [
+                    SizedBox(width: 280, child: period),
+                    const SizedBox(width: 12),
+                    Expanded(child: channels),
+                  ],
+                );
+        },
       ),
       space(8),
       Wrap(
@@ -314,18 +295,21 @@ class _StoreDashboardState extends State<StoreDashboard> {
           if (money)
             Align(
               alignment: Alignment.centerRight,
-              child: DropdownButton<String>(
-                value: sort,
-                underline: const SizedBox(),
-                items: ['매출순', '주문수량순']
-                    .map(
-                      (s) => DropdownMenuItem(
-                        value: s,
-                        child: Text(s, style: const TextStyle(fontSize: 12)),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) => setState(() => sort = value!),
+              child: SizedBox(
+                width: 160,
+                child: AppPicker<String>(
+                  label: '정렬',
+                  value: sort,
+                  items: ['매출순', '주문수량순']
+                      .map(
+                        (s) => DropdownMenuItem(
+                          value: s,
+                          child: Text(s, style: const TextStyle(fontSize: 12)),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) => setState(() => sort = value!),
+                ),
               ),
             ),
           if (menus.isEmpty)

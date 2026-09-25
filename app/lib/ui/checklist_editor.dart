@@ -776,39 +776,27 @@ class _GroupSheetState extends State<_GroupSheet> {
           const SizedBox(height: 8),
           const Text('시간대', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
-          Wrap(
-            spacing: 6,
-            children: [
-              for (final s in checklistSlots)
-                ChoiceChip(
-                  label: Text(s),
-                  selected: task['slot'] == s,
-                  onSelected: (_) => setState(() => task['slot'] = s),
-                ),
-            ],
+          AppChoiceGroup<String>(
+            values: checklistSlots,
+            selected: task['slot'] as String,
+            labelOf: (slot) => slot,
+            onSelected: (slot) => setState(() => task['slot'] = slot),
           ),
           const SizedBox(height: 14),
           const Text('담당 직급', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
-          Wrap(
-            spacing: 6,
-            children: [
-              for (final r in checklistRoles.entries)
-                ChoiceChip(
-                  label: Text(r.value),
-                  selected: task['requiredRole'] == r.key,
-                  onSelected: (_) =>
-                      setState(() => task['requiredRole'] = r.key),
-                ),
-            ],
+          AppChoiceGroup<String>(
+            values: checklistRoles.keys.toList(),
+            selected: task['requiredRole'] as String,
+            labelOf: (role) => checklistRoles[role]!,
+            onSelected: (role) => setState(() => task['requiredRole'] = role),
           ),
           const SizedBox(height: 14),
-          DropdownButtonFormField<String>(
-            initialValue: widget.zones.any((z) => z['id'] == task['zone'])
+          AppPicker<String>(
+            label: '장소',
+            value: widget.zones.any((z) => z['id'] == task['zone'])
                 ? task['zone']
                 : widget.zones.firstOrNull?['id'],
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: '장소'),
             items: [
               for (final z in widget.zones)
                 DropdownMenuItem<String>(

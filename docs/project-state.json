@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 53,
+  "revision": 56,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -354,10 +354,10 @@
       "category": "Product experience",
       "title": "Menu order groups, lightweight manuals and crew slot calendar",
       "status": "confirmed",
-      "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. 주간 Calendar는 06:00부터 30분 고정 왼쪽 축과 가로 스크롤되는 조리/서빙/Cashier 역할 열을 사용한다. 새벽·야간 및 자정 넘김 근무는 날짜별 요약에서 접근할 수 있다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 드롭 위치는 06:00 기준 30분 단위로 맞춘다. 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 월간 개요와 외부 매뉴얼 링크는 유지한다.",
-      "reason": "2026-09-24 사용자 후속 요청: 3열 주문/준비 구분, 카드 진행 채움과 옅은 완료, 06:00 폰 캘린더, 플랫폼 배지 및 제공 워드마크.",
-      "source": "사용자 후속 요청 · 2026-09-24",
-      "updatedAt": "2026-09-24T14:53:54Z"
+      "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. Calendar는 주간 날짜 선택 줄과 월간 개요를 유지하고, 선택 날짜의 배정 현황 안에 06:00–24:00 30분 고정 왼쪽 축과 가로 스크롤되는 R&R 역할 열을 둔다. 이는 표시 범위이며 실제 영업시간 설정은 아니다. 필수 빈 슬롯·배정 근무·추가 근무를 같은 시간축에 표시하고 별도 주간 시간표 영역은 제거한다. 새벽·야간 및 자정 넘김 근무는 날짜별 요약에서 접근할 수 있다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 드롭 위치는 06:00 기준 30분 단위로 맞춘다. 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 외부 매뉴얼 링크를 유지한다.",
+      "reason": "사용자가 별도 주간 시간표를 삭제하고 영업시간별 R&R 및 왼쪽 근무 시간축을 상단 배정 현황에서 보도록 명시했다. 선택 날짜에 같은 정보를 통합해 중복 스크롤을 줄인다.",
+      "source": "사용자 요청 · 2026-09-25 · Aside CLI 공개 근무표 UI 참고",
+      "updatedAt": "2026-09-25T12:10:03Z"
     },
     {
       "id": "D-036",
@@ -2633,7 +2633,66 @@
         "https://github.com/ljae/tap2work/commit/ceb5f1b6c4656ea8bdc72691277708880a23af9d",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-unified-operations-controls-2026-09-25",
+      "at": "2026-09-25T11:49:52Z",
+      "type": "implementation",
+      "title": "Unified operations content width, headings, choices and pickers",
+      "detail": "The four operations tabs now use 1240 px maximum content width and 20 px gutters. Shared page and section headings, deep-green selected choices with equal-width wrapping groups, labeled bordered pickers and rounded menus align the dashboard, Todo, calendar, team and map controls. Weekly/monthly remains exclusive while timetable and personal-assignment filters remain independent. No operations data model or save behavior changed.",
+      "files": [
+        "app/lib/main.dart",
+        "app/lib/ui/components.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/lib/ui/store_dashboard.dart",
+        "app/lib/ui/tap_workspace.dart",
+        "app/lib/ui/calendar_screen.dart",
+        "app/lib/ui/team_screen.dart",
+        "app/lib/ui/floor_plan.dart",
+        "PRODUCT.md",
+        "docs/project-state.json"
+      ],
+      "verification": "Flutter analyze passed. 46 focused Flutter widget tests passed across header, calendar, dashboard, Todo, floor plan and operations, including 320 px phone cases. No native build, physical-device visual review or public deployment was performed."
+    },
+    {
+      "id": "H-unified-picker-editors-2026-09-25",
+      "at": "2026-09-25T11:52:00Z",
+      "type": "implementation",
+      "title": "Applied shared picker and equal-width choices throughout editors",
+      "detail": "Completed the visual pass across staff, prepared inventory, layout and checklist editors by replacing remaining form dropdowns with the shared labeled picker. Picker fields receive a value key so parent-controlled changes in StatefulBuilder are reflected. Checklist time and role alternatives use equal-width wrapping choices. Independent duty filters and draggable folder chips retain their distinct interaction semantics; no data model or save behavior changed.",
+      "files": [
+        "app/lib/ui/components.dart",
+        "app/lib/ui/team_screen.dart",
+        "app/lib/ui/prepared_inventory.dart",
+        "app/lib/ui/floor_plan.dart",
+        "app/lib/ui/checklist_editor.dart",
+        "docs/project-state.json"
+      ],
+      "verification": "Flutter analyze passed. 53 focused Flutter widget tests passed across checklist, calendar, dashboard, Todo, floor plan and operations, including 320 px phone cases. git diff --check passed. Native build, physical-device visual review and public deployment were not performed."
+    },
+    {
+      "id": "H-selected-day-staffing-timeline-2026-09-25",
+      "at": "2026-09-25T12:10:03Z",
+      "type": "implementation",
+      "title": "Selected-day staffing timeline replaces separate week timetable",
+      "detail": "Removed the separate weekly timetable and phone timetable toggle. The selected-day assignment area now combines a fixed 06:00–24:00 half-hour axis with horizontally scrollable R&R columns, required empty slots, assigned crew and extra shifts. Overlapping same-duty blocks receive deterministic side-by-side subcolumns; prior-day overnight shifts are clipped into the current morning and retain their original date when edited. Weekly date navigation and monthly overview remain. Empty slot selection forwards its exact times; blank role/time cells and drag drops prefill role and start. Leave does not fill a slot; early and overnight access remains. 06:00–24:00 is a display range, not configured store business hours.",
+      "decisionChanges": [
+        {
+          "id": "D-035",
+          "previous": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. 주간 Calendar는 06:00부터 30분 고정 왼쪽 축과 가로 스크롤되는 조리/서빙/Cashier 역할 열을 사용한다. 새벽·야간 및 자정 넘김 근무는 날짜별 요약에서 접근할 수 있다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 드롭 위치는 06:00 기준 30분 단위로 맞춘다. 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 월간 개요와 외부 매뉴얼 링크는 유지한다.",
+          "next": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. Calendar는 주간 날짜 선택 줄과 월간 개요를 유지하고, 선택 날짜의 배정 현황 안에 06:00–24:00 30분 고정 왼쪽 축과 가로 스크롤되는 R&R 역할 열을 둔다. 이는 표시 범위이며 실제 영업시간 설정은 아니다. 필수 빈 슬롯·배정 근무·추가 근무를 같은 시간축에 표시하고 별도 주간 시간표 영역은 제거한다. 새벽·야간 및 자정 넘김 근무는 날짜별 요약에서 접근할 수 있다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 드롭 위치는 06:00 기준 30분 단위로 맞춘다. 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 외부 매뉴얼 링크를 유지한다.",
+          "reason": "사용자가 별도 주간 시간표를 삭제하고 영업시간별 R&R 및 왼쪽 근무 시간축을 상단 배정 현황에서 보도록 명시했다. 선택 날짜에 같은 정보를 통합해 중복 스크롤을 줄인다."
+        }
+      ],
+      "files": [
+        "app/lib/ui/calendar_screen.dart",
+        "app/test/calendar_test.dart",
+        "PRODUCT.md",
+        "docs/CALENDAR_DESIGN_REFERENCES_2026-09-25.md",
+        "docs/project-state.json"
+      ],
+      "verification": "Aside CLI reviewed official 7shifts and Deputy schedule documentation. Flutter analysis clean; selected calendar widget tests 9/9 and full Flutter tests 84/84 passed, including 320px, same-duty overlap placement, prior-day overnight clipping and edit date, filled/leave/extra shifts, assignment tap, drag time prefill and read-only preview. npm run check, npm run build:site and git diff --check passed. Native builds, physical-device interaction and deployment not yet performed at this revision."
     }
   ],
-  "updatedAt": "2026-09-24T22:45:05Z"
+  "updatedAt": "2026-09-25T12:10:03Z"
 }
