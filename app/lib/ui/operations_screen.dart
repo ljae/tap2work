@@ -159,21 +159,40 @@ class _OperationsScreenState extends State<OperationsScreen> {
           children: [
             Container(
               width: double.infinity,
-              color: AppColors.paper,
+              color: AppColors.lime,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Text(
-                ops.cloud
-                    ? '내 매장 · 클라우드 저장 · 가상 주문'
-                    : ops.readOnly
-                    ? '공개 미리보기 · 샘플 데이터 · 저장·실제 발주 없음'
-                    : ops.sharedApi != null
-                    ? '공유 데모 서버 연결 · ${ops.sharedApiHost} · 확인이 팀원과 함께 보여요 · 역할 전환은 로그인 아님 · 실제 발주 없음'
-                    : '체험 매장 · 역할 전환은 로그인 아님 · 실제 발주 없음',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  height: 1.4,
-                  color: AppColors.muted,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1240),
+                  child: Row(
+                    children: [
+                      const ExcludeSemantics(
+                        child: Icon(
+                          CupertinoIcons.info_circle,
+                          size: 17,
+                          color: AppColors.green,
+                        ),
+                      ),
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: Text(
+                          ops.cloud
+                              ? '내 매장 · 클라우드 저장 · 가상 주문'
+                              : ops.readOnly
+                              ? '공개 미리보기 · 샘플 데이터 · 저장·실제 발주 없음'
+                              : ops.sharedApi != null
+                              ? '공유 데모 연결 · ${ops.sharedApiHost} · 실제 발주 없음'
+                              : '체험 매장 · 역할 전환은 로그인 아님 · 실제 발주 없음',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            height: 1.4,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.green,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -263,13 +282,16 @@ class _OperationsScreenState extends State<OperationsScreen> {
 
   Widget gap([double height = 14]) => SizedBox(height: height);
   Widget title(String text) => Padding(
-    padding: const EdgeInsets.only(top: 12, bottom: 12),
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        color: AppColors.ink,
+    padding: const EdgeInsets.only(top: 16, bottom: 12),
+    child: Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 19,
+          fontWeight: FontWeight.w800,
+          color: AppColors.ink,
+        ),
       ),
     ),
   );
@@ -450,11 +472,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   ];
 
   List<Widget> inventory() => [
-    const PageHeading(
-      'PANTRY & ORDERS',
-      '채워 두면, 든든해요 🥕',
-      '수량을 확인하고 필요한 재료를 한 번에 모아요.',
-    ),
+    const PageHeading('재료 관리', '재고와 발주', '수량을 확인하고 필요한 재료를 한 번에 모아요.'),
     if (ops.isLeader) ...[
       Surface(
         color: AppColors.lime.withValues(alpha: .5),

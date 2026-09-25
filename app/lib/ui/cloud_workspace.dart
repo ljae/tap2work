@@ -112,7 +112,7 @@ class _SignInDialogState extends State<_SignInDialog> {
   final email = TextEditingController(),
       password = TextEditingController(),
       name = TextEditingController();
-  bool signup = false, busy = false;
+  bool signup = false, busy = false, hidePassword = true;
   String? message;
   @override
   void dispose() {
@@ -195,6 +195,8 @@ class _SignInDialogState extends State<_SignInDialog> {
               controller: email,
               enabled: !busy,
               keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              autocorrect: false,
               autofillHints: const [AutofillHints.email],
               decoration: const InputDecoration(labelText: '이메일'),
             ),
@@ -202,17 +204,30 @@ class _SignInDialogState extends State<_SignInDialog> {
             TextField(
               controller: password,
               enabled: !busy,
-              obscureText: true,
+              obscureText: hidePassword,
               autofillHints: const [AutofillHints.password],
-              decoration: const InputDecoration(labelText: '비밀번호'),
+              decoration: InputDecoration(
+                labelText: '비밀번호',
+                suffixIcon: IconButton(
+                  tooltip: hidePassword ? '비밀번호 보기' : '비밀번호 숨기기',
+                  onPressed: busy
+                      ? null
+                      : () => setState(() => hidePassword = !hidePassword),
+                  icon: Icon(
+                    hidePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                  ),
+                ),
+              ),
               onSubmitted: (_) => submit(),
             ),
             if (message != null)
               Padding(
                 padding: const EdgeInsets.only(top: 12),
-                child: Text(
-                  message!,
-                  style: const TextStyle(fontSize: 12, height: 1.6),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Information(message!),
                 ),
               ),
             const SizedBox(height: 20),
@@ -220,12 +235,29 @@ class _SignInDialogState extends State<_SignInDialog> {
               width: double.infinity,
               child: FilledButton(
                 onPressed: busy ? null : submit,
-                child: Text(
-                  busy
-                      ? '연결 중…'
-                      : signup
-                      ? '계정 만들기'
-                      : '로그인',
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (busy) ...[
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      busy
+                          ? '연결 중…'
+                          : signup
+                          ? '계정 만들기'
+                          : '로그인',
+                    ),
+                  ],
                 ),
               ),
             ),

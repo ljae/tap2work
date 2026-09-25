@@ -34,7 +34,7 @@ class TapCard extends StatelessWidget {
     return Material(
       color: complete ? const Color(0xFFF0F2F4) : Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(18),
         side: const BorderSide(color: AppColors.line),
       ),
       clipBehavior: Clip.antiAlias,
@@ -61,7 +61,7 @@ class TapCard extends StatelessWidget {
                         Text(
                           '$done/$total',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: complete
                                 ? AppColors.muted
@@ -75,6 +75,7 @@ class TapCard extends StatelessWidget {
                           child: LinearProgressIndicator(
                             value: done / total,
                             minHeight: 5,
+                            semanticsLabel: '$done/$total 활동 완료',
                             color: complete
                                 ? AppColors.muted
                                 : AppColors.accent,
@@ -95,7 +96,7 @@ class TapCard extends StatelessWidget {
                             : level.toLowerCase().contains('tap')
                             ? CupertinoIcons.list_bullet
                             : CupertinoIcons.folder,
-                        size: 18,
+                        size: 20,
                         color: secondary,
                       ),
                       const SizedBox(width: 8),
@@ -103,8 +104,8 @@ class TapCard extends StatelessWidget {
                         child: Text(
                           level,
                           style: TextStyle(
-                            fontSize: 10,
-                            letterSpacing: 1.1,
+                            fontSize: 12,
+                            letterSpacing: .4,
                             fontWeight: FontWeight.w700,
                             color: secondary,
                           ),
@@ -112,7 +113,7 @@ class TapCard extends StatelessWidget {
                       ),
                       Icon(
                         CupertinoIcons.chevron_right,
-                        size: 14,
+                        size: 17,
                         color: secondary,
                       ),
                     ],
@@ -131,8 +132,8 @@ class TapCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12,
-                      height: 1.6,
+                      fontSize: 13,
+                      height: 1.55,
                       color: secondary,
                     ),
                   ),
@@ -163,7 +164,7 @@ class TapCard extends StatelessWidget {
                                 : locked
                                 ? '담당자 확인'
                                 : '마쳤으면 탭',
-                            style: TextStyle(fontSize: 12, color: secondary),
+                            style: TextStyle(fontSize: 13, color: secondary),
                           ),
                         ),
                         Icon(
@@ -176,7 +177,7 @@ class TapCard extends StatelessWidget {
                   else ...[
                     Text(
                       footer,
-                      style: TextStyle(fontSize: 11, color: secondary),
+                      style: TextStyle(fontSize: 12, color: secondary),
                     ),
                   ],
                 ],

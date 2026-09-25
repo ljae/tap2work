@@ -37,9 +37,11 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('매장 한눈에'), findsOneWidget);
         expect(find.text('메뉴별 매출 · 주문'), findsOneWidget);
+        await tester.ensureVisible(find.widgetWithText(ChoiceChip, '최근 7일'));
         await tester.tap(find.widgetWithText(ChoiceChip, '최근 7일'));
         await tester.pumpAndSettle();
         expect(find.textContaining('2026-09-13 ~ 2026-09-19'), findsOneWidget);
+        await tester.ensureVisible(find.widgetWithText(ChoiceChip, '배달'));
         await tester.tap(find.widgetWithText(ChoiceChip, '배달'));
         await tester.pumpAndSettle();
         // The independent live queue retains all channels.

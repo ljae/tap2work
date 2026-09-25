@@ -256,7 +256,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               controller: search,
               onChanged: (v) => setState(() => query = v.trim().toLowerCase()),
               decoration: InputDecoration(
-                hintText: 'Tap 검색',
+                labelText: 'Tap 검색',
+                hintText: '업무명 또는 주문번호',
                 prefixIcon: const Icon(CupertinoIcons.search, size: 20),
                 filled: true,
                 fillColor: Colors.white,
@@ -281,8 +282,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                         ? '하나의 업무'
                         : '전체 업무'}',
                     style: const TextStyle(
-                      fontSize: 11,
-                      letterSpacing: .7,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.muted,
                     ),
                   ),

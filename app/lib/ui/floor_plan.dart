@@ -51,7 +51,7 @@ class _FloorPlanViewState extends State<FloorPlanView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const PageHeading(
-          'OUR RESTAURANT',
+          '매장 공간',
           '우리 매장의 전체 배치',
           '홀 테이블부터 주방 기기까지, 어디에 무엇이 있는지 한눈에.',
         ),
@@ -136,20 +136,28 @@ class _FloorPlanViewState extends State<FloorPlanView> {
             ),
           ),
         const SizedBox(height: 20),
-        const Text(
-          '재료 현황',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 8),
-        for (final item in ops.rows('items'))
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.inventory_2_outlined),
-            title: Text('${item['name']} · ${item['quantity']}${item['unit']}'),
-            subtitle: Text(
-              '마지막 실사 ${_stamp(item['lastCheckedAt'])} · 마지막 발주 ${_stamp(item['lastOrderedAt'])}',
-            ),
+        const SectionHeading('재료 위치와 수량', '배치와 연결된 재료의 최근 기록이에요.'),
+        Surface(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: Column(
+            children: [
+              for (final (index, item) in ops.rows('items').indexed) ...[
+                if (index > 0) const Divider(height: 1),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(vertical: 5),
+                  leading: const Icon(Icons.inventory_2_outlined),
+                  title: Text(
+                    '${item['name']} · ${item['quantity']}${item['unit']}',
+                  ),
+                  subtitle: Text(
+                    '마지막 실사 ${_stamp(item['lastCheckedAt'])} · 마지막 발주 ${_stamp(item['lastOrderedAt'])}',
+                  ),
+                ),
+              ],
+            ],
           ),
+        ),
+        const SizedBox(height: 16),
         const Information(
           '좌석 수는 설정된 정원이며 실시간 착석 정보가 아니에요. 배치는 개략도이며, 실제 장비 사용법과 안전·비상 동선은 현장에서 확인해 주세요.',
         ),
@@ -181,22 +189,51 @@ class _Summary extends StatelessWidget {
   Widget build(BuildContext context) {
     final tables = zones.where((z) => z['kind'] == 'table').toList();
     final seats = tables.fold<int>(0, (sum, z) => sum + (z['seats'] as int));
-    return Wrap(
-      spacing: 12,
-      runSpacing: 10,
+    final values = [
+      ('tables', '테이블', '${tables.length}개'),
+      ('seats', '좌석 정원', '$seats석'),
+      (
+        'equipment',
+        '주요 기기',
+        '${zones.where((z) => z['kind'] == 'equipment').length}대',
+      ),
+    ];
+    return Row(
       children: [
-        for (final text in [
-          '테이블 ${tables.length}개',
-          '총 $seats석',
-          '주요 기기 ${zones.where((z) => z['kind'] == 'equipment').length}대',
-        ])
-          Chip(
-            label: Text(
-              text,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+        for (final (index, value) in values.indexed) ...[
+          if (index > 0) const SizedBox(width: 8),
+          Expanded(
+            child: Container(
+              key: Key('layout-summary-${value.$1}'),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 13),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                border: Border.all(color: AppColors.line),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value.$2,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    value.$3,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            backgroundColor: AppColors.lime.withValues(alpha: .45),
           ),
+        ],
       ],
     );
   }

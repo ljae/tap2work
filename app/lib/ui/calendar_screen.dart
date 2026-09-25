@@ -31,6 +31,7 @@ class _RosterBlock {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
+  static const _slotRowHeight = 48.0;
   DateTime? selected;
   bool monthly = false;
 
@@ -569,7 +570,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   ) {
     final box = targetContext.findRenderObject() as RenderBox;
     final local = box.globalToLocal(global);
-    final start = (360 + (local.dy / 30).floor() * 30).clamp(360, 1410);
+    final start = (360 + (local.dy / _slotRowHeight).floor() * 30).clamp(
+      360,
+      1410,
+    );
     final shift = person['tapperId'] == null ? null : person;
     final oldStart = shift == null ? 540 : minute(shift['start']);
     final oldEnd = shift == null ? 1080 : minute(shift['end']);
@@ -686,86 +690,102 @@ class _CalendarScreenState extends State<CalendarScreen> {
       )
       .firstOrNull;
 
-  Widget weekStrip(DateTime monday, DateTime selectedDay) => Row(
-    children: [
-      for (var index = 0; index < 7; index++)
-        Expanded(
-          child: Builder(
-            builder: (context) {
-              final day = monday.add(Duration(days: index));
-              final selected = date(day) == date(selectedDay);
-              final filled = ops
-                  .rows('staffingSlots')
-                  .where((slot) => matchingShift(day, slot) != null)
-                  .length;
-              return Padding(
-                padding: EdgeInsets.only(right: index == 6 ? 0 : 4),
-                child: Semantics(
-                  button: true,
-                  selected: selected,
-                  label:
-                      '${day.month}월 ${day.day}일 ${weekdays[index]}, $filled명 배정',
-                  child: InkWell(
-                    key: Key('calendar-day-${date(day)}'),
-                    onTap: () => setState(() => this.selected = day),
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 74),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: selected ? AppColors.ink : Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: selected ? AppColors.ink : AppColors.line,
+  Widget weekStrip(DateTime monday, DateTime selectedDay) => LayoutBuilder(
+    builder: (context, box) {
+      const gap = 6.0;
+      final available = box.maxWidth > 720 ? 720.0 : box.maxWidth;
+      final scrollable = available < 7 * 54 + 6 * gap;
+      final tileWidth = scrollable ? 54.0 : (available - 6 * gap) / 7;
+      Widget dayTile(int index) {
+        final day = monday.add(Duration(days: index));
+        final isSelected = date(day) == date(selectedDay);
+        final filled = ops
+            .rows('staffingSlots')
+            .where((slot) => matchingShift(day, slot) != null)
+            .length;
+        return SizedBox(
+          width: tileWidth,
+          child: Semantics(
+            button: true,
+            selected: isSelected,
+            label:
+                '${day.month}월 ${day.day}일 ${weekdays[index]}, 필수 슬롯 $filled개 배정',
+            child: Material(
+              color: isSelected ? AppColors.green : AppColors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(
+                  color: isSelected ? AppColors.green : AppColors.line,
+                ),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                key: Key('calendar-day-${date(day)}'),
+                onTap: () => setState(() => selected = day),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(
+                    children: [
+                      Text(
+                        weekdays[index],
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isSelected ? AppColors.white : AppColors.muted,
                         ),
                       ),
-                      child: Column(
-                        children: [
-                          Text(
-                            weekdays[index],
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: selected
-                                  ? Colors.white70
-                                  : AppColors.muted,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${day.day}',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: selected ? Colors.white : AppColors.ink,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Container(
-                            width: 5,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: filled == 0
-                                  ? (selected ? Colors.white54 : AppColors.line)
-                                  : (selected
-                                        ? const Color(0xFFFFB4A3)
-                                        : AppColors.accent),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 3),
+                      Text(
+                        '${day.day}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: isSelected ? AppColors.white : AppColors.ink,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: filled == 0
+                              ? (isSelected ? AppColors.white : AppColors.line)
+                              : (isSelected
+                                    ? AppColors.white
+                                    : AppColors.accent),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              );
-            },
+              ),
+            ),
           ),
-        ),
-    ],
+        );
+      }
+
+      final strip = Row(
+        children: [
+          for (var index = 0; index < 7; index++) ...[
+            if (index > 0) const SizedBox(width: gap),
+            dayTile(index),
+          ],
+        ],
+      );
+      return SizedBox(
+        width: available,
+        child: scrollable
+            ? SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: strip,
+              )
+            : strip,
+      );
+    },
   );
 
   Widget dayRoster(DateTime day) {
-    const rowHeight = 30.0;
+    const rowHeight = _slotRowHeight;
     const headerHeight = 44.0;
     const axisWidth = 49.0;
     const gridHeight = 36 * rowHeight;
@@ -840,7 +860,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     Widget timedBlock(_RosterBlock block, double columnWidth) {
       final item = block.item;
-      final height = (block.end - block.start).toDouble();
+      final height = (block.end - block.start) / 30 * rowHeight;
       final assigned = block.shift ?? (block.requiredSlot ? null : item);
       final duty = item['duty'] as String;
       final card = Material(
@@ -894,7 +914,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
       );
       return Positioned(
-        top: (block.start - 360).toDouble() + 2,
+        top: (block.start - 360) / 30 * rowHeight + 2,
         left: block.column * columnWidth + 3,
         width: columnWidth - 6,
         height: height - 4,
@@ -949,11 +969,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           height: rowHeight,
                           child: InkWell(
                             key: Key('roster-cell-${date(day)}-$duty-$tick'),
-                            onTap: () => chooseForDay(
-                              day,
-                              duty: duty,
-                              startAt: clockAt(360 + tick * 30),
-                            ),
+                            onTap: editable
+                                ? () => chooseForDay(
+                                    day,
+                                    duty: duty,
+                                    startAt: clockAt(360 + tick * 30),
+                                  )
+                                : null,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
                                 color: candidates.isNotEmpty
@@ -993,7 +1015,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 children: [
                   const Text(
                     '배정 현황',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 3),
                   Text(
@@ -1015,8 +1037,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ],
         ),
         const SizedBox(height: 8),
+        if (slots.length - filled > 0) ...[
+          AppStatusPill(
+            label: '빈 슬롯 ${slots.length - filled}개',
+            icon: CupertinoIcons.exclamationmark_circle,
+            attention: true,
+          ),
+          const SizedBox(height: 10),
+        ],
         const Text(
-          '06:00–24:00 · 30분 단위 · 역할을 옆으로 넘겨 보세요',
+          '표시 시간 06:00–24:00 · 30분 단위 · 역할을 옆으로 넘겨 보세요',
           style: TextStyle(fontSize: 11, color: AppColors.muted),
         ),
         const SizedBox(height: 8),
@@ -1098,7 +1128,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const PageHeading('CALENDAR', '크루 근무표', '오늘 함께 일하는 사람과 빈 자리를 확인해요.'),
+          const PageHeading('팀 일정', '크루 근무표', '선택한 날의 역할별 배정과 빈 자리를 확인해요.'),
           Row(
             children: [
               IconButton(
@@ -1150,6 +1180,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   labelOf: (value) => value ? '월간' : '주간',
                   onSelected: (value) => setState(() => monthly = value),
                 ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => setState(
+                  () => selected =
+                      DateTime.tryParse(ops.data?['day'] ?? '') ??
+                      DateTime.now(),
+                ),
+                icon: const Icon(CupertinoIcons.calendar, size: 17),
+                label: const Text('오늘'),
               ),
               if (ops.isLeader)
                 TextButton.icon(

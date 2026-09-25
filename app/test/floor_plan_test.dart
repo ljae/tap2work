@@ -28,6 +28,12 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
 }
 
+void expectSummary(String id, String label, String value) {
+  final card = find.byKey(Key('layout-summary-$id'));
+  expect(find.descendant(of: card, matching: find.text(label)), findsOneWidget);
+  expect(find.descendant(of: card, matching: find.text(value)), findsOneWidget);
+}
+
 void main() {
   testWidgets('drag and resize snap to grid and save only the isolated draft', (
     tester,
@@ -93,8 +99,8 @@ void main() {
       );
       addTearDown(ops.dispose);
       await openMap(tester, ops);
-      expect(find.text('테이블 6개'), findsOneWidget);
-      expect(find.text('총 24석'), findsOneWidget);
+      expectSummary('tables', '테이블', '6개');
+      expectSummary('seats', '좌석 정원', '24석');
       await tapVisible(tester, find.widgetWithText(FilledButton, '배치 설정'));
       await tapVisible(tester, find.widgetWithText(ChoiceChip, '1번 테이블'));
       await tapVisible(tester, find.byTooltip('아래로 이동'));
@@ -106,7 +112,7 @@ void main() {
       await tester.enterText(find.widgetWithText(TextFormField, '좌석 수'), '6');
       await tester.tap(find.text('배치에 적용'));
       await tester.pumpAndSettle();
-      expect(find.text('총 26석'), findsOneWidget);
+      expectSummary('seats', '좌석 정원', '26석');
       expect(
         ops.rows('zones').firstWhere((z) => z['id'] == 'table-1')['seats'],
         4,
@@ -122,8 +128,8 @@ void main() {
       expect(table['seats'], 6);
       expect(table['y'], 2);
       expect(table['name'], '창가 테이블');
-      expect(find.text('테이블 6개'), findsOneWidget);
-      expect(find.text('총 26석'), findsOneWidget);
+      expectSummary('tables', '테이블', '6개');
+      expectSummary('seats', '좌석 정원', '26석');
       expect(tester.takeException(), isNull);
     });
   }
@@ -144,7 +150,7 @@ void main() {
       await tapVisible(tester, find.widgetWithText(FilledButton, '배치 설정'));
       await tapVisible(tester, find.widgetWithText(ChoiceChip, '1번 테이블'));
       await tapVisible(tester, find.text('배치에서 삭제'));
-      expect(find.text('테이블 5개'), findsOneWidget);
+      expectSummary('tables', '테이블', '5개');
       expect(
         tester
             .widget<FilledButton>(find.byKey(const Key('save-layout')))
@@ -155,7 +161,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('변경 취소'));
       await tester.pumpAndSettle();
-      expect(find.text('테이블 6개'), findsOneWidget);
+      expectSummary('tables', '테이블', '6개');
       expect(posts, 0);
       expect(tester.takeException(), isNull);
     },
@@ -169,9 +175,9 @@ void main() {
     );
     addTearDown(ops.dispose);
     await openMap(tester, ops);
-    expect(find.text('총 24석'), findsOneWidget);
+    expectSummary('seats', '좌석 정원', '24석');
     expect(find.text('배치 설정'), findsNothing);
-    expect(find.text('재료 현황'), findsOneWidget);
+    expect(find.text('재료 위치와 수량'), findsOneWidget);
     expect(find.text('전체 테이블과 기기'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -227,7 +233,7 @@ void main() {
     );
     await tester.tap(find.text('배치에 적용'));
     await tester.pumpAndSettle();
-    expect(find.text('테이블 7개'), findsOneWidget);
+    expectSummary('tables', '테이블', '7개');
     await tester.tap(find.byKey(const Key('save-layout')));
     await tester.pumpAndSettle();
     expect(posts, 0);
@@ -278,7 +284,7 @@ void main() {
       await tester.tap(find.widgetWithText(ActionChip, '식기세척기'));
       await tester.tap(find.text('배치에 적용'));
       await tester.pumpAndSettle();
-      expect(find.text('주요 기기 6대'), findsOneWidget);
+      expectSummary('equipment', '주요 기기', '6대');
       await tester.tap(find.byKey(const Key('save-layout')));
       await tester.pumpAndSettle();
       expect(submitted!['layout']['columns'], 20);

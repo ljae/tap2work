@@ -188,13 +188,23 @@ class _ArtworkPainter extends CustomPainter {
 abstract final class AppColors {
   static const paper = Color(0xFFF7F5F0);
   static const white = Color(0xFFFFFFFF);
-  static const accent = Color(0xFFE45B42);
+  // This coral keeps white button labels above the normal-text contrast target.
+  static const accent = Color(0xFFB8422C);
+  static const accentSoft = Color(0xFFFFECE6);
   static const green = Color(0xFF193B3A);
   static const ink = Color(0xFF18302F);
   static const muted = Color(0xFF526461);
   static const lime = Color(0xFFEAF1E7);
   static const peach = Color(0xFFFFEBE4);
   static const line = Color(0xFFD7DEDA);
+  static const controlLine = Color(0xFF829586);
+}
+
+abstract final class AppSpacing {
+  static const small = 8.0;
+  static const medium = 16.0;
+  static const large = 24.0;
+  static const section = 32.0;
 }
 
 class FloatingMenuItem {
@@ -253,7 +263,7 @@ class FloatingMenu extends StatelessWidget {
                           borderRadius: BorderRadius.circular(17),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 180),
-                            height: 58,
+                            height: 60,
                             decoration: BoxDecoration(
                               color: i == selectedIndex
                                   ? AppColors.green
@@ -276,7 +286,7 @@ class FloatingMenu extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                     color: i == selectedIndex
                                         ? Colors.white
@@ -315,7 +325,7 @@ class Surface extends StatelessWidget {
     padding: padding,
     decoration: BoxDecoration(
       color: color,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(20),
       border: Border.all(
         color: color == AppColors.green ? color : AppColors.line,
       ),
@@ -351,24 +361,43 @@ class PageHeading extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Eyebrow(kicker.toUpperCase()),
-        const SizedBox(height: 9),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: MediaQuery.sizeOf(context).width < 600 ? 26 : 30,
-            height: 1.3,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -1.1,
-            color: AppColors.ink,
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.lime,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            child: Text(
+              kicker,
+              style: const TextStyle(
+                color: AppColors.green,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
+        Semantics(
+          header: true,
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: MediaQuery.sizeOf(context).width < 600 ? 27 : 32,
+              height: 1.25,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1,
+              color: AppColors.ink,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
         Text(
           subtitle,
           style: const TextStyle(
-            fontSize: 14,
-            height: 1.6,
+            fontSize: 15,
+            height: 1.5,
             color: AppColors.muted,
           ),
         ),
@@ -388,22 +417,68 @@ class SectionHeading extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -.5,
-            color: AppColors.ink,
+        Semantics(
+          header: true,
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -.4,
+              color: AppColors.ink,
+            ),
           ),
         ),
         const SizedBox(height: 5),
         Text(
           subtitle,
           style: const TextStyle(
-            fontSize: 13,
+            fontSize: 14,
             height: 1.55,
             color: AppColors.muted,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class AppStatusPill extends StatelessWidget {
+  const AppStatusPill({
+    super.key,
+    required this.label,
+    required this.icon,
+    this.attention = false,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool attention;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+    decoration: BoxDecoration(
+      color: attention ? AppColors.accentSoft : AppColors.lime,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ExcludeSemantics(
+          child: Icon(
+            icon,
+            size: 16,
+            color: attention ? AppColors.accent : AppColors.green,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: attention ? AppColors.accent : AppColors.green,
           ),
         ),
       ],
@@ -484,18 +559,34 @@ class Information extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     width: double.infinity,
-    padding: const EdgeInsets.all(15),
+    padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: const Color(0xFFEEEEF2),
-      borderRadius: BorderRadius.circular(14),
+      color: AppColors.lime,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: AppColors.line),
     ),
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontSize: 14,
-        height: 1.55,
-        color: AppColors.muted,
-      ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const ExcludeSemantics(
+          child: Icon(
+            CupertinoIcons.info_circle,
+            size: 19,
+            color: AppColors.green,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.55,
+              color: AppColors.ink,
+            ),
+          ),
+        ),
+      ],
     ),
   );
 }

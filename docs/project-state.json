@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 57,
+  "revision": 58,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1282,10 +1282,7 @@
       "type": "test",
       "title": "통합 현황판 커밋·main 병합·GitHub Pages 배포 확인",
       "detail": "사용자의 commit and merge and then deploy 요청에 따라 feat/restaurant-dashboard에 0832ba0 커밋을 만들고 main에 fd1ccb9로 병합해 origin/main에 푸시했다. GitHub Actions 35440364916의 검사·빌드·배포가 모두 성공했다. http://tap2.work/project-state.json에서 r12, /app/review-data/owner.json에서 현황판과 사장님 매출, crew.json에서 금액 필드 제거 및 원시 판매 내역 비노출을 확인했다.",
-      "files": [
-        "docs/project-state.json",
-        "docs/DEPLOYMENT.md"
-      ],
+      "files": ["docs/project-state.json", "docs/DEPLOYMENT.md"],
       "verification": "GitHub CI: JS 검사, Node/API 테스트, Flutter analyze/test, 공개 web release 빌드와 Pages 배포 성공. 공개 HTTP 응답의 새 현황판과 역할별 샘플 검증 성공. HTTPS는 호스트명 인증서 검증 실패이며 https_enforced 설정 API도 certificate does not exist yet(404)로 거절됨. SSL 검증을 우회하지 않음. 네이티브 빌드·실기기·실제 POS 연동은 수행하지 않음."
     },
     {
@@ -2699,14 +2696,46 @@
       "type": "deployment",
       "title": "Unified controls and selected-day staffing timeline deployed",
       "detail": "Published commit 9c527fa to GitHub Pages at https://tap2.work/. This release includes the selected-day R&R timeline and the previously uncommitted cross-screen control design work. The Supabase operations function and schema were unchanged.",
-      "files": ["docs/project-state.json", "docs/DEPLOYMENT.md"],
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
       "verification": "GitHub Actions 36134121601 passed JavaScript checks, Node console tests, Flutter analysis, Flutter tests, public web build and Pages deployment. Live HTTPS root returned 200; deployed main.dart.js matched local _site/main.dart.js byte-for-byte by SHA-256 (19a09436074444810c009194aa8c54938a0f75fbb8d40f0ddac5997bb4f74cb2). Native builds, physical-device interaction and authenticated live mutations were not tested.",
       "links": [
         "https://github.com/ljae/tap2work/actions/runs/36134121601",
         "https://github.com/ljae/tap2work/commit/9c527fa99fb663ba854b24f69b5ee70bb0fbca17",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-ui-ux-pro-max-adapted-redesign-2026-09-25",
+      "at": "2026-09-25T13:20:02Z",
+      "type": "implementation",
+      "title": "Applied a consistent phone-first operations UI hierarchy",
+      "detail": "Used the UI UX Pro Max skill for touch, hierarchy, state and responsive guidance, adapting it to the previously confirmed warm paper, deep green and coral brand. Improved shared page and section headings, cards, buttons, focus borders and status pills; placed immediate work first on Status, collapsed prepared inventory details, enlarged Tap card metadata, labeled Todo search, improved selected-day calendar touch rows and navigation, separated Place counts, and added sign-in visibility/loading feedback. Coral was darkened for readable white action labels. Demo data, role boundaries, inventory behavior, first-shift confirmation and public preview semantics were preserved. This implementation does not make new product decisions.",
+      "files": [
+        "app/lib/main.dart",
+        "app/lib/ui/components.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/lib/ui/store_dashboard.dart",
+        "app/lib/ui/prepared_inventory.dart",
+        "app/lib/ui/tap_workspace.dart",
+        "app/lib/ui/tap_card.dart",
+        "app/lib/ui/calendar_screen.dart",
+        "app/lib/ui/floor_plan.dart",
+        "app/lib/ui/cloud_workspace.dart",
+        "app/test/calendar_test.dart",
+        "app/test/dashboard_test.dart",
+        "app/test/floor_plan_test.dart",
+        "docs/UI_DESIGN_SYSTEM_2026-09-25.md",
+        "PRODUCT.md",
+        "docs/project-state.json"
+      ],
+      "verification": "Flutter analyze clean; all 84 Flutter tests passed, including existing 320 px cases; npm run build:site passed and generated fresh read-only sample build; git diff --check passed. No native build, physical-device interaction or visual screenshot comparison was performed. Deployment not yet performed at this revision.",
+      "links": [
+        "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill"
+      ]
     }
   ],
-  "updatedAt": "2026-09-25T12:20:49Z"
+  "updatedAt": "2026-09-25T13:20:02Z"
 }

@@ -105,6 +105,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('빈 슬롯').first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('빈 슬롯').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('가능 여부는 직접 확인해 주세요'), findsOneWidget);
@@ -181,7 +183,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('배정 1 · 빈 슬롯 2'), findsOneWidget);
       expect(find.text('빈 슬롯'), findsNWidgets(2));
-      expect(find.text('추가 근무'), findsOneWidget);
+      expect(find.text('추가 근무'), findsNWidgets(2));
       expect(find.text('23:00–02:00'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
@@ -343,7 +345,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('저장').last);
     await tester.pumpAndSettle();
-    expect(writes.single['start'], '11:00');
-    expect(writes.single['end'], '20:00');
+    expect(writes.single['start'], '09:00');
+    expect(writes.single['end'], '18:00');
   });
 }

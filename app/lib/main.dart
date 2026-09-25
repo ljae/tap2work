@@ -82,9 +82,11 @@ class Tap2workApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.accent,
         primary: AppColors.accent,
-        surface: AppColors.paper,
+        onPrimary: AppColors.white,
+        surface: AppColors.white,
         onSurface: AppColors.ink,
         onSurfaceVariant: AppColors.muted,
+        outline: AppColors.controlLine,
       ),
       scaffoldBackgroundColor: AppColors.paper,
       textTheme: const TextTheme(
@@ -102,6 +104,8 @@ class Tap2workApp extends StatelessWidget {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(48, 50),
+          backgroundColor: AppColors.accent,
+          foregroundColor: AppColors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -110,10 +114,15 @@ class Tap2workApp extends StatelessWidget {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(48, 48),
+          foregroundColor: AppColors.green,
+          side: const BorderSide(color: AppColors.controlLine),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: AppColors.green),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.white,
@@ -139,15 +148,15 @@ class Tap2workApp extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.line),
+          borderSide: const BorderSide(color: AppColors.controlLine),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.line),
+          borderSide: const BorderSide(color: AppColors.controlLine),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.accent),
+          borderSide: const BorderSide(color: AppColors.green, width: 2),
         ),
       ),
       chipTheme: ChipThemeData(
@@ -184,6 +193,11 @@ class Tap2workApp extends StatelessWidget {
         ),
       ),
       dividerColor: AppColors.line,
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: AppColors.green,
+        contentTextStyle: TextStyle(color: AppColors.white, fontSize: 14),
+        behavior: SnackBarBehavior.floating,
+      ),
     ),
     home: operations == null
         ? WorkspaceScreen(controller: controller)

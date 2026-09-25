@@ -50,26 +50,30 @@ class _StoreDashboardState extends State<StoreDashboard> {
     labelOf: (value) => value,
     onSelected: (value) => setState(() => select(value)),
   );
-  Widget adaptive(List<Widget> children, {double minWidth = 240}) =>
-      LayoutBuilder(
-        builder: (context, box) {
-          final columns = (box.maxWidth / (box.maxWidth < 600 ? 135 : minWidth))
+  Widget adaptive(
+    List<Widget> children, {
+    double minWidth = 240,
+    double mobileMinWidth = 135,
+  }) => LayoutBuilder(
+    builder: (context, box) {
+      final columns =
+          (box.maxWidth / (box.maxWidth < 600 ? mobileMinWidth : minWidth))
               .floor()
               .clamp(1, children.length);
-          return Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: children
-                .map(
-                  (child) => SizedBox(
-                    width: (box.maxWidth - (columns - 1) * 12) / columns,
-                    child: child,
-                  ),
-                )
-                .toList(),
-          );
-        },
+      return Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: children
+            .map(
+              (child) => SizedBox(
+                width: (box.maxWidth - (columns - 1) * 12) / columns,
+                child: child,
+              ),
+            )
+            .toList(),
       );
+    },
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -78,10 +82,16 @@ class _StoreDashboardState extends State<StoreDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PageHeading(
-          '${ops.data?['store']?['name'] ?? '작은주방 · 연남'}  /  ${ops.data?['day'] ?? ''}',
+          '${ops.data?['store']?['name'] ?? '작은주방 · 연남'} · ${ops.data?['day'] ?? ''}',
           '매장 한눈에',
-          '주문이 들어오는 순간부터, 오늘의 매출과 우리 팀까지.',
+          '지금 필요한 확인부터 살펴보세요.',
         ),
+        priorityCard(dashboard),
+        space(32),
+        heading('오늘의 운영', '지금 확인할 매장 상황이에요.'),
+        operations(),
+        space(32),
+        heading('주문과 매출', '기간과 채널을 골라 샘플 현황을 살펴보세요.'),
         if (dashboard == null) ...[
           const Information('메뉴·매출 데이터를 아직 불러오지 못했어요. 새로고침 후 다시 확인해 주세요.'),
           TextButton.icon(
@@ -91,10 +101,86 @@ class _StoreDashboardState extends State<StoreDashboard> {
           ),
         ] else
           ...sales(dashboard),
-        space(24),
-        heading('오늘의 운영', '기간·채널 필터와 별개로, 지금 확인할 매장 상황이에요.'),
-        operations(),
       ],
+    );
+  }
+
+  Widget priorityCard(Json? dashboard) {
+    final queue = (dashboard?['queue'] as List? ?? []).length;
+    final remaining = ops
+        .rows('tasks')
+        .where((task) => task['completedAt'] == null)
+        .length;
+    final low = ops
+        .rows('items')
+        .where((item) => (item['quantity'] as num) <= (item['minimum'] as num))
+        .length;
+    final headline = queue > 0
+        ? '처리 중 주문 $queue건'
+        : remaining > 0
+        ? '남은 확인 $remaining개'
+        : '오늘 확인할 일을 살펴보세요';
+    return Surface(
+      color: AppColors.green,
+      padding: const EdgeInsets.all(22),
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final content = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '지금 확인할 일',
+                style: TextStyle(
+                  color: AppColors.lime,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                headline,
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 25,
+                  height: 1.3,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '할 일 $remaining개 · 부족 재료 $low개 · 샘플 주문 기준',
+                style: const TextStyle(
+                  color: AppColors.lime,
+                  fontSize: 13,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          );
+          final action = FilledButton.icon(
+            onPressed: () => widget.onNavigate(1),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.white,
+              foregroundColor: AppColors.green,
+            ),
+            icon: const Icon(Icons.arrow_forward_rounded, size: 19),
+            label: const Text('할 일 보드 열기'),
+          );
+          if (box.maxWidth < 600) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [content, const SizedBox(height: 20), action],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(child: content),
+              const SizedBox(width: 24),
+              action,
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -155,9 +241,9 @@ class _StoreDashboardState extends State<StoreDashboard> {
           dark: true,
         ),
         metric(
-          '주문 건수',
-          '${summary['orderCount']}건',
-          '취소 ${summary['cancelledCount']}건 별도',
+          money ? '주문 건수' : '처리 중 주문',
+          money ? '${summary['orderCount']}건' : '${summary['activeCount']}건',
+          money ? '취소 ${summary['cancelledCount']}건 별도' : '선택 기간·채널 기준',
         ),
         metric(
           money ? '평균 결제액' : '완료 주문',
@@ -187,7 +273,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
           );
           final right = queuePanel(allQueue);
           if (box.maxWidth < 950) {
-            return Column(children: [left, space(), right]);
+            return Column(children: [right, space(), left]);
           }
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -632,35 +718,41 @@ class _StoreDashboardState extends State<StoreDashboard> {
         ),
       ),
     );
-    return adaptive([
-      tile(
-        Icons.checklist,
-        '공유 체크리스트',
-        '$done / ${tasks.length} 완료',
-        '남은 확인 ${tasks.length - done}개',
-        1,
-      ),
-      tile(
-        Icons.inventory_2_outlined,
-        '부족 재료',
-        '${low.length}개',
-        low.isEmpty ? '최소 수량 이하 재료 없음' : low.map((i) => i['name']).join(' · '),
-        2,
-      ),
-      tile(
-        Icons.local_shipping_outlined,
-        '발주 · 입고',
-        '$orders건 입고 대기',
-        '입고 확인 후 재고에 반영',
-        2,
-      ),
-      tile(
-        Icons.people_outline,
-        '오늘 근무표',
-        '$work명 근무 예정',
-        '대체 근무 미정 $gaps건 · 실시간 출근 정보 아님',
-        3,
-      ),
-    ], minWidth: 250);
+    return adaptive(
+      [
+        tile(
+          Icons.checklist,
+          '공유 체크리스트',
+          '$done / ${tasks.length} 완료',
+          '남은 확인 ${tasks.length - done}개',
+          1,
+        ),
+        tile(
+          Icons.inventory_2_outlined,
+          '부족 재료',
+          '${low.length}개',
+          low.isEmpty
+              ? '최소 수량 이하 재료 없음'
+              : low.map((i) => i['name']).join(' · '),
+          2,
+        ),
+        tile(
+          Icons.local_shipping_outlined,
+          '발주 · 입고',
+          '$orders건 입고 대기',
+          '입고 확인 후 재고에 반영',
+          2,
+        ),
+        tile(
+          Icons.people_outline,
+          '오늘 근무표',
+          '$work명 근무 예정',
+          '대체 근무 미정 $gaps건 · 실시간 출근 정보 아님',
+          3,
+        ),
+      ],
+      minWidth: 250,
+      mobileMinWidth: 190,
+    );
   }
 }
