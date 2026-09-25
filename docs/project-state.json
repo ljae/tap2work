@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 56,
+  "revision": 57,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -2692,7 +2692,21 @@
         "docs/project-state.json"
       ],
       "verification": "Aside CLI reviewed official 7shifts and Deputy schedule documentation. Flutter analysis clean; selected calendar widget tests 9/9 and full Flutter tests 84/84 passed, including 320px, same-duty overlap placement, prior-day overnight clipping and edit date, filled/leave/extra shifts, assignment tap, drag time prefill and read-only preview. npm run check, npm run build:site and git diff --check passed. Native builds, physical-device interaction and deployment not yet performed at this revision."
+    },
+    {
+      "id": "H-selected-day-staffing-timeline-deployment-2026-09-25",
+      "at": "2026-09-25T12:20:49Z",
+      "type": "deployment",
+      "title": "Unified controls and selected-day staffing timeline deployed",
+      "detail": "Published commit 9c527fa to GitHub Pages at https://tap2.work/. This release includes the selected-day R&R timeline and the previously uncommitted cross-screen control design work. The Supabase operations function and schema were unchanged.",
+      "files": ["docs/project-state.json", "docs/DEPLOYMENT.md"],
+      "verification": "GitHub Actions 36134121601 passed JavaScript checks, Node console tests, Flutter analysis, Flutter tests, public web build and Pages deployment. Live HTTPS root returned 200; deployed main.dart.js matched local _site/main.dart.js byte-for-byte by SHA-256 (19a09436074444810c009194aa8c54938a0f75fbb8d40f0ddac5997bb4f74cb2). Native builds, physical-device interaction and authenticated live mutations were not tested.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36134121601",
+        "https://github.com/ljae/tap2work/commit/9c527fa99fb663ba854b24f69b5ee70bb0fbca17",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-25T12:10:03Z"
+  "updatedAt": "2026-09-25T12:20:49Z"
 }
