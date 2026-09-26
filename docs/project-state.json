@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 68,
+  "revision": 69,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3058,6 +3058,23 @@
         "docs/project-state.json"
       ],
       "verification": "Flutter analyze 통과, Flutter test 90/90, npm run check 통과, npm run test:console 60/60, npm run build:site 통과, git diff --check 통과. 웹 빌드는 확인했으나 이 기록 시점에는 배포·라이브 확인 전이다. 네이티브 빌드와 실기기 검증은 미수행."
+    },
+    {
+      "id": "H-ux-repository-pages-release-2026-09-27",
+      "at": "2026-09-27",
+      "type": "deployment",
+      "title": "TAP UX와 업무 저장소 경계 Pages 배포",
+      "detail": "기능 커밋 62b3586을 main에 푸시했다. GitHub Pages가 Flutter 공개 검토 앱을 배포했다. 이번 변경은 Flutter UI와 클라이언트 통신 코드이므로 Supabase SQL 및 Edge Function은 재배포하지 않았다.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "Actions 36254686349 성공: npm run check, 콘솔 테스트 60/60, Flutter analyze, Flutter 테스트 90/90, 공개 웹 빌드, Pages 배포. https://tap2.work/ 및 /main.dart.js가 HTTPS 200을 반환했다. 라이브 index.html 및 main.dart.js의 SHA-256이 로컬 _site와 일치했고 앱 번들 값은 7936939b87e7c684c216fd206ddaf3e100022af02305e68de72e4cf94927d451이다. 공개 빌드에 project-state.json 및 .local/operations-demo.json은 포함되지 않았다. 네이티브 빌드·실기기·인증 계정 저장 및 실제 POS 연동은 이번에 검증하지 않았다.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36254686349",
+        "https://github.com/ljae/tap2work/commit/62b35864a513efb1cb983ff1af818f864aae393f",
+        "https://tap2.work/"
+      ]
     }
   ],
   "updatedAt": "2026-09-27"

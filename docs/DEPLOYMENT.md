@@ -1,5 +1,11 @@
 # tap2work development site
 
+## TAP usability and operations repository release · 2026-09-27
+
+Commit `62b3586` improved TAP card touch targets and manual context, and moved HTTP/JSON/authentication headers behind a Flutter repository interface. The fixed board and TAP hierarchy remain as selected by the user. No Supabase SQL or Edge Function changed, so the backend was not redeployed.
+
+[Actions 36254686349](https://github.com/ljae/tap2work/actions/runs/36254686349) passed JavaScript checks, 60 console tests, Flutter analysis, 90 Flutter tests, the public web build and Pages deployment. The HTTPS root and `main.dart.js` returned 200. Live `index.html` and `main.dart.js` matched the local `_site` build by SHA-256; the app bundle hash was `7936939b87e7c684c216fd206ddaf3e100022af02305e68de72e4cf94927d451`. The local public artifact excluded `project-state.json` and `.local/operations-demo.json`. Native builds, physical-device interactions and authenticated live saves were not run for this release.
+
 - Repository: https://github.com/ljae/tap2work
 - Domain: tap2.work (Namecheap BasicDNS)
 - Public review: GitHub Pages; `.github/workflows/pages.yml` checks and deploys `main`.
