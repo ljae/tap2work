@@ -8,5 +8,6 @@ _site/
 .env
 .env.*
 !.env.example
+.codex/config.toml
 
 supabase/.temp/

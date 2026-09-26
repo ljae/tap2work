@@ -73,6 +73,10 @@ Commit `838065d` applied the user-provided `logo_tap2work.png`, a warm white/nav
 
 ## Supabase workspace deployment · 2026-09-24
 
+### 2026-09-26 local release status
+
+The owner workspace editor, TAP → Small TAP board, and global Small TAP manual search passed local checks: 59 Node tests, 85 Flutter tests, Flutter analysis, JavaScript checks and a public web build. `npm run backend:deploy` stopped before its first SQL query because this environment could not resolve `api.supabase.com` (`ENOTFOUND`). No SQL migration or Edge Function was deployed, and the new web build remains local. Live authenticated edits and POS guide links have not been verified on tap2.work.
+
 The root Flutter app now receives only `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` from GitHub repository Variables. Local builds use the same allowlist from `.env`. `npm run backend:deploy` applies the SQL migration and deploys the Auth-verified `operations` Edge Function with a management token. See [SUPABASE.md](SUPABASE.md) for configuration, access controls and current scope. Auth confirmation redirects use `https://tap2.work/`. The Edge Function uses Supabase's server-provided service role key; no service key is included in Pages.
 
 Code commit `5f5fd73` deployed successfully via [Actions 35950908223](https://github.com/ljae/tap2work/actions/runs/35950908223). CI passed JavaScript checks, 41 Node tests, Flutter analysis, 64 Flutter tests and the public build. Supabase live checks used two temporary users to verify isolation, persisted order completion, stale revision rejection and denied raw state access; both users and their workspaces were removed. Native builds and email delivery remain unverified.

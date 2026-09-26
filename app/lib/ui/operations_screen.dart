@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import '../state/work_controller.dart';
 import 'components.dart';
@@ -9,6 +10,7 @@ import 'floor_plan.dart';
 import 'tap_workspace.dart';
 import 'team_screen.dart';
 import 'calendar_screen.dart';
+import 'catalog_editor.dart';
 
 class OperationsScreen extends StatefulWidget {
   const OperationsScreen({
@@ -30,6 +32,237 @@ class _OperationsScreenState extends State<OperationsScreen> {
   OperationsController get ops => widget.operations;
   int tab = 0;
   bool inventoryOpen = false;
+  final manualSearch = TextEditingController();
+  String manualQuery = '';
+  @override
+  void dispose() {
+    manualSearch.dispose();
+    super.dispose();
+  }
+
+  String normalizeManual(String value) => value
+      .toLowerCase()
+      .replaceAll('결재', '결제')
+      .replaceAll('메뉴얼', '매뉴얼')
+      .replaceAll(RegExp(r'방법|하는\s*법|하기|어떻게|#|\s'), '');
+  List<Json> get manualResults {
+    final query = normalizeManual(manualQuery);
+    if (query.isEmpty) return [];
+    final words = manualQuery
+        .trim()
+        .split(RegExp(r'\s+'))
+        .map(normalizeManual)
+        .where((word) => word.isNotEmpty)
+        .toList();
+    final scored = <({int score, Json row})>[];
+    for (final row in ops.rows('manualSearch')) {
+      final title = normalizeManual('${row['title']} ${row['tapTitle']}');
+      final tags = normalizeManual((row['tags'] as List? ?? []).join(' '));
+      final body = normalizeManual('${row['manual']} ${row['tip']}');
+      final combined = '$title$tags$body';
+      if (!combined.contains(query) && !words.every(combined.contains)) {
+        continue;
+      }
+      final score = title.contains(query)
+          ? 3
+          : tags.contains(query)
+          ? 2
+          : 1;
+      scored.add((score: score, row: row));
+    }
+    scored.sort((a, b) => b.score.compareTo(a.score));
+    return scored.map((item) => item.row).toList();
+  }
+
+  Future<void> openManual(Json row) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: FractionallySizedBox(
+          heightFactor: 0.8,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${row['tapTitle']} · SMALL TAP',
+                  style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${row['title']}',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 16),
+                SelectableText('${row['manual']}'),
+                if ('${row['imageUrl'] ?? ''}'.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Image.network(
+                      '${row['imageUrl']}',
+                      height: 220,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Information(
+                            '사진을 불러오지 못했어요. 아래 공식 사진 가이드에서 확인해 주세요.',
+                          ),
+                    ),
+                  ),
+                if ('${row['tip'] ?? ''}'.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Text('팁 · ${row['tip']}'),
+                  ),
+                if ((row['tags'] as List? ?? []).isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Wrap(
+                      spacing: 8,
+                      children: [
+                        for (final tag in row['tags'])
+                          Chip(label: Text('#$tag')),
+                      ],
+                    ),
+                  ),
+                for (final field in ['sourceUrl', 'imageUrl', 'videoUrl'])
+                  if ('${row[field] ?? ''}'.isNotEmpty)
+                    TextButton.icon(
+                      onPressed: () {
+                        final uri = Uri.tryParse('${row[field]}');
+                        if (uri != null && uri.scheme == 'https') {
+                          launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      icon: Icon(
+                        field == 'videoUrl'
+                            ? Icons.play_circle_outline
+                            : Icons.open_in_new,
+                      ),
+                      label: Text(
+                        field == 'sourceUrl'
+                            ? '사진·상세 설명 보기'
+                            : field == 'imageUrl'
+                            ? '사진 열기'
+                            : '영상 열기',
+                      ),
+                    ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget manualSearchBar() => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    child: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1240),
+        child: TextField(
+          controller: manualSearch,
+          onChanged: (value) => setState(() => manualQuery = value),
+          decoration: InputDecoration(
+            hintText: '어떤 업무가 궁금하세요?',
+            helperText: '전체 매장 매뉴얼 검색',
+            prefixIcon: const Icon(CupertinoIcons.search),
+            suffixIcon: manualQuery.isEmpty
+                ? null
+                : IconButton(
+                    tooltip: '검색 지우기',
+                    icon: const Icon(Icons.close),
+                    onPressed: () => setState(() {
+                      manualSearch.clear();
+                      manualQuery = '';
+                    }),
+                  ),
+            isDense: true,
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  Widget manualResultList() {
+    final results = manualResults;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
+      children: [
+        Text(
+          '전체 매장 · Small TAP 매뉴얼 ${results.length}개',
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 12),
+        if (results.isEmpty)
+          const Information('검색 결과가 없어요. 업무 이름이나 연관어로 다시 찾아보세요.'),
+        for (final row in results)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Surface(
+              child: InkWell(
+                onTap: () => openManual(row),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${row['title']}',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        'TAP · ${row['tapTitle']}',
+                        style: const TextStyle(
+                          color: AppColors.muted,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${row['manual']}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if ((row['tags'] as List? ?? []).isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 7),
+                          child: Text(
+                            (row['tags'] as List)
+                                .map((tag) => '#$tag')
+                                .join('  '),
+                            style: const TextStyle(
+                              color: AppColors.green,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      if ('${row['sourceUrl'] ?? ''}'.isNotEmpty)
+                        const Text(
+                          '사진·상세 설명 보기 · 공식 가이드',
+                          style: TextStyle(
+                            color: AppColors.green,
+                            fontSize: 11,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   final Map<String, double> cart = {};
   Json? item(String id) =>
       ops.rows('items').where((i) => i['id'] == id).firstOrNull;
@@ -114,12 +347,24 @@ class _OperationsScreenState extends State<OperationsScreen> {
           onSelected: (id) async {
             if (id == 'account') {
               await widget.onAccountPressed?.call(context);
+            } else if (id == 'catalog') {
+              if (mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => CatalogEditor(ops: ops)),
+                );
+              }
             } else {
               cart.clear();
               ops.selectActor(id);
             }
           },
           itemBuilder: (_) => [
+            if (ops.isLeader && !ops.readOnly)
+              const PopupMenuItem<String>(
+                value: 'catalog',
+                child: Text('매장·메뉴·재료 편집'),
+              ),
             if (ops.cloud)
               PopupMenuItem<String>(
                 enabled: false,
@@ -177,7 +422,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       Expanded(
                         child: Text(
                           ops.cloud
-                              ? '내 매장 · 클라우드 저장 · 가상 주문'
+                              ? (ops.data?['salesSource'] == 'sample'
+                                    ? '내 매장 · 클라우드 저장 · 샘플 주문'
+                                    : '내 매장 · 클라우드 저장 · 주문 연동 전')
                               : ops.readOnly
                               ? '공개 미리보기 · 샘플 데이터 · 저장·실제 발주 없음'
                               : ops.sharedApi != null
@@ -207,6 +454,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   ),
                 ],
               ),
+            if (ops.data != null) manualSearchBar(),
             Expanded(
               child: ops.data == null
                   ? Center(
@@ -217,6 +465,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               child: const Text('매장 다시 연결'),
                             ),
                     )
+                  : manualQuery.trim().isNotEmpty
+                  ? manualResultList()
                   : RefreshIndicator(
                       onRefresh: () => ops.refresh(),
                       child: SingleChildScrollView(
@@ -473,6 +723,20 @@ class _OperationsScreenState extends State<OperationsScreen> {
 
   List<Widget> inventory() => [
     const PageHeading('재료 관리', '재고와 발주', '수량을 확인하고 필요한 재료를 한 번에 모아요.'),
+    if (ops.isLeader && !ops.readOnly)
+      Align(
+        alignment: Alignment.centerLeft,
+        child: OutlinedButton.icon(
+          onPressed: ops.busy
+              ? null
+              : () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => CatalogEditor(ops: ops)),
+                ),
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('재료·메뉴 편집'),
+        ),
+      ),
     if (ops.isLeader) ...[
       Surface(
         color: AppColors.lime.withValues(alpha: .5),

@@ -41,3 +41,21 @@ test('cloud persists completion and reports compare-and-swap conflicts',async()=
  setConflict();
  assert.equal((await request({action:'move_tap',revision:state.revision,taskId:task.id,folderId:task.folderId,status:'todo'})).status,409);
 });
+test('new account chooses blank workspace explicitly; GET alone creates nothing',async()=>{
+ let state=null, member=null, bootstrap=0;const unexpected=[];
+ const handler=createCloudHandler({url:'https://example.supabase.co',serviceKey:'sb_secret_test',clock:()=>now,fetcher:async(url,init={})=>{
+  if(url.endsWith('/auth/v1/user'))return Response.json({id:uid,user_metadata:{display_name:'실제 사장'}});
+  if(url.includes('/tap2work_members?'))return Response.json(member?[member]:[]);
+  if(url.endsWith('/rpc/tap2work_bootstrap')){bootstrap++;const input=JSON.parse(init.body);state=input.p_state;member={workspace_id:'workspace-a',role:'owner',display_name:'실제 사장'};return Response.json('workspace-a');}
+  if(url.includes('/tap2work_state?'))return Response.json([{payload:structuredClone(state)}]);
+  if(url.endsWith('/rpc/tap2work_save_state')){const input=JSON.parse(init.body);if(input.p_expected_revision!==state.revision)return Response.json(false);state=input.p_payload;return Response.json(true);}
+  unexpected.push(url);throw Error('Unexpected request');
+ }});
+ const headers={Authorization:'Bearer session','Content-Type':'application/json'};
+ let response=await handler(new Request('https://example.supabase.co/functions/v1/operations',{headers}));
+ assert.equal((await response.json()).needsWorkspace,true);assert.equal(bootstrap,0);
+ response=await handler(new Request('https://example.supabase.co/functions/v1/operations',{method:'POST',headers,body:JSON.stringify({action:'create_workspace',mode:'blank',revision:0})}));
+ assert.equal(response.status,200,`${await response.clone().text()} ${unexpected.join(',')}`);const view=await response.json();assert.equal(bootstrap,1);
+ assert.equal(view.items.length,0);assert.equal(view.catalogMenus.length,0);assert.equal(view.tappers.length,1);
+ assert.equal(view.demo,false);assert.equal(view.authenticated,true);
+});

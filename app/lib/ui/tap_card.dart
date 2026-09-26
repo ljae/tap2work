@@ -17,6 +17,8 @@ class TapCard extends StatelessWidget {
     this.onCheck,
     this.checked = false,
     this.locked = false,
+    this.selected = false,
+    this.sequence,
   });
 
   final String level, title, subtitle, emoji, footer;
@@ -24,6 +26,8 @@ class TapCard extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback? onCheck;
   final bool checked, locked;
+  final bool selected;
+  final int? sequence;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +39,10 @@ class TapCard extends StatelessWidget {
       color: complete ? const Color(0xFFF0F2F4) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: AppColors.line),
+        side: BorderSide(
+          color: selected ? AppColors.accent : AppColors.line,
+          width: selected ? 2 : 1,
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -102,7 +109,7 @@ class TapCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          level,
+                          sequence == null ? level : '$level ${sequence!}',
                           style: TextStyle(
                             fontSize: 12,
                             letterSpacing: .4,
@@ -167,14 +174,32 @@ class TapCard extends StatelessWidget {
                             style: TextStyle(fontSize: 13, color: secondary),
                           ),
                         ),
+                      ],
+                    ),
+                  if (footer.isNotEmpty) ...[
+                    if (onCheck != null) const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            footer,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.accent,
+                            ),
+                          ),
+                        ),
                         Icon(
-                          Icons.menu_book_outlined,
+                          level.toLowerCase().contains('small')
+                              ? Icons.menu_book_outlined
+                              : Icons.arrow_forward,
                           size: 16,
-                          color: secondary,
+                          color: AppColors.accent,
                         ),
                       ],
-                    )
-                  else ...[
+                    ),
+                  ] else if (onCheck == null) ...[
                     Text(
                       footer,
                       style: TextStyle(fontSize: 12, color: secondary),

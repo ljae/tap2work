@@ -21,6 +21,16 @@ const list = (value, min, max, label) => {
 const unique = rows => { if (new Set(rows.map(row => row.id)).size !== rows.length) fail('중복된 항목 ID가 있어요.'); };
 // A group icon is one short emoji (ZWJ sequences such as 🧑‍🍳 span several code points); longer text would break the card header.
 const emoji = value => (typeof value === 'string' && value.trim() && !/\s/.test(value.trim()) && [...value.trim()].length <= 10) ? value.trim() : '📝';
+export function manualTags(value) {
+  if (value == null) return [];
+  if (!Array.isArray(value) || value.length > 20) fail('연관어는 최대 20개까지 적어 주세요.');
+  const tags = value.map(tag => {
+    if (typeof tag !== 'string' || !tag.trim() || tag.trim().length > 30) fail('연관어는 각각 1~30자로 적어 주세요.');
+    return tag.trim().replace(/^#+/, '');
+  });
+  if (tags.some(tag => !tag || tag.length > 30) || new Set(tags).size !== tags.length) fail('연관어를 중복 없이 적어 주세요.');
+  return tags;
+}
 
 /// Copies one library collection into store templates. Zone/role hints apply only when the store has that place.
 export function libraryTemplates(industryId, zones, folderId = industryId) {
@@ -63,7 +73,7 @@ export function validateChecklists(input, state) {
   if (!folders.some(row => row.id === 'general')) fail('기본 업무 폴더는 유지해 주세요.');
   const templates = list(input.templates, 0, 150, '업무').map(row => {
     if (!row || !checklistSlots.includes(row.slot) || !checklistRoles.includes(row.requiredRole) || !state.zones.some(zone => zone.id === row.zone) || !folders.some(folder => folder.id === row.folderId)) fail('업무의 시간대·직급·장소·폴더를 확인해 주세요.');
-    const steps = list(row.steps, 1, 30, '행위').map(step => ({ id: text(step?.id, 100, '행위 ID'), title: text(step?.title, 100, '행위 이름'), manual: text(step?.manual, 700, '간단 매뉴얼'), tip: optionalText(step?.tip, 400, '노하우'), videoUrl: mediaLink(step?.videoUrl), imageUrl: mediaLink(step?.imageUrl) }));
+    const steps = list(row.steps, 1, 30, '행위').map(step => ({ id: text(step?.id, 100, '행위 ID'), title: text(step?.title, 100, '행위 이름'), manual: text(step?.manual, 700, '간단 매뉴얼'), tip: optionalText(step?.tip, 400, '노하우'), tags: manualTags(step?.tags), videoUrl: mediaLink(step?.videoUrl), imageUrl: mediaLink(step?.imageUrl), sourceUrl: mediaLink(step?.sourceUrl) }));
     unique(steps);
     const sourceIds = Array.isArray(row.sourceIds) ? [...new Set(row.sourceIds.filter(id => checklistLibrary.sources.some(source => source.id === id)))] : [];
     return { id: text(row.id, 100, '업무 ID'), title: text(row.title, 100, '업무 이름'), emoji: emoji(row.emoji), folderId: row.folderId, slot: row.slot, requiredRole: row.requiredRole, zone: row.zone, steps, sourceIds };

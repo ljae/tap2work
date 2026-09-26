@@ -153,8 +153,6 @@ void main() {
         ),
         isFalse,
       );
-      await tester.enterText(find.byType(TextField), '추가 메뉴');
-      await tester.pumpAndSettle();
       expect(find.text('2/4'), findsOneWidget);
       expect(find.byKey(const ValueKey('tap-daily-prep')), findsOneWidget);
       expect(find.byKey(const ValueKey('tap-second-menu')), findsOneWidget);
@@ -198,11 +196,23 @@ void main() {
             .level,
         'TAP',
       );
+      expect(find.text('Small TAP 2개 보기'), findsWidgets);
       await openCard(tester, 'tap-daily-prep');
+      expect(find.text('TAP 목록으로'), findsOneWidget);
+      expect(find.text('Small TAP 2개 보기'), findsNothing);
       expect(
         tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).level,
         'SMALL TAP',
       );
+      expect(
+        tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).sequence,
+        1,
+      );
+      expect(
+        tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).selected,
+        isTrue,
+      );
+      expect(find.text('방법 보기'), findsNWidgets(2));
       if (width < 700) {
         expect(find.text('생재료와 완성식품 도구를 따로 놓아요.'), findsNothing);
       }
@@ -211,6 +221,36 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  testWidgets('opening a TAP preserves its board grouping', (
+    tester,
+  ) async {
+    final ops = OperationsController(
+      readOnly: true,
+      client: MockClient((_) async => response(fixture())),
+    );
+    addTearDown(ops.dispose);
+    await mountBoard(tester, ops);
+    await openGroup(tester, '기본 업무  ·  2');
+    await openCard(tester, 'tap-daily-prep');
+    expect(find.text('BIG TAP · 업무 그룹 필터'), findsNothing);
+    expect(find.byKey(const ValueKey('small-s1')), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
+    await tester.pumpAndSettle();
+    expect(find.text('TAP'), findsWidgets);
+    expect(find.text('BIG TAP · 업무 그룹 필터'), findsOneWidget);
+    expect(find.byKey(const ValueKey('tap-daily-prep')), findsOneWidget);
+    await openGroup(tester, '전체 TAP');
+    await openCard(tester, 'tap-daily-prep');
+    await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, '전체 TAP'))
+          .selected,
+      isTrue,
+    );
+  });
 
   testWidgets(
     'preview completion rolls up through parents and undo sends no POST',
@@ -238,7 +278,7 @@ void main() {
         tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).checked,
         isTrue,
       );
-      await tester.tap(find.widgetWithText(TextButton, '기본 업무'));
+      await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
       await tester.pumpAndSettle();
       expect(
         tester
@@ -246,7 +286,7 @@ void main() {
             .done,
         1,
       );
-      await tester.tap(find.widgetWithText(TextButton, '전체 보드'));
+      await openGroup(tester, '전체 TAP');
       await tester.pumpAndSettle();
       expect(find.textContaining('기본 업무'), findsWidgets);
       await openGroup(tester, '기본 업무  ·  2');
@@ -279,7 +319,7 @@ void main() {
       await mountBoard(tester, ops);
       await openGroup(tester, '마감 폴더  ·  0');
       expect(find.text('아직 카드가 없어요'), findsNWidgets(3));
-      await tester.tap(find.widgetWithText(TextButton, '전체 보드'));
+      await openGroup(tester, '전체 TAP');
       await tester.pumpAndSettle();
       await openGroup(tester, '기본 업무  ·  2');
       await openCard(tester, 'tap-daily-broth');

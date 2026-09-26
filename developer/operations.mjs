@@ -7,7 +7,28 @@ import { ensurePreparedItems, ensurePreparationTaps, consumePreparedForTask, fin
 import { seedSales, salesDashboard } from './sales.mjs';
 import { ensureLayout, validateLayout } from './layout.mjs';
 import { ensureStaff, staffView, mutateStaff } from './staff.mjs';
-import { ensureChecklists, saveChecklists, checklistLibrary, checklistSlots, checklistRoles, libraryTemplates, reopenStep, mediaLink } from './checklists.mjs';
+import { ensureChecklists, saveChecklists, checklistLibrary, checklistSlots, checklistRoles, libraryTemplates, reopenStep, mediaLink, manualTags } from './checklists.mjs';
+
+function manualSearchIndex(state) {
+  const rows = new Map();
+  const add = (task, template) => {
+    for (const step of task.steps ?? []) {
+      const sourceTemplateId = step.sourceTemplateId ?? task.templateId ?? task.id;
+      const sourceStepId = step.sourceStepId ?? step.id;
+      const key = `${sourceTemplateId}/${sourceStepId}`;
+      if (rows.has(key)) continue;
+      rows.set(key, {
+        id: key, taskId: template ? null : task.id, stepId: step.id,
+        tapTitle: task.title, title: step.title,
+        manual: step.manual ?? '', tip: step.tip ?? '', tags: step.tags ?? [],
+        imageUrl: step.imageUrl ?? '', videoUrl: step.videoUrl ?? '', sourceUrl: step.sourceUrl ?? '',
+      });
+    }
+  };
+  for (const template of state.taskTemplates ?? []) if (!template.archivedAt) add(template, true);
+  for (const task of state.tasks ?? []) if (task.steps?.length && !task.archivedAt && !task.supersededAt && task.date === state.day) add(task, false);
+  return [...rows.values()];
+}
 
 const dayMs = 86400000;
 export const actors = [
@@ -73,6 +94,38 @@ function ensureTapBoard(state) {
   state.tapBoardVersion = 1;
   return true;
 }
+function ensurePosGuides(state) {
+  if (state.posGuideVersion === 1 || state.sales?.source !== 'sample') return false;
+  const make = (id, title, steps) => ({
+    id: `demo-pos-${id}`, title, emoji: '💳', folderId: 'settlement', slot: '피크',
+    requiredRole: 'all', zone: state.zones.some(zone => zone.id === 'pass') ? 'pass' : state.zones[0]?.id,
+    version: 1, sourceIds: [], steps: steps.map(([key, name, manual, tags, sourceUrl, imageUrl = '']) => ({
+      id: key, title: name, manual, tags, sourceUrl, imageUrl,
+      tip: '제품·버전에 따라 화면이 다를 수 있어요. 실제 결제 전 매장 장비와 공식 사진 가이드를 확인해 주세요. (2026-09-26 확인)',
+    })),
+  });
+  const toss = 'https://tossplace.gitbook.io/guide/sector/postpaid-store/payment/split-payment';
+  const tossImage = 'https://3169993178-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2F8akTTvJ7l2f3ZD1OFfEU%2Fuploads%2FQKjEYI8pIJzqun71VCff%2Fimage.png?alt=media&token=4f1444ae-f5c9-485f-80d3-037ccb6f684b';
+  const payhere = 'https://help-center.payhere.in/00e5bcff-326b-4b80-9e4f-892ea58607f9';
+  const refund = 'https://help-center.payhere.in/76da4d4a-0002-4fec-b877-f85603d547b2';
+  const guides = [
+    make('toss', '토스 포스 결제·취소', [
+      ['amount', '금액 나눠 결제', '토스 포스 후불형: 결제 화면에서 메뉴 선택 또는 결제 버튼을 누른 뒤 분할결제 → 금액으로 결제를 선택해 금액을 입력하고 확인해요. 결제수단을 선택해 승인하고 남은 금액에 반복 적용해요. 마지막 잔액이 0원인지 확인해요.', ['결제 나눠서', '분할결제', '금액별', '더치페이'], toss, tossImage],
+      ['people', '인원수 더치페이', '토스 포스 후불형: 분할결제 → 더치페이를 선택하고 인원수를 지정해요. 각 몫의 결제수단을 선택해 차례대로 결제하고, 남은 잔액이 0원인지 확인해요.', ['인원별', '더치페이', '나눠결제'], toss],
+      ['menu', '메뉴별 결제', '토스 포스 후불형: 분할결제 → 메뉴별 결제를 선택하고 이번에 결제할 상품을 고른 뒤 확인해요. 결제수단을 선택하고 남은 상품에도 반복해 최종 잔액을 확인해요.', ['상품별', '메뉴별', '따로결제'], toss],
+      ['cancel', '분할 결제 취소·재결제', '토스 포스 후불형: 왼쪽 위 메뉴 → 결제내역에서 취소할 분할 건을 선택하고 결제취소를 진행해요. 결제수단 변경은 결제내역의 결제수단 변경에서 기존 결제를 취소한 뒤 새 수단으로 재결제하고 두 내역을 모두 확인해요.', ['환불', '결제취소', '결제수단변경'], toss],
+    ]),
+    make('payhere', '페이히어 결제·취소', [
+      ['amount', '금액 나눠 결제', '페이히어 셀러의 지원 화면: 결제 단계에서 분할 결제를 선택해 금액을 직접 입력하고 적용해요. 결제수단을 선택해 결제한 뒤 남은 잔액에도 반복해요. 페이히어 라이트는 분할 결제를 지원하지 않아요.', ['결제 나눠서', '분할결제', '금액별'], payhere],
+      ['people', '인원수 더치페이', '페이히어 셀러의 지원 화면: 결제 단계에서 분할 결제 → 더치페이로 인원수를 정해 적용해요. 각 몫의 결제수단을 선택해 결제하고 남은 잔액을 확인해요. 페이히어 라이트는 분할 결제를 지원하지 않아요.', ['인원별', '더치페이', '나눠결제'], payhere],
+      ['menu', '상품별 결제', '페이히어 셀러의 지원 화면: 주문 목록에서 이번에 결제할 상품을 선택한 뒤 결제를 누르고 수단을 선택해요. 결제하지 않은 상품은 주문 목록에 남으므로 다음 결제를 이어가요.', ['상품별', '메뉴별', '따로결제'], payhere],
+      ['refund', '카드 결제 취소', '페이히어 셀러: 더보기 → 결제 내역에서 대상 거래를 고른 뒤 환불을 누르고 다시 확인해요. 원래 결제한 카드를 삽입해 진행하고 완료 내역을 확인해요. 카드 정보는 이 앱에 기록하지 않아요.', ['환불', '카드취소', '결제취소'], refund],
+    ]),
+  ];
+  for (const guide of guides) if (!state.taskTemplates.some(row => row.id === guide.id)) state.taskTemplates.push(guide);
+  state.posGuideVersion = 1;
+  return true;
+}
 export function seedOperations(now = new Date()) {
   const earlier = new Date(new Date(now).getTime() - 3 * dayMs).toISOString();
   const zones = seedZones();
@@ -104,6 +157,28 @@ export function seedOperations(now = new Date()) {
   };
 }
 
+// New authenticated workspaces may start without fictional people, stock or sales.
+// Version markers prevent the legacy demo upgrades from adding samples later.
+export function emptyOperations(now = new Date(), ownerId, ownerName = '사장님') {
+  const state = seedOperations(now);
+  ensureStaff(state, now);
+  Object.assign(state, {
+    store: { name: '새 매장', note: '', setup: 'blank' }, actors: [],
+    sales: { source: 'manual', seededAt: null, menus: [], tickets: [] },
+    items: [], orders: [], tasks: [], taskTemplates: [],
+    checklistFolders: [{ id: 'general', name: '기본 업무' }],
+    bigTapOrder: ['general'], tapBoardVersion: 1, checklistVersion: 1,
+    orderCompositionVersion: 3, orderTapVersion: 2,
+    preparedVersion: 1, preparedItems: [], preparedMovements: [],
+    zones: [], layout: { name: '우리 매장', columns: 16, rows: 12, updatedAt: null, updatedBy: null },
+    tappers: [{ id: `tapper-${ownerId}`, actorId: ownerId, rank: 'owner', nickname: ownerName,
+      duties: ['cashier'], hourlyWon: 0, payPeriod: 'monthly', kakaoUrl: '', phone: '', active: true }],
+    staffVersion: 1, staffShifts: [], staffingSlots: [], attendance: [], payAdjustments: [], payRecords: [],
+    shifts: [], coverRequests: [], activity: [], privateSummary: { laborEstimate: 0, note: '' },
+  });
+  return state;
+}
+
 function allowed(actor, task) { return ['owner', 'manager'].includes(actor.role) || task.requiredRole === 'all' || task.requiredRole === actor.role; }
 function leadership(actor) { if (!['owner', 'manager'].includes(actor.role)) fail('사장님 또는 매니저가 처리할 수 있어요.', 403); }
 function stockReview(item) {
@@ -116,6 +191,7 @@ function ensureDueTasks(state, now) {
   if (ensureChecklists(state)) changed = true;
   if (ensureTapBoard(state)) changed = true;
   if (!state.sales) { state.sales = seedSales(now); changed = true; }
+  if (ensurePosGuides(state)) changed = true;
   const date = koreanDate(now);
   if (state.day !== date) { state.day = date; changed = true; }
   if (ensurePreparedItems(state, now)) changed = true;
@@ -129,6 +205,7 @@ function ensureDueTasks(state, now) {
     }
   }
   for (const item of state.items) {
+    if (item.archivedAt) continue;
     const review = stockReview(item);
     if (!review) continue;
     const { id, dueAt } = review;
@@ -164,14 +241,19 @@ export class OperationsStore {
   #actor(id) { if (this.trustedActor) return this.trustedActor; const actor = actors.find(item => item.id === id); if (!actor) fail('체험할 역할을 선택해 주세요.', 403); return actor; }
   #view(state, actor) {
     const result = structuredClone(state);
+    result.hasSampleArchive = Boolean(state.sampleArchive);
+    delete result.sampleArchive;
     Object.assign(result, staffView(state, actor, this.clock()));
     result.actor = actor;
     result.serverTime = iso(this.clock());
-    result.demo = true;
+    result.demo = !this.trustedActor;
     result.authenticated = Boolean(this.trustedActor);
     if (this.trustedActor) result.actors = [this.trustedActor];
     result.dashboard = salesDashboard(state.sales, this.clock(), actor.role === 'owner');
+    if (['owner', 'manager'].includes(actor.role)) result.catalogMenus = structuredClone(state.sales.menus);
+    result.salesSource = state.sales.source;
     delete result.sales;
+    result.items = result.items.filter(item => !item.archivedAt);
     if (actor.role !== 'owner') result.activity = result.activity.filter(entry =>
       entry.kind !== 'pay' && !/^(?:급여 지급 기록|추가보수) [\d,]+원(?:$|\s)/.test(entry.message));
     result.tasks = result.tasks.filter(task => !task.supersededAt && !task.archivedAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day));
@@ -199,6 +281,7 @@ export class OperationsStore {
       for (const order of result.orders) { delete order.total; for (const line of order.lines) delete line.price; }
     }
     result.checklistLibrary = checklistLibrary;
+    result.manualSearch = manualSearchIndex(state);
     if (!['owner', 'manager'].includes(actor.role)) delete result.taskTemplates;
     return result;
   }
@@ -219,8 +302,81 @@ export class OperationsStore {
       if (input.revision !== state.revision) fail('다른 동료가 먼저 업데이트했어요. 최신 내용을 확인하고 다시 눌러 주세요.', 409);
       const who = { id: actor.id, name: actor.name, role: actor.label };
       const activity = (message, kind) => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message, ...(kind ? { kind } : {}) });
-      const itemFor = id => { const item = state.items.find(item => item.id === id); if (!item) fail('재료를 찾지 못했어요.', 404); return item; };
+      const itemFor = id => { const item = state.items.find(item => item.id === id && !item.archivedAt); if (!item) fail('사용 중인 재료를 찾지 못했어요.', 404); return item; };
       switch (input.action) {
+        case 'start_blank_from_sample': {
+          if (!this.trustedActor || actor.role !== 'owner') fail('클라우드 매장 사장님만 시작 방식을 바꿀 수 있어요.', 403);
+          if (state.store?.setup === 'blank' || state.store?.setup === 'configured' || state.sales?.source !== 'sample' || state.sampleArchive) fail('샘플 매장 상태를 확인해 주세요.', 409);
+          const archive = structuredClone(state);
+          const blank = emptyOperations(now, actor.id, actor.name);
+          for (const key of Object.keys(state)) delete state[key];
+          Object.assign(state, blank, { revision: archive.revision, sampleArchive: { savedAt: iso(now), state: archive } });
+          activity('샘플 데이터를 보관하고 빈 매장으로 시작'); break;
+        }
+        case 'save_store': {
+          if (actor.role !== 'owner') fail('매장 정보는 사장님만 바꿀 수 있어요.', 403);
+          const name = text(input.name, '매장 이름', 80);
+          if (input.note != null && typeof input.note !== 'string') fail('매장 안내를 확인해 주세요.');
+          const note = input.note == null ? '' : input.note.trim();
+          if (note.length > 500) fail('매장 안내는 500자 이내로 입력해 주세요.');
+          state.store = { ...state.store, name, note, setup: 'configured' };
+          if (state.layout?.name === '우리 매장') state.layout.name = name;
+          activity(`매장 정보 · ${name}`); break;
+        }
+        case 'save_inventory_item': {
+          leadership(actor);
+          const old = input.id ? itemFor(input.id) : null;
+          const name = text(input.name, '재료 이름', 80);
+          const unit = text(input.unit, '단위', 20);
+          const supplier = text(input.supplier, '공급처', 80);
+          const emoji = typeof input.emoji === 'string' && input.emoji.trim() && input.emoji.length <= 12 ? input.emoji.trim() : '📦';
+          const zone = input.zone == null || input.zone === '' ? null : input.zone;
+          if (zone && !state.zones.some(z => z.id === zone)) fail('보관 위치를 확인해 주세요.');
+          if (state.items.some(row => row.id !== old?.id && !row.archivedAt && row.name === name)) fail('같은 이름의 재료가 있어요.');
+          const minimum = amount(input.minimum), orderQuantity = amount(input.orderQuantity);
+          if (orderQuantity <= 0) fail('기본 발주 수량은 0보다 커야 해요.');
+          if (!Number.isSafeInteger(input.price) || input.price < 0 || input.price > 100000000) fail('예상 단가는 0~100,000,000원 사이로 입력해 주세요.');
+          if (!Number.isInteger(input.reviewDays) || input.reviewDays < 1 || input.reviewDays > 90) fail('발주 후 확인 일수는 1~90일로 정해 주세요.');
+          if (old && state.orders.some(order => order.status === 'ordered' && order.lines.some(line => line.itemId === old.id)) && (old.unit !== unit || old.supplier !== supplier)) fail('입고 대기 중에는 단위와 공급처를 바꿀 수 없어요.', 409);
+          const editable = { name, unit, supplier, emoji, zone, minimum, orderQuantity, price: input.price, reviewDays: input.reviewDays };
+          if (old) Object.assign(old, editable);
+          else {
+            if (state.items.length >= 500) fail('재료는 최대 500개까지 등록할 수 있어요.');
+            state.items.push({ id: randomUUID(), ...editable, quantity: 0, lastOrderedAt: null, lastCheckedAt: null });
+          }
+          activity(`재료 ${old ? '수정' : '등록'} · ${name}`); break;
+        }
+        case 'archive_inventory_item': {
+          leadership(actor);
+          const item = itemFor(input.id);
+          if (state.orders.some(order => order.status === 'ordered' && order.lines.some(line => line.itemId === item.id))) fail('입고 대기 중인 재료는 보관 처리할 수 없어요.', 409);
+          if (state.tasks.some(task => task.itemId === item.id && !task.completedAt && !task.archivedAt && !task.supersededAt)) fail('미완료 재고 확인 업무를 먼저 처리해 주세요.', 409);
+          item.archivedAt = iso(now); item.archivedBy = who;
+          activity(`재료 보관 · ${item.name}`); break;
+        }
+        case 'save_menu': {
+          leadership(actor);
+          const old = input.id ? state.sales.menus.find(menu => menu.id === input.id && !menu.archivedAt) : null;
+          if (input.id && !old) fail('사용 중인 메뉴를 찾지 못했어요.', 404);
+          const name = text(input.name, '메뉴 이름', 80), category = text(input.category, '분류', 40);
+          if (!Number.isSafeInteger(input.price) || input.price < 0 || input.price > 100000000) fail('메뉴 가격은 0~100,000,000원 사이로 입력해 주세요.');
+          if (state.sales.menus.some(menu => menu.id !== old?.id && !menu.archivedAt && menu.name === name)) fail('같은 이름의 메뉴가 있어요.');
+          if (old) Object.assign(old, { name, category, price: input.price });
+          else {
+            if (state.sales.menus.length >= 500) fail('메뉴는 최대 500개까지 등록할 수 있어요.');
+            state.sales.menus.push({ id: randomUUID(), name, category, price: input.price });
+          }
+          activity(`메뉴 ${old ? '수정' : '등록'} · ${name}`); break;
+        }
+        case 'archive_menu': {
+          leadership(actor);
+          const menu = state.sales.menus.find(row => row.id === input.id && !row.archivedAt);
+          if (!menu) fail('사용 중인 메뉴를 찾지 못했어요.', 404);
+          if (state.sales.tickets.some(ticket => ['접수', '조리 중', '준비 완료'].includes(ticket.status) && ticket.lines.some(line => line.menuId === menu.id))) fail('진행 중인 주문이 있는 메뉴는 보관 처리할 수 없어요.', 409);
+          if ((state.preparedItems ?? []).some(item => item.menuUses?.some(use => use.menuId === menu.id))) fail('준비품 사용량에서 이 메뉴를 먼저 제거해 주세요.', 409);
+          menu.archivedAt = iso(now); menu.archivedBy = who;
+          activity(`메뉴 보관 · ${menu.name}`); break;
+        }
         case 'save_prepared_item': {
           leadership(actor); savePreparedItem(state, input);
           activity('준비품·메뉴별 사용량 설정'); break;
@@ -244,13 +400,13 @@ export class OperationsStore {
           const step = task?.steps?.find(s => s.id === input.stepId);
           if (!step || step.completedAt) fail('아직 완료하지 않은 오늘 Small Tap만 편집할 수 있어요.', 409);
           const manual = text(input.manual, '매뉴얼', 700);
-          const videoUrl = mediaLink(input.videoUrl), imageUrl = mediaLink(input.imageUrl);
+          const videoUrl = mediaLink(input.videoUrl), imageUrl = mediaLink(input.imageUrl), sourceUrl = mediaLink(input.sourceUrl ?? step.sourceUrl), tags = manualTags(input.tags ?? step.tags);
           step.manualHistory ??= [];
-          step.manualHistory.push({ manual: step.manual, videoUrl: step.videoUrl ?? '', imageUrl: step.imageUrl ?? '', at: iso(now), actor: who });
-          Object.assign(step, { manual, videoUrl, imageUrl });
+          step.manualHistory.push({ manual: step.manual, tags: step.tags ?? [], videoUrl: step.videoUrl ?? '', imageUrl: step.imageUrl ?? '', sourceUrl: step.sourceUrl ?? '', at: iso(now), actor: who });
+          Object.assign(step, { manual, videoUrl, imageUrl, sourceUrl, tags });
           const template = state.taskTemplates.find(t => t.id === (step.sourceTemplateId ?? task.templateId));
           const source = template?.steps.find(s => s.id === (step.sourceStepId ?? step.id));
-          if (source) { Object.assign(source, { manual, videoUrl, imageUrl }); template.version++; }
+          if (source) { Object.assign(source, { manual, videoUrl, imageUrl, sourceUrl, tags }); template.version++; }
           activity(`${task.title} · ${step.title} 매뉴얼 저장`); break;
         }
         case 'save_layout': {

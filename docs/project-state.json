@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 59,
+  "revision": 63,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -282,12 +282,12 @@
     {
       "id": "D-028",
       "category": "제품 구조",
-      "title": "Big Tap·Tap·Small Tap 통합 운영 확장",
+      "title": "TAP·Small TAP 통합 운영 확장",
       "status": "confirmed",
-      "decision": "Big Tap → Tap → Small Tap 구조와 칸반·5분 계획·2D 매장 배치·근무/급여 현황을 목표 제품 범위에 포함한다. 주문 유입, 지도 동선, 근무 교환, 개인 폰 알림, 템플릿 마켓과 자발적 평판 동의 흐름을 단계적으로 구축한다. 기존 첫 근무 가이드·재고/발주·실물 입고 구분은 유지한다.",
-      "reason": "사용자가 2026-09-23 전체 시스템 구조와 요구사항을 명시해 기존 급여/마켓 확장 보류 결정을 대체했다. 목표 범위 확인은 특정 외부 연동이나 법정 계산이 작동함을 뜻하지 않는다.",
-      "source": "사용자 요청 · Project: Tap2.work - Total System Architecture & Requirements",
-      "updatedAt": "2026-09-23"
+      "decision": "TAP → Small TAP 두 단계와 BIG TAP 그룹핑, 칸반·2D 매장 배치·근무/급여 현황을 목표 제품 범위에 포함한다. 주문 유입, 지도 동선, 근무 교환, 개인 폰 알림, 템플릿 마켓과 자발적 평판 동의 흐름을 단계적으로 구축한다. 기존 첫 근무 가이드·재고/발주·실물 입고 구분은 유지한다.",
+      "reason": "사용자가 BIG TAP을 구조 단계가 아닌 같은 보드의 그룹핑으로 명시하고 5분 계획은 앞선 요청에서 제거했다.",
+      "source": "사용자 요청 · 2026-09-26",
+      "updatedAt": "2026-09-26"
     },
     {
       "id": "D-029",
@@ -302,22 +302,22 @@
     {
       "id": "D-030",
       "category": "제품 경험",
-      "title": "BIG TAP·Tap·Small Tap 동일 카드와 폴더형 보드",
+      "title": "TAP에서 Small TAP으로 직접 열기",
       "status": "confirmed",
-      "decision": "세 단계 모두 동일한 카드 형태와 열기 동작을 사용한다. BIG TAP은 업무 모음과 전체 진행률, Tap은 시간대·담당·장소와 하위 진행률, Small Tap은 실행 행동·완료/되돌리기·매뉴얼을 담는다. 카드를 열어 하위 보드로 이동하고 상단 경로로 돌아간다. Trello처럼 단순한 보드와 최소 정보 노출을 기본으로 한다.",
-      "reason": "사용자가 세 단계에 같은 보드 카드를 사용하되 역할과 정보가 다른 폴더 시스템으로 전체 구조·디자인을 재정리하도록 요청했다.",
-      "source": "사용자 요청 · same board card for BIG TAP, Tap, small tap like folder system",
-      "updatedAt": "2026-09-23T14:02:14Z"
+      "decision": "TAP은 업무 카드이며 열면 해당 Small TAP 목록과 선택 매뉴얼로 바로 이동한다. BIG TAP은 같은 TAP 보드의 그룹 필터이며 별도 부모 화면이나 완료 단계가 아니다. 카드에는 Small TAP 수와 진행률 및 열기 동작을 명확히 표시하고, 상단 경로로 기존 그룹 선택을 보존하며 TAP 보드로 돌아간다. Small TAP은 실행 행동·완료/되돌리기·매뉴얼을 담는다. 매뉴얼 검색은 화면 상단의 전역 검색을 사용한다.",
+      "reason": "사용자가 TAP 다음 단계만 Small TAP으로 두고 BIG TAP은 그룹핑으로 쓰며 화면 전환을 더 명확히 해 달라고 요청했다.",
+      "source": "사용자 요청 · 2026-09-26",
+      "updatedAt": "2026-09-26"
     },
     {
       "id": "D-031",
       "category": "제품 경험",
-      "title": "BIG TAP 폴더와 전체 Tap 상태 보드",
+      "title": "BIG TAP 그룹과 전체 TAP 상태 보드",
       "status": "confirmed",
-      "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서의 화면을 유지하고, 아이콘과 한국어 이름(현황/할 일/근무/매장)을 함께 표시하는 떠 있는 메뉴로 제공한다. BIG TAP은 이름 있는 폴더다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. Small TAP 비율만큼 카드에 반투명 코랄을 공간적으로 채우며 완료 카드는 읽기 쉬운 옅은 회색으로 낮춘다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다.",
-      "reason": "사용자가 Flutter 앱 전체 디자인, 로고·파비콘, 가독성·메뉴 정렬과 떠 있는 메뉴를 요청했다. Aside CLI로 Trello·Asana·7shifts 공개 UI를 조사한 뒤 적용했다.",
-      "source": "사용자 요청 및 Aside CLI 공개 UI 조사 · 2026-09-25",
-      "updatedAt": "2026-09-24T22:09:34Z"
+      "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서의 화면을 유지하고, 아이콘과 한국어 이름(현황/할 일/근무/매장)을 함께 표시하는 떠 있는 메뉴로 제공한다. BIG TAP은 같은 TAP 보드의 이름 있는 그룹 필터다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. Small TAP 비율만큼 카드에 반투명 코랄을 공간적으로 채우며 완료 카드는 읽기 쉬운 옅은 회색으로 낮춘다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다.",
+      "reason": "사용자가 BIG TAP을 탐색 단계가 아닌 그룹핑으로 명시했다. 기존 상태 보드·진행률·근무·매장 규칙은 유지한다.",
+      "source": "사용자 요청 · 2026-09-26",
+      "updatedAt": "2026-09-26"
     },
     {
       "id": "D-032",
@@ -378,6 +378,26 @@
       "reason": "2026-09-24 사용자 후속 요청: 3열 주문/준비 구분, 카드 진행 채움과 옅은 완료, 06:00 폰 캘린더, 플랫폼 배지 및 제공 워드마크.",
       "source": "사용자 후속 요청 · 2026-09-24",
       "updatedAt": "2026-09-24T14:53:54Z"
+    },
+    {
+      "id": "D-038",
+      "category": "실제 매장 설정",
+      "title": "사장 계정의 실제 데이터 편집 우선",
+      "status": "confirmed",
+      "decision": "이번 단계는 로그인한 사장 계정이 자신의 매장 이름·안내, 메뉴, 원재료를 실제 값으로 설정하고 저장하는 데 우선한다. 첫 로그인에서 빈 매장 또는 샘플을 직접 선택하고 기존 샘플 계정은 명시적 전환만 허용한다. 다른 Auth 계정의 팀 초대·공유 편집은 다음 단계로 둔다.",
+      "reason": "사용자가 Supabase와 현재 구조를 실제 사용자가 수정 가능한 형태로 요청하고, 이번에는 사장 계정의 실제 데이터 편집부터 적용하도록 범위를 확인했다.",
+      "source": "사용자 요청 및 범위 확인 · 2026-09-26",
+      "updatedAt": "2026-09-26"
+    },
+    {
+      "id": "D-039",
+      "category": "업무 매뉴얼 검색",
+      "title": "고정 전역 검색과 Small TAP 연관어",
+      "status": "confirmed",
+      "decision": "상단의 스크롤되지 않는 검색창에서 현재 메뉴·BIG TAP·담당 필터와 무관하게 매장 전체 Small TAP 및 매뉴얼을 찾는다. 결과는 Small TAP 이름, 소속 TAP, 매뉴얼 요약과 #연관어를 보여주고 누르면 읽기 전용 매뉴얼을 바로 연다. 각 Small TAP에 편집 가능한 연관어를 저장한다. 공식 POS 예시는 제품·유형별로 확인된 텍스트 절차와 화면 사진 원문 링크를 연결한다. 실제 매장의 POS·레시피·위치·배달 절차는 매장이 확인해 입력한다.",
+      "reason": "사용자가 TAP 검색을 업무 매뉴얼 검색으로 한정하고 모든 화면에서 고정 전역 검색, Small TAP 연관어, 주요 POS 매뉴얼 연결을 요청했다.",
+      "source": "사용자 요청 · 2026-09-26",
+      "updatedAt": "2026-09-26"
     }
   ],
   "milestones": [
@@ -461,9 +481,15 @@
     },
     {
       "id": "M-014",
-      "title": "같은 카드로 탐색하는 3단계 Tap 보드",
+      "title": "TAP에서 Small TAP으로 탐색하는 2단계 보드",
       "status": "done",
-      "description": "단일 TapCard로 BIG TAP→Tap→Small Tap 탐색, 상단 경로, 현재 보드 검색, Small Tap 직접 완료·되돌리기·매뉴얼, 부모 진행률 반영 구현. 기존 ID·권한·재고 수량 흐름과 편집 초안/드래그 유지. Flutter 61개·분석·공개 웹 빌드와 실제 Chrome 데스크톱/390px 흐름 검증. 네이티브 실기기 미검증."
+      "description": "단일 TAP 보드에서 BIG TAP 그룹 필터를 사용하고 TAP 카드에서 Small TAP 목록·선택 매뉴얼로 직접 이동한다. 돌아올 때 그룹 선택을 유지하고 매뉴얼 검색은 상단 전역 검색으로 제공한다. Small TAP 완료·되돌리기·매뉴얼과 부모 진행률, 기존 ID·권한·재고·편집 초안·드래그 흐름을 유지한다. 네이티브 실기기 검증은 수행하지 않았다."
+    },
+    {
+      "id": "M-015",
+      "title": "사장 계정 실제 매장 설정",
+      "status": "in_progress",
+      "description": "빈/샘플 매장 명시 선택, 매장 정보·메뉴·재료 편집/보관, 역할 검증, revision 충돌 보호를 로컬 구현하고 분석·테스트를 통과했다. Supabase SQL/Edge Function과 공개 앱 배포 및 실제 로그인 저장 검증은 아직 수행하지 않았다. 2026-09-26 배포 시도는 api.supabase.com DNS 조회 실패로 중단되어 원격 변경이 적용되지 않았다. 다른 사용자 초대/POS/실제 공급업체 전송은 범위 밖이다."
     }
   ],
   "history": [
@@ -2699,7 +2725,10 @@
       "type": "deployment",
       "title": "Unified controls and selected-day staffing timeline deployed",
       "detail": "Published commit 9c527fa to GitHub Pages at https://tap2.work/. This release includes the selected-day R&R timeline and the previously uncommitted cross-screen control design work. The Supabase operations function and schema were unchanged.",
-      "files": ["docs/project-state.json", "docs/DEPLOYMENT.md"],
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
       "verification": "GitHub Actions 36134121601 passed JavaScript checks, Node console tests, Flutter analysis, Flutter tests, public web build and Pages deployment. Live HTTPS root returned 200; deployed main.dart.js matched local _site/main.dart.js byte-for-byte by SHA-256 (19a09436074444810c009194aa8c54938a0f75fbb8d40f0ddac5997bb4f74cb2). Native builds, physical-device interaction and authenticated live mutations were not tested.",
       "links": [
         "https://github.com/ljae/tap2work/actions/runs/36134121601",
@@ -2752,7 +2781,107 @@
         "https://github.com/ljae/tap2work/commit/f5c24e9f4a4936348bbf33ebfb91ac1c31157f1e",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-owner-real-store-catalog-2026-09-26",
+      "at": "2026-09-26",
+      "type": "implementation",
+      "title": "사장 계정의 빈 매장 시작과 실제 데이터 편집 구현",
+      "detail": "첫 로그인에서 빈/샘플 매장을 명시적으로 선택한다. 빈 매장은 가상 직원·주문·재고·업무를 채우지 않으며 사장 계정만 등록한다. 매장 정보, 메뉴, 원재료 목록을 Flutter에서 수정하고 서버에서 역할·값·중복·보관 제약과 revision을 검사한다. 실물 수량은 별도 확인하며 과거 주문/가격 스냅샷은 보존한다. 기존 샘플 계정의 빈 매장 전환은 명시적으로 실행하고 이전 상태를 서버 내부에 보관한다. 보관본은 앱 응답에 포함하지 않는다. DB 마이그레이션은 workspace 표시 이름과 매장 이름을 동기화하며 배포 스크립트는 모든 SQL 마이그레이션을 순서대로 적용한다. 다른 계정 초대, POS 수집, 실제 공급업체 발주는 아직 구현하지 않았다.",
+      "files": [
+        "developer/operations.mjs",
+        "developer/supabase_backend.mjs",
+        "developer/sales.mjs",
+        "developer/test/catalog.test.mjs",
+        "developer/test/cloud.test.mjs",
+        "app/lib/state/operations_controller.dart",
+        "app/lib/ui/cloud_workspace.dart",
+        "app/lib/ui/catalog_editor.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/lib/ui/store_dashboard.dart",
+        "supabase/migrations/20260926010000_workspace_name.sql",
+        "scripts/configure-supabase.mjs",
+        "PRODUCT.md",
+        "docs/SUPABASE.md",
+        "docs/project-state.json"
+      ],
+      "verification": "로컬 npm run test:console 58/58, npm run check, Flutter analyze 오류 없음, Flutter test 84/84 통과. 새 빈 매장 비재시드, 역할·충돌·이력 보존과 명시적 생성은 Node 테스트에서 확인했다. Supabase 마이그레이션/Edge Function 배포, 실제 계정 저장, 네이티브 빌드 및 실기기 검증은 수행하지 않았다."
+    },
+    {
+      "id": "H-tap-two-level-global-manual-search-2026-09-26",
+      "at": "2026-09-26",
+      "type": "implementation",
+      "title": "TAP 두 단계 탐색과 전역 Small TAP 매뉴얼 검색",
+      "detail": "BIG TAP을 같은 보드의 그룹 필터로 정리하고 TAP에서 Small TAP과 매뉴얼로 직접 이동하도록 화면을 개선했다. 헤더 아래 고정 검색에서 메뉴와 그룹에 무관하게 Small TAP·매뉴얼·연관어를 찾아 읽기 전용으로 연다. 연관어와 공식 POS 출처 URL을 매뉴얼 저장 및 현재 업무 전파에 포함하고 토스 포스 후불형·페이히어의 제품별 공식 사진 가이드 예시를 샘플에 연결했다. 빈 실제 매장에는 예시 업무를 자동 생성하지 않는다. 실제 POS 연결이나 결제 수행은 없다.",
+      "decisionChanges": [
+        {
+          "id": "D-028",
+          "previous": {
+            "title": "Big Tap·Tap·Small Tap 통합 운영 확장",
+            "decision": "Big Tap → Tap → Small Tap 구조와 칸반·5분 계획·2D 매장 배치·근무/급여 현황을 목표 제품 범위에 포함한다. 주문 유입, 지도 동선, 근무 교환, 개인 폰 알림, 템플릿 마켓과 자발적 평판 동의 흐름을 단계적으로 구축한다. 기존 첫 근무 가이드·재고/발주·실물 입고 구분은 유지한다."
+          },
+          "next": {
+            "title": "TAP·Small TAP 통합 운영 확장",
+            "decision": "TAP → Small TAP 두 단계와 BIG TAP 그룹핑, 칸반·2D 매장 배치·근무/급여 현황을 목표 제품 범위에 포함한다. 주문 유입, 지도 동선, 근무 교환, 개인 폰 알림, 템플릿 마켓과 자발적 평판 동의 흐름을 단계적으로 구축한다. 기존 첫 근무 가이드·재고/발주·실물 입고 구분은 유지한다."
+          },
+          "reason": "사용자가 BIG TAP을 구조 단계가 아닌 같은 보드의 그룹핑으로 명시하고 5분 계획은 앞선 요청에서 제거했다."
+        },
+        {
+          "id": "D-030",
+          "previous": {
+            "title": "BIG TAP·Tap·Small Tap 동일 카드와 폴더형 보드",
+            "decision": "세 단계 모두 동일한 카드 형태와 열기 동작을 사용한다. BIG TAP은 업무 모음과 전체 진행률, Tap은 시간대·담당·장소와 하위 진행률, Small Tap은 실행 행동·완료/되돌리기·매뉴얼을 담는다. 카드를 열어 하위 보드로 이동하고 상단 경로로 돌아간다. Trello처럼 단순한 보드와 최소 정보 노출을 기본으로 한다."
+          },
+          "next": {
+            "title": "TAP에서 Small TAP으로 직접 열기",
+            "decision": "TAP은 업무 카드이며 열면 해당 Small TAP 목록과 선택 매뉴얼로 바로 이동한다. BIG TAP은 같은 TAP 보드의 그룹 필터이며 별도 부모 화면이나 완료 단계가 아니다. 카드에는 Small TAP 수와 진행률 및 열기 동작을 명확히 표시하고, 상단 경로로 기존 그룹 선택을 보존하며 TAP 보드로 돌아간다. Small TAP은 실행 행동·완료/되돌리기·매뉴얼을 담는다. 매뉴얼 검색은 화면 상단의 전역 검색을 사용한다."
+          },
+          "reason": "사용자가 TAP 다음 단계만 Small TAP으로 두고 BIG TAP은 그룹핑으로 쓰며 화면 전환을 더 명확히 해 달라고 요청했다."
+        },
+        {
+          "id": "D-031",
+          "previous": {
+            "title": "BIG TAP 폴더와 전체 Tap 상태 보드",
+            "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서의 화면을 유지하고, 아이콘과 한국어 이름(현황/할 일/근무/매장)을 함께 표시하는 떠 있는 메뉴로 제공한다. BIG TAP은 이름 있는 폴더다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. Small TAP 비율만큼 카드에 반투명 코랄을 공간적으로 채우며 완료 카드는 읽기 쉬운 옅은 회색으로 낮춘다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다."
+          },
+          "next": {
+            "title": "BIG TAP 그룹과 전체 TAP 상태 보드",
+            "decision": "하단 메뉴는 Status, Todo, Calendar, Place 순서의 화면을 유지하고, 아이콘과 한국어 이름(현황/할 일/근무/매장)을 함께 표시하는 떠 있는 메뉴로 제공한다. BIG TAP은 같은 TAP 보드의 이름 있는 그룹 필터다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. Small TAP 비율만큼 카드에 반투명 코랄을 공간적으로 채우며 완료 카드는 읽기 쉬운 옅은 회색으로 낮춘다. Calendar는 직원 등록·근태·근무 시간 관리를, Status는 사장님 전용 인건비를 보여준다. Place는 배치 지도 다음에 재료 재고·마지막 실사·발주 시각을 보여준다."
+          },
+          "reason": "사용자가 BIG TAP을 탐색 단계가 아닌 그룹핑으로 명시했다. 기존 상태 보드·진행률·근무·매장 규칙은 유지한다."
+        }
+      ],
+      "files": [
+        "PRODUCT.md",
+        "docs/TAP_SYSTEM_ARCHITECTURE.md",
+        "docs/POS_MANUAL_REFERENCES_2026-09-26.md",
+        "app/lib/ui/operations_screen.dart",
+        "app/lib/ui/tap_workspace.dart",
+        "app/lib/ui/checklist_editor.dart",
+        "developer/operations.mjs",
+        "developer/checklists.mjs",
+        "docs/project-state.json"
+      ],
+      "verification": "로컬 npm run test:console 59/59, npm run check, Flutter analyze 문제 없음, Flutter test 85/85, npm run build:site, git diff --check 통과. 고정 검색·읽기 전용 결과와 320px 화면은 코드 및 기존 위젯 테스트로 확인했다. 실제 계정 로그인 저장, 네이티브 빌드, 실기기 및 외부 POS 조작은 검증하지 않았다."
+    },
+    {
+      "id": "H-supabase-deploy-dns-failure-2026-09-26",
+      "at": "2026-09-26",
+      "type": "verification",
+      "title": "Supabase 배포 DNS 제한으로 중단",
+      "detail": "npm run backend:deploy를 실행했으나 첫 Supabase Management API 요청에서 api.supabase.com DNS 조회가 ENOTFOUND로 실패했다. SQL 마이그레이션과 Edge Function 배포는 시작되지 않았고 공개 Pages 빌드만 로컬에서 생성했다. 실제 매장 편집과 전역 매뉴얼 검색은 원격에 배포되지 않았다.",
+      "files": ["docs/project-state.json", "docs/DEPLOYMENT.md"],
+      "verification": "로컬 빌드와 테스트는 통과했다. 원격 API 호출은 DNS 단계에서 실패했고 실제 계정 저장 및 라이브 화면 검증은 수행하지 못했다."
+    },
+    {
+      "id": "H-project-scoped-codex-supabase-mcp-2026-09-26",
+      "at": "2026-09-26",
+      "type": "implementation",
+      "title": "다른 프로젝트 runner를 보존한 tap2work 전용 Codex Supabase 실행기",
+      "detail": "전역 Codex Supabase MCP가 다른 프로젝트 runner의 참조값을 사용함을 확인했다. 전역 설정과 runner는 변경하지 않았다. tap2work 저장소의 .env에서 토큰을 읽고 대상 프로젝트 참조값을 검사하는 실행기와 세션별 Codex 설정을 적용하는 CLI 명령을 추가했다. 앱의 프로젝트별 .codex/config.toml은 현재 샌드박스가 생성을 거부해 문서에 작성 방법만 안내했다. Supabase 연결 자체는 새 세션 및 네트워크 환경에서 아직 조회하지 않았다.",
+      "files": [".gitignore", "scripts/launch-supabase-mcp.mjs", "scripts/codex-tap2work.sh", "docs/SUPABASE.md", "docs/project-state.json"],
+      "verification": "node 실행기의 --check 성공, node --check 및 sh -n 통과. sh scripts/codex-tap2work.sh mcp get supabase에서 프로젝트 실행기로 바뀐 명령과 cwd를 확인했다. 기존 전역 Codex 설정 파일 및 다른 프로젝트 runner는 수정하지 않았다."
     }
   ],
-  "updatedAt": "2026-09-25T13:23:39Z"
+  "updatedAt": "2026-09-26"
 }

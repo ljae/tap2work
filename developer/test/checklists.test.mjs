@@ -18,6 +18,34 @@ async function setup(t) {
   return { file, store, act, clock, midnight: () => { now = new Date('2026-09-20T15:00:00Z'); } };
 }
 const draft = state => ({ folders: state.checklistFolders, templates: state.taskTemplates });
+test('global manual index and related words reach crew without private data or duplicate instances', async t => {
+  const { store, act } = await setup(t);
+  const owner = await store.snapshot('owner');
+  const pos = owner.manualSearch.find(row => row.title === '금액 나눠 결제' && row.tapTitle.startsWith('토스'));
+  assert.ok(pos?.sourceUrl.startsWith('https://tossplace.gitbook.io/'));
+  assert.equal(owner.manualSearch.filter(row => row.id === pos.id).length, 1);
+  const orderTap = owner.tasks.find(row => row.orderId && row.steps?.length);
+  assert.ok(orderTap && owner.manualSearch.some(row => row.tapTitle === orderTap.title));
+  const task = owner.tasks.find(row => row.templateId === PREP);
+  const step = task.steps[0];
+  const saved = await act('save_step_manual', { taskId: task.id, stepId: step.id, manual: '매장 승인 방법', tags: ['우동사리', '창고 위치'], sourceUrl: 'https://example.com/guide' });
+  const result = saved.manualSearch.find(row => row.id === `${task.templateId}/${step.id}`);
+  assert.deepEqual(result.tags, ['우동사리', '창고 위치']);
+  assert.equal(result.sourceUrl, 'https://example.com/guide');
+  assert.deepEqual(saved.tasks.find(row => row.id === task.id).steps[0].manualHistory[0].tags, step.tags ?? []);
+  const crew = await store.snapshot('crew');
+  assert.equal(crew.taskTemplates, undefined);
+  assert.equal(crew.privateSummary, undefined);
+  assert.ok(crew.manualSearch.some(row => row.id === result.id));
+  await assert.rejects(act('save_step_manual', { taskId: task.id, stepId: step.id, manual: 'x', tags: ['a'.repeat(31)] }), { status: 400 });
+  await assert.rejects(act('save_step_manual', { taskId: task.id, stepId: step.id, manual: 'x', tags: Array(21).fill('a') }), { status: 400 });
+  const template = saved.taskTemplates.find(row => row.id === task.templateId);
+  const changed = structuredClone(saved.taskTemplates);
+  changed.find(row => row.id === template.id).steps[0].tags = ['국물 내는 법'];
+  const catalogSaved = await act('save_checklists', { folders: saved.checklistFolders, templates: changed });
+  assert.deepEqual(catalogSaved.taskTemplates.find(row => row.id === template.id).steps[0].tags, ['국물 내는 법']);
+  assert.ok(catalogSaved.manualSearch.some(row => row.id === result.id && row.tags.includes('국물 내는 법')));
+});
 // The shape written by the first shared demo: three flat routine tasks and no manuals.
 function legacySeed(now) {
   const state = seedOperations(now);
@@ -38,7 +66,7 @@ test('fresh demo starts with the 뼈찜 collection in its own folder, place and 
   assert.equal(bone.tasks.length, 11);
   assert.ok(state.checklistFolders.some(f => f.id === 'order-work'));
   assert.ok(state.checklistFolders.some(f => f.id === 'bone-preparation'));
-  assert.equal(state.taskTemplates.length, 14);
+  assert.equal(state.taskTemplates.length, 16);
   assert.ok(state.taskTemplates.every(row => row.version === 1));
   const prep = state.taskTemplates.find(row => row.id === PREP);
   assert.equal(prep.zone, 'prep'); assert.equal(prep.requiredRole, 'cook'); assert.equal(prep.emoji, '🍖');
@@ -55,7 +83,7 @@ test('legacy migration preserves completed evidence and upgrades pending manuals
   old.tasks[0].completedAt = clock().toISOString(); old.tasks[0].completedBy = { name: '기존 담당' };
   await writeFile(file, JSON.stringify(old));
   const upgraded = await store.snapshot('owner');
-  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine' && !t.orderId && !t.preparedItemId).length, 6);
+  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine' && !t.orderId && !t.preparedItemId).length, 8);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').steps, undefined);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').completedBy.name, '기존 담당');
   assert.equal(upgraded.tasks.find(t => t.id === 'prep').steps.length, 3);
@@ -181,7 +209,7 @@ test('entire catalog validates and saves with sources and detailed instructions'
   const payload = fullCatalog(state);
   const saved = await store.mutate('owner', { action: 'save_checklists', revision: state.revision, ...payload });
   assert.equal(saved.taskTemplates.length, payload.templates.length);
-  assert.equal(saved.taskTemplates.length, checklistLibrary.industries.reduce((n, i) => n + i.tasks.length, 0) + 3);
+  assert.equal(saved.taskTemplates.length, checklistLibrary.industries.reduce((n, i) => n + i.tasks.length, 0) + 5);
 });
 test('HTTP accepts checklist drafts larger than the old 64 KiB limit', async t => {
   const { store, file, clock } = await setup(t);

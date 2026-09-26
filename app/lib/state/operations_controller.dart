@@ -82,7 +82,7 @@ class OperationsController extends ChangeNotifier {
       if (response.statusCode != 200) throw Exception(body['error']);
       _previewTickets.clear();
       data = body;
-      if (cloud) actorId = body['actor']['id'];
+      if (cloud && body['actor'] is Json) actorId = body['actor']['id'];
       _token = body['demoToken'] as String?;
       error = null;
     } catch (_) {
