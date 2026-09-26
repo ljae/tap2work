@@ -134,3 +134,9 @@ Commit `f5c24e9` applies the [UI design system](UI_DESIGN_SYSTEM_2026-09-25.md) 
 ## Real store setup and direct TAP navigation · 2026-09-26
 
 Feature commit `6eb2684` was merged into `main` as `cd91dff`. Supabase project `sgpmhqtaylgqymeqciin` accepted the workspace SQL migrations and the `operations` Edge Function deployment. The function returned 401 to an unauthenticated request. [Actions 36215875627](https://github.com/ljae/tap2work/actions/runs/36215875627) passed JavaScript checks, 59 Node tests, Flutter analysis, 85 Flutter tests, public build and Pages deployment. The live HTTPS root returned 200, and `main.dart.js` matched the local `_site/main.dart.js` by SHA-256 (`2f30b6657ed414a9c4ad4575a4e1484f08ba2aa71278d39052d30329699466d1`). Authenticated live saves, native builds and physical-device interaction were not tested.
+
+## TAP 담당자·주문 시간·OKPOS 샘플 안내 배포 · 2026-09-26
+
+기능 커밋 `942640d`가 `main`에 `f17545c67e8758d57aa7402e87b96870b445fe8a`로 머지·푸시되었다. Supabase 프로젝트 `sgpmhqtaylgqymeqciin`에 `operations` Edge Function을 배포하고 기존 SQL 마이그레이션 두 개를 다시 적용했다. 새 마이그레이션은 없다. 비로그인 함수 요청은 401을 반환했다.
+
+[Actions 36217849143](https://github.com/ljae/tap2work/actions/runs/36217849143)에서 모든 검사·빌드와 Pages 배포가 성공했다. `https://tap2.work/`는 HTTPS 200을 반환했고, 라이브 `main.dart.js`와 로컬 `_site/main.dart.js`의 SHA-256은 `8229e4e9c51d958570b1122a0abd26ff04ca0e07197c7c1f8e670cf086d17fb6`으로 일치했다. 인증 계정 저장, 네이티브 빌드, 실기기 검증, 실제 OKPOS 조작은 수행하지 않았다. 이 배포 기록은 프로젝트 revision 66에 남겼다.

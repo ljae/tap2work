@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 65,
+  "revision": 66,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -2964,6 +2964,23 @@
         "docs/project-state.json"
       ],
       "verification": "로컬 npm run test:console 60/60, npm run check, Flutter analyze 문제 없음, Flutter 전체 test 87/87 및 최종 TAP 위젯 test 11/11, npm run build:site, git diff --check 통과. 실제 OKPOS 기기 조작, 실주문/POS 연동, 네이티브 빌드와 실기기 검증은 수행하지 않았다."
+    },
+    {
+      "id": "H-tap-assignee-order-time-okpos-release-2026-09-26",
+      "at": "2026-09-26",
+      "type": "deployment",
+      "title": "담당자 색·주문 시간·OKPOS 샘플 안내를 Pages·Supabase에 배포",
+      "detail": "기능 커밋 942640d를 main에 f17545c67e8758d57aa7402e87b96870b445fe8a로 머지하고 원격에 푸시했다. Supabase 프로젝트 sgpmhqtaylgqymeqciin의 operations Edge Function을 배포하고 기존 SQL 마이그레이션 두 개를 다시 적용했다. 새 마이그레이션은 없다. GitHub Pages는 tap2.work 공개 Flutter 리뷰 앱을 배포했다.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "Actions 36217849143에서 모든 검사·빌드·Pages 배포 성공. HTTPS 루트 200, 라이브 main.dart.js와 로컬 _site/main.dart.js SHA-256 일치(8229e4e9c51d958570b1122a0abd26ff04ca0e07197c7c1f8e670cf086d17fb6). Supabase operations 함수 비로그인 요청 401. 인증 계정 저장, 네이티브 빌드, 실기기 검증, 실제 OKPOS 조작은 수행하지 않았다.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36217849143",
+        "https://github.com/ljae/tap2work/commit/f17545c67e8758d57aa7402e87b96870b445fe8a",
+        "https://tap2.work/"
+      ]
     }
   ],
   "updatedAt": "2026-09-26"
