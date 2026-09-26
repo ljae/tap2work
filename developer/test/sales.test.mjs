@@ -37,11 +37,15 @@ test('sales reconcile discounts, refunds, cancellation, unpaid tickets, all menu
   assert.equal(report(dashboard, 7, '배달').summary.orderCount, 1);
   assert.deepEqual(dashboard.queue.map(o => o.id), ['yesterday', 'unpaid']);
   assert.equal(dashboard.queue[0].elapsedMinutes, 10);
+  assert.equal(dashboard.queue[0].targetMinutes, undefined);
+  const real = fixture(); real.source = 'manual'; real.tickets[3].targetMinutes = 25;
+  assert.equal(salesDashboard(real, now, true).queue[0].targetMinutes, undefined);
 });
 
 test('every sample report reconciles menu and hourly totals including zero orders', () => {
   for (const instant of [now, new Date('2026-09-19T15:00:00Z')]) {
     const sales = seedSales(instant);
+    assert.ok(sales.tickets.every(t => Number.isInteger(t.targetMinutes) && t.targetMinutes > 0));
     assert.ok(sales.tickets.every(t => new Date(t.createdAt) <= instant));
     for (const r of salesDashboard(sales, instant, true).reports) {
       assert.equal(r.summary.revenue, r.menus.reduce((n, m) => n + m.revenue, 0));

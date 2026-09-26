@@ -94,38 +94,28 @@ function ensureTapBoard(state) {
   state.tapBoardVersion = 1;
   return true;
 }
-function ensurePosGuides(state) {
-  if (state.posGuideVersion === 1 || state.sales?.source !== 'sample') return false;
-  const make = (id, title, steps) => ({
-    id: `demo-pos-${id}`, title, emoji: '💳', folderId: 'settlement', slot: '피크',
-    requiredRole: 'all', zone: state.zones.some(zone => zone.id === 'pass') ? 'pass' : state.zones[0]?.id,
-    version: 1, sourceIds: [], steps: steps.map(([key, name, manual, tags, sourceUrl, imageUrl = '']) => ({
-      id: key, title: name, manual, tags, sourceUrl, imageUrl,
-      tip: '제품·버전에 따라 화면이 다를 수 있어요. 실제 결제 전 매장 장비와 공식 사진 가이드를 확인해 주세요. (2026-09-26 확인)',
-    })),
-  });
-  const toss = 'https://tossplace.gitbook.io/guide/sector/postpaid-store/payment/split-payment';
-  const tossImage = 'https://3169993178-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2F8akTTvJ7l2f3ZD1OFfEU%2Fuploads%2FQKjEYI8pIJzqun71VCff%2Fimage.png?alt=media&token=4f1444ae-f5c9-485f-80d3-037ccb6f684b';
-  const payhere = 'https://help-center.payhere.in/00e5bcff-326b-4b80-9e4f-892ea58607f9';
-  const refund = 'https://help-center.payhere.in/76da4d4a-0002-4fec-b877-f85603d547b2';
-  const guides = [
-    make('toss', '토스 포스 결제·취소', [
-      ['amount', '금액 나눠 결제', '토스 포스 후불형: 결제 화면에서 메뉴 선택 또는 결제 버튼을 누른 뒤 분할결제 → 금액으로 결제를 선택해 금액을 입력하고 확인해요. 결제수단을 선택해 승인하고 남은 금액에 반복 적용해요. 마지막 잔액이 0원인지 확인해요.', ['결제 나눠서', '분할결제', '금액별', '더치페이'], toss, tossImage],
-      ['people', '인원수 더치페이', '토스 포스 후불형: 분할결제 → 더치페이를 선택하고 인원수를 지정해요. 각 몫의 결제수단을 선택해 차례대로 결제하고, 남은 잔액이 0원인지 확인해요.', ['인원별', '더치페이', '나눠결제'], toss],
-      ['menu', '메뉴별 결제', '토스 포스 후불형: 분할결제 → 메뉴별 결제를 선택하고 이번에 결제할 상품을 고른 뒤 확인해요. 결제수단을 선택하고 남은 상품에도 반복해 최종 잔액을 확인해요.', ['상품별', '메뉴별', '따로결제'], toss],
-      ['cancel', '분할 결제 취소·재결제', '토스 포스 후불형: 왼쪽 위 메뉴 → 결제내역에서 취소할 분할 건을 선택하고 결제취소를 진행해요. 결제수단 변경은 결제내역의 결제수단 변경에서 기존 결제를 취소한 뒤 새 수단으로 재결제하고 두 내역을 모두 확인해요.', ['환불', '결제취소', '결제수단변경'], toss],
-    ]),
-    make('payhere', '페이히어 결제·취소', [
-      ['amount', '금액 나눠 결제', '페이히어 셀러의 지원 화면: 결제 단계에서 분할 결제를 선택해 금액을 직접 입력하고 적용해요. 결제수단을 선택해 결제한 뒤 남은 잔액에도 반복해요. 페이히어 라이트는 분할 결제를 지원하지 않아요.', ['결제 나눠서', '분할결제', '금액별'], payhere],
-      ['people', '인원수 더치페이', '페이히어 셀러의 지원 화면: 결제 단계에서 분할 결제 → 더치페이로 인원수를 정해 적용해요. 각 몫의 결제수단을 선택해 결제하고 남은 잔액을 확인해요. 페이히어 라이트는 분할 결제를 지원하지 않아요.', ['인원별', '더치페이', '나눠결제'], payhere],
-      ['menu', '상품별 결제', '페이히어 셀러의 지원 화면: 주문 목록에서 이번에 결제할 상품을 선택한 뒤 결제를 누르고 수단을 선택해요. 결제하지 않은 상품은 주문 목록에 남으므로 다음 결제를 이어가요.', ['상품별', '메뉴별', '따로결제'], payhere],
-      ['refund', '카드 결제 취소', '페이히어 셀러: 더보기 → 결제 내역에서 대상 거래를 고른 뒤 환불을 누르고 다시 확인해요. 원래 결제한 카드를 삽입해 진행하고 완료 내역을 확인해요. 카드 정보는 이 앱에 기록하지 않아요.', ['환불', '카드취소', '결제취소'], refund],
-    ]),
-  ];
-  for (const guide of guides) if (!state.taskTemplates.some(row => row.id === guide.id)) state.taskTemplates.push(guide);
-  state.posGuideVersion = 1;
+function ensurePosGuides(state, now = new Date()) {
+  if (state.sales?.source !== 'sample' || state.posGuideVersion === 2) return false;
+  const archivedAt = new Date(now).toISOString();
+  for (const row of [...(state.taskTemplates ?? []), ...(state.tasks ?? [])]) {
+    if (!['demo-pos-toss', 'demo-pos-payhere'].includes(row.id) && !['demo-pos-toss', 'demo-pos-payhere'].includes(row.templateId)) continue;
+    row.archivedAt ??= archivedAt;
+  }
+  const template = {
+    id: 'demo-pos-okpos', title: '오케이포스(OKPOS) 결제 안내 · 샘플', emoji: '💳',
+    folderId: 'settlement', slot: '피크', requiredRole: 'all',
+    zone: state.zones.some(zone => zone.id === 'pass') ? 'pass' : state.zones[0]?.id,
+    version: 1, sourceIds: [], steps: [
+      { id: 'amount', title: '복합결제 · 금액별', manual: '오케이포스(OKPOS) 샘플 안내: 결제 화면에서 복합결제를 누르고 분할 금액을 입력해요. 결제 수단을 선택해 결제한 뒤 나머지 금액에도 반복해요. 마지막 잔액을 확인하고 영수증 결제 내역을 대조해요.', tags: ['복합결제', '분할결제', '금액별', '더치페이'], sourceUrl: 'https://okpos.gitbook.io/okpos/undefined-3/undefined/payment/mixed_media' },
+      { id: 'menu', title: '더치페이 · 상품별', manual: '오케이포스(OKPOS) 샘플 안내: 결제 화면에서 더치페이를 누르고 이번에 결제할 상품을 선택해 결제해요. 남은 상품에도 반복하고 영수증을 각각 확인해요.', tags: ['더치페이', '상품별', '메뉴별', '따로결제'], sourceUrl: 'https://okpos.gitbook.io/okpos/undefined-3/undefined/payment/per_person' },
+      { id: 'cancel', title: '결제 취소 안내 확인', manual: '취소할 거래와 원 결제 내역을 먼저 확인해요. 구체적인 취소 절차는 매장 장비의 버전에 맞는 오케이포스 공식 안내와 매장 담당자에게 확인해요.', tags: ['결제취소', '환불', '취소'], sourceUrl: 'https://okpos.gitbook.io/okpos/undefined-3/undefined/receipts' },
+    ].map(step => ({ ...step, tip: '샘플 안내예요. 실제 POS 연결이나 결제 기능은 없어요. 매장 장비와 공식 안내를 확인해 주세요.' })),
+  };
+  if (!state.taskTemplates.some(row => row.id === template.id)) state.taskTemplates.push(template);
+  state.posGuideVersion = 2;
   return true;
 }
+
 export function seedOperations(now = new Date()) {
   const earlier = new Date(new Date(now).getTime() - 3 * dayMs).toISOString();
   const zones = seedZones();
@@ -168,7 +158,7 @@ export function emptyOperations(now = new Date(), ownerId, ownerName = '사장�
     items: [], orders: [], tasks: [], taskTemplates: [],
     checklistFolders: [{ id: 'general', name: '기본 업무' }],
     bigTapOrder: ['general'], tapBoardVersion: 1, checklistVersion: 1,
-    orderCompositionVersion: 3, orderTapVersion: 2,
+    orderCompositionVersion: 3, orderTapVersion: 2, posGuideVersion: 2,
     preparedVersion: 1, preparedItems: [], preparedMovements: [],
     zones: [], layout: { name: '우리 매장', columns: 16, rows: 12, updatedAt: null, updatedBy: null },
     tappers: [{ id: `tapper-${ownerId}`, actorId: ownerId, rank: 'owner', nickname: ownerName,
@@ -191,7 +181,11 @@ function ensureDueTasks(state, now) {
   if (ensureChecklists(state)) changed = true;
   if (ensureTapBoard(state)) changed = true;
   if (!state.sales) { state.sales = seedSales(now); changed = true; }
-  if (ensurePosGuides(state)) changed = true;
+  if (state.sales?.source === 'sample') for (const ticket of state.sales.tickets ?? []) {
+    const match = /^S-\d+-(\d+)$/.exec(ticket.id);
+    if (match && ticket.targetMinutes == null) { ticket.targetMinutes = [20, 25, 30][(Number(match[1]) - 1) % 3]; changed = true; }
+  }
+  if (ensurePosGuides(state, now)) changed = true;
   const date = koreanDate(now);
   if (state.day !== date) { state.day = date; changed = true; }
   if (ensurePreparedItems(state, now)) changed = true;

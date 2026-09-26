@@ -42,7 +42,7 @@ Future<void> openGroup(WidgetTester tester, String name) async {
 Future<void> openCard(WidgetTester tester, String key) async {
   final card = find.byKey(ValueKey(key));
   await tester.ensureVisible(card);
-  await tester.tap(card);
+  tester.widget<TapCard>(card).onOpen();
   await tester.pumpAndSettle();
 }
 
@@ -93,6 +93,96 @@ void main() {
       expect(complete, const Color(0xFFF0F2F4));
     },
   );
+  testWidgets('phone TAP controls keep drag, check and open separate', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    var opened = 0;
+    var checked = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TapCard(
+            level: 'TAP',
+            title: '긴 제목의 주문 처리 업무를 확인하는 카드',
+            subtitle: '조리 · 가능한 담당자',
+            dragHandle: const SizedBox(
+              width: 32,
+              height: 48,
+              child: Icon(Icons.drag_indicator),
+            ),
+            assigneeBadges: const Text('현우 · 민지'),
+            onOpen: () => opened++,
+            onCheck: () => checked++,
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.text('현우 · 민지'), findsOneWidget);
+    await tester.tap(find.byTooltip('완료하기'));
+    expect(checked, 1);
+    expect(opened, 0);
+    await tester.tap(find.text('Small TAP'));
+    expect(opened, 1);
+    expect(checked, 1);
+  });
+
+  testWidgets(
+    'active Tappers supply role names and stable person colors at phone width',
+    (tester) async {
+      final data = fixture();
+      data['tappers'] = [
+        {
+          'id': 'cook-1',
+          'nickname': '현우',
+          'rank': 'crew',
+          'duties': ['조리'],
+          'active': true,
+        },
+        {
+          'id': 'cook-2',
+          'nickname': '서진',
+          'rank': 'crew',
+          'duties': ['조리 보조'],
+          'active': true,
+        },
+        {
+          'id': 'cook-off',
+          'nickname': '휴직',
+          'rank': 'crew',
+          'duties': ['조리'],
+          'active': false,
+        },
+      ];
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((_) async => response(data)),
+      );
+      addTearDown(ops.dispose);
+      await mountBoard(tester, ops, width: 320);
+      expect(find.text('현우'), findsWidgets);
+      expect(find.text('서진'), findsWidgets);
+      expect(find.text('휴직'), findsNothing);
+      final card = tester.widget<TapCard>(
+        find.byKey(const ValueKey('tap-daily-broth')),
+      );
+      expect(card.subtitle, contains('가능한 담당자'));
+      expect(card.assigneeBadges, isNotNull);
+      final badges = card.assigneeBadges! as Wrap;
+      final colors = badges.children.map((entry) {
+        final dot = (entry as Row).children.first as Container;
+        return (dot.decoration! as BoxDecoration).color;
+      }).toSet();
+      expect(colors.length, 2);
+      expect(colors, contains(card.accentColor));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets(
     'menu TAPs render in one order group and its touch action moves them together',
     (tester) async {
@@ -107,6 +197,8 @@ void main() {
         'orderChannel': '배달',
         'orderPlatform': '배달의민족',
         'customerRequest': '수저 제외',
+        'orderCreatedAt': '2026-09-24T09:00:00Z',
+        'orderTargetMinutes': 25,
       });
       for (final step in first['steps'] as List) {
         (step as Json)['completedAt'] = '2026-09-24T09:00:00Z';
@@ -117,8 +209,21 @@ void main() {
         'title': '추가 메뉴',
         'orderId': 'order-17',
         'orderNumber': 'A-17',
+        'orderCreatedAt': '2026-09-24T09:00:00Z',
+        'orderTargetMinutes': 25,
       });
       (data['tasks'] as List).add(second);
+      data['dashboard'] = {
+        'queue': [
+          {
+            'id': 'order-17',
+            'status': '접수',
+            'elapsedMinutes': 8,
+            'targetMinutes': 25,
+          },
+        ],
+        'reports': [],
+      };
       var writes = 0;
       final ops = OperationsController(
         readOnly: true,
@@ -130,6 +235,10 @@ void main() {
       addTearDown(ops.dispose);
       await mountBoard(tester, ops, width: 390);
       expect(find.textContaining('주문 A-17 ·'), findsOneWidget);
+      expect(
+        find.textContaining('9/24 18:00 접수 · 경과 8분 · 목표 25분(가상) · 17분 남음'),
+        findsOneWidget,
+      );
       expect(find.text('주문처리중'), findsOneWidget);
       expect(find.text('할일'), findsOneWidget);
       expect(find.text('완료'), findsWidgets);
@@ -196,7 +305,7 @@ void main() {
             .level,
         'TAP',
       );
-      expect(find.text('Small TAP 2개 보기'), findsWidgets);
+      expect(find.text('Small TAP'), findsWidgets);
       await openCard(tester, 'tap-daily-prep');
       expect(find.text('TAP 목록으로'), findsOneWidget);
       expect(find.text('Small TAP 2개 보기'), findsNothing);
@@ -222,9 +331,7 @@ void main() {
     });
   }
 
-  testWidgets('opening a TAP preserves its board grouping', (
-    tester,
-  ) async {
+  testWidgets('opening a TAP preserves its board grouping', (tester) async {
     final ops = OperationsController(
       readOnly: true,
       client: MockClient((_) async => response(fixture())),
@@ -323,16 +430,15 @@ void main() {
       await tester.pumpAndSettle();
       await openGroup(tester, '기본 업무  ·  2');
       await openCard(tester, 'tap-daily-broth');
-      await tester.tap(
-        find.descendant(
-          of: find.byKey(const ValueKey('small-b1')),
-          matching: find.byType(IconButton),
-        ),
-      );
+      tester.widget<TapCard>(find.byKey(const ValueKey('small-b1'))).onCheck!();
       await tester.pumpAndSettle();
       expect(
-        tester.widget<TapCard>(find.byKey(const ValueKey('small-b1'))).checked,
-        isFalse,
+        ops
+            .rows('tasks')
+            .firstWhere(
+              (task) => task['id'] == 'daily-broth',
+            )['steps'][0]['completedAt'],
+        isNull,
       );
       expect(find.textContaining('담당 Tap이에요'), findsOneWidget);
     },
