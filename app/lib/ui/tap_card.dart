@@ -19,6 +19,9 @@ class TapCard extends StatelessWidget {
     this.locked = false,
     this.selected = false,
     this.sequence,
+    this.dragHandle,
+    this.accentColor,
+    this.assigneeBadges,
   });
 
   final String level, title, subtitle, emoji, footer;
@@ -28,19 +31,21 @@ class TapCard extends StatelessWidget {
   final bool checked, locked;
   final bool selected;
   final int? sequence;
+  final Widget? dragHandle;
+  final Color? accentColor;
+  final Widget? assigneeBadges;
 
   @override
   Widget build(BuildContext context) {
     final progress = total == 0 ? 0.0 : (done / total).clamp(0.0, 1.0);
     final complete = checked || (total > 0 && done == total);
-    const foreground = AppColors.ink;
-    const secondary = AppColors.muted;
+    final tint = accentColor ?? AppColors.accent;
     return Material(
       color: complete ? const Color(0xFFF0F2F4) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
         side: BorderSide(
-          color: selected ? AppColors.accent : AppColors.line,
+          color: selected ? tint : AppColors.line,
           width: selected ? 2 : 1,
         ),
       ),
@@ -52,161 +57,154 @@ class TapCard extends StatelessWidget {
               child: FractionallySizedBox(
                 alignment: Alignment.centerLeft,
                 widthFactor: progress,
-                child: const ColoredBox(color: Color(0x66E98B76)),
+                child: ColoredBox(color: tint.withValues(alpha: .18)),
               ),
             ),
-          InkWell(
-            onTap: onOpen,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (total > 0) ...[
-                    Row(
-                      children: [
-                        Text(
-                          '$done/$total',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: complete
-                                ? AppColors.muted
-                                : done > 0
-                                ? AppColors.accent
-                                : AppColors.muted,
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    if (dragHandle != null) ...[
+                      dragHandle!,
+                      const SizedBox(width: 2),
+                    ],
+                    if (onCheck != null) ...[
+                      IconButton(
+                        tooltip: checked ? '완료 되돌리기' : '완료하기',
+                        onPressed: onCheck,
+                        icon: Icon(
+                          checked
+                              ? Icons.check_circle
+                              : locked
+                              ? Icons.lock_outline
+                              : Icons.radio_button_unchecked,
+                        ),
+                        color: checked ? AppColors.muted : tint,
+                      ),
+                    ],
+                    Expanded(
+                      child: InkWell(
+                        onTap: onOpen,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.ink,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: LinearProgressIndicator(
-                            value: done / total,
-                            minHeight: 5,
-                            semanticsLabel: '$done/$total 활동 완료',
-                            color: complete
-                                ? AppColors.muted
-                                : AppColors.accent,
-                            backgroundColor: complete
-                                ? Colors.white
-                                : AppColors.paper,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: 12),
+                    Semantics(
+                      label: level.toLowerCase().contains('small')
+                          ? '방법 열기'
+                          : 'Small TAP 열기',
+                      button: true,
+                      child: InkWell(
+                        onTap: onOpen,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 2,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                level.toLowerCase().contains('small')
+                                    ? '방법'
+                                    : 'Small TAP',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: tint,
+                                ),
+                              ),
+                              Icon(
+                                CupertinoIcons.chevron_right,
+                                size: 15,
+                                color: tint,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, top: 2),
+                  child: Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      height: 1.4,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ),
+                if (assigneeBadges != null) ...[
+                  const SizedBox(height: 5),
+                  assigneeBadges!,
+                ],
+                if (total > 0) ...[
+                  const SizedBox(height: 10),
                   Row(
                     children: [
-                      Icon(
-                        level.toLowerCase().contains('small')
-                            ? CupertinoIcons.checkmark_circle
-                            : level.toLowerCase().contains('tap')
-                            ? CupertinoIcons.list_bullet
-                            : CupertinoIcons.folder,
-                        size: 20,
-                        color: secondary,
+                      Text(
+                        '$done/$total',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: complete ? AppColors.muted : tint,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          sequence == null ? level : '$level ${sequence!}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            letterSpacing: .4,
-                            fontWeight: FontWeight.w700,
-                            color: secondary,
-                          ),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 5,
+                          semanticsLabel: '$done/$total 활동 완료',
+                          color: complete ? AppColors.muted : tint,
+                          backgroundColor: complete
+                              ? Colors.white
+                              : AppColors.paper,
                         ),
-                      ),
-                      Icon(
-                        CupertinoIcons.chevron_right,
-                        size: 17,
-                        color: secondary,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      height: 1.45,
-                      color: foreground,
-                    ),
-                  ),
-                  const SizedBox(height: 7),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.55,
-                      color: secondary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (onCheck != null)
-                    Row(
-                      children: [
-                        Semantics(
-                          label: '$title ${checked ? '확인 되돌리기' : '확인'}',
-                          button: true,
-                          child: IconButton(
-                            tooltip: checked ? '완료 되돌리기' : '완료하기',
-                            onPressed: onCheck,
-                            icon: Icon(
-                              checked
-                                  ? Icons.check_circle
-                                  : locked
-                                  ? Icons.lock_outline
-                                  : Icons.radio_button_unchecked,
-                            ),
-                            color: AppColors.muted,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            checked
-                                ? '완료'
-                                : locked
-                                ? '담당자 확인'
-                                : '마쳤으면 탭',
-                            style: TextStyle(fontSize: 13, color: secondary),
-                          ),
-                        ),
-                      ],
-                    ),
-                  if (footer.isNotEmpty) ...[
-                    if (onCheck != null) const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            footer,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.accent,
-                            ),
-                          ),
-                        ),
-                        Icon(
-                          level.toLowerCase().contains('small')
-                              ? Icons.menu_book_outlined
-                              : Icons.arrow_forward,
-                          size: 16,
-                          color: AppColors.accent,
-                        ),
-                      ],
-                    ),
-                  ] else if (onCheck == null) ...[
-                    Text(
-                      footer,
-                      style: TextStyle(fontSize: 12, color: secondary),
-                    ),
-                  ],
                 ],
-              ),
+                if (checked || locked) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    checked ? '완료' : '담당자 확인',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
+                if (footer.isNotEmpty &&
+                    level.toLowerCase().contains('small')) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    footer,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: tint,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ],

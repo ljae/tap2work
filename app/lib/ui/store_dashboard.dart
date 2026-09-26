@@ -572,16 +572,24 @@ class _StoreDashboardState extends State<StoreDashboard> {
                   ),
                   space(7),
                   note(
-                    '${order['channel']}${order['platform'] == null ? '' : ' · 🛵 ${order['platform']}'}${order['table'] == null ? '' : ' · ${order['table']}'} · 접수 후 ${order['elapsedMinutes']}분',
+                    '${order['channel']}${order['platform'] == null ? '' : ' · 🛵 ${order['platform']}'}${order['table'] == null ? '' : ' · ${order['table']}'}',
                   ),
+                  note(
+                    '${_clock(order['createdAt'])} 접수 · 경과 ${order['elapsedMinutes']}분',
+                  ),
+                  if (order['targetMinutes'] is int)
+                    note(
+                      (order['elapsedMinutes'] as int) >
+                              (order['targetMinutes'] as int)
+                          ? '목표 ${order['targetMinutes']}분(가상) · ${(order['elapsedMinutes'] as int) - (order['targetMinutes'] as int)}분 초과'
+                          : '목표 ${order['targetMinutes']}분(가상) · ${(order['targetMinutes'] as int) - (order['elapsedMinutes'] as int)}분 남음',
+                    ),
                   space(8),
                   for (final line in order['lines'] as List)
                     Text(
                       '${line['name']} × ${line['quantity']}',
                       style: const TextStyle(fontSize: 13, height: 1.8),
                     ),
-                  space(6),
-                  note('${_clock(order['createdAt'])} 접수'),
                 ],
               ),
             ),

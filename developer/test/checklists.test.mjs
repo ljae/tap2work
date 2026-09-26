@@ -21,8 +21,8 @@ const draft = state => ({ folders: state.checklistFolders, templates: state.task
 test('global manual index and related words reach crew without private data or duplicate instances', async t => {
   const { store, act } = await setup(t);
   const owner = await store.snapshot('owner');
-  const pos = owner.manualSearch.find(row => row.title === '금액 나눠 결제' && row.tapTitle.startsWith('토스'));
-  assert.ok(pos?.sourceUrl.startsWith('https://tossplace.gitbook.io/'));
+  const pos = owner.manualSearch.find(row => row.title === '복합결제 · 금액별' && row.tapTitle.startsWith('오케이포스'));
+  assert.ok(pos?.sourceUrl.startsWith('https://okpos.gitbook.io/'));
   assert.equal(owner.manualSearch.filter(row => row.id === pos.id).length, 1);
   const orderTap = owner.tasks.find(row => row.orderId && row.steps?.length);
   assert.ok(orderTap && owner.manualSearch.some(row => row.tapTitle === orderTap.title));
@@ -59,6 +59,28 @@ function legacySeed(now) {
   state.taskTemplates = structuredClone(state.tasks);
   return state;
 }
+test('OKPOS migration archives old sample guides and keeps edited completion history', async t => {
+  const { file, store, clock } = await setup(t);
+  const old = legacySeed(clock());
+  const template = { id: 'demo-pos-toss', title: '이전 POS', folderId: 'settlement', slot: '피크', requiredRole: 'all', zone: 'pass', version: 1,
+    steps: [{ id: 'amount', title: '이전 안내', manual: '매장 편집 내용', tip: '기록' }] };
+  old.taskTemplates.push(template);
+  old.tasks.push({ ...structuredClone(template), id: 'daily-demo-pos-toss-v1-2026-09-20', templateId: template.id,
+    kind: 'routine', date: '2026-09-20', completedAt: clock().toISOString(), completedBy: { id: 'owner', name: '기존 담당' } });
+  old.posGuideVersion = 1;
+  await writeFile(file, JSON.stringify(old));
+  const upgraded = await store.snapshot('owner');
+  assert.equal(upgraded.taskTemplates.find(row => row.id === template.id).archivedAt != null, true);
+  const stored = JSON.parse(await readFile(file));
+  const archived = stored.tasks.find(row => row.templateId === template.id);
+  assert.equal(archived.steps[0].manual, '매장 편집 내용');
+  assert.equal(archived.completedBy.name, '기존 담당');
+  assert.ok(archived.archivedAt);
+  assert.ok(upgraded.taskTemplates.some(row => row.id === 'demo-pos-okpos'));
+  assert.equal(upgraded.manualSearch.some(row => row.tapTitle === '이전 POS'), false);
+  assert.deepEqual((await store.snapshot('owner')).revision, upgraded.revision);
+});
+
 test('fresh demo starts with the 뼈찜 collection in its own folder, place and role hints applied', async t => {
   const { store } = await setup(t);
   const state = await store.snapshot('owner');
@@ -66,7 +88,7 @@ test('fresh demo starts with the 뼈찜 collection in its own folder, place and 
   assert.equal(bone.tasks.length, 11);
   assert.ok(state.checklistFolders.some(f => f.id === 'order-work'));
   assert.ok(state.checklistFolders.some(f => f.id === 'bone-preparation'));
-  assert.equal(state.taskTemplates.length, 16);
+  assert.equal(state.taskTemplates.length, 15);
   assert.ok(state.taskTemplates.every(row => row.version === 1));
   const prep = state.taskTemplates.find(row => row.id === PREP);
   assert.equal(prep.zone, 'prep'); assert.equal(prep.requiredRole, 'cook'); assert.equal(prep.emoji, '🍖');
@@ -83,7 +105,7 @@ test('legacy migration preserves completed evidence and upgrades pending manuals
   old.tasks[0].completedAt = clock().toISOString(); old.tasks[0].completedBy = { name: '기존 담당' };
   await writeFile(file, JSON.stringify(old));
   const upgraded = await store.snapshot('owner');
-  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine' && !t.orderId && !t.preparedItemId).length, 8);
+  assert.equal(upgraded.tasks.filter(t => t.kind === 'routine' && !t.orderId && !t.preparedItemId).length, 7);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').steps, undefined);
   assert.equal(upgraded.tasks.find(t => t.id === 'opening').completedBy.name, '기존 담당');
   assert.equal(upgraded.tasks.find(t => t.id === 'prep').steps.length, 3);
@@ -209,7 +231,7 @@ test('entire catalog validates and saves with sources and detailed instructions'
   const payload = fullCatalog(state);
   const saved = await store.mutate('owner', { action: 'save_checklists', revision: state.revision, ...payload });
   assert.equal(saved.taskTemplates.length, payload.templates.length);
-  assert.equal(saved.taskTemplates.length, checklistLibrary.industries.reduce((n, i) => n + i.tasks.length, 0) + 5);
+  assert.equal(saved.taskTemplates.length, checklistLibrary.industries.reduce((n, i) => n + i.tasks.length, 0) + 4);
 });
 test('HTTP accepts checklist drafts larger than the old 64 KiB limit', async t => {
   const { store, file, clock } = await setup(t);

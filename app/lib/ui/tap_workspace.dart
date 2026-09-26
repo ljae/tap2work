@@ -127,6 +127,125 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     return AppColors.ink;
   }
 
+  List<Json> assignees(Json task) {
+    final required = task['requiredRole'];
+    if (required == 'all') return [];
+    final people = ops.rows('tappers').where((person) {
+      if (person['active'] != true) return false;
+      if (required == 'cook') {
+        return (person['duties'] as List? ?? const []).any(
+          (duty) => duty.toString().contains('조리'),
+        );
+      }
+      return person['rank'] == required;
+    }).toList();
+    people.sort((a, b) => a['id'].toString().compareTo(b['id'].toString()));
+    return people;
+  }
+
+  String assigneeLabel(Json task) {
+    final people = assignees(task);
+    if (task['requiredRole'] == 'all') return '누구나';
+    return '${role(task)} · ${people.isEmpty ? '담당자 미지정' : '가능한 담당자'}';
+  }
+
+  Color personColor(String id) {
+    var hash = 0;
+    for (final unit in id.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+    const palette = [
+      Color(0xFF176B62),
+      Color(0xFF8B5277),
+      Color(0xFF3263A0),
+      Color(0xFF9A5C22),
+      Color(0xFF6A5B96),
+    ];
+    return palette[hash % palette.length];
+  }
+
+  Color assigneeColor(Json task) {
+    final people = assignees(task);
+    return people.isEmpty
+        ? AppColors.muted
+        : personColor(people.first['id'].toString());
+  }
+
+  Widget? assigneeBadges(Json task) {
+    final people = assignees(task);
+    if (people.isEmpty) return null;
+    return Wrap(
+      spacing: 10,
+      runSpacing: 4,
+      children: [
+        for (final person in people)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: personColor(person['id'].toString()),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                person['nickname'].toString(),
+                style: const TextStyle(fontSize: 12, color: AppColors.ink),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  String orderTime(Json task) {
+    final created = task['orderCreatedAt'];
+    if (created == null) return '';
+    final date = DateTime.tryParse(created.toString());
+    if (date == null) return '';
+    final korean = date.toUtc().add(const Duration(hours: 9));
+    final clock =
+        '${korean.hour.toString().padLeft(2, '0')}:${korean.minute.toString().padLeft(2, '0')}';
+    final queue = (ops.data?['dashboard']?['queue'] as List? ?? const [])
+        .whereType<Json>();
+    final ticket = queue
+        .where((row) => row['id'] == task['orderId'])
+        .firstOrNull;
+    final members = groups
+        .where((row) => row['orderId'] == task['orderId'])
+        .toList();
+    final completed =
+        members.isNotEmpty &&
+        members.every((row) => row['completedAt'] != null);
+    final finishedAt = completed
+        ? members
+              .map((row) => DateTime.tryParse(row['completedAt'].toString()))
+              .whereType<DateTime>()
+              .fold<DateTime?>(
+                null,
+                (latest, value) =>
+                    latest == null || value.isAfter(latest) ? value : latest,
+              )
+        : null;
+    final elapsed =
+        ((completed
+                    ? finishedAt?.difference(date).inMinutes
+                    : ticket?['elapsedMinutes'] as int?) ??
+                DateTime.now().difference(date).inMinutes)
+            .clamp(0, 999999);
+    final target =
+        ticket?['targetMinutes'] as int? ?? task['orderTargetMinutes'] as int?;
+    final targetText = target == null
+        ? ''
+        : elapsed > target
+        ? ' · 목표 $target분(가상) · ${elapsed - target}분 초과'
+        : ' · 목표 $target분(가상) · ${target - elapsed}분 남음';
+    return '${korean.month}/${korean.day} $clock 접수 · ${completed ? '완료까지 ' : ''}경과 $elapsed분$targetText';
+  }
+
   void navigate({String? folder, String? task}) {
     FocusScope.of(context).unfocus();
     setState(() {
@@ -279,36 +398,42 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             : status(t) == '완료'
             ? '완료'
             : '할일',
-        card: _draggable(
-          data: t['id'],
-          feedback: Material(
-            elevation: 8,
-            child: SizedBox(width: 260, child: Text(t['title'])),
+        card: TapCard(
+          key: ValueKey('tap-${t['id']}'),
+          level: 'TAP',
+          emoji: t['emoji'] ?? '📋',
+          title: t['title'],
+          subtitle:
+              '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${t['slot']} · ${assigneeLabel(t)}',
+          accentColor: assigneeColor(t),
+          assigneeBadges: assigneeBadges(t),
+          dragHandle: _draggable(
+            data: t['id'],
+            feedback: Material(
+              elevation: 8,
+              child: SizedBox(width: 260, child: Text(t['title'])),
+            ),
+            child: const SizedBox(
+              width: 32,
+              height: 48,
+              child: Icon(Icons.drag_indicator, color: AppColors.muted),
+            ),
           ),
-          child: TapCard(
-            key: ValueKey('tap-${t['id']}'),
-            level: 'TAP',
-            emoji: t['emoji'] ?? '📋',
-            title: t['title'],
-            subtitle:
-                '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${t['slot']} · ${role(t)}',
-            total: total(t),
-            done: done(t),
-            footer: 'Small TAP ${total(t)}개 보기',
-            onOpen: () => navigate(folder: folderId, task: t['id']),
-            onCheck: t['preparedOutputMovementId'] != null
-                ? null
-                : () => t['preparedItemId'] != null && status(t) != '완료'
-                      ? _finishPreparation(t)
-                      : t['orderId'] != null
-                      ? _checkMenu(t)
-                      : _moveTap(
-                          t,
-                          folderOf(t),
-                          status(t) == '완료' ? 'todo' : 'done',
-                        ),
-            checked: status(t) == '완료',
-          ),
+          total: total(t),
+          done: done(t),
+          onOpen: () => navigate(folder: folderId, task: t['id']),
+          onCheck: t['preparedOutputMovementId'] != null
+              ? null
+              : () => t['preparedItemId'] != null && status(t) != '완료'
+                    ? _finishPreparation(t)
+                    : t['orderId'] != null
+                    ? _checkMenu(t)
+                    : _moveTap(
+                        t,
+                        folderOf(t),
+                        status(t) == '완료' ? 'todo' : 'done',
+                      ),
+          checked: status(t) == '완료',
         ),
       ));
     }
@@ -340,14 +465,17 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             gradient: complete
                 ? null
                 : LinearGradient(
-                    colors: const [Color(0x66E98B76), Colors.transparent],
+                    colors: [
+                      assigneeColor(first).withValues(alpha: .18),
+                      Colors.transparent,
+                    ],
                     stops: [progress, progress],
                   ),
             border: Border.all(
               color: complete
                   ? AppColors.line
                   : completed > 0
-                  ? AppColors.accent
+                  ? assigneeColor(first)
                   : AppColors.line,
             ),
             borderRadius: BorderRadius.circular(12),
@@ -372,7 +500,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                         child: LinearProgressIndicator(
                           value: progress,
                           minHeight: 5,
-                          color: complete ? AppColors.muted : AppColors.accent,
+                          color: complete
+                              ? AppColors.muted
+                              : assigneeColor(first),
                           backgroundColor: complete
                               ? Colors.white
                               : AppColors.paper,
@@ -393,7 +523,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                         children: [
                           Expanded(
                             child: Text(
-                              '주문 ${first['orderNumber']} · ${first['orderChannel']} · ${members.length} 메뉴 ↕',
+                              '주문 ${first['orderNumber']} · ${first['orderChannel']} · ${members.length} 메뉴',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: groupText,
@@ -445,6 +575,13 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                             ],
                           ),
                         ],
+                      ),
+                      Text(
+                        orderTime(first),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.muted,
+                        ),
                       ),
                       if (first['orderChannel'] == '배달' &&
                           (first['orderPlatform'] ?? '')

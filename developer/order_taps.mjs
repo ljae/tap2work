@@ -31,6 +31,7 @@ export function ensureOrderTaps(state, now) {
     for (const [index, line] of ticket.lines.entries()) {
       const existing = state.tasks.find(t => t.orderId === ticket.id && t.orderLineIndex === index && !t.archivedAt);
       if (existing) {
+        if (state.sales.source === 'sample' && existing.orderTargetMinutes == null && Number.isInteger(ticket.targetMinutes)) { existing.orderTargetMinutes = ticket.targetMinutes; changed = true; }
         if (existing.completedAt) {
           if (existing.date !== state.day) { existing.originalDate ??= existing.date; existing.date = state.day; changed = true; }
           continue;
@@ -71,7 +72,7 @@ export function ensureOrderTaps(state, now) {
       ];
       state.tasks.push({ id: `customer-${ticket.id}-menu-${index}`, orderId: ticket.id, orderLineIndex: index,
         menuId: line.menuId, menuQuantity: line.quantity, orderNumber: ticket.number,
-        orderChannel: ticket.channel, orderTable: ticket.table, orderPlatform: ticket.platform ?? null, customerRequest: ticket.request ?? null, orderCreatedAt: ticket.createdAt,
+        orderChannel: ticket.channel, orderTable: ticket.table, orderPlatform: ticket.platform ?? null, customerRequest: ticket.request ?? null, orderCreatedAt: ticket.createdAt, ...(state.sales.source === 'sample' && Number.isInteger(ticket.targetMinutes) ? { orderTargetMinutes: ticket.targetMinutes } : {}),
         title: `${line.name} × ${line.quantity}`, folderId: 'order-work', slot: '피크', requiredRole: 'cook',
         zone: 'stove', kind: 'routine', date: state.day, dueAt: ticket.createdAt,
         boardStatus: old?.boardStatus ?? (ticket.status === '접수' ? 'todo' : 'processing'), completedAt: null, completedBy: null, steps });
