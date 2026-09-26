@@ -1,5 +1,11 @@
 # Product working brief
 
+## UX and integration groundwork · 2026-09-27
+
+The user selected task/manual UX improvements and order integration groundwork, preserving the existing order/todo/done lanes and TAP → Small TAP hierarchy. Card drag, completion and detail controls now have minimum 48 logical pixel targets. Large text uses a compact detail arrow; a tooltip exposes the full title. Manuals show their parent TAP and a separate tip surface.
+
+OperationsRepository now separates HTTP, JSON and authentication headers from controller state. JSON snapshots and some presentation rules remain; this is an incremental boundary extraction, not a completed Clean Architecture migration. Timers, offline writes, state management package replacement and live POS integration remain future proposals. See the [report review and architecture proposals](docs/UX_ARCHITECTURE_REVIEW_2026-09-27.md).
+
 ## Purpose
 
 Help a small Korean food and beverage business coordinate people, daily work, stock, and procurement in one approachable phone app. The user explicitly expanded the initial onboarding-only scope on 2026-09-19. The first hour still prepares a new person to participate alongside a buddy: an approximate learning plan, not a countdown or a guarantee of readiness.

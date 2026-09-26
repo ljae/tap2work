@@ -414,7 +414,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               child: SizedBox(width: 260, child: Text(t['title'])),
             ),
             child: const SizedBox(
-              width: 32,
+              width: 48,
               height: 48,
               child: Icon(Icons.drag_indicator, color: AppColors.muted),
             ),
@@ -1126,12 +1126,21 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
+        task['title'],
+        style: const TextStyle(fontSize: 12, color: AppColors.muted),
+      ),
+      const SizedBox(height: 8),
+      Text(
         step['title'],
         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
       const SizedBox(height: 16),
       Text(step['manual'] ?? '등록된 방법이 없어요.'),
-      if ((step['tip'] ?? '').toString().isNotEmpty) Text('팁 · ${step['tip']}'),
+      if ((step['tip'] ?? '').toString().isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: Information('팁 · ${step['tip']}'),
+        ),
       if ((step['tags'] as List? ?? []).isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: 10),

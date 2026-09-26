@@ -1,27 +1,37 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-typedef Json = Map<String, dynamic>;
+import '../data/http_operations_repository.dart';
+import '../domain/operations_repository.dart';
+export '../domain/operations_repository.dart' show Json;
 
 /// Public preview, local demo, or verified Supabase workspace transport.
 class OperationsController extends ChangeNotifier {
   OperationsController({
     http.Client? client,
+    OperationsRepository? repository,
     Uri? endpoint,
     bool readOnly = const bool.fromEnvironment('PUBLIC_REVIEW'),
     this.sharedApi,
     this.accessToken,
-  }) : _client = client ?? http.Client(),
-       // A shared demo server turns the read-only public build into a live shared client.
+  }) : // A shared demo server turns the read-only public build into a live shared client.
        readOnly = sharedApi == null && readOnly,
        endpoint =
            endpoint ??
            Uri.parse(
              '${sharedApi ?? (kIsWeb ? Uri.base.origin : const String.fromEnvironment('OPS_API_BASE', defaultValue: 'http://localhost:3100'))}/api/operations',
-           );
-  final http.Client _client;
+           ) {
+    _repository =
+        repository ??
+        HttpOperationsRepository(
+          client: client,
+          endpoint: this.endpoint,
+          readOnly: this.readOnly,
+          accessToken: accessToken,
+        );
+  }
+  late final OperationsRepository _repository;
   final Uri endpoint;
   final bool readOnly;
   final Future<String?> Function()? accessToken;
@@ -71,14 +81,12 @@ class OperationsController extends ChangeNotifier {
     _refreshing = true;
     final generation = _generation;
     try {
-      final response = await _client
-          .get(
-            readOnly ? Uri.base.resolve('review-data/$actorId.json') : endpoint,
-            headers: await _headers(),
-          )
-          .timeout(const Duration(seconds: 10));
+      final response = await _repository.read(
+        actorId: actorId,
+        demoToken: _token,
+      );
       if (_disposed || generation != _generation) return;
-      final body = jsonDecode(utf8.decode(response.bodyBytes)) as Json;
+      final body = response.data;
       if (response.statusCode != 200) throw Exception(body['error']);
       _previewTickets.clear();
       data = body;
@@ -113,18 +121,16 @@ class OperationsController extends ChangeNotifier {
     var conflict = false;
     String? failure;
     try {
-      final response = await _client
-          .post(
-            endpoint,
-            headers: {...await _headers(), 'Content-Type': 'application/json'},
-            body: jsonEncode({
-              ...values,
-              'action': action,
-              'revision': values['revision'] ?? data!['revision'],
-            }),
-          )
-          .timeout(const Duration(seconds: 10));
-      final body = jsonDecode(utf8.decode(response.bodyBytes)) as Json;
+      final response = await _repository.write(
+        actorId: actorId,
+        demoToken: _token,
+        values: {
+          ...values,
+          'action': action,
+          'revision': values['revision'] ?? data!['revision'],
+        },
+      );
+      final body = response.data;
       if (response.statusCode == 200) {
         data = body;
         _token = body['demoToken'] as String?;
@@ -141,16 +147,6 @@ class OperationsController extends ChangeNotifier {
     error = failure;
     _emit();
     return success;
-  }
-
-  Future<Map<String, String>> _headers() async {
-    if (readOnly) return {};
-    if (cloud) {
-      final token = await accessToken!();
-      if (token == null) throw StateError('로그인이 필요해요.');
-      return {'Authorization': 'Bearer $token'};
-    }
-    return {'x-demo-actor': actorId, 'x-demo-token': _token ?? ''};
   }
 
   // A preview has one shared in-memory state across Home, Todo and Calendar.
@@ -432,7 +428,7 @@ class OperationsController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _timer?.cancel();
-    _client.close();
+    _repository.close();
     super.dispose();
   }
 }

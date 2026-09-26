@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 66,
+  "revision": 68,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -398,6 +398,16 @@
       "reason": "2026-09-26 사용자 요청: TAP 첫 줄 동작, 담당자별 색·이름, 주문 시간·가상 목표, 사용 중인 오케이포스 매뉴얼 정정.",
       "source": "사용자 요청 · 2026-09-26",
       "updatedAt": "2026-09-26"
+    },
+    {
+      "id": "D-040",
+      "category": "UX and architecture",
+      "title": "Preserve TAP structure while improving task UX and integration boundaries",
+      "status": "confirmed",
+      "decision": "The user selected task/manual UX improvement and order integration groundwork, preserving the existing order/todo/done board and TAP to Small TAP hierarchy with BIG TAP grouping. Own POS payments/receipts and a separate KDS expansion are outside this implementation scope.",
+      "reason": "Both scope and board-preservation questions received explicit user selections in this conversation.",
+      "source": "User answers on 2026-09-27",
+      "updatedAt": "2026-09-27"
     }
   ],
   "milestones": [
@@ -2870,7 +2880,10 @@
       "type": "verification",
       "title": "Supabase 배포 DNS 제한으로 중단",
       "detail": "npm run backend:deploy를 실행했으나 첫 Supabase Management API 요청에서 api.supabase.com DNS 조회가 ENOTFOUND로 실패했다. SQL 마이그레이션과 Edge Function 배포는 시작되지 않았고 공개 Pages 빌드만 로컬에서 생성했다. 실제 매장 편집과 전역 매뉴얼 검색은 원격에 배포되지 않았다.",
-      "files": ["docs/project-state.json", "docs/DEPLOYMENT.md"],
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
       "verification": "로컬 빌드와 테스트는 통과했다. 원격 API 호출은 DNS 단계에서 실패했고 실제 계정 저장 및 라이브 화면 검증은 수행하지 못했다."
     },
     {
@@ -2879,7 +2892,13 @@
       "type": "implementation",
       "title": "다른 프로젝트 runner를 보존한 tap2work 전용 Codex Supabase 실행기",
       "detail": "전역 Codex Supabase MCP가 다른 프로젝트 runner의 참조값을 사용함을 확인했다. 전역 설정과 runner는 변경하지 않았다. tap2work 저장소의 .env에서 토큰을 읽고 대상 프로젝트 참조값을 검사하는 실행기와 세션별 Codex 설정을 적용하는 CLI 명령을 추가했다. 앱의 프로젝트별 .codex/config.toml은 현재 샌드박스가 생성을 거부해 문서에 작성 방법만 안내했다. Supabase 연결 자체는 새 세션 및 네트워크 환경에서 아직 조회하지 않았다.",
-      "files": [".gitignore", "scripts/launch-supabase-mcp.mjs", "scripts/codex-tap2work.sh", "docs/SUPABASE.md", "docs/project-state.json"],
+      "files": [
+        ".gitignore",
+        "scripts/launch-supabase-mcp.mjs",
+        "scripts/codex-tap2work.sh",
+        "docs/SUPABASE.md",
+        "docs/project-state.json"
+      ],
       "verification": "node 실행기의 --check 성공, node --check 및 sh -n 통과. sh scripts/codex-tap2work.sh mcp get supabase에서 프로젝트 실행기로 바뀐 명령과 cwd를 확인했다. 기존 전역 Codex 설정 파일 및 다른 프로젝트 runner는 수정하지 않았다."
     },
     {
@@ -2888,9 +2907,16 @@
       "type": "deployment",
       "title": "실제 매장 설정과 TAP 탐색을 Pages·Supabase에 배포",
       "detail": "기능 커밋 6eb2684를 main에 cd91dff로 머지하고 원격에 푸시했다. Supabase 프로젝트 sgpmhqtaylgqymeqciin에 20260924030000_workspace_backend.sql과 20260926010000_workspace_name.sql을 적용하고 operations Edge Function을 배포했다. GitHub Pages는 tap2.work의 공개 Flutter 앱을 배포했다. 앞서 기록한 DNS 실패는 샌드박스 네트워크 제한이었으며 외부 네트워크 재시도로 해소했다.",
-      "files": ["docs/project-state.json", "docs/DEPLOYMENT.md"],
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
       "verification": "로컬 npm run check, Node 59/59, Flutter analyze, Flutter 85/85, npm run build:site, git diff --check 통과. Actions 36215875627에서 같은 검사와 Pages 배포 성공. HTTPS 루트 200, 실제 main.dart.js와 로컬 _site/main.dart.js SHA-256 일치(2f30b6657ed414a9c4ad4575a4e1484f08ba2aa71278d39052d30329699466d1). Supabase 함수 비로그인 요청 401. 실제 계정 로그인·저장, 네이티브 빌드 및 실기기 검증은 수행하지 않았다.",
-      "links": ["https://github.com/ljae/tap2work/actions/runs/36215875627", "https://github.com/ljae/tap2work/commit/cd91dff8bed56774d7bf6ee6db67392d628d9925", "https://tap2.work/"]
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36215875627",
+        "https://github.com/ljae/tap2work/commit/cd91dff8bed56774d7bf6ee6db67392d628d9925",
+        "https://tap2.work/"
+      ]
     },
     {
       "id": "H-tap-assignee-order-time-okpos-2026-09-26",
@@ -2981,7 +3007,58 @@
         "https://github.com/ljae/tap2work/commit/f17545c67e8758d57aa7402e87b96870b445fe8a",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-ux-repository-boundary-2026-09-27",
+      "at": "2026-09-27",
+      "type": "implementation",
+      "title": "TAP touch targets, manual readability and repository boundary",
+      "detail": "Added minimum 48 logical pixel drag/check/open targets, compact open affordance for large text, full-title tooltip, parent TAP context and a separate manual tip surface. Extracted HTTP/JSON/authentication headers/timeouts into HttpOperationsRepository behind a pure Dart OperationsRepository interface, with injectable storage and a direct read-only write guard. JSON snapshots and presentation rules remain; this is not a complete Clean Architecture migration. The review documents Drive versus Marketplace and UI state versus device synchronization. Timers, offline writes and live POS adapters remain proposed.",
+      "decisionChanges": [
+        {
+          "id": "D-040",
+          "previous": null,
+          "next": {
+            "id": "D-040",
+            "category": "UX and architecture",
+            "title": "Preserve TAP structure while improving task UX and integration boundaries",
+            "status": "confirmed",
+            "decision": "The user selected task/manual UX improvement and order integration groundwork, preserving the existing order/todo/done board and TAP to Small TAP hierarchy with BIG TAP grouping. Own POS payments/receipts and a separate KDS expansion are outside this implementation scope.",
+            "reason": "Both scope and board-preservation questions received explicit user selections in this conversation.",
+            "source": "User answers on 2026-09-27",
+            "updatedAt": "2026-09-27"
+          },
+          "reason": "Record the two explicit user selections; preserve existing D-030/D-031."
+        }
+      ],
+      "files": [
+        "app/lib/domain/operations_repository.dart",
+        "app/lib/data/http_operations_repository.dart",
+        "app/lib/state/operations_controller.dart",
+        "app/lib/ui/tap_card.dart",
+        "app/lib/ui/tap_workspace.dart",
+        "app/test/operations_repository_test.dart",
+        "app/test/tap_workspace_test.dart",
+        "PRODUCT.md",
+        "docs/UX_ARCHITECTURE_REVIEW_2026-09-27.md",
+        "docs/project-state.json"
+      ],
+      "verification": "Flutter analyze passed; full Flutter tests 90/90 passed, including 320px at 2x text with independent 48px check/open actions, injected repository preserving opening revision, and direct public-repository write rejection. Existing cloud/role/conflict/prepared inventory tests passed. git diff --check passed before this history update. Browser visual review, web/native builds, authenticated live saves, actual POS integration, device testing and deployment were not performed. Node tests were not run: JavaScript/API/decision persistence code was unchanged. An initial documentation update command failed with a Python source encoding error before modifying files; documentation was retried separately."
+    },
+    {
+      "id": "H-ux-release-gate-2026-09-27",
+      "at": "2026-09-27",
+      "type": "verification",
+      "title": "업무 UX 및 저장소 경계 공개 빌드 통과",
+      "detail": "이번 Flutter UI와 데이터 계층 변경의 배포 전 게이트를 완료했다. 서버·Edge Function·SQL 변경은 없다. 공개 검토 빌드는 새 샘플로 별도 생성했다.",
+      "files": [
+        "app/lib/ui/tap_card.dart",
+        "app/lib/ui/tap_workspace.dart",
+        "app/lib/data/http_operations_repository.dart",
+        "docs/project-state.json"
+      ],
+      "verification": "Flutter analyze 통과, Flutter test 90/90, npm run check 통과, npm run test:console 60/60, npm run build:site 통과, git diff --check 통과. 웹 빌드는 확인했으나 이 기록 시점에는 배포·라이브 확인 전이다. 네이티브 빌드와 실기기 검증은 미수행."
     }
   ],
-  "updatedAt": "2026-09-26"
+  "updatedAt": "2026-09-27"
 }

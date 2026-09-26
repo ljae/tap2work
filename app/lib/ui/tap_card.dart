@@ -40,6 +40,10 @@ class TapCard extends StatelessWidget {
     final progress = total == 0 ? 0.0 : (done / total).clamp(0.0, 1.0);
     final complete = checked || (total > 0 && done == total);
     final tint = accentColor ?? AppColors.accent;
+    final largeText = MediaQuery.textScalerOf(context).scale(16) > 20;
+    final openLabel = level.toLowerCase().contains('small')
+        ? '방법 열기'
+        : 'Small TAP 열기';
     return Material(
       color: complete ? const Color(0xFFF0F2F4) : Colors.white,
       shape: RoundedRectangleBorder(
@@ -74,6 +78,10 @@ class TapCard extends StatelessWidget {
                     if (onCheck != null) ...[
                       IconButton(
                         tooltip: checked ? '완료 되돌리기' : '완료하기',
+                        constraints: const BoxConstraints(
+                          minWidth: 48,
+                          minHeight: 48,
+                        ),
                         onPressed: onCheck,
                         icon: Icon(
                           checked
@@ -86,31 +94,39 @@ class TapCard extends StatelessWidget {
                       ),
                     ],
                     Expanded(
-                      child: InkWell(
-                        onTap: onOpen,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.ink,
+                      child: Tooltip(
+                        message: title,
+                        child: InkWell(
+                          onTap: onOpen,
+                          child: Container(
+                            constraints: const BoxConstraints(minHeight: 48),
+                            alignment: Alignment.centerLeft,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.ink,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                     Semantics(
-                      label: level.toLowerCase().contains('small')
-                          ? '방법 열기'
-                          : 'Small TAP 열기',
+                      label: openLabel,
                       button: true,
                       child: InkWell(
                         onTap: onOpen,
-                        child: Padding(
+                        child: Container(
+                          constraints: const BoxConstraints(
+                            minWidth: 48,
+                            minHeight: 48,
+                          ),
+                          alignment: Alignment.center,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 2,
                             vertical: 12,
@@ -118,16 +134,17 @@ class TapCard extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                level.toLowerCase().contains('small')
-                                    ? '방법'
-                                    : 'Small TAP',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: tint,
+                              if (!largeText)
+                                Text(
+                                  level.toLowerCase().contains('small')
+                                      ? '방법'
+                                      : 'Small TAP',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: tint,
+                                  ),
                                 ),
-                              ),
                               Icon(
                                 CupertinoIcons.chevron_right,
                                 size: 15,

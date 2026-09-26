@@ -131,6 +131,62 @@ void main() {
     expect(checked, 1);
   });
 
+  testWidgets('large text phone cards keep independent 48px actions', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    var opened = 0;
+    var checked = 0;
+    const title = '긴 제목의 주문 처리 업무를 확인하는 카드';
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: Scaffold(
+            body: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: TapCard(
+                  level: 'TAP',
+                  title: title,
+                  subtitle: '조리 · 가능한 담당자',
+                  dragHandle: const SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Icon(Icons.drag_indicator),
+                  ),
+                  onOpen: () => opened++,
+                  onCheck: () => checked++,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    final check = find.byTooltip('완료하기');
+    final open = find.byWidgetPredicate(
+      (widget) =>
+          widget is Semantics && widget.properties.label == 'Small TAP 열기',
+    );
+    for (final control in [check, open]) {
+      final size = tester.getSize(control);
+      expect(size.width, greaterThanOrEqualTo(48));
+      expect(size.height, greaterThanOrEqualTo(48));
+    }
+    await tester.tap(check);
+    expect(checked, 1);
+    expect(opened, 0);
+    await tester.tap(open);
+    expect(opened, 1);
+    expect(checked, 1);
+    expect(find.byTooltip(title), findsOneWidget);
+  });
+
   testWidgets(
     'active Tappers supply role names and stable person colors at phone width',
     (tester) async {
