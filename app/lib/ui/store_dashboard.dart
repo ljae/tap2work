@@ -91,7 +91,12 @@ class _StoreDashboardState extends State<StoreDashboard> {
         heading('오늘의 운영', '지금 확인할 매장 상황이에요.'),
         operations(),
         space(32),
-        heading('주문과 매출', '기간과 채널을 골라 샘플 현황을 살펴보세요.'),
+        heading(
+          '주문과 매출',
+          dashboard?['source'] == 'sample'
+              ? '기간과 채널을 골라 샘플 현황을 살펴보세요.'
+              : '주문 연동 전이에요. 등록한 메뉴를 확인하세요.',
+        ),
         if (dashboard == null) ...[
           const Information('메뉴·매출 데이터를 아직 불러오지 못했어요. 새로고침 후 다시 확인해 주세요.'),
           TextButton.icon(
@@ -222,7 +227,9 @@ class _StoreDashboardState extends State<StoreDashboard> {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           note('${report['startDay']} ~ ${report['endDay']} · 한국 시간'),
-          note('샘플 주문 · POS 미연동 · ${_clock(dashboard['asOf'])} 집계'),
+          note(
+            '${dashboard['source'] == 'sample' ? '샘플 주문' : '주문 연동 전'} · POS 미연동 · ${_clock(dashboard['asOf'])} 집계',
+          ),
           IconButton(
             tooltip: '현황 새로고침',
             onPressed: ops.busy ? null : () => ops.refresh(),

@@ -64,12 +64,80 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   }
 
   @override
-  Widget build(BuildContext context) => Tap2workApp(
-    key: ValueKey(userId ?? 'preview'),
-    controller: widget.work,
-    operations: ops,
-    onAccountPressed: (context) => openAccount(context, widget.client),
-    accountEmail: widget.client.auth.currentUser?.email,
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: ops,
+    builder: (context, _) => ops.data?['needsWorkspace'] == true
+        ? _WorkspaceSetup(
+            ops: ops,
+            onAccount: () => openAccount(context, widget.client),
+          )
+        : Tap2workApp(
+            key: ValueKey(userId ?? 'preview'),
+            controller: widget.work,
+            operations: ops,
+            onAccountPressed: (context) => openAccount(context, widget.client),
+            accountEmail: widget.client.auth.currentUser?.email,
+          ),
+  );
+}
+
+class _WorkspaceSetup extends StatelessWidget {
+  const _WorkspaceSetup({required this.ops, required this.onAccount});
+  final OperationsController ops;
+  final VoidCallback onAccount;
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('내 매장 시작하기'),
+      actions: [TextButton(onPressed: onAccount, child: const Text('계정'))],
+    ),
+    body: SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 460),
+          child: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              const Text(
+                '어떤 매장으로 시작할까요?',
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              const Text('선택한 매장은 이 계정에 저장됩니다. 빈 매장은 내 재료와 메뉴를 직접 등록할 수 있어요.'),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: ops.busy
+                    ? null
+                    : () => ops.act('create_workspace', {
+                        'mode': 'blank',
+                        'revision': 0,
+                      }),
+                child: const Text('빈 매장으로 시작'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: ops.busy
+                    ? null
+                    : () => ops.act('create_workspace', {
+                        'mode': 'sample',
+                        'revision': 0,
+                      }),
+                child: const Text('샘플 매장으로 체험'),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '샘플 매장에는 가상 직원·주문·재고가 들어갑니다. 실제 매장 기록으로 사용하지 마세요.',
+                style: TextStyle(color: AppColors.muted),
+              ),
+              if (ops.error != null) ...[
+                const SizedBox(height: 16),
+                Information(ops.error!),
+              ],
+            ],
+          ),
+        ),
+      ),
+    ),
   );
 }
 
@@ -175,7 +243,7 @@ class _SignInDialogState extends State<_SignInDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '로그인하면 업무와 배치를 저장할 수 있어요. 처음에는 가상 매장으로 시작합니다.',
+              '로그인하면 업무와 배치를 저장할 수 있어요. 첫 로그인에서 빈 매장 또는 샘플 매장을 선택합니다.',
               style: TextStyle(
                 color: AppColors.muted,
                 fontSize: 13,

@@ -41,7 +41,7 @@ export function salesDashboard(sales, now, showMoney) {
     const startDay = dateKR(new Date(`${today}T00:00:00+09:00`).getTime() - (days - 1) * dayMs);
     for (const channel of ['전체', '매장', '포장', '배달']) {
       const tickets = sales.tickets.filter(ticket => dateKR(ticket.createdAt) >= startDay && dateKR(ticket.createdAt) <= today && new Date(ticket.createdAt) <= new Date(now) && (channel === '전체' || ticket.channel === channel));
-      const menus = sales.menus.map(menu => ({ id: menu.id, name: menu.name, category: menu.category, orderedQuantity: 0, soldQuantity: 0, pendingQuantity: 0, revenue: 0 }));
+      const menus = sales.menus.filter(menu => !menu.archivedAt).map(menu => ({ id: menu.id, name: menu.name, category: menu.category, orderedQuantity: 0, soldQuantity: 0, pendingQuantity: 0, revenue: 0 }));
       const hours = Array.from({ length: 24 }, (_, hour) => ({ hour, count: 0, revenue: 0 }));
       const summary = { orderCount: 0, paidCount: 0, cancelledCount: 0, activeCount: 0, gross: 0, discount: 0, refund: 0, revenue: 0, average: 0 };
       const statuses = Object.fromEntries(['접수', '조리 중', '준비 완료', '완료', '취소'].map(status => [status, 0]));

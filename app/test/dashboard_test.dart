@@ -46,11 +46,15 @@ void main() {
         await tester.pumpAndSettle();
         // The independent live queue retains all channels.
         expect(find.textContaining('전체 채널 5건'), findsOneWidget);
-        await tester.ensureVisible(find.byType(TextField));
-        await tester.enterText(find.byType(TextField), '없는메뉴');
+        final menuSearch = find.byWidgetPredicate(
+          (widget) =>
+              widget is TextField && widget.decoration?.hintText == '메뉴 이름 검색',
+        );
+        await tester.ensureVisible(menuSearch);
+        await tester.enterText(menuSearch, '없는메뉴');
         await tester.pumpAndSettle();
         expect(find.text('검색 조건에 맞는 메뉴가 없어요.'), findsOneWidget);
-        await tester.enterText(find.byType(TextField), '');
+        await tester.enterText(menuSearch, '');
         await tester.pumpAndSettle();
         await tester.ensureVisible(find.widgetWithText(ChoiceChip, '음료'));
         await tester.tap(find.widgetWithText(ChoiceChip, '음료'));

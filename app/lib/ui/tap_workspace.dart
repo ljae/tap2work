@@ -10,7 +10,7 @@ import 'components.dart';
 import 'tap_card.dart';
 import 'prepared_inventory.dart';
 
-/// Folders, daily tasks and actions share one board and one card component.
+/// BIG TAP folders filter the TAP board; each TAP opens its Small TAPs.
 /// Existing IDs, role checks and completion APIs remain the source of truth.
 class TapWorkspace extends StatefulWidget {
   const TapWorkspace({super.key, required this.ops, required this.onStock});
@@ -23,18 +23,10 @@ class TapWorkspace extends StatefulWidget {
 class _TapWorkspaceState extends State<TapWorkspace> {
   String? folderId, taskId;
   String? selectedStepId;
-  String query = '';
   bool mineOnly = false;
-  final search = TextEditingController();
   final previewStepOrder = <String, List<String>>{};
   List<String>? previewGroupOrder;
   OperationsController get ops => widget.ops;
-
-  @override
-  void dispose() {
-    search.dispose();
-    super.dispose();
-  }
 
   List<Json> get groups =>
       ops.rows('tasks').where((t) => t['kind'] == 'routine').toList()..sort(
@@ -141,8 +133,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       folderId = folder;
       taskId = task;
       selectedStepId = null;
-      query = '';
-      search.clear();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -165,50 +155,34 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       final scoped = (folder == null ? groups : inFolder(folder['id']))
           .where(visibleTask)
           .toList();
-      final title = task?['title'] ?? folder?['name'] ?? '체크리스트';
+      final title = task?['title'] ?? 'TAP';
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (folder != null)
+          if (task != null)
             Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 TextButton.icon(
-                  onPressed: () => navigate(),
+                  onPressed: () => navigate(folder: folderId),
                   icon: const Icon(Icons.dashboard_outlined, size: 17),
-                  label: const Text('전체 보드'),
+                  label: const Text('TAP 목록으로'),
                 ),
                 const Icon(
                   Icons.chevron_right,
                   size: 16,
                   color: AppColors.muted,
                 ),
-                TextButton(
-                  onPressed: () => navigate(folder: folder['id']),
-                  child: Text(folder['name']),
-                ),
-                if (task != null) ...[
-                  const Icon(
-                    Icons.chevron_right,
-                    size: 16,
-                    color: AppColors.muted,
-                  ),
-                  TextButton(
-                    onPressed: () => navigate(folder: folderId, task: taskId),
-                    child: Text(task['title']),
-                  ),
-                ],
+                Text(task['title']),
               ],
             ),
-          if (folder != null) const SizedBox(height: 8),
+          if (task != null) const SizedBox(height: 8),
           PageHeading(
             level,
             title,
             task != null
                 ? '${task['slot']} · ${role(task)} · ${place(task)}'
-                : folder != null
-                ? 'Tap을 열어, 해야 할 작은 행동을 확인하세요.'
-                : '오늘의 업무를 한눈에. 카드를 끌어 순서와 상태를 바꾸세요.',
+                : 'TAP을 선택하면 Small TAP과 방법을 볼 수 있어요. BIG TAP은 아래에서 업무를 묶어 보는 필터예요.',
           ),
           if (task != null &&
               (task['customer_memo'] ?? '').toString().isNotEmpty)
@@ -217,70 +191,50 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               child: Information('요청사항 · ${task['customer_memo']}'),
             ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              if (!ops.isLeader)
-                FilterChip(
-                  label: const Text('내 담당만'),
-                  selected: mineOnly,
-                  onSelected: (v) => setState(() => mineOnly = v),
-                ),
-              if (ops.isLeader)
-                TextButton.icon(
-                  onPressed: ops.busy
-                      ? null
-                      : () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => ChecklistEditor(
-                              ops: ops,
-                              initialFolder: folderId,
+          if (task == null)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (!ops.isLeader)
+                  FilterChip(
+                    label: const Text('내 담당만'),
+                    selected: mineOnly,
+                    onSelected: (v) => setState(() => mineOnly = v),
+                  ),
+                if (ops.isLeader)
+                  TextButton.icon(
+                    onPressed: ops.busy
+                        ? null
+                        : () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => ChecklistEditor(
+                                ops: ops,
+                                initialFolder: folderId,
+                              ),
                             ),
                           ),
-                        ),
-                  icon: const Icon(
-                    CupertinoIcons.slider_horizontal_3,
-                    size: 17,
+                    icon: const Icon(
+                      CupertinoIcons.slider_horizontal_3,
+                      size: 17,
+                    ),
+                    label: const Text('보드 편집'),
                   ),
-                  label: const Text('보드 편집'),
-                ),
-            ],
-          ),
+              ],
+            ),
           const SizedBox(height: 16),
           if (folder == null && task == null) PreparedInventory(ops: ops),
           ...[
             if (task == null) ...[_folderBar(), const SizedBox(height: 16)],
-            TextField(
-              controller: search,
-              onChanged: (v) => setState(() => query = v.trim().toLowerCase()),
-              decoration: InputDecoration(
-                labelText: 'Tap 검색',
-                hintText: '업무명 또는 주문번호',
-                prefixIcon: const Icon(CupertinoIcons.search, size: 20),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.line),
-                ),
-              ),
-            ),
             const SizedBox(height: 18),
             Row(
               children: [
                 Expanded(
                   child: Text(
-                    '$level · ${task != null
-                        ? '하나의 행동'
-                        : folder != null
-                        ? '하나의 업무'
-                        : '전체 업무'}',
+                    task != null
+                        ? '이 TAP의 Small TAP · ${done(task)}/${total(task)} 완료'
+                        : 'TAP · ${folder == null ? '전체 업무' : '${folder['name']} 그룹'}',
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -308,10 +262,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     if (task != null) return _smallBoard(task);
 
     final entries = <({String id, String state, Widget card})>[];
-    bool matches(String name) => name.toLowerCase().contains(query);
-    final matched = scoped
-        .where((t) => matches('${t['title']} ${t['orderNumber'] ?? ''}'))
-        .toList();
+    final matched = scoped;
     final visibleOrderIds = matched
         .map((t) => t['orderId'])
         .whereType<String>()
@@ -343,8 +294,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${t['slot']} · ${role(t)}',
             total: total(t),
             done: done(t),
-            footer: 'Small Tap ${done(t)}/${total(t)}',
-            onOpen: () => navigate(folder: folderOf(t), task: t['id']),
+            footer: 'Small TAP ${total(t)}개 보기',
+            onOpen: () => navigate(folder: folderId, task: t['id']),
             onCheck: t['preparedOutputMovementId'] != null
                 ? null
                 : () => t['preparedItemId'] != null && status(t) != '완료'
@@ -679,7 +630,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                               horizontal: 8,
                             ),
                             child: Text(
-                              query.isNotEmpty ? '검색 결과가 없어요' : '아직 카드가 없어요',
+                              '아직 카드가 없어요',
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.muted,
@@ -731,13 +682,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         task['completedBy']?['id'] == ops.actor['id'];
     if (!ops.isLeader && task['canComplete'] != true && !ownCompleted) {
       notice('담당 Tap만 이동할 수 있어요.');
-      return;
-    }
-    if (query.isNotEmpty &&
-        (beforeTaskId != null ||
-            targetStatus == 'keep' ||
-            targetFolder != folderOf(task))) {
-      notice('검색을 지운 뒤 순서를 바꿔 주세요.');
       return;
     }
     if (ops.readOnly) {
@@ -849,68 +793,82 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     );
   }
 
-  Widget _folderBar() => SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    child: Row(
-      spacing: 8,
-      children: [
-        ChoiceChip(
-          label: const Text('전체 Tap'),
-          selected: folderId == null,
-          onSelected: (_) => navigate(),
+  Widget _folderBar() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'BIG TAP · 업무 그룹 필터',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: AppColors.muted,
         ),
-        for (final folder in folders)
-          DragTarget<String>(
-            onWillAcceptWithDetails: (_) => !ops.busy,
-            onAcceptWithDetails: (details) {
-              if (details.data.startsWith('folder:')) {
-                _reorderGroup(details.data.substring(7), folder['id']);
-              } else {
-                final task = groups
-                    .where((t) => t['id'] == details.data)
-                    .firstOrNull;
-                if (task != null) {
-                  _moveTap(task, folder['id'], 'keep');
-                }
-              }
-            },
-            builder: (context, candidates, _) => _draggable(
-              data: 'folder:${folder['id']}',
-              feedback: Material(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(folder['name']),
-                ),
-              ),
-              child: ChoiceChip(
-                avatar: Icon(
-                  CupertinoIcons.folder,
-                  size: 16,
-                  color: candidates.isNotEmpty
-                      ? AppColors.accent
-                      : AppColors.muted,
-                ),
-                label: Text(
-                  '${folder['name']}  ·  ${inFolder(folder['id']).length}',
-                ),
-                selected: folderId == folder['id'] || candidates.isNotEmpty,
-                onSelected: (_) => navigate(folder: folder['id']),
-              ),
+      ),
+      const SizedBox(height: 8),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          spacing: 8,
+          children: [
+            ChoiceChip(
+              label: const Text('전체 TAP'),
+              selected: folderId == null,
+              onSelected: (_) => navigate(),
             ),
-          ),
-        if (ops.isLeader)
-          ActionChip(
-            avatar: const Icon(CupertinoIcons.folder_badge_plus, size: 17),
-            label: const Text('폴더 관리'),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) =>
-                    ChecklistEditor(ops: ops, initialFolder: folderId),
+            for (final folder in folders)
+              DragTarget<String>(
+                onWillAcceptWithDetails: (_) => !ops.busy,
+                onAcceptWithDetails: (details) {
+                  if (details.data.startsWith('folder:')) {
+                    _reorderGroup(details.data.substring(7), folder['id']);
+                  } else {
+                    final task = groups
+                        .where((t) => t['id'] == details.data)
+                        .firstOrNull;
+                    if (task != null) {
+                      _moveTap(task, folder['id'], 'keep');
+                    }
+                  }
+                },
+                builder: (context, candidates, _) => _draggable(
+                  data: 'folder:${folder['id']}',
+                  feedback: Material(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Text(folder['name']),
+                    ),
+                  ),
+                  child: ChoiceChip(
+                    avatar: Icon(
+                      CupertinoIcons.folder,
+                      size: 16,
+                      color: candidates.isNotEmpty
+                          ? AppColors.accent
+                          : AppColors.muted,
+                    ),
+                    label: Text(
+                      '${folder['name']}  ·  ${inFolder(folder['id']).length}',
+                    ),
+                    selected: folderId == folder['id'] || candidates.isNotEmpty,
+                    onSelected: (_) => navigate(folder: folder['id']),
+                  ),
+                ),
               ),
-            ),
-          ),
-      ],
-    ),
+            if (ops.isLeader)
+              ActionChip(
+                avatar: const Icon(CupertinoIcons.folder_badge_plus, size: 17),
+                label: const Text('그룹 관리'),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        ChecklistEditor(ops: ops, initialFolder: folderId),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ],
   );
 
   Future<void> _reorderGroup(String source, String target) async {
@@ -933,13 +891,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   }
 
   Widget _smallBoard(Json task) {
-    final all = steps(task)
-        .where((s) => s['title'].toString().toLowerCase().contains(query))
-        .toList();
+    final all = steps(task);
     final selected =
         all.where((s) => s['id'] == selectedStepId).firstOrNull ??
         all.firstOrNull;
-    Widget card(Json step) => Padding(
+    Widget card(Json step, int index) => Padding(
       key: ValueKey('sort-small-${step['id']}'),
       padding: const EdgeInsets.only(bottom: 8),
       child: TapCard(
@@ -948,8 +904,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         emoji: '✓',
         title: step['title'],
         subtitle: step['completedAt'] == null
-            ? '방법 보기'
+            ? '아직 확인 전'
             : '${step['completedBy']?['name'] ?? ''} · ${stampOf(step['completedAt'])} 확인',
+        footer: '방법 보기',
+        sequence: index + 1,
+        selected: selected?['id'] == step['id'],
         onOpen: () {
           setState(() => selectedStepId = step['id']);
           if (MediaQuery.sizeOf(context).width < 700) {
@@ -976,7 +935,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         },
       ),
     );
-    Widget list = ops.isLeader && query.isEmpty
+    Widget list = ops.isLeader
         ? ReorderableListView(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -999,9 +958,15 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 if (!ok && mounted) notice(ops.error ?? '순서를 저장하지 못했어요.');
               }
             },
-            children: [for (final step in all) card(step)],
+            children: [
+              for (final (index, step) in all.indexed) card(step, index),
+            ],
           )
-        : Column(children: [for (final step in all) card(step)]);
+        : Column(
+            children: [
+              for (final (index, step) in all.indexed) card(step, index),
+            ],
+          );
     Widget detail = selected == null
         ? const Information('Small Tap을 선택해 주세요.')
         : Surface(child: _manual(task, selected));
@@ -1030,6 +995,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       const SizedBox(height: 16),
       Text(step['manual'] ?? '등록된 방법이 없어요.'),
       if ((step['tip'] ?? '').toString().isNotEmpty) Text('팁 · ${step['tip']}'),
+      if ((step['tags'] as List? ?? []).isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Wrap(
+            spacing: 6,
+            children: [
+              for (final tag in step['tags']) Chip(label: Text('#$tag')),
+            ],
+          ),
+        ),
       if (ops.isLeader && step['completedAt'] == null)
         TextButton.icon(
           icon: const Icon(Icons.edit_outlined),
@@ -1044,6 +1019,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                   );
                   final photo = TextEditingController(
                     text: step['imageUrl'] ?? '',
+                  );
+                  final source = TextEditingController(
+                    text: step['sourceUrl'] ?? '',
+                  );
+                  final tags = TextEditingController(
+                    text: (step['tags'] as List? ?? []).join(', '),
                   );
                   final result = await showDialog<bool>(
                     context: context,
@@ -1076,6 +1057,19 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                                   labelText: '사진 HTTPS 링크',
                                 ),
                               ),
+                              TextField(
+                                controller: source,
+                                decoration: const InputDecoration(
+                                  labelText: '공식 사진 가이드 HTTPS 링크',
+                                ),
+                              ),
+                              TextField(
+                                controller: tags,
+                                decoration: const InputDecoration(
+                                  labelText: '#연관어 · 쉼표로 구분',
+                                  helperText: '최대 20개, 각 30자 이내',
+                                ),
+                              ),
                               const Text(
                                 '연결된 기본 레시피도 갱신해 다음 주문에 사용해요. 완료 기록은 유지돼요.',
                               ),
@@ -1103,6 +1097,15 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                       'manual': manual.text.trim(),
                       'videoUrl': video.text.trim(),
                       'imageUrl': photo.text.trim(),
+                      'sourceUrl': source.text.trim(),
+                      'tags': tags.text
+                          .split(',')
+                          .map(
+                            (tag) =>
+                                tag.trim().replaceFirst(RegExp(r'^#+'), ''),
+                          )
+                          .where((tag) => tag.isNotEmpty)
+                          .toList(),
                     });
                     if (mounted) {
                       notice(
@@ -1115,9 +1118,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                   manual.dispose();
                   video.dispose();
                   photo.dispose();
+                  source.dispose();
+                  tags.dispose();
                 },
         ),
-      for (final field in ['videoUrl', 'imageUrl'])
+      for (final field in ['videoUrl', 'imageUrl', 'sourceUrl'])
         if ((step[field] ?? '').toString().isNotEmpty)
           TextButton.icon(
             icon: Icon(
@@ -1125,7 +1130,13 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                   ? Icons.play_circle_outline
                   : Icons.image_outlined,
             ),
-            label: Text(field == 'videoUrl' ? '영상 열기' : '사진 열기'),
+            label: Text(
+              field == 'videoUrl'
+                  ? '영상 열기'
+                  : field == 'imageUrl'
+                  ? '사진 열기'
+                  : '공식 사진 가이드 열기',
+            ),
             onPressed: () async {
               final uri = Uri.tryParse(step[field]);
               if (uri == null || uri.scheme != 'https') return;

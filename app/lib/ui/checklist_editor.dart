@@ -15,7 +15,7 @@ class _StepDrag {
   final String taskId, stepId;
 }
 
-/// Owner/manager editor: folder → group → activities, all reorderable by drag and drop
+/// Owner/manager editor: grouping filter → TAP → Small TAP, all reorderable by drag and drop
 /// with equivalent menu actions. Edits live in an isolated draft until a revision-checked save.
 class ChecklistEditor extends StatefulWidget {
   const ChecklistEditor({super.key, required this.ops, this.initialFolder});
@@ -158,7 +158,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                   const PageHeading(
                     'MAKE IT YOURS',
                     '우리 매장 체크리스트',
-                    'BIG TAP은 업무 모음, Tap은 업무, Small Tap은 행동이에요. 손잡이로 순서를 바꾸고, 길게 눌러 다른 모음이나 업무로 옮기세요.',
+                    'TAP은 업무, Small TAP은 그 업무의 행동이에요. BIG TAP은 TAP을 묶어 보는 그룹 필터예요. 손잡이로 순서를 바꾸고, 길게 눌러 다른 그룹이나 TAP으로 옮기세요.',
                   ),
                   if (ops.readOnly)
                     const Information(
@@ -195,12 +195,12 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                       OutlinedButton.icon(
                         onPressed: enabled ? () => editGroup() : null,
                         icon: const Icon(Icons.add),
-                        label: const Text('Tap 만들기'),
+                        label: const Text('TAP 만들기'),
                       ),
                       TextButton.icon(
                         onPressed: enabled ? () => editFolder() : null,
                         icon: const Icon(Icons.create_new_folder_outlined),
-                        label: const Text('BIG TAP 추가'),
+                        label: const Text('BIG TAP 그룹 추가'),
                       ),
                     ],
                   ),
@@ -238,7 +238,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                               Icons.edit_outlined,
                               size: 18,
                             ),
-                            deleteButtonTooltipMessage: '폴더 이름 수정',
+                            deleteButtonTooltipMessage: '그룹 이름 수정',
                           ),
                         ),
                     ],
@@ -258,7 +258,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                                 selected = 'general';
                               })
                             : null,
-                        child: const Text('폴더 삭제 · 그룹은 기본 폴더로'),
+                        child: const Text('그룹 삭제 · TAP은 기본 그룹으로'),
                       ),
                     ),
                   const SizedBox(height: 8),
@@ -269,7 +269,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                     ),
                   if (visible.isEmpty)
                     const Information(
-                      '빈 폴더예요. 그룹을 만들거나 다른 폴더의 그룹을 끌어다 놓아 보세요.',
+                      '비어 있는 그룹이에요. TAP을 만들거나 다른 그룹의 TAP을 끌어다 놓아 보세요.',
                     ),
                   ReorderableListView.builder(
                     shrinkWrap: true,
@@ -352,7 +352,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                   child: Icon(
                     Icons.drag_indicator,
                     size: 28,
-                    semanticLabel: '그룹 순서 드래그',
+                    semanticLabel: 'TAP 순서 드래그',
                   ),
                 ),
               )
@@ -375,7 +375,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                         ),
                       ),
                       Text(
-                        '${task['slot']} · ${checklistRoles[task['requiredRole']]}${place == null ? '' : ' · $place'} · ${steps.length}개 활동',
+                        '${task['slot']} · ${checklistRoles[task['requiredRole']]}${place == null ? '' : ' · $place'} · Small TAP ${steps.length}개',
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.muted,
@@ -387,7 +387,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
               ),
             ),
             IconButton(
-              tooltip: open ? '활동 접기' : '활동 펼치기',
+              tooltip: open ? 'Small TAP 접기' : 'Small TAP 펼치기',
               onPressed: () => setState(
                 () => open ? collapsed.add(id) : collapsed.remove(id),
               ),
@@ -395,7 +395,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
             ),
             PopupMenuButton<String>(
               enabled: enabled,
-              tooltip: '그룹 수정·이동·삭제',
+              tooltip: 'TAP 수정·이동·삭제',
               onSelected: (value) {
                 if (value == 'edit') {
                   editGroup(task);
@@ -416,7 +416,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                 }
               },
               itemBuilder: (_) => [
-                const PopupMenuItem(value: 'edit', child: Text('그룹 정보 수정')),
+                const PopupMenuItem(value: 'edit', child: Text('TAP 정보 수정')),
                 const PopupMenuItem(value: 'up', child: Text('위로 이동')),
                 const PopupMenuItem(value: 'down', child: Text('아래로 이동')),
                 for (final f in folders.where(
@@ -424,9 +424,9 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                 ))
                   PopupMenuItem<String>(
                     value: f['id'],
-                    child: Text('${f['name']} 폴더로 이동'),
+                    child: Text('${f['name']} 그룹으로 이동'),
                   ),
-                const PopupMenuItem(value: 'delete', child: Text('그룹 삭제')),
+                const PopupMenuItem(value: 'delete', child: Text('TAP 삭제')),
               ],
             ),
           ],
@@ -470,7 +470,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                       ? () => editStep(task)
                       : null,
                   icon: const Icon(Icons.add),
-                  label: const Text('Small Tap 추가'),
+                  label: const Text('Small TAP 추가'),
                 ),
               ),
             ],
@@ -514,7 +514,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                   Icons.drag_handle,
                   size: 22,
                   color: AppColors.muted,
-                  semanticLabel: '활동 순서 드래그',
+                  semanticLabel: 'Small TAP 순서 드래그',
                 ),
               ),
             )
@@ -540,7 +540,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                     Text(
                       (step['title'] as String?)?.isNotEmpty == true
                           ? step['title']
-                          : '(이름 없는 활동)',
+                          : '(이름 없는 Small TAP)',
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     Text(
@@ -560,7 +560,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
             ),
           ),
           IconButton(
-            tooltip: '활동 삭제',
+            tooltip: 'Small TAP 삭제',
             onPressed: enabled && steps.length > 1
                 ? () => change(() => (task['steps'] as List).remove(step))
                 : null,
@@ -591,20 +591,20 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
 
   Future<void> editFolder([Json? folder]) async {
     if (folder == null && folders.length >= checklistFolderLimit) {
-      notice('폴더는 최대 30개예요. 사용하지 않는 폴더를 먼저 정리해 주세요.');
+      notice('BIG TAP 그룹은 최대 30개예요. 사용하지 않는 그룹을 먼저 정리해 주세요.');
       return;
     }
     var folderName = folder?['name'] as String? ?? '';
     final name = await showDialog<String>(
       context: context,
       builder: (c) => AlertDialog(
-        title: Text(folder == null ? '새 BIG TAP' : 'BIG TAP 이름'),
+        title: Text(folder == null ? '새 BIG TAP 그룹' : 'BIG TAP 그룹 이름'),
         content: TextFormField(
           initialValue: folderName,
           onChanged: (value) => folderName = value,
           maxLength: 40,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'BIG TAP 이름'),
+          decoration: const InputDecoration(labelText: 'BIG TAP 그룹 이름'),
         ),
         actions: [
           TextButton(
@@ -638,7 +638,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
   /// Group info sheet: title, icon, time bucket, rank and place. A new group then opens its first activity.
   Future<void> editGroup([Json? task]) async {
     if (task == null && templates.length >= checklistTaskLimit) {
-      notice('그룹은 최대 150개예요. 필요 없는 그룹을 먼저 정리해 주세요.');
+      notice('TAP은 최대 150개예요. 필요 없는 TAP을 먼저 정리해 주세요.');
       return;
     }
     final draft = task == null
@@ -673,7 +673,13 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
 
   Future<void> editStep(Json task, [Json? step]) async {
     final draft = step == null
-        ? <String, dynamic>{'id': newId(), 'title': '', 'manual': '', 'tip': ''}
+        ? <String, dynamic>{
+            'id': newId(),
+            'title': '',
+            'manual': '',
+            'tip': '',
+            'tags': <String>[],
+          }
         : _copy(step);
     final result = await Navigator.of(context).push<Json>(
       MaterialPageRoute(
@@ -730,12 +736,12 @@ class _GroupSheetState extends State<_GroupSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            '그룹 정보',
+            'TAP 정보',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           const Text(
-            '한 그룹은 같은 시간대·같은 담당이 이어서 하는 활동 묶음이에요.',
+            '하나의 TAP에는 같은 업무를 이루는 Small TAP이 들어가요.',
             style: TextStyle(fontSize: 12, color: AppColors.muted),
           ),
           const SizedBox(height: 16),
@@ -753,7 +759,10 @@ class _GroupSheetState extends State<_GroupSheet> {
                         color: AppColors.green,
                       ),
                       const SizedBox(height: 6),
-                      Text('그룹', style: Theme.of(context).textTheme.labelSmall),
+                      Text(
+                        'TAP',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
                     ],
                   ),
                 ),
@@ -764,7 +773,7 @@ class _GroupSheetState extends State<_GroupSheet> {
                   initialValue: task['title'],
                   maxLength: 100,
                   autofocus: (task['title'] as String).isEmpty,
-                  decoration: const InputDecoration(labelText: '그룹 이름'),
+                  decoration: const InputDecoration(labelText: 'TAP 이름'),
                   onChanged: (v) => setState(() {
                     task['title'] = v.trim();
                     issue = null;
@@ -817,12 +826,12 @@ class _GroupSheetState extends State<_GroupSheet> {
             child: FilledButton(
               onPressed: () {
                 if ((task['title'] as String).trim().isEmpty) {
-                  setState(() => issue = '그룹 이름을 1~100자로 입력해 주세요.');
+                  setState(() => issue = 'TAP 이름을 1~100자로 입력해 주세요.');
                   return;
                 }
                 Navigator.pop(context, task);
               },
-              child: const Text('그룹 정보 적용'),
+              child: const Text('TAP 정보 적용'),
             ),
           ),
         ],
@@ -874,7 +883,7 @@ class _ActivityEditorState extends State<_ActivityEditor> {
     },
     child: Scaffold(
       appBar: AppBar(
-        title: const Text('활동과 간단 매뉴얼'),
+        title: const Text('Small TAP과 간단 매뉴얼'),
         actions: [
           TextButton(
             onPressed: () {
@@ -897,7 +906,7 @@ class _ActivityEditorState extends State<_ActivityEditor> {
             padding: const EdgeInsets.all(16),
             children: [
               Text(
-                '그룹 · ${widget.groupTitle.isEmpty ? '(이름 없음)' : widget.groupTitle}',
+                'TAP · ${widget.groupTitle.isEmpty ? '(이름 없음)' : widget.groupTitle}',
                 style: const TextStyle(fontSize: 12, color: AppColors.muted),
               ),
               if (issue != null)
@@ -910,7 +919,7 @@ class _ActivityEditorState extends State<_ActivityEditor> {
                 maxLength: 100,
                 autofocus: (step['title'] as String).isEmpty,
                 decoration: const InputDecoration(
-                  labelText: '활동 이름',
+                  labelText: 'Small TAP 이름',
                   hintText: '예) 핏물 빼기',
                 ),
                 onChanged: (v) => setState(() {
@@ -932,14 +941,31 @@ class _ActivityEditorState extends State<_ActivityEditor> {
                   issue = null;
                 }),
               ),
-              for (final field in ['videoUrl', 'imageUrl'])
+              TextFormField(
+                initialValue: ((step['tags'] as List?) ?? []).join(', '),
+                decoration: const InputDecoration(
+                  labelText: '#연관어 (쉼표로 구분)',
+                  hintText: '주문취소, 환불, 결제취소',
+                  helperText: '최대 20개, 각 30자 이내',
+                ),
+                onChanged: (value) => setState(() {
+                  step['tags'] = value
+                      .split(',')
+                      .map((tag) => tag.trim().replaceFirst(RegExp(r'^#+'), ''))
+                      .where((tag) => tag.isNotEmpty)
+                      .toList();
+                  issue = null;
+                }),
+              ),
+              for (final field in ['videoUrl', 'imageUrl', 'sourceUrl'])
                 TextFormField(
                   initialValue: step[field] ?? '',
                   decoration: InputDecoration(
                     labelText: field == 'videoUrl'
                         ? '영상 HTTPS 링크 (선택)'
-                        : '사진 HTTPS 링크 (선택)',
-                    helperText: 'YouTube·Drive 등 기존 도구의 공유 링크',
+                        : field == 'imageUrl'
+                        ? '사진 HTTPS 링크 (선택)'
+                        : '공식 사진 가이드 HTTPS 링크 (선택)',
                   ),
                   onChanged: (v) => setState(() {
                     step[field] = v.trim();

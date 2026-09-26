@@ -341,8 +341,8 @@ void main() {
       await mount(tester, ops, editor: true, width: 900);
       await tester.ensureVisible(find.text('도구 나누기'));
       await longDrag(tester, find.text('도구 나누기'), find.text('육수 올리기'));
-      expect(find.textContaining('· 1개 활동'), findsOneWidget);
-      expect(find.textContaining('· 2개 활동'), findsOneWidget);
+      expect(find.textContaining('· Small TAP 1개'), findsOneWidget);
+      expect(find.textContaining('· Small TAP 2개'), findsOneWidget);
       await tester.ensureVisible(find.text('솥 물량 확인'));
       await longDrag(tester, find.text('솥 물량 확인'), find.text('전처리 준비'));
       await tester.ensureVisible(find.text('도구 나누기'));
@@ -373,18 +373,18 @@ void main() {
       await tester.tap(find.text('전처리 준비'));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextFormField, '그룹 이름'),
+        find.widgetWithText(TextFormField, 'TAP 이름'),
         '내 매장 준비',
       );
       await tester.tap(find.text('브레이크'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('그룹 정보 적용'));
+      await tester.tap(find.text('TAP 정보 적용'));
       await tester.pumpAndSettle();
       expect(find.text('내 매장 준비'), findsOneWidget);
       await tester.ensureVisible(find.text('도구 나누기'));
       await tester.tap(find.text('도구 나누기'));
       await tester.pumpAndSettle();
-      expect(find.text('활동과 간단 매뉴얼'), findsOneWidget);
+      expect(find.text('Small TAP과 간단 매뉴얼'), findsOneWidget);
       await tester.enterText(
         find.widgetWithText(TextFormField, '간단 매뉴얼 · 방법과 완료 기준'),
         '우리 매장 도구함에서 꺼내 확인해요.',
@@ -494,7 +494,7 @@ void main() {
     await tester.tap(find.text('도구 나누기'));
     await tester.pumpAndSettle();
     await tester.enterText(
-      find.widgetWithText(TextFormField, '활동 이름'),
+      find.widgetWithText(TextFormField, 'Small TAP 이름'),
       '편집 중인 이름',
     );
     await tester.pumpAndSettle();
