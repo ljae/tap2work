@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 63,
+  "revision": 64,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -489,7 +489,7 @@
       "id": "M-015",
       "title": "사장 계정 실제 매장 설정",
       "status": "in_progress",
-      "description": "빈/샘플 매장 명시 선택, 매장 정보·메뉴·재료 편집/보관, 역할 검증, revision 충돌 보호를 로컬 구현하고 분석·테스트를 통과했다. Supabase SQL/Edge Function과 공개 앱 배포 및 실제 로그인 저장 검증은 아직 수행하지 않았다. 2026-09-26 배포 시도는 api.supabase.com DNS 조회 실패로 중단되어 원격 변경이 적용되지 않았다. 다른 사용자 초대/POS/실제 공급업체 전송은 범위 밖이다."
+      "description": "빈/샘플 매장 명시 선택, 매장 정보·메뉴·재료 편집/보관, 역할 검증, revision 충돌 보호를 구현했다. 2026-09-26 Supabase SQL/Edge Function과 공개 앱을 배포하고 CI 및 공개 번들을 확인했다. 실제 계정 로그인·저장, 네이티브 빌드·실기기 검증은 아직 수행하지 않았다. 다른 사용자 초대/POS/실제 공급업체 전송은 범위 밖이다."
     }
   ],
   "history": [
@@ -2881,6 +2881,16 @@
       "detail": "전역 Codex Supabase MCP가 다른 프로젝트 runner의 참조값을 사용함을 확인했다. 전역 설정과 runner는 변경하지 않았다. tap2work 저장소의 .env에서 토큰을 읽고 대상 프로젝트 참조값을 검사하는 실행기와 세션별 Codex 설정을 적용하는 CLI 명령을 추가했다. 앱의 프로젝트별 .codex/config.toml은 현재 샌드박스가 생성을 거부해 문서에 작성 방법만 안내했다. Supabase 연결 자체는 새 세션 및 네트워크 환경에서 아직 조회하지 않았다.",
       "files": [".gitignore", "scripts/launch-supabase-mcp.mjs", "scripts/codex-tap2work.sh", "docs/SUPABASE.md", "docs/project-state.json"],
       "verification": "node 실행기의 --check 성공, node --check 및 sh -n 통과. sh scripts/codex-tap2work.sh mcp get supabase에서 프로젝트 실행기로 바뀐 명령과 cwd를 확인했다. 기존 전역 Codex 설정 파일 및 다른 프로젝트 runner는 수정하지 않았다."
+    },
+    {
+      "id": "H-real-store-tap-release-2026-09-26",
+      "at": "2026-09-26",
+      "type": "deployment",
+      "title": "실제 매장 설정과 TAP 탐색을 Pages·Supabase에 배포",
+      "detail": "기능 커밋 6eb2684를 main에 cd91dff로 머지하고 원격에 푸시했다. Supabase 프로젝트 sgpmhqtaylgqymeqciin에 20260924030000_workspace_backend.sql과 20260926010000_workspace_name.sql을 적용하고 operations Edge Function을 배포했다. GitHub Pages는 tap2.work의 공개 Flutter 앱을 배포했다. 앞서 기록한 DNS 실패는 샌드박스 네트워크 제한이었으며 외부 네트워크 재시도로 해소했다.",
+      "files": ["docs/project-state.json", "docs/DEPLOYMENT.md"],
+      "verification": "로컬 npm run check, Node 59/59, Flutter analyze, Flutter 85/85, npm run build:site, git diff --check 통과. Actions 36215875627에서 같은 검사와 Pages 배포 성공. HTTPS 루트 200, 실제 main.dart.js와 로컬 _site/main.dart.js SHA-256 일치(2f30b6657ed414a9c4ad4575a4e1484f08ba2aa71278d39052d30329699466d1). Supabase 함수 비로그인 요청 401. 실제 계정 로그인·저장, 네이티브 빌드 및 실기기 검증은 수행하지 않았다.",
+      "links": ["https://github.com/ljae/tap2work/actions/runs/36215875627", "https://github.com/ljae/tap2work/commit/cd91dff8bed56774d7bf6ee6db67392d628d9925", "https://tap2.work/"]
     }
   ],
   "updatedAt": "2026-09-26"

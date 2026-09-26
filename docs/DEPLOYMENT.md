@@ -130,3 +130,7 @@ Commit `9c527fa` combines the previously uncommitted shared heading, choice and 
 ## Operations UI redesign · 2026-09-25
 
 Commit `f5c24e9` applies the [UI design system](UI_DESIGN_SYSTEM_2026-09-25.md) to the Flutter operations app. [Actions 36140373284](https://github.com/ljae/tap2work/actions/runs/36140373284) passed JavaScript checks, console tests, Flutter analysis, all 84 Flutter tests, public build and Pages deployment. `https://tap2.work/` returned 200 over HTTPS; the live `main.dart.js` and local `_site/main.dart.js` matched by SHA-256 (`2524fea24187ea25adf6626935108c8c52e79e2d147b164e7dd13e6800cbd0ce`). The Supabase operations function and schema were unchanged. Native builds, physical-device interaction, screenshot comparison and authenticated live mutations were not tested.
+
+## Real store setup and direct TAP navigation · 2026-09-26
+
+Feature commit `6eb2684` was merged into `main` as `cd91dff`. Supabase project `sgpmhqtaylgqymeqciin` accepted the workspace SQL migrations and the `operations` Edge Function deployment. The function returned 401 to an unauthenticated request. [Actions 36215875627](https://github.com/ljae/tap2work/actions/runs/36215875627) passed JavaScript checks, 59 Node tests, Flutter analysis, 85 Flutter tests, public build and Pages deployment. The live HTTPS root returned 200, and `main.dart.js` matched the local `_site/main.dart.js` by SHA-256 (`2f30b6657ed414a9c4ad4575a4e1484f08ba2aa71278d39052d30329699466d1`). Authenticated live saves, native builds and physical-device interaction were not tested.
