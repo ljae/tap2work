@@ -35,6 +35,8 @@ test('overnight continuous work preserves daily threshold; week boundary holds t
   const row={start:'2026-09-21T20:00:00+09:00',end:'2026-09-22T06:00:00+09:00'};
   const r=laborEstimate([row],review,week,12000);
   assert.equal(r.overtimeMinutes,120);assert.equal(r.nightMinutes,480);
+  assert.equal(laborEstimate([{start:'2026-09-21T02:00:00+09:00',end:'2026-09-21T06:00:00+09:00',workday:'2026-09-20'}],review,week,12000).totalWon,null);
+  assert.equal(laborEstimate([{start:'2026-09-22T02:00:00+09:00',end:'2026-09-22T06:00:00+09:00',workday:'2026-09-21'}],{...review,holidayDates:['2026-09-22']},week,12000).totalWon,null);
   assert.equal(laborEstimate([{start:'2026-09-20T22:00:00+09:00',end:'2026-09-21T07:00:00+09:00'}],review,week,12000).totalWon,null);
 });
 test('review permission, validation and private projection',()=>{

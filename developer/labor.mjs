@@ -47,8 +47,8 @@ export function laborEstimate(segments, review, week, rate, planned = false) {
     }
   }
   const alerts = [];
-  const crossesWeek = segments.some(s => Date.parse(s.start) < from && Date.parse(s.end) > from);
-  const holidayBoundary = segments.some(s => kstDay(Date.parse(s.start)) !== kstDay(Date.parse(s.end) - 1) && (holidays.has(kstDay(Date.parse(s.start))) || holidays.has(kstDay(Date.parse(s.end) - 1))));
+  const crossesWeek = segments.some(s => Date.parse(s.start) < until && Date.parse(s.end) > from && (Date.parse(s.start) < from || (s.workday && s.workday < week)));
+  const holidayBoundary = segments.some(s => Date.parse(s.start) < until && Date.parse(s.end) > from && (s.workday ?? kstDay(Date.parse(s.start))) !== kstDay(Date.parse(s.end) - 1) && (holidays.has(s.workday ?? kstDay(Date.parse(s.start))) || holidays.has(kstDay(Date.parse(s.end) - 1))));
   if (crossesWeek || holidayBoundary) alerts.push('주 경계 또는 휴일 경계를 넘는 연속근무는 수당 귀속을 별도로 확인해 주세요. 합계를 보류했어요.');
   const configured = review?.scope === 'standard' && ['under5', 'fivePlus'].includes(review?.size);
   if (!review) alerts.push('계산 조건을 설정해 주세요.');

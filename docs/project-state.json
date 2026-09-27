@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 85,
+  "revision": 86,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3752,7 +3752,19 @@
         "app/test/labor_panel_test.dart"
       ],
       "verification": "Flutter analyze 통과, 전체 Flutter 113개·서버 77개 테스트 통과. 인건비 저장 충돌 초안 보존, 지급 시간 초 단위 계산, 5인 미만·15시간 경계·가산 중첩·권한·revision 검증. npm run check와 공개 웹 빌드 성공. Pretendard/아이콘 390/1200px 캡처 테스트 및 검토 완료. npm run backend:deploy 성공. 최초 시트 스크롤 테스트 실패와 주간 셀 높이 부족은 수정 후 통과. Pages 배포·라이브 검증은 후속 기록. 네이티브 실기기·실계정 저장·급여 실무 검수는 미수행."
+    },
+    {
+      "id": "H-labor-boundary-break-2026-09-27",
+      "at": "2026-09-27T12:24:22.192740Z",
+      "type": "verification",
+      "title": "휴게를 사이에 둔 주·휴일 경계 검증",
+      "detail": "휴게 전후로 근로 구간이 나뉘어도 원래 출근일을 보존해 주/휴일 경계의 합계를 보류한다. 해당 주와 겹치지 않는 과거 야간근무가 현재 주 계산을 보류하지 않도록 제한했다.",
+      "files": [
+        "developer/labor.mjs",
+        "developer/test/labor.test.mjs"
+      ],
+      "verification": "회귀 사례 추가 후 Node 전체 77개 통과. Flutter 변경 없음. API 재배포 및 최종 공개 배포 기록은 후속 이력."
     }
   ],
-  "updatedAt": "2026-09-27T12:22:21.277691Z"
+  "updatedAt": "2026-09-27T12:24:22.192740Z"
 }
