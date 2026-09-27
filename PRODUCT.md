@@ -1,5 +1,9 @@
 # Product working brief
 
+## TAP 전환과 한국어 서체 보완 · 2026-09-27
+
+공개 미리보기에서도 성공한 TAP/Small TAP 완료에 짧은 아래 방향 글줄 전환을 보여 준다. 완료 TAP이 보드의 다른 열로 이동할 때는 출발 카드 위치에서 글줄이 내려가며 사라지고, 완료 열에는 완료 상태가 남는다. TAP을 열면 제목과 Small TAP 본문이 펼쳐진다. 동작 줄이기 설정에서는 전환을 생략한다. 기본 한국어 서체는 무료 OFL 라이선스의 Pretendard로 교체했다. 이 동작은 Flutter 위젯 프레임 테스트로 검증했으며 네이티브 실기기 검증은 별도다.
+
 ## 업무·매뉴얼·직원·우리매장 개선 · 2026-09-27
 
 The main Flutter app now uses **업무 / 매뉴얼 / 직원 / 우리매장**. Work retains the TAP → Small TAP hierarchy, BIG TAP filters and the existing order/todo/done board. Manuals have a dedicated destination; Staff contains schedules, training and owner-only hiring drafts; Our Store contains settings, layout and access to sales, stock and procurement.

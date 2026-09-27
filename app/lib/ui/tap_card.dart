@@ -110,7 +110,7 @@ class TapCard extends StatelessWidget {
                               trigger: completionTrigger,
                               maxLines: 1,
                               style: const TextStyle(
-                                fontSize: 16,
+                                fontSize: 17,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.ink,
                               ),

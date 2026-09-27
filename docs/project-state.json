@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 72,
+  "revision": 73,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3261,7 +3261,25 @@
         "https://github.com/ljae/tap2work/commit/14fc70486983a65521d6338d04a65aea34026a4a",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-tap-motion-font-fix-2026-09-27",
+      "at": "2026-09-27T07:53:04.578Z",
+      "type": "implementation",
+      "title": "TAP 전환 표시와 무료 한국어 서체 보완",
+      "detail": "공개 읽기 전용 미리보기에서 완료 trigger가 빠진 점과 조건부 위젯 삽입 시 AnimatedSwitcher가 교체된 문제를 수정했다. TAP 열기와 Small TAP 전환을 상태 유지 위젯으로 표시하고, 완료 TAP이 열을 옮길 때 출발 카드 위치에서 글줄이 내려가 사라지는 효과를 더했다. 동작 줄이기를 따른다. Aside CLI에서 Pretendard·SUIT·LINE Seed의 공식 자료를 비교해 OFL 1.1 Pretendard v1.3.9 네 가지 정적 굵기를 앱 자산으로 적용했다. 공개 Pages 배포는 후속 기록에서 확인한다.",
+      "files": [
+        "PRODUCT.md",
+        "docs/FONT_MOTION_REVIEW_2026-09-27.md",
+        "app/lib/ui/tap_workspace.dart",
+        "app/lib/ui/completion_text.dart",
+        "app/lib/main.dart",
+        "app/pubspec.yaml",
+        "app/assets/fonts/",
+        "app/test/motion_test.dart"
+      ],
+      "verification": "Flutter analyze 오류 없음, flutter test 98/98 성공, npm run check 성공, Node console test 65/65 성공, npm run build:site 성공. 데스크톱 로컬 웹 서체 스크린샷 확인. 네이티브 빌드·실기기 및 휴대폰 브라우저 모션 시각 검증은 미수행."
     }
   ],
-  "updatedAt": "2026-09-27T07:07:45.886Z"
+  "updatedAt": "2026-09-27T07:53:04.578Z"
 }

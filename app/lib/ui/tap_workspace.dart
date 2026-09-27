@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -26,6 +27,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   String? selectedStepId;
   String? celebratedStepId, celebratedTaskId;
   int completionTick = 0;
+  Timer? celebrationTimer;
+  Timer? completionOverlayTimer;
+  OverlayEntry? completionOverlay;
   bool mineOnly = false;
   final previewStepOrder = <String, List<String>>{};
   List<String>? previewGroupOrder;
@@ -33,11 +37,91 @@ class _TapWorkspaceState extends State<TapWorkspace> {
 
   void celebrate({String? stepId, String? taskId}) {
     if (!mounted) return;
+    celebrationTimer?.cancel();
     setState(() {
       celebratedStepId = stepId;
       celebratedTaskId = taskId;
       completionTick++;
     });
+    celebrationTimer = Timer(const Duration(milliseconds: 520), () {
+      if (!mounted) return;
+      setState(() {
+        celebratedStepId = null;
+        celebratedTaskId = null;
+      });
+    });
+  }
+
+  Rect? completionOrigin(BuildContext sourceContext) {
+    final source = sourceContext.findRenderObject();
+    final overlay = Overlay.of(context).context.findRenderObject();
+    if (source is! RenderBox || overlay is! RenderBox || !source.hasSize) {
+      return null;
+    }
+    return source.localToGlobal(Offset.zero, ancestor: overlay) & source.size;
+  }
+
+  void showCompletionFall(Json task, Rect? origin) {
+    if (!mounted || origin == null || MediaQuery.disableAnimationsOf(context)) {
+      return;
+    }
+    completionOverlayTimer?.cancel();
+    completionOverlay?.remove();
+    completionOverlay?.dispose();
+    final label = task['orderId'] == null
+        ? '${task['title']}'
+        : '주문 ${task['orderNumber']}';
+    final entry = OverlayEntry(
+      builder: (_) => Positioned(
+        key: const ValueKey('completion-fall'),
+        left: origin.left,
+        top: origin.top,
+        width: origin.width,
+        height: origin.height + 24,
+        child: IgnorePointer(
+          child: ExcludeSemantics(
+            child: Material(
+              color: Colors.transparent,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: 1),
+                duration: const Duration(milliseconds: 440),
+                curve: Curves.easeInCubic,
+                builder: (_, progress, child) => Transform.translate(
+                  offset: Offset(0, 24 * progress),
+                  child: Opacity(opacity: 1 - progress, child: child),
+                ),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    completionOverlay = entry;
+    Overlay.of(context).insert(entry);
+    completionOverlayTimer = Timer(const Duration(milliseconds: 460), () {
+      if (completionOverlay == entry) completionOverlay = null;
+      entry.remove();
+      entry.dispose();
+    });
+  }
+
+  @override
+  void dispose() {
+    celebrationTimer?.cancel();
+    completionOverlayTimer?.cancel();
+    completionOverlay?.remove();
+    completionOverlay?.dispose();
+    super.dispose();
   }
 
   List<Json> get groups =>
@@ -308,12 +392,32 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               ],
             ),
           if (task != null) const SizedBox(height: 8),
-          PageHeading(
-            level,
-            title,
-            task != null
-                ? '${task['slot']} · ${role(task)} · ${place(task)}'
-                : 'TAP을 선택하면 Small TAP과 방법을 볼 수 있어요. BIG TAP은 아래에서 업무를 묶어 보는 필터예요.',
+          AnimatedSwitcher(
+            key: const ValueKey('tap-heading-transition'),
+            duration: MediaQuery.disableAnimationsOf(context)
+                ? Duration.zero
+                : const Duration(milliseconds: 320),
+            switchInCurve: Curves.easeOutCubic,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, .18),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            child: KeyedSubtree(
+              key: ValueKey('tap-heading/$taskId'),
+              child: PageHeading(
+                level,
+                title,
+                task != null
+                    ? '${task['slot']} · ${role(task)} · ${place(task)}'
+                    : 'TAP을 선택하면 Small TAP과 방법을 볼 수 있어요. BIG TAP은 아래에서 업무를 묶어 보는 필터예요.',
+              ),
+            ),
           ),
           if (task != null &&
               (task['customer_memo'] ?? '').toString().isNotEmpty)
@@ -323,9 +427,17 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ),
           if (task != null && ops.isLeader && task['templateId'] != null)
             TextButton.icon(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                builder: (_) => TapSettingsScreen(ops: ops, initialTemplateId: task['templateId']))),
-              icon: const Icon(Icons.tune), label: const Text('이 TAP 설정')),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => TapSettingsScreen(
+                    ops: ops,
+                    initialTemplateId: task['templateId'],
+                  ),
+                ),
+              ),
+              icon: const Icon(Icons.tune),
+              label: const Text('이 TAP 설정'),
+            ),
           const SizedBox(height: 12),
           if (task == null)
             Wrap(
@@ -359,9 +471,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                   ),
                 if (ops.isLeader)
                   TextButton.icon(
-                    onPressed: ops.busy ? null : () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(builder: (_) => TapSettingsScreen(ops: ops))),
-                    icon: const Icon(Icons.tune), label: const Text('TAP 설정')),
+                    onPressed: ops.busy
+                        ? null
+                        : () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => TapSettingsScreen(ops: ops),
+                            ),
+                          ),
+                    icon: const Icon(Icons.tune),
+                    label: const Text('TAP 설정'),
+                  ),
               ],
             ),
           const SizedBox(height: 16),
@@ -392,6 +511,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ),
             const SizedBox(height: 12),
             AnimatedSwitcher(
+              key: const ValueKey('tap-body-transition'),
               duration: MediaQuery.disableAnimationsOf(context)
                   ? Duration.zero
                   : const Duration(milliseconds: 260),
@@ -435,43 +555,53 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             : status(t) == '완료'
             ? '완료'
             : '할일',
-        card: TapCard(
-          completionTrigger: celebratedTaskId == t['id'] ? completionTick : null,
-          key: ValueKey('tap-${t['id']}'),
-          level: 'TAP',
-          emoji: t['emoji'] ?? '📋',
-          title: t['title'],
-          subtitle:
-              '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${t['slot']} · ${assigneeLabel(t)}',
-          accentColor: assigneeColor(t),
-          assigneeBadges: assigneeBadges(t),
-          dragHandle: _draggable(
-            data: t['id'],
-            feedback: Material(
-              elevation: 8,
-              child: SizedBox(width: 260, child: Text(t['title'])),
+        card: Builder(
+          builder: (cardContext) => TapCard(
+            completionTrigger: celebratedTaskId == t['id']
+                ? completionTick
+                : null,
+            key: ValueKey('tap-${t['id']}'),
+            level: 'TAP',
+            emoji: t['emoji'] ?? '📋',
+            title: t['title'],
+            subtitle:
+                '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${t['slot']} · ${assigneeLabel(t)}',
+            accentColor: assigneeColor(t),
+            assigneeBadges: assigneeBadges(t),
+            dragHandle: _draggable(
+              data: t['id'],
+              feedback: Material(
+                elevation: 8,
+                child: SizedBox(width: 260, child: Text(t['title'])),
+              ),
+              child: const SizedBox(
+                width: 48,
+                height: 48,
+                child: Icon(Icons.drag_indicator, color: AppColors.muted),
+              ),
             ),
-            child: const SizedBox(
-              width: 48,
-              height: 48,
-              child: Icon(Icons.drag_indicator, color: AppColors.muted),
-            ),
-          ),
-          total: total(t),
-          done: done(t),
-          onOpen: () => navigate(folder: folderId, task: t['id']),
-          onCheck: t['preparedOutputMovementId'] != null
-              ? null
-              : () => t['preparedItemId'] != null && status(t) != '완료'
-                    ? _finishPreparation(t)
-                    : t['orderId'] != null
-                    ? _checkMenu(t)
-                    : _moveTap(
+            total: total(t),
+            done: done(t),
+            onOpen: () => navigate(folder: folderId, task: t['id']),
+            onCheck: t['preparedOutputMovementId'] != null
+                ? null
+                : () {
+                    final origin = completionOrigin(cardContext);
+                    if (t['preparedItemId'] != null && status(t) != '완료') {
+                      _finishPreparation(t, origin: origin);
+                    } else if (t['orderId'] != null) {
+                      _checkMenu(t, origin: origin);
+                    } else {
+                      _moveTap(
                         t,
                         folderOf(t),
                         status(t) == '완료' ? 'todo' : 'done',
-                      ),
-          checked: status(t) == '완료',
+                        origin: origin,
+                      );
+                    }
+                  },
+            checked: status(t) == '완료',
+          ),
         ),
       ));
     }
@@ -823,16 +953,26 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     );
   }
 
-  Future<void> _checkMenu(Json task) async {
+  Future<void> _checkMenu(Json task, {Rect? origin}) async {
     if (status(task) == '완료') {
       await _toggle(task, steps(task).first);
     } else if (ops.readOnly) {
       for (final step in steps(task).where((s) => s['completedAt'] == null)) {
         ops.previewToggleStep(task['id'], step['id']);
       }
+      if (mounted &&
+          groups.any(
+            (row) => row['id'] == task['id'] && row['completedAt'] != null,
+          )) {
+        celebrate(taskId: task['id']);
+        showCompletionFall(task, origin);
+      }
     } else {
       final ok = await ops.act('complete_task', {'taskId': task['id']});
-      if (ok) celebrate(taskId: task['id']);
+      if (ok) {
+        celebrate(taskId: task['id']);
+        showCompletionFall(task, origin);
+      }
       if (!ok && mounted) notice(ops.error ?? '완료하지 못했어요.');
     }
   }
@@ -842,11 +982,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     String targetFolder,
     String targetStatus, {
     String? beforeTaskId,
+    Rect? origin,
   }) async {
     if (task['preparedItemId'] != null &&
         targetStatus == 'done' &&
         task['completedAt'] == null) {
-      await _finishPreparation(task);
+      await _finishPreparation(task, origin: origin);
       return;
     }
     if (task['preparedOutputMovementId'] != null && targetStatus != 'done') {
@@ -867,6 +1008,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         targetStatus,
         beforeTaskId: beforeTaskId,
       );
+      if (targetStatus == 'done' &&
+          mounted &&
+          groups.any(
+            (row) => row['id'] == task['id'] && row['completedAt'] != null,
+          )) {
+        celebrate(taskId: task['id']);
+        showCompletionFall(task, origin);
+      }
       return;
     }
     final payload = <String, dynamic>{
@@ -876,7 +1025,10 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     };
     if (beforeTaskId != null) payload['beforeTaskId'] = beforeTaskId;
     final ok = await ops.act('move_tap', payload);
-    if (ok && targetStatus == 'done') celebrate(taskId: task['id']);
+    if (ok && targetStatus == 'done') {
+      celebrate(taskId: task['id']);
+      showCompletionFall(task, origin);
+    }
     if (!ok && mounted) notice(ops.error ?? '이동하지 못했어요.');
   }
 
@@ -927,17 +1079,28 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     return result;
   }
 
-  Future<void> _finishPreparation(Json task) async {
+  Future<void> _finishPreparation(Json task, {Rect? origin}) async {
     final quantity = await _preparedQuantity(task);
     if (quantity == null || !mounted) return;
     if (ops.readOnly) {
       ops.previewCompletePreparation(task['id'], quantity);
+      if (mounted &&
+          groups.any(
+            (row) => row['id'] == task['id'] && row['completedAt'] != null,
+          )) {
+        celebrate(taskId: task['id']);
+        showCompletionFall(task, origin);
+      }
       return;
     }
     final ok = await ops.act('complete_preparation', {
       'taskId': task['id'],
       'quantity': quantity,
     });
+    if (ok) {
+      celebrate(taskId: task['id']);
+      showCompletionFall(task, origin);
+    }
     if (!ok && mounted) notice(ops.error ?? '준비 수량을 기록하지 못했어요.');
   }
 
@@ -1083,12 +1246,15 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       }
       return '아직 확인 전';
     }
+
     Widget card(Json step, int index) => Padding(
       key: ValueKey('sort-small-${step['id']}'),
       padding: const EdgeInsets.only(bottom: 8),
       child: TapCard(
         key: ValueKey('small-${step['id']}'),
-        completionTrigger: celebratedStepId == step['id'] ? completionTick : null,
+        completionTrigger: celebratedStepId == step['id']
+            ? completionTick
+            : null,
         level: 'SMALL TAP',
         emoji: '✓',
         title: step['title'],
@@ -1452,6 +1618,22 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       } else {
         ops.previewToggleStep(task['id'], step['id']);
       }
+      if (!checked && mounted) {
+        final current = groups
+            .where((row) => row['id'] == task['id'])
+            .firstOrNull;
+        final updated = current == null
+            ? null
+            : steps(
+                current,
+              ).where((row) => row['id'] == step['id']).firstOrNull;
+        if (updated?['completedAt'] != null) {
+          celebrate(
+            stepId: step['id'],
+            taskId: current?['completedAt'] != null ? task['id'] : null,
+          );
+        }
+      }
     } else {
       num? quantity;
       if (!checked &&
@@ -1459,7 +1641,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           steps(task).where((s) => s['completedAt'] == null).length == 1) {
         quantity = await _preparedQuantity(task);
         if (quantity == null || !mounted) return;
-      } else if (!checked && step['settings']?['completionKind'] == 'quantity') {
+      } else if (!checked &&
+          step['settings']?['completionKind'] == 'quantity') {
         quantity = await _stepQuantity(step);
         if (quantity == null || !mounted) return;
       }
@@ -1470,29 +1653,70 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       });
       if (mounted && !success) notice(ops.error ?? '변경하지 못했어요.');
       if (mounted && success && !checked) {
-        final current = ops.rows('tasks').where((row) => row['id'] == task['id']).firstOrNull;
-        celebrate(stepId: step['id'], taskId: current?['completedAt'] != null ? task['id'] : null);
+        final current = ops
+            .rows('tasks')
+            .where((row) => row['id'] == task['id'])
+            .firstOrNull;
+        celebrate(
+          stepId: step['id'],
+          taskId: current?['completedAt'] != null ? task['id'] : null,
+        );
       }
     }
   }
 
   Future<num?> _stepQuantity(Json step) async {
     final unit = '${step['settings']?['quantitySpec']?['unit'] ?? '개'}';
-    final places = (step['settings']?['quantitySpec']?['decimalPlaces'] as num?)?.toInt() ?? 0;
+    final places =
+        (step['settings']?['quantitySpec']?['decimalPlaces'] as num?)
+            ?.toInt() ??
+        0;
     final controller = TextEditingController();
-    final result = await showDialog<num>(context: context, builder: (dialog) => AlertDialog(
-      title: Text('${step['title']} · 실제 수량'),
-      content: TextField(controller: controller, autofocus: true,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        decoration: InputDecoration(labelText: '실제 수량 · $unit', helperText: places == 0 ? '정수로 입력' : '소수 $places자리까지')),
-      actions: [TextButton(onPressed: () => Navigator.pop(dialog), child: const Text('취소')),
-        FilledButton(onPressed: () => Navigator.pop(dialog, num.tryParse(controller.text.trim())), child: const Text('완료'))],
-    ));
+    final result = await showDialog<num>(
+      context: context,
+      builder: (dialog) => AlertDialog(
+        title: Text('${step['title']} · 실제 수량'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            labelText: '실제 수량 · $unit',
+            helperText: places == 0 ? '정수로 입력' : '소수 $places자리까지',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialog),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.pop(dialog, num.tryParse(controller.text.trim())),
+            child: const Text('완료'),
+          ),
+        ],
+      ),
+    );
     controller.dispose();
     if (result == null) return null;
-    if (result <= 0 || result > 100000 || result * (places == 0 ? 1 : places == 1 ? 10 : 100) !=
-        (result * (places == 0 ? 1 : places == 1 ? 10 : 100)).round()) {
-      notice('실제 수량을 확인해 주세요.'); return null;
+    if (result <= 0 ||
+        result > 100000 ||
+        result *
+                (places == 0
+                    ? 1
+                    : places == 1
+                    ? 10
+                    : 100) !=
+            (result *
+                    (places == 0
+                        ? 1
+                        : places == 1
+                        ? 10
+                        : 100))
+                .round()) {
+      notice('실제 수량을 확인해 주세요.');
+      return null;
     }
     return result;
   }

@@ -63,11 +63,18 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   fonts:
-    - family: NotoSansKR
+    - family: Pretendard
       fonts:
-        - asset: assets/fonts/NotoSansKR.ttf
+        - asset: assets/fonts/Pretendard-Regular.otf
+          weight: 400
+        - asset: assets/fonts/Pretendard-Medium.otf
+          weight: 500
+        - asset: assets/fonts/Pretendard-SemiBold.otf
+          weight: 600
+        - asset: assets/fonts/Pretendard-Bold.otf
+          weight: 700
   assets:
-    - assets/fonts/OFL.txt
+    - assets/fonts/PRETENDARD-OFL.txt
     - assets/branding/tap2work.png
     - assets/menu/menu_tap2.png
 

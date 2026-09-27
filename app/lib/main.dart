@@ -77,7 +77,7 @@ class Tap2workApp extends StatelessWidget {
     supportedLocales: const [Locale('ko', 'KR'), Locale('en', 'US')],
     localizationsDelegates: GlobalMaterialLocalizations.delegates,
     theme: ThemeData(
-      fontFamily: 'NotoSansKR',
+      fontFamily: 'Pretendard',
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.accent,
@@ -90,9 +90,9 @@ class Tap2workApp extends StatelessWidget {
       ),
       scaffoldBackgroundColor: AppColors.paper,
       textTheme: const TextTheme(
-        bodyMedium: TextStyle(fontSize: 14, height: 1.5, color: AppColors.ink),
+        bodyMedium: TextStyle(fontSize: 15, height: 1.5, color: AppColors.ink),
         bodyLarge: TextStyle(fontSize: 16, height: 1.45, color: AppColors.ink),
-        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+        labelLarge: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
       ),
       appBarTheme: const AppBarTheme(
         centerTitle: false,
