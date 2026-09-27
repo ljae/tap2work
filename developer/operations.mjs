@@ -30,14 +30,58 @@ function manualSearchIndex(state) {
         templateId: template ? task.id : null,
         sourceStepId: step.id,
         editable: template,
+        estimatedMinutes: step.settings?.estimatedMinutes ?? null,
         manual: step.manual ?? '', tip: step.tip ?? '', tags: step.tags ?? [],
         imageUrl: step.imageUrl ?? '', videoUrl: step.videoUrl ?? '', sourceUrl: step.sourceUrl ?? '',
       });
     }
   };
-  for (const template of state.taskTemplates ?? []) if (!template.archivedAt) add(template, true);
-  for (const task of state.tasks ?? []) if (task.steps?.length && !task.archivedAt && !task.supersededAt && task.date === state.day) add(task, false);
+  for (const template of state.taskTemplates ?? []) if (!template.archivedAt && (template.folderId !== 'order-work' || template.menuManualId)) add(template, true);
+  for (const task of state.tasks ?? []) if (task.steps?.length && !task.orderId && task.folderId !== 'order-work' && !task.archivedAt && !task.supersededAt && task.date === state.day) add(task, false);
   return [...rows.values()];
+}
+
+function menuManualText(menu) {
+  const name = menu.name;
+  if (menu.id === 'bowl' || menu.id === 'tomato') return `${name}의 주문 옵션을 확인하고, 매장에서 승인한 산뼈찜 레시피와 제공 기준에 맞춰 준비해요. 완성 후 메뉴와 추가품을 주문표에 대조해요.`;
+  if (menu.id === 'pork') return `${name}의 맵기와 추가 토핑·제외 요청을 확인해요. 매장에서 승인한 화산뼈찜 레시피에 따라 준비하고 본품과 추가품을 대조해요.`;
+  if (menu.id === 'salad') return `${name}의 면·밥 선택과 제외 요청을 확인해요. 매장에서 승인한 국물·면 조리 기준에 따라 준비하고 동반품을 대조해요.`;
+  if (menu.id === 'soup') return `${name} 주문을 확인하고 매장에서 승인한 뼈곰탕 국물·고명·제공 기준에 따라 준비해요. 완성된 메뉴를 주문표에 대조해요.`;
+  if (menu.id === 'tea') return `${name} 추가 주문을 확인하고 매장에서 정한 사리 준비·제공 기준에 따라 준비해요. 함께 나갈 본품 주문을 대조해요.`;
+  if (menu.id === 'special') return `${name} 주문을 확인하고 매장에서 승인한 볶음밥 조리·제공 기준에 따라 준비해요. 함께 나갈 본품 주문을 대조해요.`;
+  if (menu.id === 'water') return `${name}의 종류·요청 사항을 확인하고, 매장 제공 기준에 따라 준비한 뒤 주문표에 대조해요.`;
+  return `${name} 주문의 옵션과 요청 사항을 확인해요. 매장에서 승인한 이 메뉴의 조리·제공 기준에 따라 준비하고 완성된 메뉴를 주문표에 대조해요.`;
+}
+
+function ensureMenuManuals(state) {
+  let changed = false;
+  if ((state.sales?.menus ?? []).some(menu => !menu.archivedAt) && !state.checklistFolders.some(folder => folder.id === 'order-work')) {
+    state.checklistFolders.push({ id: 'order-work', name: '주문처리' });
+    state.bigTapOrder = [...(state.bigTapOrder ?? []), 'order-work'];
+    changed = true;
+  }
+  for (const menu of state.sales?.menus ?? []) {
+    const id = `menu-manual-${menu.id}`;
+    const template = state.taskTemplates.find(row => row.id === id);
+    if (menu.archivedAt) {
+      if (template && !template.archivedAt) { template.archivedAt = menu.archivedAt; changed = true; }
+      continue;
+    }
+    if (template) {
+      if (template.title !== menu.name) {
+        const defaultManual = menuManualText({ ...menu, name: template.title });
+        if (template.steps[0]?.manual === defaultManual) template.steps[0].manual = menuManualText(menu);
+        template.title = menu.name;
+        if (template.steps[0]) template.steps[0].title = menu.name;
+        template.version++;
+        changed = true;
+      }
+      continue;
+    }
+    state.taskTemplates.push({ id, menuManualId: menu.id, title: menu.name, emoji: '🍽️', folderId: 'order-work', slot: '피크', requiredRole: 'cook', zone: null, version: 1, sourceIds: [], settings: { type: 'order', enabled: false, recurrence: { mode: 'daily', weekdays: [] }, allowBulkComplete: false, enforceSequence: false }, steps: [{ id: 'menu', title: menu.name, manual: menuManualText(menu), tip: '조리 시간과 상세 레시피는 매장 기준에 맞게 설정해 주세요.', settings: { estimatedMinutes: null } }] });
+    changed = true;
+  }
+  return changed;
 }
 
 const dayMs = 86400000;
@@ -191,6 +235,7 @@ function ensureDueTasks(state, now) {
   if (ensureChecklists(state)) changed = true;
   if (ensureTapBoard(state)) changed = true;
   if (!state.sales) { state.sales = seedSales(now); changed = true; }
+  if (ensureMenuManuals(state)) changed = true;
   if (state.sales?.source === 'sample') for (const ticket of state.sales.tickets ?? []) {
     const match = /^S-\d+-(\d+)$/.exec(ticket.id);
     if (match && ticket.targetMinutes == null) { ticket.targetMinutes = [20, 25, 30][(Number(match[1]) - 1) % 3]; changed = true; }
@@ -202,7 +247,7 @@ function ensureDueTasks(state, now) {
   if (ensureOrderTaps(state, now)) changed = true;
   if (ensurePreparationTaps(state, now)) changed = true;
   for (const template of state.taskTemplates) {
-    if (template.archivedAt || !repeatsOn(template, date)) continue;
+    if (template.archivedAt || template.menuManualId || !repeatsOn(template, date)) continue;
     const id = `daily-${template.id}-v${template.version}-${date}`;
     if (!state.tasks.some(task => task.templateId === template.id && task.date === date && !task.archivedAt)) {
       state.tasks.push({ ...structuredClone(template), templateId: template.id, id, date, dueAt: iso(now), kind: 'routine', boardStatus: 'todo', completedAt: null, completedBy: null }); changed = true;

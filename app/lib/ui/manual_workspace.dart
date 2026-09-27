@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import 'tap_settings_screen.dart';
+import 'checklist_editor.dart';
 
 /// A manual belongs to one Task. The tree changes reusable definitions only.
 class ManualWorkspace extends StatefulWidget {
@@ -84,6 +86,18 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       '${folder?['name']} ${row['tapTitle']} ${row['title']} ${row['manual']} ${row['tip']} ${(row['tags'] as List? ?? []).join(' ')}',
     );
     return words.every(text.contains);
+  }
+
+  int? minutes(Json row) {
+    final value = row['estimatedMinutes'];
+    return value is int && value > 0 ? value : null;
+  }
+
+  String duration(List<Json> tasks) {
+    final known = tasks.map(minutes).whereType<int>().toList();
+    if (known.isEmpty) return '시간 미설정';
+    final total = known.fold<int>(0, (sum, value) => sum + value);
+    return known.length == tasks.length ? '약 $total분' : '약 $total분+';
   }
 
   List<Json> get results => rows
@@ -330,6 +344,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     bool editable = true,
     bool hasChildren = false,
     int count = 0,
+    String? durationText,
   }) {
     final key = '$kind:$id${kind == 'task' ? ':$tapId' : ''}';
     final data = drag(kind, id, tapId: tapId);
@@ -422,7 +437,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         ),
                       ),
                     ),
-                    if (kind != 'task')
+                    if (durationText != null) ...[
+                      const SizedBox(width: 4),
+                      Text(durationText, style: const TextStyle(fontSize: 11, color: AppColors.muted)),
+                    ] else if (kind != 'task')
                       Text(
                         '$count',
                         style: const TextStyle(
@@ -544,6 +562,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             selected: scopeTap == tap['tapId'],
             hasChildren: true,
             count: children.length,
+            durationText: duration(all.where((r) => r['tapId'] == tap['tapId']).toList()),
             onTap: () => setState(() {
               scopeGroup = folder['id'];
               scopeTap = tap['tapId'];
@@ -597,6 +616,28 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             style: const TextStyle(fontSize: 12, color: AppColors.muted),
           ),
           const SizedBox(height: 12),
+          Text(duration([selected]), style: const TextStyle(fontSize: 13, color: AppColors.muted)),
+          if (canEdit && selected['editable'] == true && selected['templateId'] != null)
+            Wrap(spacing: 8, children: [
+              TextButton.icon(
+                icon: const Icon(CupertinoIcons.clock), label: const Text('소요시간 설정'),
+                onPressed: () async {
+                  await Navigator.push(context, MaterialPageRoute<void>(
+                    builder: (_) => TapSettingsScreen(ops: ops, initialTemplateId: selected['templateId']),
+                  ));
+                  if (mounted) setState(() => sync(force: true));
+                },
+              ),
+              TextButton.icon(
+                icon: const Icon(CupertinoIcons.pencil), label: const Text('매뉴얼 편집'),
+                onPressed: () async {
+                  await Navigator.push(context, MaterialPageRoute<void>(
+                    builder: (_) => ChecklistEditor(ops: ops, initialFolder: selected['folderId']),
+                  ));
+                  if (mounted) setState(() => sync(force: true));
+                },
+              ),
+            ]),
           Text(
             selected['title'],
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
@@ -648,10 +689,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               row['title'],
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: Text(
-              '${row['folderName'] ?? ''} / ${row['tapTitle']}',
-              maxLines: 2,
-            ),
+            subtitle: Text(duration([row]), maxLines: 1),
             trailing: const Icon(CupertinoIcons.chevron_right, size: 16),
             onTap: () => setState(() {
               selectedId = row['id'];

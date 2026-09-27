@@ -25,7 +25,10 @@ test('global manual index and related words reach crew without private data or d
   assert.ok(pos?.sourceUrl.startsWith('https://okpos.gitbook.io/'));
   assert.equal(owner.manualSearch.filter(row => row.id === pos.id).length, 1);
   const orderTap = owner.tasks.find(row => row.orderId && row.steps?.length);
-  assert.ok(orderTap && owner.manualSearch.some(row => row.tapTitle === orderTap.title));
+  assert.ok(orderTap && !owner.manualSearch.some(row => row.tapTitle === orderTap.title));
+  const menuGuides = owner.manualSearch.filter(row => row.folderId === 'order-work');
+  assert.equal(menuGuides.length, owner.catalogMenus.filter(menu => !menu.archivedAt).length);
+  assert.ok(menuGuides.every(row => row.tapTitle === row.title && !/×\s*\d/.test(row.title)));
   const task = owner.tasks.find(row => row.templateId === PREP);
   const step = task.steps[0];
   const saved = await act('save_step_manual', { taskId: task.id, stepId: step.id, manual: '매장 승인 방법', tags: ['우동사리', '창고 위치'], sourceUrl: 'https://example.com/guide' });
@@ -88,7 +91,7 @@ test('fresh demo starts with the 뼈찜 collection in its own folder, place and 
   assert.equal(bone.tasks.length, 11);
   assert.ok(state.checklistFolders.some(f => f.id === 'order-work'));
   assert.ok(state.checklistFolders.some(f => f.id === 'bone-preparation'));
-  assert.equal(state.taskTemplates.length, 15);
+  assert.equal(state.taskTemplates.length, 15 + state.catalogMenus.length);
   assert.ok(state.taskTemplates.every(row => row.version === 1));
   const prep = state.taskTemplates.find(row => row.id === PREP);
   assert.equal(prep.zone, 'prep'); assert.equal(prep.requiredRole, 'cook'); assert.equal(prep.emoji, '🍖');
@@ -231,7 +234,7 @@ test('entire catalog validates and saves with sources and detailed instructions'
   const payload = fullCatalog(state);
   const saved = await store.mutate('owner', { action: 'save_checklists', revision: state.revision, ...payload });
   assert.equal(saved.taskTemplates.length, payload.templates.length);
-  assert.equal(saved.taskTemplates.length, checklistLibrary.industries.reduce((n, i) => n + i.tasks.length, 0) + 4);
+  assert.equal(saved.taskTemplates.length, checklistLibrary.industries.reduce((n, i) => n + i.tasks.length, 0) + 4 + state.catalogMenus.length);
 });
 test('HTTP accepts checklist drafts larger than the old 64 KiB limit', async t => {
   const { store, file, clock } = await setup(t);

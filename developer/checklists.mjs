@@ -71,7 +71,7 @@ export function validateChecklists(input, state) {
   unique(folders);
   if (folders.some(row => ['stock', 'all-filter', 'edit', 'delete', 'up', 'down'].includes(row.id))) fail('다른 폴더 ID를 사용해 주세요.');
   if (!folders.some(row => row.id === 'general')) fail('기본 업무 폴더는 유지해 주세요.');
-  const templates = list(input.templates, 0, 150, '업무').map(row => {
+  const templates = list(input.templates, 0, 650, '업무').map(row => {
     if (!row || !checklistSlots.includes(row.slot) || !checklistRoles.includes(row.requiredRole) || (row.zone != null && !state.zones.some(zone => zone.id === row.zone)) || !folders.some(folder => folder.id === row.folderId)) fail('업무의 시간대·직급·장소·폴더를 확인해 주세요.');
     const previous = state.taskTemplates.find(template => template.id === row.id);
     const steps = list(row.steps, 1, 30, '행위').map(step => ({ id: text(step?.id, 100, '행위 ID'), title: text(step?.title, 100, '행위 이름'), manual: text(step?.manual, 700, '간단 매뉴얼'), tip: optionalText(step?.tip, 400, '노하우'), tags: manualTags(step?.tags), videoUrl: mediaLink(step?.videoUrl), imageUrl: mediaLink(step?.imageUrl), sourceUrl: mediaLink(step?.sourceUrl), ...((previous?.steps.find(old => old.id === step.id)?.settings ?? step.settings) ? { settings: structuredClone(previous?.steps.find(old => old.id === step.id)?.settings ?? step.settings) } : {}) }));
@@ -79,6 +79,7 @@ export function validateChecklists(input, state) {
     const sourceIds = Array.isArray(row.sourceIds) ? [...new Set(row.sourceIds.filter(id => checklistLibrary.sources.some(source => source.id === id)))] : [];
     return { id: text(row.id, 100, '업무 ID'), title: text(row.title, 100, '업무 이름'), emoji: emoji(row.emoji), folderId: row.folderId, slot: row.slot, requiredRole: row.requiredRole, zone: row.zone ?? null, steps, sourceIds,
       ...(previous?.settings ? { settings: structuredClone(previous.settings), settingsVersion: previous.settingsVersion ?? 1 } : {}),
+      ...(previous?.menuManualId ? { menuManualId: previous.menuManualId } : {}),
       ...(previous?.recommendationId ? { recommendationId: previous.recommendationId } : {}) };
   });
   unique(templates);

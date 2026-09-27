@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 80,
+  "revision": 81,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3613,7 +3613,27 @@
         "https://github.com/ljae/tap2work/actions/runs/36309384217",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-menu-manual-duration-2026-09-27",
+      "at": "2026-09-27T10:49:12.582Z",
+      "type": "implementation",
+      "title": "메뉴별 대표 주문 매뉴얼과 Task 예상 시간",
+      "detail": "사용자 요청에 따라 주문 건·수량별 생성 업무를 매뉴얼 검색에서 제외하고 활성 카탈로그 메뉴마다 대표 TAP 1개와 동명 Task 1개를 제공한다. 샘플 메뉴별 안내는 매장 승인 조리 기준을 전제로 작성하며 실제 레시피를 꾸며내지 않는다. 대표 매뉴얼은 오늘 업무를 자동 생성하지 않고 주문 업무·완료 이력은 보존한다. Task 시간은 설정 피커로 저장하며 매뉴얼 카드에 표시한다. 매뉴얼 트리와 업무 TAP 카드에는 설정된 Task 시간 합계를 표시하고 일부만 설정된 합계는 +로 구분한다.",
+      "files": [
+        "PRODUCT.md",
+        "developer/operations.mjs",
+        "developer/checklists.mjs",
+        "developer/test/catalog.test.mjs",
+        "developer/test/checklists.test.mjs",
+        "developer/test/operations.test.mjs",
+        "app/lib/ui/manual_workspace.dart",
+        "app/lib/ui/tap_workspace.dart",
+        "app/lib/ui/tap_settings_screen.dart",
+        "app/test/manual_workspace_test.dart"
+      ],
+      "verification": "Flutter analyze 통과, Flutter 106개·Node 69개 테스트 통과, npm run check 및 git diff --check 통과. npm run build:site 성공, npm run backend:deploy 성공(operations 함수). 공개 Pages 배포·라이브 확인은 후속 기록. 네이티브 빌드·실기기·실계정 저장은 미수행."
     }
   ],
-  "updatedAt": "2026-09-27T09:29:42.215Z"
+  "updatedAt": "2026-09-27T10:49:12.582Z"
 }

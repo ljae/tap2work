@@ -32,6 +32,7 @@ Json directoryData() {
         'tip': '안전 확인',
         'tags': ['공통'],
         'editable': true,
+        'estimatedMinutes': item.$2 == 's1' ? 5 : item.$2 == 's2' ? 10 : null,
       },
   ];
   return data;
@@ -98,6 +99,16 @@ void main() {
     await click(tester, 'manual-node-task:s3:b');
     expect(find.text('청소 상세 매뉴얼'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+  testWidgets('Task cards show only duration and TAP tree sums configured Task times', (tester) async {
+    final ops = OperationsController(readOnly: true, client: MockClient((_) async => response(directoryData())));
+    addTearDown(ops.dispose);
+    await mount(tester, ops);
+    await click(tester, 'manual-node-tap:a');
+    expect(find.text('약 15분'), findsOneWidget);
+    final results = find.byKey(const ValueKey('manual-results'));
+    expect(find.descendant(of: results, matching: find.text('약 5분')), findsOneWidget);
+    expect(find.descendant(of: results, matching: find.text('오픈 / 위생 TAP')), findsNothing);
   });
   testWidgets('real drag moves Task and its manual in preview without a POST', (
     tester,

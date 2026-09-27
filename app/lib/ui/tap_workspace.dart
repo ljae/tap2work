@@ -150,6 +150,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       ops.isLeader ||
       task['requiredRole'] == 'all' ||
       task['requiredRole'] == ops.actor['role'];
+  String estimatedDuration(Json task) {
+    final steps = (task['steps'] as List? ?? []).whereType<Json>().toList();
+    final times = steps.map((step) => step['settings']?['estimatedMinutes'])
+        .whereType<int>().where((minutes) => minutes > 0).toList();
+    if (times.isEmpty) return '';
+    final total = times.fold<int>(0, (sum, minutes) => sum + minutes);
+    return times.length == steps.length ? '약 $total분' : '약 $total분+';
+  }
   String place(Json task) =>
       ops
               .rows('zones')
@@ -488,7 +496,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             emoji: t['emoji'] ?? '📋',
             title: t['title'],
             subtitle:
-                '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${t['slot']} · ${assigneeLabel(t)}',
+                '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${t['slot']} · ${assigneeLabel(t)}${estimatedDuration(t).isEmpty ? '' : ' · ${estimatedDuration(t)}'}',
             accentColor: assigneeColor(t),
             assigneeBadges: assigneeBadges(t),
             dragHandle: _draggable(
@@ -1177,7 +1185,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         level: 'Task',
         emoji: '✓',
         title: step['title'],
-        subtitle: subtitleFor(step),
+        subtitle: [subtitleFor(step), if (step['settings']?['estimatedMinutes'] is int && step['settings']['estimatedMinutes'] > 0) '약 ${step['settings']['estimatedMinutes']}분'].where((text) => text.isNotEmpty).join(' · '),
 
         sequence: index + 1,
         selected: selected?['id'] == step['id'],

@@ -35,6 +35,21 @@ test('blank workspace stays blank across snapshots and catalog edits keep stock 
   view = await mutate('save_menu', { name: '김치찌개', category: '식사', price: 9000 });
   assert.equal(view.catalogMenus[0].name, '김치찌개');
   assert.equal((await store.snapshot()).tasks.length, 0);
+  const guide = view.manualSearch.find(row => row.tapTitle === '김치찌개');
+  assert.equal(guide.title, '김치찌개');
+  assert.equal(guide.estimatedMinutes, null);
+  assert.ok(guide.manual.includes('김치찌개'));
+  const template = view.taskTemplates.find(row => row.id === guide.templateId);
+  view = await mutate('save_tap_settings', { templateId: template.id,
+    settings: template.settings,
+    steps: [{ id: 'menu', settings: { roleOverride: null, zoneOverride: null, completionKind: 'check', quantitySpec: null, estimatedMinutes: 12 } }] });
+  assert.equal(view.manualSearch.find(row => row.id === guide.id).estimatedMinutes, 12);
+  assert.equal(view.tasks.length, 0);
+  view = await mutate('save_menu', { id: view.catalogMenus[0].id, name: '된장찌개', category: '식사', price: 9000 });
+  const renamed = view.manualSearch.find(row => row.id === guide.id);
+  assert.equal(renamed.title, '된장찌개');
+  assert.ok(renamed.manual.includes('된장찌개'));
+  assert.equal(renamed.estimatedMinutes, 12);
   await assert.rejects(() => store.mutate('user-1', { action: 'save_menu', revision: staleRevision, name: '낡은 편집', category: '식사', price: 1 }), { status: 409 });
 });
 
