@@ -24,6 +24,7 @@ class TapCard extends StatelessWidget {
     this.accentColor,
     this.assigneeBadges,
     this.completionTrigger,
+    this.holdCompletion = false,
   });
 
   final String level, title, subtitle, emoji, footer;
@@ -37,6 +38,7 @@ class TapCard extends StatelessWidget {
   final Color? accentColor;
   final Widget? assigneeBadges;
   final Object? completionTrigger;
+  final bool holdCompletion;
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +110,7 @@ class TapCard extends StatelessWidget {
                             child: CompletionText(
                               text: title,
                               trigger: completionTrigger,
+                              holdAfterFall: holdCompletion,
                               maxLines: 1,
                               style: const TextStyle(
                                 fontSize: 17,
@@ -160,17 +163,18 @@ class TapCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, top: 2),
-                  child: Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      height: 1.4,
-                      color: AppColors.muted,
+                if (subtitle.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, top: 2),
+                    child: Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        height: 1.4,
+                        color: AppColors.muted,
+                      ),
                     ),
                   ),
-                ),
                 if (assigneeBadges != null) ...[
                   const SizedBox(height: 5),
                   assigneeBadges!,

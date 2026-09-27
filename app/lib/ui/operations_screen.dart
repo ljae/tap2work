@@ -161,16 +161,16 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 
   Widget manualSearchBar() => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
     child: Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1240),
         child: TextField(
+          key: const ValueKey('global-manual-search'),
           controller: manualSearch,
           onChanged: (value) => setState(() => manualQuery = value),
           decoration: InputDecoration(
-            hintText: '어떤 업무가 궁금하세요?',
-            helperText: '전체 매장 매뉴얼 검색',
+            hintText: '매뉴얼 검색',
             prefixIcon: const Icon(CupertinoIcons.search),
             suffixIcon: manualQuery.isEmpty
                 ? null
@@ -194,75 +194,83 @@ class _OperationsScreenState extends State<OperationsScreen> {
 
   Widget manualResultList() {
     final results = manualResults;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
-      children: [
-        Text(
-          '전체 매장 · Small TAP 매뉴얼 ${results.length}개',
-          style: const TextStyle(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 12),
-        if (results.isEmpty)
-          const Information('검색 결과가 없어요. 업무 이름이나 연관어로 다시 찾아보세요.'),
-        for (final row in results)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Surface(
-              child: InkWell(
-                onTap: () => openManual(row),
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${row['title']}',
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        'TAP · ${row['tapTitle']}',
-                        style: const TextStyle(
-                          color: AppColors.muted,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '${row['manual']}',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if ((row['tags'] as List? ?? []).isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 7),
-                          child: Text(
-                            (row['tags'] as List)
-                                .map((tag) => '#$tag')
-                                .join('  '),
-                            style: const TextStyle(
-                              color: AppColors.green,
-                              fontSize: 12,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1240),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '매뉴얼 ${results.length}개',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 12),
+              if (results.isEmpty)
+                const Information('검색 결과가 없어요. 업무 이름이나 연관어로 다시 찾아보세요.'),
+              for (final row in results)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Surface(
+                    child: InkWell(
+                      onTap: () => openManual(row),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${row['title']}',
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                          ),
+                            Text(
+                              'TAP · ${row['tapTitle']}',
+                              style: const TextStyle(
+                                color: AppColors.muted,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '${row['manual']}',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if ((row['tags'] as List? ?? []).isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 7),
+                                child: Text(
+                                  (row['tags'] as List)
+                                      .map((tag) => '#$tag')
+                                      .join('  '),
+                                  style: const TextStyle(
+                                    color: AppColors.green,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            if ('${row['sourceUrl'] ?? ''}'.isNotEmpty)
+                              const Text(
+                                '사진·상세 설명 보기 · 공식 가이드',
+                                style: TextStyle(
+                                  color: AppColors.green,
+                                  fontSize: 11,
+                                ),
+                              ),
+                          ],
                         ),
-                      if ('${row['sourceUrl'] ?? ''}'.isNotEmpty)
-                        const Text(
-                          '사진·상세 설명 보기 · 공식 가이드',
-                          style: TextStyle(
-                            color: AppColors.green,
-                            fontSize: 11,
-                          ),
-                        ),
-                    ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
+            ],
           ),
-      ],
+        ),
+      ),
     );
   }
 
@@ -321,8 +329,18 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 
   void go(int value) => setState(() {
-    tab = switch (value) { 0 || 2 || 4 => 3, 1 => 0, 3 => 2, _ => 3 };
-    storeSection = switch (value) { 0 => 'overview', 2 => 'inventory', 4 => 'layout', _ => 'home' };
+    tab = switch (value) {
+      0 || 2 || 4 => 3,
+      1 => 0,
+      3 => 2,
+      _ => 3,
+    };
+    storeSection = switch (value) {
+      0 => 'overview',
+      2 => 'inventory',
+      4 => 'layout',
+      _ => 'home',
+    };
     inventoryOpen = value == 2;
   });
 
@@ -452,7 +470,29 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   ),
                 ],
               ),
-            if (ops.data != null && (tab == 0 || tab == 1)) manualSearchBar(),
+            if (ops.data != null) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1240),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        const ['업무', '매뉴얼', '직원', '우리매장'][tab],
+                        key: const ValueKey('menu-title'),
+                        style: const TextStyle(
+                          fontSize: 26,
+                          height: 1.2,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              manualSearchBar(),
+            ],
             Expanded(
               child: ops.data == null
                   ? Center(
@@ -463,14 +503,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               child: const Text('매장 다시 연결'),
                             ),
                     )
-                  : tab == 1 || (tab == 0 && manualQuery.trim().isNotEmpty)
+                  : tab == 1 || manualQuery.trim().isNotEmpty
                   ? manualResultList()
                   : RefreshIndicator(
                       onRefresh: () => ops.refresh(),
                       child: SingleChildScrollView(
                         key: ValueKey(tab),
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(20, 22, 20, 36),
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                         child: Center(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 1240),
@@ -480,17 +520,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                 ...switch (tab) {
                                   0 => tasks(),
                                   1 => const <Widget>[],
-                                  2 => [StaffWorkspace(ops: ops, work: widget.work)],
+                                  2 => [
+                                    StaffWorkspace(ops: ops, work: widget.work),
+                                  ],
                                   _ => storeHome(),
                                 },
-                                const SizedBox(height: 24),
-                                const Text(
-                                  '작은 확인이 모여, 함께 일하기 편한 하루',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.muted,
-                                  ),
-                                ),
                               ],
                             ),
                           ),
@@ -505,6 +539,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
         selectedIndex: tab,
         onSelected: (value) => setState(() {
           tab = value;
+          manualSearch.clear();
+          manualQuery = '';
+          FocusScope.of(context).unfocus();
           inventoryOpen = false;
           if (value == 3) storeSection = 'home';
         }),
@@ -523,41 +560,78 @@ class _OperationsScreenState extends State<OperationsScreen> {
   List<Widget> storeHome() {
     if (storeSection != 'home') {
       return [
-      TextButton.icon(onPressed: () => setState(() => storeSection = 'home'),
-        icon: const Icon(CupertinoIcons.chevron_back), label: const Text('우리매장으로')),
-      if (storeSection == 'overview') ...today(),
-      if (storeSection == 'inventory') ...inventory(),
-      if (storeSection == 'layout') ...floorPlan(),
+        TextButton.icon(
+          onPressed: () => setState(() => storeSection = 'home'),
+          icon: const Icon(CupertinoIcons.chevron_back),
+          label: const Text('우리매장으로'),
+        ),
+        if (storeSection == 'overview') ...today(),
+        if (storeSection == 'inventory') ...inventory(),
+        if (storeSection == 'layout') ...floorPlan(),
       ];
     }
     final profile = ops.data?['store']?['profile'] as Json? ?? {};
     final pos = profile['pos'] as Json? ?? {};
     final delivery = profile['delivery'] as Json? ?? {};
     return [
-      const PageHeading('OUR STORE', '우리매장', '운영 정보와 필요한 자료를 한곳에서 설정해요.'),
-      if (ops.isOwner && profile['industryId'] == null)
-        const Information('먼저 매장명과 업종을 등록해 주세요. POS·배달·직원 정보는 나중에 설정해도 돼요.'),
-      actionCard(CupertinoIcons.gear, '매장 설정',
+      actionCard(
+        CupertinoIcons.gear,
+        '매장 설정',
         '${ops.data?['store']?['name'] ?? '새 매장'} · ${profile['industryId'] ?? '업종 미설정'}',
-        () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => StoreProfileScreen(ops: ops)))),
+        () => Navigator.push(
+          context,
+          MaterialPageRoute<void>(builder: (_) => StoreProfileScreen(ops: ops)),
+        ),
+      ),
       gap(),
-      actionCard(CupertinoIcons.chart_bar, '운영 현황', '매출 · 준비품 · 사장님 기록',
-        () => setState(() => storeSection = 'overview')),
-      actionCard(CupertinoIcons.cube_box, '재고와 발주', '실사 · 데모 발주 · 입고',
-        () => setState(() => storeSection = 'inventory')),
-      actionCard(CupertinoIcons.map, '배치도와 동선', '테이블 · 기기 · 보관 장소',
-        () => setState(() => storeSection = 'layout')),
-      if (ops.isLeader) actionCard(CupertinoIcons.square_list, '메뉴·재료 편집', '매장 메뉴와 재료 등록',
-        () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => CatalogEditor(ops: ops)))),
-      if (ops.isLeader && (pos['enabled'] == true || delivery['enabled'] == true)) ...[
+      actionCard(
+        CupertinoIcons.chart_bar,
+        '운영 현황',
+        '매출 · 준비품 · 사장님 기록',
+        () => setState(() => storeSection = 'overview'),
+      ),
+      actionCard(
+        CupertinoIcons.cube_box,
+        '재고와 발주',
+        '실사 · 데모 발주 · 입고',
+        () => setState(() => storeSection = 'inventory'),
+      ),
+      actionCard(
+        CupertinoIcons.map,
+        '배치도와 동선',
+        '테이블 · 기기 · 보관 장소',
+        () => setState(() => storeSection = 'layout'),
+      ),
+      if (ops.isLeader)
+        actionCard(
+          CupertinoIcons.square_list,
+          '메뉴·재료 편집',
+          '매장 메뉴와 재료 등록',
+          () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(builder: (_) => CatalogEditor(ops: ops)),
+          ),
+        ),
+      if (ops.isLeader &&
+          (pos['enabled'] == true || delivery['enabled'] == true)) ...[
         title('설정에 맞는 업무'),
-        const Information('사용 중인 주문 도구에 맞춰 접수·포장·전달 확인 업무를 살펴보세요. 가져올 양식은 직접 선택할 수 있어요.'),
-        OutlinedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
-          builder: (_) => RecommendedTapsScreen(ops: ops))), icon: const Icon(CupertinoIcons.list_bullet),
-          label: const Text('업무 양식 미리보기·선택')),
+        const Information(
+          '사용 중인 주문 도구에 맞춰 접수·포장·전달 확인 업무를 살펴보세요. 가져올 양식은 직접 선택할 수 있어요.',
+        ),
+        OutlinedButton.icon(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (_) => RecommendedTapsScreen(ops: ops),
+            ),
+          ),
+          icon: const Icon(CupertinoIcons.list_bullet),
+          label: const Text('업무 양식 미리보기·선택'),
+        ),
       ],
     ];
   }
+
   Widget title(String text) => Padding(
     padding: const EdgeInsets.only(top: 16, bottom: 12),
     child: Semantics(
@@ -625,8 +699,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 5),
-                    small(detail),
                   ],
                 ),
               ),

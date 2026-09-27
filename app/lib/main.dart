@@ -165,11 +165,13 @@ class Tap2workApp extends StatelessWidget {
         side: const BorderSide(color: AppColors.line),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         labelStyle: const TextStyle(
+          fontFamily: 'Pretendard',
           fontSize: 13,
           fontWeight: FontWeight.w700,
           color: AppColors.ink,
         ),
         secondaryLabelStyle: const TextStyle(
+          fontFamily: 'Pretendard',
           fontSize: 13,
           fontWeight: FontWeight.w700,
           color: AppColors.white,

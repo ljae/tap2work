@@ -377,7 +377,7 @@ void main() {
         tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).selected,
         isTrue,
       );
-      expect(find.text('방법 보기'), findsNWidgets(2));
+      expect(find.text('방법'), findsNWidgets(2));
       if (width < 700) {
         expect(find.text('생재료와 완성식품 도구를 따로 놓아요.'), findsNothing);
       }
@@ -400,7 +400,7 @@ void main() {
     expect(find.byKey(const ValueKey('small-s1')), findsOneWidget);
     await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
     await tester.pumpAndSettle();
-    expect(find.text('TAP'), findsWidgets);
+    expect(find.byKey(const ValueKey('tap-body/general/null')), findsOneWidget);
     expect(find.text('BIG TAP · 업무 그룹 필터'), findsOneWidget);
     expect(find.byKey(const ValueKey('tap-daily-prep')), findsOneWidget);
     await openGroup(tester, '전체 TAP');

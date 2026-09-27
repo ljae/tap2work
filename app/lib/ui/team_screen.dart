@@ -345,11 +345,7 @@ class _TeamScreenState extends State<TeamScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PageHeading(
-            widget.payOnly ? 'LABOR' : 'CALENDAR',
-            widget.payOnly ? '인건비 기록' : '크루 관리',
-            widget.payOnly ? '사장님만 보는 근태·지급 기록' : 'Tapper 등록과 근무시간 관리',
-          ),
+          if (widget.payOnly) const PageHeading('', '인건비 기록', ''),
           if (!widget.payOnly && own != null)
             Surface(
               child: Column(

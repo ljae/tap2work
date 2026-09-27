@@ -28,8 +28,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   String? celebratedStepId, celebratedTaskId;
   int completionTick = 0;
   Timer? celebrationTimer;
-  Timer? completionOverlayTimer;
-  OverlayEntry? completionOverlay;
+  final settlingTasks = <String>{};
   bool mineOnly = false;
   final previewStepOrder = <String, List<String>>{};
   List<String>? previewGroupOrder;
@@ -42,85 +41,37 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       celebratedStepId = stepId;
       celebratedTaskId = taskId;
       completionTick++;
+      if (taskId != null &&
+          this.taskId == null &&
+          !MediaQuery.disableAnimationsOf(context)) {
+        final task = groups.where((row) => row['id'] == taskId).firstOrNull;
+        settlingTasks.add(taskId);
+        if (task?['orderId'] != null) {
+          settlingTasks.addAll(
+            groups
+                .where(
+                  (row) =>
+                      row['orderId'] == task!['orderId'] &&
+                      row['completedAt'] != null,
+                )
+                .map((row) => row['id'] as String),
+          );
+        }
+      }
     });
     celebrationTimer = Timer(const Duration(milliseconds: 520), () {
       if (!mounted) return;
       setState(() {
         celebratedStepId = null;
         celebratedTaskId = null;
+        settlingTasks.clear();
       });
-    });
-  }
-
-  Rect? completionOrigin(BuildContext sourceContext) {
-    final source = sourceContext.findRenderObject();
-    final overlay = Overlay.of(context).context.findRenderObject();
-    if (source is! RenderBox || overlay is! RenderBox || !source.hasSize) {
-      return null;
-    }
-    return source.localToGlobal(Offset.zero, ancestor: overlay) & source.size;
-  }
-
-  void showCompletionFall(Json task, Rect? origin) {
-    if (!mounted || origin == null || MediaQuery.disableAnimationsOf(context)) {
-      return;
-    }
-    completionOverlayTimer?.cancel();
-    completionOverlay?.remove();
-    completionOverlay?.dispose();
-    final label = task['orderId'] == null
-        ? '${task['title']}'
-        : '주문 ${task['orderNumber']}';
-    final entry = OverlayEntry(
-      builder: (_) => Positioned(
-        key: const ValueKey('completion-fall'),
-        left: origin.left,
-        top: origin.top,
-        width: origin.width,
-        height: origin.height + 24,
-        child: IgnorePointer(
-          child: ExcludeSemantics(
-            child: Material(
-              color: Colors.transparent,
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: 1),
-                duration: const Duration(milliseconds: 440),
-                curve: Curves.easeInCubic,
-                builder: (_, progress, child) => Transform.translate(
-                  offset: Offset(0, 24 * progress),
-                  child: Opacity(opacity: 1 - progress, child: child),
-                ),
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ink,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    completionOverlay = entry;
-    Overlay.of(context).insert(entry);
-    completionOverlayTimer = Timer(const Duration(milliseconds: 460), () {
-      if (completionOverlay == entry) completionOverlay = null;
-      entry.remove();
-      entry.dispose();
     });
   }
 
   @override
   void dispose() {
     celebrationTimer?.cancel();
-    completionOverlayTimer?.cancel();
-    completionOverlay?.remove();
-    completionOverlay?.dispose();
     super.dispose();
   }
 
@@ -366,59 +317,20 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     builder: (context, _) {
       final folder = folders.where((f) => f['id'] == folderId).firstOrNull;
       final task = groups.where((t) => t['id'] == taskId).firstOrNull;
-      final level = task != null ? 'SMALL TAP' : 'TAP';
       final scoped = (folder == null ? groups : inFolder(folder['id']))
           .where(visibleTask)
           .toList();
-      final title = task?['title'] ?? 'TAP';
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (task != null)
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                TextButton.icon(
-                  onPressed: () => navigate(folder: folderId),
-                  icon: const Icon(Icons.dashboard_outlined, size: 17),
-                  label: const Text('TAP 목록으로'),
-                ),
-                const Icon(
-                  Icons.chevron_right,
-                  size: 16,
-                  color: AppColors.muted,
-                ),
-                Text(task['title']),
-              ],
+          if (task != null) ...[
+            TextButton.icon(
+              onPressed: () => navigate(folder: folderId),
+              icon: const Icon(CupertinoIcons.chevron_back, size: 18),
+              label: const Text('TAP 목록으로'),
             ),
-          if (task != null) const SizedBox(height: 8),
-          AnimatedSwitcher(
-            key: const ValueKey('tap-heading-transition'),
-            duration: MediaQuery.disableAnimationsOf(context)
-                ? Duration.zero
-                : const Duration(milliseconds: 320),
-            switchInCurve: Curves.easeOutCubic,
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, .18),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
-            ),
-            child: KeyedSubtree(
-              key: ValueKey('tap-heading/$taskId'),
-              child: PageHeading(
-                level,
-                title,
-                task != null
-                    ? '${task['slot']} · ${role(task)} · ${place(task)}'
-                    : 'TAP을 선택하면 Small TAP과 방법을 볼 수 있어요. BIG TAP은 아래에서 업무를 묶어 보는 필터예요.',
-              ),
-            ),
-          ),
+            PageHeading('', task['title'], ''),
+          ],
           if (task != null &&
               (task['customer_memo'] ?? '').toString().isNotEmpty)
             Padding(
@@ -438,7 +350,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               icon: const Icon(Icons.tune),
               label: const Text('이 TAP 설정'),
             ),
-          const SizedBox(height: 12),
+          if (task == null) const SizedBox(height: 4),
           if (task == null)
             Wrap(
               spacing: 8,
@@ -483,17 +395,17 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                   ),
               ],
             ),
-          const SizedBox(height: 16),
+          if (task == null) const SizedBox(height: 12),
           if (folder == null && task == null) PreparedInventory(ops: ops),
           ...[
             if (task == null) ...[_folderBar(), const SizedBox(height: 16)],
-            const SizedBox(height: 18),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: Text(
                     task != null
-                        ? '이 TAP의 Small TAP · ${done(task)}/${total(task)} 완료'
+                        ? 'Small TAP · ${done(task)}/${total(task)} 완료'
                         : 'TAP · ${folder == null ? '전체 업무' : '${folder['name']} 그룹'}',
                     style: const TextStyle(
                       fontSize: 13,
@@ -514,13 +426,20 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               key: const ValueKey('tap-body-transition'),
               duration: MediaQuery.disableAnimationsOf(context)
                   ? Duration.zero
-                  : const Duration(milliseconds: 260),
+                  : const Duration(milliseconds: 360),
               switchInCurve: Curves.easeOutCubic,
               switchOutCurve: Curves.easeInCubic,
-              transitionBuilder: (child, animation) => SizeTransition(
-                sizeFactor: animation,
-                axisAlignment: -1,
-                child: FadeTransition(opacity: animation, child: child),
+              layoutBuilder: (current, previous) =>
+                  current ?? const SizedBox.shrink(),
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, .035),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
               ),
               child: KeyedSubtree(
                 key: ValueKey('tap-body/$folderId/$taskId'),
@@ -550,14 +469,18 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     for (final t in boardTasks) {
       entries.add((
         id: t['id'],
-        state: t['orderId'] != null
+        state: settlingTasks.contains(t['id'])
+            ? (t['orderId'] != null ? '주문처리중' : '할일')
+            : t['orderId'] != null
             ? '주문처리중'
             : status(t) == '완료'
             ? '완료'
             : '할일',
         card: Builder(
           builder: (cardContext) => TapCard(
-            completionTrigger: celebratedTaskId == t['id']
+            holdCompletion: settlingTasks.contains(t['id']),
+            completionTrigger:
+                (celebratedTaskId == t['id'] || settlingTasks.contains(t['id']))
                 ? completionTick
                 : null,
             key: ValueKey('tap-${t['id']}'),
@@ -586,17 +509,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             onCheck: t['preparedOutputMovementId'] != null
                 ? null
                 : () {
-                    final origin = completionOrigin(cardContext);
+                    if (settlingTasks.contains(t['id'])) return;
                     if (t['preparedItemId'] != null && status(t) != '완료') {
-                      _finishPreparation(t, origin: origin);
+                      _finishPreparation(t);
                     } else if (t['orderId'] != null) {
-                      _checkMenu(t, origin: origin);
+                      _checkMenu(t);
                     } else {
                       _moveTap(
                         t,
                         folderOf(t),
                         status(t) == '완료' ? 'todo' : 'done',
-                        origin: origin,
                       );
                     }
                   },
@@ -612,7 +534,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           .toList();
       if (cards.isEmpty) continue;
       final first = members.first;
-      final state = members.every((t) => status(t) == '완료') ? '완료' : '주문처리중';
+      final state =
+          members.every((t) => status(t) == '완료') &&
+              !members.any((t) => settlingTasks.contains(t['id']))
+          ? '완료'
+          : '주문처리중';
       final count = members.fold<int>(0, (sum, t) => sum + total(t));
       final completed = members.fold<int>(0, (sum, t) => sum + done(t));
       final progress = count == 0 ? 0.0 : completed / count;
@@ -953,7 +879,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     );
   }
 
-  Future<void> _checkMenu(Json task, {Rect? origin}) async {
+  Future<void> _checkMenu(Json task) async {
     if (status(task) == '완료') {
       await _toggle(task, steps(task).first);
     } else if (ops.readOnly) {
@@ -965,13 +891,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             (row) => row['id'] == task['id'] && row['completedAt'] != null,
           )) {
         celebrate(taskId: task['id']);
-        showCompletionFall(task, origin);
       }
     } else {
       final ok = await ops.act('complete_task', {'taskId': task['id']});
       if (ok) {
         celebrate(taskId: task['id']);
-        showCompletionFall(task, origin);
       }
       if (!ok && mounted) notice(ops.error ?? '완료하지 못했어요.');
     }
@@ -982,12 +906,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     String targetFolder,
     String targetStatus, {
     String? beforeTaskId,
-    Rect? origin,
   }) async {
     if (task['preparedItemId'] != null &&
         targetStatus == 'done' &&
         task['completedAt'] == null) {
-      await _finishPreparation(task, origin: origin);
+      await _finishPreparation(task);
       return;
     }
     if (task['preparedOutputMovementId'] != null && targetStatus != 'done') {
@@ -1014,7 +937,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             (row) => row['id'] == task['id'] && row['completedAt'] != null,
           )) {
         celebrate(taskId: task['id']);
-        showCompletionFall(task, origin);
       }
       return;
     }
@@ -1027,7 +949,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     final ok = await ops.act('move_tap', payload);
     if (ok && targetStatus == 'done') {
       celebrate(taskId: task['id']);
-      showCompletionFall(task, origin);
     }
     if (!ok && mounted) notice(ops.error ?? '이동하지 못했어요.');
   }
@@ -1079,7 +1000,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     return result;
   }
 
-  Future<void> _finishPreparation(Json task, {Rect? origin}) async {
+  Future<void> _finishPreparation(Json task) async {
     final quantity = await _preparedQuantity(task);
     if (quantity == null || !mounted) return;
     if (ops.readOnly) {
@@ -1089,7 +1010,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             (row) => row['id'] == task['id'] && row['completedAt'] != null,
           )) {
         celebrate(taskId: task['id']);
-        showCompletionFall(task, origin);
       }
       return;
     }
@@ -1099,7 +1019,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     });
     if (ok) {
       celebrate(taskId: task['id']);
-      showCompletionFall(task, origin);
     }
     if (!ok && mounted) notice(ops.error ?? '준비 수량을 기록하지 못했어요.');
   }
@@ -1244,7 +1163,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         final spec = settings['quantitySpec'] as Json? ?? {};
         return '실제 수량 입력 · ${spec['unit'] ?? ''}';
       }
-      return '아직 확인 전';
+      return '';
     }
 
     Widget card(Json step, int index) => Padding(
@@ -1259,7 +1178,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         emoji: '✓',
         title: step['title'],
         subtitle: subtitleFor(step),
-        footer: '방법 보기',
+
         sequence: index + 1,
         selected: selected?['id'] == step['id'],
         onOpen: () {

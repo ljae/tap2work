@@ -1128,7 +1128,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const PageHeading('팀 일정', '크루 근무표', '선택한 날의 역할별 배정과 빈 자리를 확인해요.'),
           Row(
             children: [
               IconButton(

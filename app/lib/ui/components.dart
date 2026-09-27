@@ -357,51 +357,18 @@ class PageHeading extends StatelessWidget {
   final String subtitle;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 24),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: AppColors.lime,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            child: Text(
-              kicker,
-              style: const TextStyle(
-                color: AppColors.green,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Semantics(
+      header: true,
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 22,
+          height: 1.3,
+          fontWeight: FontWeight.w700,
+          color: AppColors.ink,
         ),
-        const SizedBox(height: 12),
-        Semantics(
-          header: true,
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: MediaQuery.sizeOf(context).width < 600 ? 27 : 32,
-              height: 1.25,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -1,
-              color: AppColors.ink,
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          subtitle,
-          style: const TextStyle(
-            fontSize: 15,
-            height: 1.5,
-            color: AppColors.muted,
-          ),
-        ),
-      ],
+      ),
     ),
   );
 }
