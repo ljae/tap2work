@@ -66,9 +66,13 @@ void main() {
         await tester.tap(find.byKey(const Key('calendar-day-2026-09-25')));
         await tester.pumpAndSettle();
         expect(find.textContaining('9월 25일 금요일'), findsOneWidget);
-        expect(find.text('06:00'), findsOneWidget);
+        expect(find.text('6시'), findsOneWidget);
+        expect(
+          tester.getSize(find.byKey(const ValueKey('roster-time-axis'))).width,
+          40,
+        );
         expect(find.text('주간 시간표 · 06:00–24:00'), findsNothing);
-        expect(find.text('23:00'), findsOneWidget);
+        expect(find.text('23시'), findsOneWidget);
         await tester.tap(find.text('월간'));
         await tester.pumpAndSettle();
         expect(find.text('빈 슬롯'), findsNWidgets(90));

@@ -787,7 +787,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget dayRoster(DateTime day) {
     const rowHeight = _slotRowHeight;
     const headerHeight = 44.0;
-    const axisWidth = 49.0;
+    final axisWidth = 40.0 * MediaQuery.textScalerOf(context).scale(12) / 12;
     const gridHeight = 36 * rowHeight;
     final slots = ops.rows('staffingSlots');
     final priorDate = date(day.subtract(const Duration(days: 1)));
@@ -1062,11 +1062,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
+                Container(
+                  key: const ValueKey('roster-time-axis'),
                   width: axisWidth,
+                  color: AppColors.paper,
                   child: Column(
                     children: [
-                      const SizedBox(height: headerHeight),
+                      const SizedBox(
+                        height: headerHeight,
+                        child: Center(
+                          child: Text(
+                            '시각',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.ink,
+                            ),
+                          ),
+                        ),
+                      ),
                       SizedBox(
                         height: gridHeight,
                         child: Stack(
@@ -1074,14 +1088,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             for (var tick = 0; tick < 36; tick++)
                               Positioned(
                                 top: tick * rowHeight,
-                                left: 4,
-                                child: Text(
-                                  tick.isEven
-                                      ? clockAt(360 + tick * 30)
-                                      : ':30',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.muted,
+                                left: 2,
+                                right: 5,
+                                child: Tooltip(
+                                  message: clockAt(360 + tick * 30),
+                                  child: Semantics(
+                                    label: clockAt(360 + tick * 30),
+                                    excludeSemantics: true,
+                                    child: Text(
+                                      tick.isEven
+                                          ? '${(360 + tick * 30) ~/ 60}시'
+                                          : ':30',
+                                      textAlign: TextAlign.right,
+                                      style: TextStyle(
+                                        fontSize: tick.isEven ? 12 : 10,
+                                        height: 1.2,
+                                        fontWeight: tick.isEven
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
+                                        color: tick.isEven
+                                            ? AppColors.ink
+                                            : AppColors.muted,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 78,
+  "revision": 79,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3585,7 +3585,19 @@
         "https://github.com/ljae/tap2work/actions/runs/36308742468",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-roster-axis-compact-2026-09-27",
+      "at": "2026-09-27T09:26:11.716Z",
+      "type": "implementation",
+      "title": "직원 배정현황의 좁고 선명한 시간축",
+      "detail": "사용자 요청에 따라 기본 시간축 폭을 49px에서 40px로 줄였다. 정각은 6시 형식의 12px 굵은 글자로, 30분은 작은 보조 표시로 구분한다. 축 배경과 시각 헤더, 전체 시간 툴팁·접근성 라벨을 제공한다. 글자 확대 설정에 비례해 축 폭을 늘려 잘림을 피한다.",
+      "files": [
+        "app/lib/ui/calendar_screen.dart",
+        "app/test/calendar_test.dart"
+      ],
+      "verification": "Flutter analyze 통과. 320/390/1200px 표시 및 근무 배정·30분 드래그를 포함한 calendar 테스트 9개 통과. 네이티브·실기기 확인 미수행. 공개 빌드·배포는 후속 기록."
     }
   ],
-  "updatedAt": "2026-09-27T09:17:41.099Z"
+  "updatedAt": "2026-09-27T09:26:11.716Z"
 }
