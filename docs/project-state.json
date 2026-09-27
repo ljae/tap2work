@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 73,
+  "revision": 74,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3279,7 +3279,24 @@
         "app/test/motion_test.dart"
       ],
       "verification": "Flutter analyze 오류 없음, flutter test 98/98 성공, npm run check 성공, Node console test 65/65 성공, npm run build:site 성공. 데스크톱 로컬 웹 서체 스크린샷 확인. 네이티브 빌드·실기기 및 휴대폰 브라우저 모션 시각 검증은 미수행."
+    },
+    {
+      "id": "H-tap-motion-font-pages-release-2026-09-27",
+      "at": "2026-09-27T07:56:34.181Z",
+      "type": "deployment",
+      "title": "TAP 전환·Pretendard 서체 Pages 배포",
+      "detail": "기능 커밋 2803d20f31cff460746c94b112f000be1e0b234a를 main에 푸시하고 GitHub Pages의 Flutter 공개 검토 앱을 배포했다. 이번 변경은 Flutter UI·폰트 자산만 포함하며 운영 API와 Supabase 함수는 재배포하지 않았다.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "Actions 36304491887 성공: JS 검사, 콘솔 65/65, Flutter analyze, Flutter 98/98, 공개 빌드, Pages 배포. tap2.work의 index.html, main.dart.js, FontManifest.json, Pretendard-Regular.otf가 HTTPS 200 및 로컬 _site와 SHA-256 일치. 번들 해시 c813401d12331b9b0fe1fcaf0f4ebacd71d681e2fae33bab4308e2407da392b7. 네이티브 빌드·실기기 모션 검증 미수행.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36304491887",
+        "https://github.com/ljae/tap2work/commit/2803d20f31cff460746c94b112f000be1e0b234a",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-27T07:53:04.578Z"
+  "updatedAt": "2026-09-27T07:56:34.181Z"
 }

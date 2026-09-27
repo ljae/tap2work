@@ -1,5 +1,9 @@
 # tap2work development site
 
+## TAP 전환·Pretendard 서체 보완 배포 · 2026-09-27
+
+커밋 `2803d20`이 공개 미리보기의 TAP/Small TAP 완료 효과와 TAP 열기 전환을 보완하고, 기본 한국어 폰트를 OFL 1.1 Pretendard v1.3.9로 교체했다. API와 Supabase 함수는 변경되지 않았다. [Actions 36304491887](https://github.com/ljae/tap2work/actions/runs/36304491887)에서 JavaScript 검사, 콘솔 테스트 65개, Flutter 분석·테스트 98개, 공개 웹 빌드와 Pages 배포가 통과했다. `https://tap2.work/`의 `index.html`, `main.dart.js`, `FontManifest.json`, Pretendard Regular 폰트가 HTTPS 200으로 제공되고 로컬 `_site` 빌드와 SHA-256이 일치한다. 앱 번들 해시는 `c813401d12331b9b0fe1fcaf0f4ebacd71d681e2fae33bab4308e2407da392b7`이다. 네이티브 빌드·실기기 모션 검증은 수행하지 않았다.
+
 ## 우리매장·TAP 설정·직원 채용 준비 배포 · 2026-09-27
 
 Commit `14fc704` adds the four destinations 업무 / 매뉴얼 / 직원 / 우리매장, optional store configuration, POS/delivery task recommendations, TAP and Small TAP rules, owner-only hiring drafts, and restrained completion/opening transitions. Supabase project `sgpmhqtaylgqymeqciin` accepted the two existing SQL migrations and the updated `operations` Edge Function. An unauthenticated function request returned 401; no new SQL migration was added.
