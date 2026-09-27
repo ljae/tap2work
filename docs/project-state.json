@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 83,
+  "revision": 84,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3692,7 +3692,23 @@
       ],
       "verification": "Flutter analyze 및 전체 109개 테스트 통과. Pretendard·아이콘을 로드한 390/1200px 캡처 8개 검토와 별도 캡처 테스트 통과(.local/toss-ui-review). Aside에서 넓은 화면·설정 시트 확인. 초기 320px overflow·시트 배경 중복 finder·캡처 그림자 변수 복구 오류는 수정 후 재검증 통과. 최종 공개 빌드·Pages 배포는 후속 기록. 네이티브·실기기·실계정 저장 미수행.",
       "at": "2026-09-27T11:31:12.143Z"
+    },
+    {
+      "id": "H-toss-ui-release-2026-09-27",
+      "type": "deployment",
+      "title": "공통 디자인 시스템·바텀 시트 공개 배포",
+      "detail": "기능 커밋 d6af96d의 Flutter 앱을 Pages에 배포했다. 초록·코랄을 유지한 회색/흰색 테마, Pretendard 글자 규격, 카드 그림자, 설정·편집 시트, 버튼 반응과 shimmer 로딩을 포함한다. 운영 API 변경은 없다.",
+      "files": [
+        "docs/project-state.json",
+        "docs/TOSS_UI_PROMPT_TEMPLATE.md"
+      ],
+      "verification": "Actions 36316095630 성공: JavaScript 검사, Node 69개, Flutter 분석·109개 테스트, 공개 빌드와 Pages 배포. https://tap2.work/main.dart.js 및 FontManifest.json이 HTTPS 200이고 로컬 빌드와 SHA-256 일치. 앱 SHA-256: 0242b1c82061f8d292620c3874675f7f821da5f23721e62353cb52d77e706d0c. 390/1200px 서체·아이콘·그림자 캡처 테스트 통과, Aside 넓은 화면·시트 확인. 네이티브 빌드·실기기·실계정 저장은 미수행.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36316095630",
+        "https://tap2.work/"
+      ],
+      "at": "2026-09-27T11:36:40.456Z"
     }
   ],
-  "updatedAt": "2026-09-27T11:31:12.143Z"
+  "updatedAt": "2026-09-27T11:36:40.456Z"
 }
