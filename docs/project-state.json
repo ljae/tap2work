@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 87,
+  "revision": 88,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3776,7 +3776,23 @@
         "developer/test/labor.test.mjs"
       ],
       "verification": "월요일 6시간 계약의 20시–다음 날 02시 근무가 연장0분·야간240분임을 확인. Node 전체77개 통과. Flutter 변경 없음."
+    },
+    {
+      "id": "H-weekly-labor-release-2026-09-27",
+      "at": "2026-09-27T12:30:44.189267Z",
+      "type": "deployment",
+      "title": "주간 배정·인건비·상세 시트 공개 배포",
+      "detail": "25bb0a8의 UI와 b369322·22a7ca8의 야간/주 경계 보완을 포함해 Pages와 Supabase operations 함수를 배포했다. 이전 두 Pages 실행은 새 커밋으로 취소됐고 최종 36319033926은 성공했다.",
+      "files": [
+        "docs/project-state.json",
+        "docs/WEEKLY_LABOR_2026-09-27.md"
+      ],
+      "verification": "최종 Actions 36319033926: JavaScript 검사·Node77개·Flutter 분석/113개·웹 빌드·Pages 배포 성공. 라이브 main.dart.js와 공개 owner 샘플이 HTTPS200이고 로컬 _site 파일과 SHA-256 일치. 앱 SHA-256 e02a26fb5426dbef6cf87ac5ddc66c0a80c96639ae378f96a0b2c5083aa671ae; owner SHA-256 4912d18e3673876a683782cf878a56dc226fde18c40a1fcf0a2484882c63fefb. 공개 샘플 labor.ruleVersion=KR-2026-09-27 확인. Supabase 함수 배포 성공. 390/1200px 캡처와 320px 위젯 검증 완료. 네이티브 실기기·실계정 저장·급여 실무 검수는 미수행.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36319033926",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-27T12:27:12.632397Z"
+  "updatedAt": "2026-09-27T12:30:44.189267Z"
 }
