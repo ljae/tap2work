@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 71,
+  "revision": 72,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -524,8 +524,8 @@
     {
       "id": "M-016",
       "title": "업무·매뉴얼·직원·우리매장 개선 구현",
-      "status": "in_progress",
-      "description": "4개 하단 메뉴, 우리매장 프로필, POS·배달 기반 추천, TAP/Small TAP 설정과 서버 완료 규칙, 직원 운영·채용 초안, 절제된 완료·열기 전환을 구현했다. Node 65개, Flutter 전체 회귀·분석 및 공개 빌드를 검증 중이다. Supabase 운영 함수를 배포했고 GitHub Pages 공개 배포 확인이 남았다."
+      "status": "complete",
+      "description": "업무·매뉴얼·직원·우리매장 4메뉴, 선택형 우리매장 프로필과 POS/배달 업무 추천, TAP/Small TAP 설정·서버 완료 규칙, 채용 초안, 절제된 완료/열기 전환을 구현·배포했다. Supabase operations 배포, Actions 36302001642의 JS 검사·Node 65개·Flutter 분석/94개·공개 빌드·Pages 배포, HTTPS 파일 해시 일치를 확인했다. 실제 주문 연동·외부 공고/지원자 관리는 후속 범위다. 네이티브 빌드·실기기·인증 실계정 저장은 미검증이다."
     }
   ],
   "history": [
@@ -3244,7 +3244,24 @@
         "package.json"
       ],
       "verification": "npm run check 성공, npm run test:console 65/65 성공. 최초 Flutter analyze 및 flutter test 90/90 성공; Sol 화면 추가 검증과 공개 빌드는 진행 중. npm run backend:deploy 성공: 기존 SQL 2개 적용과 operations 함수 배포. 비로그인 함수 요청 401 확인. 네이티브 빌드·실기기·인증 계정 저장은 미실시."
+    },
+    {
+      "id": "H-workspace-improvement-pages-release-2026-09-27",
+      "at": "2026-09-27T07:07:45.886Z",
+      "type": "deployment",
+      "title": "우리매장·TAP 설정·직원 채용 준비 Pages와 운영 함수 배포",
+      "detail": "기능 커밋 14fc704를 main에 푸시하고 Supabase 프로젝트 sgpmhqtaylgqymeqciin의 기존 SQL 마이그레이션 2개와 operations Edge Function을 배포했다. GitHub Pages가 Flutter 공개 검토 앱을 배포했다. 공개 샘플은 읽기 전용이며 실제 주문 자동 연동·외부 채용 게시/지원자 관리는 포함하지 않는다.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "Actions 36302001642 성공: npm run check, Node 65/65, Flutter analyze, Flutter 94/94, npm run build:site, Pages 배포. https://tap2.work/의 index.html, main.dart.js, owner/crew review-data가 HTTPS 200 및 로컬 _site와 SHA-256 일치. 번들 SHA-256 22bb8f89146aaab785b5eaf56e59dcb70ea748b88fb66a663c38c581b8aa1f4d. 공개 산출물에 project-state.json, .local/operations-demo.json 및 관리용 비밀값이 없다. Supabase 비로그인 함수 요청 401. 네이티브 빌드·실기기·인증 계정 저장은 미실시.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36302001642",
+        "https://github.com/ljae/tap2work/commit/14fc70486983a65521d6338d04a65aea34026a4a",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-27T07:03:03.200Z"
+  "updatedAt": "2026-09-27T07:07:45.886Z"
 }

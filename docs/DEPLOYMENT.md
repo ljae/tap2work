@@ -1,5 +1,11 @@
 # tap2work development site
 
+## 우리매장·TAP 설정·직원 채용 준비 배포 · 2026-09-27
+
+Commit `14fc704` adds the four destinations 업무 / 매뉴얼 / 직원 / 우리매장, optional store configuration, POS/delivery task recommendations, TAP and Small TAP rules, owner-only hiring drafts, and restrained completion/opening transitions. Supabase project `sgpmhqtaylgqymeqciin` accepted the two existing SQL migrations and the updated `operations` Edge Function. An unauthenticated function request returned 401; no new SQL migration was added.
+
+[Actions 36302001642](https://github.com/ljae/tap2work/actions/runs/36302001642) passed JavaScript checks, 65 console tests, Flutter analysis, 94 Flutter tests, the public web build and Pages deployment. `https://tap2.work/` returned HTTPS 200. Live `index.html`, `main.dart.js`, owner and crew review data matched the local `_site` files by SHA-256; the app bundle hash was `22bb8f89146aaab785b5eaf56e59dcb70ea748b88fb66a663c38c581b8aa1f4d`. The public artifact excluded project history, local operations data and management credentials. Native builds, physical-device interaction and authenticated live saves were not run for this release. External job posting, applicant management and live POS/delivery order integration remain separate future work.
+
 ## TAP usability and operations repository release · 2026-09-27
 
 Commit `62b3586` improved TAP card touch targets and manual context, and moved HTTP/JSON/authentication headers behind a Flutter repository interface. The fixed board and TAP hierarchy remain as selected by the user. No Supabase SQL or Edge Function changed, so the backend was not redeployed.
