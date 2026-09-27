@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 77,
+  "revision": 78,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3569,7 +3569,23 @@
         "developer/test/manual_directory.test.mjs"
       ],
       "verification": "Flutter analyze 통과, Flutter 105개·Node 69개 테스트 통과, JS 검사·공개 웹 빌드 성공. 실제 서체로 1200px 좌우 구조와 390px 트리·본문·편집 캡처 확인(.local/manual-review-2026-09-27). backend:deploy 성공(기존 SQL 2개와 operations 함수). 네이티브 빌드·실기기·실계정 저장 미검증. Pages 배포는 후속 기록."
+    },
+    {
+      "id": "H-manual-directory-release-2026-09-27",
+      "at": "2026-09-27T09:17:41.099Z",
+      "type": "deployment",
+      "title": "TAP그룹·TAP·Task 매뉴얼 디렉토리 배포",
+      "detail": "기능 커밋 5c7833ccc430ec323eaffa2b9afdcc60b50a78fb의 공개 Flutter 앱과 Supabase operations 함수를 배포했다. 공개 샘플은 화면 내 드래그 체험이며 로그인한 사장님/매니저는 권한·revision 검증 후 구조 변경을 저장한다.",
+      "files": [
+        "docs/project-state.json",
+        "docs/DEPLOYMENT.md"
+      ],
+      "verification": "Actions 36308742468 성공: JS 검사, Node 69개, Flutter 분석·105개 테스트, 공개 빌드·Pages 배포. HTTPS HTML·main.dart.js·owner/crew 샘플 데이터가 로컬 산출물과 SHA-256 일치. 공개 매뉴얼 인덱스의 folderId·tapId·sourceStepId 확인. 앱 번들 40a6088f2d55978fc2c49c6a93d0a78d1a4d1469c302c8c9880997d99af271a0. Supabase 비로그인 요청 401. 실제 서체 1200/390px 화면 캡처 확인. 네이티브 빌드·실기기·실계정 저장은 미수행.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36308742468",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-27T09:13:42.265Z"
+  "updatedAt": "2026-09-27T09:17:41.099Z"
 }
