@@ -34,6 +34,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   static const _slotRowHeight = 48.0;
   DateTime? selected;
   bool monthly = false;
+  bool showDaily = false;
 
   OperationsController get ops => widget.operations;
   String date(DateTime d) =>
@@ -65,6 +66,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ).showSnackBar(SnackBar(content: Text(ops.error ?? '저장하지 못했어요.')));
     }
   }
+
+  List<Json> slotsOn(DateTime day) => ops
+      .rows('staffingSlots')
+      .where(
+        (s) => (s['weekdays'] as List? ?? [1, 2, 3, 4, 5, 6, 7]).contains(
+          day.weekday,
+        ),
+      )
+      .toList();
 
   Future<void> assign(DateTime day, Json slot, Json person) => editShift(
     day,
@@ -310,6 +320,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               : null,
                           icon: const Icon(Icons.remove_circle_outline),
                         ),
+                        SizedBox(
+                          width: 420,
+                          child: Wrap(
+                            spacing: 4,
+                            children: [
+                              for (var day = 1; day <= 7; day++)
+                                FilterChip(
+                                  label: Text(weekdays[day - 1]),
+                                  selected:
+                                      (slot['weekdays'] as List? ??
+                                              [1, 2, 3, 4, 5, 6, 7])
+                                          .contains(day),
+                                  onSelected: (value) => update(() {
+                                    final days = List<int>.from(
+                                      slot['weekdays'] ?? [1, 2, 3, 4, 5, 6, 7],
+                                    );
+                                    value ? days.add(day) : days.remove(day);
+                                    slot['weekdays'] = days;
+                                  }),
+                                ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   PressBounce(
@@ -404,6 +437,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           action('assign_staffing_slot', {
                             'date': date(day),
                             'slotId': slot['id'],
+                            'shiftId': shift['id'],
                             'tapperId': null,
                           });
                         }
@@ -496,7 +530,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             '${day.month}/${day.day} ${['월', '화', '수', '목', '금', '토', '일'][day.weekday - 1]}',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          for (final slot in ops.rows('staffingSlots'))
+          for (final slot in slotsOn(day))
             Builder(
               builder: (context) {
                 final shift = shifts
@@ -702,18 +736,36 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Json? matchingShift(DateTime day, Json slot) => ops
-      .rows('staffShifts')
-      .where(
-        (s) =>
-            s['date'] == date(day) &&
-            s['slotId'] == slot['id'] &&
-            s['status'] != 'leave' &&
-            s['duty'] == slot['duty'] &&
-            s['start'] == slot['start'] &&
-            s['end'] == slot['end'],
-      )
-      .firstOrNull;
+  Json? matchingShift(DateTime day, Json target) {
+    final slots = slotsOn(day);
+    final used = <String>{};
+    for (final slot in slots) {
+      final candidates = ops
+          .rows('staffShifts')
+          .where(
+            (s) =>
+                s['date'] == date(day) &&
+                s['status'] != 'leave' &&
+                s['duty'] == slot['duty'] &&
+                s['start'] == slot['start'] &&
+                s['end'] == slot['end'] &&
+                !used.contains(s['id']),
+          )
+          .toList();
+      final found =
+          candidates.where((s) => s['slotId'] == slot['id']).firstOrNull ??
+          candidates
+              .where(
+                (s) =>
+                    s['slotId'] == null ||
+                    !slots.any((other) => other['id'] == s['slotId']),
+              )
+              .firstOrNull;
+      if (found != null) used.add(found['id']);
+      if (slot['id'] == target['id']) return found;
+    }
+    return null;
+  }
 
   Widget weekStrip(DateTime monday, DateTime selectedDay) => LayoutBuilder(
     builder: (context, box) {
@@ -724,10 +776,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       Widget dayTile(int index) {
         final day = monday.add(Duration(days: index));
         final isSelected = date(day) == date(selectedDay);
-        final filled = ops
-            .rows('staffingSlots')
-            .where((slot) => matchingShift(day, slot) != null)
-            .length;
+        final filled = slotsOn(
+          day,
+        ).where((slot) => matchingShift(day, slot) != null).length;
         return SizedBox(
           width: tileWidth,
           child: Semantics(
@@ -814,7 +865,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     const headerHeight = 44.0;
     final axisWidth = 40.0 * MediaQuery.textScalerOf(context).scale(12) / 12;
     const gridHeight = 36 * rowHeight;
-    final slots = ops.rows('staffingSlots');
+    final slots = slotsOn(day);
     final priorDate = date(day.subtract(const Duration(days: 1)));
     final shifts = ops.rows('staffShifts').where((s) {
       if (s['status'] == 'leave') return false;
@@ -1171,6 +1222,235 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  // Match capacity per half-hour so split shifts count and one person cannot
+  // satisfy two simultaneous required positions.
+  Map<String, Map<String, dynamic>> coverage(DateTime day) {
+    final slots = slotsOn(day);
+    final result = <String, Map<String, dynamic>>{
+      for (final slot in slots) slot['id']: {'minutes': 0, 'names': <String>{}},
+    };
+    final origin = DateTime.parse('${date(day)}T00:00:00+09:00');
+    for (var tick = 0; tick < 1440; tick += 30) {
+      final at = origin.add(Duration(minutes: tick));
+      final available = ops.rows('staffShifts').where((shift) {
+        if (shift['status'] == 'leave') return false;
+        final from = DateTime.parse(
+          '${shift['date']}T${shift['start']}:00+09:00',
+        );
+        var until = DateTime.parse('${shift['date']}T${shift['end']}:00+09:00');
+        if (!until.isAfter(from)) until = until.add(const Duration(days: 1));
+        return !from.isAfter(at) &&
+            !until.isBefore(at.add(const Duration(minutes: 30)));
+      }).toList();
+      final used = <String>{};
+      for (final slot in slots) {
+        if (tick < minute(slot['start']) || tick >= minute(slot['end'])) {
+          continue;
+        }
+        final shift = available
+            .where(
+              (v) => v['duty'] == slot['duty'] && !used.contains(v['tapperId']),
+            )
+            .firstOrNull;
+        if (shift == null) continue;
+        used.add(shift['tapperId']);
+        result[slot['id']]!['minutes'] += 30;
+        (result[slot['id']]!['names'] as Set<String>).add(
+          name(shift['tapperId']),
+        );
+      }
+    }
+    return result;
+  }
+
+  Widget weeklyCoverage(DateTime monday) {
+    final slots = ops.rows('staffingSlots');
+    final days = [for (var i = 0; i < 7; i++) monday.add(Duration(days: i))];
+    final cells = [for (final day in days) coverage(day)];
+    final needed = days.fold<int>(
+      0,
+      (n, day) =>
+          n +
+          slotsOn(day).fold<int>(
+            0,
+            (v, slot) => v + minute(slot['end']) - minute(slot['start']),
+          ),
+    );
+    final filled = cells.fold<int>(
+      0,
+      (n, c) => n + c.values.fold<int>(0, (v, r) => v + (r['minutes'] as int)),
+    );
+    final textScale = MediaQuery.textScalerOf(context).scale(16) / 16;
+    final rowHeight = 112.0 * textScale;
+    Widget label(String text, {bool heading = false}) => SizedBox(
+      height: heading ? 52 : rowHeight,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(text, style: heading ? AppText.caption : AppText.body),
+      ),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('주간 배정 현황', style: AppText.title),
+        const SizedBox(height: 8),
+        Text(
+          '충족 ${needed == 0 ? 0 : (filled * 100 / needed).round()}% · 미배정 ${((needed - filled) / 60).toStringAsFixed(1)}시간',
+          style: AppText.body,
+        ),
+        const SizedBox(height: 16),
+        if (slots.isEmpty) const Information('필요한 직무와 시간 슬롯을 설정해 주세요.'),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 86 * textScale,
+              child: Column(
+                children: [
+                  label('직무 / 시간', heading: true),
+                  for (final slot in slots)
+                    label(
+                      '${dutyLabel(slot['duty'])}\n${slot['start']}\n${slot['end']}',
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (var i = 0; i < 7; i++)
+                      SizedBox(
+                        width: 120 * textScale,
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: 52,
+                              child: TextButton(
+                                onPressed: () => setState(() {
+                                  selected = days[i];
+                                  showDaily = true;
+                                }),
+                                child: Text(
+                                  '${weekdays[i]} ${days[i].month}/${days[i].day}',
+                                ),
+                              ),
+                            ),
+                            for (final slot in slots)
+                              Builder(
+                                builder: (context) {
+                                  final active = cells[i].containsKey(
+                                    slot['id'],
+                                  );
+                                  final cell =
+                                      cells[i][slot['id']] ??
+                                      {'minutes': 0, 'names': <String>{}};
+                                  final total =
+                                      minute(slot['end']) -
+                                      minute(slot['start']);
+                                  final done = cell['minutes'] as int;
+                                  final full = active && done == total;
+                                  final names = (cell['names'] as Set<String>)
+                                      .join('·');
+                                  return SizedBox(
+                                    height: rowHeight,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(3),
+                                      child: Material(
+                                        color: full
+                                            ? const Color(0xFFEAF3EF)
+                                            : done > 0
+                                            ? const Color(0xFFFFF3E5)
+                                            : Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: InkWell(
+                                          key: Key(
+                                            'week-slot-${date(days[i])}-${slot['id']}',
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          onTap: () => showAppSheet(
+                                            context,
+                                            builder: (_) => ListenableBuilder(
+                                              listenable: ops,
+                                              builder: (context, _) => Scaffold(
+                                                appBar: AppBar(
+                                                  title: Text(
+                                                    '${days[i].month}/${days[i].day} 배정',
+                                                  ),
+                                                  leading: const CloseButton(),
+                                                ),
+                                                body: SingleChildScrollView(
+                                                  padding: const EdgeInsets.all(
+                                                    24,
+                                                  ),
+                                                  child: dayRoster(days[i]),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  !active
+                                                      ? '—'
+                                                      : full
+                                                      ? '충족'
+                                                      : done == 0
+                                                      ? '미배정'
+                                                      : '부분 배정',
+                                                  style: AppText.body.copyWith(
+                                                    color: full
+                                                        ? AppColors.green
+                                                        : AppColors.accent,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  names.isEmpty
+                                                      ? '${slot['start']}–${slot['end']}'
+                                                      : names,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: AppText.caption,
+                                                ),
+                                                if (active && !full)
+                                                  Text(
+                                                    '${((total - done) / 60).toStringAsFixed(1)}시간 부족',
+                                                    style: AppText.caption,
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: ops,
@@ -1225,50 +1505,56 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           const SizedBox(height: 10),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 4,
+            runSpacing: 4,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
-                width: 220,
-                child: AppChoiceGroup<bool>(
-                  values: const [false, true],
-                  selected: monthly,
-                  labelOf: (value) => value ? '월간' : '주간',
-                  onSelected: (value) => setState(() => monthly = value),
+                width: 152,
+                child: SegmentedButton<bool>(
+                  showSelectedIcon: false,
+                  segments: const [
+                    ButtonSegment(value: false, label: Text('주간')),
+                    ButtonSegment(value: true, label: Text('월간')),
+                  ],
+                  selected: {monthly},
+                  onSelectionChanged: (v) => setState(() => monthly = v.first),
                 ),
               ),
-              PressBounce(
-                child: OutlinedButton.icon(
-                  onPressed: () => setState(
-                    () => selected =
-                        DateTime.tryParse(ops.data?['day'] ?? '') ??
-                        DateTime.now(),
+              IconButton(
+                tooltip: '오늘',
+                icon: const Icon(CupertinoIcons.calendar),
+                onPressed: () => setState(
+                  () => selected =
+                      DateTime.tryParse(ops.data?['day'] ?? '') ??
+                      DateTime.now(),
+                ),
+              ),
+              if (!monthly)
+                IconButton(
+                  tooltip: showDaily ? '주간 전체 보기' : '일별 상세',
+                  icon: Icon(
+                    showDaily
+                        ? CupertinoIcons.square_grid_2x2
+                        : CupertinoIcons.list_bullet,
                   ),
-                  icon: const Icon(CupertinoIcons.calendar, size: 17),
-                  label: const Text('오늘'),
+                  onPressed: () => setState(() => showDaily = !showDaily),
                 ),
-              ),
               if (ops.isLeader)
-                PressBounce(
-                  child: TextButton.icon(
-                    onPressed: editable ? configure : null,
-                    icon: const Icon(CupertinoIcons.person_2, size: 16),
-                    label: Text(
-                      '하루 ${ops.rows('staffingSlots').length}명 · 슬롯 설정',
-                    ),
-                  ),
+                IconButton(
+                  tooltip: '슬롯 설정',
+                  icon: const Icon(CupertinoIcons.slider_horizontal_3),
+                  onPressed: editable ? configure : null,
                 ),
             ],
           ),
-          if (ops.readOnly)
-            const Information('공개 미리보기 · 근무 배정은 로그인 후 저장할 수 있어요.'),
           const SizedBox(height: 16),
-          if (!monthly) ...[
+          if (!monthly && !showDaily) weeklyCoverage(start),
+          if (!monthly && showDaily) ...[
             weekStrip(start, day),
             const SizedBox(height: 22),
             dayRoster(day),
-          ] else
+          ] else if (monthly)
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: SizedBox(

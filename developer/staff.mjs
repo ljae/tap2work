@@ -1,3 +1,4 @@
+import { laborView, weekOf } from './labor.mjs';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
 
@@ -78,12 +79,35 @@ export function mutateStaff(state, input, actor, now, who, activity) {
   const leader = ['owner', 'manager'].includes(actor.role);
   const owner = actor.role === 'owner';
   switch (input.action) {
+    case 'save_labor_review': {
+      if (!owner) fail('사장님만 인건비 조건을 저장할 수 있어요.', 403);
+      const r = input.review;
+      if (!r || !state.tappers.some(t => t.id === r.tapperId && t.rank !== 'owner')) fail('직원을 확인해 주세요.');
+      if (typeof r.week !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(r.week) || !Number.isFinite(Date.parse(r.week)) || new Date(r.week).toISOString().slice(0,10) !== r.week || weekOf(r.week) !== r.week) fail('주 시작일은 월요일로 선택해 주세요.');
+      if (!['unknown', 'under5', 'fivePlus'].includes(r.size) || !['unknown', 'standard'].includes(r.scope) || !['unknown', 'met', 'unmet'].includes(r.attendance)) fail('수당 계산 조건을 확인해 주세요.');
+      for (const [key, max] of [['hourlyWon',1000000],['ordinaryHourlyWon',1000000],['averageWeeklyMinutes',2400],['restMinutes',480],['otherPaidHolidayMinutes',3360]]) {
+        if (!Number.isInteger(r[key]) || r[key] < 0 || r[key] > max) fail('금액과 소정근로·유급휴일 시간을 확인해 주세요.');
+      }
+      if (r.scope === 'standard' && (r.hourlyWon < 1 || r.ordinaryHourlyWon < 1)) fail('기본시급·통상시급을 1원 이상 입력해 주세요.');
+      if (r.averageWeeklyMinutes >= 900 && r.attendance === 'met' && r.restMinutes === 0) fail('주휴 지급시간을 확인해 주세요.');
+      if (!Array.isArray(r.dailyContractMinutes) || r.dailyContractMinutes.length !== 7 || r.dailyContractMinutes.some(n => !Number.isInteger(n) || n < 0 || n > 480)) fail('요일별 소정근로시간을 확인해 주세요.');
+      if (r.shortTime && r.dailyContractMinutes.reduce((a,b)=>a+b,0) > 2400) fail('주 소정근로시간은 40시간 이내로 확인해 주세요.');
+      if (!Array.isArray(r.holidayDates) || r.holidayDates.length > 7 || r.holidayDates.some(d => typeof d !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d) || !Number.isFinite(Date.parse(d)) || new Date(d).toISOString().slice(0,10) !== d || d < r.week || d > addDays(r.week,6))) fail('휴일 날짜를 확인해 주세요.');
+      const row = { tapperId: r.tapperId, week: r.week, size: r.size, scope: r.scope, attendance: r.attendance,
+        hourlyWon: r.hourlyWon, ordinaryHourlyWon: r.ordinaryHourlyWon, averageWeeklyMinutes: r.averageWeeklyMinutes, restMinutes: r.restMinutes,
+        otherPaidHolidayMinutes: r.otherPaidHolidayMinutes, shortTime: r.shortTime === true, dailyContractMinutes: r.dailyContractMinutes,
+        holidayDates: [...new Set(r.holidayDates)], holidaysConfirmed: r.holidaysConfirmed === true, updatedAt: iso(now) };
+      state.laborReviews = (state.laborReviews ?? []).filter(v => v.week !== row.week || v.tapperId !== row.tapperId);
+      state.laborReviews.push(row); activity('주간 인건비 계산 조건 저장', 'pay'); return true;
+    }
     case 'save_staffing_slots': {
       if (!leader) fail('매니저 이상만 슬롯을 바꿀 수 있어요.', 403);
       if (!Array.isArray(input.slots) || !input.slots.length || input.slots.length > 12) fail('슬롯은 1–12개로 설정해 주세요.');
       const slots = input.slots.map(slot => {
         if (!duties.includes(slot.duty) || !/^([01]\d|2[0-3]):(00|30)$/.test(slot.start) || !/^([01]\d|2[0-3]):(00|30)$/.test(slot.end) || slot.start >= slot.end) fail('역할과 30분 단위 시작·종료 시간을 확인해 주세요.');
-        return { id: typeof slot.id === 'string' && /^slot-[a-zA-Z0-9-]+$/.test(slot.id) ? slot.id : `slot-${randomUUID()}`, duty: slot.duty, start: slot.start, end: slot.end };
+        const weekdays = slot.weekdays ?? [1,2,3,4,5,6,7];
+        if (!Array.isArray(weekdays) || weekdays.some(n => !Number.isInteger(n) || n < 1 || n > 7) || new Set(weekdays).size !== weekdays.length) fail('필요 슬롯 요일을 확인해 주세요.');
+        return { weekdays, id: typeof slot.id === 'string' && /^slot-[a-zA-Z0-9-]+$/.test(slot.id) ? slot.id : `slot-${randomUUID()}`, duty: slot.duty, start: slot.start, end: slot.end };
       });
       if (new Set(slots.map(s => s.id)).size !== slots.length) fail('중복 슬롯을 확인해 주세요.');
       for (const shift of state.staffShifts) if (shift.slotId && !slots.some(s => s.id === shift.slotId && s.duty === shift.duty && s.start === shift.start && s.end === shift.end)) delete shift.slotId;
@@ -93,7 +117,9 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       if (!leader) fail('매니저 이상만 배정할 수 있어요.', 403);
       const slot = staffingSlots(state).find(s => s.id === input.slotId);
       if (!slot) fail('슬롯을 확인해 주세요.');
-      const row = state.staffShifts.find(s => s.date === input.date && s.slotId === slot.id);
+      if (input.tapperId !== null && slot.weekdays && !slot.weekdays.includes(new Date(`${input.date}T00:00:00Z`).getUTCDay() || 7)) fail('해당 요일에 필요하지 않은 슬롯이에요.');
+      const row = input.shiftId ? state.staffShifts.find(s => s.id === input.shiftId && s.date === input.date && s.duty === slot.duty && s.start === slot.start && s.end === slot.end) : state.staffShifts.find(s => s.date === input.date && s.slotId === slot.id);
+      if (input.shiftId && !row) fail('배정이 변경됐어요. 다시 확인해 주세요.', 409);
       if (input.tapperId === null) {
         if (row) state.staffShifts = state.staffShifts.filter(s => s.id !== row.id);
         activity('슬롯 배정 해제'); return true;
@@ -253,7 +279,7 @@ export function staffView(state, actor, now) {
     else { delete view.hourlyWon; delete view.payPeriod; delete view.payPeriodStart; delete view.kakaoUrl; delete view.phone; }
     return view;
   });
-  return { staffingSlots: staffingSlots(state), tappers, staffShifts: state.staffShifts, attendance: state.attendance.filter(e => owner || e.tapperId === own?.id),
+  return { ...(owner ? {labor: laborView(state, id => completedSessions(state.attendance.filter(e => e.tapperId === id)), day)} : {}), staffingSlots: staffingSlots(state), tappers, staffShifts: state.staffShifts, attendance: state.attendance.filter(e => owner || e.tapperId === own?.id),
     payAdjustments: owner ? state.payAdjustments : [], payRecords: owner ? state.payRecords : [], payPolicy: owner ? state.payPolicy : undefined };
 }
 

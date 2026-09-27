@@ -60,9 +60,11 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('일별 상세'));
+        await tester.pumpAndSettle();
         expect(find.textContaining('배정 0 · 빈 슬롯 3'), findsOneWidget);
         expect(find.text('빈 슬롯'), findsNWidgets(3));
-        expect(find.text('하루 3명 · 슬롯 설정'), findsOneWidget);
+        expect(find.byTooltip('슬롯 설정'), findsOneWidget);
         await tester.tap(find.byKey(const Key('calendar-day-2026-09-25')));
         await tester.pumpAndSettle();
         expect(find.textContaining('9월 25일 금요일'), findsOneWidget);
@@ -108,6 +110,8 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('일별 상세'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('빈 슬롯').first);
     await tester.pumpAndSettle();
@@ -185,6 +189,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('일별 상세'));
+      await tester.pumpAndSettle();
       expect(find.textContaining('배정 1 · 빈 슬롯 2'), findsOneWidget);
       expect(find.text('빈 슬롯'), findsNWidgets(2));
       expect(find.text('추가 근무'), findsNWidgets(2));
@@ -219,6 +225,8 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('일별 상세'));
     await tester.pumpAndSettle();
     expect(find.text('빈 슬롯'), findsNWidgets(4));
     final first = tester.getRect(find.byKey(const Key('roster-block-slot-0')));
@@ -259,6 +267,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('일별 상세'));
+      await tester.pumpAndSettle();
       expect(find.text('전날부터'), findsOneWidget);
       expect(find.text('22:00–08:00'), findsOneWidget);
       await tester.tap(find.text('전날부터'));
@@ -290,6 +300,8 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('일별 상세'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('calendar-day-2026-09-21')));
     await tester.pumpAndSettle();
@@ -334,6 +346,8 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('일별 상세'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('calendar-day-2026-09-21')));
     await tester.pumpAndSettle();

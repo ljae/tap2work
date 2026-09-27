@@ -82,6 +82,13 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('floating-menu-1')));
       await tester.pumpAndSettle();
       await capture('manual-${width.toInt()}');
+      await tester.tap(find.byKey(const ValueKey('floating-menu-2')));
+      await tester.pumpAndSettle();
+      await capture('weekly-${width.toInt()}');
+      await tester.tap(find.text('인건비').first);
+      await tester.pumpAndSettle();
+      await capture('labor-${width.toInt()}');
+
       await tester.pumpWidget(const SizedBox.shrink());
     }
     debugDisableShadows = true;

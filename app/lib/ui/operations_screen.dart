@@ -1,3 +1,4 @@
+import 'labor_panel.dart';
 import 'manual_workspace.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import '../state/work_controller.dart';
 import 'components.dart';
-import 'workspace_screen.dart';
 import 'store_dashboard.dart';
 import 'floor_plan.dart';
 import 'tap_workspace.dart';
@@ -33,14 +33,19 @@ class OperationsScreen extends StatefulWidget {
 
 class _OperationsScreenState extends State<OperationsScreen> {
   OperationsController get ops => widget.operations;
+  final detailRevision = ValueNotifier<int>(0);
+  void updateView(VoidCallback change) {
+    setState(change);
+    detailRevision.value++;
+  }
+
   int tab = 0;
-  bool inventoryOpen = false;
-  String storeSection = 'home';
   final manualSearch = TextEditingController();
   String manualQuery = '';
   @override
   void dispose() {
     manualSearch.dispose();
+    detailRevision.dispose();
     super.dispose();
   }
 
@@ -177,7 +182,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         child: TextField(
           key: const ValueKey('global-manual-search'),
           controller: manualSearch,
-          onChanged: (value) => setState(() => manualQuery = value),
+          onChanged: (value) => updateView(() => manualQuery = value),
           decoration: InputDecoration(
             hintText: '매뉴얼 검색',
             prefixIcon: const Icon(CupertinoIcons.search),
@@ -186,7 +191,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 : IconButton(
                     tooltip: '검색 지우기',
                     icon: const Icon(Icons.close),
-                    onPressed: () => setState(() {
+                    onPressed: () => updateView(() {
                       manualSearch.clear();
                       manualQuery = '';
                     }),
@@ -337,21 +342,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
     return success;
   }
 
-  void go(int value) => setState(() {
-    tab = switch (value) {
-      0 || 2 || 4 => 3,
-      1 => 0,
-      3 => 2,
-      _ => 3,
-    };
-    storeSection = switch (value) {
-      0 => 'overview',
-      2 => 'inventory',
-      4 => 'layout',
-      _ => 'home',
-    };
-    inventoryOpen = value == 2;
-  });
+  void go(int value) {
+    final section = {0: 'overview', 2: 'inventory', 4: 'layout'}[value];
+    if (section != null) {
+      openStoreDetail(section);
+      return;
+    }
+    updateView(() => tab = value == 1 ? 0 : 2);
+  }
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -549,13 +547,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
       ),
       bottomNavigationBar: FloatingMenu(
         selectedIndex: tab,
-        onSelected: (value) => setState(() {
+        onSelected: (value) => updateView(() {
           tab = value;
           manualSearch.clear();
           manualQuery = '';
           FocusScope.of(context).unfocus();
-          inventoryOpen = false;
-          if (value == 3) storeSection = 'home';
         }),
         items: const [
           FloatingMenuItem('업무', CupertinoIcons.checkmark_alt_circle),
@@ -569,21 +565,50 @@ class _OperationsScreenState extends State<OperationsScreen> {
 
   Widget gap([double height = 32]) => SizedBox(height: height);
 
-  List<Widget> storeHome() {
-    if (storeSection != 'home') {
-      return [
-        PressBounce(
-          child: TextButton.icon(
-            onPressed: () => setState(() => storeSection = 'home'),
-            icon: const Icon(CupertinoIcons.chevron_back),
-            label: const Text('우리매장으로'),
+  Future<void> openStoreDetail(String section) => showAppSheet<void>(
+    context,
+    builder: (sheetContext) => ListenableBuilder(
+      listenable: Listenable.merge([ops, detailRevision]),
+      builder: (context, _) => Scaffold(
+        appBar: AppBar(
+          title: Text(
+            {
+              'overview': '운영 현황',
+              'inventory': '재고와 발주',
+              'people': '직원',
+              'pay': '인건비',
+              'layout': '배치도와 동선',
+            }[section]!,
+          ),
+          leading: const CloseButton(),
+        ),
+        body: SingleChildScrollView(
+          primary: false,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (section == 'overview')
+                StoreDashboard(
+                  operations: ops,
+                  onNavigate: (value) {
+                    Navigator.pop(sheetContext);
+                    go(value);
+                  },
+                ),
+              if (section == 'overview') ...overviewHistory(),
+              if (section == 'inventory') ...inventory(),
+              if (section == 'people') TeamScreen(operations: ops),
+              if (section == 'pay') LaborPanel(ops: ops),
+              if (section == 'layout') ...floorPlan(),
+            ],
           ),
         ),
-        if (storeSection == 'overview') ...today(),
-        if (storeSection == 'inventory') ...inventory(),
-        if (storeSection == 'layout') ...floorPlan(),
-      ];
-    }
+      ),
+    ),
+  );
+
+  List<Widget> storeHome() {
     final profile = ops.data?['store']?['profile'] as Json? ?? {};
     final pos = profile['pos'] as Json? ?? {};
     final delivery = profile['delivery'] as Json? ?? {};
@@ -600,19 +625,32 @@ class _OperationsScreenState extends State<OperationsScreen> {
         CupertinoIcons.chart_bar,
         '운영 현황',
         '매출 · 준비품 · 사장님 기록',
-        () => setState(() => storeSection = 'overview'),
+        () => openStoreDetail('overview'),
       ),
       actionCard(
         CupertinoIcons.cube_box,
         '재고와 발주',
         '실사 · 데모 발주 · 입고',
-        () => setState(() => storeSection = 'inventory'),
+        () => openStoreDetail('inventory'),
       ),
       actionCard(
         CupertinoIcons.map,
         '배치도와 동선',
         '테이블 · 기기 · 보관 장소',
-        () => setState(() => storeSection = 'layout'),
+        () => openStoreDetail('layout'),
+      ),
+      if (ops.isOwner)
+        actionCard(
+          CupertinoIcons.money_dollar_circle,
+          '인건비',
+          '주간 예상 · 수당 확인',
+          () => openStoreDetail('pay'),
+        ),
+      actionCard(
+        CupertinoIcons.person_2,
+        '직원',
+        '직원 정보 · 근무',
+        () => openStoreDetail('people'),
       ),
       if (ops.isLeader)
         actionCard(
@@ -726,105 +764,39 @@ class _OperationsScreenState extends State<OperationsScreen> {
     ),
   );
 
-  List<Widget> today() {
-    return [
-      StoreDashboard(operations: ops, onNavigate: go),
-      actionCard(
-        CupertinoIcons.cube_box,
-        '재고와 발주',
-        '재고 확인 · 데모 발주 · 입고 기록',
-        () => setState(() => inventoryOpen = true),
-      ),
-      gap(24),
-      actionCard(
-        CupertinoIcons.hand_raised,
-        '오늘 처음 왔나요?',
-        '버디와 첫 출근 가이드 열기',
-        () => Navigator.of(context).push(
-          AppPageRoute<void>(
-            builder: (_) => WorkspaceScreen(controller: widget.work),
-          ),
+  List<Widget> overviewHistory() => [
+    if (ops.isOwner && ops.data?['privateSummary']?['note'] != null) ...[
+      gap(),
+      title('매장 기록'),
+      Text('${ops.data!['privateSummary']['note']}'),
+    ],
+    title('함께 업데이트했어요'),
+    if (ops.rows('activity').isEmpty)
+      const Information('아직 새 소식이 없어요. 재고나 할 일을 확인하면 누가 했는지 이곳에 남아요.'),
+    for (final event in ops.rows('activity').take(4))
+      Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(
+              CupertinoIcons.checkmark_circle,
+              size: 16,
+              color: AppColors.green,
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(event['message'], style: const TextStyle(fontSize: 13)),
+                  small('${event['actor']['name']} · ${time(event['at'])}'),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
-      actionCard(
-        CupertinoIcons.map,
-        '냉장고, 창고가 어디에 있나요?',
-        '매장 배치와 일하는 동선 알아보기',
-        () => go(4),
-      ),
-      if (ops.isOwner && ops.data!['privateSummary'] != null) ...[
-        title('사장님만 보는 공간'),
-        Surface(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              badge('비공개 · 예시 정보'),
-              gap(10),
-              Text(
-                '오늘 예상 인건비 ${money(ops.data!['privateSummary']['laborEstimate'])}원',
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-              gap(8),
-              Text(
-                '기록된 근무 기준 급여 합계 ${money(ops.rows('tappers').fold<num>(0, (sum, person) => sum + ((person['gross'] as num?) ?? 0)))}원',
-              ),
-              for (final person in ops.rows('tappers'))
-                Text(
-                  '${person['nickname']} · ${money((person['gross'] as num?) ?? 0)}원',
-                ),
-              small(ops.data!['privateSummary']['note']),
-              small('급여 계산·정산 기능은 아직 연결되지 않았어요.'),
-              PressBounce(
-                child: TextButton.icon(
-                  onPressed: () => showAppSheet(
-                    context,
-                    builder: (_) => Scaffold(
-                      appBar: AppBar(title: const Text('인건비 기록')),
-                      body: SingleChildScrollView(
-                        padding: const EdgeInsets.all(18),
-                        child: TeamScreen(operations: ops, payOnly: true),
-                      ),
-                    ),
-                  ),
-                  icon: const Icon(CupertinoIcons.money_dollar_circle),
-                  label: const Text('근태·지급 기록 열기'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-      title('함께 업데이트했어요'),
-      if (ops.rows('activity').isEmpty)
-        const Information('아직 새 소식이 없어요. 재고나 할 일을 확인하면 누가 했는지 이곳에 남아요.'),
-      for (final event in ops.rows('activity').take(4))
-        Padding(
-          padding: const EdgeInsets.only(bottom: 14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(
-                CupertinoIcons.checkmark_circle,
-                size: 16,
-                color: AppColors.green,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event['message'],
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                    small('${event['actor']['name']} · ${time(event['at'])}'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-    ];
-  }
+  ];
 
   List<Widget> tasks() => [
     TapWorkspace(
@@ -876,7 +848,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   child: OutlinedButton(
                     onPressed: lowStock.isEmpty
                         ? null
-                        : () => setState(() {
+                        : () => updateView(() {
                             for (final i in lowStock) {
                               cart[i['id']] = (i['orderQuantity'] as num)
                                   .toDouble();
@@ -991,7 +963,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   FilledButton.tonal(
                     onPressed: pending(i['id'])
                         ? null
-                        : () => setState(() {
+                        : () => updateView(() {
                             if (cart.containsKey(i['id'])) {
                               cart.remove(i['id']);
                             } else {
@@ -1298,7 +1270,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         .where((e) => item(e.key) != null && !pending(e.key))
         .toList();
     if (entries.isEmpty) {
-      setState(cart.clear);
+      updateView(cart.clear);
       return;
     }
     final controllers = {
@@ -1354,7 +1326,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
       confirm: '한 번에 데모 발주',
     );
     if (values != null && await act('place_order', values) && mounted) {
-      setState(cart.clear);
+      updateView(cart.clear);
     }
     for (final c in controllers.values) {
       c.dispose();

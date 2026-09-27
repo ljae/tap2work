@@ -81,11 +81,6 @@ class _StoreDashboardState extends State<StoreDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        PageHeading(
-          '${ops.data?['store']?['name'] ?? '작은주방 · 연남'} · ${ops.data?['day'] ?? ''}',
-          '매장 한눈에',
-          '지금 필요한 확인부터 살펴보세요.',
-        ),
         priorityCard(dashboard),
         space(32),
         heading('오늘의 운영', '지금 확인할 매장 상황이에요.'),

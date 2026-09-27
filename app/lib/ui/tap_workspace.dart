@@ -1210,7 +1210,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         selected: selected?['id'] == step['id'],
         onOpen: () {
           setState(() => selectedStepId = step['id']);
-          if (MediaQuery.sizeOf(context).width < 700) {
+          {
             showModalBottomSheet<void>(
               context: context,
               sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
@@ -1269,21 +1269,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               for (final (index, step) in all.indexed) card(step, index),
             ],
           );
-    Widget detail = selected == null
-        ? const Information('Task을 선택해 주세요.')
-        : Surface(child: _manual(task, selected));
-    return LayoutBuilder(
-      builder: (context, constraints) => constraints.maxWidth >= 700
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: list),
-                const SizedBox(width: 16),
-                Expanded(child: detail),
-              ],
-            )
-          : list,
-    );
+    return list;
   }
 
   Widget _manual(Json task, Json step) => Column(

@@ -35,7 +35,7 @@ class _TeamScreenState extends State<TeamScreen> {
   Future<void> editTapper([Json? current]) async {
     final nickname = TextEditingController(text: current?['nickname'] ?? '');
     final rate = TextEditingController(
-      text: '${current?['hourlyWon'] ?? 10000}',
+      text: '${current?['hourlyWon'] ?? 10320}',
     );
     final kakao = TextEditingController(text: current?['kakaoUrl'] ?? '');
     final phone = TextEditingController(text: current?['phone'] ?? '');
@@ -363,7 +363,10 @@ class _TeamScreenState extends State<TeamScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.payOnly) const PageHeading('', '인건비 기록', ''),
+          if (widget.payOnly)
+            const Information(
+              '시급·지급 주기 설정 및 지급 기록이에요. 아래 누적액은 법정 수당을 제외해요. 수당 포함 예상은 주간 인건비에서 확인하세요.',
+            ),
           if (!widget.payOnly && own != null)
             Surface(
               child: Column(

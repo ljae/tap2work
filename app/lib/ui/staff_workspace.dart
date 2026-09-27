@@ -1,3 +1,4 @@
+import 'labor_panel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -27,6 +28,7 @@ class _StaffWorkspaceState extends State<StaffWorkspace> {
           segments: const [
             ButtonSegment(value: 'schedule', label: Text('근무표')),
             ButtonSegment(value: 'people', label: Text('직원')),
+            ButtonSegment(value: 'pay', label: Text('인건비')),
             ButtonSegment(value: 'learning', label: Text('교육')),
             ButtonSegment(value: 'hiring', label: Text('채용 준비')),
           ],
@@ -34,9 +36,63 @@ class _StaffWorkspaceState extends State<StaffWorkspace> {
           onSelectionChanged: (v) => setState(() => section = v.first),
         ),
       ),
-      const SizedBox(height: 32),
+      if (widget.ops.isOwner && section != 'pay')
+        Builder(
+          builder: (context) {
+            final weeks = (widget.ops.data?['labor']?['weeks'] as List? ?? [])
+                .cast<Json>();
+            final day =
+                DateTime.tryParse(widget.ops.data?['day'] ?? '') ??
+                DateTime.now();
+            final monday = laborDate(
+              day.subtract(Duration(days: day.weekday - 1)),
+            );
+            final week = weeks.where((w) => w['week'] == monday).firstOrNull;
+            final people = (week?['people'] as List? ?? []).cast<Json>();
+            final count = people.fold<int>(
+              0,
+              (n, p) => n + (p['planned']['alerts'] as List).length,
+            );
+            return count == 0
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        CupertinoIcons.bell,
+                        color: AppColors.accent,
+                      ),
+                      title: Text('이번 주 수당 확인 $count건'),
+                      trailing: const Icon(CupertinoIcons.chevron_right),
+                      onTap: () => setState(() => section = 'pay'),
+                    ),
+                  );
+          },
+        ),
+      const SizedBox(height: 16),
       if (section == 'schedule') CalendarScreen(operations: widget.ops),
-      if (section == 'people') TeamScreen(operations: widget.ops),
+      if (section == 'people')
+        PressBounce(
+          child: OutlinedButton.icon(
+            icon: const Icon(CupertinoIcons.person_2),
+            label: const Text('직원 상세'),
+            onPressed: () => showAppSheet(
+              context,
+              builder: (_) => Scaffold(
+                appBar: AppBar(
+                  title: const Text('직원'),
+                  leading: const CloseButton(),
+                ),
+                body: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: TeamScreen(operations: widget.ops),
+                ),
+              ),
+            ),
+          ),
+        ),
+      if (section == 'pay') LaborPanel(ops: widget.ops),
       if (section == 'learning') ...[
         const Information('첫 근무 연습과 버디 확인은 각각 기록돼요.'),
         const SizedBox(height: 12),

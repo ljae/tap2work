@@ -593,12 +593,14 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               depth: 2,
               editable: task['editable'] == true,
               selected: selectedId == task['id'],
-              onTap: () => setState(() {
-                scopeGroup = folder['id'];
-                scopeTap = tap['tapId'];
-                selectedId = task['id'];
-                showTree = false;
-              }),
+              onTap: () {
+                setState(() {
+                  scopeGroup = folder['id'];
+                  scopeTap = tap['tapId'];
+                  selectedId = task['id'];
+                });
+                openManual(task);
+              },
             ),
           );
         }
@@ -612,9 +614,30 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     );
   }
 
-  Widget content() {
+  Future<void> openManual(Json row) async {
+    setState(() => selectedId = row['id']);
+    await showAppSheet(
+      context,
+      builder: (_) => ListenableBuilder(
+        listenable: ops,
+        builder: (context, _) {
+          sync();
+          final current =
+              rows.where((r) => r['id'] == row['id']).firstOrNull ?? row;
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('매뉴얼'),
+              leading: const CloseButton(),
+            ),
+            body: content(selected: current),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget content({Json? selected}) {
     final found = results;
-    final selected = found.where((r) => r['id'] == selectedId).firstOrNull;
     if (selected != null) {
       return ListView(
         padding: const EdgeInsets.all(24),
@@ -726,12 +749,15 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             ),
             subtitle: Text(duration([row]), maxLines: 1),
             trailing: const Icon(CupertinoIcons.chevron_right, size: 16),
-            onTap: () => setState(() {
-              selectedId = row['id'];
-              expanded.add('group:${row['folderId']}');
-              expanded.add('tap:${row['tapId']}');
-              showTree = false;
-            }),
+            onTap: () {
+              setState(() {
+                selectedId = row['id'];
+                expanded.add('group:${row['folderId']}');
+                expanded.add('tap:${row['tapId']}');
+                showTree = false;
+              });
+              openManual(row);
+            },
           ),
         );
       },
