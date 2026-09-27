@@ -40,7 +40,7 @@ export function laborEstimate(segments, review, week, rate, planned = false) {
       // Holiday premium supersedes extension premium, but night is additive.
       regular += first;
     } else {
-      const weekday = (local.getUTCDay() + 6) % 7;
+      const weekday = (new Date(`${workday}T00:00:00Z`).getUTCDay() + 6) % 7;
       const contract = review?.shortTime ? (review.dailyContractMinutes?.[weekday] ?? 480) : 480;
       const normal = Math.min(amount, Math.max(0, Math.min(480, contract) - previous), Math.max(0, 2400 - regular));
       overtime += amount - normal; regular += normal;

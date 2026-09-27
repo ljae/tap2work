@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 86,
+  "revision": 87,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3764,7 +3764,19 @@
         "developer/test/labor.test.mjs"
       ],
       "verification": "회귀 사례 추가 후 Node 전체 77개 통과. Flutter 변경 없음. API 재배포 및 최종 공개 배포 기록은 후속 이력."
+    },
+    {
+      "id": "H-labor-overnight-contract-2026-09-27",
+      "at": "2026-09-27T12:27:12.632397Z",
+      "type": "verification",
+      "title": "단시간 야간근무의 계약 요일 일치",
+      "detail": "자정을 넘는 단시간근로는 출근일의 소정근로시간을 계속 사용한다. 다음 날의 계약시간을 적용해 초과분을 잘못 계산하지 않도록 회귀 검증을 추가했다.",
+      "files": [
+        "developer/labor.mjs",
+        "developer/test/labor.test.mjs"
+      ],
+      "verification": "월요일 6시간 계약의 20시–다음 날 02시 근무가 연장0분·야간240분임을 확인. Node 전체77개 통과. Flutter 변경 없음."
     }
   ],
-  "updatedAt": "2026-09-27T12:24:22.192740Z"
+  "updatedAt": "2026-09-27T12:27:12.632397Z"
 }
