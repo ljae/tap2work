@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 79,
+  "revision": 80,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3597,7 +3597,23 @@
         "app/test/calendar_test.dart"
       ],
       "verification": "Flutter analyze 통과. 320/390/1200px 표시 및 근무 배정·30분 드래그를 포함한 calendar 테스트 9개 통과. 네이티브·실기기 확인 미수행. 공개 빌드·배포는 후속 기록."
+    },
+    {
+      "id": "H-roster-axis-release-2026-09-27",
+      "at": "2026-09-27T09:29:42.215Z",
+      "type": "deployment",
+      "title": "직원 배정현황 시간축 개선 배포",
+      "detail": "b3b3265의 Flutter UI를 Pages에 배포했다. 시간축 40px, 정각과 30분 구분, 확대 글자 대응을 반영했다. 서버 API 변경은 없다.",
+      "files": [
+        "app/lib/ui/calendar_screen.dart",
+        "docs/project-state.json"
+      ],
+      "verification": "Actions 36309384217의 JS 검사·Node 69개·Flutter 분석/105개·공개 빌드/배포 성공. 라이브 앱 HTTPS 200 및 로컬 빌드와 SHA-256 일치: 847abe303ac8b3fa89d5b20d460dcd980137708a7499ebdd849bb1855ee79e19. 네이티브·실기기 확인 미수행.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36309384217",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-27T09:26:11.716Z"
+  "updatedAt": "2026-09-27T09:29:42.215Z"
 }
