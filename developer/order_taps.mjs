@@ -1,4 +1,4 @@
-// Menu TAPs share a customer order group; each menu retains its own Small TAPs.
+// Menu TAPs share a customer order group; each menu retains its own Task.
 const active = new Set(['접수', '조리 중', '준비 완료']);
 export function ensureOrderTaps(state, now) {
   let changed = false;

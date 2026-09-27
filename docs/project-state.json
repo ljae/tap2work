@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 76,
+  "revision": 77,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -282,12 +282,12 @@
     {
       "id": "D-028",
       "category": "제품 구조",
-      "title": "TAP·Small TAP 통합 운영 확장",
+      "title": "TAP·Task 통합 운영 확장",
       "status": "confirmed",
-      "decision": "TAP → Small TAP 두 단계와 BIG TAP 그룹핑, 칸반·2D 매장 배치·근무/급여 현황을 목표 제품 범위에 포함한다. 주문 유입, 지도 동선, 근무 교환, 개인 폰 알림, 템플릿 마켓과 자발적 평판 동의 흐름을 단계적으로 구축한다. 기존 첫 근무 가이드·재고/발주·실물 입고 구분은 유지한다.",
-      "reason": "사용자가 BIG TAP을 구조 단계가 아닌 같은 보드의 그룹핑으로 명시하고 5분 계획은 앞선 요청에서 제거했다.",
+      "decision": "TAP → Task 두 단계와 TAP그룹핑, 칸반·2D 매장 배치·근무/급여 현황을 목표 제품 범위에 포함한다. 주문 유입, 지도 동선, 근무 교환, 개인 폰 알림, 템플릿 마켓과 자발적 평판 동의 흐름을 단계적으로 구축한다. 기존 첫 근무 가이드·재고/발주·실물 입고 구분은 유지한다.",
+      "reason": "사용자가 TAP그룹을 구조 단계가 아닌 같은 보드의 그룹핑으로 명시하고 5분 계획은 앞선 요청에서 제거했다.",
       "source": "사용자 요청 · 2026-09-26",
-      "updatedAt": "2026-09-26"
+      "updatedAt": "2026-09-27T09:13:42.265Z"
     },
     {
       "id": "D-029",
@@ -302,22 +302,22 @@
     {
       "id": "D-030",
       "category": "제품 경험",
-      "title": "TAP에서 Small TAP으로 직접 열기",
+      "title": "TAP에서 Task으로 직접 열기",
       "status": "confirmed",
-      "decision": "TAP은 업무 카드이며 열면 해당 Small TAP 목록과 선택 매뉴얼로 바로 이동한다. BIG TAP은 같은 TAP 보드의 그룹 필터이며 별도 부모 화면이나 완료 단계가 아니다. 카드에는 Small TAP 수와 진행률 및 열기 동작을 명확히 표시하고, 상단 경로로 기존 그룹 선택을 보존하며 TAP 보드로 돌아간다. Small TAP은 실행 행동·완료/되돌리기·매뉴얼을 담는다. 매뉴얼 검색은 화면 상단의 전역 검색을 사용한다. TAP 카드 첫 줄은 드래그 손잡이, 별도 완료 확인, 한 줄 제목, Small TAP 열기 화살표로 구성하고 중복 하단 열기 문구는 제거한다.",
+      "decision": "TAP은 업무 카드이며 열면 해당 Task 목록과 선택 매뉴얼로 바로 이동한다. TAP그룹은 같은 TAP 보드의 그룹 필터이며 별도 부모 화면이나 완료 단계가 아니다. 카드에는 Task 수와 진행률 및 열기 동작을 명확히 표시하고, 상단 경로로 기존 그룹 선택을 보존하며 TAP 보드로 돌아간다. Task은 실행 행동·완료/되돌리기·매뉴얼을 담는다. 매뉴얼 검색은 화면 상단의 전역 검색을 사용한다. TAP 카드 첫 줄은 드래그 손잡이, 별도 완료 확인, 한 줄 제목, Task 열기 화살표로 구성하고 중복 하단 열기 문구는 제거한다.",
       "reason": "2026-09-26 사용자 요청: TAP 첫 줄 동작, 담당자별 색·이름, 주문 시간·가상 목표, 사용 중인 오케이포스 매뉴얼 정정.",
       "source": "사용자 요청 · 2026-09-26",
-      "updatedAt": "2026-09-26"
+      "updatedAt": "2026-09-27T09:13:42.265Z"
     },
     {
       "id": "D-031",
       "category": "제품 경험",
-      "title": "BIG TAP 그룹과 전체 TAP 상태 보드",
+      "title": "TAP그룹과 전체 TAP 상태 보드",
       "status": "confirmed",
-      "decision": "목표 하단 메뉴를 업무 / 매뉴얼 / 직원 / 우리매장 순서로 개편한다. 아이콘과 한국어 이름을 함께 표시한다. 업무는 TAP 보드, 매뉴얼은 독립 검색·방법 보기, 직원은 근무표·교육·채용 준비, 우리매장은 운영 설정·배치와 매출/재고/발주 진입을 제공한다. 이 개편은 2026-09-27 방법론으로 확정했고, 후속 구현 요청에 따라 Flutter 앱에 적용했다. BIG TAP은 같은 TAP 보드의 이름 있는 그룹 필터다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. 활성 Tapper의 역할 적합 이름과 개인별 고정 색을 보여주고, 대표 담당자 색으로 Small TAP 진행 비율만큼 카드를 연하게 채우며 완료 카드는 읽기 쉬운 옅은 회색과 완료 텍스트로 표시한다. 누구나 업무는 중립색이며 이름 목록은 배정 확정이 아닌 가능한 담당자다. 직원 메뉴는 기존 Calendar의 직원 등록·근태·근무 관리를 이어받는다. 사장님 전용 인건비는 우리매장 내 운영 현황에서 접근하며 서버 권한을 유지한다. 기존 배치 지도·재료 재고·마지막 실사·발주 시각은 우리매장에서 접근한다.",
+      "decision": "목표 하단 메뉴를 업무 / 매뉴얼 / 직원 / 우리매장 순서로 개편한다. 아이콘과 한국어 이름을 함께 표시한다. 업무는 TAP 보드, 매뉴얼은 독립 검색·방법 보기, 직원은 근무표·교육·채용 준비, 우리매장은 운영 설정·배치와 매출/재고/발주 진입을 제공한다. 이 개편은 2026-09-27 방법론으로 확정했고, 후속 구현 요청에 따라 Flutter 앱에 적용했다. TAP그룹은 같은 TAP 보드의 이름 있는 그룹 필터다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. 활성 Tapper의 역할 적합 이름과 개인별 고정 색을 보여주고, 대표 담당자 색으로 Task 진행 비율만큼 카드를 연하게 채우며 완료 카드는 읽기 쉬운 옅은 회색과 완료 텍스트로 표시한다. 누구나 업무는 중립색이며 이름 목록은 배정 확정이 아닌 가능한 담당자다. 직원 메뉴는 기존 Calendar의 직원 등록·근태·근무 관리를 이어받는다. 사장님 전용 인건비는 우리매장 내 운영 현황에서 접근하며 서버 권한을 유지한다. 기존 배치 지도·재료 재고·마지막 실사·발주 시각은 우리매장에서 접근한다.",
       "reason": "사용자가 2026-09-27 방법론 수립 질의에서 전체 메뉴 재설계 후 업무·매뉴얼·직원·우리매장 4메뉴를 명시적으로 선택했다. 보드 열과 TAP 계층은 유지한다. 2026-09-27 사용자가 구현 시작을 요청했다.",
       "source": "사용자 요청 및 명시적 선택 · 2026-09-27",
-      "updatedAt": "2026-09-27T07:03:03.200Z"
+      "updatedAt": "2026-09-27T09:13:42.265Z"
     },
     {
       "id": "D-032",
@@ -354,10 +354,10 @@
       "category": "Product experience",
       "title": "Menu order groups, lightweight manuals and crew slot calendar",
       "status": "confirmed",
-      "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. Calendar는 주간 날짜 선택 줄과 월간 개요를 유지하고, 선택 날짜의 배정 현황 안에 06:00–24:00 30분 고정 왼쪽 축과 가로 스크롤되는 R&R 역할 열을 둔다. 이는 표시 범위이며 실제 영업시간 설정은 아니다. 필수 빈 슬롯·배정 근무·추가 근무를 같은 시간축에 표시하고 별도 주간 시간표 영역은 제거한다. 새벽·야간 및 자정 넘김 근무는 날짜별 요약에서 접근할 수 있다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 드롭 위치는 06:00 기준 30분 단위로 맞춘다. 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 외부 매뉴얼 링크를 유지한다.",
+      "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Task을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. Calendar는 주간 날짜 선택 줄과 월간 개요를 유지하고, 선택 날짜의 배정 현황 안에 06:00–24:00 30분 고정 왼쪽 축과 가로 스크롤되는 R&R 역할 열을 둔다. 이는 표시 범위이며 실제 영업시간 설정은 아니다. 필수 빈 슬롯·배정 근무·추가 근무를 같은 시간축에 표시하고 별도 주간 시간표 영역은 제거한다. 새벽·야간 및 자정 넘김 근무는 날짜별 요약에서 접근할 수 있다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 드롭 위치는 06:00 기준 30분 단위로 맞춘다. 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 외부 매뉴얼 링크를 유지한다.",
       "reason": "사용자가 별도 주간 시간표를 삭제하고 영업시간별 R&R 및 왼쪽 근무 시간축을 상단 배정 현황에서 보도록 명시했다. 선택 날짜에 같은 정보를 통합해 중복 스크롤을 줄인다.",
       "source": "사용자 요청 · 2026-09-25 · Aside CLI 공개 근무표 UI 참고",
-      "updatedAt": "2026-09-25T12:10:03Z"
+      "updatedAt": "2026-09-27T09:13:42.265Z"
     },
     {
       "id": "D-036",
@@ -392,32 +392,32 @@
     {
       "id": "D-039",
       "category": "업무 매뉴얼 검색",
-      "title": "고정 전역 검색과 Small TAP 연관어",
+      "title": "고정 전역 검색과 Task 연관어",
       "status": "confirmed",
-      "decision": "상단의 스크롤되지 않는 검색창에서 현재 메뉴·BIG TAP·담당 필터와 무관하게 매장 전체 Small TAP 및 매뉴얼을 찾는다. 결과는 Small TAP 이름, 소속 TAP, 매뉴얼 요약과 #연관어를 보여주고 누르면 읽기 전용 매뉴얼을 바로 연다. 각 Small TAP에 편집 가능한 연관어를 저장한다. 공식 POS 예시는 제품·유형별로 확인된 텍스트 절차와 화면 사진 원문 링크를 연결한다. 실제 매장의 POS·레시피·위치·배달 절차는 매장이 확인해 입력한다. 사용자가 사용하는 오케이포스(OKPOS)의 공식 공개 안내를 샘플 매뉴얼로 연결한다. 이전 토스·페이히어 샘플은 기록을 보존하며 보관하고 빈 매장에는 생성하지 않는다.",
+      "decision": "상단의 스크롤되지 않는 검색창에서 현재 메뉴·TAP그룹·담당 필터와 무관하게 매장 전체 Task 및 매뉴얼을 찾는다. 결과는 Task 이름, 소속 TAP, 매뉴얼 요약과 #연관어를 보여주고 누르면 읽기 전용 매뉴얼을 바로 연다. 각 Task에 편집 가능한 연관어를 저장한다. 공식 POS 예시는 제품·유형별로 확인된 텍스트 절차와 화면 사진 원문 링크를 연결한다. 실제 매장의 POS·레시피·위치·배달 절차는 매장이 확인해 입력한다. 사용자가 사용하는 오케이포스(OKPOS)의 공식 공개 안내를 샘플 매뉴얼로 연결한다. 이전 토스·페이히어 샘플은 기록을 보존하며 보관하고 빈 매장에는 생성하지 않는다.",
       "reason": "2026-09-26 사용자 요청: TAP 첫 줄 동작, 담당자별 색·이름, 주문 시간·가상 목표, 사용 중인 오케이포스 매뉴얼 정정.",
       "source": "사용자 요청 · 2026-09-26",
-      "updatedAt": "2026-09-26"
+      "updatedAt": "2026-09-27T09:13:42.265Z"
     },
     {
       "id": "D-040",
       "category": "UX and architecture",
       "title": "Preserve TAP structure while improving task UX and integration boundaries",
       "status": "confirmed",
-      "decision": "The user selected task/manual UX improvement and order integration groundwork, preserving the existing order/todo/done board and TAP to Small TAP hierarchy with BIG TAP grouping. Own POS payments/receipts and a separate KDS expansion are outside this implementation scope.",
+      "decision": "The user selected task/manual UX improvement and order integration groundwork, preserving the existing order/todo/done board and TAP to Task hierarchy with TAP그룹 grouping. Own POS payments/receipts and a separate KDS expansion are outside this implementation scope.",
       "reason": "Both scope and board-preservation questions received explicit user selections in this conversation.",
       "source": "User answers on 2026-09-27",
-      "updatedAt": "2026-09-27"
+      "updatedAt": "2026-09-27T09:13:42.265Z"
     },
     {
       "id": "D-041",
       "category": "제품·설정·UX",
       "title": "우리매장과 유형별 TAP 설정, 직원·채용 준비 방법론",
       "status": "confirmed",
-      "decision": "제품의 주요 포커스는 업무 매뉴얼·업무 관리·직원 고용 및 채용이다. 최초 등록은 매장명·업종만 필수이고 POS·배달 사용 상세·직원수 등은 toggle/picker 위주로 건너뛰거나 나중에 수정한다. POS/배달은 사용 설정과 맞춤 업무 양식 추천까지이며 실제 주문 자동 연동은 별도다. 업무 유형별 기본 양식에 TAP·Small TAP 개별 조정을 제공한다. TAP의 유형·역할·장소·반복 요일·시간대·일괄완료, Small TAP의 매뉴얼·수량/단위·예상 소요 시간·순서 규칙을 설계한다. 사진 제출·관리자 승인·실제 타이머는 후속이다. 채용은 직원 운영과 필요 인원·직무·공고 초안까지이며 외부 공고 게시·지원자 관리는 후속이다. 가독성 좋은 폰트와 색·투명도 중심으로 기본 텍스트를 줄이고 TAP이 열리며 Small TAP이 드러나는 전환을 제공한다. 완료 글줄은 짧게 아래로 내려가며 사라진 뒤 완료 표시로 정리하고 기록·허용된 되돌리기·동작 줄이기를 유지한다. 사용자의 후속 요청에 따라 이번 세션에서 실제 구현과 배포를 진행한다.",
+      "decision": "제품의 주요 포커스는 업무 매뉴얼·업무 관리·직원 고용 및 채용이다. 최초 등록은 매장명·업종만 필수이고 POS·배달 사용 상세·직원수 등은 toggle/picker 위주로 건너뛰거나 나중에 수정한다. POS/배달은 사용 설정과 맞춤 업무 양식 추천까지이며 실제 주문 자동 연동은 별도다. 업무 유형별 기본 양식에 TAP·Task 개별 조정을 제공한다. TAP의 유형·역할·장소·반복 요일·시간대·일괄완료, Task의 매뉴얼·수량/단위·예상 소요 시간·순서 규칙을 설계한다. 사진 제출·관리자 승인·실제 타이머는 후속이다. 채용은 직원 운영과 필요 인원·직무·공고 초안까지이며 외부 공고 게시·지원자 관리는 후속이다. 가독성 좋은 폰트와 색·투명도 중심으로 기본 텍스트를 줄이고 TAP이 열리며 Task이 드러나는 전환을 제공한다. 완료 글줄은 짧게 아래로 내려가며 사라진 뒤 완료 표시로 정리하고 기록·허용된 되돌리기·동작 줄이기를 유지한다. 사용자의 후속 요청에 따라 이번 세션에서 실제 구현과 배포를 진행한다.",
       "reason": "사용자 최초 5개 요청과 이번 세션 8개 질의에 대한 명시적 답변을 기록한다. 앱 구현 완료를 뜻하지 않는다. 방법론 완료 후 사용자가 구현과 배포를 명시적으로 요청했다.",
       "source": "사용자 요청 및 질의 응답 · 2026-09-27",
-      "updatedAt": "2026-09-27T07:03:03.200Z"
+      "updatedAt": "2026-09-27T09:13:42.265Z"
     },
     {
       "id": "D-042",
@@ -438,6 +438,16 @@
       "reason": "사용자가 이전 애니메이션 결과를 지적하고 메뉴별 통일성·제목 일치·설명 삭제·상단 검색 위치 통일을 명시적으로 요청했다.",
       "source": "사용자 개선 요청 · 2026-09-27",
       "updatedAt": "2026-09-27T08:21:48.602Z"
+    },
+    {
+      "id": "D-044",
+      "category": "매뉴얼·정보 구조",
+      "title": "TAP그룹 → TAP → Task 디렉토리와 Task 연결 매뉴얼",
+      "status": "confirmed",
+      "decision": "BIG TAP은 TAP그룹, Small TAP은 Task로 명칭을 통일한다. 매뉴얼은 Task와 연결한다. 매뉴얼 화면 왼쪽에 TAP그룹·TAP·Task 디렉토리 트리를 제공하고 Drag & Drop으로 구조를 수정하며 디렉토리 기준으로 매뉴얼을 검색할 수 있게 한다.",
+      "reason": "사용자가 명칭 변경과 매뉴얼 디렉토리 트리·드래그 수정·디렉토리 검색을 명시적으로 요청했다.",
+      "source": "사용자 요청 · 2026-09-27",
+      "updatedAt": "2026-09-27T09:13:42.265Z"
     }
   ],
   "milestones": [
@@ -517,13 +527,13 @@
       "id": "M-013",
       "title": "Tap 시스템 재구성 첫 단계",
       "status": "in_progress",
-      "description": "Demo implemented: folder/status board, menu/order groups, popup recipe manuals with external media and direct editing, Team attendance/pay estimates, weekly/monthly staffing slots and HR pool, orthogonal layout. Five-minute planning removed. Local Flutter 66 and Node 44 tests pass; static web build passes. Deployed to GitHub Pages and the Supabase operations function on 2026-09-24; live verification passed. Real POS, notifications, HR integration, payroll policy and native device validation remain incomplete. Prepared-item ledger, menu usage, actual prep output and one low-stock TAP per item are implemented; source quantities are configurable sample values. Prepared workflow deployed to GitHub Pages and Supabase operations function on 2026-09-24; live public sample and API access check passed. 추가 로컬 구현: 주문 채널별 Small TAP·요청 표시, 주문 진행률과 사전준비 분리, 30분 주간 근무표와 최대 90일 반복, 4개 하단 메뉴, 사장님 Status 인건비, Place 재료 목록. 2026-09-24 로컬 Node 51/51, Flutter 71/71, 분석·JS check·공개 web build 통과. 이 추가 변경은 배포/실기기 검증 전. Order/Calendar/Status/Place redesign deployed on 2026-09-24 with 30-minute roster grid, repeat assignment, owner-only labor summary and material count/purchase dates; CI and live public sample checks passed. Three-lane board, translucent progress fill, delivery source badges, compact 06:00 roster and supplied wordmark deployed on 2026-09-24; CI and live artifact checks passed. Unified brand/account header deployed 2026-09-25, with one contextual account action; 320/390px renders and live Pages artifact verified."
+      "description": "Demo implemented: folder/status board, menu/order groups, popup recipe manuals with external media and direct editing, Team attendance/pay estimates, weekly/monthly staffing slots and HR pool, orthogonal layout. Five-minute planning removed. Local Flutter 66 and Node 44 tests pass; static web build passes. Deployed to GitHub Pages and the Supabase operations function on 2026-09-24; live verification passed. Real POS, notifications, HR integration, payroll policy and native device validation remain incomplete. Prepared-item ledger, menu usage, actual prep output and one low-stock TAP per item are implemented; source quantities are configurable sample values. Prepared workflow deployed to GitHub Pages and Supabase operations function on 2026-09-24; live public sample and API access check passed. 추가 로컬 구현: 주문 채널별 Task·요청 표시, 주문 진행률과 사전준비 분리, 30분 주간 근무표와 최대 90일 반복, 4개 하단 메뉴, 사장님 Status 인건비, Place 재료 목록. 2026-09-24 로컬 Node 51/51, Flutter 71/71, 분석·JS check·공개 web build 통과. 이 추가 변경은 배포/실기기 검증 전. Order/Calendar/Status/Place redesign deployed on 2026-09-24 with 30-minute roster grid, repeat assignment, owner-only labor summary and material count/purchase dates; CI and live public sample checks passed. Three-lane board, translucent progress fill, delivery source badges, compact 06:00 roster and supplied wordmark deployed on 2026-09-24; CI and live artifact checks passed. Unified brand/account header deployed 2026-09-25, with one contextual account action; 320/390px renders and live Pages artifact verified."
     },
     {
       "id": "M-014",
-      "title": "TAP에서 Small TAP으로 탐색하는 2단계 보드",
+      "title": "TAP에서 Task으로 탐색하는 2단계 보드",
       "status": "done",
-      "description": "단일 TAP 보드에서 BIG TAP 그룹 필터를 사용하고 TAP 카드에서 Small TAP 목록·선택 매뉴얼로 직접 이동한다. 돌아올 때 그룹 선택을 유지하고 매뉴얼 검색은 상단 전역 검색으로 제공한다. Small TAP 완료·되돌리기·매뉴얼과 부모 진행률, 기존 ID·권한·재고·편집 초안·드래그 흐름을 유지한다. 네이티브 실기기 검증은 수행하지 않았다."
+      "description": "단일 TAP 보드에서 TAP그룹 필터를 사용하고 TAP 카드에서 Task 목록·선택 매뉴얼로 직접 이동한다. 돌아올 때 그룹 선택을 유지하고 매뉴얼 검색은 상단 전역 검색으로 제공한다. Task 완료·되돌리기·매뉴얼과 부모 진행률, 기존 ID·권한·재고·편집 초안·드래그 흐름을 유지한다. 네이티브 실기기 검증은 수행하지 않았다."
     },
     {
       "id": "M-015",
@@ -535,7 +545,7 @@
       "id": "M-016",
       "title": "업무·매뉴얼·직원·우리매장 개선 구현",
       "status": "complete",
-      "description": "업무·매뉴얼·직원·우리매장 4메뉴, 선택형 우리매장 프로필과 POS/배달 업무 추천, TAP/Small TAP 설정·서버 완료 규칙, 채용 초안, 절제된 완료/열기 전환을 구현·배포했다. Supabase operations 배포, Actions 36302001642의 JS 검사·Node 65개·Flutter 분석/94개·공개 빌드·Pages 배포, HTTPS 파일 해시 일치를 확인했다. 실제 주문 연동·외부 공고/지원자 관리는 후속 범위다. 네이티브 빌드·실기기·인증 실계정 저장은 미검증이다."
+      "description": "업무·매뉴얼·직원·우리매장 4메뉴, 선택형 우리매장 프로필과 POS/배달 업무 추천, TAP/Task 설정·서버 완료 규칙, 채용 초안, 절제된 완료/열기 전환을 구현·배포했다. Supabase operations 배포, Actions 36302001642의 JS 검사·Node 65개·Flutter 분석/94개·공개 빌드·Pages 배포, HTTPS 파일 해시 일치를 확인했다. 실제 주문 연동·외부 공고/지원자 관리는 후속 범위다. 네이티브 빌드·실기기·인증 실계정 저장은 미검증이다."
     }
   ],
   "history": [
@@ -3355,7 +3365,211 @@
         "https://github.com/ljae/tap2work/actions/runs/36305990966",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-manual-directory-2026-09-27",
+      "at": "2026-09-27T09:13:42.265Z",
+      "type": "implementation",
+      "title": "TAP그룹·TAP·Task 명칭 통일과 매뉴얼 디렉토리",
+      "detail": "Flutter 화면·설정·도움말·서버 메시지에 새 명칭을 적용했다. 디렉토리 범위 검색과 Task 본문, 권한·revision 보호를 갖춘 구조 이동 API, 미저장 공개 드래그 체험을 구현했다. Task 이동은 매뉴얼·설정과 함께 처리하고 오늘 업무의 기록을 보존한다. Supabase operations 함수를 배포했다. 저장용 식별자와 과거 변경 이력은 보존한다.",
+      "decisionChanges": [
+        {
+          "id": "D-028",
+          "previous": {
+            "id": "D-028",
+            "category": "제품 구조",
+            "title": "TAP·Small TAP 통합 운영 확장",
+            "status": "confirmed",
+            "decision": "TAP → Small TAP 두 단계와 BIG TAP 그룹핑, 칸반·2D 매장 배치·근무/급여 현황을 목표 제품 범위에 포함한다. 주문 유입, 지도 동선, 근무 교환, 개인 폰 알림, 템플릿 마켓과 자발적 평판 동의 흐름을 단계적으로 구축한다. 기존 첫 근무 가이드·재고/발주·실물 입고 구분은 유지한다.",
+            "reason": "사용자가 BIG TAP을 구조 단계가 아닌 같은 보드의 그룹핑으로 명시하고 5분 계획은 앞선 요청에서 제거했다.",
+            "source": "사용자 요청 · 2026-09-26",
+            "updatedAt": "2026-09-26"
+          },
+          "next": {
+            "id": "D-028",
+            "category": "제품 구조",
+            "title": "TAP·Task 통합 운영 확장",
+            "status": "confirmed",
+            "decision": "TAP → Task 두 단계와 TAP그룹핑, 칸반·2D 매장 배치·근무/급여 현황을 목표 제품 범위에 포함한다. 주문 유입, 지도 동선, 근무 교환, 개인 폰 알림, 템플릿 마켓과 자발적 평판 동의 흐름을 단계적으로 구축한다. 기존 첫 근무 가이드·재고/발주·실물 입고 구분은 유지한다.",
+            "reason": "사용자가 TAP그룹을 구조 단계가 아닌 같은 보드의 그룹핑으로 명시하고 5분 계획은 앞선 요청에서 제거했다.",
+            "source": "사용자 요청 · 2026-09-26",
+            "updatedAt": "2026-09-27T09:13:42.265Z"
+          },
+          "reason": "사용자가 BIG TAP을 TAP그룹, Small TAP을 Task로 명칭 변경하도록 요청했다. 기존 결정의 상태와 범위는 유지한다."
+        },
+        {
+          "id": "D-030",
+          "previous": {
+            "id": "D-030",
+            "category": "제품 경험",
+            "title": "TAP에서 Small TAP으로 직접 열기",
+            "status": "confirmed",
+            "decision": "TAP은 업무 카드이며 열면 해당 Small TAP 목록과 선택 매뉴얼로 바로 이동한다. BIG TAP은 같은 TAP 보드의 그룹 필터이며 별도 부모 화면이나 완료 단계가 아니다. 카드에는 Small TAP 수와 진행률 및 열기 동작을 명확히 표시하고, 상단 경로로 기존 그룹 선택을 보존하며 TAP 보드로 돌아간다. Small TAP은 실행 행동·완료/되돌리기·매뉴얼을 담는다. 매뉴얼 검색은 화면 상단의 전역 검색을 사용한다. TAP 카드 첫 줄은 드래그 손잡이, 별도 완료 확인, 한 줄 제목, Small TAP 열기 화살표로 구성하고 중복 하단 열기 문구는 제거한다.",
+            "reason": "2026-09-26 사용자 요청: TAP 첫 줄 동작, 담당자별 색·이름, 주문 시간·가상 목표, 사용 중인 오케이포스 매뉴얼 정정.",
+            "source": "사용자 요청 · 2026-09-26",
+            "updatedAt": "2026-09-26"
+          },
+          "next": {
+            "id": "D-030",
+            "category": "제품 경험",
+            "title": "TAP에서 Task으로 직접 열기",
+            "status": "confirmed",
+            "decision": "TAP은 업무 카드이며 열면 해당 Task 목록과 선택 매뉴얼로 바로 이동한다. TAP그룹은 같은 TAP 보드의 그룹 필터이며 별도 부모 화면이나 완료 단계가 아니다. 카드에는 Task 수와 진행률 및 열기 동작을 명확히 표시하고, 상단 경로로 기존 그룹 선택을 보존하며 TAP 보드로 돌아간다. Task은 실행 행동·완료/되돌리기·매뉴얼을 담는다. 매뉴얼 검색은 화면 상단의 전역 검색을 사용한다. TAP 카드 첫 줄은 드래그 손잡이, 별도 완료 확인, 한 줄 제목, Task 열기 화살표로 구성하고 중복 하단 열기 문구는 제거한다.",
+            "reason": "2026-09-26 사용자 요청: TAP 첫 줄 동작, 담당자별 색·이름, 주문 시간·가상 목표, 사용 중인 오케이포스 매뉴얼 정정.",
+            "source": "사용자 요청 · 2026-09-26",
+            "updatedAt": "2026-09-27T09:13:42.265Z"
+          },
+          "reason": "사용자가 BIG TAP을 TAP그룹, Small TAP을 Task로 명칭 변경하도록 요청했다. 기존 결정의 상태와 범위는 유지한다."
+        },
+        {
+          "id": "D-031",
+          "previous": {
+            "id": "D-031",
+            "category": "제품 경험",
+            "title": "BIG TAP 그룹과 전체 TAP 상태 보드",
+            "status": "confirmed",
+            "decision": "목표 하단 메뉴를 업무 / 매뉴얼 / 직원 / 우리매장 순서로 개편한다. 아이콘과 한국어 이름을 함께 표시한다. 업무는 TAP 보드, 매뉴얼은 독립 검색·방법 보기, 직원은 근무표·교육·채용 준비, 우리매장은 운영 설정·배치와 매출/재고/발주 진입을 제공한다. 이 개편은 2026-09-27 방법론으로 확정했고, 후속 구현 요청에 따라 Flutter 앱에 적용했다. BIG TAP은 같은 TAP 보드의 이름 있는 그룹 필터다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. 활성 Tapper의 역할 적합 이름과 개인별 고정 색을 보여주고, 대표 담당자 색으로 Small TAP 진행 비율만큼 카드를 연하게 채우며 완료 카드는 읽기 쉬운 옅은 회색과 완료 텍스트로 표시한다. 누구나 업무는 중립색이며 이름 목록은 배정 확정이 아닌 가능한 담당자다. 직원 메뉴는 기존 Calendar의 직원 등록·근태·근무 관리를 이어받는다. 사장님 전용 인건비는 우리매장 내 운영 현황에서 접근하며 서버 권한을 유지한다. 기존 배치 지도·재료 재고·마지막 실사·발주 시각은 우리매장에서 접근한다.",
+            "reason": "사용자가 2026-09-27 방법론 수립 질의에서 전체 메뉴 재설계 후 업무·매뉴얼·직원·우리매장 4메뉴를 명시적으로 선택했다. 보드 열과 TAP 계층은 유지한다. 2026-09-27 사용자가 구현 시작을 요청했다.",
+            "source": "사용자 요청 및 명시적 선택 · 2026-09-27",
+            "updatedAt": "2026-09-27T07:03:03.200Z"
+          },
+          "next": {
+            "id": "D-031",
+            "category": "제품 경험",
+            "title": "TAP그룹과 전체 TAP 상태 보드",
+            "status": "confirmed",
+            "decision": "목표 하단 메뉴를 업무 / 매뉴얼 / 직원 / 우리매장 순서로 개편한다. 아이콘과 한국어 이름을 함께 표시한다. 업무는 TAP 보드, 매뉴얼은 독립 검색·방법 보기, 직원은 근무표·교육·채용 준비, 우리매장은 운영 설정·배치와 매출/재고/발주 진입을 제공한다. 이 개편은 2026-09-27 방법론으로 확정했고, 후속 구현 요청에 따라 Flutter 앱에 적용했다. TAP그룹은 같은 TAP 보드의 이름 있는 그룹 필터다. Todo 첫 화면은 주문처리중 / 할일 / 완료 고정 3열이며, 미완료 주문 그룹은 내부 처리 상태와 무관하게 첫 열, 미완료 사전준비·일반 Tap은 둘째 열, 완료된 모든 작업은 셋째 열이다. 화면 배치만으로 주문을 processing으로 바꾸거나 준비품을 차감하지 않는다. 잘못된 유형의 열 이동은 거절하고, 완료·되돌리기는 원래 열로 보낸다. 주문 그룹 진행률은 주문 ID의 전체 메뉴를 기준으로 한다. 활성 Tapper의 역할 적합 이름과 개인별 고정 색을 보여주고, 대표 담당자 색으로 Task 진행 비율만큼 카드를 연하게 채우며 완료 카드는 읽기 쉬운 옅은 회색과 완료 텍스트로 표시한다. 누구나 업무는 중립색이며 이름 목록은 배정 확정이 아닌 가능한 담당자다. 직원 메뉴는 기존 Calendar의 직원 등록·근태·근무 관리를 이어받는다. 사장님 전용 인건비는 우리매장 내 운영 현황에서 접근하며 서버 권한을 유지한다. 기존 배치 지도·재료 재고·마지막 실사·발주 시각은 우리매장에서 접근한다.",
+            "reason": "사용자가 2026-09-27 방법론 수립 질의에서 전체 메뉴 재설계 후 업무·매뉴얼·직원·우리매장 4메뉴를 명시적으로 선택했다. 보드 열과 TAP 계층은 유지한다. 2026-09-27 사용자가 구현 시작을 요청했다.",
+            "source": "사용자 요청 및 명시적 선택 · 2026-09-27",
+            "updatedAt": "2026-09-27T09:13:42.265Z"
+          },
+          "reason": "사용자가 BIG TAP을 TAP그룹, Small TAP을 Task로 명칭 변경하도록 요청했다. 기존 결정의 상태와 범위는 유지한다."
+        },
+        {
+          "id": "D-035",
+          "previous": {
+            "id": "D-035",
+            "category": "Product experience",
+            "title": "Menu order groups, lightweight manuals and crew slot calendar",
+            "status": "confirmed",
+            "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Small TAP을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. Calendar는 주간 날짜 선택 줄과 월간 개요를 유지하고, 선택 날짜의 배정 현황 안에 06:00–24:00 30분 고정 왼쪽 축과 가로 스크롤되는 R&R 역할 열을 둔다. 이는 표시 범위이며 실제 영업시간 설정은 아니다. 필수 빈 슬롯·배정 근무·추가 근무를 같은 시간축에 표시하고 별도 주간 시간표 영역은 제거한다. 새벽·야간 및 자정 넘김 근무는 날짜별 요약에서 접근할 수 있다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 드롭 위치는 06:00 기준 30분 단위로 맞춘다. 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 외부 매뉴얼 링크를 유지한다.",
+            "reason": "사용자가 별도 주간 시간표를 삭제하고 영업시간별 R&R 및 왼쪽 근무 시간축을 상단 배정 현황에서 보도록 명시했다. 선택 날짜에 같은 정보를 통합해 중복 스크롤을 줄인다.",
+            "source": "사용자 요청 · 2026-09-25 · Aside CLI 공개 근무표 UI 참고",
+            "updatedAt": "2026-09-25T12:10:03Z"
+          },
+          "next": {
+            "id": "D-035",
+            "category": "Product experience",
+            "title": "Menu order groups, lightweight manuals and crew slot calendar",
+            "status": "confirmed",
+            "decision": "주문 ID별 메뉴 TAP과 주문 그룹 진행률을 유지한다. 포장·배달 주문에는 포장 Task을 자동 생성하고 배달에는 전달 확인을 추가한다. 기존 독립 포장 업무는 이력 보존 상태로 아카이브한다. Calendar는 주간 날짜 선택 줄과 월간 개요를 유지하고, 선택 날짜의 배정 현황 안에 06:00–24:00 30분 고정 왼쪽 축과 가로 스크롤되는 R&R 역할 열을 둔다. 이는 표시 범위이며 실제 영업시간 설정은 아니다. 필수 빈 슬롯·배정 근무·추가 근무를 같은 시간축에 표시하고 별도 주간 시간표 영역은 제거한다. 새벽·야간 및 자정 넘김 근무는 날짜별 요약에서 접근할 수 있다. 크루 드래그·빈 시간 탭은 고용형태, 역할, 시작/종료, 요일 반복 입력 팝업을 열며 드롭 위치는 06:00 기준 30분 단위로 맞춘다. 반복은 최대 90일이다. 개별 근무를 탭하거나 드래그해 수정한다. 외부 매뉴얼 링크를 유지한다.",
+            "reason": "사용자가 별도 주간 시간표를 삭제하고 영업시간별 R&R 및 왼쪽 근무 시간축을 상단 배정 현황에서 보도록 명시했다. 선택 날짜에 같은 정보를 통합해 중복 스크롤을 줄인다.",
+            "source": "사용자 요청 · 2026-09-25 · Aside CLI 공개 근무표 UI 참고",
+            "updatedAt": "2026-09-27T09:13:42.265Z"
+          },
+          "reason": "사용자가 BIG TAP을 TAP그룹, Small TAP을 Task로 명칭 변경하도록 요청했다. 기존 결정의 상태와 범위는 유지한다."
+        },
+        {
+          "id": "D-039",
+          "previous": {
+            "id": "D-039",
+            "category": "업무 매뉴얼 검색",
+            "title": "고정 전역 검색과 Small TAP 연관어",
+            "status": "confirmed",
+            "decision": "상단의 스크롤되지 않는 검색창에서 현재 메뉴·BIG TAP·담당 필터와 무관하게 매장 전체 Small TAP 및 매뉴얼을 찾는다. 결과는 Small TAP 이름, 소속 TAP, 매뉴얼 요약과 #연관어를 보여주고 누르면 읽기 전용 매뉴얼을 바로 연다. 각 Small TAP에 편집 가능한 연관어를 저장한다. 공식 POS 예시는 제품·유형별로 확인된 텍스트 절차와 화면 사진 원문 링크를 연결한다. 실제 매장의 POS·레시피·위치·배달 절차는 매장이 확인해 입력한다. 사용자가 사용하는 오케이포스(OKPOS)의 공식 공개 안내를 샘플 매뉴얼로 연결한다. 이전 토스·페이히어 샘플은 기록을 보존하며 보관하고 빈 매장에는 생성하지 않는다.",
+            "reason": "2026-09-26 사용자 요청: TAP 첫 줄 동작, 담당자별 색·이름, 주문 시간·가상 목표, 사용 중인 오케이포스 매뉴얼 정정.",
+            "source": "사용자 요청 · 2026-09-26",
+            "updatedAt": "2026-09-26"
+          },
+          "next": {
+            "id": "D-039",
+            "category": "업무 매뉴얼 검색",
+            "title": "고정 전역 검색과 Task 연관어",
+            "status": "confirmed",
+            "decision": "상단의 스크롤되지 않는 검색창에서 현재 메뉴·TAP그룹·담당 필터와 무관하게 매장 전체 Task 및 매뉴얼을 찾는다. 결과는 Task 이름, 소속 TAP, 매뉴얼 요약과 #연관어를 보여주고 누르면 읽기 전용 매뉴얼을 바로 연다. 각 Task에 편집 가능한 연관어를 저장한다. 공식 POS 예시는 제품·유형별로 확인된 텍스트 절차와 화면 사진 원문 링크를 연결한다. 실제 매장의 POS·레시피·위치·배달 절차는 매장이 확인해 입력한다. 사용자가 사용하는 오케이포스(OKPOS)의 공식 공개 안내를 샘플 매뉴얼로 연결한다. 이전 토스·페이히어 샘플은 기록을 보존하며 보관하고 빈 매장에는 생성하지 않는다.",
+            "reason": "2026-09-26 사용자 요청: TAP 첫 줄 동작, 담당자별 색·이름, 주문 시간·가상 목표, 사용 중인 오케이포스 매뉴얼 정정.",
+            "source": "사용자 요청 · 2026-09-26",
+            "updatedAt": "2026-09-27T09:13:42.265Z"
+          },
+          "reason": "사용자가 BIG TAP을 TAP그룹, Small TAP을 Task로 명칭 변경하도록 요청했다. 기존 결정의 상태와 범위는 유지한다."
+        },
+        {
+          "id": "D-040",
+          "previous": {
+            "id": "D-040",
+            "category": "UX and architecture",
+            "title": "Preserve TAP structure while improving task UX and integration boundaries",
+            "status": "confirmed",
+            "decision": "The user selected task/manual UX improvement and order integration groundwork, preserving the existing order/todo/done board and TAP to Small TAP hierarchy with BIG TAP grouping. Own POS payments/receipts and a separate KDS expansion are outside this implementation scope.",
+            "reason": "Both scope and board-preservation questions received explicit user selections in this conversation.",
+            "source": "User answers on 2026-09-27",
+            "updatedAt": "2026-09-27"
+          },
+          "next": {
+            "id": "D-040",
+            "category": "UX and architecture",
+            "title": "Preserve TAP structure while improving task UX and integration boundaries",
+            "status": "confirmed",
+            "decision": "The user selected task/manual UX improvement and order integration groundwork, preserving the existing order/todo/done board and TAP to Task hierarchy with TAP그룹 grouping. Own POS payments/receipts and a separate KDS expansion are outside this implementation scope.",
+            "reason": "Both scope and board-preservation questions received explicit user selections in this conversation.",
+            "source": "User answers on 2026-09-27",
+            "updatedAt": "2026-09-27T09:13:42.265Z"
+          },
+          "reason": "사용자가 BIG TAP을 TAP그룹, Small TAP을 Task로 명칭 변경하도록 요청했다. 기존 결정의 상태와 범위는 유지한다."
+        },
+        {
+          "id": "D-041",
+          "previous": {
+            "id": "D-041",
+            "category": "제품·설정·UX",
+            "title": "우리매장과 유형별 TAP 설정, 직원·채용 준비 방법론",
+            "status": "confirmed",
+            "decision": "제품의 주요 포커스는 업무 매뉴얼·업무 관리·직원 고용 및 채용이다. 최초 등록은 매장명·업종만 필수이고 POS·배달 사용 상세·직원수 등은 toggle/picker 위주로 건너뛰거나 나중에 수정한다. POS/배달은 사용 설정과 맞춤 업무 양식 추천까지이며 실제 주문 자동 연동은 별도다. 업무 유형별 기본 양식에 TAP·Small TAP 개별 조정을 제공한다. TAP의 유형·역할·장소·반복 요일·시간대·일괄완료, Small TAP의 매뉴얼·수량/단위·예상 소요 시간·순서 규칙을 설계한다. 사진 제출·관리자 승인·실제 타이머는 후속이다. 채용은 직원 운영과 필요 인원·직무·공고 초안까지이며 외부 공고 게시·지원자 관리는 후속이다. 가독성 좋은 폰트와 색·투명도 중심으로 기본 텍스트를 줄이고 TAP이 열리며 Small TAP이 드러나는 전환을 제공한다. 완료 글줄은 짧게 아래로 내려가며 사라진 뒤 완료 표시로 정리하고 기록·허용된 되돌리기·동작 줄이기를 유지한다. 사용자의 후속 요청에 따라 이번 세션에서 실제 구현과 배포를 진행한다.",
+            "reason": "사용자 최초 5개 요청과 이번 세션 8개 질의에 대한 명시적 답변을 기록한다. 앱 구현 완료를 뜻하지 않는다. 방법론 완료 후 사용자가 구현과 배포를 명시적으로 요청했다.",
+            "source": "사용자 요청 및 질의 응답 · 2026-09-27",
+            "updatedAt": "2026-09-27T07:03:03.200Z"
+          },
+          "next": {
+            "id": "D-041",
+            "category": "제품·설정·UX",
+            "title": "우리매장과 유형별 TAP 설정, 직원·채용 준비 방법론",
+            "status": "confirmed",
+            "decision": "제품의 주요 포커스는 업무 매뉴얼·업무 관리·직원 고용 및 채용이다. 최초 등록은 매장명·업종만 필수이고 POS·배달 사용 상세·직원수 등은 toggle/picker 위주로 건너뛰거나 나중에 수정한다. POS/배달은 사용 설정과 맞춤 업무 양식 추천까지이며 실제 주문 자동 연동은 별도다. 업무 유형별 기본 양식에 TAP·Task 개별 조정을 제공한다. TAP의 유형·역할·장소·반복 요일·시간대·일괄완료, Task의 매뉴얼·수량/단위·예상 소요 시간·순서 규칙을 설계한다. 사진 제출·관리자 승인·실제 타이머는 후속이다. 채용은 직원 운영과 필요 인원·직무·공고 초안까지이며 외부 공고 게시·지원자 관리는 후속이다. 가독성 좋은 폰트와 색·투명도 중심으로 기본 텍스트를 줄이고 TAP이 열리며 Task이 드러나는 전환을 제공한다. 완료 글줄은 짧게 아래로 내려가며 사라진 뒤 완료 표시로 정리하고 기록·허용된 되돌리기·동작 줄이기를 유지한다. 사용자의 후속 요청에 따라 이번 세션에서 실제 구현과 배포를 진행한다.",
+            "reason": "사용자 최초 5개 요청과 이번 세션 8개 질의에 대한 명시적 답변을 기록한다. 앱 구현 완료를 뜻하지 않는다. 방법론 완료 후 사용자가 구현과 배포를 명시적으로 요청했다.",
+            "source": "사용자 요청 및 질의 응답 · 2026-09-27",
+            "updatedAt": "2026-09-27T09:13:42.265Z"
+          },
+          "reason": "사용자가 BIG TAP을 TAP그룹, Small TAP을 Task로 명칭 변경하도록 요청했다. 기존 결정의 상태와 범위는 유지한다."
+        },
+        {
+          "id": "D-044",
+          "previous": null,
+          "next": {
+            "id": "D-044",
+            "category": "매뉴얼·정보 구조",
+            "title": "TAP그룹 → TAP → Task 디렉토리와 Task 연결 매뉴얼",
+            "status": "confirmed",
+            "decision": "BIG TAP은 TAP그룹, Small TAP은 Task로 명칭을 통일한다. 매뉴얼은 Task와 연결한다. 매뉴얼 화면 왼쪽에 TAP그룹·TAP·Task 디렉토리 트리를 제공하고 Drag & Drop으로 구조를 수정하며 디렉토리 기준으로 매뉴얼을 검색할 수 있게 한다.",
+            "reason": "사용자가 명칭 변경과 매뉴얼 디렉토리 트리·드래그 수정·디렉토리 검색을 명시적으로 요청했다.",
+            "source": "사용자 요청 · 2026-09-27",
+            "updatedAt": "2026-09-27T09:13:42.265Z"
+          },
+          "reason": "사용자가 명칭 변경과 매뉴얼 디렉토리 트리·드래그 수정·디렉토리 검색을 명시적으로 요청했다."
+        }
+      ],
+      "files": [
+        "PRODUCT.md",
+        "README.md",
+        "docs/MANUAL_DIRECTORY_2026-09-27.md",
+        "app/lib/ui/manual_workspace.dart",
+        "app/lib/ui/operations_screen.dart",
+        "developer/manual_directory.mjs",
+        "developer/operations.mjs",
+        "app/test/manual_workspace_test.dart",
+        "developer/test/manual_directory.test.mjs"
+      ],
+      "verification": "Flutter analyze 통과, Flutter 105개·Node 69개 테스트 통과, JS 검사·공개 웹 빌드 성공. 실제 서체로 1200px 좌우 구조와 390px 트리·본문·편집 캡처 확인(.local/manual-review-2026-09-27). backend:deploy 성공(기존 SQL 2개와 operations 함수). 네이티브 빌드·실기기·실계정 저장 미검증. Pages 배포는 후속 기록."
     }
   ],
-  "updatedAt": "2026-09-27T08:25:34.400Z"
+  "updatedAt": "2026-09-27T09:13:42.265Z"
 }

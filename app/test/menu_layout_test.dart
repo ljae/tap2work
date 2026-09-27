@@ -54,7 +54,7 @@ void main() {
           expect(find.text('전체 매장 매뉴얼 검색'), findsNothing);
           await tester.enterText(search, '손');
           await tester.pumpAndSettle();
-          expect(find.text('손 씻기'), findsOneWidget);
+          expect(find.text('손 씻기'), findsWidgets);
           expect(tester.takeException(), isNull);
         }
       },

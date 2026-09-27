@@ -126,7 +126,7 @@ void main() {
     await tester.tap(find.byTooltip('완료하기'));
     expect(checked, 1);
     expect(opened, 0);
-    await tester.tap(find.text('Small TAP'));
+    await tester.tap(find.text('Task'));
     expect(opened, 1);
     expect(checked, 1);
   });
@@ -171,7 +171,7 @@ void main() {
     final check = find.byTooltip('완료하기');
     final open = find.byWidgetPredicate(
       (widget) =>
-          widget is Semantics && widget.properties.label == 'Small TAP 열기',
+          widget is Semantics && widget.properties.label == 'Task 열기',
     );
     for (final control in [check, open]) {
       final size = tester.getSize(control);
@@ -361,13 +361,13 @@ void main() {
             .level,
         'TAP',
       );
-      expect(find.text('Small TAP'), findsWidgets);
+      expect(find.text('Task'), findsWidgets);
       await openCard(tester, 'tap-daily-prep');
       expect(find.text('TAP 목록으로'), findsOneWidget);
-      expect(find.text('Small TAP 2개 보기'), findsNothing);
+      expect(find.text('Task 2개 보기'), findsNothing);
       expect(
         tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).level,
-        'SMALL TAP',
+        'Task',
       );
       expect(
         tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).sequence,
@@ -396,12 +396,12 @@ void main() {
     await mountBoard(tester, ops);
     await openGroup(tester, '기본 업무  ·  2');
     await openCard(tester, 'tap-daily-prep');
-    expect(find.text('BIG TAP · 업무 그룹 필터'), findsNothing);
+    expect(find.text('TAP그룹 · 업무 그룹 필터'), findsNothing);
     expect(find.byKey(const ValueKey('small-s1')), findsOneWidget);
     await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('tap-body/general/null')), findsOneWidget);
-    expect(find.text('BIG TAP · 업무 그룹 필터'), findsOneWidget);
+    expect(find.text('TAP그룹 · 업무 그룹 필터'), findsOneWidget);
     expect(find.byKey(const ValueKey('tap-daily-prep')), findsOneWidget);
     await openGroup(tester, '전체 TAP');
     await openCard(tester, 'tap-daily-prep');

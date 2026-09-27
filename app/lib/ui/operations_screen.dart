@@ -1,3 +1,4 @@
+import 'manual_workspace.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -91,7 +92,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${row['tapTitle']} · SMALL TAP',
+                  '${row['tapTitle']} · Task',
                   style: const TextStyle(color: AppColors.muted, fontSize: 12),
                 ),
                 const SizedBox(height: 8),
@@ -503,7 +504,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               child: const Text('매장 다시 연결'),
                             ),
                     )
-                  : tab == 1 || manualQuery.trim().isNotEmpty
+                  : tab == 1
+                  ? ManualWorkspace(ops: ops, query: manualQuery)
+                  : manualQuery.trim().isNotEmpty
                   ? manualResultList()
                   : RefreshIndicator(
                       onRefresh: () => ops.refresh(),

@@ -71,7 +71,7 @@ class PreparedInventory extends StatelessWidget {
                       decoration: InputDecoration(labelText: title),
                     ),
                   AppPicker<String>(
-                    label: '준비 BIG TAP',
+                    label: '준비 TAP그룹',
                     value: folder,
                     items: [
                       for (final f in ops.rows('checklistFolders'))

@@ -12,7 +12,7 @@ import 'components.dart';
 import 'tap_card.dart';
 import 'prepared_inventory.dart';
 
-/// BIG TAP folders filter the TAP board; each TAP opens its Small TAPs.
+/// TAP그룹 folders filter the TAP board; each TAP opens its Task.
 /// Existing IDs, role checks and completion APIs remain the source of truth.
 class TapWorkspace extends StatefulWidget {
   const TapWorkspace({super.key, required this.ops, required this.onStock});
@@ -405,7 +405,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 Expanded(
                   child: Text(
                     task != null
-                        ? 'Small TAP · ${done(task)}/${total(task)} 완료'
+                        ? 'Task · ${done(task)}/${total(task)} 완료'
                         : 'TAP · ${folder == null ? '전체 업무' : '${folder['name']} 그룹'}',
                     style: const TextStyle(
                       fontSize: 13,
@@ -1056,7 +1056,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const Text(
-        'BIG TAP · 업무 그룹 필터',
+        'TAP그룹 · 업무 그룹 필터',
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,
@@ -1174,7 +1174,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         completionTrigger: celebratedStepId == step['id']
             ? completionTick
             : null,
-        level: 'SMALL TAP',
+        level: 'Task',
         emoji: '✓',
         title: step['title'],
         subtitle: subtitleFor(step),
@@ -1240,7 +1240,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ],
           );
     Widget detail = selected == null
-        ? const Information('Small Tap을 선택해 주세요.')
+        ? const Information('Task을 선택해 주세요.')
         : Surface(child: _manual(task, selected));
     return LayoutBuilder(
       builder: (context, constraints) => constraints.maxWidth >= 700

@@ -46,9 +46,7 @@ class TapCard extends StatelessWidget {
     final complete = checked || (total > 0 && done == total);
     final tint = accentColor ?? AppColors.accent;
     final largeText = MediaQuery.textScalerOf(context).scale(16) > 20;
-    final openLabel = level.toLowerCase().contains('small')
-        ? '방법 열기'
-        : 'Small TAP 열기';
+    final openLabel = level.toLowerCase() == 'task' ? '방법 열기' : 'Task 열기';
     return Material(
       color: complete ? const Color(0xFFF0F2F4) : Colors.white,
       shape: RoundedRectangleBorder(
@@ -142,9 +140,7 @@ class TapCard extends StatelessWidget {
                             children: [
                               if (!largeText)
                                 Text(
-                                  level.toLowerCase().contains('small')
-                                      ? '방법'
-                                      : 'Small TAP',
+                                  level.toLowerCase() == 'task' ? '방법' : 'Task',
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
@@ -216,8 +212,7 @@ class TapCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (footer.isNotEmpty &&
-                    level.toLowerCase().contains('small')) ...[
+                if (footer.isNotEmpty && level.toLowerCase() == 'task') ...[
                   const SizedBox(height: 8),
                   Text(
                     footer,

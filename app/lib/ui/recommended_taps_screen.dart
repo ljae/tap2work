@@ -35,7 +35,7 @@ class _RecommendedTapsScreenState extends State<RecommendedTapsScreen> {
         for (final row in rows) Padding(padding: const EdgeInsets.only(bottom: 10), child: Surface(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             CheckboxListTile(contentPadding: EdgeInsets.zero, title: Text('${row['title']}'),
-              subtitle: Text(row['alreadyAdded'] == true ? '이미 가져온 업무' : 'TAP · ${row['steps'].length} Small TAP'),
+              subtitle: Text(row['alreadyAdded'] == true ? '이미 가져온 업무' : 'TAP · ${row['steps'].length} Task'),
               value: row['alreadyAdded'] == true || selected.contains(row['id']),
               onChanged: row['alreadyAdded'] == true ? null : (v) => setState(() {
                 v == true ? selected.add(row['id']) : selected.remove(row['id']);

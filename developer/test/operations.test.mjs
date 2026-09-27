@@ -243,7 +243,7 @@ test('menu TAPs complete independently, move atomically as an order, and survive
   assert.equal(state.dashboard.queue.find(t => t.id === first.orderId).status, '조리 중');
 });
 
-test('saved order Small Tap order survives snapshots and store reload', async t => {
+test('saved order Task order survives snapshots and store reload', async t => {
   const { store, act, file, clock } = await setup(t);
   const before = await store.snapshot('owner');
   const task = before.tasks.find(row => row.orderId && !row.completedAt);

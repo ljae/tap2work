@@ -53,7 +53,7 @@ void main() {
   });
 
   testWidgets(
-    'a successful preview Small TAP completion visibly drops its title',
+    'a successful preview Task completion visibly drops its title',
     (tester) async {
       final ops = OperationsController(
         readOnly: true,
@@ -66,7 +66,7 @@ void main() {
       await tester.ensureVisible(tap);
       // Open through the visible card to exercise the same path as the app.
       await tester.tap(
-        find.descendant(of: tap, matching: find.text('Small TAP')).first,
+        find.descendant(of: tap, matching: find.text('Task')).first,
       );
       await tester.pumpAndSettle();
 
@@ -110,7 +110,7 @@ void main() {
       final tap = find.byKey(const ValueKey('tap-daily-prep'));
       await tester.ensureVisible(tap);
       await tester.tap(
-        find.descendant(of: tap, matching: find.text('Small TAP')).first,
+        find.descendant(of: tap, matching: find.text('Task')).first,
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));

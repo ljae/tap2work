@@ -109,7 +109,7 @@ export function savePreparedItem(state, input) {
     return { menuId: row.menuId, quantity: positive(row.quantity, '메뉴별 사용량') };
   });
   if (new Set(uses.map(row => row.menuId)).size !== uses.length) fail('같은 메뉴를 한 번만 연결해 주세요.');
-  if (!state.checklistFolders.some(folder => folder.id === input.folderId)) fail('준비 BIG TAP을 확인해 주세요.');
+  if (!state.checklistFolders.some(folder => folder.id === input.folderId)) fail('준비 TAP그룹을 확인해 주세요.');
   if (!state.zones.some(zone => zone.id === input.zone)) fail('준비 장소를 확인해 주세요.');
   const next = { name: label(input.name, '준비품 이름'), unit: label(input.unit, '단위'),
     minimum: nonnegative(input.minimum, '부족 기준'), target: positive(input.target, '목표 수량'),

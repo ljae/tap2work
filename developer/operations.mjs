@@ -1,3 +1,4 @@
+import { moveManualNode } from './manual_directory.mjs';
 import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -23,6 +24,12 @@ function manualSearchIndex(state) {
       rows.set(key, {
         id: key, taskId: template ? null : task.id, stepId: step.id,
         tapTitle: task.title, title: step.title,
+        folderId: task.folderId ?? 'general',
+        folderName: state.checklistFolders.find(folder => folder.id === task.folderId)?.name ?? '기본 업무',
+        tapId: template ? task.id : `occurrence:${task.id}`,
+        templateId: template ? task.id : null,
+        sourceStepId: step.id,
+        editable: template,
         manual: step.manual ?? '', tip: step.tip ?? '', tags: step.tags ?? [],
         imageUrl: step.imageUrl ?? '', videoUrl: step.videoUrl ?? '', sourceUrl: step.sourceUrl ?? '',
       });
@@ -421,7 +428,7 @@ export class OperationsStore {
           leadership(actor);
           const task = state.tasks.find(t => t.id === input.taskId && !t.archivedAt && !t.supersededAt && t.date === state.day);
           const step = task?.steps?.find(s => s.id === input.stepId);
-          if (!step || step.completedAt) fail('아직 완료하지 않은 오늘 Small Tap만 편집할 수 있어요.', 409);
+          if (!step || step.completedAt) fail('아직 완료하지 않은 오늘 Task만 편집할 수 있어요.', 409);
           const manual = text(input.manual, '매뉴얼', 700);
           const videoUrl = mediaLink(input.videoUrl), imageUrl = mediaLink(input.imageUrl), sourceUrl = mediaLink(input.sourceUrl ?? step.sourceUrl), tags = manualTags(input.tags ?? step.tags);
           step.manualHistory ??= [];
@@ -440,9 +447,14 @@ export class OperationsStore {
           activity(`매장 배치 저장 · 테이블 ${state.zones.filter(zone => zone.kind === 'table').length}개`);
           break;
         }
+        case 'move_manual_node': {
+          leadership(actor);
+          moveManualNode(state, input);
+          activity('매뉴얼 디렉토리 이동'); break;
+        }
         case 'save_checklists': {
           leadership(actor);
-          for (const item of state.preparedItems ?? []) if (!input.folders?.some(folder => folder.id === item.folderId)) fail(`${item.name} 준비 BIG TAP이 연결되어 있어 폴더를 삭제할 수 없어요.`);
+          for (const item of state.preparedItems ?? []) if (!input.folders?.some(folder => folder.id === item.folderId)) fail(`${item.name} 준비 TAP그룹이 연결되어 있어 폴더를 삭제할 수 없어요.`);
           saveChecklists(input, state, now);
           state.bigTapOrder = [...(state.bigTapOrder ?? []).filter(id => state.checklistFolders.some(folder => folder.id === id)), ...state.checklistFolders.map(folder => folder.id).filter(id => !(state.bigTapOrder ?? []).includes(id))];
           activity('업무 폴더·카드·매뉴얼 저장'); break;
@@ -465,7 +477,7 @@ export class OperationsStore {
           if (task.archivedAt || task.supersededAt || task.date !== state.day) fail('오늘 업무만 되돌릴 수 있어요.', 409);
           if (taskSettings(task).enforceSequence) {
             const index = task.steps.findIndex(step => step.id === input.stepId);
-            if (index >= 0 && task.steps.slice(index + 1).some(step => step.completedAt)) fail('뒤의 Small TAP부터 되돌려 주세요.', 409);
+            if (index >= 0 && task.steps.slice(index + 1).some(step => step.completedAt)) fail('뒤의 Task부터 되돌려 주세요.', 409);
           }
           reopenStep(task, input.stepId, actor, ['owner', 'manager'].includes(actor.role));
           delete task.steps.find(step => step.id === input.stepId)?.actualQuantity;
@@ -513,7 +525,7 @@ export class OperationsStore {
           const task = state.tasks.find(row => row.id === input.taskId && row.kind === 'routine' && row.date === state.day && !row.archivedAt && !row.supersededAt);
           if (!task) fail('오늘 Tap을 찾지 못했어요.', 404);
           if (!allowed(actor, task)) fail('이 Tap의 담당자가 아니에요.', 403);
-          if (!state.checklistFolders.some(folder => folder.id === input.folderId)) fail('BIG TAP을 찾지 못했어요.');
+          if (!state.checklistFolders.some(folder => folder.id === input.folderId)) fail('TAP그룹을 찾지 못했어요.');
           if (!['todo', 'processing', 'done', 'keep'].includes(input.status)) fail('Tap 상태를 확인해 주세요.');
           const moving = task.orderId ? state.tasks.filter(t => t.orderId === task.orderId && !t.archivedAt && !t.supersededAt) : [task];
           if (moving.some(t => t.preparedItemId && t.completedAt && !['done', 'keep'].includes(input.status))) fail('완성 수량이 반영된 준비 Tap은 되돌릴 수 없어요.', 409);
@@ -551,16 +563,16 @@ export class OperationsStore {
         case 'reorder_small_taps': {
           leadership(actor);
           const task = state.tasks.find(row => row.id === input.taskId && row.kind === 'routine' && row.date === state.day && !row.archivedAt && !row.supersededAt);
-          if (!task || !Array.isArray(input.stepIds) || input.stepIds.length !== task.steps.length || new Set(input.stepIds).size !== task.steps.length || input.stepIds.some(id => !task.steps.some(step => step.id === id))) fail('Small Tap 순서를 확인해 주세요.');
+          if (!task || !Array.isArray(input.stepIds) || input.stepIds.length !== task.steps.length || new Set(input.stepIds).size !== task.steps.length || input.stepIds.some(id => !task.steps.some(step => step.id === id))) fail('Task 순서를 확인해 주세요.');
           if (taskSettings(task).enforceSequence) fail('순서대로 수행하는 TAP은 진행 중 순서를 바꿀 수 없어요.', 409);
           task.steps.sort((a, b) => input.stepIds.indexOf(a.id) - input.stepIds.indexOf(b.id));
-          activity(`${task.title} · Small Tap 순서 변경`); break;
+          activity(`${task.title} · Task 순서 변경`); break;
         }
         case 'reorder_big_taps': {
           leadership(actor);
-          if (!Array.isArray(input.folderIds) || input.folderIds.length !== state.checklistFolders.length || new Set(input.folderIds).size !== input.folderIds.length || input.folderIds.some(id => !state.checklistFolders.some(folder => folder.id === id))) fail('BIG TAP 순서를 확인해 주세요.');
+          if (!Array.isArray(input.folderIds) || input.folderIds.length !== state.checklistFolders.length || new Set(input.folderIds).size !== input.folderIds.length || input.folderIds.some(id => !state.checklistFolders.some(folder => folder.id === id))) fail('TAP그룹 순서를 확인해 주세요.');
           state.bigTapOrder = input.folderIds;
-          activity('BIG TAP 순서 변경'); break;
+          activity('TAP그룹 순서 변경'); break;
         }
         case 'check_stock': {
           const item = itemFor(input.itemId); item.quantity = amount(input.quantity); item.lastCheckedAt = iso(now); item.checkedBy = who;

@@ -38,7 +38,7 @@ export function validateTaskSettings(value) {
 }
 
 export function validateStepSettings(value, state) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) fail('Small TAP 설정을 확인해 주세요.');
+  if (!value || typeof value !== 'object' || Array.isArray(value)) fail('Task 설정을 확인해 주세요.');
   const roleOverride = value.roleOverride ?? null;
   if (roleOverride !== null && !roles.includes(roleOverride)) fail('담당 역할을 확인해 주세요.');
   const zoneOverride = value.zoneOverride ?? null;
@@ -61,11 +61,11 @@ export function validateStepSettings(value, state) {
 export function saveTapSettings(state, input) {
   const template = state.taskTemplates.find(row => row.id === input.templateId && !row.archivedAt);
   if (!template) throw new StoreError('TAP 양식을 찾지 못했어요.', 404);
-  if (!Array.isArray(input.steps) || input.steps.length !== template.steps.length || new Set(input.steps.map(row => row?.id)).size !== template.steps.length) fail('Small TAP 목록을 확인해 주세요.');
+  if (!Array.isArray(input.steps) || input.steps.length !== template.steps.length || new Set(input.steps.map(row => row?.id)).size !== template.steps.length) fail('Task 목록을 확인해 주세요.');
   const settings = validateTaskSettings(input.settings);
   const steps = input.steps.map(row => {
     const existing = template.steps.find(step => step.id === row?.id);
-    if (!existing) fail('Small TAP을 찾지 못했어요.');
+    if (!existing) fail('Task을 찾지 못했어요.');
     return { id: existing.id, settings: validateStepSettings(row.settings, state) };
   });
   template.settingsVersion = 1;
@@ -89,8 +89,8 @@ export function canCompleteStep(actor, task, step) {
 }
 
 export function completeStepIssue(actor, task, step, quantity) {
-  if (!canCompleteStep(actor, task, step)) return '이 Small TAP의 담당 역할이 아니에요.';
-  if (taskSettings(task).enforceSequence && task.steps.some(row => row.id !== step.id && !row.completedAt && task.steps.indexOf(row) < task.steps.indexOf(step))) return '앞 Small TAP을 먼저 완료해 주세요.';
+  if (!canCompleteStep(actor, task, step)) return '이 Task의 담당 역할이 아니에요.';
+  if (taskSettings(task).enforceSequence && task.steps.some(row => row.id !== step.id && !row.completedAt && task.steps.indexOf(row) < task.steps.indexOf(step))) return '앞 Task을 먼저 완료해 주세요.';
   const settings = stepSettings(step);
   if (settings.completionKind === 'quantity') {
     const places = settings.quantitySpec?.decimalPlaces ?? 0;
@@ -104,8 +104,8 @@ export function bulkCompleteIssue(actor, task) {
   const pending = (task.steps ?? []).filter(step => !step.completedAt);
   if (!pending.length) return null;
   const settings = taskSettings(task);
-  if (!settings.allowBulkComplete || settings.enforceSequence) return 'Small TAP을 하나씩 완료해 주세요.';
-  if (pending.some(step => stepSettings(step).completionKind === 'quantity')) return '실제 수량을 Small TAP에서 입력해 주세요.';
-  if (pending.some(step => !canCompleteStep(actor, task, step))) return '담당 역할별 Small TAP을 각각 완료해 주세요.';
+  if (!settings.allowBulkComplete || settings.enforceSequence) return 'Task을 하나씩 완료해 주세요.';
+  if (pending.some(step => stepSettings(step).completionKind === 'quantity')) return '실제 수량을 Task에서 입력해 주세요.';
+  if (pending.some(step => !canCompleteStep(actor, task, step))) return '담당 역할별 Task을 각각 완료해 주세요.';
   return null;
 }

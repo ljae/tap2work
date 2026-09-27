@@ -369,13 +369,13 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                 (v) => update(() => config['allowBulkComplete'] = v),
               ),
               switchRow(
-                'Small TAP 순서대로 수행',
+                'Task 순서대로 수행',
                 config['enforceSequence'] == true,
                 (v) => update(() => config['enforceSequence'] = v),
               ),
               const SizedBox(height: 18),
               Text(
-                'Small TAP · ${(task['steps'] as List).length}개',
+                'Task · ${(task['steps'] as List).length}개',
                 style: const TextStyle(
                   fontSize: 19,
                   fontWeight: FontWeight.w700,
