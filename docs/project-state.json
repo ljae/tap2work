@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 81,
+  "revision": 82,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -3633,7 +3633,25 @@
         "app/test/manual_workspace_test.dart"
       ],
       "verification": "Flutter analyze 통과, Flutter 106개·Node 69개 테스트 통과, npm run check 및 git diff --check 통과. npm run build:site 성공, npm run backend:deploy 성공(operations 함수). 공개 Pages 배포·라이브 확인은 후속 기록. 네이티브 빌드·실기기·실계정 저장은 미수행."
+    },
+    {
+      "id": "H-menu-manual-duration-release-2026-09-27",
+      "at": "2026-09-27T10:53:41.346Z",
+      "type": "deployment",
+      "title": "메뉴별 대표 매뉴얼과 소요시간 표시 배포",
+      "detail": "기능 커밋 bc898fa의 Flutter 공개 앱과 Supabase operations 함수를 배포했다. 공개 샘플 주문처리 매뉴얼은 메뉴 8개와 일치하는 대표 TAP·Task 8개이며 주문 수량별 중복이 없다. 실주문 업무와 완료 이력은 유지한다.",
+      "files": [
+        "docs/project-state.json",
+        "developer/operations.mjs",
+        "app/lib/ui/manual_workspace.dart",
+        "app/lib/ui/tap_workspace.dart"
+      ],
+      "verification": "Actions 36313822239 성공: npm run check, Node 69개, Flutter 분석·106개 테스트, 공개 빌드·Pages 배포. HTTPS main.dart.js 및 owner 샘플 JSON이 로컬 빌드와 SHA-256 일치하고 둘 다 200. 공개 샘플의 활성 메뉴·주문처리 대표 매뉴얼 각각 8개 확인. Supabase operations 함수 비로그인 요청 401. 네이티브 빌드·실기기·실계정 저장은 미수행.",
+      "links": [
+        "https://github.com/ljae/tap2work/actions/runs/36313822239",
+        "https://tap2.work/"
+      ]
     }
   ],
-  "updatedAt": "2026-09-27T10:49:12.582Z"
+  "updatedAt": "2026-09-27T10:53:41.346Z"
 }
