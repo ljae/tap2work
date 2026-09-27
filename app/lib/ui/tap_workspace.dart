@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import 'checklist_board.dart' show rowsOf, stampOf;
 import 'checklist_editor.dart';
+import 'tap_settings_screen.dart';
 import 'components.dart';
 import 'tap_card.dart';
 import 'prepared_inventory.dart';
@@ -23,10 +24,21 @@ class TapWorkspace extends StatefulWidget {
 class _TapWorkspaceState extends State<TapWorkspace> {
   String? folderId, taskId;
   String? selectedStepId;
+  String? celebratedStepId, celebratedTaskId;
+  int completionTick = 0;
   bool mineOnly = false;
   final previewStepOrder = <String, List<String>>{};
   List<String>? previewGroupOrder;
   OperationsController get ops => widget.ops;
+
+  void celebrate({String? stepId, String? taskId}) {
+    if (!mounted) return;
+    setState(() {
+      celebratedStepId = stepId;
+      celebratedTaskId = taskId;
+      completionTick++;
+    });
+  }
 
   List<Json> get groups =>
       ops.rows('tasks').where((t) => t['kind'] == 'routine').toList()..sort(
@@ -309,6 +321,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               padding: const EdgeInsets.only(top: 8),
               child: Information('요청사항 · ${task['customer_memo']}'),
             ),
+          if (task != null && ops.isLeader && task['templateId'] != null)
+            TextButton.icon(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => TapSettingsScreen(ops: ops, initialTemplateId: task['templateId']))),
+              icon: const Icon(Icons.tune), label: const Text('이 TAP 설정')),
           const SizedBox(height: 12),
           if (task == null)
             Wrap(
@@ -340,6 +357,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                     ),
                     label: const Text('보드 편집'),
                   ),
+                if (ops.isLeader)
+                  TextButton.icon(
+                    onPressed: ops.busy ? null : () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(builder: (_) => TapSettingsScreen(ops: ops))),
+                    icon: const Icon(Icons.tune), label: const Text('TAP 설정')),
               ],
             ),
           const SizedBox(height: 16),
@@ -369,7 +391,22 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               ],
             ),
             const SizedBox(height: 12),
-            _board(folder, task, scoped),
+            AnimatedSwitcher(
+              duration: MediaQuery.disableAnimationsOf(context)
+                  ? Duration.zero
+                  : const Duration(milliseconds: 260),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) => SizeTransition(
+                sizeFactor: animation,
+                axisAlignment: -1,
+                child: FadeTransition(opacity: animation, child: child),
+              ),
+              child: KeyedSubtree(
+                key: ValueKey('tap-body/$folderId/$taskId'),
+                child: _board(folder, task, scoped),
+              ),
+            ),
           ],
           if (folder == null && task == null) _stock(),
         ],
@@ -399,6 +436,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ? '완료'
             : '할일',
         card: TapCard(
+          completionTrigger: celebratedTaskId == t['id'] ? completionTick : null,
           key: ValueKey('tap-${t['id']}'),
           level: 'TAP',
           emoji: t['emoji'] ?? '📋',
@@ -794,6 +832,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       }
     } else {
       final ok = await ops.act('complete_task', {'taskId': task['id']});
+      if (ok) celebrate(taskId: task['id']);
       if (!ok && mounted) notice(ops.error ?? '완료하지 못했어요.');
     }
   }
@@ -837,6 +876,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     };
     if (beforeTaskId != null) payload['beforeTaskId'] = beforeTaskId;
     final ok = await ops.act('move_tap', payload);
+    if (ok && targetStatus == 'done') celebrate(taskId: task['id']);
     if (!ok && mounted) notice(ops.error ?? '이동하지 못했어요.');
   }
 
@@ -1032,17 +1072,27 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     final selected =
         all.where((s) => s['id'] == selectedStepId).firstOrNull ??
         all.firstOrNull;
+    String subtitleFor(Json step) {
+      if (step['completedAt'] != null) {
+        return '${step['completedBy']?['name'] ?? ''} · ${stampOf(step['completedAt'])} 확인';
+      }
+      final settings = step['settings'] as Json? ?? {};
+      if (settings['completionKind'] == 'quantity') {
+        final spec = settings['quantitySpec'] as Json? ?? {};
+        return '실제 수량 입력 · ${spec['unit'] ?? ''}';
+      }
+      return '아직 확인 전';
+    }
     Widget card(Json step, int index) => Padding(
       key: ValueKey('sort-small-${step['id']}'),
       padding: const EdgeInsets.only(bottom: 8),
       child: TapCard(
         key: ValueKey('small-${step['id']}'),
+        completionTrigger: celebratedStepId == step['id'] ? completionTick : null,
         level: 'SMALL TAP',
         emoji: '✓',
         title: step['title'],
-        subtitle: step['completedAt'] == null
-            ? '아직 확인 전'
-            : '${step['completedBy']?['name'] ?? ''} · ${stampOf(step['completedAt'])} 확인',
+        subtitle: subtitleFor(step),
         footer: '방법 보기',
         sequence: index + 1,
         selected: selected?['id'] == step['id'],
@@ -1064,7 +1114,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         },
         checked: step['completedAt'] != null,
         locked:
-            task['canComplete'] != true ||
+            (step['canComplete'] ?? task['canComplete']) != true ||
             task['preparedOutputMovementId'] != null,
         onCheck: () {
           setState(() => selectedStepId = step['id']);
@@ -1072,7 +1122,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         },
       ),
     );
-    Widget list = ops.isLeader
+    Widget list = ops.isLeader && task['settings']?['enforceSequence'] != true
         ? ReorderableListView(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -1358,7 +1408,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       notice('완성 수량이 반영된 Tap은 되돌릴 수 없어요. 실제 수량 보정을 사용해 주세요.');
       return;
     }
-    if (!checked && task['canComplete'] != true) {
+    if (!checked && (step['canComplete'] ?? task['canComplete']) != true) {
       notice('${role(task)} 담당 Tap이에요. 담당자나 사장님·매니저가 확인해요.');
       return;
     }
@@ -1403,11 +1453,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         ops.previewToggleStep(task['id'], step['id']);
       }
     } else {
-      int? quantity;
+      num? quantity;
       if (!checked &&
           task['preparedItemId'] != null &&
           steps(task).where((s) => s['completedAt'] == null).length == 1) {
         quantity = await _preparedQuantity(task);
+        if (quantity == null || !mounted) return;
+      } else if (!checked && step['settings']?['completionKind'] == 'quantity') {
+        quantity = await _stepQuantity(step);
         if (quantity == null || !mounted) return;
       }
       final success = await ops.act(checked ? 'reopen_step' : 'complete_step', {
@@ -1416,6 +1469,31 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         'quantity': ?quantity,
       });
       if (mounted && !success) notice(ops.error ?? '변경하지 못했어요.');
+      if (mounted && success && !checked) {
+        final current = ops.rows('tasks').where((row) => row['id'] == task['id']).firstOrNull;
+        celebrate(stepId: step['id'], taskId: current?['completedAt'] != null ? task['id'] : null);
+      }
     }
+  }
+
+  Future<num?> _stepQuantity(Json step) async {
+    final unit = '${step['settings']?['quantitySpec']?['unit'] ?? '개'}';
+    final places = (step['settings']?['quantitySpec']?['decimalPlaces'] as num?)?.toInt() ?? 0;
+    final controller = TextEditingController();
+    final result = await showDialog<num>(context: context, builder: (dialog) => AlertDialog(
+      title: Text('${step['title']} · 실제 수량'),
+      content: TextField(controller: controller, autofocus: true,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        decoration: InputDecoration(labelText: '실제 수량 · $unit', helperText: places == 0 ? '정수로 입력' : '소수 $places자리까지')),
+      actions: [TextButton(onPressed: () => Navigator.pop(dialog), child: const Text('취소')),
+        FilledButton(onPressed: () => Navigator.pop(dialog, num.tryParse(controller.text.trim())), child: const Text('완료'))],
+    ));
+    controller.dispose();
+    if (result == null) return null;
+    if (result <= 0 || result > 100000 || result * (places == 0 ? 1 : places == 1 ? 10 : 100) !=
+        (result * (places == 0 ? 1 : places == 1 ? 10 : 100)).round()) {
+      notice('실제 수량을 확인해 주세요.'); return null;
+    }
+    return result;
   }
 }

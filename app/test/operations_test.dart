@@ -141,6 +141,8 @@ void main() {
         Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
       );
       expect(find.textContaining('공개 미리보기 · 샘플 데이터'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('floating-menu-3')));
+      await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('재고와 발주'));
       await tester.tap(find.text('재고와 발주'));
       await tester.pumpAndSettle();
@@ -278,6 +280,8 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull, reason: '$width / $index');
       }
+      await tester.tap(find.byKey(const ValueKey('floating-menu-3')));
+      await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('재고와 발주'));
       await tester.tap(find.text('재고와 발주'));
       await tester.pumpAndSettle();
@@ -311,8 +315,6 @@ void main() {
     await tester.pumpWidget(
       Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
     );
-    await tester.tap(find.byKey(const ValueKey('floating-menu-1')));
-    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('재고 수량 확인하기'));
     await tester.tap(find.text('재고 수량 확인하기'));
     await tester.pumpAndSettle();

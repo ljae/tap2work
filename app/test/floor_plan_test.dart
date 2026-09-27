@@ -20,6 +20,9 @@ Future<void> openMap(WidgetTester tester, OperationsController ops) async {
   );
   await tester.tap(find.byKey(const ValueKey('floating-menu-3')));
   await tester.pumpAndSettle();
+  await tester.ensureVisible(find.text('배치도와 동선'));
+  await tester.tap(find.text('배치도와 동선'));
+  await tester.pumpAndSettle();
 }
 
 Future<void> tapVisible(WidgetTester tester, Finder finder) async {

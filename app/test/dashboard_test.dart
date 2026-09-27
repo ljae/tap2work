@@ -35,6 +35,11 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('floating-menu-3')));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('운영 현황'));
+        await tester.tap(find.text('운영 현황'));
+        await tester.pumpAndSettle();
         expect(find.text('매장 한눈에'), findsOneWidget);
         expect(find.text('메뉴별 매출 · 주문'), findsOneWidget);
         await tester.ensureVisible(find.widgetWithText(ChoiceChip, '최근 7일'));
@@ -86,6 +91,11 @@ void main() {
       await tester.pumpWidget(
         Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
       );
+      await tester.tap(find.byKey(const ValueKey('floating-menu-3')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('운영 현황'));
+      await tester.tap(find.text('운영 현황'));
+      await tester.pumpAndSettle();
       expect(find.textContaining('메뉴·매출 데이터를 아직'), findsOneWidget);
       expect(find.text('순매출'), findsNothing);
     },

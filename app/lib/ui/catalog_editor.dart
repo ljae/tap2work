@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import 'store_profile_screen.dart';
 
 class CatalogEditor extends StatefulWidget {
   const CatalogEditor({super.key, required this.ops});
@@ -147,28 +148,8 @@ class _CatalogEditorState extends State<CatalogEditor> {
   }
 
   Future<void> editStore() async {
-    final revision = ops.data?['revision'] as int?;
-    if (revision == null) return;
-    final store = ops.data?['store'] as Json? ?? {};
-    await editFields(
-      '매장 정보',
-      [
-        (
-          key: 'name',
-          label: '매장 이름',
-          value: '${store['name'] ?? ''}',
-          number: false,
-        ),
-        (
-          key: 'note',
-          label: '팀 안내 (선택)',
-          value: '${store['note'] ?? ''}',
-          number: false,
-        ),
-      ],
-      'save_store',
-      revision,
-      (values) => values,
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => StoreProfileScreen(ops: ops)),
     );
   }
 

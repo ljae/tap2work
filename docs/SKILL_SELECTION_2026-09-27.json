@@ -1,0 +1,71 @@
+{
+  "date": "2026-09-27",
+  "purpose": "Planning only; implementation handed to a later Sol session",
+  "discoverySkill": "/Users/jaelee/.codex/skills/find-skills/SKILL.md",
+  "queries": [
+    "flutter",
+    "mobile ux accessibility"
+  ],
+  "installationScope": "project, Codex agent; existing user UX skill reused",
+  "skills": [
+    {
+      "name": "flutter-add-widget-test",
+      "status": "installed-and-read",
+      "path": ".agents/skills/flutter-add-widget-test/SKILL.md",
+      "sha256": "6c449ebd844e331e661b12630b6ad2a218e84d1bd8ea8377ba9dbd62ffe2798a",
+      "source": "flutter/agent-plugins",
+      "sourceType": "github",
+      "skillPath": "skills/flutter-add-widget-test/SKILL.md",
+      "computedHash": "c4f263c59cfe331ef42dba2aa81e25142aa4f7284518907c6b847e04502676b0"
+    },
+    {
+      "name": "flutter-animations",
+      "status": "installed-and-read",
+      "path": ".agents/skills/flutter-animations/SKILL.md",
+      "sha256": "4eb286279b302262d36b2e0a5b29bb1eb27a960dfd81ffc2e343473de2c137b6",
+      "source": "madteacher/mad-agents-skills",
+      "sourceType": "github",
+      "skillPath": "flutter-animations/SKILL.md",
+      "computedHash": "a0f81c4bbff81b43be42cd11ebf33b6a4e50e2f94134d3071e441785fc4872e8"
+    },
+    {
+      "name": "flutter-apply-architecture-best-practices",
+      "status": "installed-and-read",
+      "path": ".agents/skills/flutter-apply-architecture-best-practices/SKILL.md",
+      "sha256": "00497869976a903c83f509a59d4b6a501d409fa711eb8e1f89945921e1983b65",
+      "source": "flutter/agent-plugins",
+      "sourceType": "github",
+      "skillPath": "skills/flutter-apply-architecture-best-practices/SKILL.md",
+      "computedHash": "2b1b63214d6b153c50aacd4bbcb76ce91dece449de9e06f477f8aad3163d667f"
+    },
+    {
+      "name": "flutter-build-responsive-layout",
+      "status": "installed-and-read",
+      "path": ".agents/skills/flutter-build-responsive-layout/SKILL.md",
+      "sha256": "c7a5d18071c625137cad2def9b13f3579d9bdf0aae29621a1825f12b560394c0",
+      "source": "flutter/agent-plugins",
+      "sourceType": "github",
+      "skillPath": "skills/flutter-build-responsive-layout/SKILL.md",
+      "computedHash": "f762ea2ee83d4f1f35d9093b41d2520dd024ab80c9539d4860b9ae7f2a4dc6a0"
+    },
+    {
+      "name": "ui-ux-pro-max",
+      "status": "existing-installation-read-and-applied",
+      "path": "/Users/jaelee/.agents/skills/ui-ux-pro-max/SKILL.md",
+      "sha256": "e3048deafc62fb65192f99e51a48094571de059634b8bb27f50f37af0c43ba59",
+      "upstream": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+      "appliedResources": [
+        "assets/data/ux-guidelines.csv",
+        "assets/data/stacks/flutter.csv"
+      ],
+      "portability": "This existing user installation is outside the repository. Read this file if present; otherwise use the cited upstream skill after review. The method document preserves the applied UX rules."
+    }
+  ],
+  "limitations": [
+    "First concurrent npx Flutter search failed with ENOTEMPTY; sequential retry succeeded.",
+    "Skill examples were read as guidance; their sample apps were not compiled or executed.",
+    "No Flutter application dependencies were installed or changed.",
+    "No sub-agents or model switch were used.",
+    "CLI risk labels are not an independent security certification."
+  ]
+}

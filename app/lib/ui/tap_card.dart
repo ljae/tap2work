@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'components.dart';
+import 'completion_text.dart';
 
 /// One card language for a collection, a task and an individual action.
 class TapCard extends StatelessWidget {
@@ -22,6 +23,7 @@ class TapCard extends StatelessWidget {
     this.dragHandle,
     this.accentColor,
     this.assigneeBadges,
+    this.completionTrigger,
   });
 
   final String level, title, subtitle, emoji, footer;
@@ -34,6 +36,7 @@ class TapCard extends StatelessWidget {
   final Widget? dragHandle;
   final Color? accentColor;
   final Widget? assigneeBadges;
+  final Object? completionTrigger;
 
   @override
   Widget build(BuildContext context) {
@@ -102,10 +105,10 @@ class TapCard extends StatelessWidget {
                             constraints: const BoxConstraints(minHeight: 48),
                             alignment: Alignment.centerLeft,
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Text(
-                              title,
+                            child: CompletionText(
+                              text: title,
+                              trigger: completionTrigger,
                               maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,

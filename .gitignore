@@ -3,6 +3,7 @@ node_modules/
 artifacts/
 *.log
 docs/.project-state-*.tmp
+docs/history-backups/
 .local/
 _site/
 .env

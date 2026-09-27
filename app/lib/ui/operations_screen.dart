@@ -9,8 +9,10 @@ import 'store_dashboard.dart';
 import 'floor_plan.dart';
 import 'tap_workspace.dart';
 import 'team_screen.dart';
-import 'calendar_screen.dart';
 import 'catalog_editor.dart';
+import 'store_profile_screen.dart';
+import 'staff_workspace.dart';
+import 'recommended_taps_screen.dart';
 
 class OperationsScreen extends StatefulWidget {
   const OperationsScreen({
@@ -32,6 +34,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   OperationsController get ops => widget.operations;
   int tab = 0;
   bool inventoryOpen = false;
+  String storeSection = 'home';
   final manualSearch = TextEditingController();
   String manualQuery = '';
   @override
@@ -47,7 +50,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
       .replaceAll(RegExp(r'방법|하는\s*법|하기|어떻게|#|\s'), '');
   List<Json> get manualResults {
     final query = normalizeManual(manualQuery);
-    if (query.isEmpty) return [];
+    if (query.isEmpty) return ops.rows('manualSearch');
     final words = manualQuery
         .trim()
         .split(RegExp(r'\s+'))
@@ -318,13 +321,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 
   void go(int value) => setState(() {
-    tab = value == 2
-        ? 0
-        : value == 3
-        ? 2
-        : value == 4
-        ? 3
-        : value;
+    tab = switch (value) { 0 || 2 || 4 => 3, 1 => 0, 3 => 2, _ => 3 };
+    storeSection = switch (value) { 0 => 'overview', 2 => 'inventory', 4 => 'layout', _ => 'home' };
     inventoryOpen = value == 2;
   });
 
@@ -454,7 +452,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   ),
                 ],
               ),
-            if (ops.data != null) manualSearchBar(),
+            if (ops.data != null && (tab == 0 || tab == 1)) manualSearchBar(),
             Expanded(
               child: ops.data == null
                   ? Center(
@@ -465,7 +463,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               child: const Text('매장 다시 연결'),
                             ),
                     )
-                  : manualQuery.trim().isNotEmpty
+                  : tab == 1 || (tab == 0 && manualQuery.trim().isNotEmpty)
                   ? manualResultList()
                   : RefreshIndicator(
                       onRefresh: () => ops.refresh(),
@@ -480,21 +478,10 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 ...switch (tab) {
-                                  0 =>
-                                    inventoryOpen
-                                        ? [
-                                            TextButton(
-                                              onPressed: () => setState(
-                                                () => inventoryOpen = false,
-                                              ),
-                                              child: const Text('현황으로 돌아가기'),
-                                            ),
-                                            ...inventory(),
-                                          ]
-                                        : today(),
-                                  1 => tasks(),
-                                  2 => [CalendarScreen(operations: ops)],
-                                  _ => floorPlan(),
+                                  0 => tasks(),
+                                  1 => const <Widget>[],
+                                  2 => [StaffWorkspace(ops: ops, work: widget.work)],
+                                  _ => storeHome(),
                                 },
                                 const SizedBox(height: 24),
                                 const Text(
@@ -519,18 +506,58 @@ class _OperationsScreenState extends State<OperationsScreen> {
         onSelected: (value) => setState(() {
           tab = value;
           inventoryOpen = false;
+          if (value == 3) storeSection = 'home';
         }),
         items: const [
-          FloatingMenuItem('현황', CupertinoIcons.chart_bar),
-          FloatingMenuItem('할 일', CupertinoIcons.checkmark_alt_circle),
-          FloatingMenuItem('근무', CupertinoIcons.calendar),
-          FloatingMenuItem('매장', CupertinoIcons.map),
+          FloatingMenuItem('업무', CupertinoIcons.checkmark_alt_circle),
+          FloatingMenuItem('매뉴얼', CupertinoIcons.book),
+          FloatingMenuItem('직원', CupertinoIcons.person_2),
+          FloatingMenuItem('우리매장', CupertinoIcons.square_grid_2x2),
         ],
       ),
     ),
   );
 
   Widget gap([double height = 14]) => SizedBox(height: height);
+
+  List<Widget> storeHome() {
+    if (storeSection != 'home') {
+      return [
+      TextButton.icon(onPressed: () => setState(() => storeSection = 'home'),
+        icon: const Icon(CupertinoIcons.chevron_back), label: const Text('우리매장으로')),
+      if (storeSection == 'overview') ...today(),
+      if (storeSection == 'inventory') ...inventory(),
+      if (storeSection == 'layout') ...floorPlan(),
+      ];
+    }
+    final profile = ops.data?['store']?['profile'] as Json? ?? {};
+    final pos = profile['pos'] as Json? ?? {};
+    final delivery = profile['delivery'] as Json? ?? {};
+    return [
+      const PageHeading('OUR STORE', '우리매장', '운영 정보와 필요한 자료를 한곳에서 설정해요.'),
+      if (ops.isOwner && profile['industryId'] == null)
+        const Information('먼저 매장명과 업종을 등록해 주세요. POS·배달·직원 정보는 나중에 설정해도 돼요.'),
+      actionCard(CupertinoIcons.gear, '매장 설정',
+        '${ops.data?['store']?['name'] ?? '새 매장'} · ${profile['industryId'] ?? '업종 미설정'}',
+        () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => StoreProfileScreen(ops: ops)))),
+      gap(),
+      actionCard(CupertinoIcons.chart_bar, '운영 현황', '매출 · 준비품 · 사장님 기록',
+        () => setState(() => storeSection = 'overview')),
+      actionCard(CupertinoIcons.cube_box, '재고와 발주', '실사 · 데모 발주 · 입고',
+        () => setState(() => storeSection = 'inventory')),
+      actionCard(CupertinoIcons.map, '배치도와 동선', '테이블 · 기기 · 보관 장소',
+        () => setState(() => storeSection = 'layout')),
+      if (ops.isLeader) actionCard(CupertinoIcons.square_list, '메뉴·재료 편집', '매장 메뉴와 재료 등록',
+        () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => CatalogEditor(ops: ops)))),
+      if (ops.isLeader && (pos['enabled'] == true || delivery['enabled'] == true)) ...[
+        title('설정에 맞는 업무'),
+        const Information('사용 중인 주문 도구에 맞춰 접수·포장·전달 확인 업무를 살펴보세요. 가져올 양식은 직접 선택할 수 있어요.'),
+        OutlinedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
+          builder: (_) => RecommendedTapsScreen(ops: ops))), icon: const Icon(CupertinoIcons.list_bullet),
+          label: const Text('업무 양식 미리보기·선택')),
+      ],
+    ];
+  }
   Widget title(String text) => Padding(
     padding: const EdgeInsets.only(top: 16, bottom: 12),
     child: Semantics(

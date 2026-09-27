@@ -72,11 +72,14 @@ export function validateChecklists(input, state) {
   if (folders.some(row => ['stock', 'all-filter', 'edit', 'delete', 'up', 'down'].includes(row.id))) fail('다른 폴더 ID를 사용해 주세요.');
   if (!folders.some(row => row.id === 'general')) fail('기본 업무 폴더는 유지해 주세요.');
   const templates = list(input.templates, 0, 150, '업무').map(row => {
-    if (!row || !checklistSlots.includes(row.slot) || !checklistRoles.includes(row.requiredRole) || !state.zones.some(zone => zone.id === row.zone) || !folders.some(folder => folder.id === row.folderId)) fail('업무의 시간대·직급·장소·폴더를 확인해 주세요.');
-    const steps = list(row.steps, 1, 30, '행위').map(step => ({ id: text(step?.id, 100, '행위 ID'), title: text(step?.title, 100, '행위 이름'), manual: text(step?.manual, 700, '간단 매뉴얼'), tip: optionalText(step?.tip, 400, '노하우'), tags: manualTags(step?.tags), videoUrl: mediaLink(step?.videoUrl), imageUrl: mediaLink(step?.imageUrl), sourceUrl: mediaLink(step?.sourceUrl) }));
+    if (!row || !checklistSlots.includes(row.slot) || !checklistRoles.includes(row.requiredRole) || (row.zone != null && !state.zones.some(zone => zone.id === row.zone)) || !folders.some(folder => folder.id === row.folderId)) fail('업무의 시간대·직급·장소·폴더를 확인해 주세요.');
+    const previous = state.taskTemplates.find(template => template.id === row.id);
+    const steps = list(row.steps, 1, 30, '행위').map(step => ({ id: text(step?.id, 100, '행위 ID'), title: text(step?.title, 100, '행위 이름'), manual: text(step?.manual, 700, '간단 매뉴얼'), tip: optionalText(step?.tip, 400, '노하우'), tags: manualTags(step?.tags), videoUrl: mediaLink(step?.videoUrl), imageUrl: mediaLink(step?.imageUrl), sourceUrl: mediaLink(step?.sourceUrl), ...((previous?.steps.find(old => old.id === step.id)?.settings ?? step.settings) ? { settings: structuredClone(previous?.steps.find(old => old.id === step.id)?.settings ?? step.settings) } : {}) }));
     unique(steps);
     const sourceIds = Array.isArray(row.sourceIds) ? [...new Set(row.sourceIds.filter(id => checklistLibrary.sources.some(source => source.id === id)))] : [];
-    return { id: text(row.id, 100, '업무 ID'), title: text(row.title, 100, '업무 이름'), emoji: emoji(row.emoji), folderId: row.folderId, slot: row.slot, requiredRole: row.requiredRole, zone: row.zone, steps, sourceIds };
+    return { id: text(row.id, 100, '업무 ID'), title: text(row.title, 100, '업무 이름'), emoji: emoji(row.emoji), folderId: row.folderId, slot: row.slot, requiredRole: row.requiredRole, zone: row.zone ?? null, steps, sourceIds,
+      ...(previous?.settings ? { settings: structuredClone(previous.settings), settingsVersion: previous.settingsVersion ?? 1 } : {}),
+      ...(previous?.recommendationId ? { recommendationId: previous.recommendationId } : {}) };
   });
   unique(templates);
   return { folders, templates };
@@ -86,7 +89,7 @@ export function saveChecklists(input, state, now) {
   const old = state.taskTemplates;
   for (const template of templates) {
     const previous = old.find(row => row.id === template.id);
-    const content = row => JSON.stringify([row.title, row.emoji, row.slot, row.requiredRole, row.zone, row.steps, row.sourceIds]);
+    const content = row => JSON.stringify([row.title, row.emoji, row.slot, row.requiredRole, row.zone, row.steps, row.sourceIds, row.settings]);
     template.version = previous ? (previous.version ?? 1) + (content(previous) !== content(template) ? 1 : 0) : Math.max(0, ...state.tasks.filter(row => row.templateId === template.id).map(row => row.version ?? 1)) + 1;
   }
   for (const task of state.tasks.filter(row => row.kind === 'routine' && !row.orderId && !row.archivedAt)) {
