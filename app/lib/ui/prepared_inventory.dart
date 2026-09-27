@@ -123,13 +123,17 @@ class PreparedInventory extends StatelessWidget {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialog, false),
-              child: const Text('취소'),
+            PressBounce(
+              child: TextButton(
+                onPressed: () => Navigator.pop(dialog, false),
+                child: const Text('취소'),
+              ),
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialog, true),
-              child: const Text('저장'),
+            PressBounce(
+              child: FilledButton(
+                onPressed: () => Navigator.pop(dialog, true),
+                child: const Text('저장'),
+              ),
             ),
           ],
         ),
@@ -198,13 +202,17 @@ class PreparedInventory extends StatelessWidget {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialog, false),
-            child: const Text('취소'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(dialog, false),
+              child: const Text('취소'),
+            ),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialog, true),
-            child: const Text('기록'),
+          PressBounce(
+            child: FilledButton(
+              onPressed: () => Navigator.pop(dialog, true),
+              child: const Text('기록'),
+            ),
           ),
         ],
       ),
@@ -261,10 +269,12 @@ class PreparedInventory extends StatelessWidget {
             if (ops.isLeader && !ops.readOnly)
               Align(
                 alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: () => _save(context, null),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('준비품 추가'),
+                child: PressBounce(
+                  child: TextButton.icon(
+                    onPressed: () => _save(context, null),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('준비품 추가'),
+                  ),
                 ),
               ),
             for (final item in items)
@@ -287,13 +297,17 @@ class PreparedInventory extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 4,
                         children: [
-                          TextButton(
-                            onPressed: () => _save(context, item),
-                            child: const Text('기준·메뉴 수정'),
+                          PressBounce(
+                            child: TextButton(
+                              onPressed: () => _save(context, item),
+                              child: const Text('기준·메뉴 수정'),
+                            ),
                           ),
-                          TextButton(
-                            onPressed: () => _count(context, item),
-                            child: const Text('실제 수량 보정'),
+                          PressBounce(
+                            child: TextButton(
+                              onPressed: () => _count(context, item),
+                              child: const Text('실제 수량 보정'),
+                            ),
                           ),
                         ],
                       ),

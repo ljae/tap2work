@@ -152,12 +152,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       task['requiredRole'] == ops.actor['role'];
   String estimatedDuration(Json task) {
     final steps = (task['steps'] as List? ?? []).whereType<Json>().toList();
-    final times = steps.map((step) => step['settings']?['estimatedMinutes'])
-        .whereType<int>().where((minutes) => minutes > 0).toList();
+    final times = steps
+        .map((step) => step['settings']?['estimatedMinutes'])
+        .whereType<int>()
+        .where((minutes) => minutes > 0)
+        .toList();
     if (times.isEmpty) return '';
     final total = times.fold<int>(0, (sum, minutes) => sum + minutes);
     return times.length == steps.length ? '약 $total분' : '약 $total분+';
   }
+
   String place(Json task) =>
       ops
               .rows('zones')
@@ -248,7 +252,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               const SizedBox(width: 4),
               Text(
                 person['nickname'].toString(),
-                style: const TextStyle(fontSize: 12, color: AppColors.ink),
+                style: const TextStyle(fontSize: 13, color: AppColors.ink),
               ),
             ],
           ),
@@ -332,10 +336,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (task != null) ...[
-            TextButton.icon(
-              onPressed: () => navigate(folder: folderId),
-              icon: const Icon(CupertinoIcons.chevron_back, size: 18),
-              label: const Text('TAP 목록으로'),
+            PressBounce(
+              child: TextButton.icon(
+                onPressed: () => navigate(folder: folderId),
+                icon: const Icon(CupertinoIcons.chevron_back, size: 18),
+                label: const Text('TAP 목록으로'),
+              ),
             ),
             PageHeading('', task['title'], ''),
           ],
@@ -346,17 +352,18 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               child: Information('요청사항 · ${task['customer_memo']}'),
             ),
           if (task != null && ops.isLeader && task['templateId'] != null)
-            TextButton.icon(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
+            PressBounce(
+              child: TextButton.icon(
+                onPressed: () => showAppSheet(
+                  context,
                   builder: (_) => TapSettingsScreen(
                     ops: ops,
                     initialTemplateId: task['templateId'],
                   ),
                 ),
+                icon: const Icon(Icons.tune),
+                label: const Text('이 TAP 설정'),
               ),
-              icon: const Icon(Icons.tune),
-              label: const Text('이 TAP 설정'),
             ),
           if (task == null) const SizedBox(height: 4),
           if (task == null)
@@ -372,34 +379,36 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                     onSelected: (v) => setState(() => mineOnly = v),
                   ),
                 if (ops.isLeader)
-                  TextButton.icon(
-                    onPressed: ops.busy
-                        ? null
-                        : () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
+                  PressBounce(
+                    child: TextButton.icon(
+                      onPressed: ops.busy
+                          ? null
+                          : () => showAppSheet(
+                              context,
                               builder: (_) => ChecklistEditor(
                                 ops: ops,
                                 initialFolder: folderId,
                               ),
                             ),
-                          ),
-                    icon: const Icon(
-                      CupertinoIcons.slider_horizontal_3,
-                      size: 17,
+                      icon: const Icon(
+                        CupertinoIcons.slider_horizontal_3,
+                        size: 17,
+                      ),
+                      label: const Text('보드 편집'),
                     ),
-                    label: const Text('보드 편집'),
                   ),
                 if (ops.isLeader)
-                  TextButton.icon(
-                    onPressed: ops.busy
-                        ? null
-                        : () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
+                  PressBounce(
+                    child: TextButton.icon(
+                      onPressed: ops.busy
+                          ? null
+                          : () => showAppSheet(
+                              context,
                               builder: (_) => TapSettingsScreen(ops: ops),
                             ),
-                          ),
-                    icon: const Icon(Icons.tune),
-                    label: const Text('TAP 설정'),
+                      icon: const Icon(Icons.tune),
+                      label: const Text('TAP 설정'),
+                    ),
                   ),
               ],
             ),
@@ -425,7 +434,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 if (ops.readOnly)
                   const Text(
                     '체험 · 저장 안 됨',
-                    style: TextStyle(fontSize: 11, color: AppColors.muted),
+                    style: TextStyle(fontSize: 13, color: AppColors.muted),
                   ),
               ],
             ),
@@ -639,15 +648,17 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                                 CupertinoIcons.exclamationmark_bubble,
                                 color: AppColors.accent,
                               ),
-                              onPressed: () => showDialog<void>(
+                              onPressed: () => showAppFormSheet<void>(
                                 context: context,
-                                builder: (_) => AlertDialog(
+                                builder: (_) => AppSheetPanel(
                                   title: const Text('주문 요청사항'),
                                   content: Text(request),
                                   actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('확인'),
+                                    PressBounce(
+                                      child: TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('확인'),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -681,7 +692,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                       Text(
                         orderTime(first),
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: AppColors.muted,
                         ),
                       ),
@@ -707,7 +718,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                           child: Text(
                             platformBadge(first['orderPlatform']),
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: platformColor(first['orderPlatform']),
                             ),
@@ -822,7 +833,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                                 '${entries.where((e) => e.state == lane).length}',
                                 style: const TextStyle(
                                   color: AppColors.muted,
-                                  fontSize: 12,
+                                  fontSize: 13,
                                 ),
                               ),
                             ],
@@ -833,7 +844,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                             '이 열에는 놓을 수 없어요',
                             style: TextStyle(
                               color: AppColors.accent,
-                              fontSize: 11,
+                              fontSize: 13,
                             ),
                           ),
                         for (final entry in entries.where(
@@ -871,7 +882,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                             child: Text(
                               '아직 카드가 없어요',
                               style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: AppColors.muted,
                               ),
                             ),
@@ -969,9 +980,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     final controller = TextEditingController(
       text: '${task['plannedQuantity'] ?? 1}',
     );
-    final result = await showDialog<int>(
+    final result = await showAppFormSheet<int>(
       context: context,
-      builder: (dialog) => AlertDialog(
+      builder: (dialog) => AppSheetPanel(
         title: Text('${item?['name'] ?? task['title']} 완성 수량'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -987,14 +998,18 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialog),
-            child: const Text('취소'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(dialog),
+              child: const Text('취소'),
+            ),
           ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.pop(dialog, int.tryParse(controller.text)),
-            child: const Text('완료'),
+          PressBounce(
+            child: FilledButton(
+              onPressed: () =>
+                  Navigator.pop(dialog, int.tryParse(controller.text)),
+              child: const Text('완료'),
+            ),
           ),
         ],
       ),
@@ -1066,7 +1081,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       const Text(
         'TAP그룹 · 업무 그룹 필터',
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
           color: AppColors.muted,
         ),
@@ -1125,11 +1140,10 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               ActionChip(
                 avatar: const Icon(CupertinoIcons.folder_badge_plus, size: 17),
                 label: const Text('그룹 관리'),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) =>
-                        ChecklistEditor(ops: ops, initialFolder: folderId),
-                  ),
+                onPressed: () => showAppSheet(
+                  context,
+                  builder: (_) =>
+                      ChecklistEditor(ops: ops, initialFolder: folderId),
                 ),
               ),
           ],
@@ -1185,7 +1199,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         level: 'Task',
         emoji: '✓',
         title: step['title'],
-        subtitle: [subtitleFor(step), if (step['settings']?['estimatedMinutes'] is int && step['settings']['estimatedMinutes'] > 0) '약 ${step['settings']['estimatedMinutes']}분'].where((text) => text.isNotEmpty).join(' · '),
+        subtitle: [
+          subtitleFor(step),
+          if (step['settings']?['estimatedMinutes'] is int &&
+              step['settings']['estimatedMinutes'] > 0)
+            '약 ${step['settings']['estimatedMinutes']}분',
+        ].where((text) => text.isNotEmpty).join(' · '),
 
         sequence: index + 1,
         selected: selected?['id'] == step['id'],
@@ -1194,6 +1213,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           if (MediaQuery.sizeOf(context).width < 700) {
             showModalBottomSheet<void>(
               context: context,
+              sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
+                  ? AnimationStyle.noAnimation
+                  : null,
               isScrollControlled: true,
               showDragHandle: true,
               builder: (context) => SafeArea(
@@ -1270,12 +1292,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     children: [
       Text(
         task['title'],
-        style: const TextStyle(fontSize: 12, color: AppColors.muted),
+        style: const TextStyle(fontSize: 13, color: AppColors.muted),
       ),
       const SizedBox(height: 8),
       Text(
         step['title'],
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
       const SizedBox(height: 16),
       Text(step['manual'] ?? '등록된 방법이 없어요.'),
@@ -1295,152 +1317,160 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           ),
         ),
       if (ops.isLeader && step['completedAt'] == null)
-        TextButton.icon(
-          icon: const Icon(Icons.edit_outlined),
-          label: const Text('매뉴얼 바로 수정'),
-          onPressed: ops.readOnly
-              ? null
-              : () async {
-                  final revision = ops.data?['revision'];
-                  final manual = TextEditingController(text: step['manual']);
-                  final video = TextEditingController(
-                    text: step['videoUrl'] ?? '',
-                  );
-                  final photo = TextEditingController(
-                    text: step['imageUrl'] ?? '',
-                  );
-                  final source = TextEditingController(
-                    text: step['sourceUrl'] ?? '',
-                  );
-                  final tags = TextEditingController(
-                    text: (step['tags'] as List? ?? []).join(', '),
-                  );
-                  final result = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text(step['title']),
-                      content: SizedBox(
-                        width: 480,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextField(
-                                controller: manual,
-                                minLines: 3,
-                                maxLines: 8,
-                                maxLength: 700,
-                                decoration: const InputDecoration(
-                                  labelText: '방법과 완료 기준',
+        PressBounce(
+          child: TextButton.icon(
+            icon: const Icon(Icons.edit_outlined),
+            label: const Text('매뉴얼 바로 수정'),
+            onPressed: ops.readOnly
+                ? null
+                : () async {
+                    final revision = ops.data?['revision'];
+                    final manual = TextEditingController(text: step['manual']);
+                    final video = TextEditingController(
+                      text: step['videoUrl'] ?? '',
+                    );
+                    final photo = TextEditingController(
+                      text: step['imageUrl'] ?? '',
+                    );
+                    final source = TextEditingController(
+                      text: step['sourceUrl'] ?? '',
+                    );
+                    final tags = TextEditingController(
+                      text: (step['tags'] as List? ?? []).join(', '),
+                    );
+                    final result = await showAppFormSheet<bool>(
+                      context: context,
+                      builder: (context) => AppSheetPanel(
+                        title: Text(step['title']),
+                        content: SizedBox(
+                          width: 480,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextField(
+                                  controller: manual,
+                                  minLines: 3,
+                                  maxLines: 8,
+                                  maxLength: 700,
+                                  decoration: const InputDecoration(
+                                    labelText: '방법과 완료 기준',
+                                  ),
                                 ),
-                              ),
-                              TextField(
-                                controller: video,
-                                decoration: const InputDecoration(
-                                  labelText: '영상 HTTPS 링크',
+                                TextField(
+                                  controller: video,
+                                  decoration: const InputDecoration(
+                                    labelText: '영상 HTTPS 링크',
+                                  ),
                                 ),
-                              ),
-                              TextField(
-                                controller: photo,
-                                decoration: const InputDecoration(
-                                  labelText: '사진 HTTPS 링크',
+                                TextField(
+                                  controller: photo,
+                                  decoration: const InputDecoration(
+                                    labelText: '사진 HTTPS 링크',
+                                  ),
                                 ),
-                              ),
-                              TextField(
-                                controller: source,
-                                decoration: const InputDecoration(
-                                  labelText: '공식 사진 가이드 HTTPS 링크',
+                                TextField(
+                                  controller: source,
+                                  decoration: const InputDecoration(
+                                    labelText: '공식 사진 가이드 HTTPS 링크',
+                                  ),
                                 ),
-                              ),
-                              TextField(
-                                controller: tags,
-                                decoration: const InputDecoration(
-                                  labelText: '#연관어 · 쉼표로 구분',
-                                  helperText: '최대 20개, 각 30자 이내',
+                                TextField(
+                                  controller: tags,
+                                  decoration: const InputDecoration(
+                                    labelText: '#연관어 · 쉼표로 구분',
+                                    helperText: '최대 20개, 각 30자 이내',
+                                  ),
                                 ),
-                              ),
-                              const Text(
-                                '연결된 기본 레시피도 갱신해 다음 주문에 사용해요. 완료 기록은 유지돼요.',
-                              ),
-                            ],
+                                const Text(
+                                  '연결된 기본 레시피도 갱신해 다음 주문에 사용해요. 완료 기록은 유지돼요.',
+                                ),
+                              ],
+                            ),
                           ),
                         ),
+                        actions: [
+                          PressBounce(
+                            child: TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('취소'),
+                            ),
+                          ),
+                          PressBounce(
+                            child: FilledButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('저장'),
+                            ),
+                          ),
+                        ],
                       ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('취소'),
-                        ),
-                        FilledButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('저장'),
-                        ),
-                      ],
-                    ),
-                  );
-                  if (result == true) {
-                    final ok = await ops.act('save_step_manual', {
-                      'revision': revision,
-                      'taskId': task['id'],
-                      'stepId': step['id'],
-                      'manual': manual.text.trim(),
-                      'videoUrl': video.text.trim(),
-                      'imageUrl': photo.text.trim(),
-                      'sourceUrl': source.text.trim(),
-                      'tags': tags.text
-                          .split(',')
-                          .map(
-                            (tag) =>
-                                tag.trim().replaceFirst(RegExp(r'^#+'), ''),
-                          )
-                          .where((tag) => tag.isNotEmpty)
-                          .toList(),
-                    });
-                    if (mounted) {
-                      notice(
-                        ok
-                            ? '매뉴얼을 저장했어요. 다시 열면 새 내용이 보여요.'
-                            : ops.error ?? '저장하지 못했어요.',
-                      );
+                    );
+                    if (result == true) {
+                      final ok = await ops.act('save_step_manual', {
+                        'revision': revision,
+                        'taskId': task['id'],
+                        'stepId': step['id'],
+                        'manual': manual.text.trim(),
+                        'videoUrl': video.text.trim(),
+                        'imageUrl': photo.text.trim(),
+                        'sourceUrl': source.text.trim(),
+                        'tags': tags.text
+                            .split(',')
+                            .map(
+                              (tag) =>
+                                  tag.trim().replaceFirst(RegExp(r'^#+'), ''),
+                            )
+                            .where((tag) => tag.isNotEmpty)
+                            .toList(),
+                      });
+                      if (mounted) {
+                        notice(
+                          ok
+                              ? '매뉴얼을 저장했어요. 다시 열면 새 내용이 보여요.'
+                              : ops.error ?? '저장하지 못했어요.',
+                        );
+                      }
                     }
-                  }
-                  manual.dispose();
-                  video.dispose();
-                  photo.dispose();
-                  source.dispose();
-                  tags.dispose();
-                },
+                    manual.dispose();
+                    video.dispose();
+                    photo.dispose();
+                    source.dispose();
+                    tags.dispose();
+                  },
+          ),
         ),
       for (final field in ['videoUrl', 'imageUrl', 'sourceUrl'])
         if ((step[field] ?? '').toString().isNotEmpty)
-          TextButton.icon(
-            icon: Icon(
-              field == 'videoUrl'
-                  ? Icons.play_circle_outline
-                  : Icons.image_outlined,
-            ),
-            label: Text(
-              field == 'videoUrl'
-                  ? '영상 열기'
-                  : field == 'imageUrl'
-                  ? '사진 열기'
-                  : '공식 사진 가이드 열기',
-            ),
-            onPressed: () async {
-              final uri = Uri.tryParse(step[field]);
-              if (uri == null || uri.scheme != 'https') return;
-              try {
-                if (!await launchUrl(
-                      uri,
-                      mode: LaunchMode.externalApplication,
-                    ) &&
-                    mounted) {
-                  notice('링크를 열지 못했어요.');
+          PressBounce(
+            child: TextButton.icon(
+              icon: Icon(
+                field == 'videoUrl'
+                    ? Icons.play_circle_outline
+                    : Icons.image_outlined,
+              ),
+              label: Text(
+                field == 'videoUrl'
+                    ? '영상 열기'
+                    : field == 'imageUrl'
+                    ? '사진 열기'
+                    : '공식 사진 가이드 열기',
+              ),
+              onPressed: () async {
+                final uri = Uri.tryParse(step[field]);
+                if (uri == null || uri.scheme != 'https') return;
+                try {
+                  if (!await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      ) &&
+                      mounted) {
+                    notice('링크를 열지 못했어요.');
+                  }
+                } catch (_) {
+                  if (mounted) notice('링크를 열지 못했어요.');
                 }
-              } catch (_) {
-                if (mounted) notice('링크를 열지 못했어요.');
-              }
-            },
+              },
+            ),
           ),
     ],
   );
@@ -1467,11 +1497,13 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                   const SizedBox(height: 6),
                   const Text(
                     '발주 후 재고 확인',
-                    style: TextStyle(fontSize: 12, color: AppColors.muted),
+                    style: TextStyle(fontSize: 13, color: AppColors.muted),
                   ),
-                  TextButton(
-                    onPressed: ops.busy ? null : () => widget.onStock(task),
-                    child: const Text('재고 수량 확인하기'),
+                  PressBounce(
+                    child: TextButton(
+                      onPressed: ops.busy ? null : () => widget.onStock(task),
+                      child: const Text('재고 수량 확인하기'),
+                    ),
                   ),
                 ],
               ),
@@ -1516,13 +1548,17 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           title: const Text('완료를 되돌릴까요?'),
           content: Text(step['title']),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(c, false),
-              child: const Text('취소'),
+            PressBounce(
+              child: TextButton(
+                onPressed: () => Navigator.pop(c, false),
+                child: const Text('취소'),
+              ),
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(c, true),
-              child: const Text('되돌리기'),
+            PressBounce(
+              child: FilledButton(
+                onPressed: () => Navigator.pop(c, true),
+                child: const Text('되돌리기'),
+              ),
             ),
           ],
         ),
@@ -1599,9 +1635,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ?.toInt() ??
         0;
     final controller = TextEditingController();
-    final result = await showDialog<num>(
+    final result = await showAppFormSheet<num>(
       context: context,
-      builder: (dialog) => AlertDialog(
+      builder: (dialog) => AppSheetPanel(
         title: Text('${step['title']} · 실제 수량'),
         content: TextField(
           controller: controller,
@@ -1613,14 +1649,18 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialog),
-            child: const Text('취소'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(dialog),
+              child: const Text('취소'),
+            ),
           ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.pop(dialog, num.tryParse(controller.text.trim())),
-            child: const Text('완료'),
+          PressBounce(
+            child: FilledButton(
+              onPressed: () =>
+                  Navigator.pop(dialog, num.tryParse(controller.text.trim())),
+              child: const Text('완료'),
+            ),
           ),
         ],
       ),

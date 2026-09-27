@@ -111,13 +111,17 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
               title: const Text('편집을 취소할까요?'),
               content: const Text('저장하지 않은 변경은 사라져요.'),
               actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(c, false),
-                  child: const Text('계속 편집'),
+                PressBounce(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(c, false),
+                    child: const Text('계속 편집'),
+                  ),
                 ),
-                FilledButton(
-                  onPressed: () => Navigator.pop(c, true),
-                  child: const Text('변경 버리기'),
+                PressBounce(
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(c, true),
+                    child: const Text('변경 버리기'),
+                  ),
                 ),
               ],
             ),
@@ -141,11 +145,14 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
         },
         child: Scaffold(
           appBar: AppBar(
+            leading: CloseButton(onPressed: () => Navigator.maybePop(context)),
             title: const Text('보드 편집'),
             actions: [
-              TextButton(
-                onPressed: !enabled || ops.readOnly || !dirty ? null : save,
-                child: Text(ops.busy ? '저장 중…' : '저장'),
+              PressBounce(
+                child: TextButton(
+                  onPressed: !enabled || ops.readOnly || !dirty ? null : save,
+                  child: Text(ops.busy ? '저장 중…' : '저장'),
+                ),
               ),
             ],
           ),
@@ -153,13 +160,8 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 920),
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24),
                 children: [
-                  const PageHeading(
-                    'MAKE IT YOURS',
-                    '우리 매장 체크리스트',
-                    'TAP은 업무, Task은 그 업무의 행동이에요. TAP그룹은 TAP을 묶어 보는 그룹 필터예요. 손잡이로 순서를 바꾸고, 길게 눌러 다른 그룹이나 TAP으로 옮기세요.',
-                  ),
                   if (ops.readOnly)
                     const Information(
                       '공개 미리보기에서는 자유롭게 편집을 체험해요. 변경은 저장되지 않아요.',
@@ -173,34 +175,42 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                       child: Information('${ops.error}\n초안은 그대로 남아 있어요.'),
                     ),
                   if (ops.data?['revision'] != revision)
-                    TextButton.icon(
-                      onPressed: ops.busy
-                          ? null
-                          : () async {
-                              if (await discard() && mounted) setState(reset);
-                            },
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('최신 목록 다시 불러오기'),
+                    PressBounce(
+                      child: TextButton.icon(
+                        onPressed: ops.busy
+                            ? null
+                            : () async {
+                                if (await discard() && mounted) setState(reset);
+                              },
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('최신 목록 다시 불러오기'),
+                      ),
                     ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      FilledButton.icon(
-                        onPressed: enabled ? library : null,
-                        icon: const Icon(Icons.auto_stories_outlined),
-                        label: const Text('업종별 기본 목록'),
+                      PressBounce(
+                        child: FilledButton.icon(
+                          onPressed: enabled ? library : null,
+                          icon: const Icon(Icons.auto_stories_outlined),
+                          label: const Text('업종별 기본 목록'),
+                        ),
                       ),
-                      OutlinedButton.icon(
-                        onPressed: enabled ? () => editGroup() : null,
-                        icon: const Icon(Icons.add),
-                        label: const Text('TAP 만들기'),
+                      PressBounce(
+                        child: OutlinedButton.icon(
+                          onPressed: enabled ? () => editGroup() : null,
+                          icon: const Icon(Icons.add),
+                          label: const Text('TAP 만들기'),
+                        ),
                       ),
-                      TextButton.icon(
-                        onPressed: enabled ? () => editFolder() : null,
-                        icon: const Icon(Icons.create_new_folder_outlined),
-                        label: const Text('TAP그룹 추가'),
+                      PressBounce(
+                        child: TextButton.icon(
+                          onPressed: enabled ? () => editFolder() : null,
+                          icon: const Icon(Icons.create_new_folder_outlined),
+                          label: const Text('TAP그룹 추가'),
+                        ),
                       ),
                     ],
                   ),
@@ -246,19 +256,23 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                   if (selected != 'general')
                     Align(
                       alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: enabled
-                            ? () => change(() {
-                                for (final t in templates.where(
-                                  (t) => t['folderId'] == selected,
-                                )) {
-                                  t['folderId'] = 'general';
-                                }
-                                folders.removeWhere((f) => f['id'] == selected);
-                                selected = 'general';
-                              })
-                            : null,
-                        child: const Text('그룹 삭제 · TAP은 기본 그룹으로'),
+                      child: PressBounce(
+                        child: TextButton(
+                          onPressed: enabled
+                              ? () => change(() {
+                                  for (final t in templates.where(
+                                    (t) => t['folderId'] == selected,
+                                  )) {
+                                    t['folderId'] = 'general';
+                                  }
+                                  folders.removeWhere(
+                                    (f) => f['id'] == selected,
+                                  );
+                                  selected = 'general';
+                                })
+                              : null,
+                          child: const Text('그룹 삭제 · TAP은 기본 그룹으로'),
+                        ),
                       ),
                     ),
                   const SizedBox(height: 8),
@@ -377,7 +391,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                       Text(
                         '${task['slot']} · ${checklistRoles[task['requiredRole']]}${place == null ? '' : ' · $place'} · Task ${steps.length}개',
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: AppColors.muted,
                         ),
                       ),
@@ -433,7 +447,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
         ),
       ),
     );
-    final card = Card(
+    final card = AppCard(
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(4, 4, 8, 8),
@@ -465,12 +479,14 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 8),
-                child: TextButton.icon(
-                  onPressed: enabled && steps.length < checklistStepLimit
-                      ? () => editStep(task)
-                      : null,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Task 추가'),
+                child: PressBounce(
+                  child: TextButton.icon(
+                    onPressed: enabled && steps.length < checklistStepLimit
+                        ? () => editStep(task)
+                        : null,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Task 추가'),
+                  ),
                 ),
               ),
             ],
@@ -550,7 +566,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: AppColors.muted,
                       ),
                     ),
@@ -595,9 +611,9 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
       return;
     }
     var folderName = folder?['name'] as String? ?? '';
-    final name = await showDialog<String>(
+    final name = await showAppFormSheet<String>(
       context: context,
-      builder: (c) => AlertDialog(
+      builder: (c) => AppSheetPanel(
         title: Text(folder == null ? '새 TAP그룹' : 'TAP그룹 이름'),
         content: TextFormField(
           initialValue: folderName,
@@ -607,17 +623,21 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
           decoration: const InputDecoration(labelText: 'TAP그룹 이름'),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c),
-            child: const Text('취소'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(c),
+              child: const Text('취소'),
+            ),
           ),
-          FilledButton(
-            onPressed: () {
-              if (folderName.trim().isNotEmpty) {
-                Navigator.pop(c, folderName.trim());
-              }
-            },
-            child: const Text('적용'),
+          PressBounce(
+            child: FilledButton(
+              onPressed: () {
+                if (folderName.trim().isNotEmpty) {
+                  Navigator.pop(c, folderName.trim());
+                }
+              },
+              child: const Text('적용'),
+            ),
           ),
         ],
       ),
@@ -656,6 +676,9 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
         : _copy(task);
     final result = await showModalBottomSheet<Json>(
       context: context,
+      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
+          ? AnimationStyle.noAnimation
+          : null,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => _GroupSheet(task: draft, zones: ops.rows('zones')),
@@ -681,11 +704,9 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
             'tags': <String>[],
           }
         : _copy(step);
-    final result = await Navigator.of(context).push<Json>(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => _ActivityEditor(step: draft, groupTitle: task['title']),
-      ),
+    final result = await showAppSheet(
+      context,
+      builder: (_) => _ActivityEditor(step: draft, groupTitle: task['title']),
     );
     if (result == null || !mounted) return;
     change(() {
@@ -737,12 +758,12 @@ class _GroupSheetState extends State<_GroupSheet> {
         children: [
           const Text(
             'TAP 정보',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           const Text(
             '하나의 TAP에는 같은 업무를 이루는 Task이 들어가요.',
-            style: TextStyle(fontSize: 12, color: AppColors.muted),
+            style: TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           const SizedBox(height: 16),
           Row(
@@ -823,15 +844,17 @@ class _GroupSheetState extends State<_GroupSheet> {
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
-            child: FilledButton(
-              onPressed: () {
-                if ((task['title'] as String).trim().isEmpty) {
-                  setState(() => issue = 'TAP 이름을 1~100자로 입력해 주세요.');
-                  return;
-                }
-                Navigator.pop(context, task);
-              },
-              child: const Text('TAP 정보 적용'),
+            child: PressBounce(
+              child: FilledButton(
+                onPressed: () {
+                  if ((task['title'] as String).trim().isEmpty) {
+                    setState(() => issue = 'TAP 이름을 1~100자로 입력해 주세요.');
+                    return;
+                  }
+                  Navigator.pop(context, task);
+                },
+                child: const Text('TAP 정보 적용'),
+              ),
             ),
           ),
         ],
@@ -865,13 +888,17 @@ class _ActivityEditorState extends State<_ActivityEditor> {
           title: const Text('매뉴얼 편집을 취소할까요?'),
           content: const Text('아직 초안에 적용하지 않은 내용이 있어요.'),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(c, false),
-              child: const Text('계속 편집'),
+            PressBounce(
+              child: TextButton(
+                onPressed: () => Navigator.pop(c, false),
+                child: const Text('계속 편집'),
+              ),
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(c, true),
-              child: const Text('변경 버리기'),
+            PressBounce(
+              child: FilledButton(
+                onPressed: () => Navigator.pop(c, true),
+                child: const Text('변경 버리기'),
+              ),
             ),
           ],
         ),
@@ -883,19 +910,22 @@ class _ActivityEditorState extends State<_ActivityEditor> {
     },
     child: Scaffold(
       appBar: AppBar(
+        leading: CloseButton(onPressed: () => Navigator.maybePop(context)),
         title: const Text('Task과 간단 매뉴얼'),
         actions: [
-          TextButton(
-            onPressed: () {
-              final problem = checklistStepIssue(step);
-              if (problem != null) {
-                setState(() => issue = problem);
-                return;
-              }
-              setState(() => applying = true);
-              Navigator.pop(context, step);
-            },
-            child: const Text('초안에 적용'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () {
+                final problem = checklistStepIssue(step);
+                if (problem != null) {
+                  setState(() => issue = problem);
+                  return;
+                }
+                setState(() => applying = true);
+                Navigator.pop(context, step);
+              },
+              child: const Text('초안에 적용'),
+            ),
           ),
         ],
       ),
@@ -903,11 +933,11 @@ class _ActivityEditorState extends State<_ActivityEditor> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             children: [
               Text(
                 'TAP · ${widget.groupTitle.isEmpty ? '(이름 없음)' : widget.groupTitle}',
-                style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                style: const TextStyle(fontSize: 13, color: AppColors.muted),
               ),
               if (issue != null)
                 Padding(

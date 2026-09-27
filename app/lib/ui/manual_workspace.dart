@@ -364,7 +364,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         padding: const EdgeInsets.all(12),
         child: Text(
           label,
-          style: const TextStyle(fontFamily: 'Pretendard', fontSize: 14),
+          style: const TextStyle(fontFamily: 'Pretendard', fontSize: 13),
         ),
       ),
     );
@@ -430,7 +430,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: selected
                               ? FontWeight.w700
                               : FontWeight.w500,
@@ -439,12 +439,18 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                     ),
                     if (durationText != null) ...[
                       const SizedBox(width: 4),
-                      Text(durationText, style: const TextStyle(fontSize: 11, color: AppColors.muted)),
+                      Text(
+                        durationText,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.muted,
+                        ),
+                      ),
                     ] else if (kind != 'task')
                       Text(
                         '$count',
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: 13,
                           color: AppColors.muted,
                         ),
                       ),
@@ -562,7 +568,9 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             selected: scopeTap == tap['tapId'],
             hasChildren: true,
             count: children.length,
-            durationText: duration(all.where((r) => r['tapId'] == tap['tapId']).toList()),
+            durationText: duration(
+              all.where((r) => r['tapId'] == tap['tapId']).toList(),
+            ),
             onTap: () => setState(() {
               scopeGroup = folder['id'];
               scopeTap = tap['tapId'];
@@ -609,38 +617,60 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     final selected = found.where((r) => r['id'] == selectedId).firstOrNull;
     if (selected != null) {
       return ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         children: [
           Text(
             '${selected['folderName'] ?? ''} / ${selected['tapTitle']} / Task',
-            style: const TextStyle(fontSize: 12, color: AppColors.muted),
+            style: const TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           const SizedBox(height: 12),
-          Text(duration([selected]), style: const TextStyle(fontSize: 13, color: AppColors.muted)),
-          if (canEdit && selected['editable'] == true && selected['templateId'] != null)
-            Wrap(spacing: 8, children: [
-              TextButton.icon(
-                icon: const Icon(CupertinoIcons.clock), label: const Text('소요시간 설정'),
-                onPressed: () async {
-                  await Navigator.push(context, MaterialPageRoute<void>(
-                    builder: (_) => TapSettingsScreen(ops: ops, initialTemplateId: selected['templateId']),
-                  ));
-                  if (mounted) setState(() => sync(force: true));
-                },
-              ),
-              TextButton.icon(
-                icon: const Icon(CupertinoIcons.pencil), label: const Text('매뉴얼 편집'),
-                onPressed: () async {
-                  await Navigator.push(context, MaterialPageRoute<void>(
-                    builder: (_) => ChecklistEditor(ops: ops, initialFolder: selected['folderId']),
-                  ));
-                  if (mounted) setState(() => sync(force: true));
-                },
-              ),
-            ]),
+          Text(
+            duration([selected]),
+            style: const TextStyle(fontSize: 13, color: AppColors.muted),
+          ),
+          if (canEdit &&
+              selected['editable'] == true &&
+              selected['templateId'] != null)
+            Wrap(
+              spacing: 8,
+              children: [
+                PressBounce(
+                  child: TextButton.icon(
+                    icon: const Icon(CupertinoIcons.clock),
+                    label: const Text('소요시간 설정'),
+                    onPressed: () async {
+                      await showAppSheet(
+                        context,
+                        builder: (_) => TapSettingsScreen(
+                          ops: ops,
+                          initialTemplateId: selected['templateId'],
+                        ),
+                      );
+                      if (mounted) setState(() => sync(force: true));
+                    },
+                  ),
+                ),
+                PressBounce(
+                  child: TextButton.icon(
+                    icon: const Icon(CupertinoIcons.pencil),
+                    label: const Text('매뉴얼 편집'),
+                    onPressed: () async {
+                      await showAppSheet(
+                        context,
+                        builder: (_) => ChecklistEditor(
+                          ops: ops,
+                          initialFolder: selected['folderId'],
+                        ),
+                      );
+                      if (mounted) setState(() => sync(force: true));
+                    },
+                  ),
+                ),
+              ],
+            ),
           Text(
             selected['title'],
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 20),
           SelectableText(
@@ -657,15 +687,20 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             'sourceUrl': '참고 자료',
           }.entries)
             if ('${selected[link.key] ?? ''}'.isNotEmpty)
-              TextButton.icon(
-                icon: const Icon(CupertinoIcons.arrow_up_right),
-                label: Text(link.value),
-                onPressed: () async {
-                  final uri = Uri.tryParse(selected[link.key]);
-                  if (uri != null && uri.scheme == 'https') {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                },
+              PressBounce(
+                child: TextButton.icon(
+                  icon: const Icon(CupertinoIcons.arrow_up_right),
+                  label: Text(link.value),
+                  onPressed: () async {
+                    final uri = Uri.tryParse(selected[link.key]);
+                    if (uri != null && uri.scheme == 'https') {
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }
+                  },
+                ),
               ),
         ],
       );
@@ -682,7 +717,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           );
         }
         final row = found[index];
-        return Card(
+        return AppCard(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
             title: Text(
@@ -710,7 +745,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1240),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+          padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 760;
@@ -722,16 +757,19 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       if (!wide)
-                        TextButton.icon(
-                          icon: Icon(
-                            showTree
-                                ? CupertinoIcons.doc_text
-                                : CupertinoIcons.folder,
+                        PressBounce(
+                          child: TextButton.icon(
+                            icon: Icon(
+                              showTree
+                                  ? CupertinoIcons.doc_text
+                                  : CupertinoIcons.folder,
+                            ),
+                            label: Text(
+                              showTree ? '매뉴얼 ${results.length}' : '디렉토리',
+                            ),
+                            onPressed: () =>
+                                setState(() => showTree = !showTree),
                           ),
-                          label: Text(
-                            showTree ? '매뉴얼 ${results.length}' : '디렉토리',
-                          ),
-                          onPressed: () => setState(() => showTree = !showTree),
                         ),
                       if (scopeGroup != null || scopeTap != null)
                         InputChip(
@@ -747,29 +785,33 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                           }),
                         ),
                       if (ops.isLeader)
-                        TextButton.icon(
-                          icon: Icon(
-                            editing
-                                ? Icons.check
-                                : Icons.drive_file_move_outline,
+                        PressBounce(
+                          child: TextButton.icon(
+                            icon: Icon(
+                              editing
+                                  ? Icons.check
+                                  : Icons.drive_file_move_outline,
+                            ),
+                            label: Text(editing ? '편집 완료' : '구조 편집'),
+                            onPressed: ops.busy
+                                ? null
+                                : () => setState(() => editing = !editing),
                           ),
-                          label: Text(editing ? '편집 완료' : '구조 편집'),
-                          onPressed: ops.busy
-                              ? null
-                              : () => setState(() => editing = !editing),
                         ),
                       if (editing && ops.readOnly)
                         const Text(
                           '드래그 체험 · 저장 안 됨',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 13,
                             color: AppColors.muted,
                           ),
                         ),
                       if (previewDirty)
-                        TextButton(
-                          onPressed: () => setState(() => sync(force: true)),
-                          child: const Text('초기화'),
+                        PressBounce(
+                          child: TextButton(
+                            onPressed: () => setState(() => sync(force: true)),
+                            child: const Text('초기화'),
+                          ),
                         ),
                     ],
                   ),
@@ -778,14 +820,14 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       padding: EdgeInsets.only(bottom: 8),
                       child: Text(
                         '같은 단계에 놓으면 앞 순서로, 상위 항목에 놓으면 안으로 이동해요.',
-                        style: TextStyle(fontSize: 12, color: AppColors.muted),
+                        style: TextStyle(fontSize: 13, color: AppColors.muted),
                       ),
                     ),
                   Expanded(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        border: Border.all(color: AppColors.line),
+                        boxShadow: appCardShadow,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: wide

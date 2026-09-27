@@ -1,0 +1,45 @@
+# Toss UI 프롬프트 템플릿 · tap2work
+
+새 화면이나 UI 개선 요청의 맨 앞에 다음 가이드를 붙인다. 이 문서는 사용자 요청으로 정한 앱 디자인 규칙이며 토스의 공식 디자인 시스템 문서는 아니다.
+
+```text
+Flutter 앱 tap2work의 UI를 다음 공통 규칙으로 구현한다.
+
+1. 모든 텍스트는 앱에 번들된 Pretendard를 사용한다. 화면 제목은 24sp/Bold,
+   본문은 16sp/Medium, 설명은 13sp/Regular를 사용한다. 기본 글자는 #191F28이다.
+   글자 확대 설정을 존중하며 읽기 어려워지도록 글자를 축소하지 않는다.
+2. 화면 좌우 여백은 24 logical px, 독립된 세로 섹션 사이 여백은 32px다.
+   카드 내부와 컨트롤 사이 간격은 내용의 관계에 따라 8/16/24px를 사용한다.
+   넓은 화면에는 최대 폭을 적용한다. 표·트리는 내부에서 가로 스크롤할 수 있다.
+3. 앱 배경은 #F2F4F6, 기본 콘텐츠 카드는 #FFFFFF다. 카드 모서리는 16px,
+   일반 카드에는 테두리를 두지 않고 검정 4%·blur 20의 가벼운 그림자를 쓴다.
+   선택·포커스·드래그 대상 등 실제 상태를 나타내는 선은 유지한다.
+4. 강조색은 tap2work의 초록·코랄을 유지한다. 토스 로고·브랜드는 사용하지 않는다.
+5. 업무·매뉴얼·직원·우리매장 네 주요 메뉴는 유지한다. 제목은 메뉴명과 같게 하고,
+   공통 매뉴얼 검색을 같은 상단 위치에 둔다. 장식 설명은 추가하지 않는다.
+6. 설정·편집·상세는 showAppSheet/showModalBottomSheet를 사용한다.
+   상단 모서리 24px, 회색의 얇은 중앙 드래그 핸들, SafeArea와 키보드 대응을 제공한다.
+   저장하지 않은 편집이 있는 시트는 닫기 버튼과 기존 취소 확인으로 나간다.
+   이 편집 시트에서는 바깥 탭·끌어내리기 닫기를 막는다. 읽기 상세는 일반 시트를 쓴다.
+7. 데이터 최초 로딩에는 shimmer 패키지의 회색 스켈레톤을 사용한다.
+   실제 목록 행과 같은 원형 아이콘 자리·제목·보조 텍스트 두 줄을 배치한다.
+   로딩 실패는 다시 시도, 빈 결과는 빈 상태로 표시한다. 동작 줄이기에서는 정지한다.
+8. 버튼은 PressBounce로 감싼다. 누르면 0.95배, 놓으면 부드러운 복원 곡선을 쓴다.
+   기존 버튼의 클릭·키보드·접근성·비활성 처리를 유지한다. 스크롤·취소 시 복원한다.
+   터치 이벤트를 가로채지 않도록 Listener와 AnimatedContainer를 사용한다.
+9. 주요 화면 이동에는 AppPageRoute(CupertinoPageRoute)를 사용한다.
+   동작 줄이기에서는 불필요한 모션을 생략한다. 기존 TAP 열기·완료 효과를 유지한다.
+10. 공통 토큰과 컴포넌트를 재사용한다. 반복된 매직 넘버나 별도의 서체를 추가하지 않는다.
+    320px·390px·넓은 화면과 확대 글자, 키보드, 저장·취소 흐름을 확인한다.
+
+이번 구현 요청: [여기에 화면 또는 개선 요구를 입력]
+```
+
+## 코드 연결
+
+- `app/lib/ui/design_tokens.dart`: AppColors, AppSpacing, AppText, appCardShadow
+- `app/lib/ui/design_system.dart`: PressBounce, showAppSheet, AppPageRoute, WorkspaceSkeleton
+- `app/lib/ui/components.dart`: Surface, PageHeading, 공통 헤더·하단 메뉴
+- `app/lib/main.dart`: 앱 전체 ThemeData
+
+Flutter 3.41.2에서 사용 가능한 `shimmer` 3.0.0을 잠금 파일과 함께 사용한다. 최신 4.x는 다른 Flutter/Material 요구사항이 있으므로 이번 UI 변경에서 SDK 전체 업그레이드를 섞지 않는다. [패키지 공식 안내](https://pub.dev/packages/shimmer)는 Aside CLI로 확인했다.

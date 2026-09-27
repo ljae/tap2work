@@ -123,7 +123,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                   child: ChoiceChip(
                     label: Text(
                       remaining(s) == 0 ? s : '$s ${remaining(s)}',
-                      style: const TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 13),
                     ),
                     selected: slot == s,
                     onSelected: (_) => setState(() => slot = s),
@@ -155,16 +155,17 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                   onSelected: (_) => setState(() => folder = f['id']),
                 ),
             if (ops.isLeader)
-              OutlinedButton.icon(
-                onPressed: ops.busy
-                    ? null
-                    : () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
+              PressBounce(
+                child: OutlinedButton.icon(
+                  onPressed: ops.busy
+                      ? null
+                      : () => showAppSheet(
+                          context,
                           builder: (_) => ChecklistEditor(ops: ops),
                         ),
-                      ),
-                icon: const Icon(Icons.tune),
-                label: const Text('체크리스트 편집'),
+                  icon: const Icon(Icons.tune),
+                  label: const Text('체크리스트 편집'),
+                ),
               ),
           ],
         ),
@@ -220,13 +221,17 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
         title: const Text('확인을 되돌릴까요?'),
         content: Text('「${step['title']}」 확인 기록을 지우고 다시 미완료로 돌려요.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            child: const Text('그대로 두기'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(c, false),
+              child: const Text('그대로 두기'),
+            ),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(c, true),
-            child: const Text('되돌리기'),
+          PressBounce(
+            child: FilledButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: const Text('되돌리기'),
+            ),
           ),
         ],
       ),
@@ -297,7 +302,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                           Text(
                             '${task['slot']} · ${checklistRoles[task['requiredRole']] ?? '누구나'}${place == null ? '' : ' · $place'}',
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 13,
                               color: AppColors.muted,
                             ),
                           ),
@@ -324,7 +329,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                   child: Text(
                     '${checklistRoles[task['requiredRole']]} 담당 그룹이에요. 읽고 배우는 건 자유롭게, 확인은 담당자가 눌러요.',
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: AppColors.muted,
                     ),
                   ),
@@ -337,7 +342,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                         ? '✓ 모든 활동 확인 · 체험 표시 · 저장 안 됨'
                         : '✓ 모든 활동 확인 · ${task['completedBy']?['name'] ?? ''} · ${stampOf(task['completedAt'])}',
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: AppColors.green,
                     ),
                   ),
@@ -418,7 +423,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                       Text(
                         step['title'],
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: done ? AppColors.muted : AppColors.ink,
                         ),
@@ -430,7 +435,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                             ? '방법 닫기'
                             : '눌러서 방법 보기',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: done ? AppColors.green : AppColors.muted,
                         ),
                       ),
@@ -461,7 +466,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                 children: [
                   Text(
                     step['manual'] ?? '',
-                    style: const TextStyle(height: 1.6, fontSize: 14),
+                    style: const TextStyle(height: 1.6, fontSize: 13),
                   ),
                   if ((step['tip'] ?? '').isNotEmpty)
                     Padding(
@@ -469,7 +474,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                       child: Text(
                         '💡 ${step['tip']}',
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           height: 1.6,
                           color: AppColors.muted,
                         ),
@@ -518,7 +523,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                         ? '✓ ${task['completedBy']?['name'] ?? ''} · ${stampOf(task['completedAt'])} 확인'
                         : '발주 후 정한 날짜 · 실제 수량을 세어 입력해요${place == null ? '' : ' · $place'}',
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: AppColors.muted,
                     ),
                   ),
@@ -526,12 +531,14 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
               ),
             ),
             if (!complete)
-              FilledButton(
-                onPressed:
-                    ops.busy || ops.readOnly || task['canComplete'] != true
-                    ? null
-                    : () => widget.onStock(task),
-                child: const Text('재고 수량 확인하기'),
+              PressBounce(
+                child: FilledButton(
+                  onPressed:
+                      ops.busy || ops.readOnly || task['canComplete'] != true
+                      ? null
+                      : () => widget.onStock(task),
+                  child: const Text('재고 수량 확인하기'),
+                ),
               ),
           ],
         ),
@@ -566,13 +573,13 @@ class _Progress extends StatelessWidget {
                     : '오늘 활동 $done / $total 확인',
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
-                  fontSize: 17,
+                  fontSize: 16,
                 ),
               ),
             ),
             Text(
               '그룹 $groupsDone/$groups',
-              style: const TextStyle(fontSize: 12, color: AppColors.muted),
+              style: const TextStyle(fontSize: 13, color: AppColors.muted),
             ),
           ],
         ),
@@ -609,7 +616,7 @@ class _Ring extends StatelessWidget {
         ),
         Text(
           '$done/$total',
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
         ),
       ],
     ),

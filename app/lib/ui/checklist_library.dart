@@ -27,6 +27,9 @@ Future<void> showChecklistLibrary(
   String? importError;
   await showModalBottomSheet<void>(
     context: context,
+    sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
+        ? AnimationStyle.noAnimation
+        : null,
     isScrollControlled: true,
     useSafeArea: true,
     builder: (sheetContext) => StatefulBuilder(
@@ -42,7 +45,7 @@ Future<void> showChecklistLibrary(
                 padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
                 child: Text(
                   '업종별 기본 체크리스트',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                 ),
               ),
               const Padding(
@@ -146,35 +149,39 @@ Future<void> showChecklistLibrary(
                                     padding: const EdgeInsets.only(bottom: 8),
                                     child: SelectableText(
                                       '참고: ${source['title']}\n${source['url']}',
-                                      style: const TextStyle(fontSize: 12),
+                                      style: const TextStyle(fontSize: 13),
                                     ),
                                   ),
-                                FilledButton.icon(
-                                  onPressed: selections[industry['id']]!.isEmpty
-                                      ? null
-                                      : () {
-                                          try {
-                                            onImport(
-                                              planChecklistImport(
-                                                industry: industry,
-                                                selectedTaskIds:
-                                                    selections[industry['id']]!,
-                                                templates: templates,
-                                                folders: folders,
-                                                newFolderId: newFolderId(),
-                                                zoneIds: zoneIds,
-                                              ),
-                                            );
-                                            Navigator.pop(sheetContext);
-                                          } on FormatException catch (error) {
-                                            update(
-                                              () => importError = error.message,
-                                            );
-                                          }
-                                        },
-                                  icon: const Icon(Icons.add),
-                                  label: Text(
-                                    '선택한 ${selections[industry['id']]!.length}개 그룹 가져오기',
+                                PressBounce(
+                                  child: FilledButton.icon(
+                                    onPressed:
+                                        selections[industry['id']]!.isEmpty
+                                        ? null
+                                        : () {
+                                            try {
+                                              onImport(
+                                                planChecklistImport(
+                                                  industry: industry,
+                                                  selectedTaskIds:
+                                                      selections[industry['id']]!,
+                                                  templates: templates,
+                                                  folders: folders,
+                                                  newFolderId: newFolderId(),
+                                                  zoneIds: zoneIds,
+                                                ),
+                                              );
+                                              Navigator.pop(sheetContext);
+                                            } on FormatException catch (error) {
+                                              update(
+                                                () =>
+                                                    importError = error.message,
+                                              );
+                                            }
+                                          },
+                                    icon: const Icon(Icons.add),
+                                    label: Text(
+                                      '선택한 ${selections[industry['id']]!.length}개 그룹 가져오기',
+                                    ),
                                   ),
                                 ),
                               ],

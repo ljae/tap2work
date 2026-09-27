@@ -34,18 +34,20 @@ class _StaffWorkspaceState extends State<StaffWorkspace> {
           onSelectionChanged: (v) => setState(() => section = v.first),
         ),
       ),
-      const SizedBox(height: 18),
+      const SizedBox(height: 32),
       if (section == 'schedule') CalendarScreen(operations: widget.ops),
       if (section == 'people') TeamScreen(operations: widget.ops),
       if (section == 'learning') ...[
         const Information('첫 근무 연습과 버디 확인은 각각 기록돼요.'),
         const SizedBox(height: 12),
-        OutlinedButton.icon(
-          icon: const Icon(CupertinoIcons.book),
-          label: const Text('첫 근무 가이드 열기'),
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => WorkspaceScreen(controller: widget.work),
+        PressBounce(
+          child: OutlinedButton.icon(
+            icon: const Icon(CupertinoIcons.book),
+            label: const Text('첫 근무 가이드 열기'),
+            onPressed: () => Navigator.of(context).push(
+              AppPageRoute<void>(
+                builder: (_) => WorkspaceScreen(controller: widget.work),
+              ),
             ),
           ),
         ),
@@ -101,20 +103,21 @@ class HiringDrafts extends StatelessWidget {
             ),
           ),
         if (ops.readOnly) const Information('공개 미리보기에서는 초안을 저장하지 않아요.'),
-        OutlinedButton.icon(
-          icon: const Icon(CupertinoIcons.add),
-          label: const Text('공고 초안 만들기'),
-          onPressed: ops.readOnly
-              ? null
-              : () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
+        PressBounce(
+          child: OutlinedButton.icon(
+            icon: const Icon(CupertinoIcons.add),
+            label: const Text('공고 초안 만들기'),
+            onPressed: ops.readOnly
+                ? null
+                : () => showAppSheet(
+                    context,
                     builder: (_) => HiringDraftEditor(
                       ops: ops,
                       defaultRole: targets.firstOrNull?['roleId'],
                       defaultCount: targets.firstOrNull?['count'] ?? 1,
                     ),
                   ),
-                ),
+          ),
         ),
         const SizedBox(height: 12),
         if (drafts.isEmpty) const Information('저장된 공고 초안이 없어요.'),
@@ -128,7 +131,7 @@ class HiringDrafts extends StatelessWidget {
                   Text(
                     '${roles[draft['roleId']] ?? draft['roleId']} · ${draft['headcount']}명',
                     style: const TextStyle(
-                      fontSize: 17,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -139,47 +142,54 @@ class HiringDrafts extends StatelessWidget {
                   Wrap(
                     spacing: 8,
                     children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
+                      PressBounce(
+                        child: TextButton(
+                          onPressed: () => showAppSheet(
+                            context,
                             builder: (_) =>
                                 HiringDraftEditor(ops: ops, existing: draft),
                           ),
+                          child: const Text('수정'),
                         ),
-                        child: const Text('수정'),
                       ),
-                      TextButton(
-                        onPressed: () => showDialog<void>(
-                          context: context,
-                          builder: (dialog) => AlertDialog(
-                            title: const Text('공고 초안'),
-                            content: SingleChildScrollView(
-                              child: SelectableText(_draftText(draft)),
+                      PressBounce(
+                        child: TextButton(
+                          onPressed: () => showAppFormSheet<void>(
+                            context: context,
+                            builder: (dialog) => AppSheetPanel(
+                              title: const Text('공고 초안'),
+                              content: SingleChildScrollView(
+                                child: SelectableText(_draftText(draft)),
+                              ),
+                              actions: [
+                                PressBounce(
+                                  child: TextButton(
+                                    onPressed: () => Navigator.pop(dialog),
+                                    child: const Text('닫기'),
+                                  ),
+                                ),
+                              ],
                             ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(dialog),
-                                child: const Text('닫기'),
-                              ),
-                            ],
                           ),
+                          child: const Text('내용 선택·복사'),
                         ),
-                        child: const Text('내용 선택·복사'),
                       ),
-                      TextButton(
-                        onPressed: () async {
-                          final ok = await ops.act('archive_hiring_draft', {
-                            'id': draft['id'],
-                          });
-                          if (context.mounted && !ok) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(ops.error ?? '보관하지 못했어요.'),
-                              ),
-                            );
-                          }
-                        },
-                        child: const Text('보관'),
+                      PressBounce(
+                        child: TextButton(
+                          onPressed: () async {
+                            final ok = await ops.act('archive_hiring_draft', {
+                              'id': draft['id'],
+                            });
+                            if (context.mounted && !ok) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(ops.error ?? '보관하지 못했어요.'),
+                                ),
+                              );
+                            }
+                          },
+                          child: const Text('보관'),
+                        ),
                       ),
                     ],
                   ),
@@ -289,7 +299,7 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 640),
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           children: [
             const Information('아직 게시되지 않는 초안이에요. 비어 있는 조건은 미입력으로 표시해요.'),
             const SizedBox(height: 14),
@@ -357,9 +367,11 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
             ),
             if (error != null) Information('$error\n초안은 그대로 남아 있어요.'),
             const SizedBox(height: 16),
-            FilledButton(
-              onPressed: saving || widget.ops.readOnly ? null : save,
-              child: Text(saving ? '저장 중…' : '초안 저장'),
+            PressBounce(
+              child: FilledButton(
+                onPressed: saving || widget.ops.readOnly ? null : save,
+                child: Text(saving ? '저장 중…' : '초안 저장'),
+              ),
             ),
           ],
         ),

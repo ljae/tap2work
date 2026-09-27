@@ -105,10 +105,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
         for (final minute in ['00', '30'])
           '${hour.toString().padLeft(2, '0')}:$minute',
     ];
-    final save = await showDialog<Json>(
+    final save = await showAppFormSheet<Json>(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, update) => AlertDialog(
+        builder: (context, update) => AppSheetPanel(
           title: Text('${tapper['nickname']} · ${date(day)} 근무'),
           content: SizedBox(
             width: 380,
@@ -206,30 +206,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('취소'),
+            PressBounce(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('취소'),
+              ),
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, {
-                'tapperId': tapperId,
-                'date': date(day),
-                'duty': selectedDuty,
-                'employmentType': employment,
-                'start': start,
-                'end': end,
-                if (shift != null) 'id': shift['id'],
-                'repeatDays': repeat == '한 번' ? 1 : duration,
-                'weekdays': switch (repeat) {
-                  '월수금' => [1, 3, 5],
-                  '화목토' => [2, 4, 6],
-                  '매일' => [1, 2, 3, 4, 5, 6, 7],
-                  '평일' => [1, 2, 3, 4, 5],
-                  '주말' => [6, 7],
-                  _ => <int>[],
-                },
-              }),
-              child: const Text('저장'),
+            PressBounce(
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context, {
+                  'tapperId': tapperId,
+                  'date': date(day),
+                  'duty': selectedDuty,
+                  'employmentType': employment,
+                  'start': start,
+                  'end': end,
+                  if (shift != null) 'id': shift['id'],
+                  'repeatDays': repeat == '한 번' ? 1 : duration,
+                  'weekdays': switch (repeat) {
+                    '월수금' => [1, 3, 5],
+                    '화목토' => [2, 4, 6],
+                    '매일' => [1, 2, 3, 4, 5, 6, 7],
+                    '평일' => [1, 2, 3, 4, 5],
+                    '주말' => [6, 7],
+                    _ => <int>[],
+                  },
+                }),
+                child: const Text('저장'),
+              ),
             ),
           ],
         ),
@@ -244,10 +248,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
         .rows('staffingSlots')
         .map((s) => Map<String, dynamic>.from(s))
         .toList();
-    final saved = await showDialog<bool>(
+    final saved = await showAppFormSheet<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, update) => AlertDialog(
+        builder: (context, update) => AppSheetPanel(
           title: const Text('하루 필요 인원'),
           content: SizedBox(
             width: 420,
@@ -277,24 +281,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           ),
                         ),
                         for (final field in ['start', 'end'])
-                          OutlinedButton(
-                            onPressed: () async {
-                              final parts = (slot[field] as String).split(':');
-                              final time = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay(
-                                  hour: int.parse(parts[0]),
-                                  minute: int.parse(parts[1]),
-                                ),
-                              );
-                              if (time != null) {
-                                update(
-                                  () => slot[field] =
-                                      '${time.hour.toString().padLeft(2, '0')}:${(time.minute < 30 ? 0 : 30).toString().padLeft(2, '0')}',
+                          PressBounce(
+                            child: OutlinedButton(
+                              onPressed: () async {
+                                final parts = (slot[field] as String).split(
+                                  ':',
                                 );
-                              }
-                            },
-                            child: Text(slot[field]),
+                                final time = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay(
+                                    hour: int.parse(parts[0]),
+                                    minute: int.parse(parts[1]),
+                                  ),
+                                );
+                                if (time != null) {
+                                  update(
+                                    () => slot[field] =
+                                        '${time.hour.toString().padLeft(2, '0')}:${(time.minute < 30 ? 0 : 30).toString().padLeft(2, '0')}',
+                                  );
+                                }
+                              },
+                              child: Text(slot[field]),
+                            ),
                           ),
                         IconButton(
                           onPressed: draft.length > 1
@@ -304,17 +312,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         ),
                       ],
                     ),
-                  TextButton(
-                    onPressed: draft.length < 12
-                        ? () => update(
-                            () => draft.add({
-                              'duty': '서빙1',
-                              'start': '09:00',
-                              'end': '18:00',
-                            }),
-                          )
-                        : null,
-                    child: const Text('슬롯 추가'),
+                  PressBounce(
+                    child: TextButton(
+                      onPressed: draft.length < 12
+                          ? () => update(
+                              () => draft.add({
+                                'duty': '서빙1',
+                                'start': '09:00',
+                                'end': '18:00',
+                              }),
+                            )
+                          : null,
+                      child: const Text('슬롯 추가'),
+                    ),
                   ),
                   const Text('기존 근무 기록은 유지돼요. 변경 후 배정을 확인하세요.'),
                 ],
@@ -322,13 +332,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('취소'),
+            PressBounce(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('취소'),
+              ),
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('저장'),
+            PressBounce(
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('저장'),
+              ),
             ),
           ],
         ),
@@ -365,6 +379,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         .toList();
     await showModalBottomSheet<void>(
       context: context,
+      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
+          ? AnimationStyle.noAnimation
+          : null,
       showDragHandle: true,
       isScrollControlled: true,
       builder: (context) => SafeArea(
@@ -412,14 +429,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     padding: EdgeInsets.all(12),
                     child: Text('겹치지 않는 담당 크루가 없어요.'),
                   ),
-                TextButton(
-                  onPressed: () async {
-                    await launchUrl(
-                      Uri.parse('https://www.albamon.com/'),
-                      mode: LaunchMode.externalApplication,
-                    );
-                  },
-                  child: const Text('알바몬 채용 사이트 ↗ · HR 연동 준비 중'),
+                PressBounce(
+                  child: TextButton(
+                    onPressed: () async {
+                      await launchUrl(
+                        Uri.parse('https://www.albamon.com/'),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                    child: const Text('알바몬 채용 사이트 ↗ · HR 연동 준비 중'),
+                  ),
                 ),
               ],
             ],
@@ -513,7 +532,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               Text(slot['duty']),
                               Text(
                                 '${slot['start']}–${slot['end']}',
-                                style: const TextStyle(fontSize: 11),
+                                style: const TextStyle(fontSize: 13),
                               ),
                               Text(
                                 name(shift?['tapperId']),
@@ -548,7 +567,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   '${name(shift['tapperId'])} · ${shift['duty']}\n${shift['start']}–${shift['end']} · 별도 근무',
-                  style: const TextStyle(fontSize: 11),
+                  style: const TextStyle(fontSize: 13),
                 ),
               ),
             ),
@@ -604,6 +623,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         .toList();
     final person = await showModalBottomSheet<Json>(
       context: context,
+      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
+          ? AnimationStyle.noAnimation
+          : null,
       builder: (context) => SafeArea(
         child: ListView(
           shrinkWrap: true,
@@ -649,6 +671,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> showEarly(DateTime day) async {
     await showModalBottomSheet<void>(
       context: context,
+      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
+          ? AnimationStyle.noAnimation
+          : null,
       builder: (context) => SafeArea(
         child: ListView(
           shrinkWrap: true,
@@ -729,7 +754,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       Text(
                         weekdays[index],
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: isSelected ? AppColors.white : AppColors.muted,
                         ),
                       ),
@@ -737,7 +762,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       Text(
                         '${day.day}',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w800,
                           color: isSelected ? AppColors.white : AppColors.ink,
                         ),
@@ -893,7 +918,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
-                    fontSize: 12,
+                    fontSize: 13,
                   ),
                 ),
                 if (height >= 48)
@@ -901,12 +926,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     '${item['start']}–${item['end']}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 10),
+                    style: const TextStyle(fontSize: 13),
                   ),
                 if (height >= 68 && !block.requiredSlot)
                   Text(
                     item['date'] == priorDate ? '전날부터' : '추가 근무',
-                    style: const TextStyle(fontSize: 10),
+                    style: const TextStyle(fontSize: 13),
                   ),
               ],
             ),
@@ -1015,13 +1040,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 children: [
                   const Text(
                     '배정 현황',
-                    style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     '${day.month}월 ${day.day}일 ${weekdays[day.weekday - 1]}요일 · 배정 $filled · 빈 슬롯 ${slots.length - filled}',
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: AppColors.muted,
                     ),
                   ),
@@ -1029,10 +1054,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
             ),
             if (editable)
-              TextButton.icon(
-                onPressed: () => chooseForDay(day),
-                icon: const Icon(CupertinoIcons.plus, size: 16),
-                label: const Text('근무 추가'),
+              PressBounce(
+                child: TextButton.icon(
+                  onPressed: () => chooseForDay(day),
+                  icon: const Icon(CupertinoIcons.plus, size: 16),
+                  label: const Text('근무 추가'),
+                ),
               ),
           ],
         ),
@@ -1047,7 +1074,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ],
         const Text(
           '표시 시간 06:00–24:00 · 30분 단위 · 역할을 옆으로 넘겨 보세요',
-          style: TextStyle(fontSize: 11, color: AppColors.muted),
+          style: TextStyle(fontSize: 13, color: AppColors.muted),
         ),
         const SizedBox(height: 8),
         Container(
@@ -1074,7 +1101,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           child: Text(
                             '시각',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: AppColors.ink,
                             ),
@@ -1133,10 +1160,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
         if (early.isNotEmpty)
-          TextButton.icon(
-            onPressed: () => showEarly(day),
-            icon: const Icon(CupertinoIcons.moon, size: 16),
-            label: Text('새벽·야간 근무 ${early.length}건 보기'),
+          PressBounce(
+            child: TextButton.icon(
+              onPressed: () => showEarly(day),
+              icon: const Icon(CupertinoIcons.moon, size: 16),
+              label: Text('새벽·야간 근무 ${early.length}건 보기'),
+            ),
           ),
       ],
     );
@@ -1209,21 +1238,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   onSelected: (value) => setState(() => monthly = value),
                 ),
               ),
-              OutlinedButton.icon(
-                onPressed: () => setState(
-                  () => selected =
-                      DateTime.tryParse(ops.data?['day'] ?? '') ??
-                      DateTime.now(),
+              PressBounce(
+                child: OutlinedButton.icon(
+                  onPressed: () => setState(
+                    () => selected =
+                        DateTime.tryParse(ops.data?['day'] ?? '') ??
+                        DateTime.now(),
+                  ),
+                  icon: const Icon(CupertinoIcons.calendar, size: 17),
+                  label: const Text('오늘'),
                 ),
-                icon: const Icon(CupertinoIcons.calendar, size: 17),
-                label: const Text('오늘'),
               ),
               if (ops.isLeader)
-                TextButton.icon(
-                  onPressed: editable ? configure : null,
-                  icon: const Icon(CupertinoIcons.person_2, size: 16),
-                  label: Text(
-                    '하루 ${ops.rows('staffingSlots').length}명 · 슬롯 설정',
+                PressBounce(
+                  child: TextButton.icon(
+                    onPressed: editable ? configure : null,
+                    icon: const Icon(CupertinoIcons.person_2, size: 16),
+                    label: Text(
+                      '하루 ${ops.rows('staffingSlots').length}명 · 슬롯 설정',
+                    ),
                   ),
                 ),
             ],
@@ -1319,15 +1352,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   size: 17,
                 ),
                 label: const Text('크루 관리'),
-                onPressed: () => Navigator.push(
+                onPressed: () => showAppSheet(
                   context,
-                  MaterialPageRoute<void>(
-                    builder: (_) => Scaffold(
-                      appBar: AppBar(title: const Text('크루 관리')),
-                      body: SingleChildScrollView(
-                        padding: const EdgeInsets.all(20),
-                        child: TeamScreen(operations: ops),
-                      ),
+                  builder: (_) => Scaffold(
+                    appBar: AppBar(title: const Text('크루 관리')),
+                    body: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: TeamScreen(operations: ops),
                     ),
                   ),
                 ),

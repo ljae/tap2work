@@ -37,7 +37,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
     String? localError;
     bool saving = false;
     try {
-      await showDialog<void>(
+      await showAppFormSheet<void>(
         context: context,
         builder: (dialog) => StatefulBuilder(
           builder: (dialog, update) {
@@ -64,7 +64,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
               }
             }
 
-            return AlertDialog(
+            return AppSheetPanel(
               title: Text(title),
               content: SizedBox(
                 width: 440,
@@ -117,23 +117,29 @@ class _CatalogEditorState extends State<CatalogEditor> {
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: saving ? null : () => Navigator.pop(dialog),
-                  child: const Text('취소'),
+                PressBounce(
+                  child: TextButton(
+                    onPressed: saving ? null : () => Navigator.pop(dialog),
+                    child: const Text('취소'),
+                  ),
                 ),
                 if (localError != null)
-                  TextButton(
-                    onPressed: saving
-                        ? null
-                        : () async {
-                            await ops.refresh(force: true);
-                            if (dialog.mounted) Navigator.pop(dialog);
-                          },
-                    child: const Text('최신 내용 보기'),
+                  PressBounce(
+                    child: TextButton(
+                      onPressed: saving
+                          ? null
+                          : () async {
+                              await ops.refresh(force: true);
+                              if (dialog.mounted) Navigator.pop(dialog);
+                            },
+                      child: const Text('최신 내용 보기'),
+                    ),
                   ),
-                FilledButton(
-                  onPressed: saving ? null : submit,
-                  child: Text(saving ? '저장 중…' : '저장'),
+                PressBounce(
+                  child: FilledButton(
+                    onPressed: saving ? null : submit,
+                    child: Text(saving ? '저장 중…' : '저장'),
+                  ),
                 ),
               ],
             );
@@ -148,9 +154,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
   }
 
   Future<void> editStore() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => StoreProfileScreen(ops: ops)),
-    );
+    await showAppSheet(context, builder: (_) => StoreProfileScreen(ops: ops));
   }
 
   Future<void> editMenu([Json? menu]) async {
@@ -271,13 +275,17 @@ class _CatalogEditorState extends State<CatalogEditor> {
         title: Text('$label 보관'),
         content: Text('${row['name']}을 목록에서 숨길까요? 이전 기록은 유지됩니다.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialog, false),
-            child: const Text('취소'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(dialog, false),
+              child: const Text('취소'),
+            ),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialog, true),
-            child: const Text('보관'),
+          PressBounce(
+            child: FilledButton(
+              onPressed: () => Navigator.pop(dialog, true),
+              child: const Text('보관'),
+            ),
           ),
         ],
       ),
@@ -296,13 +304,17 @@ class _CatalogEditorState extends State<CatalogEditor> {
           '현재 샘플 주문·직원·재고·업무를 화면에서 숨기고 서버에 보관합니다. 지금까지 샘플 매장에서 수정한 내용도 함께 보관됩니다.',
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialog, false),
-            child: const Text('취소'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(dialog, false),
+              child: const Text('취소'),
+            ),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialog, true),
-            child: const Text('보관하고 시작'),
+          PressBounce(
+            child: FilledButton(
+              onPressed: () => Navigator.pop(dialog, true),
+              child: const Text('보관하고 시작'),
+            ),
           ),
         ],
       ),
@@ -323,7 +335,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
         appBar: AppBar(title: const Text('매장 설정')),
         body: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(24),
             children: [
               if (ops.cloud)
                 const Information(
@@ -345,9 +357,11 @@ class _CatalogEditorState extends State<CatalogEditor> {
                       const Text(
                         '실제 매장 기록을 시작할 준비가 되었다면 샘플을 보관하고 빈 매장으로 전환하세요.',
                       ),
-                      TextButton(
-                        onPressed: ops.busy ? null : startBlank,
-                        child: const Text('샘플 보관하고 빈 매장 시작'),
+                      PressBounce(
+                        child: TextButton(
+                          onPressed: ops.busy ? null : startBlank,
+                          child: const Text('샘플 보관하고 빈 매장 시작'),
+                        ),
                       ),
                     ],
                   ),
@@ -361,7 +375,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
                     const Text(
                       '매장 정보',
                       style: TextStyle(
-                        fontSize: 19,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -372,9 +386,11 @@ class _CatalogEditorState extends State<CatalogEditor> {
                     if (ops.isOwner)
                       Align(
                         alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: ops.busy ? null : editStore,
-                          child: const Text('매장 정보 수정'),
+                        child: PressBounce(
+                          child: TextButton(
+                            onPressed: ops.busy ? null : editStore,
+                            child: const Text('매장 정보 수정'),
+                          ),
                         ),
                       ),
                   ],
@@ -387,7 +403,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
                     child: Text(
                       '메뉴',
                       style: TextStyle(
-                        fontSize: 19,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -402,7 +418,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
               if (menus.isEmpty)
                 const Information('등록된 메뉴가 없어요. 실제 판매 메뉴를 추가해 주세요.'),
               for (final menu in menus)
-                Card(
+                AppCard(
                   child: ListTile(
                     title: Text('${menu['name']}'),
                     subtitle: Text('${menu['category']} · ${menu['price']}원'),
@@ -430,7 +446,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
                     child: Text(
                       '재료',
                       style: TextStyle(
-                        fontSize: 19,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -449,7 +465,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
               if (items.isEmpty)
                 const Information('등록된 재료가 없어요. 재료를 추가한 뒤 실물 수량을 확인해 주세요.'),
               for (final item in items)
-                Card(
+                AppCard(
                   child: ListTile(
                     title: Text('${item['emoji']} ${item['name']}'),
                     subtitle: Text(

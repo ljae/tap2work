@@ -467,7 +467,7 @@ void main() {
     await tester.tap(find.text('초안에 적용'));
     await tester.pumpAndSettle();
     expect(find.text('매뉴얼을 1~700자로 입력해 주세요.'), findsOneWidget);
-    await tester.tap(find.byType(CloseButton));
+    await tester.tap(find.byType(CloseButton).last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('변경 버리기'));
     await tester.pumpAndSettle();
@@ -498,13 +498,13 @@ void main() {
       '편집 중인 이름',
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(CloseButton));
+    await tester.tap(find.byType(CloseButton).last);
     await tester.pumpAndSettle();
     expect(find.text('매뉴얼 편집을 취소할까요?'), findsOneWidget);
     await tester.tap(find.text('계속 편집'));
     await tester.pumpAndSettle();
     expect(find.text('편집 중인 이름'), findsOneWidget);
-    await tester.tap(find.byType(CloseButton));
+    await tester.tap(find.byType(CloseButton).last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('변경 버리기'));
     await tester.pumpAndSettle();

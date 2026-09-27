@@ -3,6 +3,7 @@
 Before making product or architecture changes, read `docs/project-state.json` and `PRODUCT.md`. `docs/project-state.json` is the canonical, versioned project decision and development history file. `RESEARCH.md` contains the scoped competitor research.
 
 - The user has selected Flutter. The application source is `app/`. Root HTML/JS files are the original reference prototype, not the primary app.
+- For every new or changed Flutter screen, read `docs/TOSS_UI_PROMPT_TEMPLATE.md` and apply its shared typography, spacing, card, sheet, loading and motion rules. Reuse `design_tokens.dart`, `design_system.dart` and `components.dart`; the user selected the existing green/coral accents and four main destinations.
 - Initial users: Korean small F&B kitchen prep/dishwashing workers, already hired. After roughly one hour they work with a buddy. Future recruiting belongs in the roadmap, not the first-release critical path.
 - Scope expanded by the user on 2026-09-19: integrated staff operations, shared timed/rank-based checklists, inventory, grouped procurement, and restaurant layout/routes. Preserve the first-shift guide within this broader app; do not revert the expansion to onboarding-only.
 - Shared operations demo state lives in `.local/operations-demo.json` and is served by `developer/operations.mjs`. It is separate from canonical project decisions and device-local learning progress. Demo actor headers are not production identity/authentication. Never send real supplier orders without an approved integration and clear user action.

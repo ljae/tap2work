@@ -81,6 +81,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
   Future<void> openManual(Json row) async {
     await showModalBottomSheet<void>(
       context: context,
+      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
+          ? AnimationStyle.noAnimation
+          : null,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (context) => SafeArea(
@@ -93,7 +96,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
               children: [
                 Text(
                   '${row['tapTitle']} · Task',
-                  style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                  style: const TextStyle(color: AppColors.muted, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -133,24 +136,29 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   ),
                 for (final field in ['sourceUrl', 'imageUrl', 'videoUrl'])
                   if ('${row[field] ?? ''}'.isNotEmpty)
-                    TextButton.icon(
-                      onPressed: () {
-                        final uri = Uri.tryParse('${row[field]}');
-                        if (uri != null && uri.scheme == 'https') {
-                          launchUrl(uri, mode: LaunchMode.externalApplication);
-                        }
-                      },
-                      icon: Icon(
-                        field == 'videoUrl'
-                            ? Icons.play_circle_outline
-                            : Icons.open_in_new,
-                      ),
-                      label: Text(
-                        field == 'sourceUrl'
-                            ? '사진·상세 설명 보기'
-                            : field == 'imageUrl'
-                            ? '사진 열기'
-                            : '영상 열기',
+                    PressBounce(
+                      child: TextButton.icon(
+                        onPressed: () {
+                          final uri = Uri.tryParse('${row[field]}');
+                          if (uri != null && uri.scheme == 'https') {
+                            launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          }
+                        },
+                        icon: Icon(
+                          field == 'videoUrl'
+                              ? Icons.play_circle_outline
+                              : Icons.open_in_new,
+                        ),
+                        label: Text(
+                          field == 'sourceUrl'
+                              ? '사진·상세 설명 보기'
+                              : field == 'imageUrl'
+                              ? '사진 열기'
+                              : '영상 열기',
+                        ),
                       ),
                     ),
               ],
@@ -162,7 +170,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 
   Widget manualSearchBar() => Padding(
-    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+    padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
     child: Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1240),
@@ -196,7 +204,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   Widget manualResultList() {
     final results = manualResults;
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1240),
@@ -224,7 +232,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                             Text(
                               '${row['title']}',
                               style: const TextStyle(
-                                fontSize: 17,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -232,7 +240,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               'TAP · ${row['tapTitle']}',
                               style: const TextStyle(
                                 color: AppColors.muted,
-                                fontSize: 12,
+                                fontSize: 13,
                               ),
                             ),
                             const SizedBox(height: 6),
@@ -250,7 +258,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                       .join('  '),
                                   style: const TextStyle(
                                     color: AppColors.green,
-                                    fontSize: 12,
+                                    fontSize: 13,
                                   ),
                                 ),
                               ),
@@ -259,7 +267,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                 '사진·상세 설명 보기 · 공식 가이드',
                                 style: TextStyle(
                                   color: AppColors.green,
-                                  fontSize: 11,
+                                  fontSize: 13,
                                 ),
                               ),
                           ],
@@ -366,10 +374,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
               await widget.onAccountPressed?.call(context);
             } else if (id == 'catalog') {
               if (mounted) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => CatalogEditor(ops: ops)),
-                );
+                showAppSheet(context, builder: (_) => CatalogEditor(ops: ops));
               }
             } else {
               cart.clear();
@@ -422,7 +427,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
             Container(
               width: double.infinity,
               color: AppColors.lime,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1240),
@@ -448,7 +453,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               ? '공유 데모 연결 · ${ops.sharedApiHost} · 실제 발주 없음'
                               : '체험 매장 · 역할 전환은 로그인 아님 · 실제 발주 없음',
                           style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: 13,
                             height: 1.4,
                             fontWeight: FontWeight.w600,
                             color: AppColors.green,
@@ -463,17 +468,19 @@ class _OperationsScreenState extends State<OperationsScreen> {
             if (ops.busy) const LinearProgressIndicator(minHeight: 2),
             if (ops.error != null)
               MaterialBanner(
-                content: Text(ops.error!, style: const TextStyle(fontSize: 12)),
+                content: Text(ops.error!, style: const TextStyle(fontSize: 13)),
                 actions: [
-                  TextButton(
-                    onPressed: ops.busy ? null : () => ops.refresh(),
-                    child: const Text('새로고침'),
+                  PressBounce(
+                    child: TextButton(
+                      onPressed: ops.busy ? null : () => ops.refresh(),
+                      child: const Text('새로고침'),
+                    ),
                   ),
                 ],
               ),
             if (ops.data != null) ...[
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1240),
@@ -483,7 +490,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         const ['업무', '매뉴얼', '직원', '우리매장'][tab],
                         key: const ValueKey('menu-title'),
                         style: const TextStyle(
-                          fontSize: 26,
+                          fontSize: 24,
                           height: 1.2,
                           fontWeight: FontWeight.w700,
                         ),
@@ -498,10 +505,12 @@ class _OperationsScreenState extends State<OperationsScreen> {
               child: ops.data == null
                   ? Center(
                       child: ops.error == null
-                          ? const CircularProgressIndicator()
-                          : OutlinedButton(
-                              onPressed: () => ops.refresh(),
-                              child: const Text('매장 다시 연결'),
+                          ? const WorkspaceSkeleton()
+                          : PressBounce(
+                              child: OutlinedButton(
+                                onPressed: () => ops.refresh(),
+                                child: const Text('매장 다시 연결'),
+                              ),
                             ),
                     )
                   : tab == 1
@@ -513,7 +522,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       child: SingleChildScrollView(
                         key: ValueKey(tab),
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
                         child: Center(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 1240),
@@ -558,15 +567,17 @@ class _OperationsScreenState extends State<OperationsScreen> {
     ),
   );
 
-  Widget gap([double height = 14]) => SizedBox(height: height);
+  Widget gap([double height = 32]) => SizedBox(height: height);
 
   List<Widget> storeHome() {
     if (storeSection != 'home') {
       return [
-        TextButton.icon(
-          onPressed: () => setState(() => storeSection = 'home'),
-          icon: const Icon(CupertinoIcons.chevron_back),
-          label: const Text('우리매장으로'),
+        PressBounce(
+          child: TextButton.icon(
+            onPressed: () => setState(() => storeSection = 'home'),
+            icon: const Icon(CupertinoIcons.chevron_back),
+            label: const Text('우리매장으로'),
+          ),
         ),
         if (storeSection == 'overview') ...today(),
         if (storeSection == 'inventory') ...inventory(),
@@ -581,10 +592,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
         CupertinoIcons.gear,
         '매장 설정',
         '${ops.data?['store']?['name'] ?? '새 매장'} · ${profile['industryId'] ?? '업종 미설정'}',
-        () => Navigator.push(
-          context,
-          MaterialPageRoute<void>(builder: (_) => StoreProfileScreen(ops: ops)),
-        ),
+        () =>
+            showAppSheet(context, builder: (_) => StoreProfileScreen(ops: ops)),
       ),
       gap(),
       actionCard(
@@ -610,10 +619,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
           CupertinoIcons.square_list,
           '메뉴·재료 편집',
           '매장 메뉴와 재료 등록',
-          () => Navigator.push(
-            context,
-            MaterialPageRoute<void>(builder: (_) => CatalogEditor(ops: ops)),
-          ),
+          () => showAppSheet(context, builder: (_) => CatalogEditor(ops: ops)),
         ),
       if (ops.isLeader &&
           (pos['enabled'] == true || delivery['enabled'] == true)) ...[
@@ -621,15 +627,15 @@ class _OperationsScreenState extends State<OperationsScreen> {
         const Information(
           '사용 중인 주문 도구에 맞춰 접수·포장·전달 확인 업무를 살펴보세요. 가져올 양식은 직접 선택할 수 있어요.',
         ),
-        OutlinedButton.icon(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute<void>(
+        PressBounce(
+          child: OutlinedButton.icon(
+            onPressed: () => showAppSheet(
+              context,
               builder: (_) => RecommendedTapsScreen(ops: ops),
             ),
+            icon: const Icon(CupertinoIcons.list_bullet),
+            label: const Text('업무 양식 미리보기·선택'),
           ),
-          icon: const Icon(CupertinoIcons.list_bullet),
-          label: const Text('업무 양식 미리보기·선택'),
         ),
       ],
     ];
@@ -642,7 +648,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
       child: Text(
         text,
         style: const TextStyle(
-          fontSize: 19,
+          fontSize: 16,
           fontWeight: FontWeight.w800,
           color: AppColors.ink,
         ),
@@ -651,7 +657,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   );
   Widget small(String text) => Text(
     text,
-    style: const TextStyle(fontSize: 12, height: 1.65, color: AppColors.muted),
+    style: const TextStyle(fontSize: 13, height: 1.65, color: AppColors.muted),
   );
   Widget badge(String text, {Color color = AppColors.lime}) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
@@ -662,7 +668,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     child: Text(
       text,
       style: const TextStyle(
-        fontSize: 11,
+        fontSize: 13,
         fontWeight: FontWeight.w600,
         color: AppColors.green,
       ),
@@ -676,37 +682,44 @@ class _OperationsScreenState extends State<OperationsScreen> {
     Color color = AppColors.white,
   }) => Padding(
     padding: const EdgeInsets.only(bottom: 10),
-    child: Material(
-      color: color,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.line),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(
-            children: [
-              Icon(icon, size: 21, color: AppColors.green),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      heading,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
+    child: PressBounce(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: appCardShadow,
+        ),
+        child: Material(
+          color: color,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                children: [
+                  Icon(icon, size: 21, color: AppColors.green),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          heading,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const Icon(CupertinoIcons.chevron_right, size: 17),
+                ],
               ),
-              const Icon(CupertinoIcons.chevron_right, size: 17),
-            ],
+            ),
           ),
         ),
       ),
@@ -728,7 +741,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         '오늘 처음 왔나요?',
         '버디와 첫 출근 가이드 열기',
         () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
+          AppPageRoute<void>(
             builder: (_) => WorkspaceScreen(controller: widget.work),
           ),
         ),
@@ -761,9 +774,10 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 ),
               small(ops.data!['privateSummary']['note']),
               small('급여 계산·정산 기능은 아직 연결되지 않았어요.'),
-              TextButton.icon(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
+              PressBounce(
+                child: TextButton.icon(
+                  onPressed: () => showAppSheet(
+                    context,
                     builder: (_) => Scaffold(
                       appBar: AppBar(title: const Text('인건비 기록')),
                       body: SingleChildScrollView(
@@ -772,9 +786,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       ),
                     ),
                   ),
+                  icon: const Icon(CupertinoIcons.money_dollar_circle),
+                  label: const Text('근태·지급 기록 열기'),
                 ),
-                icon: const Icon(CupertinoIcons.money_dollar_circle),
-                label: const Text('근태·지급 기록 열기'),
               ),
             ],
           ),
@@ -828,15 +842,17 @@ class _OperationsScreenState extends State<OperationsScreen> {
     if (ops.isLeader && !ops.readOnly)
       Align(
         alignment: Alignment.centerLeft,
-        child: OutlinedButton.icon(
-          onPressed: ops.busy
-              ? null
-              : () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => CatalogEditor(ops: ops)),
-                ),
-          icon: const Icon(Icons.edit_outlined),
-          label: const Text('재료·메뉴 편집'),
+        child: PressBounce(
+          child: OutlinedButton.icon(
+            onPressed: ops.busy
+                ? null
+                : () => showAppSheet(
+                    context,
+                    builder: (_) => CatalogEditor(ops: ops),
+                  ),
+            icon: const Icon(Icons.edit_outlined),
+            label: const Text('재료·메뉴 편집'),
+          ),
         ),
       ),
     if (ops.isLeader) ...[
@@ -847,7 +863,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
           children: [
             Text(
               '보충 확인 ${lowStock.length}개 · 담은 재료 ${cart.length}개',
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             ),
             gap(8),
             small('공급처별로 나눠 정리해요. 결제·문자·카카오 전송은 없는 체험이에요.'),
@@ -856,20 +872,24 @@ class _OperationsScreenState extends State<OperationsScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                OutlinedButton(
-                  onPressed: lowStock.isEmpty
-                      ? null
-                      : () => setState(() {
-                          for (final i in lowStock) {
-                            cart[i['id']] = (i['orderQuantity'] as num)
-                                .toDouble();
-                          }
-                        }),
-                  child: const Text('부족한 재료 담기'),
+                PressBounce(
+                  child: OutlinedButton(
+                    onPressed: lowStock.isEmpty
+                        ? null
+                        : () => setState(() {
+                            for (final i in lowStock) {
+                              cart[i['id']] = (i['orderQuantity'] as num)
+                                  .toDouble();
+                            }
+                          }),
+                    child: const Text('부족한 재료 담기'),
+                  ),
                 ),
-                FilledButton(
-                  onPressed: cart.isEmpty || ops.busy ? null : reviewOrder,
-                  child: Text('발주함 보기 (${cart.length})'),
+                PressBounce(
+                  child: FilledButton(
+                    onPressed: cart.isEmpty || ops.busy ? null : reviewOrder,
+                    child: Text('발주함 보기 (${cart.length})'),
+                  ),
                 ),
               ],
             ),
@@ -902,7 +922,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       Text(
                         i['name'],
                         style: const TextStyle(
-                          fontSize: 17,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -913,7 +933,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 Text(
                   '${qty(i['quantity'])}${i['unit']}',
                   style: const TextStyle(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -961,9 +981,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
               spacing: 7,
               runSpacing: 7,
               children: [
-                OutlinedButton(
-                  onPressed: ops.busy ? null : () => checkStock(i),
-                  child: const Text('수량 확인'),
+                PressBounce(
+                  child: OutlinedButton(
+                    onPressed: ops.busy ? null : () => checkStock(i),
+                    child: const Text('수량 확인'),
+                  ),
                 ),
                 if (ops.isLeader)
                   FilledButton.tonal(
@@ -982,16 +1004,20 @@ class _OperationsScreenState extends State<OperationsScreen> {
                     ),
                   )
                 else
-                  TextButton(
-                    onPressed: ops.busy || i['restockRequestedBy'] != null
-                        ? null
-                        : () => act('request_restock', {'itemId': i['id']}),
-                    child: const Text('보충 요청'),
+                  PressBounce(
+                    child: TextButton(
+                      onPressed: ops.busy || i['restockRequestedBy'] != null
+                          ? null
+                          : () => act('request_restock', {'itemId': i['id']}),
+                      child: const Text('보충 요청'),
+                    ),
                   ),
                 if (ops.isLeader)
-                  TextButton(
-                    onPressed: ops.busy ? null : () => reviewPolicy(i),
-                    child: const Text('확인 기준'),
+                  PressBounce(
+                    child: TextButton(
+                      onPressed: ops.busy ? null : () => reviewPolicy(i),
+                      child: const Text('확인 기준'),
+                    ),
                   ),
               ],
             ),
@@ -1029,9 +1055,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
               ),
             if (ops.isLeader && order['status'] == 'ordered') ...[
               gap(10),
-              OutlinedButton(
-                onPressed: ops.busy ? null : () => receiveOrder(order),
-                child: const Text('입고 확인하고 재고 반영'),
+              PressBounce(
+                child: OutlinedButton(
+                  onPressed: ops.busy ? null : () => receiveOrder(order),
+                  child: const Text('입고 확인하고 재고 반영'),
+                ),
               ),
             ],
           ],
@@ -1062,7 +1090,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         children: [
           Text(
             '오늘 공석 ${gaps.length}곳',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           gap(7),
           small('대체 가능 표시만으로 근무가 확정되지는 않아요. 사장님·매니저 확인 후 함께 반영돼요.'),
@@ -1112,20 +1140,22 @@ class _OperationsScreenState extends State<OperationsScreen> {
               ),
               if (shift['covering'] == null) ...[
                 gap(8),
-                OutlinedButton(
-                  onPressed:
-                      ops.busy ||
-                          ops
-                              .rows('coverRequests')
-                              .any(
-                                (r) =>
-                                    r['shiftId'] == shift['id'] &&
-                                    r['actor']['id'] == ops.actorId &&
-                                    r['status'] == 'pending',
-                              )
-                      ? null
-                      : () => act('offer_cover', {'shiftId': shift['id']}),
-                  child: const Text('저 이 시간 가능해요 🙋'),
+                PressBounce(
+                  child: OutlinedButton(
+                    onPressed:
+                        ops.busy ||
+                            ops
+                                .rows('coverRequests')
+                                .any(
+                                  (r) =>
+                                      r['shiftId'] == shift['id'] &&
+                                      r['actor']['id'] == ops.actorId &&
+                                      r['status'] == 'pending',
+                                )
+                        ? null
+                        : () => act('offer_cover', {'shiftId': shift['id']}),
+                    child: const Text('저 이 시간 가능해요 🙋'),
+                  ),
                 ),
               ],
             ],
@@ -1134,9 +1164,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 '${shift['updatedBy']['name']}님이 ${time(shift['updatedAt'])} 변경',
               ),
             if (ops.isLeader)
-              TextButton(
-                onPressed: ops.busy ? null : () => changeShift(shift),
-                child: Text(shift['status'] == '휴가' ? '근무로 변경' : '휴가로 변경'),
+              PressBounce(
+                child: TextButton(
+                  onPressed: ops.busy ? null : () => changeShift(shift),
+                  child: Text(shift['status'] == '휴가' ? '근무로 변경' : '휴가로 변경'),
+                ),
               ),
           ],
         ),
@@ -1160,11 +1192,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   '${ops.rows('shifts').where((s) => s['id'] == request['shiftId']).first['time']} · 근무 가능 여부를 확인해 주세요',
                 ),
                 gap(8),
-                FilledButton(
-                  onPressed: ops.busy
-                      ? null
-                      : () => act('assign_cover', {'requestId': request['id']}),
-                  child: const Text('대체 근무 확정'),
+                PressBounce(
+                  child: FilledButton(
+                    onPressed: ops.busy
+                        ? null
+                        : () =>
+                              act('assign_cover', {'requestId': request['id']}),
+                    child: const Text('대체 근무 확정'),
+                  ),
                 ),
               ],
             ),
@@ -1375,7 +1410,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         builder: (context, update) => AlertDialog(
           title: Text(
             heading,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           content: SizedBox(
             width: 400,
@@ -1397,25 +1432,29 @@ class _OperationsScreenState extends State<OperationsScreen> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('닫기'),
+            PressBounce(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('닫기'),
+              ),
             ),
-            FilledButton(
-              onPressed: ops.readOnly
-                  ? null
-                  : () {
-                      final values = collect();
-                      if (values == null) {
-                        update(() => validation = '이름이나 수량의 입력 범위를 확인해 주세요.');
-                      } else {
-                        Navigator.pop(context, {
-                          ...values,
-                          'revision': formRevision,
-                        });
-                      }
-                    },
-              child: Text(ops.readOnly ? '미리보기 · 저장 불가' : confirm),
+            PressBounce(
+              child: FilledButton(
+                onPressed: ops.readOnly
+                    ? null
+                    : () {
+                        final values = collect();
+                        if (values == null) {
+                          update(() => validation = '이름이나 수량의 입력 범위를 확인해 주세요.');
+                        } else {
+                          Navigator.pop(context, {
+                            ...values,
+                            'revision': formRevision,
+                          });
+                        }
+                      },
+                child: Text(ops.readOnly ? '미리보기 · 저장 불가' : confirm),
+              ),
             ),
           ],
         ),

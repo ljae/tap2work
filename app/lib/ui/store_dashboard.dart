@@ -99,10 +99,12 @@ class _StoreDashboardState extends State<StoreDashboard> {
         ),
         if (dashboard == null) ...[
           const Information('메뉴·매출 데이터를 아직 불러오지 못했어요. 새로고침 후 다시 확인해 주세요.'),
-          TextButton.icon(
-            onPressed: () => ops.refresh(),
-            icon: const Icon(Icons.refresh),
-            label: const Text('현황 새로고침'),
+          PressBounce(
+            child: TextButton.icon(
+              onPressed: () => ops.refresh(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('현황 새로고침'),
+            ),
           ),
         ] else
           ...sales(dashboard),
@@ -146,7 +148,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                 headline,
                 style: const TextStyle(
                   color: AppColors.white,
-                  fontSize: 25,
+                  fontSize: 24,
                   height: 1.3,
                   fontWeight: FontWeight.w800,
                 ),
@@ -162,14 +164,16 @@ class _StoreDashboardState extends State<StoreDashboard> {
               ),
             ],
           );
-          final action = FilledButton.icon(
-            onPressed: () => widget.onNavigate(1),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.white,
-              foregroundColor: AppColors.green,
+          final action = PressBounce(
+            child: FilledButton.icon(
+              onPressed: () => widget.onNavigate(1),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.white,
+                foregroundColor: AppColors.green,
+              ),
+              icon: const Icon(Icons.arrow_forward_rounded, size: 19),
+              label: const Text('할 일 보드 열기'),
             ),
-            icon: const Icon(Icons.arrow_forward_rounded, size: 19),
-            label: const Text('할 일 보드 열기'),
           );
           if (box.maxWidth < 600) {
             return Column(
@@ -309,7 +313,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 13,
             color: dark ? AppColors.lime : AppColors.muted,
           ),
         ),
@@ -320,7 +324,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
           child: Text(
             value,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 24,
               fontWeight: FontWeight.w800,
               letterSpacing: -.8,
               color: dark ? Colors.white : AppColors.ink,
@@ -331,7 +335,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
         Text(
           detail,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 13,
             color: dark ? const Color(0xFFDDE5D5) : AppColors.muted,
           ),
         ),
@@ -397,7 +401,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                       .map(
                         (s) => DropdownMenuItem(
                           value: s,
-                          child: Text(s, style: const TextStyle(fontSize: 12)),
+                          child: Text(s, style: const TextStyle(fontSize: 13)),
                         ),
                       )
                       .toList(),
@@ -425,7 +429,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                           '${index + 1}'.padLeft(2, '0'),
                           style: const TextStyle(
                             color: AppColors.muted,
-                            fontSize: 11,
+                            fontSize: 13,
                           ),
                         ),
                       ),
@@ -439,7 +443,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                           menu['name'],
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                            fontSize: 13,
                           ),
                         ),
                       ),
@@ -489,9 +493,11 @@ class _StoreDashboardState extends State<StoreDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           heading('지금 처리할 주문', '전체 채널 ${all.length}건 · 오래된 주문부터'),
-          TextButton(
-            onPressed: () => widget.onNavigate(1),
-            child: const Text('Tap 보드에서 처리 →'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => widget.onNavigate(1),
+              child: const Text('Tap 보드에서 처리 →'),
+            ),
           ),
           chips(
             ['전체', '접수', '조리 중', '준비 완료'],
@@ -525,7 +531,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                         '#${order['number']}',
                         style: const TextStyle(
                           fontWeight: FontWeight.w800,
-                          fontSize: 14,
+                          fontSize: 13,
                         ),
                       ),
                       if ((order['request'] ?? '').toString().isNotEmpty)
@@ -541,9 +547,11 @@ class _StoreDashboardState extends State<StoreDashboard> {
                               title: const Text('주문 요청사항'),
                               content: Text(order['request']),
                               actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('확인'),
+                                PressBounce(
+                                  child: TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('확인'),
+                                  ),
                                 ),
                               ],
                             ),
@@ -563,7 +571,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                         child: Text(
                           order['status'],
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: 13,
                             color: AppColors.green,
                           ),
                         ),
@@ -656,11 +664,41 @@ class _StoreDashboardState extends State<StoreDashboard> {
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('00시'),
-              Text('06시'),
-              Text('12시'),
-              Text('18시'),
-              Text('23시'),
+              Expanded(
+                child: Text(
+                  '00시',
+                  textAlign: TextAlign.center,
+                  style: AppText.caption,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  '06시',
+                  textAlign: TextAlign.center,
+                  style: AppText.caption,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  '12시',
+                  textAlign: TextAlign.center,
+                  style: AppText.caption,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  '18시',
+                  textAlign: TextAlign.center,
+                  style: AppText.caption,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  '23시',
+                  textAlign: TextAlign.center,
+                  style: AppText.caption,
+                ),
+              ),
             ],
           ),
           space(8),
@@ -722,7 +760,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
               Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 23,
+                  fontSize: 24,
                   fontWeight: FontWeight.w800,
                 ),
               ),

@@ -89,7 +89,11 @@ class _WorkspaceSetup extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text('내 매장 시작하기'),
-      actions: [TextButton(onPressed: onAccount, child: const Text('계정'))],
+      actions: [
+        PressBounce(
+          child: TextButton(onPressed: onAccount, child: const Text('계정')),
+        ),
+      ],
     ),
     body: SafeArea(
       child: Center(
@@ -100,29 +104,33 @@ class _WorkspaceSetup extends StatelessWidget {
             children: [
               const Text(
                 '어떤 매장으로 시작할까요?',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               const Text('선택한 매장은 이 계정에 저장됩니다. 빈 매장은 내 재료와 메뉴를 직접 등록할 수 있어요.'),
               const SizedBox(height: 24),
-              FilledButton(
-                onPressed: ops.busy
-                    ? null
-                    : () => ops.act('create_workspace', {
-                        'mode': 'blank',
-                        'revision': 0,
-                      }),
-                child: const Text('빈 매장으로 시작'),
+              PressBounce(
+                child: FilledButton(
+                  onPressed: ops.busy
+                      ? null
+                      : () => ops.act('create_workspace', {
+                          'mode': 'blank',
+                          'revision': 0,
+                        }),
+                  child: const Text('빈 매장으로 시작'),
+                ),
               ),
               const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: ops.busy
-                    ? null
-                    : () => ops.act('create_workspace', {
-                        'mode': 'sample',
-                        'revision': 0,
-                      }),
-                child: const Text('샘플 매장으로 체험'),
+              PressBounce(
+                child: OutlinedButton(
+                  onPressed: ops.busy
+                      ? null
+                      : () => ops.act('create_workspace', {
+                          'mode': 'sample',
+                          'revision': 0,
+                        }),
+                  child: const Text('샘플 매장으로 체험'),
+                ),
               ),
               const SizedBox(height: 12),
               const Text(
@@ -149,13 +157,17 @@ Future<void> openAccount(BuildContext context, SupabaseClient client) async {
         title: const Text('내 계정'),
         content: Text(client.auth.currentUser?.email ?? ''),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c),
-            child: const Text('닫기'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(c),
+              child: const Text('닫기'),
+            ),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(c, true),
-            child: const Text('로그아웃'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: const Text('로그아웃'),
+            ),
           ),
         ],
       ),
@@ -301,42 +313,46 @@ class _SignInDialogState extends State<_SignInDialog> {
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              child: FilledButton(
-                onPressed: busy ? null : submit,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (busy) ...[
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.white,
+              child: PressBounce(
+                child: FilledButton(
+                  onPressed: busy ? null : submit,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (busy) ...[
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.white,
+                          ),
                         ),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        busy
+                            ? '연결 중…'
+                            : signup
+                            ? '계정 만들기'
+                            : '로그인',
                       ),
-                      const SizedBox(width: 8),
                     ],
-                    Text(
-                      busy
-                          ? '연결 중…'
-                          : signup
-                          ? '계정 만들기'
-                          : '로그인',
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-            TextButton(
-              onPressed: busy
-                  ? null
-                  : () => setState(() {
-                      signup = !signup;
-                      message = null;
-                    }),
-              child: Text(signup ? '이미 계정이 있어요' : '처음 이용하시나요? 계정 만들기'),
+            PressBounce(
+              child: TextButton(
+                onPressed: busy
+                    ? null
+                    : () => setState(() {
+                        signup = !signup;
+                        message = null;
+                      }),
+                child: Text(signup ? '이미 계정이 있어요' : '처음 이용하시나요? 계정 만들기'),
+              ),
             ),
           ],
         ),

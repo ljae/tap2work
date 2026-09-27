@@ -289,13 +289,8 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             children: [
-              const PageHeading(
-                'TAP SETTINGS',
-                '업무 설정',
-                '업무 유형을 선택하고 필요한 항목만 조정하세요.',
-              ),
               const Information('변경한 설정은 다음에 생성되는 업무부터 적용돼요. 오늘의 완료 기록은 유지돼요.'),
               if (widget.ops.readOnly)
                 const Information('공개 미리보기에서는 설정을 저장하지 않아요.'),
@@ -385,7 +380,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               Text(
                 'Task · ${(task['steps'] as List).length}개',
                 style: const TextStyle(
-                  fontSize: 19,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -399,12 +394,14 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               if (widget.ops.data?['revision'] != revision)
                 const Information('다른 변경이 저장됐어요. 최신 업무를 확인한 뒤 다시 열어 주세요.'),
               const SizedBox(height: 14),
-              FilledButton(
-                onPressed:
-                    widget.ops.isLeader && !widget.ops.readOnly && !saving
-                    ? save
-                    : null,
-                child: Text(saving ? '저장 중…' : '다음 업무부터 적용'),
+              PressBounce(
+                child: FilledButton(
+                  onPressed:
+                      widget.ops.isLeader && !widget.ops.readOnly && !saving
+                      ? save
+                      : null,
+                  child: Text(saving ? '저장 중…' : '다음 업무부터 적용'),
+                ),
               ),
             ],
           ),

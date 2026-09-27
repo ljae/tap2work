@@ -63,20 +63,21 @@ class _FloorPlanViewState extends State<FloorPlanView> {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             if (ops.isLeader)
-              FilledButton.icon(
-                onPressed: ops.busy
-                    ? null
-                    : () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
+              PressBounce(
+                child: FilledButton.icon(
+                  onPressed: ops.busy
+                      ? null
+                      : () => showAppSheet(
+                          context,
                           builder: (_) => _LayoutEditor(operations: ops),
                         ),
-                      ),
-                icon: const Icon(Icons.edit_location_alt_outlined),
-                label: const Text('배치 설정'),
+                  icon: const Icon(Icons.edit_location_alt_outlined),
+                  label: const Text('배치 설정'),
+                ),
               ),
             const Text(
               '테이블 · 기기 · 보관 · 출입구',
-              style: TextStyle(fontSize: 12, color: AppColors.muted),
+              style: TextStyle(fontSize: 13, color: AppColors.muted),
             ),
           ],
         ),
@@ -98,7 +99,7 @@ class _FloorPlanViewState extends State<FloorPlanView> {
         const SizedBox(height: 10),
         const Text(
           '두 손가락으로 확대 · 항목을 눌러 상세 확인 · 격자는 상대적인 배치 기준',
-          style: TextStyle(fontSize: 12, color: AppColors.muted),
+          style: TextStyle(fontSize: 13, color: AppColors.muted),
         ),
         if (selection != null) ...[
           const SizedBox(height: 16),
@@ -109,7 +110,7 @@ class _FloorPlanViewState extends State<FloorPlanView> {
                 Text(
                   '${selection['name']} · ${_kinds[selection['kind']]}',
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -217,7 +218,7 @@ class _Summary extends StatelessWidget {
                   Text(
                     value.$2,
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: AppColors.muted,
                     ),
                   ),
@@ -225,7 +226,7 @@ class _Summary extends StatelessWidget {
                   Text(
                     value.$3,
                     style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: 16,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -328,9 +329,11 @@ class _MapCanvasState extends State<_MapCanvas> {
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
-            TextButton(
-              onPressed: () => transform.value = Matrix4.identity(),
-              child: const Text('전체 보기'),
+            PressBounce(
+              child: TextButton(
+                onPressed: () => transform.value = Matrix4.identity(),
+                child: const Text('전체 보기'),
+              ),
             ),
           ],
         ),
@@ -447,7 +450,7 @@ class _MapCanvasState extends State<_MapCanvas> {
                                                     Text(
                                                       '${widget.route.contains(z['id']) ? '${widget.route.indexOf(z['id']) + 1}. ' : ''}${z['name']}',
                                                       style: const TextStyle(
-                                                        fontSize: 12,
+                                                        fontSize: 13,
                                                         fontWeight:
                                                             FontWeight.w700,
                                                       ),
@@ -456,7 +459,7 @@ class _MapCanvasState extends State<_MapCanvas> {
                                                       Text(
                                                         '${z['seats']}인석',
                                                         style: const TextStyle(
-                                                          fontSize: 10,
+                                                          fontSize: 13,
                                                         ),
                                                       ),
                                                   ],
@@ -688,13 +691,17 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                 title: const Text('배치 변경을 취소할까요?'),
                 content: const Text('저장하지 않은 배치 변경은 사라져요.'),
                 actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('계속 편집'),
+                  PressBounce(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('계속 편집'),
+                    ),
                   ),
-                  FilledButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('변경 취소'),
+                  PressBounce(
+                    child: FilledButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('변경 취소'),
+                    ),
                   ),
                 ],
               ),
@@ -837,13 +844,17 @@ class _LayoutEditorState extends State<_LayoutEditor> {
         title: const Text('최신 배치를 불러올까요?'),
         content: const Text('현재 편집한 내용은 버리고 매장에 저장된 배치를 불러와요.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('계속 편집'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('계속 편집'),
+            ),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('불러오기'),
+          PressBounce(
+            child: FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('불러오기'),
+            ),
           ),
         ],
       ),
@@ -928,16 +939,18 @@ class _LayoutEditorState extends State<_LayoutEditor> {
         bottomNavigationBar: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(12),
-            child: FilledButton.icon(
-              key: const Key('save-layout'),
-              onPressed: ops.readOnly || ops.busy || !dirty ? null : save,
-              icon: const Icon(Icons.save_outlined),
-              label: Text(
-                ops.readOnly
-                    ? '공개 미리보기 · 저장 불가'
-                    : ops.busy
-                    ? '저장 중…'
-                    : '배치 저장',
+            child: PressBounce(
+              child: FilledButton.icon(
+                key: const Key('save-layout'),
+                onPressed: ops.readOnly || ops.busy || !dirty ? null : save,
+                icon: const Icon(Icons.save_outlined),
+                label: Text(
+                  ops.readOnly
+                      ? '공개 미리보기 · 저장 불가'
+                      : ops.busy
+                      ? '저장 중…'
+                      : '배치 저장',
+                ),
               ),
             ),
           ),
@@ -962,9 +975,11 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                       const Information(
                         '매장 정보가 변경됐어요. 덮어쓰지 않도록 최신 배치를 불러온 뒤 다시 편집해 주세요.',
                       ),
-                      TextButton(
-                        onPressed: reload,
-                        child: const Text('최신 배치 불러오기'),
+                      PressBounce(
+                        child: TextButton(
+                          onPressed: reload,
+                          child: const Text('최신 배치 불러오기'),
+                        ),
                       ),
                     ],
                     if (error != null || geometryError != null)
@@ -983,17 +998,21 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                       spacing: 10,
                       runSpacing: 8,
                       children: [
-                        OutlinedButton.icon(
-                          onPressed: zones.length >= 80
-                              ? null
-                              : () => editItem(),
-                          icon: const Icon(Icons.add),
-                          label: const Text('테이블·기기 추가'),
+                        PressBounce(
+                          child: OutlinedButton.icon(
+                            onPressed: zones.length >= 80
+                                ? null
+                                : () => editItem(),
+                            icon: const Icon(Icons.add),
+                            label: const Text('테이블·기기 추가'),
+                          ),
                         ),
-                        TextButton.icon(
-                          onPressed: dimensions,
-                          icon: const Icon(Icons.grid_on),
-                          label: const Text('매장 크기·이름'),
+                        PressBounce(
+                          child: TextButton.icon(
+                            onPressed: dimensions,
+                            icon: const Icon(Icons.grid_on),
+                            label: const Text('매장 크기·이름'),
+                          ),
                         ),
                       ],
                     ),
@@ -1002,7 +1021,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                       padding: EdgeInsets.only(bottom: 12),
                       child: Text(
                         '기기를 끌어 이동하고, 선택한 기기의 모서리로 크기를 조정하세요.',
-                        style: TextStyle(fontSize: 12, color: AppColors.muted),
+                        style: TextStyle(fontSize: 13, color: AppColors.muted),
                       ),
                     ),
                     _MapCanvas(
@@ -1027,7 +1046,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                             ),
                             const Text(
                               '빈 칸을 누르거나 화살표로 한 칸씩 옮기세요.',
-                              style: TextStyle(fontSize: 12),
+                              style: TextStyle(fontSize: 13),
                             ),
                             Wrap(
                               spacing: 4,
@@ -1051,19 +1070,23 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                             Wrap(
                               spacing: 10,
                               children: [
-                                TextButton.icon(
-                                  onPressed: () => editItem(selection),
-                                  icon: const Icon(Icons.tune),
-                                  label: const Text('이름·크기·좌석 수정'),
+                                PressBounce(
+                                  child: TextButton.icon(
+                                    onPressed: () => editItem(selection),
+                                    icon: const Icon(Icons.tune),
+                                    label: const Text('이름·크기·좌석 수정'),
+                                  ),
                                 ),
-                                TextButton.icon(
-                                  onPressed: () => setState(() {
-                                    zones.remove(selection);
-                                    selected = null;
-                                    dirty = true;
-                                  }),
-                                  icon: const Icon(Icons.delete_outline),
-                                  label: const Text('배치에서 삭제'),
+                                PressBounce(
+                                  child: TextButton.icon(
+                                    onPressed: () => setState(() {
+                                      zones.remove(selection);
+                                      selected = null;
+                                      dirty = true;
+                                    }),
+                                    icon: const Icon(Icons.delete_outline),
+                                    label: const Text('배치에서 삭제'),
+                                  ),
                                 ),
                               ],
                             ),
@@ -1271,47 +1294,51 @@ class _ItemDialogState extends State<_ItemDialog> {
       ),
     ),
     actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text('취소'),
+      PressBounce(
+        child: TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('취소'),
+        ),
       ),
-      FilledButton(
-        onPressed: () {
-          if (!form.currentState!.validate()) return;
-          final baseWidth = rotation == 90 || rotation == 270
-              ? int.parse(height.text)
-              : int.parse(width.text);
-          final baseHeight = rotation == 90 || rotation == 270
-              ? int.parse(width.text)
-              : int.parse(height.text);
-          if (shape != 'rect' &&
-              (int.parse(notchWidth.text) >
-                      baseWidth - (shape == 'u' ? 2 : 1) ||
-                  int.parse(notchDepth.text) >= baseHeight)) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('도형의 홈이 바깥 경계를 넘어가요.')),
-            );
-            return;
-          }
-          Navigator.pop(context, <String, dynamic>{
-            'id':
-                widget.item?['id'] ??
-                'layout-${DateTime.now().microsecondsSinceEpoch}',
-            'kind': kind,
-            'name': name.text.trim(),
-            'description': description.text.trim(),
-            'x': int.parse(x.text) - 1,
-            'y': int.parse(y.text) - 1,
-            'width': int.parse(width.text),
-            'height': int.parse(height.text),
-            'shape': shape,
-            'rotation': shape == 'rect' ? 0 : rotation,
-            'notchWidth': shape == 'rect' ? 0 : int.parse(notchWidth.text),
-            'notchDepth': shape == 'rect' ? 0 : int.parse(notchDepth.text),
-            'seats': kind == 'table' ? int.parse(seats.text) : 0,
-          });
-        },
-        child: const Text('배치에 적용'),
+      PressBounce(
+        child: FilledButton(
+          onPressed: () {
+            if (!form.currentState!.validate()) return;
+            final baseWidth = rotation == 90 || rotation == 270
+                ? int.parse(height.text)
+                : int.parse(width.text);
+            final baseHeight = rotation == 90 || rotation == 270
+                ? int.parse(width.text)
+                : int.parse(height.text);
+            if (shape != 'rect' &&
+                (int.parse(notchWidth.text) >
+                        baseWidth - (shape == 'u' ? 2 : 1) ||
+                    int.parse(notchDepth.text) >= baseHeight)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('도형의 홈이 바깥 경계를 넘어가요.')),
+              );
+              return;
+            }
+            Navigator.pop(context, <String, dynamic>{
+              'id':
+                  widget.item?['id'] ??
+                  'layout-${DateTime.now().microsecondsSinceEpoch}',
+              'kind': kind,
+              'name': name.text.trim(),
+              'description': description.text.trim(),
+              'x': int.parse(x.text) - 1,
+              'y': int.parse(y.text) - 1,
+              'width': int.parse(width.text),
+              'height': int.parse(height.text),
+              'shape': shape,
+              'rotation': shape == 'rect' ? 0 : rotation,
+              'notchWidth': shape == 'rect' ? 0 : int.parse(notchWidth.text),
+              'notchDepth': shape == 'rect' ? 0 : int.parse(notchDepth.text),
+              'seats': kind == 'table' ? int.parse(seats.text) : 0,
+            });
+          },
+          child: const Text('배치에 적용'),
+        ),
       ),
     ],
   );
@@ -1370,7 +1397,7 @@ class _DimensionsDialogState extends State<_DimensionsDialog> {
               const SizedBox(height: 12),
               const Text(
                 '실제 미터 단위가 아닌 배치 격자예요. 크기를 줄이면 항목이 경계를 벗어나지 않는지 확인해 주세요.',
-                style: TextStyle(fontSize: 12),
+                style: TextStyle(fontSize: 13),
               ),
             ],
           ),
@@ -1378,21 +1405,25 @@ class _DimensionsDialogState extends State<_DimensionsDialog> {
       ),
     ),
     actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text('취소'),
+      PressBounce(
+        child: TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('취소'),
+        ),
       ),
-      FilledButton(
-        onPressed: () {
-          if (form.currentState!.validate()) {
-            Navigator.pop(context, <String, dynamic>{
-              'name': name.text.trim(),
-              'columns': int.parse(columns.text),
-              'rows': int.parse(rows.text),
-            });
-          }
-        },
-        child: const Text('크기 적용'),
+      PressBounce(
+        child: FilledButton(
+          onPressed: () {
+            if (form.currentState!.validate()) {
+              Navigator.pop(context, <String, dynamic>{
+                'name': name.text.trim(),
+                'columns': int.parse(columns.text),
+                'rows': int.parse(rows.text),
+              });
+            }
+          },
+          child: const Text('크기 적용'),
+        ),
       ),
     ],
   );

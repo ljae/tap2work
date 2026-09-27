@@ -45,10 +45,10 @@ class _TeamScreenState extends State<TeamScreen> {
     final duties = <String>{
       ...(current?['duties'] as List? ?? ['서빙1']).cast<String>(),
     };
-    final saved = await showDialog<Json>(
+    final saved = await showAppFormSheet<Json>(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, update) => AlertDialog(
+        builder: (context, update) => AppSheetPanel(
           title: Text(
             widget.payOnly
                 ? '인건비 설정'
@@ -150,29 +150,33 @@ class _TeamScreenState extends State<TeamScreen> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('취소'),
+            PressBounce(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('취소'),
+              ),
             ),
-            FilledButton(
-              onPressed:
-                  nickname.text.trim().isEmpty ||
-                      duties.isEmpty ||
-                      int.tryParse(rate.text) == null
-                  ? null
-                  : () => Navigator.pop(context, {
-                      if (current != null) 'id': current['id'],
-                      'nickname': nickname.text.trim(),
-                      'rank': rank,
-                      'employmentType': employment,
-                      'duties': duties.toList(),
-                      'hourlyWon': int.parse(rate.text),
-                      'payPeriod': period,
-                      'kakaoUrl': kakao.text.trim(),
-                      'phone': phone.text.trim(),
-                      'active': true,
-                    }),
-              child: const Text('저장'),
+            PressBounce(
+              child: FilledButton(
+                onPressed:
+                    nickname.text.trim().isEmpty ||
+                        duties.isEmpty ||
+                        int.tryParse(rate.text) == null
+                    ? null
+                    : () => Navigator.pop(context, {
+                        if (current != null) 'id': current['id'],
+                        'nickname': nickname.text.trim(),
+                        'rank': rank,
+                        'employmentType': employment,
+                        'duties': duties.toList(),
+                        'hourlyWon': int.parse(rate.text),
+                        'payPeriod': period,
+                        'kakaoUrl': kakao.text.trim(),
+                        'phone': phone.text.trim(),
+                        'active': true,
+                      }),
+                child: const Text('저장'),
+              ),
             ),
           ],
         ),
@@ -190,26 +194,28 @@ class _TeamScreenState extends State<TeamScreen> {
     var start = const TimeOfDay(hour: 9, minute: 0);
     var end = const TimeOfDay(hour: 18, minute: 0);
     var duty = (tapper['duties'] as List).first as String;
-    final result = await showDialog<Json>(
+    final result = await showAppFormSheet<Json>(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, update) => AlertDialog(
+        builder: (context, update) => AppSheetPanel(
           title: Text('${tapper['nickname']} 근무 배정'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              OutlinedButton(
-                onPressed: () async {
-                  final next = await showDatePicker(
-                    context: context,
-                    initialDate: date,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2035),
-                  );
-                  if (next != null) update(() => date = next);
-                },
-                child: Text(
-                  '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+              PressBounce(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    final next = await showDatePicker(
+                      context: context,
+                      initialDate: date,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2035),
+                    );
+                    if (next != null) update(() => date = next);
+                  },
+                  child: Text(
+                    '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+                  ),
                 ),
               ),
               AppPicker<String>(
@@ -223,45 +229,53 @@ class _TeamScreenState extends State<TeamScreen> {
                     .toList(),
                 onChanged: (v) => update(() => duty = v!),
               ),
-              OutlinedButton(
-                onPressed: () async {
-                  final next = await showTimePicker(
-                    context: context,
-                    initialTime: start,
-                  );
-                  if (next != null) update(() => start = next);
-                },
-                child: Text('시작 ${start.format(context)}'),
+              PressBounce(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    final next = await showTimePicker(
+                      context: context,
+                      initialTime: start,
+                    );
+                    if (next != null) update(() => start = next);
+                  },
+                  child: Text('시작 ${start.format(context)}'),
+                ),
               ),
-              OutlinedButton(
-                onPressed: () async {
-                  final next = await showTimePicker(
-                    context: context,
-                    initialTime: end,
-                  );
-                  if (next != null) update(() => end = next);
-                },
-                child: Text('종료 ${end.format(context)}'),
+              PressBounce(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    final next = await showTimePicker(
+                      context: context,
+                      initialTime: end,
+                    );
+                    if (next != null) update(() => end = next);
+                  },
+                  child: Text('종료 ${end.format(context)}'),
+                ),
               ),
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('취소'),
+            PressBounce(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('취소'),
+              ),
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, {
-                'tapperId': tapper['id'],
-                'duty': duty,
-                'date':
-                    '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
-                'start':
-                    '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}',
-                'end':
-                    '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}',
-              }),
-              child: const Text('배정'),
+            PressBounce(
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context, {
+                  'tapperId': tapper['id'],
+                  'duty': duty,
+                  'date':
+                      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+                  'start':
+                      '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}',
+                  'end':
+                      '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}',
+                }),
+                child: const Text('배정'),
+              ),
             ),
           ],
         ),
@@ -273,9 +287,9 @@ class _TeamScreenState extends State<TeamScreen> {
   Future<void> addAmount(Json tapper, String type) async {
     final amount = TextEditingController();
     final note = TextEditingController();
-    final result = await showDialog<Json>(
+    final result = await showAppFormSheet<Json>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppSheetPanel(
         title: Text(type == 'record_payment' ? '지급액 기록' : '추가보수 기록'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -293,21 +307,25 @@ class _TeamScreenState extends State<TeamScreen> {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소'),
+            ),
           ),
-          FilledButton(
-            onPressed: () {
-              final won = int.tryParse(amount.text);
-              if (won == null || won < 0) return;
-              Navigator.pop(context, {
-                'tapperId': tapper['id'],
-                'amountWon': won,
-                if (type == 'add_pay_adjustment') 'note': note.text.trim(),
-              });
-            },
-            child: const Text('기록'),
+          PressBounce(
+            child: FilledButton(
+              onPressed: () {
+                final won = int.tryParse(amount.text);
+                if (won == null || won < 0) return;
+                Navigator.pop(context, {
+                  'tapperId': tapper['id'],
+                  'amountWon': won,
+                  if (type == 'add_pay_adjustment') 'note': note.text.trim(),
+                });
+              },
+              child: const Text('기록'),
+            ),
           ),
         ],
       ),
@@ -364,32 +382,40 @@ class _TeamScreenState extends State<TeamScreen> {
                     spacing: 8,
                     children: [
                       if (state == 'off_duty' || state == 'clock_out')
-                        FilledButton(
-                          onPressed: ops.readOnly || ops.busy
-                              ? null
-                              : () => action('clock_in', {}),
-                          child: const Text('출근'),
+                        PressBounce(
+                          child: FilledButton(
+                            onPressed: ops.readOnly || ops.busy
+                                ? null
+                                : () => action('clock_in', {}),
+                            child: const Text('출근'),
+                          ),
                         ),
                       if (state == 'clock_in' || state == 'break_end')
-                        OutlinedButton(
-                          onPressed: ops.readOnly || ops.busy
-                              ? null
-                              : () => action('break_start', {}),
-                          child: const Text('휴게 시작'),
+                        PressBounce(
+                          child: OutlinedButton(
+                            onPressed: ops.readOnly || ops.busy
+                                ? null
+                                : () => action('break_start', {}),
+                            child: const Text('휴게 시작'),
+                          ),
                         ),
                       if (state == 'break_start')
-                        OutlinedButton(
-                          onPressed: ops.readOnly || ops.busy
-                              ? null
-                              : () => action('break_end', {}),
-                          child: const Text('휴게 종료'),
+                        PressBounce(
+                          child: OutlinedButton(
+                            onPressed: ops.readOnly || ops.busy
+                                ? null
+                                : () => action('break_end', {}),
+                            child: const Text('휴게 종료'),
+                          ),
                         ),
                       if (state == 'clock_in' || state == 'break_end')
-                        FilledButton(
-                          onPressed: ops.readOnly || ops.busy
-                              ? null
-                              : () => action('clock_out', {}),
-                          child: const Text('퇴근'),
+                        PressBounce(
+                          child: FilledButton(
+                            onPressed: ops.readOnly || ops.busy
+                                ? null
+                                : () => action('clock_out', {}),
+                            child: const Text('퇴근'),
+                          ),
                         ),
                     ],
                   ),
@@ -399,10 +425,12 @@ class _TeamScreenState extends State<TeamScreen> {
             ),
           const SizedBox(height: 16),
           if (!widget.payOnly && ops.isOwner)
-            FilledButton.icon(
-              onPressed: ops.busy || ops.readOnly ? null : () => editTapper(),
-              icon: const Icon(Icons.person_add_alt),
-              label: const Text('Tapper 등록'),
+            PressBounce(
+              child: FilledButton.icon(
+                onPressed: ops.busy || ops.readOnly ? null : () => editTapper(),
+                icon: const Icon(Icons.person_add_alt),
+                label: const Text('Tapper 등록'),
+              ),
             ),
           const SizedBox(height: 12),
           for (final tapper in tappers.where((t) => t['active'] == true))
@@ -415,7 +443,7 @@ class _TeamScreenState extends State<TeamScreen> {
                     Text(
                       '${tapper['nickname']} · ${_ranks[tapper['rank']] ?? '크루'}',
                       style: const TextStyle(
-                        fontSize: 17,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -438,51 +466,66 @@ class _TeamScreenState extends State<TeamScreen> {
                       spacing: 6,
                       children: [
                         if (widget.payOnly && ops.isOwner)
-                          TextButton(
-                            onPressed: ops.readOnly
-                                ? null
-                                : () => editTapper(tapper),
-                            child: const Text('인건비 설정'),
+                          PressBounce(
+                            child: TextButton(
+                              onPressed: ops.readOnly
+                                  ? null
+                                  : () => editTapper(tapper),
+                              child: const Text('인건비 설정'),
+                            ),
                           ),
                         if (!widget.payOnly && ops.isOwner)
-                          TextButton(
-                            onPressed: ops.readOnly
-                                ? null
-                                : () => editTapper(tapper),
-                            child: const Text('수정'),
+                          PressBounce(
+                            child: TextButton(
+                              onPressed: ops.readOnly
+                                  ? null
+                                  : () => editTapper(tapper),
+                              child: const Text('수정'),
+                            ),
                           ),
                         if (!widget.payOnly && ops.isLeader)
-                          TextButton(
-                            onPressed: ops.readOnly
-                                ? null
-                                : () => editShift(tapper),
-                            child: const Text('근무 배정'),
+                          PressBounce(
+                            child: TextButton(
+                              onPressed: ops.readOnly
+                                  ? null
+                                  : () => editShift(tapper),
+                              child: const Text('근무 배정'),
+                            ),
                           ),
                         if (widget.payOnly && ops.isOwner)
-                          TextButton(
-                            onPressed: ops.readOnly
-                                ? null
-                                : () => addAmount(tapper, 'add_pay_adjustment'),
-                            child: const Text('추가보수'),
+                          PressBounce(
+                            child: TextButton(
+                              onPressed: ops.readOnly
+                                  ? null
+                                  : () =>
+                                        addAmount(tapper, 'add_pay_adjustment'),
+                              child: const Text('추가보수'),
+                            ),
                           ),
                         if (widget.payOnly && ops.isOwner)
-                          TextButton(
-                            onPressed: ops.readOnly
-                                ? null
-                                : () => addAmount(tapper, 'record_payment'),
-                            child: const Text('지급 기록'),
+                          PressBounce(
+                            child: TextButton(
+                              onPressed: ops.readOnly
+                                  ? null
+                                  : () => addAmount(tapper, 'record_payment'),
+                              child: const Text('지급 기록'),
+                            ),
                           ),
                         if ((tapper['phone'] ?? '').toString().isNotEmpty)
-                          TextButton(
-                            onPressed: () =>
-                                openContact(tapper['phone'], phone: true),
-                            child: const Text('전화 연결'),
+                          PressBounce(
+                            child: TextButton(
+                              onPressed: () =>
+                                  openContact(tapper['phone'], phone: true),
+                              child: const Text('전화 연결'),
+                            ),
                           ),
                         if ((tapper['kakaoUrl'] ?? '').toString().isNotEmpty)
-                          TextButton(
-                            onPressed: () =>
-                                openContact(tapper['kakaoUrl'], phone: false),
-                            child: const Text('카카오톡 링크'),
+                          PressBounce(
+                            child: TextButton(
+                              onPressed: () =>
+                                  openContact(tapper['kakaoUrl'], phone: false),
+                              child: const Text('카카오톡 링크'),
+                            ),
                           ),
                       ],
                     ),

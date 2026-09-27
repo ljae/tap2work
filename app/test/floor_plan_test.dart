@@ -32,7 +32,7 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
 }
 
 void expectSummary(String id, String label, String value) {
-  final card = find.byKey(Key('layout-summary-$id'));
+  final card = find.byKey(Key('layout-summary-$id')).last;
   expect(find.descendant(of: card, matching: find.text(label)), findsOneWidget);
   expect(find.descendant(of: card, matching: find.text(value)), findsOneWidget);
 }
@@ -57,7 +57,7 @@ void main() {
     await openMap(tester, ops);
     await tapVisible(tester, find.widgetWithText(FilledButton, '배치 설정'));
     await tapVisible(tester, find.widgetWithText(ChoiceChip, '1번 테이블'));
-    final zone = find.byKey(const ValueKey('move-zone-table-1'));
+    final zone = find.byKey(const ValueKey('move-zone-table-1')).last;
     await tester.ensureVisible(zone);
     final unit = tester.getSize(zone).width / 3;
     await tester.drag(zone, Offset(0, unit));

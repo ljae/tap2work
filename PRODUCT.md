@@ -1,5 +1,9 @@
 # Product working brief
 
+## 공통 UI 규칙 · 2026-09-27
+
+사용자가 요청한 토스 스타일 규칙을 적용한다. Pretendard 제목 24/Bold, 본문 16/Medium, 설명 13/Regular, 기본 글자 #191F28, 화면 좌우 24px, 세로 섹션 32px를 사용한다. 배경은 #F2F4F6, 기본 카드는 흰색·16px 모서리·4% 그림자로 구분한다. 강조색은 사용자 답변에 따라 기존 초록·코랄을 유지한다. 설정·편집·상세는 상단 모서리 24px와 회색 핸들이 있는 바텀 시트로 열고 네 주요 메뉴는 유지한다. 편집 시트의 외부 탭·드래그 닫기는 비활성화해 기존 취소 확인을 보존한다. 최초 로딩은 shimmer 스켈레톤, 일반 버튼은 0.95배 눌림과 복원, 주요 화면 이동은 Cupertino 전환을 사용하며 동작 줄이기를 따른다. 새 화면 개발의 고정 가이드는 [Toss UI 프롬프트 템플릿](docs/TOSS_UI_PROMPT_TEMPLATE.md)이다.
+
 ## 매뉴얼 디렉토리와 명칭 · 2026-09-27
 
 앱의 구조와 명칭은 **TAP그룹 → TAP → Task**다. 기존 BIG TAP은 TAP그룹, Small TAP은 Task로 변경했다. 매뉴얼은 Task에 연결된다. 과거 변경 이력과 저장용 필드/API 이름은 호환성을 위해 그대로 보존한다.
@@ -46,7 +50,7 @@ The [restaurant operations scenario review](docs/RESTAURANT_SCENARIOS_2026-09-25
 
 The current `tap2work.png` is a new route-shaped 2 mark: a cream path and coral endpoints on deep green. `app/assets/branding/generate_brand.py` generates the app asset, repository-root logo, web favicon/PWA icons and Android/iOS launcher images from the same geometry. The Flutter header pairs the icon with a live text wordmark. The earlier user-supplied circle and raster wordmark remain in Git history; the menu artwork remains bundled separately. Native icon builds have not been verified.
 
-The confirmed visual direction is a calm restaurant utility: warm paper surfaces, deep green text and navigation, coral for primary actions, restrained Cupertino-style monochrome icons, consistent fine borders and soft card corners. Functional navigation and task cards use Cupertino glyphs rather than colorful emoji; actual dish art remains where it identifies a menu item. The public domain root serves the Flutter app directly. The public build excludes the development journal and project decision/history files; the local developer console remains a development tool.
+The current visual direction uses pale gray surfaces, white cards with light shadows, #191F28 text, green navigation and coral primary actions, following the 2026-09-27 UI prompt template. The earlier warm paper surfaces and default card borders are superseded. Functional navigation and task cards use Cupertino glyphs rather than colorful emoji; actual dish art remains where it identifies a menu item. The public domain root serves the Flutter app directly. The public build excludes the development journal and project decision/history files; the local developer console remains a development tool.
 
 The [2026-09-25 UI design system](docs/UI_DESIGN_SYSTEM_2026-09-25.md) refines this direction with a darker, more legible coral action color, shared heading and card treatments, labeled controls, and text-plus-icon status. On phones, Status places immediate work and shortages before shortcuts and reports; the prepared-inventory detail starts collapsed. Calendar gives each half-hour row a larger touch area, Place separates table/seat/equipment totals, and login makes password visibility and submission progress explicit. The visual revision does not change demo permissions, inventory rules, staffing records or first-shift confirmations.
 

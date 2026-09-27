@@ -289,7 +289,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
         List<String>.from(profile['serviceModes'] ?? []),
         (id) => toggleIn('serviceModes', id),
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 32),
       textField('주소 · 선택', address),
       textField('찾아오는 안내 · 선택', arrival),
     ],
@@ -608,13 +608,8 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 720),
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           children: [
-            const PageHeading(
-              'OUR STORE',
-              '우리매장 설정',
-              '필요한 정보만 입력하고 언제든 바꿀 수 있어요.',
-            ),
             if (widget.ops.readOnly)
               const Information('공개 미리보기에서는 설정을 저장하지 않아요.'),
             SingleChildScrollView(
@@ -634,7 +629,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
                 }),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 32),
             KeyedSubtree(
               key: ValueKey('store-section-$section'),
               child: switch (section) {
@@ -653,11 +648,13 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
             if (widget.ops.data?['revision'] != openingRevision)
               const Information('다른 변경이 저장됐어요. 이 화면을 다시 열어 최신 설정을 확인해 주세요.'),
             const SizedBox(height: 16),
-            FilledButton(
-              onPressed: widget.ops.isOwner && !widget.ops.readOnly && !saving
-                  ? save
-                  : null,
-              child: Text(saving ? '저장 중…' : '이 설정 저장'),
+            PressBounce(
+              child: FilledButton(
+                onPressed: widget.ops.isOwner && !widget.ops.readOnly && !saving
+                    ? save
+                    : null,
+                child: Text(saving ? '저장 중…' : '이 설정 저장'),
+              ),
             ),
           ],
         ),

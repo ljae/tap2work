@@ -1,4 +1,7 @@
 import 'dart:ui' as ui;
+import 'design_tokens.dart';
+export 'design_tokens.dart';
+export 'design_system.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -24,7 +27,7 @@ class BrandLogo extends StatelessWidget {
           maxLines: 1,
           style: TextStyle(
             color: AppColors.ink,
-            fontSize: 23,
+            fontSize: 24,
             fontWeight: FontWeight.w800,
             letterSpacing: -1.35,
           ),
@@ -49,10 +52,10 @@ class BrandHeader extends StatelessWidget implements PreferredSizeWidget {
     elevation: 0,
     scrolledUnderElevation: 0,
     shape: const Border(bottom: BorderSide(color: AppColors.line)),
-    titleSpacing: 20,
+    titleSpacing: 24,
     title: const BrandLogo(),
     actions: [
-      Padding(padding: const EdgeInsets.only(right: 20), child: action),
+      Padding(padding: const EdgeInsets.only(right: 24), child: action),
     ],
   );
 }
@@ -185,28 +188,6 @@ class _ArtworkPainter extends CustomPainter {
       oldDelegate.image != image || oldDelegate.crop != crop;
 }
 
-abstract final class AppColors {
-  static const paper = Color(0xFFF7F5F0);
-  static const white = Color(0xFFFFFFFF);
-  // This coral keeps white button labels above the normal-text contrast target.
-  static const accent = Color(0xFFB8422C);
-  static const accentSoft = Color(0xFFFFECE6);
-  static const green = Color(0xFF193B3A);
-  static const ink = Color(0xFF18302F);
-  static const muted = Color(0xFF526461);
-  static const lime = Color(0xFFEAF1E7);
-  static const peach = Color(0xFFFFEBE4);
-  static const line = Color(0xFFD7DEDA);
-  static const controlLine = Color(0xFF829586);
-}
-
-abstract final class AppSpacing {
-  static const small = 8.0;
-  static const medium = 16.0;
-  static const large = 24.0;
-  static const section = 32.0;
-}
-
 class FloatingMenuItem {
   const FloatingMenuItem(this.label, this.icon);
   final String label;
@@ -286,7 +267,7 @@ class FloatingMenu extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                     color: i == selectedIndex
                                         ? Colors.white
@@ -314,7 +295,7 @@ class Surface extends StatelessWidget {
     super.key,
     required this.child,
     this.color = AppColors.white,
-    this.padding = const EdgeInsets.all(20),
+    this.padding = const EdgeInsets.all(24),
   });
   final Widget child;
   final Color color;
@@ -325,12 +306,34 @@ class Surface extends StatelessWidget {
     padding: padding,
     decoration: BoxDecoration(
       color: color,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        color: color == AppColors.green ? color : AppColors.line,
-      ),
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: appCardShadow,
     ),
     child: child,
+  );
+}
+
+class AppCard extends StatelessWidget {
+  const AppCard({
+    super.key,
+    required this.child,
+    this.margin = const EdgeInsets.only(bottom: 16),
+  });
+  final Widget child;
+  final EdgeInsetsGeometry margin;
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: margin,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: appCardShadow,
+    ),
+    child: Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: child,
+    ),
   );
 }
 
@@ -343,7 +346,7 @@ class Eyebrow extends StatelessWidget {
     text,
     style: TextStyle(
       color: color,
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: FontWeight.w600,
       letterSpacing: .8,
     ),
@@ -363,7 +366,7 @@ class PageHeading extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-          fontSize: 22,
+          fontSize: 24,
           height: 1.3,
           fontWeight: FontWeight.w700,
           color: AppColors.ink,
@@ -389,7 +392,7 @@ class SectionHeading extends StatelessWidget {
           child: Text(
             title,
             style: const TextStyle(
-              fontSize: 19,
+              fontSize: 16,
               fontWeight: FontWeight.w800,
               letterSpacing: -.4,
               color: AppColors.ink,
@@ -400,7 +403,7 @@ class SectionHeading extends StatelessWidget {
         Text(
           subtitle,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: 13,
             height: 1.55,
             color: AppColors.muted,
           ),
@@ -443,7 +446,7 @@ class AppStatusPill extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
             color: attention ? AppColors.accent : AppColors.green,
           ),
@@ -547,7 +550,7 @@ class Information extends StatelessWidget {
           child: Text(
             text,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               height: 1.55,
               color: AppColors.ink,
             ),
@@ -583,11 +586,11 @@ class Person extends StatelessWidget {
           children: [
             Text(
               name,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 12, color: AppColors.muted),
+              style: const TextStyle(fontSize: 13, color: AppColors.muted),
             ),
           ],
         ),

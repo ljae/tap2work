@@ -14,7 +14,7 @@ class WorkspaceScreen extends StatefulWidget {
 class _WorkspaceScreenState extends State<WorkspaceScreen> {
   int selected = 0;
   WorkController get work => widget.controller;
-  static const gap = SizedBox(height: 20);
+  static const gap = SizedBox(height: 32);
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -42,7 +42,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             constraints: const BoxConstraints(maxWidth: 640),
             child: SingleChildScrollView(
               key: ValueKey('page-$selected-${work.role.name}'),
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 36),
+              padding: const EdgeInsets.fromLTRB(24, 4, 24, 36),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -50,7 +50,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                     padding: EdgeInsets.symmetric(vertical: 12),
                     child: Text(
                       '체험 버전 · 가상 매장 · 이 기기에만 저장돼요',
-                      style: TextStyle(fontSize: 12, color: AppColors.muted),
+                      style: TextStyle(fontSize: 13, color: AppColors.muted),
                     ),
                   ),
                   if (work.storageWarning != null) ...[
@@ -67,7 +67,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                   const Center(
                     child: Text(
                       '한 번에 하나씩, 함께 배워요.',
-                      style: TextStyle(fontSize: 11, color: AppColors.muted),
+                      style: TextStyle(fontSize: 13, color: AppColors.muted),
                     ),
                   ),
                 ],
@@ -126,7 +126,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                       ? '첫걸음 완료.\n다음도 함께해요.'
                       : '잘 연습했어요.\n민지님과 확인해요.'),
               style: const TextStyle(
-                fontSize: 29,
+                fontSize: 24,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
                 height: 1.3,
@@ -139,7 +139,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                   ? '다시 해보고 싶은 것도 알려 주세요.\n다음 업무도 버디와 함께해요.'
                   : '${next.subtitle}.\n민지님이 옆에서 도와줄 거예요.',
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 color: Color(0xFFD1DBD5),
                 height: 1.6,
               ),
@@ -147,15 +147,17 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              child: FilledButton.icon(
-                key: const Key('next-task'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.lime,
-                  foregroundColor: AppColors.green,
+              child: PressBounce(
+                child: FilledButton.icon(
+                  key: const Key('next-task'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.lime,
+                    foregroundColor: AppColors.green,
+                  ),
+                  onPressed: next == null ? _help : () => _lesson(next),
+                  icon: const Icon(Icons.arrow_forward, size: 18),
+                  label: Text(next == null ? '같이 봐 달라고 하기' : '어떻게 하는지 보기'),
                 ),
-                onPressed: next == null ? _help : () => _lesson(next),
-                icon: const Icon(Icons.arrow_forward, size: 18),
-                label: Text(next == null ? '같이 봐 달라고 하기' : '어떻게 하는지 보기'),
               ),
             ),
             const SizedBox(height: 23),
@@ -174,7 +176,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                 Text(
                   '${work.approved.length}개 함께 익혔어요',
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 13,
                     color: Color(0xFFD1DBD5),
                   ),
                 ),
@@ -189,11 +191,13 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
         children: [
           const Text(
             '오늘 배울 것',
-            style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
-          TextButton(
-            onPressed: () => setState(() => selected = 1),
-            child: const Text('전체 6단계 →'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => setState(() => selected = 1),
+              child: const Text('전체 6단계 →'),
+            ),
           ),
         ],
       ),
@@ -209,7 +213,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             const Text(
               '“빨리 하는 것보다\n같이 익히는 게 먼저예요.”',
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 24,
                 height: 1.4,
                 fontWeight: FontWeight.w600,
               ),
@@ -218,7 +222,9 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             Person(
               name: '민지',
               subtitle: '처음부터 같이 해볼게요.',
-              trailing: TextButton(onPressed: _help, child: const Text('도움')),
+              trailing: PressBounce(
+                child: TextButton(onPressed: _help, child: const Text('도움')),
+              ),
             ),
           ],
         ),
@@ -248,20 +254,20 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
               ? const Icon(Icons.check, size: 18)
               : Text(
                   '${lessons.indexOf(item) + 1}',
-                  style: const TextStyle(fontSize: 12),
+                  style: const TextStyle(fontSize: 13),
                 ),
         ),
         title: Text(
           item.title,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           work.status(item),
-          style: const TextStyle(fontSize: 11, color: AppColors.muted),
+          style: const TextStyle(fontSize: 13, color: AppColors.muted),
         ),
         trailing: Text(
           '${item.minutes}분',
-          style: const TextStyle(fontSize: 11, color: AppColors.muted),
+          style: const TextStyle(fontSize: 13, color: AppColors.muted),
         ),
       ),
     ),
@@ -296,24 +302,26 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
           const SizedBox(height: 14),
           const Text(
             '10:00 — 14:00',
-            style: TextStyle(fontSize: 29, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 9),
           const Text('작은주방 · 연남 / 주방 보조'),
           const SizedBox(height: 8),
           const Text(
             '10:00–11:00 첫 한 시간 함께 배우기',
-            style: TextStyle(fontSize: 12, color: AppColors.muted),
+            style: TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           const Divider(height: 36),
           const Person(name: '민지', subtitle: '오늘의 버디 · 주방 담당'),
           gap,
           SizedBox(
             width: double.infinity,
-            child: FilledButton(
-              key: const Key('confirm-shift'),
-              onPressed: work.shiftConfirmed ? null : work.confirmShift,
-              child: Text(work.shiftConfirmed ? '근무 시간 확인했어요' : '근무 시간 확인하기'),
+            child: PressBounce(
+              child: FilledButton(
+                key: const Key('confirm-shift'),
+                onPressed: work.shiftConfirmed ? null : work.confirmShift,
+                child: Text(work.shiftConfirmed ? '근무 시간 확인했어요' : '근무 시간 확인하기'),
+              ),
             ),
           ),
         ],
@@ -328,17 +336,22 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
           const SizedBox(height: 13),
           const Text(
             '첫 출근 다음 날',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          const Text('11:00 — 15:00', style: TextStyle(fontSize: 26)),
+          const Text('11:00 — 15:00', style: TextStyle(fontSize: 24)),
           const SizedBox(height: 10),
           const Text(
             '시작 전 5분, 어제 어려웠던 일을 다시 확인해요.',
             style: TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           gap,
-          OutlinedButton(onPressed: _help, child: const Text('근무 시간 상의하기')),
+          PressBounce(
+            child: OutlinedButton(
+              onPressed: _help,
+              child: const Text('근무 시간 상의하기'),
+            ),
+          ),
         ],
       ),
     ),
@@ -375,14 +388,16 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             style: TextStyle(color: Color(0xFFD1DBD5), height: 1.7),
           ),
           gap,
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.lime,
-              foregroundColor: AppColors.green,
+          PressBounce(
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.lime,
+                foregroundColor: AppColors.green,
+              ),
+              onPressed: _help,
+              icon: const Icon(Icons.chat_bubble_outline, size: 19),
+              label: const Text('도움 요청 체험'),
             ),
-            onPressed: _help,
-            icon: const Icon(Icons.chat_bubble_outline, size: 19),
-            label: const Text('도움 요청 체험'),
           ),
         ],
       ),
@@ -411,7 +426,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
           gap,
           Text(
             '${work.approved.length} / 6',
-            style: const TextStyle(fontSize: 39, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
           ),
           Text(
             work.allConfirmed ? '함께 확인했어요. 다음 업무도 옆에서 도와주세요.' : '함께 확인한 단계',
@@ -429,14 +444,16 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
           children: [
             const Text(
               '지우님이 함께 봐 달래요.',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 10),
             const Text('현장에서 상황을 확인한 뒤 눌러 주세요.'),
             const SizedBox(height: 16),
-            FilledButton(
-              onPressed: work.resolveHelp,
-              child: const Text('함께 확인했어요'),
+            PressBounce(
+              child: FilledButton(
+                onPressed: work.resolveHelp,
+                child: const Text('함께 확인했어요'),
+              ),
             ),
           ],
         ),
@@ -445,7 +462,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     ],
     const Text(
       '단계별 확인',
-      style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
+      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
     ),
     gap,
     ...lessons.map(
@@ -459,25 +476,27 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
               Text(
                 item.title,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 5),
               Text(
                 work.status(item),
-                style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                style: const TextStyle(fontSize: 13, color: AppColors.muted),
               ),
               const SizedBox(height: 12),
-              OutlinedButton(
-                key: Key('approve-${item.id}'),
-                onPressed:
-                    work.practiced.contains(item.id) &&
-                        !work.approved.contains(item.id)
-                    ? () => _lesson(item, approve: true)
-                    : null,
-                child: Text(
-                  work.approved.contains(item.id) ? '확인 완료' : '함께 확인하기',
+              PressBounce(
+                child: OutlinedButton(
+                  key: Key('approve-${item.id}'),
+                  onPressed:
+                      work.practiced.contains(item.id) &&
+                          !work.approved.contains(item.id)
+                      ? () => _lesson(item, approve: true)
+                      : null,
+                  child: Text(
+                    work.approved.contains(item.id) ? '확인 완료' : '함께 확인하기',
+                  ),
                 ),
               ),
             ],
@@ -492,6 +511,9 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     final practiced = work.practiced.contains(lesson.id);
     await showModalBottomSheet<void>(
       context: context,
+      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
+          ? AnimationStyle.noAnimation
+          : null,
       isScrollControlled: true,
       showDragHandle: true,
       useSafeArea: true,
@@ -522,7 +544,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                 Text(
                   lesson.title,
                   style: const TextStyle(
-                    fontSize: 25,
+                    fontSize: 24,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -545,29 +567,31 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                       approve
                           ? '현장에서 함께 확인하고, 더 도울 부분을 설명했어요.'
                           : '버디와 함께 직접 해봤어요.',
-                      style: const TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 13),
                     ),
                   ),
                   SizedBox(
                     width: double.infinity,
-                    child: FilledButton(
-                      key: const Key('save-lesson'),
-                      onPressed: checked
-                          ? () {
-                              final success = approve
-                                  ? work.approve(lesson.id)
-                                  : work.practice(lesson.id);
-                              Navigator.pop(sheetContext);
-                              if (success) {
-                                _message(
-                                  approve
-                                      ? '함께 확인한 내용을 기록했어요.'
-                                      : '같이 해본 내용을 기록했어요. 버디가 함께 확인해 줄 거예요.',
-                                );
+                    child: PressBounce(
+                      child: FilledButton(
+                        key: const Key('save-lesson'),
+                        onPressed: checked
+                            ? () {
+                                final success = approve
+                                    ? work.approve(lesson.id)
+                                    : work.practice(lesson.id);
+                                Navigator.pop(sheetContext);
+                                if (success) {
+                                  _message(
+                                    approve
+                                        ? '함께 확인한 내용을 기록했어요.'
+                                        : '같이 해본 내용을 기록했어요. 버디가 함께 확인해 줄 거예요.',
+                                  );
+                                }
                               }
-                            }
-                          : null,
-                      child: Text(approve ? '버디 확인 완료' : '같이 해봤어요'),
+                            : null,
+                        child: Text(approve ? '버디 확인 완료' : '같이 해봤어요'),
+                      ),
                     ),
                   ),
                 ] else
@@ -579,12 +603,14 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(sheetContext);
-                      _help();
-                    },
-                    child: const Text('도움이 필요해요'),
+                  child: PressBounce(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(sheetContext);
+                        _help();
+                      },
+                      child: const Text('도움이 필요해요'),
+                    ),
                   ),
                 ),
               ],
@@ -604,13 +630,17 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
           '현장에서 민지님을 먼저 불러 주세요.\n\n이 체험의 요청은 이 기기에만 저장돼요. 실제 메시지는 전송되지 않아요.',
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('닫기'),
+          PressBounce(
+            child: TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('닫기'),
+            ),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('데모 요청 남기기'),
+          PressBounce(
+            child: FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('데모 요청 남기기'),
+            ),
           ),
         ],
       ),
@@ -639,9 +669,11 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             'Flutter로 만든 tap2work 체험 버전이에요.\n\n가상 매장과 예시 인물이며 실제 직원 계정, 초대, 알림, 급여, 교육 영상은 아직 연결하지 않았어요. 진행 기록은 현재 기기에만 저장돼요.',
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('확인했어요'),
+            PressBounce(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('확인했어요'),
+              ),
             ),
           ],
         ),
@@ -653,13 +685,17 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
           title: const Text('체험 기록을 초기화할까요?'),
           content: const Text('이 기기의 연습·버디 확인·도움 요청·일정 확인 기록이 지워져요.'),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('취소'),
+            PressBounce(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('취소'),
+              ),
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('초기화'),
+            PressBounce(
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('초기화'),
+              ),
             ),
           ],
         ),
@@ -692,7 +728,7 @@ class _Brief extends StatelessWidget {
           ),
           Text(
             subtitle,
-            style: const TextStyle(fontSize: 11, color: AppColors.muted),
+            style: const TextStyle(fontSize: 13, color: AppColors.muted),
           ),
         ],
       ),
