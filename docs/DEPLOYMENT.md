@@ -1,5 +1,9 @@
 # tap2work development site
 
+## 공통 메뉴 구성·완료 전환 배포 · 2026-09-27
+
+커밋 `d92df5f`은 네 메뉴 제목·매뉴얼 검색 위치를 통일하고 설명 문구를 줄였다. 완료 카드는 원래 열에서 글줄 효과가 끝난 뒤 이동하며, TAP 본문은 겹침 없이 나타난다. 동작 줄이기 컨트롤러 해제와 선택 버튼 폰트도 수정했다. [Actions 36305990966](https://github.com/ljae/tap2work/actions/runs/36305990966)에서 JS 검사, 콘솔 65개, Flutter 분석·테스트 101개, 공개 빌드와 Pages 배포가 통과했다. HTTPS HTML·앱 번들·폰트 목록이 로컬 빌드와 일치하며 번들 SHA-256은 `5b086740774006c94b17f7702d567a5d2c69ea93d7def6b832a39731266474e2`이다. 실제 서체를 적용한 390px 네 메뉴와 전환 중간·종료 프레임을 캡처해 확인했다. 네이티브 실기기 검증은 미수행이며 API는 변경하지 않았다.
+
 ## TAP 전환·Pretendard 서체 보완 배포 · 2026-09-27
 
 커밋 `2803d20`이 공개 미리보기의 TAP/Small TAP 완료 효과와 TAP 열기 전환을 보완하고, 기본 한국어 폰트를 OFL 1.1 Pretendard v1.3.9로 교체했다. API와 Supabase 함수는 변경되지 않았다. [Actions 36304491887](https://github.com/ljae/tap2work/actions/runs/36304491887)에서 JavaScript 검사, 콘솔 테스트 65개, Flutter 분석·테스트 98개, 공개 웹 빌드와 Pages 배포가 통과했다. `https://tap2.work/`의 `index.html`, `main.dart.js`, `FontManifest.json`, Pretendard Regular 폰트가 HTTPS 200으로 제공되고 로컬 `_site` 빌드와 SHA-256이 일치한다. 앱 번들 해시는 `c813401d12331b9b0fe1fcaf0f4ebacd71d681e2fae33bab4308e2407da392b7`이다. 네이티브 빌드·실기기 모션 검증은 수행하지 않았다.
