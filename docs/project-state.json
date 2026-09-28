@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 94,
+  "revision": 95,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4056,7 +4056,19 @@
         "docs/MOTION_GUIDE.md",
         "docs/ARCHITECTURE.md"
       ]
+    },
+    {
+      "at": "2026-09-28T12:42:39.495546+00:00",
+      "type": "verification",
+      "title": "App-wide motion verified and deployed",
+      "detail": "Final source eba45c416231329a5994a6ecee98959ee8399833 includes shared popup-menu and expansion timing in addition to the primary motion change. Deployed via GitHub Pages run 36423126428. Reviewed source committed with GitHub Git Trees/Commits API and force:false; local Git metadata remains read-only. Documentation-only follow-up uses [skip ci].",
+      "verification": "Final Flutter analysis passed; final full regression suite 124 passed. Earlier capture-inclusive run passed 125; 390/1200px mid-transition and settled frames inspected. npm run check and local app/public builds passed before final popup/expansion refinement; final CI independently passed JS checks, 90 Node tests, Flutter analysis, 124 Flutter tests and public web build. A targeted command included a nonexistent prepared_inventory_test.dart and failed to load that path; the actual 18 tests in that invocation passed and the final full suite superseded it. Live main.dart.js HTTP 200 and bytes exactly match the final GitHub Pages artifact, SHA256 8ccb367786e86630df4b3729eb8e0d8b248e357847631d0967a4edf569ecae2a. No native device/frame-time profiling performed. Backend APIs were not changed or redeployed.",
+      "release": {
+        "commit": "eba45c416231329a5994a6ecee98959ee8399833",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36423126428",
+        "site": "https://tap2.work"
+      }
     }
   ],
-  "updatedAt": "2026-09-28T12:36:22.371433+00:00"
+  "updatedAt": "2026-09-28T12:42:39.495546+00:00"
 }
