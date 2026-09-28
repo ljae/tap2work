@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  static const paper = Color(0xFFF2F4F6);
+  static const paper = Color(0xFF101112);
+  static const surface = Color(0xFF181A1C);
+  static const elevated = Color(0xFF222528);
   static const white = Color(0xFFFFFFFF);
-  // This coral keeps white button labels above the normal-text contrast target.
-  static const accent = Color(0xFFB8422C);
-  static const accentSoft = Color(0xFFFFECE6);
-  static const green = Color(0xFF193B3A);
-  static const ink = Color(0xFF191F28);
-  static const muted = Color(0xFF6B7684);
-  static const lime = Color(0xFFEAF1E7);
-  static const peach = Color(0xFFFFEBE4);
-  static const line = Color(0xFFD7DEDA);
-  static const controlLine = Color(0xFF829586);
+  static const accent = Color(0xFFFF9986);
+  static const accentSoft = Color(0xFF392622);
+  static const green = Color(0xFF46C69B);
+  static const primary = Color(0xFF007D73);
+  static const ink = Color(0xFFF0F2F4);
+  static const muted = Color(0xFFA0A7AF);
+  static const lime = Color(0xFF17382E);
+  static const peach = Color(0xFF392E20);
+  static const amber = Color(0xFFE9AC4C);
+  static const blue = Color(0xFF8DBAEA);
+  static const line = Color(0xFF2B2E32);
+  static const controlLine = Color(0xFF686F78);
 }
 
 abstract final class AppSpacing {

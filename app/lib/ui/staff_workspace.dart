@@ -1,3 +1,4 @@
+import 'workplace_screens.dart';
 import 'labor_panel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -24,10 +25,10 @@ class _StaffWorkspaceState extends State<StaffWorkspace> {
     children: [
       SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: SegmentedButton<String>(
+        child: AppSegmented<String>(
           segments: const [
             ButtonSegment(value: 'schedule', label: Text('근무표')),
-            ButtonSegment(value: 'people', label: Text('직원')),
+            ButtonSegment(value: 'people', label: Text('크루')),
             ButtonSegment(value: 'pay', label: Text('인건비')),
             ButtonSegment(value: 'learning', label: Text('교육')),
             ButtonSegment(value: 'hiring', label: Text('채용 준비')),
@@ -36,6 +37,8 @@ class _StaffWorkspaceState extends State<StaffWorkspace> {
           onSelectionChanged: (v) => setState(() => section = v.first),
         ),
       ),
+      const SizedBox(height: 16),
+      if (section == 'schedule') CalendarScreen(operations: widget.ops),
       if (widget.ops.isOwner && section != 'pay')
         Builder(
           builder: (context) {
@@ -70,28 +73,7 @@ class _StaffWorkspaceState extends State<StaffWorkspace> {
                   );
           },
         ),
-      const SizedBox(height: 16),
-      if (section == 'schedule') CalendarScreen(operations: widget.ops),
-      if (section == 'people')
-        PressBounce(
-          child: OutlinedButton.icon(
-            icon: const Icon(CupertinoIcons.person_2),
-            label: const Text('직원 상세'),
-            onPressed: () => showAppSheet(
-              context,
-              builder: (_) => Scaffold(
-                appBar: AppBar(
-                  title: const Text('직원'),
-                  leading: const CloseButton(),
-                ),
-                body: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: TeamScreen(operations: widget.ops),
-                ),
-              ),
-            ),
-          ),
-        ),
+      if (section == 'people') TeamScreen(operations: widget.ops),
       if (section == 'pay') LaborPanel(ops: widget.ops),
       if (section == 'learning') ...[
         const Information('첫 근무 연습과 버디 확인은 각각 기록돼요.'),
@@ -155,7 +137,7 @@ class HiringDrafts extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: Text(
-              '${roles[target['roleId']] ?? target['roleId']} · 목표 ${target['count']}명',
+              '${storeParts(ops).where((p) => p['id'] == (target['partId'] ?? target['roleId'])).firstOrNull?['name'] ?? roles[target['roleId']] ?? target['roleId']} · 목표 ${target['count']}명',
             ),
           ),
         if (ops.readOnly) const Information('공개 미리보기에서는 초안을 저장하지 않아요.'),
@@ -169,7 +151,9 @@ class HiringDrafts extends StatelessWidget {
                     context,
                     builder: (_) => HiringDraftEditor(
                       ops: ops,
-                      defaultRole: targets.firstOrNull?['roleId'],
+                      defaultRole:
+                          targets.firstOrNull?['partId'] ??
+                          targets.firstOrNull?['roleId'],
                       defaultCount: targets.firstOrNull?['count'] ?? 1,
                     ),
                   ),
@@ -185,7 +169,7 @@ class HiringDrafts extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${roles[draft['roleId']] ?? draft['roleId']} · ${draft['headcount']}명',
+                    '${storeParts(ops).where((p) => p['id'] == draft['partId']).firstOrNull?['name'] ?? roles[draft['roleId']] ?? draft['roleId']} · ${draft['headcount']}명',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -257,9 +241,9 @@ class HiringDrafts extends StatelessWidget {
     );
   }
 
-  static String _draftText(Json draft) =>
+  String _draftText(Json draft) =>
       '''공고 초안 · 아직 게시되지 않음
-직무: ${roles[draft['roleId']] ?? draft['roleId']}
+파트: ${storeParts(ops).where((p) => p['id'] == draft['partId']).firstOrNull?['name'] ?? roles[draft['roleId']] ?? draft['roleId']}
 인원: ${draft['headcount']}명
 고용형태: ${employment[draft['employmentType']] ?? '미입력'}
 근무 요일: ${(draft['weekdays'] as List? ?? []).isEmpty ? '미입력' : (draft['weekdays'] as List).join(', ')}
@@ -287,7 +271,12 @@ class HiringDraftEditor extends StatefulWidget {
 
 class _HiringDraftEditorState extends State<HiringDraftEditor> {
   late final int revision = widget.ops.data?['revision'] as int? ?? 0;
-  late String role = widget.existing?['roleId'] ?? widget.defaultRole ?? 'crew';
+  late String role =
+      widget.existing?['partId'] ??
+      (storeParts(widget.ops).any((p) => p['id'] == widget.defaultRole)
+          ? widget.defaultRole
+          : null) ??
+      storeParts(widget.ops).first['id'];
   late String type = widget.existing?['employmentType'] ?? 'unset';
   late final TextEditingController count = TextEditingController(
     text: '${widget.existing?['headcount'] ?? widget.defaultCount}',
@@ -331,7 +320,7 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
     final ok = await widget.ops.act('save_hiring_draft', {
       'revision': revision,
       if (widget.existing != null) 'id': widget.existing!['id'],
-      'roleId': role,
+      'partId': role,
       'headcount': headcount,
       'employmentType': type,
       'weekdays': days,
@@ -359,12 +348,17 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
           children: [
             const Information('아직 게시되지 않는 초안이에요. 비어 있는 조건은 미입력으로 표시해요.'),
             const SizedBox(height: 14),
-            DropdownButtonFormField<String>(
+            AppPillField<String>(
               initialValue: role,
-              decoration: const InputDecoration(labelText: '직무'),
+              decoration: const InputDecoration(labelText: '파트'),
               items: [
-                for (final entry in HiringDrafts.roles.entries)
-                  DropdownMenuItem(value: entry.key, child: Text(entry.value)),
+                for (final part in storeParts(
+                  widget.ops,
+                ).where((p) => p['hidden'] != true))
+                  DropdownMenuItem(
+                    value: part['id'] as String,
+                    child: Text(part['name']),
+                  ),
               ],
               onChanged: (v) => setState(() => role = v ?? role),
             ),
@@ -375,7 +369,7 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
               decoration: const InputDecoration(labelText: '필요 인원'),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppPillField<String>(
               initialValue: type,
               decoration: const InputDecoration(labelText: '고용형태'),
               items: [

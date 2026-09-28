@@ -1,3 +1,4 @@
+import { validatePart, partForLegacy } from './parts.mjs';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
 
@@ -89,7 +90,7 @@ export function saveStoreProfile(state, section, values) {
     case 'staffing': {
       const declaredCount = values.declaredCount == null ? null : count(values.declaredCount, '직원 수');
       const roleTargets = rows(values.roleTargets ?? [], '필요 역할', 12).map(row => ({
-        roleId: choice(row?.roleId, roles, '역할'), count: count(row?.count, '목표 인원'),
+        ...(row?.partId != null ? {partId: validatePart(state, row.partId), roleId: row.partId} : {roleId: choice(row?.roleId, roles, '역할')}), count: count(row?.count, '목표 인원'),
       }));
       unique(roleTargets.map(row => row.roleId), '역할');
       profile.staffing = { declaredCount, includesOwner: checked(values.includesOwner ?? false, '사장 포함 여부'), roleTargets };
@@ -117,7 +118,8 @@ export function saveHiringDraft(state, input, actor, now) {
   if (input.id && !existing) throw new StoreError('공고 초안을 찾지 못했어요.', 404);
   const draft = {
     id: existing?.id ?? randomUUID(),
-    roleId: choice(input.roleId, roles.filter(role => role !== 'all' && role !== 'owner'), '직무'),
+    partId: input.partId != null ? validatePart(state, input.partId) : partForLegacy(state, input.roleId),
+    roleId: input.partId != null ? input.partId : choice(input.roleId, roles.filter(role => role !== 'all' && role !== 'owner'), '파트'),
     headcount: count(input.headcount, '필요 인원', 99),
     employmentType: choice(input.employmentType ?? 'unset', ['unset', 'regular', 'hourly', 'regular-hourly'], '고용형태'),
     weekdays: rows(input.weekdays ?? [], '근무 요일', 7).map(day => count(day, '요일', 7)),

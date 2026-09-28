@@ -76,7 +76,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: field.key == 'zone'
-                              ? DropdownButtonFormField<String>(
+                              ? AppPillField<String>(
                                   initialValue: inputs['zone']!.text.isEmpty
                                       ? ''
                                       : inputs['zone']!.text,

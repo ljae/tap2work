@@ -123,7 +123,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
         ? '남은 확인 $remaining개'
         : '오늘 확인할 일을 살펴보세요';
     return Surface(
-      color: AppColors.green,
+      color: AppColors.lime,
       padding: const EdgeInsets.all(22),
       child: LayoutBuilder(
         builder: (context, box) {
@@ -133,7 +133,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
               const Text(
                 '지금 확인할 일',
                 style: TextStyle(
-                  color: AppColors.lime,
+                  color: AppColors.muted,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
@@ -142,7 +142,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
               Text(
                 headline,
                 style: const TextStyle(
-                  color: AppColors.white,
+                  color: AppColors.ink,
                   fontSize: 24,
                   height: 1.3,
                   fontWeight: FontWeight.w800,
@@ -152,7 +152,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
               Text(
                 '할 일 $remaining개 · 부족 재료 $low개 · 샘플 주문 기준',
                 style: const TextStyle(
-                  color: AppColors.lime,
+                  color: AppColors.muted,
                   fontSize: 13,
                   height: 1.5,
                 ),
@@ -163,8 +163,8 @@ class _StoreDashboardState extends State<StoreDashboard> {
             child: FilledButton.icon(
               onPressed: () => widget.onNavigate(1),
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.white,
-                foregroundColor: AppColors.green,
+                backgroundColor: AppColors.ink,
+                foregroundColor: AppColors.paper,
               ),
               icon: const Icon(Icons.arrow_forward_rounded, size: 19),
               label: const Text('할 일 보드 열기'),
@@ -300,7 +300,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
     String detail, {
     bool dark = false,
   }) => Surface(
-    color: dark ? AppColors.green : AppColors.white,
+    color: dark ? AppColors.lime : AppColors.surface,
     padding: const EdgeInsets.all(16),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,7 +309,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
           label,
           style: TextStyle(
             fontSize: 13,
-            color: dark ? AppColors.lime : AppColors.muted,
+            color: dark ? AppColors.green : AppColors.muted,
           ),
         ),
         space(12),
@@ -728,7 +728,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
       String detail,
       int destination,
     ) => Material(
-      color: AppColors.white,
+      color: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
         side: const BorderSide(color: AppColors.line),

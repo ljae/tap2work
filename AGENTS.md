@@ -1,7 +1,8 @@
 # tap2work development continuity
 
-Before making product or architecture changes, read `docs/project-state.json` and `PRODUCT.md`. `docs/project-state.json` is the canonical, versioned project decision and development history file. `RESEARCH.md` contains the scoped competitor research.
+Before making product or architecture changes, read `docs/project-state.json`, `PRODUCT.md`, and `docs/ARCHITECTURE.md`. `docs/project-state.json` is the canonical, versioned project decision and development history file. `RESEARCH.md` contains the scoped competitor research.
 
+- Keep `docs/ARCHITECTURE.md` current with data contracts, module boundaries, and UI decisions. Parts classify work; ranks authorize access. Main destinations are 업무·매뉴얼·근무표·우리매장; use 크루 as the product term.
 - The user has selected Flutter. The application source is `app/`. Root HTML/JS files are the original reference prototype, not the primary app.
 - For every new or changed Flutter screen, read `docs/TOSS_UI_PROMPT_TEMPLATE.md` and apply its shared typography, spacing, card, sheet, loading and motion rules. Reuse `design_tokens.dart`, `design_system.dart` and `components.dart`; the user selected the existing green/coral accents and four main destinations.
 - Initial users: Korean small F&B kitchen prep/dishwashing workers, already hired. After roughly one hour they work with a buddy. Future recruiting belongs in the roadmap, not the first-release critical path.

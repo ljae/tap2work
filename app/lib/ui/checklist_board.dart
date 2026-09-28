@@ -262,7 +262,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Surface(
         padding: EdgeInsets.zero,
-        color: complete ? const Color(0xFFEDF1E6) : AppColors.white,
+        color: complete ? const Color(0xFF222528) : AppColors.surface,
         child: Column(
           children: [
             InkWell(
@@ -498,7 +498,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Surface(
         padding: const EdgeInsets.all(16),
-        color: complete ? const Color(0xFFEDF1E6) : AppColors.white,
+        color: complete ? const Color(0xFF222528) : AppColors.surface,
         child: Row(
           children: [
             const Icon(
@@ -589,7 +589,7 @@ class _Progress extends StatelessWidget {
           child: LinearProgressIndicator(
             value: total == 0 ? 0 : done / total,
             minHeight: 10,
-            backgroundColor: AppColors.white,
+            backgroundColor: AppColors.surface,
             color: AppColors.green,
           ),
         ),

@@ -74,7 +74,7 @@ Future<T?> showAppSheet<T>(
   // Flutter's built-in handle exposes a semantic dismiss action that calls
   // pop directly. The decorative handle below cannot bypass draft PopScope.
   showDragHandle: false,
-  backgroundColor: AppColors.white,
+  backgroundColor: AppColors.surface,
   constraints: const BoxConstraints(maxWidth: 960),
   shape: const RoundedRectangleBorder(
     borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -94,7 +94,7 @@ Future<T?> showAppSheet<T>(
               width: 32,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFFD1D6DB),
+                color: const Color(0xFF686F78),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -130,7 +130,7 @@ class AppSheetPanel extends StatelessWidget {
   final List<Widget>? actions;
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppColors.white,
+    backgroundColor: AppColors.surface,
     body: SafeArea(
       top: false,
       child: Column(
@@ -175,19 +175,19 @@ class WorkspaceSkeleton extends StatelessWidget {
       itemBuilder: (_, _) => Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Shimmer.fromColors(
           enabled: !MediaQuery.disableAnimationsOf(context),
-          baseColor: const Color(0xFFE5E8EB),
-          highlightColor: const Color(0xFFF9FAFB),
+          baseColor: const Color(0xFF222528),
+          highlightColor: const Color(0xFF34383D),
           period: const Duration(milliseconds: 1500),
           child: Row(
             children: [
               const CircleAvatar(
                 radius: 22,
-                backgroundColor: Color(0xFFE5E8EB),
+                backgroundColor: Color(0xFF222528),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -197,7 +197,7 @@ class WorkspaceSkeleton extends StatelessWidget {
                     Container(
                       height: 16,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE5E8EB),
+                        color: const Color(0xFF222528),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -207,7 +207,7 @@ class WorkspaceSkeleton extends StatelessWidget {
                       child: Container(
                         height: 13,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE5E8EB),
+                          color: const Color(0xFF222528),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),

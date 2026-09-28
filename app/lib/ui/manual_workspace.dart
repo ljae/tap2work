@@ -852,7 +852,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                   Expanded(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.surface,
                         boxShadow: appCardShadow,
                         borderRadius: BorderRadius.circular(16),
                       ),

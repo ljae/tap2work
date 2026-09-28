@@ -1,3 +1,4 @@
+import 'workplace_screens.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,6 +25,7 @@ class TapWorkspace extends StatefulWidget {
 
 class _TapWorkspaceState extends State<TapWorkspace> {
   String? folderId, taskId;
+  String? selectedPart;
   String? selectedStepId;
   String? celebratedStepId, celebratedTaskId;
   int completionTick = 0;
@@ -76,11 +78,20 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   }
 
   List<Json> get groups =>
-      ops.rows('tasks').where((t) => t['kind'] == 'routine').toList()..sort(
-        (a, b) => ((a['displayOrder'] ?? 0) as int).compareTo(
-          (b['displayOrder'] ?? 0) as int,
-        ),
-      );
+      ops
+          .rows('tasks')
+          .where(
+            (t) =>
+                t['kind'] == 'routine' &&
+                (t['orderId'] == null ||
+                    ops.data?['orderBoardEnabled'] == true),
+          )
+          .toList()
+        ..sort(
+          (a, b) => ((a['displayOrder'] ?? 0) as int).compareTo(
+            (b['displayOrder'] ?? 0) as int,
+          ),
+        );
 
   List<Json> steps(Json task) {
     final result = <Json>[
@@ -169,7 +180,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               .firstOrNull?['name']
           as String? ??
       '';
-  String role(Json task) => checklistRoles[task['requiredRole']] ?? '누구나';
+  String role(Json task) {
+    if (task.containsKey('partId')) {
+      return storeParts(
+            ops,
+          ).where((p) => p['id'] == task['partId']).firstOrNull?['name'] ??
+          '전체 파트';
+    }
+    return checklistRoles[task['requiredRole']] ?? '전체 파트';
+  }
+
   String platformBadge(String value) {
     if (value.contains('배달의민족') || value.contains('배민')) return '🩵 $value';
     if (value.contains('쿠팡이츠')) return '🧡 $value';
@@ -188,9 +208,17 @@ class _TapWorkspaceState extends State<TapWorkspace> {
 
   List<Json> assignees(Json task) {
     final required = task['requiredRole'];
-    if (required == 'all') return [];
+    if (task.containsKey('partId')
+        ? task['partId'] == null
+        : required == 'all') {
+      return [];
+    }
     final people = ops.rows('tappers').where((person) {
       if (person['active'] != true) return false;
+      if (task.containsKey('partId')) {
+        final ids = person['workProfile']?['partIds'] as List? ?? [];
+        return ids.isEmpty || ids.contains(task['partId']);
+      }
       if (required == 'cook') {
         return (person['duties'] as List? ?? const []).any(
           (duty) => duty.toString().contains('조리'),
@@ -204,7 +232,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
 
   String assigneeLabel(Json task) {
     final people = assignees(task);
-    if (task['requiredRole'] == 'all') return '누구나';
+    if (task.containsKey('partId')
+        ? task['partId'] == null
+        : task['requiredRole'] == 'all') {
+      return '전체 파트';
+    }
     return '${role(task)} · ${people.isEmpty ? '담당자 미지정' : '가능한 담당자'}';
   }
 
@@ -214,11 +246,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       hash = (hash * 31 + unit) & 0x7fffffff;
     }
     const palette = [
-      Color(0xFF176B62),
-      Color(0xFF8B5277),
-      Color(0xFF3263A0),
-      Color(0xFF9A5C22),
-      Color(0xFF6A5B96),
+      Color(0xFF62C7AF),
+      Color(0xFFE49ABF),
+      Color(0xFF8DBAEA),
+      Color(0xFFE9AC4C),
+      Color(0xFFB7A5E3),
     ];
     return palette[hash % palette.length];
   }
@@ -329,7 +361,20 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     builder: (context, _) {
       final folder = folders.where((f) => f['id'] == folderId).firstOrNull;
       final task = groups.where((t) => t['id'] == taskId).firstOrNull;
+      final part = storeParts(ops)
+          .where((p) => p['id'] == selectedPart && p['hidden'] != true)
+          .firstOrNull;
       final scoped = (folder == null ? groups : inFolder(folder['id']))
+          .where(
+            (task) =>
+                part == null ||
+                (task.containsKey('partId')
+                    ? task['partId'] == null || task['partId'] == part['id']
+                    : task['requiredRole'] == 'all' ||
+                          (part['roles'] as List? ?? []).contains(
+                            task['requiredRole'],
+                          )),
+          )
           .where(visibleTask)
           .toList();
       return Column(
@@ -572,7 +617,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         card: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: complete ? const Color(0xFFF0F2F4) : Colors.white,
+            color: complete ? const Color(0xFF222528) : AppColors.surface,
             gradient: complete
                 ? null
                 : LinearGradient(
@@ -734,7 +779,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         ),
       ));
     }
-    const lanes = ['주문처리중', '할일', '완료'];
+    final lanes = [
+      if (ops.data?['orderBoardEnabled'] == true) '주문처리중',
+      '할일',
+      '완료',
+    ];
     String? targetStatus(Json moving, String lane) {
       final isOrder = moving['orderId'] != null;
       final complete = isOrder
@@ -797,10 +846,10 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: candidates.isNotEmpty
-                          ? const Color(0xFFFCE8E4)
+                          ? const Color(0xFF392622)
                           : rejected.isNotEmpty
-                          ? const Color(0xFFFBE8E8)
-                          : const Color(0xFFEBEDF0),
+                          ? const Color(0xFF392622)
+                          : const Color(0xFF222528),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Column(
@@ -1078,98 +1127,29 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   Widget _folderBar() => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      const Text(
-        'TAP그룹 · 업무 그룹 필터',
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: AppColors.muted,
-        ),
-      ),
-      const SizedBox(height: 8),
       SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           spacing: 8,
           children: [
             ChoiceChip(
-              label: const Text('전체 TAP'),
-              selected: folderId == null,
-              onSelected: (_) => navigate(),
+              label: const Text('전체 파트'),
+              selected: selectedPart == null,
+              onSelected: (_) => setState(() => selectedPart = null),
             ),
-            for (final folder in folders)
-              DragTarget<String>(
-                onWillAcceptWithDetails: (_) => !ops.busy,
-                onAcceptWithDetails: (details) {
-                  if (details.data.startsWith('folder:')) {
-                    _reorderGroup(details.data.substring(7), folder['id']);
-                  } else {
-                    final task = groups
-                        .where((t) => t['id'] == details.data)
-                        .firstOrNull;
-                    if (task != null) {
-                      _moveTap(task, folder['id'], 'keep');
-                    }
-                  }
-                },
-                builder: (context, candidates, _) => _draggable(
-                  data: 'folder:${folder['id']}',
-                  feedback: Material(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(folder['name']),
-                    ),
-                  ),
-                  child: ChoiceChip(
-                    avatar: Icon(
-                      CupertinoIcons.folder,
-                      size: 16,
-                      color: candidates.isNotEmpty
-                          ? AppColors.accent
-                          : AppColors.muted,
-                    ),
-                    label: Text(
-                      '${folder['name']}  ·  ${inFolder(folder['id']).length}',
-                    ),
-                    selected: folderId == folder['id'] || candidates.isNotEmpty,
-                    onSelected: (_) => navigate(folder: folder['id']),
-                  ),
-                ),
-              ),
-            if (ops.isLeader)
-              ActionChip(
-                avatar: const Icon(CupertinoIcons.folder_badge_plus, size: 17),
-                label: const Text('그룹 관리'),
-                onPressed: () => showAppSheet(
-                  context,
-                  builder: (_) =>
-                      ChecklistEditor(ops: ops, initialFolder: folderId),
-                ),
+            for (final part in storeParts(
+              ops,
+            ).where((p) => p['hidden'] != true))
+              ChoiceChip(
+                label: Text(part['name']),
+                selected: selectedPart == part['id'],
+                onSelected: (_) => setState(() => selectedPart = part['id']),
               ),
           ],
         ),
       ),
     ],
   );
-
-  Future<void> _reorderGroup(String source, String target) async {
-    if (!ops.isLeader || source == target) return;
-    final ids = List<String>.from(
-      previewGroupOrder ??
-          (ops.data?['bigTapOrder'] as List?)?.cast<String>() ??
-          const <String>[],
-    );
-    if (!ids.contains(source) || !ids.contains(target)) return;
-    ids.remove(source);
-    ids.insert(ids.indexOf(target), source);
-    if (ops.readOnly) {
-      setState(() => previewGroupOrder = ids);
-      notice('체험 순서만 바꿨어요. 저장되지 않아요.');
-    } else {
-      final ok = await ops.act('reorder_big_taps', {'folderIds': ids});
-      if (!ok && mounted) notice(ops.error ?? '순서를 저장하지 못했어요.');
-    }
-  }
 
   Widget _smallBoard(Json task) {
     final all = steps(task);

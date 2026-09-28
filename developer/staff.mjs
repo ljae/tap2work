@@ -1,3 +1,4 @@
+import { validatePart, crewPartIds, partForLegacy } from './parts.mjs';
 import { laborView, weekOf } from './labor.mjs';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
@@ -54,14 +55,15 @@ export function ensureStaff(state, now) {
 
 function validShift(input, state) {
   const tapper = state.tappers.find(row => row.id === input.tapperId && row.active);
-  if (!tapper) fail('Tapper를 찾지 못했어요.', 404);
-  if (!duties.includes(input.duty) || !tapper.duties.includes(input.duty)) fail('담당 R&R을 확인해 주세요.');
+  if (!tapper) fail('크루를 찾지 못했어요.', 404);
+  const partId = Object.hasOwn(input, 'partId') ? validatePart(state, input.partId) : partForLegacy(state, input.duty);
+  if (Object.hasOwn(input, 'partId') ? !crewPartIds(state, tapper).includes(partId) : !duties.includes(input.duty) || !tapper.duties.includes(input.duty)) fail('담당 파트를 확인해 주세요.');
   if (typeof input.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(input.date) || (!Number.isFinite(Date.parse(`${input.date}T00:00:00Z`)) || new Date(`${input.date}T00:00:00Z`).toISOString().slice(0, 10) !== input.date)) fail('근무 날짜를 확인해 주세요.');
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.start) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.end) || input.start === input.end) fail('근무 시작·종료 시각을 확인해 주세요.');
   if (![input.start, input.end].every(v => ['00', '30'].includes(v.slice(3)))) fail('근무 시간은 30분 단위로 입력해 주세요.');
   const employmentType = input.employmentType ?? tapper.employmentType ?? '시간알바';
   if (!employmentTypes.includes(employmentType)) fail('고용형태를 확인해 주세요.');
-  return { tapperId: tapper.id, duty: input.duty, date: input.date, start: input.start, end: input.end, employmentType };
+  return { tapperId: tapper.id, partId, duty: input.duty ?? state.workplace?.parts.find(p => p.id === partId)?.duties?.[0] ?? partId, date: input.date, start: input.start, end: input.end, employmentType };
 }
 function interval(shift) {
   const start = Date.parse(`${shift.date}T${shift.start}:00+09:00`);
@@ -137,9 +139,12 @@ export function mutateStaff(state, input, actor, now, who, activity) {
     case 'save_tapper': {
       if (!owner) fail('사장님만 직원 정보를 바꿀 수 있어요.', 403);
       const row = input.id ? state.tappers.find(t => t.id === input.id) : null;
-      if (input.id && !row) fail('Tapper를 찾지 못했어요.', 404);
+      if (input.id && !row) fail('크루를 찾지 못했어요.', 404);
       if (!roles.includes(input.rank) || !periods.includes(input.payPeriod)) fail('직급과 급여방식을 확인해 주세요.');
-      if (!Array.isArray(input.duties) || !input.duties.length || input.duties.some(d => !duties.includes(d))) fail('R&R을 선택해 주세요.');
+      if (input.partIds !== undefined) {
+        if (!Array.isArray(input.partIds) || !input.partIds.length) fail('파트를 선택해 주세요.');
+        input.partIds.forEach(id => validatePart(state, id));
+      } else if (!Array.isArray(input.duties) || !input.duties.length || input.duties.some(d => !duties.includes(d))) fail('파트를 선택해 주세요.');
       const kakaoUrl = safeText(input.kakaoUrl ?? '', 250, '카카오톡 링크', false);
       if (kakaoUrl) {
         let url;
@@ -149,11 +154,17 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       const phone = safeText(input.phone ?? '', 30, '전화번호', false);
       if (phone && !/^\+?[0-9 -]{7,30}$/.test(phone)) fail('전화번호를 확인해 주세요.');
       if (!employmentTypes.includes(input.employmentType ?? row?.employmentType ?? '시간알바')) fail('고용형태를 확인해 주세요.');
-      const next = { rank: input.rank, nickname: safeText(input.nickname, 40, '별칭'), duties: [...new Set(input.duties)], employmentType: input.employmentType ?? row?.employmentType ?? '시간알바',
+      const next = { rank: input.rank, nickname: safeText(input.nickname, 40, '별칭'), duties: [...new Set(input.duties ?? row?.duties ?? [])], ...(input.partIds ? {workProfile: {...row?.workProfile, partIds: [...new Set(input.partIds)], bands: row?.workProfile?.bands ?? []}} : {}), employmentType: input.employmentType ?? row?.employmentType ?? '시간알바',
         hourlyWon: nonnegative(input.hourlyWon, '시급'), payPeriod: input.payPeriod,
         kakaoUrl, phone, active: input.active !== false };
       if (row) Object.assign(row, next); else state.tappers.push({ id: randomUUID(), ...next });
-      activity(`${next.nickname} Tapper 정보 저장`); return true;
+      activity(`${next.nickname} 크루 정보 저장`); return true;
+    }
+    case 'delete_staff_shift': {
+      if (!leader) fail('매니저 이상만 근무표를 바꿀 수 있어요.', 403);
+      if (!state.staffShifts.some(s => s.id === input.id)) fail('근무를 찾지 못했어요.', 404);
+      state.staffShifts = state.staffShifts.filter(s => s.id !== input.id);
+      activity('근무 배정 해제'); return true;
     }
     case 'save_staff_shift': {
       if (!leader) fail('매니저 이상만 근무표를 바꿀 수 있어요.', 403);
@@ -190,7 +201,7 @@ export function mutateStaff(state, input, actor, now, who, activity) {
     }
     case 'clock_in': case 'break_start': case 'break_end': case 'clock_out': {
       const tapper = state.tappers.find(t => t.actorId === actor.id && t.active);
-      if (!tapper) fail('이 데모 역할에 연결된 Tapper가 없어요.', 403);
+      if (!tapper) fail('이 데모 역할에 연결된 크루가 없어요.', 403);
       const events = state.attendance.filter(e => e.tapperId === tapper.id && !e.voidedAt);
       const last = events.at(-1)?.type;
       const next = input.action;
@@ -212,7 +223,7 @@ export function mutateStaff(state, input, actor, now, who, activity) {
     }
     case 'add_pay_adjustment': case 'record_payment': {
       if (!owner) fail('사장님만 급여 내역을 바꿀 수 있어요.', 403);
-      if (!state.tappers.some(t => t.id === input.tapperId)) fail('Tapper를 찾지 못했어요.', 404);
+      if (!state.tappers.some(t => t.id === input.tapperId)) fail('크루를 찾지 못했어요.', 404);
       const amount = nonnegative(input.amountWon, '금액');
       const date = input.date && /^\d{4}-\d{2}-\d{2}$/.test(input.date) ? input.date : dateKst(now);
       const row = { id: randomUUID(), tapperId: input.tapperId, date, amountWon: amount, createdAt: iso(now), createdBy: who };

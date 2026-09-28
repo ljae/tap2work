@@ -1,3 +1,4 @@
+import 'workplace_screens.dart';
 import 'labor_panel.dart';
 import 'manual_workspace.dart';
 import 'package:flutter/cupertino.dart';
@@ -198,7 +199,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   ),
             isDense: true,
             filled: true,
-            fillColor: Colors.white,
+            fillColor: AppColors.surface,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
           ),
         ),
@@ -485,7 +486,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                     child: SizedBox(
                       width: double.infinity,
                       child: Text(
-                        const ['업무', '매뉴얼', '직원', '우리매장'][tab],
+                        const ['업무', '매뉴얼', '근무표', '우리매장'][tab],
                         key: const ValueKey('menu-title'),
                         style: const TextStyle(
                           fontSize: 24,
@@ -556,7 +557,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         items: const [
           FloatingMenuItem('업무', CupertinoIcons.checkmark_alt_circle),
           FloatingMenuItem('매뉴얼', CupertinoIcons.book),
-          FloatingMenuItem('직원', CupertinoIcons.person_2),
+          FloatingMenuItem('근무표', CupertinoIcons.calendar),
           FloatingMenuItem('우리매장', CupertinoIcons.square_grid_2x2),
         ],
       ),
@@ -608,11 +609,29 @@ class _OperationsScreenState extends State<OperationsScreen> {
     ),
   );
 
+  Future<void> openWorkplace(String section) => showAppSheet<void>(
+    context,
+    builder: (_) => WorkplaceSettings(ops: ops, section: section),
+  );
+
   List<Widget> storeHome() {
     final profile = ops.data?['store']?['profile'] as Json? ?? {};
     final pos = profile['pos'] as Json? ?? {};
     final delivery = profile['delivery'] as Json? ?? {};
     return [
+      if (ops.isOwner) ...[
+        StorePreparation(
+          ops: ops,
+          onHours: () => openWorkplace('hours'),
+          onPeople: () => openStoreDetail('people'),
+          onTasks: () => updateView(() => tab = 0),
+          onSchedule: () => updateView(() => tab = 2),
+        ),
+        gap(16),
+      ],
+      AttendanceCard(ops: ops),
+      gap(),
+      title('매장 관리'),
       actionCard(
         CupertinoIcons.gear,
         '매장 설정',
@@ -620,7 +639,48 @@ class _OperationsScreenState extends State<OperationsScreen> {
         () =>
             showAppSheet(context, builder: (_) => StoreProfileScreen(ops: ops)),
       ),
+      actionCard(
+        CupertinoIcons.clock,
+        '영업 시간대',
+        '요일별 오픈 · 미들 · 마감',
+        () => openWorkplace('hours'),
+      ),
+      actionCard(
+        CupertinoIcons.person_2_square_stack,
+        '파트 관리',
+        '직원 · 할 일 파트',
+        () => openWorkplace('parts'),
+      ),
+      if (ops.isOwner) ...[
+        actionCard(
+          CupertinoIcons.link,
+          '주문처리 시스템 연결',
+          ops.data?['orderBoardEnabled'] == true
+              ? '보드 사용 중 · 외부 시스템 미연결'
+              : '보드 꺼짐',
+          () => openWorkplace('order-system'),
+        ),
+        actionCard(
+          CupertinoIcons.person_add,
+          '직원 초대',
+          '코드 · QR 체험',
+          () => openWorkplace('invite'),
+        ),
+        actionCard(
+          CupertinoIcons.lock_shield,
+          '직책별 권한',
+          '운영 작업 권한',
+          () => openWorkplace('permissions'),
+        ),
+        actionCard(
+          CupertinoIcons.location,
+          '출퇴근 인증 설정',
+          '연동 상태 확인',
+          () => openWorkplace('verification'),
+        ),
+      ],
       gap(),
+      title('운영'),
       actionCard(
         CupertinoIcons.chart_bar,
         '운영 현황',
@@ -717,7 +777,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     String heading,
     String detail,
     VoidCallback onTap, {
-    Color color = AppColors.white,
+    Color color = AppColors.surface,
   }) => Padding(
     padding: const EdgeInsets.only(bottom: 10),
     child: PressBounce(
@@ -751,6 +811,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
+                        const SizedBox(height: 4),
+                        Text(detail, style: AppText.caption),
                       ],
                     ),
                   ),
@@ -923,7 +985,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       ? '보충 확인'
                       : '여유 있어요',
                   color: (i['quantity'] as num) <= (i['minimum'] as num)
-                      ? const Color(0xFFFFE6D4)
+                      ? const Color(0xFF392E20)
                       : AppColors.lime,
                 ),
                 if (i['restockRequestedBy'] != null)
@@ -1056,7 +1118,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
       '근무와 공석은 함께, 개인 사유와 급여는 비공개로.',
     ),
     Surface(
-      color: const Color(0xFFFFEFE4),
+      color: const Color(0xFF392E20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1098,7 +1160,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 badge(
                   shift['status'],
                   color: shift['status'] == '휴가'
-                      ? const Color(0xFFFFE6D4)
+                      ? const Color(0xFF392E20)
                       : AppColors.lime,
                 ),
               ],

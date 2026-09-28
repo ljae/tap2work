@@ -51,7 +51,7 @@ class BrandHeader extends StatelessWidget implements PreferredSizeWidget {
     surfaceTintColor: Colors.transparent,
     elevation: 0,
     scrolledUnderElevation: 0,
-    shape: const Border(bottom: BorderSide(color: AppColors.line)),
+
     titleSpacing: 24,
     title: const BrandLogo(),
     actions: [
@@ -69,7 +69,7 @@ class HeaderAccountButton extends StatelessWidget {
     height: 44,
     alignment: Alignment.center,
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: AppColors.surface,
       border: Border.all(color: AppColors.line),
       borderRadius: BorderRadius.circular(14),
     ),
@@ -218,7 +218,7 @@ class FloatingMenu extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 480),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.surface,
               border: Border.all(color: AppColors.line),
               borderRadius: BorderRadius.circular(22),
               boxShadow: const [
@@ -247,7 +247,7 @@ class FloatingMenu extends StatelessWidget {
                             height: 60,
                             decoration: BoxDecoration(
                               color: i == selectedIndex
-                                  ? AppColors.green
+                                  ? AppColors.elevated
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(17),
                             ),
@@ -258,7 +258,7 @@ class FloatingMenu extends StatelessWidget {
                                   items[i].icon,
                                   size: 21,
                                   color: i == selectedIndex
-                                      ? Colors.white
+                                      ? AppColors.ink
                                       : AppColors.muted,
                                 ),
                                 const SizedBox(height: 2),
@@ -270,7 +270,7 @@ class FloatingMenu extends StatelessWidget {
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                     color: i == selectedIndex
-                                        ? Colors.white
+                                        ? AppColors.ink
                                         : AppColors.muted,
                                   ),
                                 ),
@@ -294,7 +294,7 @@ class Surface extends StatelessWidget {
   const Surface({
     super.key,
     required this.child,
-    this.color = AppColors.white,
+    this.color = AppColors.surface,
     this.padding = const EdgeInsets.all(24),
   });
   final Widget child;
@@ -306,7 +306,7 @@ class Surface extends StatelessWidget {
     padding: padding,
     decoration: BoxDecoration(
       color: color,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       boxShadow: appCardShadow,
     ),
     child: child,
@@ -325,12 +325,12 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     margin: margin,
     decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       boxShadow: appCardShadow,
     ),
     child: Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(16),
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(20),
       clipBehavior: Clip.antiAlias,
       child: child,
     ),
@@ -470,16 +470,92 @@ class AppPicker<T> extends StatelessWidget {
   final ValueChanged<T?> onChanged;
 
   @override
-  Widget build(BuildContext context) => DropdownButtonFormField<T>(
-    key: ValueKey(value),
+  Widget build(BuildContext context) => AppPillField<T>(
     initialValue: value,
-    isExpanded: true,
     decoration: InputDecoration(labelText: label),
-    borderRadius: BorderRadius.circular(12),
-    dropdownColor: AppColors.white,
-    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.green),
     items: items,
     onChanged: onChanged,
+  );
+}
+
+/// One selection language across filters, forms, and workspace tabs.
+class AppPillField<T> extends StatelessWidget {
+  const AppPillField({
+    super.key,
+    this.initialValue,
+    this.decoration = const InputDecoration(),
+    required this.items,
+    this.onChanged,
+    this.isExpanded = true,
+    this.validator,
+  });
+  final T? initialValue;
+  final InputDecoration decoration;
+  final List<DropdownMenuItem<T>>? items;
+  final ValueChanged<T?>? onChanged;
+  final bool isExpanded;
+  final String? Function(T?)? validator;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (decoration.labelText != null)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(decoration.labelText!, style: AppText.caption),
+        ),
+      ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 216),
+        child: SingleChildScrollView(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final item in items ?? <DropdownMenuItem<T>>[])
+                ChoiceChip(
+                  label: item.child,
+                  selected: item.value == initialValue,
+                  onSelected: onChanged == null || !item.enabled
+                      ? null
+                      : (_) => onChanged!(item.value),
+                ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+class AppSegmented<T> extends StatelessWidget {
+  const AppSegmented({
+    super.key,
+    required this.segments,
+    required this.selected,
+    this.onSelectionChanged,
+    this.showSelectedIcon = false,
+    this.style,
+  });
+  final List<ButtonSegment<T>> segments;
+  final Set<T> selected;
+  final ValueChanged<Set<T>>? onSelectionChanged;
+  final bool showSelectedIcon;
+  final ButtonStyle? style;
+  @override
+  Widget build(BuildContext context) => Wrap(
+    spacing: 8,
+    runSpacing: 8,
+    children: [
+      for (final segment in segments)
+        ChoiceChip(
+          label: segment.label ?? const SizedBox(),
+          avatar: segment.icon,
+          selected: selected.contains(segment.value),
+          onSelected: onSelectionChanged == null || !segment.enabled
+              ? null
+              : (_) => onSelectionChanged!({segment.value}),
+        ),
+    ],
   );
 }
 
@@ -495,31 +571,18 @@ class AppChoiceGroup<T> extends StatelessWidget {
   final T selected;
   final String Function(T) labelOf;
   final ValueChanged<T> onSelected;
-
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, box) {
-      final columns = (box.maxWidth / 108).floor().clamp(1, values.length);
-      final width = (box.maxWidth - (columns - 1) * 8) / columns;
-      return Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final value in values)
-            SizedBox(
-              width: width,
-              child: ChoiceChip(
-                label: SizedBox(
-                  width: double.infinity,
-                  child: Text(labelOf(value), textAlign: TextAlign.center),
-                ),
-                selected: selected == value,
-                onSelected: (_) => onSelected(value),
-              ),
-            ),
-        ],
-      );
-    },
+  Widget build(BuildContext context) => Wrap(
+    spacing: 8,
+    runSpacing: 8,
+    children: [
+      for (final value in values)
+        ChoiceChip(
+          label: Text(labelOf(value)),
+          selected: selected == value,
+          onSelected: (_) => onSelected(value),
+        ),
+    ],
   );
 }
 
@@ -532,7 +595,7 @@ class Information extends StatelessWidget {
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
       color: AppColors.lime,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       border: Border.all(color: AppColors.line),
     ),
     child: Row(

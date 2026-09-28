@@ -77,13 +77,15 @@ class Tap2workApp extends StatelessWidget {
     supportedLocales: const [Locale('ko', 'KR'), Locale('en', 'US')],
     localizationsDelegates: GlobalMaterialLocalizations.delegates,
     theme: ThemeData(
+      brightness: Brightness.dark,
       fontFamily: 'Pretendard',
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.accent,
-        primary: AppColors.accent,
-        onPrimary: AppColors.white,
-        surface: AppColors.white,
+        brightness: Brightness.dark,
+        seedColor: AppColors.primary,
+        primary: AppColors.green,
+        onPrimary: AppColors.paper,
+        surface: AppColors.surface,
         onSurface: AppColors.ink,
         onSurfaceVariant: AppColors.muted,
         outline: AppColors.controlLine,
@@ -103,7 +105,7 @@ class Tap2workApp extends StatelessWidget {
         labelSmall: AppText.caption,
       ),
       cardTheme: const CardThemeData(
-        color: AppColors.white,
+        color: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 1,
         shadowColor: Color(0x0A000000),
@@ -132,7 +134,7 @@ class Tap2workApp extends StatelessWidget {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(48, 50),
-          backgroundColor: AppColors.accent,
+          backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -153,7 +155,7 @@ class Tap2workApp extends StatelessWidget {
         style: TextButton.styleFrom(foregroundColor: AppColors.green),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.surface,
         indicatorColor: Colors.transparent,
         height: 70,
         iconTheme: WidgetStateProperty.resolveWith(
@@ -168,7 +170,7 @@ class Tap2workApp extends StatelessWidget {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.white,
+        fillColor: AppColors.elevated,
         constraints: const BoxConstraints(minHeight: 48),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -176,11 +178,11 @@ class Tap2workApp extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.controlLine),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.controlLine),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -188,10 +190,10 @@ class Tap2workApp extends StatelessWidget {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: AppColors.white,
-        selectedColor: AppColors.green,
-        side: const BorderSide(color: AppColors.line),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: AppColors.surface,
+        selectedColor: AppColors.lime,
+        side: BorderSide.none,
+        shape: const StadiumBorder(),
         labelStyle: const TextStyle(
           fontFamily: 'Pretendard',
           fontSize: 13,
@@ -202,13 +204,13 @@ class Tap2workApp extends StatelessWidget {
           fontFamily: 'Pretendard',
           fontSize: 13,
           fontWeight: FontWeight.w700,
-          color: AppColors.white,
+          color: AppColors.ink,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         showCheckmark: false,
       ),
       popupMenuTheme: PopupMenuThemeData(
-        color: AppColors.white,
+        color: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       dialogTheme: DialogThemeData(
@@ -216,12 +218,42 @@ class Tap2workApp extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppColors.white,
-        dragHandleColor: Color(0xFFD1D6DB),
+        backgroundColor: AppColors.surface,
+        dragHandleColor: AppColors.controlLine,
         dragHandleSize: Size(32, 4),
         showDragHandle: true,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          side: const WidgetStatePropertyAll(BorderSide.none),
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? AppColors.ink
+                : AppColors.surface,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? AppColors.paper
+                : AppColors.muted,
+          ),
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? AppColors.paper
+              : AppColors.muted,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? AppColors.ink
+              : AppColors.elevated,
         ),
       ),
       dividerColor: AppColors.line,
@@ -229,7 +261,7 @@ class Tap2workApp extends StatelessWidget {
         backgroundColor: AppColors.green,
         contentTextStyle: TextStyle(
           fontFamily: 'Pretendard',
-          color: AppColors.white,
+          color: AppColors.surface,
           fontSize: 13,
         ),
         behavior: SnackBarBehavior.floating,

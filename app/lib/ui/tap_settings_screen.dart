@@ -1,3 +1,4 @@
+import 'workplace_screens.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -36,13 +37,6 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
     'training': '교육',
   };
   static const days = ['월', '화', '수', '목', '금', '토', '일'];
-  static const roles = {
-    'all': 'TAP 설정 따름',
-    'crew': '크루',
-    'cook': '조리',
-    'manager': '매니저',
-    'owner': '사장님',
-  };
   @override
   void initState() {
     super.initState();
@@ -141,7 +135,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
     final config = stepSettings(step);
     final quantity = config['completionKind'] == 'quantity';
     final zones = widget.ops.rows('zones');
-    final role = config['roleOverride'] as String?;
+    final role = config['partOverride'] as String?;
     final place = config['zoneOverride'] as String?;
     final spec =
         (config['quantitySpec'] as Json?) ??
@@ -157,7 +151,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
+            AppPillField<String>(
               key: ValueKey('kind-${step['id']}'),
               initialValue: config['completionKind'] ?? 'check',
               decoration: const InputDecoration(labelText: '완료 방식'),
@@ -197,7 +191,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                   }
                 },
               ),
-              DropdownButtonFormField<int>(
+              AppPillField<int>(
                 initialValue: spec['decimalPlaces'] ?? 0,
                 decoration: const InputDecoration(labelText: '소수 자리'),
                 items: const [
@@ -209,23 +203,29 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               ),
             ],
             const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
+            AppPillField<String>(
               initialValue: role,
-              decoration: const InputDecoration(labelText: '담당 역할'),
+              decoration: const InputDecoration(labelText: '담당 파트'),
               items: [
                 const DropdownMenuItem<String>(
                   value: null,
                   child: Text('TAP 설정 따름'),
                 ),
-                for (final entry in roles.entries.where(
-                  (entry) => entry.key != 'all',
-                ))
-                  DropdownMenuItem(value: entry.key, child: Text(entry.value)),
+                for (final part in storeParts(
+                  widget.ops,
+                ).where((p) => p['hidden'] != true))
+                  DropdownMenuItem(
+                    value: part['id'] as String,
+                    child: Text(part['name']),
+                  ),
               ],
-              onChanged: (v) => update(() => config['roleOverride'] = v),
+              onChanged: (v) => update(() {
+                config['partOverride'] = v;
+                config['roleOverride'] = null;
+              }),
             ),
             const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
+            AppPillField<String>(
               initialValue: zones.any((row) => row['id'] == place)
                   ? place
                   : null,
@@ -244,7 +244,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               onChanged: (v) => update(() => config['zoneOverride'] = v),
             ),
             const SizedBox(height: 10),
-            DropdownButtonFormField<int>(
+            AppPillField<int>(
               initialValue: config['estimatedMinutes'],
               decoration: const InputDecoration(labelText: '예상 소요 시간'),
               items: const [
@@ -295,7 +295,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               if (widget.ops.readOnly)
                 const Information('공개 미리보기에서는 설정을 저장하지 않아요.'),
               const SizedBox(height: 14),
-              DropdownButtonFormField<String>(
+              AppPillField<String>(
                 key: const ValueKey('tap-settings-template'),
                 initialValue: selectedId,
                 decoration: const InputDecoration(labelText: 'TAP 선택'),
@@ -316,7 +316,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                 }),
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
+              AppPillField<String>(
                 key: ValueKey('type-$selectedId'),
                 initialValue: config['type'],
                 decoration: const InputDecoration(labelText: '업무 유형'),
@@ -335,7 +335,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                 (v) => update(() => config['enabled'] = v),
               ),
               const Text('반복', style: TextStyle(fontWeight: FontWeight.w700)),
-              SegmentedButton<String>(
+              AppSegmented<String>(
                 segments: const [
                   ButtonSegment(value: 'daily', label: Text('매일')),
                   ButtonSegment(value: 'weekly', label: Text('요일 선택')),

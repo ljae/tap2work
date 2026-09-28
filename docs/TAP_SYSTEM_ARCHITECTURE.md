@@ -1,3 +1,5 @@
+> Historical design. The 2026-09-28 part-based schedule, terminology, filters and order-board setting in [ARCHITECTURE.md](ARCHITECTURE.md) supersede this earlier contract.
+
 # Tap2.work system architecture · proposed implementation contract
 
 ## Shared demo implementation · 2026-09-24

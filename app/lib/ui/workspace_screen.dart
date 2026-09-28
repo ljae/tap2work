@@ -98,7 +98,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
         '오늘은 주방 보조 · 한 번에 하나씩 익히면 돼요.',
       ),
       const Surface(
-        color: Color(0xFFEEECE3),
+        color: Color(0xFF222528),
         padding: EdgeInsets.all(17),
         child: Wrap(
           spacing: 24,
@@ -111,13 +111,13 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       ),
       gap,
       Surface(
-        color: AppColors.green,
+        color: AppColors.lime,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Eyebrow(
               next == null ? '함께 확인하기' : '지금 할 일 · 약 ${next.minutes}분',
-              color: AppColors.lime,
+              color: AppColors.green,
             ),
             const SizedBox(height: 22),
             Text(
@@ -204,7 +204,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       ...lessons.take(3).map(_lessonTile),
       gap,
       Surface(
-        color: const Color(0xFFF5E2D1),
+        color: const Color(0xFF392E20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -235,7 +235,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
   Widget _lessonTile(Lesson item) => Padding(
     padding: const EdgeInsets.only(bottom: 9),
     child: Material(
-      color: AppColors.white,
+      color: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
         side: const BorderSide(color: AppColors.line),
@@ -249,7 +249,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
           radius: 16,
           backgroundColor: work.approved.contains(item.id)
               ? AppColors.lime
-              : const Color(0xFFEEF0E7),
+              : const Color(0xFF222528),
           child: work.approved.contains(item.id)
               ? const Icon(Icons.check, size: 18)
               : Text(
@@ -368,11 +368,11 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     ),
     gap,
     Surface(
-      color: AppColors.green,
+      color: AppColors.lime,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Eyebrow('도움이 필요할 때', color: AppColors.lime),
+          const Eyebrow('도움이 필요할 때', color: AppColors.green),
           const SizedBox(height: 19),
           const Text(
             '“여기, 같이 봐 주세요.”',
@@ -438,7 +438,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     gap,
     if (work.helpRequested) ...[
       Surface(
-        color: const Color(0xFFF5E2D1),
+        color: const Color(0xFF392E20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

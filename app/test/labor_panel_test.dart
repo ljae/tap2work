@@ -75,17 +75,22 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       final data = calendarData();
-      data['staffingSlots'] = [
+      data['day'] = '2026-09-21';
+      data['rosterTemplates'] = [
         {
           'id': 'slot-0',
-          'weekdays': [1],
+          'weekday': 1,
+          'partId': 'kitchen',
+          'name': '오픈',
           'duty': '조리',
           'start': '09:00',
           'end': '18:00',
         },
         {
           'id': 'slot-1',
-          'weekdays': [1],
+          'weekday': 1,
+          'partId': 'kitchen',
+          'name': '오픈',
           'duty': '조리',
           'start': '09:00',
           'end': '18:00',
@@ -146,21 +151,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('주간 배정 현황'), findsOneWidget);
-      // One cook cannot fulfill two simultaneous required slots.
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('week-slot-2026-09-21-slot-0')),
-          matching: find.text('충족'),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('week-slot-2026-09-21-slot-1')),
-          matching: find.text('미배정'),
-        ),
-        findsOneWidget,
-      );
+      // One cook cannot fulfill two simultaneous requirements.
+      expect(find.text('충족 50% · 미배정 9.0시간'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(
         MaterialApp(

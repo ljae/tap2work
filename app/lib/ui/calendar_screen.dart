@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/material.dart';
+import '../domain/part_schedule.dart';
 import '../state/operations_controller.dart';
+import '../state/schedule_controller.dart';
 import 'components.dart';
-import 'team_screen.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key, required this.operations});
@@ -13,202 +12,139 @@ class CalendarScreen extends StatefulWidget {
   State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
-class _RosterBlock {
-  _RosterBlock({
-    required this.item,
-    required this.requiredSlot,
-    required this.shift,
-    required this.start,
-    required this.end,
-  });
-
-  final Json item;
-  final bool requiredSlot;
-  final Json? shift;
-  final int start;
-  final int end;
-  int column = 0;
-}
-
 class _CalendarScreenState extends State<CalendarScreen> {
-  static const _slotRowHeight = 48.0;
-  DateTime? selected;
-  bool monthly = false;
-  bool showDaily = false;
-
-  OperationsController get ops => widget.operations;
-  String date(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-  String name(String? id) =>
-      ops
-          .rows('tappers')
-          .where((t) => t['id'] == id)
-          .firstOrNull?['nickname'] ??
-      '빈 슬롯';
+  late ScheduleController model;
+  final horizontal = ScrollController();
+  final vertical = ScrollController();
   static const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
-  String dutyLabel(String duty) => duty == 'cashier' ? '계산' : duty;
-  IconData dutyIcon(String duty) => duty == '조리'
-      ? CupertinoIcons.flame
-      : duty == 'cashier'
-      ? CupertinoIcons.creditcard
-      : CupertinoIcons.person_2;
-  Color dutyTint(String duty) => duty == '조리'
-      ? const Color(0xFFEAF3EF)
-      : duty == 'cashier'
-      ? const Color(0xFFEDEDF5)
-      : const Color(0xFFFFEFE9);
-  bool get editable => ops.isLeader && !ops.readOnly && !ops.busy;
-  Future<void> action(String type, Json data) async {
-    final ok = await ops.act(type, data);
-    if (mounted && !ok) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(ops.error ?? '저장하지 못했어요.')));
-    }
+  @override
+  void initState() {
+    super.initState();
+    model = ScheduleController(widget.operations);
   }
 
-  List<Json> slotsOn(DateTime day) => ops
-      .rows('staffingSlots')
-      .where(
-        (s) => (s['weekdays'] as List? ?? [1, 2, 3, 4, 5, 6, 7]).contains(
-          day.weekday,
-        ),
-      )
-      .toList();
+  @override
+  void dispose() {
+    model.dispose();
+    horizontal.dispose();
+    vertical.dispose();
+    super.dispose();
+  }
 
-  Future<void> assign(DateTime day, Json slot, Json person) => editShift(
-    day,
-    person,
-    duty: slot['duty'],
-    startAt: slot['start'],
-    endAt: slot['end'],
-  );
+  OperationsController get ops => widget.operations;
 
-  Future<void> editShift(
-    DateTime day,
-    Json person, {
-    String? duty,
-    Json? shift,
-    String? startAt,
-    String? endAt,
-  }) async {
-    if (!editable) return;
-    final tapperId = person['tapperId'] ?? person['id'];
-    final tapper = ops
+  Future<void> edit(RosterSlot slot) async {
+    if (!model.editable) return;
+    final revision = ops.data!['revision'];
+    var start = slot.start, end = slot.end;
+    String? crewId = slot.crewId;
+    var repeat = 1;
+    final days = <int>{DateTime.parse(slot.date).weekday};
+    final crew = ops
         .rows('tappers')
-        .where((p) => p['id'] == tapperId)
-        .firstOrNull;
-    if (tapper == null) return;
-    final duties = (tapper['duties'] as List).cast<String>();
-    var selectedDuty = duty != null && duties.contains(duty)
-        ? duty
-        : duties.first;
-    var employment =
-        (shift?['employmentType'] ?? tapper['employmentType'] ?? '시간알바')
-            as String;
-    var start = startAt ?? (shift?['start'] ?? '09:00') as String;
-    var end = endAt ?? (shift?['end'] ?? '18:00') as String;
-    var repeat = '한 번';
-    var duration = 28;
-    final times = [
-      for (var hour = 0; hour < 24; hour++)
-        for (final minute in ['00', '30'])
-          '${hour.toString().padLeft(2, '0')}:$minute',
-    ];
-    final save = await showAppFormSheet<Json>(
+        .where(
+          (p) =>
+              p['active'] != false &&
+              ((p['workProfile']?['partIds'] as List? ?? []).isEmpty ||
+                  (p['workProfile']['partIds'] as List).contains(slot.partId)),
+        )
+        .toList();
+    final result = await showAppFormSheet<Json>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, update) => AppSheetPanel(
-          title: Text('${tapper['nickname']} · ${date(day)} 근무'),
+          title: Text(
+            '${slot.date} · ${model.parts.where((p) => p.id == slot.partId).first.name}',
+          ),
           content: SizedBox(
-            width: 380,
+            width: 440,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppPicker<String>(
-                    label: '고용형태',
-                    value: employment,
-                    items: ['정규직', '시간알바', '정규알바']
-                        .map((v) => DropdownMenuItem(value: v, child: Text(v)))
-                        .toList(),
-                    onChanged: (v) => update(() => employment = v!),
+                  Text(
+                    slot.shiftId == null
+                        ? '슬롯 시간과 크루 배정'
+                        : '${slot.name} 근무 조정',
+                    style: AppText.title,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   AppPicker<String>(
-                    label: '담당 R&R',
-                    value: selectedDuty,
-                    items: duties
-                        .map(
-                          (v) => DropdownMenuItem(
-                            value: v,
-                            child: Text(
-                              v.startsWith('서빙')
-                                  ? '서빙'
-                                  : v == 'cashier'
-                                  ? 'Cashier'
-                                  : v,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) => update(() => selectedDuty = v!),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text('시작 · 종료 (30분 단위)'),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      for (final field in [true, false])
-                        Expanded(
-                          child: AppPicker<String>(
-                            label: field ? '시작' : '종료',
-                            value: field ? start : end,
-                            items: times
-                                .map(
-                                  (v) => DropdownMenuItem(
-                                    value: v,
-                                    child: Text(v),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (v) => update(() {
-                              if (field) {
-                                start = v!;
-                              } else {
-                                end = v!;
-                              }
-                            }),
-                          ),
+                    label: '시작 시간',
+                    value: start,
+                    items: [
+                      for (var m = 0; m < 1440; m += 30)
+                        DropdownMenuItem(
+                          value: rosterClock(m),
+                          child: Text(rosterClock(m)),
                         ),
                     ],
+                    onChanged: (v) => update(() => start = v!),
                   ),
-                  if (shift == null) ...[
-                    const SizedBox(height: 12),
-                    AppPicker<String>(
-                      label: '반복',
-                      value: repeat,
-                      items: ['한 번', '월수금', '화목토', '매일', '평일', '주말']
-                          .map(
-                            (v) => DropdownMenuItem(value: v, child: Text(v)),
-                          )
-                          .toList(),
-                      onChanged: (v) => update(() => repeat = v!),
+                  const SizedBox(height: 16),
+                  AppPicker<String>(
+                    label: '종료 시간',
+                    value: end,
+                    items: [
+                      for (var m = 0; m < 1440; m += 30)
+                        DropdownMenuItem(
+                          value: rosterClock(m),
+                          child: Text(rosterClock(m)),
+                        ),
+                    ],
+                    onChanged: (v) => update(() => end = v!),
+                  ),
+                  if (end.compareTo(start) < 0)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text('종료는 다음 날이에요.', style: AppText.caption),
                     ),
-                    if (repeat != '한 번')
-                      AppPicker<int>(
-                        label: '반복 기간',
-                        value: duration,
-                        items: [7, 14, 28, 90]
-                            .map(
-                              (v) => DropdownMenuItem(
-                                value: v,
-                                child: Text('$v일 동안'),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (v) => update(() => duration = v!),
+                  const SizedBox(height: 16),
+                  AppPicker<String>(
+                    label: '담당 크루',
+                    value: crewId,
+                    items: [
+                      if (slot.shiftId == null)
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('미배정 · 시간만 저장'),
+                        ),
+                      for (final person in crew)
+                        DropdownMenuItem(
+                          value: person['id'] as String,
+                          child: Text(person['nickname']),
+                        ),
+                    ],
+                    onChanged: (v) => update(() => crewId = v),
+                  ),
+                  if (crew.isEmpty)
+                    const Text('이 파트에 배정 가능한 크루가 없어요.', style: AppText.caption),
+                  if (slot.shiftId == null && crewId != null) ...[
+                    const SizedBox(height: 16),
+                    AppChoiceGroup<int>(
+                      values: const [1, 28, 84],
+                      selected: repeat,
+                      labelOf: (v) => v == 1 ? '이번 날짜만' : '${v ~/ 7}주 반복',
+                      onSelected: (v) => update(() => repeat = v),
+                    ),
+                    if (repeat > 1)
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          for (var d = 1; d <= 7; d++)
+                            FilterChip(
+                              label: Text(weekdays[d - 1]),
+                              selected: days.contains(d),
+                              onSelected: (v) => update(() {
+                                if (v) {
+                                  days.add(d);
+                                } else {
+                                  days.remove(d);
+                                }
+                              }),
+                            ),
+                        ],
                       ),
                   ],
                 ],
@@ -216,1443 +152,510 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
           actions: [
-            PressBounce(
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('취소'),
-              ),
-            ),
-            PressBounce(
-              child: FilledButton(
+            if (slot.shiftId != null)
+              TextButton(
                 onPressed: () => Navigator.pop(context, {
-                  'tapperId': tapperId,
-                  'date': date(day),
-                  'duty': selectedDuty,
-                  'employmentType': employment,
-                  'start': start,
-                  'end': end,
-                  if (shift != null) 'id': shift['id'],
-                  'repeatDays': repeat == '한 번' ? 1 : duration,
-                  'weekdays': switch (repeat) {
-                    '월수금' => [1, 3, 5],
-                    '화목토' => [2, 4, 6],
-                    '매일' => [1, 2, 3, 4, 5, 6, 7],
-                    '평일' => [1, 2, 3, 4, 5],
-                    '주말' => [6, 7],
-                    _ => <int>[],
-                  },
+                  'action': 'delete_staff_shift',
+                  'id': slot.shiftId,
                 }),
-                child: const Text('저장'),
+                child: const Text('배정 해제'),
               ),
+            if (slot.adjusted)
+              TextButton(
+                onPressed: () => Navigator.pop(context, {
+                  'action': 'reset_roster_slot',
+                  'templateId': slot.templateId,
+                  'date': slot.date,
+                  'partId': slot.partId,
+                }),
+                child: const Text('영업시간으로 되돌리기'),
+              ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              onPressed: start == end || (repeat > 1 && days.isEmpty)
+                  ? null
+                  : () => Navigator.pop(context, {
+                      'action': crewId == null
+                          ? 'save_roster_slot'
+                          : repeat > 1
+                          ? 'save_shift_pattern'
+                          : 'save_staff_shift',
+                      'date': slot.date,
+                      'partId': slot.partId,
+                      'start': start,
+                      'end': end,
+                      if (crewId == null) 'templateId': slot.templateId,
+                      if (crewId != null) ...{
+                        'tapperId': crewId,
+                        if (slot.shiftId != null) 'id': slot.shiftId,
+                        'repeatDays': repeat,
+                        'weekdays': days.toList(),
+                      },
+                    }),
+              child: const Text('저장'),
             ),
           ],
         ),
       ),
     );
-    if (save != null) await action('save_shift_pattern', save);
+    if (result == null || !mounted) return;
+    final action = result.remove('action') as String;
+    final ok = await ops.act(action, {...result, 'revision': revision});
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ok ? '근무표에 반영했어요.' : ops.error ?? '저장하지 못했어요.')),
+      );
+    }
   }
 
-  Future<void> configure() async {
-    final revision = ops.data?['revision'];
-    final draft = ops
-        .rows('staffingSlots')
-        .map((s) => Map<String, dynamic>.from(s))
-        .toList();
-    final saved = await showAppFormSheet<bool>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, update) => AppSheetPanel(
-          title: const Text('하루 필요 인원'),
-          content: SizedBox(
-            width: 420,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (final slot in draft)
-                    Wrap(
-                      spacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 130,
-                          child: AppPicker<String>(
-                            label: '담당',
-                            value: slot['duty'] as String,
-                            items: ['조리', '서빙1', '서빙2', 'cashier']
-                                .map(
-                                  (s) => DropdownMenuItem(
-                                    value: s,
-                                    child: Text(s),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (v) => update(() => slot['duty'] = v),
-                          ),
-                        ),
-                        for (final field in ['start', 'end'])
-                          PressBounce(
-                            child: OutlinedButton(
-                              onPressed: () async {
-                                final parts = (slot[field] as String).split(
-                                  ':',
-                                );
-                                final time = await showTimePicker(
-                                  context: context,
-                                  initialTime: TimeOfDay(
-                                    hour: int.parse(parts[0]),
-                                    minute: int.parse(parts[1]),
-                                  ),
-                                );
-                                if (time != null) {
-                                  update(
-                                    () => slot[field] =
-                                        '${time.hour.toString().padLeft(2, '0')}:${(time.minute < 30 ? 0 : 30).toString().padLeft(2, '0')}',
-                                  );
-                                }
-                              },
-                              child: Text(slot[field]),
+  Widget month() {
+    final first = DateTime(model.selected.year, model.selected.month, 1);
+    final origin = first.subtract(Duration(days: first.weekday - 1));
+    return LayoutBuilder(
+      builder: (context, box) => Wrap(
+        children: [
+          for (var n = 0; n < 42; n++)
+            Builder(
+              builder: (context) {
+                final day = origin.add(Duration(days: n));
+                final assigned = model
+                    .slots(day)
+                    .where((s) => s.crewId != null)
+                    .length;
+                return SizedBox(
+                  width: box.maxWidth / 7,
+                  height:
+                      90 * (MediaQuery.textScalerOf(context).scale(14) / 14),
+                  child: InkWell(
+                    onTap: () => model.selectDay(day),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.line),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            '${day.day}',
+                            style: TextStyle(
+                              color: day.month == first.month
+                                  ? AppColors.ink
+                                  : AppColors.muted,
                             ),
                           ),
-                        IconButton(
-                          onPressed: draft.length > 1
-                              ? () => update(() => draft.remove(slot))
-                              : null,
-                          icon: const Icon(Icons.remove_circle_outline),
+                          const SizedBox(height: 8),
+                          Text(
+                            '$assigned',
+                            style: AppText.caption,
+                            semanticsLabel: '배정 $assigned명',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget week() {
+    final parts = model.visibleParts;
+    if (parts.isEmpty) return const Information('우리매장 → 파트 관리에서 파트를 추가해 주세요.');
+    final days = [
+      for (var n = 0; n < 7; n++) model.monday.add(Duration(days: n)),
+    ];
+    final coverage = rosterCoverage(ops.data ?? {}, model.monday, parts);
+    final all = [for (final day in days) ...model.slots(day)];
+    final from = all.isEmpty
+        ? 9 * 60
+        : all.map((s) => s.startMinute).reduce((a, b) => a < b ? a : b) ~/
+              60 *
+              60;
+    final until = all.isEmpty
+        ? 22 * 60
+        : ((all.map((s) => s.endMinute).reduce((a, b) => a > b ? a : b) + 59) ~/
+              60 *
+              60);
+    // 30 minutes is a 48px touch target; never compress the day/part columns.
+    const scale = 48.0 / 30;
+    final gridHeight = (until - from) * scale;
+    final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    final columnWidth = 148.0 * textScale.clamp(1, 1.6);
+    final partWidths = <String, double>{};
+    for (final part in parts) {
+      var maximum = 1;
+      for (final day in days) {
+        final slots =
+            all
+                .where((s) => s.partId == part.id && s.date == rosterDate(day))
+                .toList()
+              ..sort((a, b) => a.startMinute.compareTo(b.startMinute));
+        final ends = <int>[];
+        for (final slot in slots) {
+          final lane = ends.indexWhere((end) => end <= slot.startMinute);
+          if (lane < 0) {
+            ends.add(slot.endMinute);
+          } else {
+            ends[lane] = slot.endMinute;
+          }
+        }
+        if (ends.length > maximum) maximum = ends.length;
+      }
+      partWidths[part.id] = columnWidth * maximum;
+    }
+    final headerHeight = 88.0 * textScale.clamp(1, 1.6);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('주간 배정 현황', style: AppText.body),
+        Text(
+          '충족 ${coverage.needed == 0 ? 0 : (coverage.covered * 100 / coverage.needed).round()}% · 미배정 ${((coverage.needed - coverage.covered) / 60).toStringAsFixed(1)}시간',
+          style: AppText.caption,
+        ),
+        const SizedBox(height: 12),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 640,
+          child: Scrollbar(
+            controller: vertical,
+            thumbVisibility: true,
+            child: SingleChildScrollView(
+              controller: vertical,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    key: const ValueKey('roster-time-axis'),
+                    width: 52,
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: headerHeight,
+                          child: const Center(
+                            child: Text('시간', style: AppText.caption),
+                          ),
                         ),
                         SizedBox(
-                          width: 420,
-                          child: Wrap(
-                            spacing: 4,
+                          height: gridHeight + 24,
+                          child: Stack(
                             children: [
-                              for (var day = 1; day <= 7; day++)
-                                FilterChip(
-                                  label: Text(weekdays[day - 1]),
-                                  selected:
-                                      (slot['weekdays'] as List? ??
-                                              [1, 2, 3, 4, 5, 6, 7])
-                                          .contains(day),
-                                  onSelected: (value) => update(() {
-                                    final days = List<int>.from(
-                                      slot['weekdays'] ?? [1, 2, 3, 4, 5, 6, 7],
-                                    );
-                                    value ? days.add(day) : days.remove(day);
-                                    slot['weekdays'] = days;
-                                  }),
+                              for (var m = from; m <= until; m += 60)
+                                Positioned(
+                                  top: (m - from) * scale,
+                                  left: 0,
+                                  right: 0,
+                                  child: Text(
+                                    '${m >= 1440 ? '+' : ''}${rosterClock(m)}',
+                                    style: AppText.caption.copyWith(
+                                      fontSize: 11,
+                                    ),
+                                  ),
                                 ),
                             ],
                           ),
                         ),
                       ],
                     ),
-                  PressBounce(
-                    child: TextButton(
-                      onPressed: draft.length < 12
-                          ? () => update(
-                              () => draft.add({
-                                'duty': '서빙1',
-                                'start': '09:00',
-                                'end': '18:00',
-                              }),
-                            )
-                          : null,
-                      child: const Text('슬롯 추가'),
-                    ),
                   ),
-                  const Text('기존 근무 기록은 유지돼요. 변경 후 배정을 확인하세요.'),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            PressBounce(
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('취소'),
-              ),
-            ),
-            PressBounce(
-              child: FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('저장'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (saved == true) {
-      await action('save_staffing_slots', {
-        'slots': draft,
-        'revision': revision,
-      });
-    }
-  }
-
-  Future<void> pick(DateTime day, Json slot, Json? shift) async {
-    final start = DateTime.parse('${date(day)}T${slot['start']}:00+09:00');
-    var end = DateTime.parse('${date(day)}T${slot['end']}:00+09:00');
-    if (!end.isAfter(start)) end = end.add(const Duration(days: 1));
-    final people = ops
-        .rows('tappers')
-        .where(
-          (p) =>
-              p['active'] == true &&
-              (p['duties'] as List).contains(slot['duty']) &&
-              !ops.rows('staffShifts').any((s) {
-                if (s['tapperId'] != p['id'] || s['status'] == 'leave') {
-                  return false;
-                }
-                final a = DateTime.parse('${s['date']}T${s['start']}:00+09:00');
-                var b = DateTime.parse('${s['date']}T${s['end']}:00+09:00');
-                if (!b.isAfter(a)) b = b.add(const Duration(days: 1));
-                return a.isBefore(end) && b.isAfter(start);
-              }),
-        )
-        .toList();
-    await showModalBottomSheet<void>(
-      context: context,
-      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
-          ? AnimationStyle.noAnimation
-          : null,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${date(day)} · ${slot['duty']} ${slot['start']}–${slot['end']}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              if (shift != null)
-                ListTile(
-                  title: Text('${name(shift['tapperId'])} · 배정 해제'),
-                  onTap: editable
-                      ? () {
-                          Navigator.pop(context);
-                          action('assign_staffing_slot', {
-                            'date': date(day),
-                            'slotId': slot['id'],
-                            'shiftId': shift['id'],
-                            'tapperId': null,
-                          });
-                        }
-                      : null,
-                ),
-              if (shift == null) ...[
-                const Text(
-                  '추가 근무 후보 · 역할과 예정 근무를 기준으로 추천해요. 가능 여부는 직접 확인해 주세요.',
-                ),
-                for (final person in people)
-                  ListTile(
-                    title: Text(name(person['id'])),
-                    subtitle: const Text('가능 여부 확인 후 배정'),
-                    onTap: editable
-                        ? () {
-                            Navigator.pop(context);
-                            assign(day, slot, person);
-                          }
-                        : null,
-                  ),
-                if (people.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Text('겹치지 않는 담당 크루가 없어요.'),
-                  ),
-                PressBounce(
-                  child: TextButton(
-                    onPressed: () async {
-                      await launchUrl(
-                        Uri.parse('https://www.albamon.com/'),
-                        mode: LaunchMode.externalApplication,
-                      );
-                    },
-                    child: const Text('알바몬 채용 사이트 ↗ · HR 연동 준비 중'),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget drag(Json data, Widget child) {
-    final feedback = Material(
-      elevation: 6,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Text(name(data['tapperId'] ?? data['id'])),
-      ),
-    );
-    final faded = Opacity(opacity: .4, child: child);
-    final mobile =
-        defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.android;
-    return mobile
-        ? LongPressDraggable<Json>(
-            data: data,
-            maxSimultaneousDrags: editable ? 1 : 0,
-            feedback: feedback,
-            childWhenDragging: faded,
-            child: child,
-          )
-        : Draggable<Json>(
-            data: data,
-            maxSimultaneousDrags: editable ? 1 : 0,
-            feedback: feedback,
-            childWhenDragging: faded,
-            child: child,
-          );
-  }
-
-  Widget dayCard(DateTime day) {
-    final shifts = ops
-        .rows('staffShifts')
-        .where((s) => s['date'] == date(day) && s['status'] != 'leave')
-        .toList();
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.line),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            '${day.month}/${day.day} ${['월', '화', '수', '목', '금', '토', '일'][day.weekday - 1]}',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          for (final slot in slotsOn(day))
-            Builder(
-              builder: (context) {
-                final shift = shifts
-                    .where(
-                      (s) =>
-                          s['slotId'] == slot['id'] &&
-                          s['duty'] == slot['duty'] &&
-                          s['start'] == slot['start'] &&
-                          s['end'] == slot['end'],
-                    )
-                    .firstOrNull;
-                return DragTarget<Json>(
-                  onWillAcceptWithDetails: (_) => editable && shift == null,
-                  onAcceptWithDetails: (d) => assign(day, slot, d.data),
-                  builder: (context, candidates, _) {
-                    final card = Container(
-                      margin: const EdgeInsets.only(top: 8),
-                      decoration: BoxDecoration(
-                        color: candidates.isNotEmpty
-                            ? const Color(0xFFFCE8E4)
-                            : shift == null
-                            ? const Color(0xFFFFF4E5)
-                            : const Color(0xFFEDF5F1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: InkWell(
-                        onTap: () => pick(day, slot, shift),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(slot['duty']),
-                              Text(
-                                '${slot['start']}–${slot['end']}',
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              Text(
-                                name(shift?['tapperId']),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                    return shift == null ? card : drag(shift, card);
-                  },
-                );
-              },
-            ),
-          for (final shift in shifts.where(
-            (s) => !ops
-                .rows('staffingSlots')
-                .any(
-                  (slot) =>
-                      slot['id'] == s['slotId'] &&
-                      slot['start'] == s['start'] &&
-                      slot['end'] == s['end'] &&
-                      slot['duty'] == s['duty'],
-                ),
-          ))
-            drag(
-              shift,
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  '${name(shift['tapperId'])} · ${shift['duty']}\n${shift['start']}–${shift['end']} · 별도 근무',
-                  style: const TextStyle(fontSize: 13),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  int minute(String value) =>
-      int.parse(value.substring(0, 2)) * 60 + int.parse(value.substring(3, 5));
-  String clockAt(int value) =>
-      '${(value ~/ 60).toString().padLeft(2, '0')}:${(value % 60).toString().padLeft(2, '0')}';
-  void dropShift(
-    DateTime day,
-    Json person,
-    String duty,
-    Offset global,
-    BuildContext targetContext,
-  ) {
-    final box = targetContext.findRenderObject() as RenderBox;
-    final local = box.globalToLocal(global);
-    final start = (360 + (local.dy / _slotRowHeight).floor() * 30).clamp(
-      360,
-      1410,
-    );
-    final shift = person['tapperId'] == null ? null : person;
-    final oldStart = shift == null ? 540 : minute(shift['start']);
-    final oldEnd = shift == null ? 1080 : minute(shift['end']);
-    final duration = (oldEnd - oldStart + 1440) % 1440;
-    editShift(
-      day,
-      person,
-      shift: shift,
-      duty: duty,
-      startAt: clockAt(start),
-      endAt: clockAt((start + duration) % 1440),
-    );
-  }
-
-  Future<void> chooseForDay(
-    DateTime day, {
-    String? duty,
-    String? startAt,
-  }) async {
-    if (!editable) return;
-    final people = ops
-        .rows('tappers')
-        .where(
-          (p) =>
-              p['active'] == true &&
-              (duty == null || (p['duties'] as List).contains(duty)),
-        )
-        .toList();
-    final person = await showModalBottomSheet<Json>(
-      context: context,
-      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
-          ? AnimationStyle.noAnimation
-          : null,
-      builder: (context) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            ListTile(
-              title: Text(
-                duty == null ? '크루 선택' : '${dutyLabel(duty)} · 크루 선택',
-              ),
-            ),
-            for (final p in people)
-              ListTile(
-                title: Text(
-                  '${p['nickname']} · ${(p['duties'] as List).join('/')}',
-                ),
-                onTap: () => Navigator.pop(context, p),
-              ),
-            if (people.isEmpty)
-              const ListTile(title: Text('이 역할을 맡을 수 있는 크루가 없어요.')),
-          ],
-        ),
-      ),
-    );
-    if (person != null) {
-      await editShift(
-        day,
-        person,
-        duty: duty,
-        startAt: startAt,
-        endAt: startAt == null ? null : clockAt((minute(startAt) + 540) % 1440),
-      );
-    }
-  }
-
-  List<Json> earlyShifts(DateTime day) => ops.rows('staffShifts').where((s) {
-    if (s['status'] == 'leave') return false;
-    if (s['date'] == date(day)) return minute(s['start']) < 360;
-    if (s['date'] == date(day.subtract(const Duration(days: 1)))) {
-      return minute(s['end']) <= minute(s['start']) && minute(s['end']) > 0;
-    }
-    return false;
-  }).toList();
-
-  Future<void> showEarly(DateTime day) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
-          ? AnimationStyle.noAnimation
-          : null,
-      builder: (context) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            ListTile(title: Text('${date(day)} · 06:00 이전 / 야간 근무')),
-            for (final shift in earlyShifts(day))
-              ListTile(
-                title: Text('${shift['duty']} · ${name(shift['tapperId'])}'),
-                subtitle: Text(
-                  '${shift['date']} ${shift['start']}–${shift['end']}',
-                ),
-                onTap: !editable
-                    ? null
-                    : () {
-                        Navigator.pop(context);
-                        editShift(
-                          DateTime.parse(shift['date']),
-                          shift,
-                          shift: shift,
-                        );
-                      },
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Json? matchingShift(DateTime day, Json target) {
-    final slots = slotsOn(day);
-    final used = <String>{};
-    for (final slot in slots) {
-      final candidates = ops
-          .rows('staffShifts')
-          .where(
-            (s) =>
-                s['date'] == date(day) &&
-                s['status'] != 'leave' &&
-                s['duty'] == slot['duty'] &&
-                s['start'] == slot['start'] &&
-                s['end'] == slot['end'] &&
-                !used.contains(s['id']),
-          )
-          .toList();
-      final found =
-          candidates.where((s) => s['slotId'] == slot['id']).firstOrNull ??
-          candidates
-              .where(
-                (s) =>
-                    s['slotId'] == null ||
-                    !slots.any((other) => other['id'] == s['slotId']),
-              )
-              .firstOrNull;
-      if (found != null) used.add(found['id']);
-      if (slot['id'] == target['id']) return found;
-    }
-    return null;
-  }
-
-  Widget weekStrip(DateTime monday, DateTime selectedDay) => LayoutBuilder(
-    builder: (context, box) {
-      const gap = 6.0;
-      final available = box.maxWidth > 720 ? 720.0 : box.maxWidth;
-      final scrollable = available < 7 * 54 + 6 * gap;
-      final tileWidth = scrollable ? 54.0 : (available - 6 * gap) / 7;
-      Widget dayTile(int index) {
-        final day = monday.add(Duration(days: index));
-        final isSelected = date(day) == date(selectedDay);
-        final filled = slotsOn(
-          day,
-        ).where((slot) => matchingShift(day, slot) != null).length;
-        return SizedBox(
-          width: tileWidth,
-          child: Semantics(
-            button: true,
-            selected: isSelected,
-            label:
-                '${day.month}월 ${day.day}일 ${weekdays[index]}, 필수 슬롯 $filled개 배정',
-            child: Material(
-              color: isSelected ? AppColors.green : AppColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: BorderSide(
-                  color: isSelected ? AppColors.green : AppColors.line,
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                key: Key('calendar-day-${date(day)}'),
-                onTap: () => setState(() => selected = day),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Column(
-                    children: [
-                      Text(
-                        weekdays[index],
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isSelected ? AppColors.white : AppColors.muted,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        '${day.day}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: isSelected ? AppColors.white : AppColors.ink,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: filled == 0
-                              ? (isSelected ? AppColors.white : AppColors.line)
-                              : (isSelected
-                                    ? AppColors.white
-                                    : AppColors.accent),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-
-      final strip = Row(
-        children: [
-          for (var index = 0; index < 7; index++) ...[
-            if (index > 0) const SizedBox(width: gap),
-            dayTile(index),
-          ],
-        ],
-      );
-      return SizedBox(
-        width: available,
-        child: scrollable
-            ? SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: strip,
-              )
-            : strip,
-      );
-    },
-  );
-
-  Widget dayRoster(DateTime day) {
-    const rowHeight = _slotRowHeight;
-    const headerHeight = 44.0;
-    final axisWidth = 40.0 * MediaQuery.textScalerOf(context).scale(12) / 12;
-    const gridHeight = 36 * rowHeight;
-    final slots = slotsOn(day);
-    final priorDate = date(day.subtract(const Duration(days: 1)));
-    final shifts = ops.rows('staffShifts').where((s) {
-      if (s['status'] == 'leave') return false;
-      if (s['date'] == date(day)) return true;
-      return s['date'] == priorDate &&
-          minute(s['end']) <= minute(s['start']) &&
-          minute(s['end']) > 360;
-    }).toList();
-    final duties = <String>{
-      ...slots.map((s) => s['duty'] as String),
-      ...shifts.map((s) => s['duty'] as String),
-    }.toList();
-    final filled = slots
-        .where((slot) => matchingShift(day, slot) != null)
-        .length;
-    final early = earlyShifts(day);
-
-    List<_RosterBlock> blocksFor(String duty) {
-      final blocks = <_RosterBlock>[];
-      void add(Json item, {required bool requiredSlot, Json? shift}) {
-        final previous = !requiredSlot && item['date'] == priorDate;
-        final start = previous ? 0 : minute(item['start']);
-        final finish = minute(item['end']);
-        final end = previous ? finish : (finish <= start ? 1440 : finish);
-        final visibleStart = start.clamp(360, 1440);
-        if (end <= 360 || visibleStart >= 1440) return;
-        blocks.add(
-          _RosterBlock(
-            item: item,
-            requiredSlot: requiredSlot,
-            shift: shift,
-            start: visibleStart,
-            end: end.clamp(360, 1440),
-          ),
-        );
-      }
-
-      for (final slot in slots.where((s) => s['duty'] == duty)) {
-        add(slot, requiredSlot: true, shift: matchingShift(day, slot));
-      }
-      for (final shift in shifts.where(
-        (s) =>
-            s['duty'] == duty &&
-            !slots.any((slot) => matchingShift(day, slot)?['id'] == s['id']),
-      )) {
-        add(shift, requiredSlot: false);
-      }
-      blocks.sort((a, b) {
-        final startOrder = a.start.compareTo(b.start);
-        if (startOrder != 0) return startOrder;
-        final endOrder = a.end.compareTo(b.end);
-        if (endOrder != 0) return endOrder;
-        return '${a.item['id']}'.compareTo('${b.item['id']}');
-      });
-      final columnEnds = <int>[];
-      for (final block in blocks) {
-        var column = columnEnds.indexWhere((end) => end <= block.start);
-        if (column < 0) {
-          column = columnEnds.length;
-          columnEnds.add(block.end);
-        } else {
-          columnEnds[column] = block.end;
-        }
-        block.column = column;
-      }
-      return blocks;
-    }
-
-    Widget timedBlock(_RosterBlock block, double columnWidth) {
-      final item = block.item;
-      final height = (block.end - block.start) / 30 * rowHeight;
-      final assigned = block.shift ?? (block.requiredSlot ? null : item);
-      final duty = item['duty'] as String;
-      final card = Material(
-        key: Key('roster-block-${item['id']}'),
-        color: assigned == null ? const Color(0xFFFFF4E9) : dutyTint(duty),
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: block.requiredSlot
-              ? () => pick(day, item, block.shift)
-              : editable
-              ? () => editShift(DateTime.parse(item['date']), item, shift: item)
-              : null,
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: assigned == null
-                    ? const Color(0xFFE4BFA9)
-                    : AppColors.line,
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  assigned == null ? '빈 슬롯' : name(assigned['tapperId']),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                  ),
-                ),
-                if (height >= 48)
-                  Text(
-                    '${item['start']}–${item['end']}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                if (height >= 68 && !block.requiredSlot)
-                  Text(
-                    item['date'] == priorDate ? '전날부터' : '추가 근무',
-                    style: const TextStyle(fontSize: 13),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      );
-      return Positioned(
-        top: (block.start - 360) / 30 * rowHeight + 2,
-        left: block.column * columnWidth + 3,
-        width: columnWidth - 6,
-        height: height - 4,
-        child: assigned == null ? card : drag(assigned, card),
-      );
-    }
-
-    Widget lane(String duty) {
-      final blocks = blocksFor(duty);
-      final columns = blocks.isEmpty
-          ? 1
-          : blocks.map((b) => b.column).reduce((a, b) => a > b ? a : b) + 1;
-      final laneWidth = columns * 112.0 > 126.0 ? columns * 112.0 : 126.0;
-      final columnWidth = laneWidth / columns;
-      return SizedBox(
-        width: laneWidth,
-        child: Column(
-          children: [
-            Container(
-              height: headerHeight,
-              width: laneWidth,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(bottom: BorderSide(color: AppColors.line)),
-              ),
-              child: Text(
-                dutyLabel(duty),
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
-            Builder(
-              builder: (targetContext) => DragTarget<Json>(
-                key: Key('roster-lane-${date(day)}-$duty'),
-                onWillAcceptWithDetails: (_) => editable,
-                onAcceptWithDetails: (details) => dropShift(
-                  day,
-                  details.data,
-                  duty,
-                  details.offset,
-                  targetContext,
-                ),
-                builder: (context, candidates, _) => SizedBox(
-                  height: gridHeight,
-                  width: laneWidth,
-                  child: Stack(
-                    children: [
-                      for (var tick = 0; tick < 36; tick++)
-                        Positioned(
-                          top: tick * rowHeight,
-                          width: laneWidth,
-                          height: rowHeight,
-                          child: InkWell(
-                            key: Key('roster-cell-${date(day)}-$duty-$tick'),
-                            onTap: editable
-                                ? () => chooseForDay(
-                                    day,
-                                    duty: duty,
-                                    startAt: clockAt(360 + tick * 30),
-                                  )
-                                : null,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: candidates.isNotEmpty
-                                    ? const Color(0xFFFCE8E4)
-                                    : Colors.white,
-                                border: Border(
-                                  left: const BorderSide(color: AppColors.line),
-                                  top: BorderSide(
-                                    color: AppColors.line,
-                                    width: tick.isEven ? 1 : .4,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      for (final block in blocks)
-                        timedBlock(block, columnWidth),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '배정 현황',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '${day.month}월 ${day.day}일 ${weekdays[day.weekday - 1]}요일 · 배정 $filled · 빈 슬롯 ${slots.length - filled}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.muted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (editable)
-              PressBounce(
-                child: TextButton.icon(
-                  onPressed: () => chooseForDay(day),
-                  icon: const Icon(CupertinoIcons.plus, size: 16),
-                  label: const Text('근무 추가'),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        if (slots.length - filled > 0) ...[
-          AppStatusPill(
-            label: '빈 슬롯 ${slots.length - filled}개',
-            icon: CupertinoIcons.exclamationmark_circle,
-            attention: true,
-          ),
-          const SizedBox(height: 10),
-        ],
-        const Text(
-          '표시 시간 06:00–24:00 · 30분 단위 · 역할을 옆으로 넘겨 보세요',
-          style: TextStyle(fontSize: 13, color: AppColors.muted),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: 620,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: AppColors.line),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: SingleChildScrollView(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  key: const ValueKey('roster-time-axis'),
-                  width: axisWidth,
-                  color: AppColors.paper,
-                  child: Column(
-                    children: [
-                      const SizedBox(
-                        height: headerHeight,
-                        child: Center(
-                          child: Text(
-                            '시각',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.ink,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: gridHeight,
-                        child: Stack(
+                  Expanded(
+                    child: Scrollbar(
+                      controller: horizontal,
+                      thumbVisibility: true,
+                      notificationPredicate: (n) =>
+                          n.metrics.axis == Axis.horizontal,
+                      child: SingleChildScrollView(
+                        controller: horizontal,
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            for (var tick = 0; tick < 36; tick++)
-                              Positioned(
-                                top: tick * rowHeight,
-                                left: 2,
-                                right: 5,
-                                child: Tooltip(
-                                  message: clockAt(360 + tick * 30),
-                                  child: Semantics(
-                                    label: clockAt(360 + tick * 30),
-                                    excludeSemantics: true,
-                                    child: Text(
-                                      tick.isEven
-                                          ? '${(360 + tick * 30) ~/ 60}시'
-                                          : ':30',
-                                      textAlign: TextAlign.right,
-                                      style: TextStyle(
-                                        fontSize: tick.isEven ? 12 : 10,
-                                        height: 1.2,
-                                        fontWeight: tick.isEven
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
-                                        color: tick.isEven
-                                            ? AppColors.ink
-                                            : AppColors.muted,
+                            for (final day in days)
+                              SizedBox(
+                                width: partWidths.values.fold<double>(
+                                  0,
+                                  (a, b) => a + b,
+                                ),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: headerHeight / 2,
+                                      alignment: Alignment.centerLeft,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
                                       ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [for (final duty in duties) lane(duty)],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (early.isNotEmpty)
-          PressBounce(
-            child: TextButton.icon(
-              onPressed: () => showEarly(day),
-              icon: const Icon(CupertinoIcons.moon, size: 16),
-              label: Text('새벽·야간 근무 ${early.length}건 보기'),
-            ),
-          ),
-      ],
-    );
-  }
-
-  // Match capacity per half-hour so split shifts count and one person cannot
-  // satisfy two simultaneous required positions.
-  Map<String, Map<String, dynamic>> coverage(DateTime day) {
-    final slots = slotsOn(day);
-    final result = <String, Map<String, dynamic>>{
-      for (final slot in slots) slot['id']: {'minutes': 0, 'names': <String>{}},
-    };
-    final origin = DateTime.parse('${date(day)}T00:00:00+09:00');
-    for (var tick = 0; tick < 1440; tick += 30) {
-      final at = origin.add(Duration(minutes: tick));
-      final available = ops.rows('staffShifts').where((shift) {
-        if (shift['status'] == 'leave') return false;
-        final from = DateTime.parse(
-          '${shift['date']}T${shift['start']}:00+09:00',
-        );
-        var until = DateTime.parse('${shift['date']}T${shift['end']}:00+09:00');
-        if (!until.isAfter(from)) until = until.add(const Duration(days: 1));
-        return !from.isAfter(at) &&
-            !until.isBefore(at.add(const Duration(minutes: 30)));
-      }).toList();
-      final used = <String>{};
-      for (final slot in slots) {
-        if (tick < minute(slot['start']) || tick >= minute(slot['end'])) {
-          continue;
-        }
-        final shift = available
-            .where(
-              (v) => v['duty'] == slot['duty'] && !used.contains(v['tapperId']),
-            )
-            .firstOrNull;
-        if (shift == null) continue;
-        used.add(shift['tapperId']);
-        result[slot['id']]!['minutes'] += 30;
-        (result[slot['id']]!['names'] as Set<String>).add(
-          name(shift['tapperId']),
-        );
-      }
-    }
-    return result;
-  }
-
-  Widget weeklyCoverage(DateTime monday) {
-    final slots = ops.rows('staffingSlots');
-    final days = [for (var i = 0; i < 7; i++) monday.add(Duration(days: i))];
-    final cells = [for (final day in days) coverage(day)];
-    final needed = days.fold<int>(
-      0,
-      (n, day) =>
-          n +
-          slotsOn(day).fold<int>(
-            0,
-            (v, slot) => v + minute(slot['end']) - minute(slot['start']),
-          ),
-    );
-    final filled = cells.fold<int>(
-      0,
-      (n, c) => n + c.values.fold<int>(0, (v, r) => v + (r['minutes'] as int)),
-    );
-    final textScale = MediaQuery.textScalerOf(context).scale(16) / 16;
-    final rowHeight = 112.0 * textScale;
-    Widget label(String text, {bool heading = false}) => SizedBox(
-      height: heading ? 52 : rowHeight,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(text, style: heading ? AppText.caption : AppText.body),
-      ),
-    );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('주간 배정 현황', style: AppText.title),
-        const SizedBox(height: 8),
-        Text(
-          '충족 ${needed == 0 ? 0 : (filled * 100 / needed).round()}% · 미배정 ${((needed - filled) / 60).toStringAsFixed(1)}시간',
-          style: AppText.body,
-        ),
-        const SizedBox(height: 16),
-        if (slots.isEmpty) const Information('필요한 직무와 시간 슬롯을 설정해 주세요.'),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 86 * textScale,
-              child: Column(
-                children: [
-                  label('직무 / 시간', heading: true),
-                  for (final slot in slots)
-                    label(
-                      '${dutyLabel(slot['duty'])}\n${slot['start']}\n${slot['end']}',
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (var i = 0; i < 7; i++)
-                      SizedBox(
-                        width: 120 * textScale,
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              height: 52,
-                              child: TextButton(
-                                onPressed: () => setState(() {
-                                  selected = days[i];
-                                  showDaily = true;
-                                }),
-                                child: Text(
-                                  '${weekdays[i]} ${days[i].month}/${days[i].day}',
-                                ),
-                              ),
-                            ),
-                            for (final slot in slots)
-                              Builder(
-                                builder: (context) {
-                                  final active = cells[i].containsKey(
-                                    slot['id'],
-                                  );
-                                  final cell =
-                                      cells[i][slot['id']] ??
-                                      {'minutes': 0, 'names': <String>{}};
-                                  final total =
-                                      minute(slot['end']) -
-                                      minute(slot['start']);
-                                  final done = cell['minutes'] as int;
-                                  final full = active && done == total;
-                                  final names = (cell['names'] as Set<String>)
-                                      .join('·');
-                                  return SizedBox(
-                                    height: rowHeight,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(3),
-                                      child: Material(
-                                        color: full
-                                            ? const Color(0xFFEAF3EF)
-                                            : done > 0
-                                            ? const Color(0xFFFFF3E5)
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: InkWell(
-                                          key: Key(
-                                            'week-slot-${date(days[i])}-${slot['id']}',
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          onTap: () => showAppSheet(
-                                            context,
-                                            builder: (_) => ListenableBuilder(
-                                              listenable: ops,
-                                              builder: (context, _) => Scaffold(
-                                                appBar: AppBar(
-                                                  title: Text(
-                                                    '${days[i].month}/${days[i].day} 배정',
-                                                  ),
-                                                  leading: const CloseButton(),
-                                                ),
-                                                body: SingleChildScrollView(
-                                                  padding: const EdgeInsets.all(
-                                                    24,
-                                                  ),
-                                                  child: dayRoster(days[i]),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8),
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  !active
-                                                      ? '—'
-                                                      : full
-                                                      ? '충족'
-                                                      : done == 0
-                                                      ? '미배정'
-                                                      : '부분 배정',
-                                                  style: AppText.body.copyWith(
-                                                    color: full
-                                                        ? AppColors.green
-                                                        : AppColors.accent,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  names.isEmpty
-                                                      ? '${slot['start']}–${slot['end']}'
-                                                      : names,
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: AppText.caption,
-                                                ),
-                                                if (active && !full)
-                                                  Text(
-                                                    '${((total - done) / 60).toStringAsFixed(1)}시간 부족',
-                                                    style: AppText.caption,
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.surface,
+                                        border: Border.all(
+                                          color: AppColors.line,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${day.month}/${day.day} ${weekdays[day.weekday - 1]}',
+                                        style: AppText.body.copyWith(
+                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
                                     ),
-                                  );
-                                },
+                                    Row(
+                                      children: [
+                                        for (final part in parts)
+                                          SizedBox(
+                                            width: partWidths[part.id]!,
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  height: headerHeight / 2,
+                                                  alignment: Alignment.center,
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.surface,
+                                                    border: Border.all(
+                                                      color: AppColors.line,
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    '${part.name}${part.hidden ? ' · 숨김' : ''}',
+                                                    style: AppText.caption,
+                                                  ),
+                                                ),
+                                                _column(
+                                                  day,
+                                                  part,
+                                                  all
+                                                      .where(
+                                                        (s) =>
+                                                            s.date ==
+                                                                rosterDate(
+                                                                  day,
+                                                                ) &&
+                                                            s.partId == part.id,
+                                                      )
+                                                      .toList(),
+                                                  from,
+                                                  until,
+                                                  scale,
+                                                  partWidths[part.id]!,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                           ],
                         ),
                       ),
-                  ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (all.isEmpty)
+          const Padding(
+            padding: EdgeInsets.only(top: 16),
+            child: Information(
+              '설정한 영업시간이 없어요. 우리매장 → 영업 시간대에서 요일별 시간을 설정해 주세요.',
+            ),
+          ),
+        const SizedBox(height: 12),
+        const Text(
+          '빈 슬롯을 누르면 시간을 조정하거나 크루를 배정해요. 배정된 근무는 영업시간을 바꿔도 유지돼요.',
+          style: AppText.caption,
+        ),
+      ],
+    );
+  }
+
+  Widget _column(
+    DateTime day,
+    WorkPart part,
+    List<RosterSlot> slots,
+    int from,
+    int until,
+    double scale,
+    double width,
+  ) {
+    // Allocate overlapping assignments side-by-side rather than covering names.
+    slots.sort((a, b) => a.startMinute.compareTo(b.startMinute));
+    final ends = <int>[];
+    final positions = <int>[];
+    for (final slot in slots) {
+      var lane = ends.indexWhere((e) => e <= slot.startMinute);
+      if (lane < 0) {
+        lane = ends.length;
+        ends.add(slot.endMinute);
+      } else {
+        ends[lane] = slot.endMinute;
+      }
+      positions.add(lane);
+    }
+    final lanes = ends.isEmpty ? 1 : ends.length;
+    final laneWidth = width / lanes;
+    return SizedBox(
+      height: (until - from) * scale + 24,
+      child: Stack(
+        children: [
+          for (var m = from; m < until; m += 30)
+            Positioned(
+              top: (m - from) * scale,
+              left: 0,
+              right: 0,
+              height: 48,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: AppColors.line),
+                    right: BorderSide(color: AppColors.line),
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
-      ],
+          for (var i = 0; i < slots.length; i++)
+            Positioned(
+              top: (slots[i].startMinute - from) * scale + 2,
+              left: positions[i] * laneWidth + 3,
+              width: laneWidth - 6,
+              height: (slots[i].endMinute - slots[i].startMinute) * scale - 4,
+              child: Semantics(
+                button: true,
+                label:
+                    '${slots[i].date} ${part.name} ${slots[i].name} ${slots[i].start} ${slots[i].end}',
+                child: Material(
+                  color: slots[i].crewId == null
+                      ? AppColors.surface
+                      : AppColors.lime,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: slots[i].crewId == null
+                          ? AppColors.line
+                          : AppColors.green,
+                    ),
+                  ),
+                  child: InkWell(
+                    key: ValueKey(
+                      'roster-${slots[i].date}-${slots[i].partId}-${slots[i].shiftId ?? slots[i].templateId}',
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: model.editable ? () => edit(slots[i]) : null,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              slots[i].name,
+                              style: AppText.body.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              '${slots[i].start}\n${slots[i].overnight ? '다음 날 ' : ''}${slots[i].end}',
+                              style: AppText.caption,
+                            ),
+                            Text(
+                              slots[i].crewId == null
+                                  ? '미배정${slots[i].adjusted ? ' · 조정됨' : ''}'
+                                  : '배정',
+                              style: AppText.caption.copyWith(
+                                color: AppColors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: ops,
-    builder: (context, _) {
-      final day =
-          selected ??
-          DateTime.tryParse(ops.data?['day'] ?? '') ??
-          DateTime.now();
-      final start = monthly
-          ? DateTime(day.year, day.month, 1)
-          : day.subtract(Duration(days: day.weekday - 1));
-      final count = monthly ? DateTime(day.year, day.month + 1, 0).day : 7;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              IconButton(
-                tooltip: '이전',
-                onPressed: () => setState(
-                  () => selected = monthly
-                      ? DateTime(day.year, day.month - 1, 1)
-                      : day.subtract(const Duration(days: 7)),
-                ),
-                icon: const Icon(CupertinoIcons.chevron_left, size: 19),
-              ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    monthly
-                        ? '${day.year}년 ${day.month}월'
-                        : '${start.month}월 ${start.day}일 – ${start.add(const Duration(days: 6)).month}월 ${start.add(const Duration(days: 6)).day}일',
-                    maxLines: 1,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: '다음',
-                onPressed: () => setState(
-                  () => selected = monthly
-                      ? DateTime(day.year, day.month + 1, 1)
-                      : day.add(const Duration(days: 7)),
-                ),
-                icon: const Icon(CupertinoIcons.chevron_right, size: 19),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              SizedBox(
-                width: 152,
-                child: SegmentedButton<bool>(
-                  showSelectedIcon: false,
-                  segments: const [
-                    ButtonSegment(value: false, label: Text('주간')),
-                    ButtonSegment(value: true, label: Text('월간')),
-                  ],
-                  selected: {monthly},
-                  onSelectionChanged: (v) => setState(() => monthly = v.first),
-                ),
-              ),
-              IconButton(
-                tooltip: '오늘',
-                icon: const Icon(CupertinoIcons.calendar),
-                onPressed: () => setState(
-                  () => selected =
-                      DateTime.tryParse(ops.data?['day'] ?? '') ??
-                      DateTime.now(),
-                ),
-              ),
-              if (!monthly)
-                IconButton(
-                  tooltip: showDaily ? '주간 전체 보기' : '일별 상세',
-                  icon: Icon(
-                    showDaily
-                        ? CupertinoIcons.square_grid_2x2
-                        : CupertinoIcons.list_bullet,
-                  ),
-                  onPressed: () => setState(() => showDaily = !showDaily),
-                ),
-              if (ops.isLeader)
-                IconButton(
-                  tooltip: '슬롯 설정',
-                  icon: const Icon(CupertinoIcons.slider_horizontal_3),
-                  onPressed: editable ? configure : null,
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (!monthly && !showDaily) weeklyCoverage(start),
-          if (!monthly && showDaily) ...[
-            weekStrip(start, day),
-            const SizedBox(height: 22),
-            dayRoster(day),
-          ] else if (monthly)
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: 1120,
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        for (final label in ['월', '화', '수', '목', '금', '토', '일'])
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Text(label),
-                            ),
-                          ),
-                      ],
-                    ),
-                    for (
-                      var row = 0;
-                      row <
-                          ((count + (monthly ? start.weekday - 1 : 0)) / 7)
-                              .ceil();
-                      row++
-                    )
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (var col = 0; col < 7; col++)
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 3,
-                                  ),
-                                  child: Builder(
-                                    builder: (_) {
-                                      final index =
-                                          row * 7 +
-                                          col -
-                                          (monthly ? start.weekday - 1 : 0);
-                                      return index < 0 || index >= count
-                                          ? const SizedBox()
-                                          : dayCard(
-                                              start.add(Duration(days: index)),
-                                            );
-                                    },
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
+    listenable: model,
+    builder: (context, _) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(child: Text('보기', style: AppText.caption)),
+            AppSegmented<bool>(
+              segments: const [
+                ButtonSegment(value: false, label: Text('주간')),
+                ButtonSegment(value: true, label: Text('월간')),
+              ],
+              selected: {model.month},
+              onSelectionChanged: (v) => model.setMonth(v.first),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            IconButton(
+              tooltip: '이전',
+              onPressed: () => model.move(-1),
+              icon: const Icon(CupertinoIcons.chevron_left),
+            ),
+            Expanded(
+              child: Text(
+                model.month
+                    ? '${model.selected.year}년 ${model.selected.month}월'
+                    : '${rosterDate(model.monday)} ~ ${rosterDate(model.monday.add(const Duration(days: 6)))}',
+                textAlign: TextAlign.center,
+                style: AppText.caption,
               ),
             ),
-          const SizedBox(height: 20),
-          const Text(
-            '크루 · 길게 눌러 빈 슬롯으로 이동',
-            style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.ink),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              for (final person
-                  in ops.rows('tappers').where((p) => p['active'] == true))
-                drag(
-                  person,
-                  Chip(
-                    label: Text(
-                      '${person['nickname']} · ${(person['duties'] as List).join('/')}',
-                    ),
-                  ),
-                ),
-              ActionChip(
-                avatar: const Icon(
-                  CupertinoIcons.person_crop_circle_badge_plus,
-                  size: 17,
-                ),
-                label: const Text('크루 관리'),
-                onPressed: () => showAppSheet(
-                  context,
-                  builder: (_) => Scaffold(
-                    appBar: AppBar(title: const Text('크루 관리')),
-                    body: SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
-                      child: TeamScreen(operations: ops),
-                    ),
-                  ),
-                ),
+            IconButton(
+              tooltip: '다음',
+              onPressed: () => model.move(1),
+              icon: const Icon(CupertinoIcons.chevron_right),
+            ),
+            TextButton(
+              onPressed: () => model.selectDay(
+                DateTime.tryParse(ops.data?['day'] ?? '') ?? DateTime.now(),
               ),
+              child: const Text('오늘'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            spacing: 8,
+            children: [
+              ChoiceChip(
+                label: const Text('전체 파트'),
+                selected: model.partId == null,
+                onSelected: (_) => model.selectPart(null),
+              ),
+              for (final part in model.parts)
+                ChoiceChip(
+                  label: Text(part.name),
+                  selected: model.partId == part.id,
+                  onSelected: (_) => model.selectPart(part.id),
+                ),
             ],
           ),
-        ],
-      );
-    },
+        ),
+        const SizedBox(height: 20),
+        if (model.month) month() else week(),
+      ],
+    ),
   );
 }

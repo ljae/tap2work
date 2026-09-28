@@ -208,7 +208,7 @@ class _Summary extends StatelessWidget {
               key: Key('layout-summary-${value.$1}'),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 13),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.surface,
                 border: Border.all(color: AppColors.line),
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -409,10 +409,10 @@ class _MapCanvasState extends State<_MapCanvas> {
                                     padding: const EdgeInsets.all(2),
                                     child: Material(
                                       color: z['kind'] == 'area'
-                                          ? const Color(0xFFF0F0F2)
+                                          ? const Color(0xFF222528)
                                           : z['kind'] == 'table'
-                                          ? const Color(0xFFE4EAF3)
-                                          : const Color(0xFFECEDEF),
+                                          ? const Color(0xFF293748)
+                                          : const Color(0xFF222528),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(
                                           z['kind'] == 'table' ? 10 : 4,

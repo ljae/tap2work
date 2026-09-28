@@ -1,3 +1,4 @@
+import 'workplace_screens.dart';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -389,7 +390,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                         ),
                       ),
                       Text(
-                        '${task['slot']} · ${checklistRoles[task['requiredRole']]}${place == null ? '' : ' · $place'} · Task ${steps.length}개',
+                        '${task['slot']} · ${storeParts(ops).where((p) => p['id'] == task['partId']).firstOrNull?['name'] ?? '전체 파트'}${place == null ? '' : ' · $place'} · Task ${steps.length}개',
                         style: const TextStyle(
                           fontSize: 13,
                           color: AppColors.muted,
@@ -681,7 +682,11 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
           : null,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => _GroupSheet(task: draft, zones: ops.rows('zones')),
+      builder: (_) => _GroupSheet(
+        task: draft,
+        parts: storeParts(ops),
+        zones: ops.rows('zones'),
+      ),
     );
     if (result == null || !mounted) return;
     change(() {
@@ -737,9 +742,14 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
 }
 
 class _GroupSheet extends StatefulWidget {
-  const _GroupSheet({required this.task, required this.zones});
+  const _GroupSheet({
+    required this.task,
+    required this.zones,
+    required this.parts,
+  });
   final Json task;
   final List<Json> zones;
+  final List<Json> parts;
   @override
   State<_GroupSheet> createState() => _GroupSheetState();
 }
@@ -813,13 +823,23 @@ class _GroupSheetState extends State<_GroupSheet> {
             onSelected: (slot) => setState(() => task['slot'] = slot),
           ),
           const SizedBox(height: 14),
-          const Text('담당 직급', style: TextStyle(fontWeight: FontWeight.w700)),
+          const Text('담당 파트', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
           AppChoiceGroup<String>(
-            values: checklistRoles.keys.toList(),
-            selected: task['requiredRole'] as String,
-            labelOf: (role) => checklistRoles[role]!,
-            onSelected: (role) => setState(() => task['requiredRole'] = role),
+            values: [
+              'all',
+              ...widget.parts
+                  .where((p) => p['hidden'] != true)
+                  .map((p) => p['id'] as String),
+            ],
+            selected: task['partId'] ?? 'all',
+            labelOf: (id) => id == 'all'
+                ? '전체 파트'
+                : widget.parts.firstWhere((p) => p['id'] == id)['name'],
+            onSelected: (id) => setState(() {
+              task['partId'] = id == 'all' ? null : id;
+              task['requiredRole'] = 'all';
+            }),
           ),
           const SizedBox(height: 14),
           AppPicker<String>(

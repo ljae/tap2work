@@ -47,7 +47,7 @@ void main() {
           await tester.pumpAndSettle();
           expect(
             tester.widget<Text>(title).data,
-            ['업무', '매뉴얼', '직원', '우리매장'][index],
+            ['업무', '매뉴얼', '근무표', '우리매장'][index],
           );
           expect(tester.getRect(search), searchRect);
           expect(tester.getRect(title).topLeft, titleRect.topLeft);

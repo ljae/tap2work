@@ -1,3 +1,4 @@
+import 'package:tap2work/ui/design_tokens.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,12 +34,6 @@ Future<void> mountBoard(
   await tester.pumpAndSettle();
 }
 
-Future<void> openGroup(WidgetTester tester, String name) async {
-  await tester.ensureVisible(find.widgetWithText(ChoiceChip, name).first);
-  await tester.tap(find.widgetWithText(ChoiceChip, name).first);
-  await tester.pumpAndSettle();
-}
-
 Future<void> openCard(WidgetTester tester, String key) async {
   final card = find.byKey(ValueKey(key));
   await tester.ensureVisible(card);
@@ -48,7 +43,31 @@ Future<void> openCard(WidgetTester tester, String key) async {
 
 void main() {
   testWidgets(
-    'TAP surface fills with progress and completed cards become pale',
+    'order board and completed order cards remain hidden until enabled',
+    (tester) async {
+      final data = fixture();
+      final order = (data['tasks'] as List).first as Json;
+      order['orderId'] = 'hidden-order';
+      order['orderNumber'] = 'TEST-ORDER';
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((_) async => response(data)),
+      );
+      addTearDown(ops.dispose);
+      await mountBoard(tester, ops);
+      expect(find.text('주문처리중'), findsNothing);
+      expect(find.textContaining('TEST-ORDER'), findsNothing);
+      expect(find.text('TAP그룹 · 업무 그룹 필터'), findsNothing);
+      data['orderBoardEnabled'] = true;
+      await ops.refresh();
+      await tester.pumpAndSettle();
+      expect(find.text('주문처리중'), findsOneWidget);
+      expect(find.textContaining('TEST-ORDER'), findsWidgets);
+    },
+  );
+
+  testWidgets(
+    'TAP surface fills with progress and completed cards use the muted dark surface',
     (tester) async {
       Future<Color> surface(int done) async {
         await tester.pumpWidget(
@@ -88,9 +107,9 @@ void main() {
       final empty = await surface(0);
       final partial = await surface(2);
       final complete = await surface(4);
-      expect(empty, Colors.white);
-      expect(partial, Colors.white);
-      expect(complete, const Color(0xFFF0F2F4));
+      expect(empty, AppColors.surface);
+      expect(partial, AppColors.surface);
+      expect(complete, AppColors.elevated);
     },
   );
   testWidgets('phone TAP controls keep drag, check and open separate', (
@@ -170,8 +189,7 @@ void main() {
     expect(tester.takeException(), isNull);
     final check = find.byTooltip('완료하기');
     final open = find.byWidgetPredicate(
-      (widget) =>
-          widget is Semantics && widget.properties.label == 'Task 열기',
+      (widget) => widget is Semantics && widget.properties.label == 'Task 열기',
     );
     for (final control in [check, open]) {
       final size = tester.getSize(control);
@@ -242,7 +260,7 @@ void main() {
   testWidgets(
     'menu TAPs render in one order group and its touch action moves them together',
     (tester) async {
-      final data = fixture();
+      final data = fixture()..['orderBoardEnabled'] = true;
       final first =
           (data['tasks'] as List).firstWhere((t) => t['kind'] == 'routine')
               as Json;
@@ -387,33 +405,34 @@ void main() {
     });
   }
 
-  testWidgets('opening a TAP preserves its board grouping', (tester) async {
-    final ops = OperationsController(
-      readOnly: true,
-      client: MockClient((_) async => response(fixture())),
-    );
-    addTearDown(ops.dispose);
-    await mountBoard(tester, ops);
-    await openGroup(tester, '기본 업무  ·  2');
-    await openCard(tester, 'tap-daily-prep');
-    expect(find.text('TAP그룹 · 업무 그룹 필터'), findsNothing);
-    expect(find.byKey(const ValueKey('small-s1')), findsOneWidget);
-    await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('tap-body/general/null')), findsOneWidget);
-    expect(find.text('TAP그룹 · 업무 그룹 필터'), findsOneWidget);
-    expect(find.byKey(const ValueKey('tap-daily-prep')), findsOneWidget);
-    await openGroup(tester, '전체 TAP');
-    await openCard(tester, 'tap-daily-prep');
-    await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
-    await tester.pumpAndSettle();
-    expect(
-      tester
-          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, '전체 TAP'))
-          .selected,
-      isTrue,
-    );
-  });
+  testWidgets(
+    'opening a TAP returns to the part-filtered board without folder filters',
+    (tester) async {
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((_) async => response(fixture())),
+      );
+      addTearDown(ops.dispose);
+      await mountBoard(tester, ops);
+      await openCard(tester, 'tap-daily-prep');
+      expect(find.text('TAP그룹 · 업무 그룹 필터'), findsNothing);
+      expect(find.byKey(const ValueKey('small-s1')), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('tap-body/null/null')), findsOneWidget);
+      expect(find.text('TAP그룹 · 업무 그룹 필터'), findsNothing);
+      expect(find.byKey(const ValueKey('tap-daily-prep')), findsOneWidget);
+      await openCard(tester, 'tap-daily-prep');
+      await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, '전체 파트'))
+            .selected,
+        isTrue,
+      );
+    },
+  );
 
   testWidgets(
     'preview completion rolls up through parents and undo sends no POST',
@@ -428,7 +447,6 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops);
-      await openGroup(tester, '기본 업무  ·  2');
       await openCard(tester, 'tap-daily-prep');
       await tester.tap(
         find.descendant(
@@ -449,10 +467,8 @@ void main() {
             .done,
         1,
       );
-      await openGroup(tester, '전체 TAP');
       await tester.pumpAndSettle();
       expect(find.textContaining('기본 업무'), findsWidgets);
-      await openGroup(tester, '기본 업무  ·  2');
       await openCard(tester, 'tap-daily-prep');
       await tester.tap(
         find.descendant(
@@ -472,7 +488,7 @@ void main() {
   );
 
   testWidgets(
-    'role restrictions remain visible and empty folder can be opened',
+    'role restrictions remain enforced after switching part filters',
     (tester) async {
       final ops = OperationsController(
         readOnly: true,
@@ -480,11 +496,11 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops);
-      await openGroup(tester, '마감 폴더  ·  0');
-      expect(find.text('아직 카드가 없어요'), findsNWidgets(3));
-      await openGroup(tester, '전체 TAP');
+      await tester.tap(find.widgetWithText(ChoiceChip, '관리'));
       await tester.pumpAndSettle();
-      await openGroup(tester, '기본 업무  ·  2');
+      expect(find.text('TAP그룹 · 업무 그룹 필터'), findsNothing);
+      await tester.tap(find.widgetWithText(ChoiceChip, '전체 파트'));
+      await tester.pumpAndSettle();
       await openCard(tester, 'tap-daily-broth');
       tester.widget<TapCard>(find.byKey(const ValueKey('small-b1'))).onCheck!();
       await tester.pumpAndSettle();
@@ -516,7 +532,6 @@ void main() {
     );
     addTearDown(ops.dispose);
     await mountBoard(tester, ops);
-    await openGroup(tester, '기본 업무  ·  2');
     await openCard(tester, 'tap-daily-prep');
     await tester.tap(
       find.descendant(

@@ -1,3 +1,5 @@
+import 'package:tap2work/ui/workplace_screens.dart';
+import 'package:tap2work/ui/team_screen.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -13,7 +15,7 @@ import '../test/operations_test.dart' show response;
 import '../test/work_controller_test.dart' show MemoryStore;
 
 void main() {
-  testWidgets('capture Toss UI with bundled font at phone and desktop widths', (
+  testWidgets('capture screenshot redesign and settings with bundled fonts', (
     tester,
   ) async {
     final fonts = FontLoader('Pretendard');
@@ -33,6 +35,14 @@ void main() {
     final data =
         jsonDecode(File('../_site/review-data/owner.json').readAsStringSync())
             as Json;
+    Directory('../.local/reference-ui-review').createSync(recursive: true);
+    data['demoInvites'] = [
+      {
+        'role': 'hourly',
+        'code': 'DEMO2026',
+        'expiresAt': '2026-10-05T00:00:00Z',
+      },
+    ];
     final ops = OperationsController(
       readOnly: true,
       client: MockClient((_) async => response(data)),
@@ -48,7 +58,7 @@ void main() {
         final image = await boundary.toImage();
         final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
         File(
-          '../.local/toss-ui-review/$name.png',
+          '../.local/reference-ui-review/$name.png',
         ).writeAsBytesSync(bytes!.buffer.asUint8List());
         image.dispose();
       });
@@ -90,6 +100,43 @@ void main() {
       await tester.pumpAndSettle();
       await capture('labor-${width.toInt()}');
 
+      final theme = Theme.of(tester.element(find.byType(Scaffold).first));
+      for (final section in [
+        'hours',
+        'parts',
+        'permissions',
+        'invite',
+        'people',
+      ]) {
+        await tester.pumpWidget(
+          RepaintBoundary(
+            key: captureKey,
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: theme,
+              home: section == 'people'
+                  ? Scaffold(
+                      appBar: AppBar(title: const Text('직원')),
+                      body: SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: TeamScreen(operations: ops),
+                      ),
+                    )
+                  : WorkplaceSettings(
+                      key: ValueKey(section),
+                      ops: ops,
+                      section: section,
+                    ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        if (section == 'hours') {
+          await tester.tap(find.text('3교대'));
+          await tester.pumpAndSettle();
+        }
+        await capture('$section-${width.toInt()}');
+      }
       await tester.pumpWidget(const SizedBox.shrink());
     }
     debugDisableShadows = true;

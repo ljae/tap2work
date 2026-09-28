@@ -7,7 +7,7 @@ import 'package:tap2work/ui/tap_card.dart';
 
 import 'checklist_test.dart' show fixture;
 import 'operations_test.dart' show response;
-import 'tap_workspace_test.dart' show mountBoard, openGroup;
+import 'tap_workspace_test.dart' show mountBoard;
 
 void main() {
   testWidgets('preview TAP stays in place while falling then moves to done', (
@@ -19,7 +19,6 @@ void main() {
     );
     addTearDown(ops.dispose);
     await mountBoard(tester, ops);
-    await openGroup(tester, '기본 업무  ·  2');
     final tap = find.byKey(const ValueKey('tap-daily-prep'));
     final start = tester.getTopLeft(tap);
     tester.widget<TapCard>(tap).onCheck!();
@@ -52,50 +51,48 @@ void main() {
     expect(tester.widget<TapCard>(tap).completionTrigger, isNull);
   });
 
-  testWidgets(
-    'a successful preview Task completion visibly drops its title',
-    (tester) async {
-      final ops = OperationsController(
-        readOnly: true,
-        client: MockClient((_) async => response(fixture())),
-      );
-      addTearDown(ops.dispose);
-      await mountBoard(tester, ops);
-      await openGroup(tester, '기본 업무  ·  2');
-      final tap = find.byKey(const ValueKey('tap-daily-prep'));
-      await tester.ensureVisible(tap);
-      // Open through the visible card to exercise the same path as the app.
-      await tester.tap(
-        find.descendant(of: tap, matching: find.text('Task')).first,
-      );
-      await tester.pumpAndSettle();
+  testWidgets('a successful preview Task completion visibly drops its title', (
+    tester,
+  ) async {
+    final ops = OperationsController(
+      readOnly: true,
+      client: MockClient((_) async => response(fixture())),
+    );
+    addTearDown(ops.dispose);
+    await mountBoard(tester, ops);
+    final tap = find.byKey(const ValueKey('tap-daily-prep'));
+    await tester.ensureVisible(tap);
+    // Open through the visible card to exercise the same path as the app.
+    await tester.tap(
+      find.descendant(of: tap, matching: find.text('Task')).first,
+    );
+    await tester.pumpAndSettle();
 
-      final small = find.byKey(const ValueKey('small-s1'));
-      await tester.tap(
-        find.descendant(of: small, matching: find.byTooltip('완료하기')),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 170));
-      final title = find.descendant(
-        of: small,
-        matching: find.byType(CompletionText),
-      );
-      final opacity = tester.widget<Opacity>(
-        find.descendant(of: title, matching: find.byType(Opacity)),
-      );
-      expect(opacity.opacity, lessThan(1));
-      expect(opacity.opacity, greaterThan(0));
-      await tester.pumpAndSettle();
-      expect(
-        ops
-            .rows('tasks')
-            .firstWhere(
-              (row) => row['id'] == 'daily-prep',
-            )['steps'][0]['completedAt'],
-        isNotNull,
-      );
-    },
-  );
+    final small = find.byKey(const ValueKey('small-s1'));
+    await tester.tap(
+      find.descendant(of: small, matching: find.byTooltip('완료하기')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 170));
+    final title = find.descendant(
+      of: small,
+      matching: find.byType(CompletionText),
+    );
+    final opacity = tester.widget<Opacity>(
+      find.descendant(of: title, matching: find.byType(Opacity)),
+    );
+    expect(opacity.opacity, lessThan(1));
+    expect(opacity.opacity, greaterThan(0));
+    await tester.pumpAndSettle();
+    expect(
+      ops
+          .rows('tasks')
+          .firstWhere(
+            (row) => row['id'] == 'daily-prep',
+          )['steps'][0]['completedAt'],
+      isNotNull,
+    );
+  });
 
   testWidgets(
     'opening a TAP reveals its heading before the animation settles',
@@ -106,7 +103,6 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops);
-      await openGroup(tester, '기본 업무  ·  2');
       final tap = find.byKey(const ValueKey('tap-daily-prep'));
       await tester.ensureVisible(tap);
       await tester.tap(
@@ -114,7 +110,7 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
-      final body = find.byKey(const ValueKey('tap-body/general/daily-prep'));
+      final body = find.byKey(const ValueKey('tap-body/null/daily-prep'));
       final reveal = tester.widget<SlideTransition>(
         find.ancestor(of: body, matching: find.byType(SlideTransition)).first,
       );
@@ -140,7 +136,6 @@ void main() {
     );
     addTearDown(ops.dispose);
     await mountBoard(tester, ops);
-    await openGroup(tester, '기본 업무  ·  2');
     final tap = find.byKey(const ValueKey('tap-daily-prep'));
     final start = tester.getTopLeft(tap);
     tester.widget<TapCard>(tap).onCheck!();

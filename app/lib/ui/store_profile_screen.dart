@@ -1,3 +1,4 @@
+import 'workplace_screens.dart';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -69,14 +70,9 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     'kitchen-print': '주방 출력',
     'closing': '마감',
   };
-  static const roles = {
-    'crew': '크루',
-    'cook': '조리',
-    'cashier': '계산',
-    'service': '홀 응대',
-    'dishwashing': '설거지',
-    'prep': '재료 준비',
-    'manager': '매니저',
+  Map<String, String> get roles => {
+    for (final p in storeParts(widget.ops).where((p) => p['hidden'] != true))
+      p['id'] as String: p['name'] as String,
   };
 
   @override
@@ -268,7 +264,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
       const SizedBox(height: 14),
       textField('매장명 · 필수', name),
       textField('팀 안내 · 선택', note),
-      DropdownButtonFormField<String>(
+      AppPillField<String>(
         initialValue: industry.containsKey(profile['industryId'])
             ? profile['industryId']
             : null,
@@ -322,7 +318,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
             }),
           ),
           if (p['enabled'] == true) ...[
-            DropdownButtonFormField<String>(
+            AppPillField<String>(
               initialValue: providers.containsKey(provider) ? provider : null,
               decoration: const InputDecoration(
                 labelText: 'POS 제품',
@@ -437,7 +433,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
                 decoration: const InputDecoration(labelText: '주문 확인 기기 · 선택'),
                 onChanged: (v) => row['device'] = v.trim(),
               ),
-              DropdownButtonFormField<String>(
+              AppPillField<String>(
                 initialValue: row['acceptanceMode'] ?? 'unset',
                 decoration: const InputDecoration(labelText: '주문 확인 방식'),
                 items: const [
@@ -452,7 +448,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
                 row['printTicket'] == true,
                 (v) => update(() => row['printTicket'] = v),
               ),
-              DropdownButtonFormField<String>(
+              AppPillField<String>(
                 initialValue: row['handoffMode'] ?? 'unset',
                 decoration: const InputDecoration(labelText: '전달 방식'),
                 items: const [
@@ -488,16 +484,18 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
             profile['staffing'] = s;
           }),
         ),
-        const Text('필요한 역할 · 채용 초안에 활용'),
+        const Text('필요한 파트 · 채용 초안에 활용'),
         chips(
           roles,
-          targets.map((e) => e['roleId'] as String).toList(),
+          targets.map((e) => (e['partId'] ?? e['roleId']) as String).toList(),
           (id) => update(() {
-            final index = targets.indexWhere((row) => row['roleId'] == id);
+            final index = targets.indexWhere(
+              (row) => (row['partId'] ?? row['roleId']) == id,
+            );
             if (index >= 0) {
               targets.removeAt(index);
             } else {
-              targets.add({'roleId': id, 'count': 1});
+              targets.add({'roleId': id, 'partId': id, 'count': 1});
             }
             s['roleTargets'] = targets;
             profile['staffing'] = s;
@@ -506,7 +504,9 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
         for (final row in targets)
           Row(
             children: [
-              Expanded(child: Text(roles[row['roleId']] ?? '${row['roleId']}')),
+              Expanded(
+                child: Text(roles[row['partId'] ?? row['roleId']] ?? '전체 파트'),
+              ),
               IconButton(
                 tooltip: '필요 인원 줄이기',
                 onPressed: row['count'] > 0
@@ -560,7 +560,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
           ],
         ),
         const SizedBox(height: 14),
-        DropdownButtonFormField<String>(
+        AppPillField<String>(
           initialValue: times.contains(value['opening'])
               ? value['opening']
               : '09:00',
@@ -575,7 +575,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
           }),
         ),
         const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
+        AppPillField<String>(
           initialValue: times.contains(value['closing'])
               ? value['closing']
               : '21:00',
@@ -610,11 +610,23 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
+            SettingRow(
+              title: '주문처리 시스템 연결',
+              subtitle: widget.ops.data?['orderBoardEnabled'] == true
+                  ? '보드 사용 중'
+                  : '보드 꺼짐',
+              icon: CupertinoIcons.link,
+              onTap: () => showAppSheet(
+                context,
+                builder: (_) =>
+                    WorkplaceSettings(ops: widget.ops, section: 'order-system'),
+              ),
+            ),
             if (widget.ops.readOnly)
               const Information('공개 미리보기에서는 설정을 저장하지 않아요.'),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: SegmentedButton<String>(
+              child: AppSegmented<String>(
                 segments: const [
                   ButtonSegment(value: 'basic', label: Text('기본')),
                   ButtonSegment(value: 'pos', label: Text('POS')),

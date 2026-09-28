@@ -1,10 +1,11 @@
+import 'workplace_screens.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
 
-const _duties = ['조리', '서빙1', '서빙2', 'cashier'];
 const _ranks = {'owner': '사장', 'manager': '매니저', 'crew': '크루'};
 const _periods = {'monthly': '월급', 'weekly': '주급', 'daily': '일급'};
 
@@ -17,6 +18,7 @@ class TeamScreen extends StatefulWidget {
 }
 
 class _TeamScreenState extends State<TeamScreen> {
+  String? selectedPart;
   OperationsController get ops => widget.operations;
   String money(num value) => value
       .toStringAsFixed(0)
@@ -32,7 +34,7 @@ class _TeamScreenState extends State<TeamScreen> {
     }
   }
 
-  Future<void> editTapper([Json? current]) async {
+  Future<void> editCrew([Json? current]) async {
     final nickname = TextEditingController(text: current?['nickname'] ?? '');
     final rate = TextEditingController(
       text: '${current?['hourlyWon'] ?? 10320}',
@@ -43,7 +45,9 @@ class _TeamScreenState extends State<TeamScreen> {
     var period = current?['payPeriod'] as String? ?? 'monthly';
     var employment = current?['employmentType'] as String? ?? '시간알바';
     final duties = <String>{
-      ...(current?['duties'] as List? ?? ['서빙1']).cast<String>(),
+      ...(current?['workProfile']?['partIds'] as List? ??
+              [storeParts(ops).first['id']])
+          .cast<String>(),
     };
     final saved = await showAppFormSheet<Json>(
       context: context,
@@ -53,8 +57,8 @@ class _TeamScreenState extends State<TeamScreen> {
             widget.payOnly
                 ? '인건비 설정'
                 : current == null
-                ? 'Tapper 등록'
-                : 'Tapper 수정',
+                ? '크루 등록'
+                : '크루 수정',
           ),
           content: SizedBox(
             width: 430,
@@ -97,15 +101,17 @@ class _TeamScreenState extends State<TeamScreen> {
                     Wrap(
                       spacing: 6,
                       children: [
-                        for (final duty in _duties)
+                        for (final part in storeParts(
+                          ops,
+                        ).where((p) => p['hidden'] != true))
                           FilterChip(
-                            label: Text(duty),
-                            selected: duties.contains(duty),
+                            label: Text(part['name']),
+                            selected: duties.contains(part['id']),
                             onSelected: (v) => update(() {
                               if (v) {
-                                duties.add(duty);
+                                duties.add(part['id']);
                               } else {
-                                duties.remove(duty);
+                                duties.remove(part['id']);
                               }
                             }),
                           ),
@@ -168,7 +174,7 @@ class _TeamScreenState extends State<TeamScreen> {
                         'nickname': nickname.text.trim(),
                         'rank': rank,
                         'employmentType': employment,
-                        'duties': duties.toList(),
+                        'partIds': duties.toList(),
                         'hourlyWon': int.parse(rate.text),
                         'payPeriod': period,
                         'kakaoUrl': kakao.text.trim(),
@@ -193,7 +199,16 @@ class _TeamScreenState extends State<TeamScreen> {
     var date = DateTime.now();
     var start = const TimeOfDay(hour: 9, minute: 0);
     var end = const TimeOfDay(hour: 18, minute: 0);
-    var duty = (tapper['duties'] as List).first as String;
+    final availableParts = storeParts(ops)
+        .where(
+          (p) =>
+              p['hidden'] != true &&
+              ((tapper['workProfile']?['partIds'] as List? ?? []).isEmpty ||
+                  (tapper['workProfile']['partIds'] as List).contains(p['id'])),
+        )
+        .toList();
+    if (availableParts.isEmpty) return;
+    var duty = availableParts.first['id'] as String;
     final result = await showAppFormSheet<Json>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -221,10 +236,12 @@ class _TeamScreenState extends State<TeamScreen> {
               AppPicker<String>(
                 label: '담당',
                 value: duty,
-                items: (tapper['duties'] as List)
+                items: availableParts
                     .map(
-                      (v) =>
-                          DropdownMenuItem(value: v as String, child: Text(v)),
+                      (p) => DropdownMenuItem(
+                        value: p['id'] as String,
+                        child: Text(p['name']),
+                      ),
                     )
                     .toList(),
                 onChanged: (v) => update(() => duty = v!),
@@ -266,7 +283,7 @@ class _TeamScreenState extends State<TeamScreen> {
               child: FilledButton(
                 onPressed: () => Navigator.pop(context, {
                   'tapperId': tapper['id'],
-                  'duty': duty,
+                  'partId': duty,
                   'date':
                       '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
                   'start':
@@ -353,6 +370,285 @@ class _TeamScreenState extends State<TeamScreen> {
     }
   }
 
+  Widget staffCard(Json person) {
+    final labels = storeParts(ops)
+        .where(
+          (p) => (person['workProfile']?['partIds'] as List? ?? []).contains(
+            p['id'],
+          ),
+        )
+        .map((p) => p['name'])
+        .join(' · ');
+    return Surface(
+      padding: const EdgeInsets.all(16),
+      child: InkWell(
+        onTap: () => openPerson(person['id']),
+        borderRadius: BorderRadius.circular(16),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 23,
+              backgroundColor: AppColors.lime,
+              foregroundColor: AppColors.green,
+              child: Text(
+                '${person['nickname']}'.characters.take(2).toString(),
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${person['nickname']}${person['actorId'] == ops.actorId ? ' · 나' : ''}',
+                    style: AppText.body.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 19,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${_ranks[person['rank']] ?? '크루'} · ${labels.isEmpty ? '전체 파트' : labels}',
+                    style: AppText.caption,
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: () => openPerson(person['id']),
+              tooltip: '직원 정보',
+              icon: const Icon(
+                CupertinoIcons.ellipsis_vertical,
+                color: AppColors.muted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> openPerson(String id) => showAppSheet<void>(
+    context,
+    builder: (sheetContext) => ListenableBuilder(
+      listenable: ops,
+      builder: (context, _) {
+        final person = ops.rows('tappers').where((p) => p['id'] == id).first;
+        final shifts =
+            ops.rows('staffShifts').where((s) => s['tapperId'] == id).toList()
+              ..sort(
+                (a, b) => '${a['date']} ${a['start']}'.compareTo(
+                  '${b['date']} ${b['start']}',
+                ),
+              );
+        final records = ops
+            .rows('attendance')
+            .where((e) => e['tapperId'] == id && e['voidedAt'] == null)
+            .toList()
+            .reversed;
+        final partNames = storeParts(ops)
+            .where(
+              (p) => (person['workProfile']?['partIds'] as List? ?? [])
+                  .contains(p['id']),
+            )
+            .map((p) => p['name'])
+            .join(' · ');
+        final bands = (person['workProfile']?['bands'] as List? ?? []).join(
+          ' · ',
+        );
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('직원 정보'),
+            centerTitle: true,
+            leading: const CloseButton(),
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              staffCardHeader(person),
+              if (ops.isOwner) ...[
+                const SizedBox(height: 16),
+                Surface(
+                  child: SettingRow(
+                    title: '시급·정산',
+                    subtitle:
+                        '시급 ${money(person['hourlyWon'] ?? 0)}원 · 배정 ${hours(person['plannedMinutes'])}',
+                    icon: CupertinoIcons.money_dollar_circle,
+                    onTap: () => showAppSheet(
+                      context,
+                      builder: (_) => Scaffold(
+                        appBar: AppBar(
+                          title: const Text('시급·정산'),
+                          leading: const CloseButton(),
+                        ),
+                        body: SingleChildScrollView(
+                          padding: const EdgeInsets.all(24),
+                          child: TeamScreen(operations: ops, payOnly: true),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              Surface(
+                child: Column(
+                  children: [
+                    SettingRow(
+                      title: '파트',
+                      subtitle: partNames.isEmpty ? '전체' : partNames,
+                    ),
+                    SettingRow(
+                      title: '시간대',
+                      subtitle: bands.isEmpty ? '전체 시간대' : bands,
+                    ),
+                    if (ops.isOwner)
+                      SettingRow(
+                        title: '파트·시간대 수정',
+                        icon: CupertinoIcons.slider_horizontal_3,
+                        onTap: () => showAppSheet(
+                          context,
+                          builder: (_) => WorkplaceSettings(
+                            ops: ops,
+                            section: 'person',
+                            person: person,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Surface(
+                child: SettingRow(
+                  title: '보건증',
+                  subtitle: '문서 보관 연결 전',
+                  icon: CupertinoIcons.doc_text,
+                  onTap: () => showAppSheet(
+                    context,
+                    builder: (_) => WorkplaceSettings(
+                      ops: ops,
+                      section: 'certificate',
+                      person: person,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Surface(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('근태', style: AppText.caption),
+                    const SizedBox(height: 12),
+                    Text(
+                      '이번 주 실근무 ${hours(person['weeklyActualMinutes'])}',
+                      style: AppText.body,
+                    ),
+                    if (records.isEmpty)
+                      const Text('열람 가능한 근무 기록이 없어요.', style: AppText.caption),
+                    for (final record in records.take(12))
+                      SettingRow(
+                        title:
+                            const {
+                              'clock_in': '출근',
+                              'clock_out': '퇴근',
+                              'break_start': '휴게 시작',
+                              'break_end': '휴게 종료',
+                            }[record['type']] ??
+                            '기록',
+                        subtitle: _recordTime(record['at']),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Surface(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('근무 일정', style: AppText.caption),
+                    if (shifts.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 12),
+                        child: Text('배정된 근무가 없어요.'),
+                      ),
+                    for (final shift in shifts.take(14))
+                      SettingRow(
+                        title:
+                            '${shift['date']} · ${shift['start']}–${shift['end']}',
+                        subtitle: partLabel(ops, shift['partId']),
+                      ),
+                    if (ops.isLeader)
+                      TextButton(
+                        onPressed: ops.readOnly
+                            ? null
+                            : () => editShift(person),
+                        child: const Text('근무 배정'),
+                      ),
+                  ],
+                ),
+              ),
+              if (ops.isOwner) ...[
+                const SizedBox(height: 16),
+                Surface(
+                  child: SettingRow(
+                    title: '직원 기본 정보 수정',
+                    icon: CupertinoIcons.pencil,
+                    onTap: ops.readOnly ? null : () => editCrew(person),
+                  ),
+                ),
+              ],
+              if ((person['phone'] ?? '').toString().isNotEmpty)
+                TextButton(
+                  onPressed: () => openContact(person['phone'], phone: true),
+                  child: const Text('전화 연결'),
+                ),
+              if ((person['kakaoUrl'] ?? '').toString().isNotEmpty)
+                TextButton(
+                  onPressed: () =>
+                      openContact(person['kakaoUrl'], phone: false),
+                  child: const Text('카카오톡 링크'),
+                ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
+  String _recordTime(dynamic value) {
+    final date = DateTime.tryParse(
+      '$value',
+    )?.toUtc().add(const Duration(hours: 9));
+    return date == null
+        ? ''
+        : '${date.month}/${date.day} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  Widget staffCardHeader(Json person) => Surface(
+    child: Row(
+      children: [
+        CircleAvatar(
+          radius: 28,
+          backgroundColor: AppColors.lime,
+          foregroundColor: AppColors.green,
+          child: Text('${person['nickname']}'.characters.take(2).toString()),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${person['nickname']}', style: AppText.title),
+              Text(_ranks[person['rank']] ?? '크루', style: AppText.caption),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: ops,
@@ -430,111 +726,166 @@ class _TeamScreenState extends State<TeamScreen> {
           if (!widget.payOnly && ops.isOwner)
             PressBounce(
               child: FilledButton.icon(
-                onPressed: ops.busy || ops.readOnly ? null : () => editTapper(),
+                onPressed: ops.busy || ops.readOnly ? null : () => editCrew(),
                 icon: const Icon(Icons.person_add_alt),
-                label: const Text('Tapper 등록'),
+                label: const Text('크루 등록'),
               ),
             ),
+          if (!widget.payOnly && ops.isOwner)
+            TextButton.icon(
+              onPressed: () => showAppSheet(
+                context,
+                builder: (_) => WorkplaceSettings(ops: ops, section: 'invite'),
+              ),
+              icon: const Icon(CupertinoIcons.qrcode),
+              label: const Text('코드·QR로 초대'),
+            ),
           const SizedBox(height: 12),
-          for (final tapper in tappers.where((t) => t['active'] == true))
+          if (!widget.payOnly)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('전체 파트'),
+                    selected: selectedPart == null,
+                    onSelected: (_) => setState(() => selectedPart = null),
+                  ),
+                  for (final part in storeParts(
+                    ops,
+                  ).where((p) => p['hidden'] != true))
+                    ChoiceChip(
+                      label: Text(part['name']),
+                      selected: selectedPart == part['id'],
+                      onSelected: (_) =>
+                          setState(() => selectedPart = part['id']),
+                    ),
+                ],
+              ),
+            ),
+          for (final tapper in tappers.where(
+            (t) =>
+                t['active'] == true &&
+                (widget.payOnly ||
+                    selectedPart == null ||
+                    (t['workProfile']?['partIds'] as List? ?? []).contains(
+                      selectedPart,
+                    ) ||
+                    (t['workProfile']?['partIds'] as List? ?? []).isEmpty),
+          ))
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Surface(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${tapper['nickname']} · ${_ranks[tapper['rank']] ?? '크루'}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+              child: !widget.payOnly
+                  ? staffCard(tapper)
+                  : Surface(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${tapper['nickname']} · ${_ranks[tapper['rank']] ?? '크루'}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(crewPartsLabel(ops, tapper)),
+                          Text(
+                            '이번 주 계획 ${hours(tapper['plannedMinutes'])} · 실적 ${hours(tapper['weeklyActualMinutes'])}',
+                          ),
+                          if (widget.payOnly && tapper['gross'] != null) ...[
+                            Text(
+                              '시급 ${money(tapper['hourlyWon'])}원 · ${_periods[tapper['payPeriod']]}',
+                            ),
+                            Text(
+                              '이번 달 누적 ${money(tapper['monthlyGross'])}원 · 현재 지급 기간 ${money(tapper['gross'])}원',
+                            ),
+                            Text(
+                              '지급 ${money(tapper['paid'])}원 · 잔여 ${money(tapper['remaining'])}원 · 추가보수 ${money(tapper['adjustments'])}원',
+                            ),
+                          ],
+                          Wrap(
+                            spacing: 6,
+                            children: [
+                              if (widget.payOnly && ops.isOwner)
+                                PressBounce(
+                                  child: TextButton(
+                                    onPressed: ops.readOnly
+                                        ? null
+                                        : () => editCrew(tapper),
+                                    child: const Text('인건비 설정'),
+                                  ),
+                                ),
+                              if (!widget.payOnly && ops.isOwner)
+                                PressBounce(
+                                  child: TextButton(
+                                    onPressed: ops.readOnly
+                                        ? null
+                                        : () => editCrew(tapper),
+                                    child: const Text('수정'),
+                                  ),
+                                ),
+                              if (!widget.payOnly && ops.isLeader)
+                                PressBounce(
+                                  child: TextButton(
+                                    onPressed: ops.readOnly
+                                        ? null
+                                        : () => editShift(tapper),
+                                    child: const Text('근무 배정'),
+                                  ),
+                                ),
+                              if (widget.payOnly && ops.isOwner)
+                                PressBounce(
+                                  child: TextButton(
+                                    onPressed: ops.readOnly
+                                        ? null
+                                        : () => addAmount(
+                                            tapper,
+                                            'add_pay_adjustment',
+                                          ),
+                                    child: const Text('추가보수'),
+                                  ),
+                                ),
+                              if (widget.payOnly && ops.isOwner)
+                                PressBounce(
+                                  child: TextButton(
+                                    onPressed: ops.readOnly
+                                        ? null
+                                        : () => addAmount(
+                                            tapper,
+                                            'record_payment',
+                                          ),
+                                    child: const Text('지급 기록'),
+                                  ),
+                                ),
+                              if ((tapper['phone'] ?? '').toString().isNotEmpty)
+                                PressBounce(
+                                  child: TextButton(
+                                    onPressed: () => openContact(
+                                      tapper['phone'],
+                                      phone: true,
+                                    ),
+                                    child: const Text('전화 연결'),
+                                  ),
+                                ),
+                              if ((tapper['kakaoUrl'] ?? '')
+                                  .toString()
+                                  .isNotEmpty)
+                                PressBounce(
+                                  child: TextButton(
+                                    onPressed: () => openContact(
+                                      tapper['kakaoUrl'],
+                                      phone: false,
+                                    ),
+                                    child: const Text('카카오톡 링크'),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    Text((tapper['duties'] as List).join(' · ')),
-                    Text(
-                      '이번 주 계획 ${hours(tapper['plannedMinutes'])} · 실적 ${hours(tapper['weeklyActualMinutes'])}',
-                    ),
-                    if (widget.payOnly && tapper['gross'] != null) ...[
-                      Text(
-                        '시급 ${money(tapper['hourlyWon'])}원 · ${_periods[tapper['payPeriod']]}',
-                      ),
-                      Text(
-                        '이번 달 누적 ${money(tapper['monthlyGross'])}원 · 현재 지급 기간 ${money(tapper['gross'])}원',
-                      ),
-                      Text(
-                        '지급 ${money(tapper['paid'])}원 · 잔여 ${money(tapper['remaining'])}원 · 추가보수 ${money(tapper['adjustments'])}원',
-                      ),
-                    ],
-                    Wrap(
-                      spacing: 6,
-                      children: [
-                        if (widget.payOnly && ops.isOwner)
-                          PressBounce(
-                            child: TextButton(
-                              onPressed: ops.readOnly
-                                  ? null
-                                  : () => editTapper(tapper),
-                              child: const Text('인건비 설정'),
-                            ),
-                          ),
-                        if (!widget.payOnly && ops.isOwner)
-                          PressBounce(
-                            child: TextButton(
-                              onPressed: ops.readOnly
-                                  ? null
-                                  : () => editTapper(tapper),
-                              child: const Text('수정'),
-                            ),
-                          ),
-                        if (!widget.payOnly && ops.isLeader)
-                          PressBounce(
-                            child: TextButton(
-                              onPressed: ops.readOnly
-                                  ? null
-                                  : () => editShift(tapper),
-                              child: const Text('근무 배정'),
-                            ),
-                          ),
-                        if (widget.payOnly && ops.isOwner)
-                          PressBounce(
-                            child: TextButton(
-                              onPressed: ops.readOnly
-                                  ? null
-                                  : () =>
-                                        addAmount(tapper, 'add_pay_adjustment'),
-                              child: const Text('추가보수'),
-                            ),
-                          ),
-                        if (widget.payOnly && ops.isOwner)
-                          PressBounce(
-                            child: TextButton(
-                              onPressed: ops.readOnly
-                                  ? null
-                                  : () => addAmount(tapper, 'record_payment'),
-                              child: const Text('지급 기록'),
-                            ),
-                          ),
-                        if ((tapper['phone'] ?? '').toString().isNotEmpty)
-                          PressBounce(
-                            child: TextButton(
-                              onPressed: () =>
-                                  openContact(tapper['phone'], phone: true),
-                              child: const Text('전화 연결'),
-                            ),
-                          ),
-                        if ((tapper['kakaoUrl'] ?? '').toString().isNotEmpty)
-                          PressBounce(
-                            child: TextButton(
-                              onPressed: () =>
-                                  openContact(tapper['kakaoUrl'], phone: false),
-                              child: const Text('카카오톡 링크'),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
             ),
         ],
       );

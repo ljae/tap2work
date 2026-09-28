@@ -1,3 +1,4 @@
+import { validatePart, partForLegacy } from './parts.mjs';
 import library from '../docs/wiki/checklist-library.json' with { type: 'json' };
 import { StoreError } from './store.mjs';
 
@@ -77,7 +78,7 @@ export function validateChecklists(input, state) {
     const steps = list(row.steps, 1, 30, '행위').map(step => ({ id: text(step?.id, 100, '행위 ID'), title: text(step?.title, 100, '행위 이름'), manual: text(step?.manual, 700, '간단 매뉴얼'), tip: optionalText(step?.tip, 400, '노하우'), tags: manualTags(step?.tags), videoUrl: mediaLink(step?.videoUrl), imageUrl: mediaLink(step?.imageUrl), sourceUrl: mediaLink(step?.sourceUrl), ...((previous?.steps.find(old => old.id === step.id)?.settings ?? step.settings) ? { settings: structuredClone(previous?.steps.find(old => old.id === step.id)?.settings ?? step.settings) } : {}) }));
     unique(steps);
     const sourceIds = Array.isArray(row.sourceIds) ? [...new Set(row.sourceIds.filter(id => checklistLibrary.sources.some(source => source.id === id)))] : [];
-    return { id: text(row.id, 100, '업무 ID'), title: text(row.title, 100, '업무 이름'), emoji: emoji(row.emoji), folderId: row.folderId, slot: row.slot, requiredRole: row.requiredRole, zone: row.zone ?? null, steps, sourceIds,
+    return { id: text(row.id, 100, '업무 ID'), partId: validatePart(state, Object.hasOwn(row, 'partId') ? row.partId : previous?.partId ?? partForLegacy(state, row.requiredRole), {allowAll:true, allowHidden:true}), title: text(row.title, 100, '업무 이름'), emoji: emoji(row.emoji), folderId: row.folderId, slot: row.slot, requiredRole: row.requiredRole, zone: row.zone ?? null, steps, sourceIds,
       ...(previous?.settings ? { settings: structuredClone(previous.settings), settingsVersion: previous.settingsVersion ?? 1 } : {}),
       ...(previous?.menuManualId ? { menuManualId: previous.menuManualId } : {}),
       ...(previous?.recommendationId ? { recommendationId: previous.recommendationId } : {}) };
@@ -90,7 +91,7 @@ export function saveChecklists(input, state, now) {
   const old = state.taskTemplates;
   for (const template of templates) {
     const previous = old.find(row => row.id === template.id);
-    const content = row => JSON.stringify([row.title, row.emoji, row.slot, row.requiredRole, row.zone, row.steps, row.sourceIds, row.settings]);
+    const content = row => JSON.stringify([row.title, row.emoji, row.slot, row.partId, row.requiredRole, row.zone, row.steps, row.sourceIds, row.settings]);
     template.version = previous ? (previous.version ?? 1) + (content(previous) !== content(template) ? 1 : 0) : Math.max(0, ...state.tasks.filter(row => row.templateId === template.id).map(row => row.version ?? 1)) + 1;
   }
   for (const task of state.tasks.filter(row => row.kind === 'routine' && !row.orderId && !row.archivedAt)) {

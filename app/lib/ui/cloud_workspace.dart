@@ -326,7 +326,7 @@ class _SignInDialogState extends State<_SignInDialog> {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: AppColors.white,
+                            color: AppColors.surface,
                           ),
                         ),
                         const SizedBox(width: 8),

@@ -1,3 +1,4 @@
+import { validatePart } from './parts.mjs';
 import { StoreError } from './store.mjs';
 
 const fail = message => { throw new StoreError(message, 400); };
@@ -17,7 +18,7 @@ export function taskSettings(template) {
 }
 
 export function stepSettings(step) {
-  return { roleOverride: step.settings?.roleOverride ?? null,
+  return { ...(Object.hasOwn(step.settings ?? {}, 'partOverride') ? {partOverride: step.settings.partOverride} : {}), roleOverride: step.settings?.roleOverride ?? null,
     zoneOverride: step.settings?.zoneOverride ?? null,
     completionKind: step.settings?.completionKind ?? 'check',
     quantitySpec: step.settings?.quantitySpec ?? null,
@@ -55,7 +56,7 @@ export function validateStepSettings(value, state) {
   }
   const minutes = value.estimatedMinutes;
   if (minutes != null) integer(minutes, 1, 480, '예상 시간');
-  return { roleOverride, zoneOverride, completionKind: kind, quantitySpec, estimatedMinutes: minutes ?? null };
+  return { ...(Object.hasOwn(value, 'partOverride') ? {partOverride: validatePart(state, value.partOverride, {allowAll:true})} : {}), roleOverride, zoneOverride, completionKind: kind, quantitySpec, estimatedMinutes: minutes ?? null };
 }
 
 export function saveTapSettings(state, input) {
@@ -84,7 +85,13 @@ export function repeatsOn(template, date) {
 }
 
 export function canCompleteStep(actor, task, step) {
-  const role = stepSettings(step).roleOverride ?? task.requiredRole;
+  const settings = stepSettings(step);
+  if (['owner', 'manager'].includes(actor.role)) return true;
+  if (Object.hasOwn(settings, 'partOverride') || (Object.hasOwn(task, 'partId') && settings.roleOverride == null)) {
+    const part = settings.partOverride ?? task.partId;
+    return part == null || (actor.partIds ?? []).includes(part);
+  }
+  const role = settings.roleOverride ?? task.requiredRole;
   return ['owner', 'manager'].includes(actor.role) || role === 'all' || role === actor.role;
 }
 

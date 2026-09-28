@@ -1,5 +1,19 @@
 # Product working brief
 
+## 파트 중심 운영·근무표 · 2026-09-28
+
+[지속 관리 아키텍처](docs/ARCHITECTURE.md)를 구현과 UI/UX 변경의 기준으로 사용한다. 직원 메뉴는 달력 아이콘의 **근무표**로 바꾸고, 사람의 제품 용어는 **크루**로 통일한다. 기존 직무 분류는 **파트 관리**로 대체한다. 주간표는 왼쪽 시간축, 요일별 파트 세부열, 충분한 열 폭과 가로 스크롤을 제공한다. 영업시간대에서 슬롯이 생성되며 클릭해 해당 날짜의 시간·크루를 조정한다. 기존 배정은 영업시간 수정으로 덮어쓰지 않는다.
+
+업무 메뉴에서 TAP그룹 필터를 제거한다. 주문처리 시스템 연결 설정은 우리매장에 있고 기본 OFF이며 ON일 때만 주문 보드를 표시한다. 외부 시스템은 미연결로 명시한다. 선택 컨트롤은 파트 필터와 같은 pill 방식으로 통일한다. 저장 API의 과거 크루 키/ID는 기록 호환을 위해 유지하되 사용자 화면에 노출하지 않는다.
+
+## 스크린샷 기반 다크 UI · 2026-09-28
+
+사용자가 제공한 IMG_6081–6096의 화면과 기능을 참조해 Flutter 앱을 재설계했다. 현재 UI는 차콜 배경·짙은 카드·밝은 글자·pill 선택·청록 버튼과 초록/코랄 상태색을 사용한다. 앞선 흰 카드 팔레트를 대체하며 Pretendard, 공통 간격·시트·motion, 업무·매뉴얼·근무표·우리매장 4개 메뉴를 유지한다.
+
+우리매장에 실제 상태 기반 준비 목록·본인 출퇴근 카드·파트 관리·요일별 시간대·직책별 제한 설정을 추가했다. 직원은 간결한 목록에서 정보·근태·일정·파트/시간대 시트로 열린다. 파트 ID로 업무·크루·근무를 직접 연결하며 직책 권한과 구분한다. 설정은 기존 revision 검증을 사용하고 실패 시 초안을 보존한다. 기존 인건비 계산과 첫 근무 연습·버디 확인은 유지한다.
+
+초대 코드·QR은 명시적인 체험 기능이다. 실제 계정 가입, 보건증 보안 저장, GPS/Wi-Fi 출퇴근 검증은 미연동으로 표시한다. 임의 밴드 수, 개별 권한 override, 새 소식/요청 결재, 정산일·반올림·자동퇴근 정책은 아직 구현하지 않았다. 전체 참조 기능 rollout은 진행 중이다. [화면별 구현·제한·검증](docs/REFERENCE_REDESIGN_2026-09-28.md).
+
 ## 주간 배정과 인건비 · 2026-09-27
 
 직원 기본 화면은 월–일과 직무별 필요 시간 슬롯의 주간 배정표다. 요일별 슬롯 설정, 교대 분할 충족률·미배정 시간, 날짜별 상세 시트를 제공한다. 매뉴얼과 우리매장 운영 현황·재고와 발주·직원·인건비·배치도 상세도 바텀 시트로 연다.
@@ -20,7 +34,7 @@
 
 ## 공통 메뉴 구성과 완료 전환 수정 · 2026-09-27
 
-네 기본 메뉴는 같은 상단 구조를 사용한다: 하단 메뉴명과 동일한 제목(업무·매뉴얼·직원·우리매장), 매뉴얼 검색, 본문. 모든 메뉴에서 검색할 수 있고 검색 결과도 같은 최대 폭을 사용한다. 메뉴 제목의 장식 라벨·설명 문구, 반복 안내와 Task의 중복 방법 보기 문구를 제거했다. 오류·저장 상태·권한·실제 업무 매뉴얼 내용은 유지한다.
+네 기본 메뉴는 같은 상단 구조를 사용한다: 하단 메뉴명과 동일한 제목(업무·매뉴얼·근무표·우리매장), 매뉴얼 검색, 본문. 모든 메뉴에서 검색할 수 있고 검색 결과도 같은 최대 폭을 사용한다. 메뉴 제목의 장식 라벨·설명 문구, 반복 안내와 Task의 중복 방법 보기 문구를 제거했다. 오류·저장 상태·권한·실제 업무 매뉴얼 내용은 유지한다.
 
 완료한 TAP은 원래 열에서 글줄이 내려가 사라지는 동안 위치를 유지하고 전환 후 완료 열로 이동한다. 별도 텍스트 오버레이를 제거해 중복 표시를 막았다. TAP 열기는 새 본문만 아래에서 나타나며 서로 다른 높이의 보드가 겹치지 않는다. 동작 줄이기는 즉시 결과를 보여주고 컨트롤러 생성·해제도 검증했다. 선택 버튼에도 Pretendard를 명시 적용했다.
 
@@ -28,7 +42,7 @@
 
 공개 미리보기에서도 성공한 TAP/Task 완료에 짧은 아래 방향 글줄 전환을 보여 준다. 완료 TAP이 보드의 다른 열로 이동할 때는 출발 카드 위치에서 글줄이 내려가며 사라지고, 완료 열에는 완료 상태가 남는다. TAP을 열면 제목과 Task 본문이 펼쳐진다. 동작 줄이기 설정에서는 전환을 생략한다. 기본 한국어 서체는 무료 OFL 라이선스의 Pretendard로 교체했다. 이 동작은 Flutter 위젯 프레임 테스트로 검증했으며 네이티브 실기기 검증은 별도다.
 
-## 업무·매뉴얼·직원·우리매장 개선 · 2026-09-27
+## 업무·매뉴얼·근무표·우리매장 개선 · 2026-09-27
 
 The main Flutter app now uses **업무 / 매뉴얼 / 직원 / 우리매장**. Work retains the TAP → Task hierarchy, TAP그룹 filters and the existing order/todo/done board. Manuals have a dedicated destination; Staff contains schedules, training and owner-only hiring drafts; Our Store contains settings, layout and access to sales, stock and procurement.
 
@@ -56,7 +70,7 @@ The [restaurant operations scenario review](docs/RESTAURANT_SCENARIOS_2026-09-25
 
 The current `tap2work.png` is a new route-shaped 2 mark: a cream path and coral endpoints on deep green. `app/assets/branding/generate_brand.py` generates the app asset, repository-root logo, web favicon/PWA icons and Android/iOS launcher images from the same geometry. The Flutter header pairs the icon with a live text wordmark. The earlier user-supplied circle and raster wordmark remain in Git history; the menu artwork remains bundled separately. Native icon builds have not been verified.
 
-The current visual direction uses pale gray surfaces, white cards with light shadows, #191F28 text, green navigation and coral primary actions, following the 2026-09-27 UI prompt template. The earlier warm paper surfaces and default card borders are superseded. Functional navigation and task cards use Cupertino glyphs rather than colorful emoji; actual dish art remains where it identifies a menu item. The public domain root serves the Flutter app directly. The public build excludes the development journal and project decision/history files; the local developer console remains a development tool.
+The previous 2026-09-27 visual direction used pale gray surfaces, white cards with light shadows, #191F28 text, green navigation and coral primary actions, following the 2026-09-27 UI prompt template. The earlier warm paper surfaces and default card borders are superseded. Functional navigation and task cards use Cupertino glyphs rather than colorful emoji; actual dish art remains where it identifies a menu item. The public domain root serves the Flutter app directly. The public build excludes the development journal and project decision/history files; the local developer console remains a development tool.
 
 The [2026-09-25 UI design system](docs/UI_DESIGN_SYSTEM_2026-09-25.md) refines this direction with a darker, more legible coral action color, shared heading and card treatments, labeled controls, and text-plus-icon status. On phones, Status places immediate work and shortages before shortcuts and reports; the prepared-inventory detail starts collapsed. Calendar gives each half-hour row a larger touch area, Place separates table/seat/equipment totals, and login makes password visibility and submission progress explicit. The visual revision does not change demo permissions, inventory rules, staffing records or first-shift confirmations.
 
@@ -72,13 +86,9 @@ Design references reviewed through Aside CLI on 2026-09-25: [Trello navigation](
 
 The app has four destinations in this order: 업무, 매뉴얼, 직원, 우리매장. A floating bottom menu shows these Korean labels alongside icons; selection remains visible and each target fills an equal-width slot. 우리매장 provides inventory, procurement, layout and operating overview entry points. The existing first-shift guide (오늘, 일하는 법, 근무표, 도움) remains accessible through 직원 > 교육. Administrative actions are separate from worker actions. Use short Korean text and large touch targets. First-shift guide media remains deferred in D-007; operational Task manuals now support external video/photo links.
 
-The working hierarchy has two levels: **TAP → Task**. TAP그룹 names a group of related TAPs and filters the same board; it is not a navigation level. The root Todo board always has three columns in this order: 주문처리중 / 할일 / 완료. Every unfinished order group appears in the first column regardless of its internal processing status; unfinished prep and general Taps appear in the second; all completed work appears in the third. Display placement alone never starts cooking or debits prepared stock. TAP그룹 groups include 주문처리, 마케팅, 뼈찜 조리, 뼈짬뽕 조리, 응대, 정비 and 정산. Cards drag between valid statuses, before another card to reorder, or onto a group chip to regroup; wrong-type lane drops are rejected visibly. A TAP opens its Task list and a selected manual panel; returning preserves the board's group selection. Completing a TAP checks its remaining Task together. The existing checklist IDs, stock-count workflow and first-shift guide remain. Calendar houses the demo Tapper register, structured R&R shifts, server-recorded clock events, weekly/monthly coverage and an HR pool; owner-only labor amounts appear in Status. Place supports rectangle, L and U footprints on integer grid cells. These shared demo operations do not imply authenticated employee records, live orders or production payroll. Verified webhooks, marketplace, personal push and exceptional payroll policies remain planned; see [Tap system architecture](docs/TAP_SYSTEM_ARCHITECTURE.md).
+The current hierarchy remains TAP / Task. Parts are the sole work-board filter. Folder IDs remain for manuals and template organization. The order-processing lane is opt-in through store settings; OFF hides order cards without deleting history. Existing order-wide progress, independent card actions and stock rules remain.
 
-Each TAP card starts with a drag handle, independent completion control, one-line title and Task arrow. The row below names the eligible active Tappers for its role with stable per-person colors; this is role eligibility, not a shift assignment. The completed Task fraction uses the representative assignee tint, while completed cards become muted pale gray with readable text. Orders group menu TAPs by order ID and show aggregate progress over all sibling menus, even when a folder or search only matched one. Takeout and delivery tickets create packing Task automatically; delivery adds a handoff check. The seeded standalone packing checklist is archived with its history retained. Known delivery platforms show a symbolic brand-colored emoji and readable name (배민/배달의민족, 쿠팡이츠, 요기요); other known source names use 🛵. The request indicator opens the ticket's exact request text. Sample requests are fictional, and there is no delivery platform integration.
-
-Calendar now opens to weekly role/slot coverage; the following daily timeline remains available as a detail view. One timeline holds required R&R slots, assigned people and extra shifts, with a fixed left 30-minute time axis from 06:00 to 24:00 and horizontally scrollable role columns. Overlapping items within a role use side-by-side subcolumns; shifts that began the prior day and continue past 06:00 appear clipped into the current day, while editing retains their original date. The label describes the display range; the store's actual business hours are not configured here. The separate 주간 시간표 panel and phone 시간표 toggle are removed. The heading counts filled required slots and empty required slots; leave records do not fill a slot. The weekly date strip and monthly overview remain. Early and overnight shifts remain accessible through the selected day's 새벽·야간 summary.
-
-Dragging crew into a role/time column or tapping a blank half-hour cell opens a form prefilled with that role and 30-minute start. Tapping a required empty slot offers qualified crew and opens the form with that slot's actual start and end; tapping or dragging an existing shift edits it. The form supports employment type (정규직, 시간알바, 정규알바), qualified role, start/end and weekday repeats such as 월수금, 화목토 and 매일. Repeats are bounded to 90 days; the server checks the full set atomically, including overnight overlap. Employment type is separate from pay period. Labor costs and payment records appear only in owner Status; manager and crew projections omit pay amounts. Place shows the map followed by materials with on-hand amount, last count and last purchase time, rather than a table/equipment location list.
+The schedule now uses a fixed time axis with weekday groups and part subcolumns. Business-hour templates, dated slot adjustments and crew assignments are separate. Clicking a slot edits times or assigns crew; assignments support editing, removal and 4/12-week weekday repetition. Server validation includes membership and overnight overlap. Owner-only labor and payment records remain separate. See [current architecture](docs/ARCHITECTURE.md); earlier calendar and folder-filter descriptions are superseded.
 
 The latest user request brings staff operations and procurement into the prototype now. Recruiting remains a later phase; do not introduce a job marketplace as a prerequisite.
 

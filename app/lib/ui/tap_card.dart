@@ -53,7 +53,7 @@ class TapCard extends StatelessWidget {
         boxShadow: appCardShadow,
       ),
       child: Material(
-        color: complete ? const Color(0xFFF0F2F4) : Colors.white,
+        color: complete ? const Color(0xFF222528) : AppColors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(

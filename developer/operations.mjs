@@ -1,3 +1,5 @@
+import { ensurePartModel, actorWithParts, rosterTemplates } from './parts.mjs';
+import { workplaceView, mutateWorkplace, checkWorkplacePermission } from './workplace.mjs';
 import { moveManualNode } from './manual_directory.mjs';
 import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -223,7 +225,7 @@ export function emptyOperations(now = new Date(), ownerId, ownerName = '사장�
   return state;
 }
 
-function allowed(actor, task) { return ['owner', 'manager'].includes(actor.role) || task.requiredRole === 'all' || task.requiredRole === actor.role; }
+function allowed(actor, task) { return ['owner', 'manager'].includes(actor.role) || (Object.hasOwn(task, 'partId') ? task.partId == null || actor.partIds?.includes(task.partId) : task.requiredRole === 'all' || task.requiredRole === actor.role); }
 function leadership(actor) { if (!['owner', 'manager'].includes(actor.role)) fail('사장님 또는 매니저가 처리할 수 있어요.', 403); }
 function stockReview(item) {
   if (!item.lastOrderedAt) return null;
@@ -269,6 +271,7 @@ function ensureDueTasks(state, now) {
       state.tasks.push({ id, itemId: item.id, title: `${item.name} 재고 확인`, emoji: item.emoji, slot: '준비', requiredRole: 'all', zone: item.zone, kind: 'stock', dueAt, date: koreanDate(dueAt), completedAt: null, completedBy: null }); changed = true;
     }
   }
+  if (ensurePartModel(state)) changed = true;
   return changed;
 }
 export class OperationsStore {
@@ -289,10 +292,15 @@ export class OperationsStore {
   #serial(callback) { const operation = this.#queue.then(callback); this.#queue = operation.catch(() => {}); return operation; }
   #actor(id) { if (this.trustedActor) return this.trustedActor; const actor = actors.find(item => item.id === id); if (!actor) fail('체험할 역할을 선택해 주세요.', 403); return actor; }
   #view(state, actor) {
+    actor = actorWithParts(state, actor);
     const result = structuredClone(state);
     result.hasSampleArchive = Boolean(state.sampleArchive);
     delete result.sampleArchive;
     Object.assign(result, staffView(state, actor, this.clock()));
+    result.workplace = workplaceView(state, actor);
+    if (actor.role !== 'owner') delete result.demoInvites;
+    result.rosterTemplates = rosterTemplates(state);
+    result.orderBoardEnabled = state.store?.profile?.orderSystem?.enabled === true;
     result.actor = actor;
     result.serverTime = iso(this.clock());
     result.demo = !this.trustedActor;
@@ -314,9 +322,10 @@ export class OperationsStore {
       item.reviewCompletedBy = task?.completedBy ?? null;
       item.reviewCompletedAt = task?.completedAt ?? null;
     }
+    const completionEnabled = actor.role === 'owner' || state.workplace?.restrictions?.[actor.role]?.complete !== false;
     for (const task of result.tasks) {
-      task.canComplete = !task.completedAt && (allowed(actor, task) || task.steps?.some(step => !step.completedAt && canCompleteStep(actor, task, step)));
-      if (task.steps) for (const step of task.steps) step.canComplete = !step.completedAt && canCompleteStep(actor, task, step);
+      task.canComplete = completionEnabled && !task.completedAt && (allowed(actor, task) || task.steps?.some(step => !step.completedAt && canCompleteStep(actor, task, step)));
+      if (task.steps) for (const step of task.steps) step.canComplete = completionEnabled && !step.completedAt && canCompleteStep(actor, task, step);
       if (task.kind === 'routine') {
         const index = state.taskTemplates.findIndex(row => row.id === task.templateId);
         const current = state.taskTemplates[index];
@@ -329,8 +338,8 @@ export class OperationsStore {
     if (actor.role !== 'owner') {
       delete result.hiringDrafts;
       if (result.store?.profile) {
-        const { industryId, serviceModes, address, arrivalNote, hours } = result.store.profile;
-        result.store.profile = { industryId, serviceModes, address, arrivalNote, hours };
+        const { industryId, serviceModes, address, arrivalNote, hours, orderSystem } = result.store.profile;
+        result.store.profile = { industryId, serviceModes, address, arrivalNote, hours, orderSystem };
       }
     }
     if (!['owner', 'manager'].includes(actor.role)) {
@@ -352,12 +361,14 @@ export class OperationsStore {
     });
   }
   mutate(actorId, input) {
-    const actor = this.#actor(actorId);
+    let actor = this.#actor(actorId);
     return this.#serial(async () => {
       const state = await this.#read();
       const now = this.clock();
       if (ensureDueTasks(state, now)) { state.revision++; await this.#save(state); }
       if (input.revision !== state.revision) fail('다른 동료가 먼저 업데이트했어요. 최신 내용을 확인하고 다시 눌러 주세요.', 409);
+      actor = actorWithParts(state, actor);
+      checkWorkplacePermission(state, actor, input.action);
       const who = { id: actor.id, name: actor.name, role: actor.label };
       const activity = (message, kind) => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message, ...(kind ? { kind } : {}) });
       const itemFor = id => { const item = state.items.find(item => item.id === id && !item.archivedAt); if (!item) fail('사용 중인 재료를 찾지 못했어요.', 404); return item; };
@@ -688,7 +699,7 @@ export class OperationsStore {
           state.layout.updatedAt = iso(now); state.layout.updatedBy = who;
           activity(`${zone.name} 위치 안내 업데이트`); break;
         }
-        default: if (!mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
+        default: if (!mutateWorkplace(state, input, actor, now, activity, Boolean(this.trustedActor)) && !mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
       }
       if (['move_tap', 'complete_task', 'complete_step', 'reopen_step'].includes(input.action)) syncOrderFromTap(state, input.taskId);
       if (['move_tap', 'complete_task', 'complete_step'].includes(input.action)) {

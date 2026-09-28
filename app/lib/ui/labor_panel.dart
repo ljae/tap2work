@@ -90,7 +90,7 @@ class _LaborPanelState extends State<LaborPanel> {
               onChanged: (v) => setState(() => selectedWeek = v),
             ),
           const SizedBox(height: 16),
-          SegmentedButton<bool>(
+          AppSegmented<bool>(
             segments: const [
               ButtonSegment(value: true, label: Text('배정 예상')),
               ButtonSegment(value: false, label: Text('근태 기준')),

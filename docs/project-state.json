@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 88,
+  "revision": 90,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -452,22 +452,32 @@
     {
       "id": "D-045",
       "category": "디자인 시스템",
-      "title": "토스 스타일 공통 규칙과 기존 강조색·4개 메뉴 유지",
+      "title": "Shared UI rules, four destinations and screenshot-led dark surfaces",
       "status": "confirmed",
-      "decision": "Pretendard 제목 24/Bold·본문 16/Medium·설명 13/Regular, 기본 글자 #191F28, 화면 좌우 24px·세로 섹션 32px, 배경 #F2F4F6·흰 카드·16px 모서리·4% 그림자를 공통 규칙으로 적용한다. 사용자 답변에 따라 기존 초록·코랄 강조색과 업무·매뉴얼·직원·우리매장 메뉴를 유지한다. 설정·편집·상세는 24px 상단 모서리와 회색 핸들의 바텀 시트로 제공한다. shimmer 스켈레톤, 0.95배 버튼 눌림·복원, Cupertino 화면 전환과 재사용 프롬프트 템플릿을 적용한다.",
-      "reason": "사용자의 do apply 요청 및 강조색·바텀 시트 범위에 대한 명시적 답변.",
-      "source": "사용자 요청과 답변 · 2026-09-27",
-      "updatedAt": "2026-09-27T11:31:12.143Z"
+      "decision": "The user requested a whole-app redesign referencing IMG_6081 through IMG_6096. Replace the light gray/white palette with charcoal surfaces, light text, pill choices and teal primary actions. Retain Pretendard 24/16/13 typography, 24px horizontal and 32px section spacing, green/coral accents, four existing destinations, bottom sheets, shimmer, press feedback and reduced motion. Exact colors and feature defaults are implementation choices, not blanket approval of all reference-app policies. The four destinations are now 업무, 매뉴얼, 근무표 (calendar icon), 우리매장. All selectors use the shared part-filter pill style; the product term for people is 크루.",
+      "reason": "The explicit 2026-09-28 screenshot redesign request supersedes the previous light palette while preserving existing restaurant workflows.",
+      "source": "User request: IMG_6081.PNG through IMG_6096.PNG, 2026-09-28",
+      "updatedAt": "2026-09-28T11:39:30.932081Z"
     },
     {
       "id": "D-046",
       "category": "직원·인건비·UX",
-      "title": "주간 직무별 배정과 대한민국 수당 예상·앱 내 알림",
+      "title": "파트별 주간 근무표와 인건비 예상",
       "status": "confirmed",
-      "decision": "매뉴얼 및 우리매장 운영 현황·재고와 발주·직원·인건비 상세는 공통 바텀 시트로 연다. 직원 기본은 월–일 주간 직무/시간 슬롯 충족표이며 요일별 필요 슬롯·분할 배정·부족 시간을 확인한다. 대한민국 기준 주휴·연장·야간·휴일 수당을 포함한 시급제 주간 세전 예상과 근태 기준 계산, 앱 내 확인 목록을 제공한다. 사업장 규모·소정시간·통상시급·개근/휴일 조건은 직접 확인하며 미확인 또는 범위 밖 연속근무의 합계는 보류한다. 휴대폰 푸시는 후속이다.",
+      "decision": "근무표는 왼쪽 고정 시간축과 요일별 파트 세부열을 사용한다. 영업시간에서 파트별 슬롯을 생성하고 클릭 시 해당 날짜의 시간과 크루 배정을 조정한다. 기존 배정·야간 근무·반복 근무·중복 방지·충족률과 사장 전용 인건비 계산 및 앱 내 확인 목록을 유지한다. 수당 적용 조건은 직접 확인하며 미확인 조건의 합계는 보류한다. 휴대폰 푸시는 후속이다.",
       "reason": "사용자가 상세 시트·주간 배정·인건비 계산을 요청했고 대한민국 수당 전체 및 앱 내 주간 확인 목록을 선택했다.",
       "source": "2026-09-27 사용자 요청 및 두 질의 답변",
-      "updatedAt": "2026-09-27T12:22:21.277691Z"
+      "updatedAt": "2026-09-28T11:39:30.932081Z"
+    },
+    {
+      "id": "D-047",
+      "category": "파트 운영·아키텍처",
+      "title": "파트 중심 운영, 주문 보드 opt-in, 아키텍처 지속 관리",
+      "status": "confirmed",
+      "decision": "직무 관리는 파트 관리로 대체하고 업무·크루·근무 배정은 partId로 연결한다. 직책은 서버 권한으로 분리한다. 업무 메뉴의 TAP그룹 필터는 삭제하며 매뉴얼 디렉토리와 과거 ID는 유지한다. 우리매장 주문처리 시스템 연결 토글 ON일 때만 주문 보드를 표시한다. 토글 자체는 실제 외부 연동을 의미하지 않는다. docs/ARCHITECTURE.md를 지속 갱신하며 UI 참조와 공통 규칙을 적용한다. 사용자가 완료 후 배포까지 요청했다.",
+      "reason": "2026-09-28 사용자의 명시적인 기능·명칭·배포 요청.",
+      "source": "사용자 요청 · 2026-09-28",
+      "updatedAt": "2026-09-28T11:39:30.932081Z"
     }
   ],
   "milestones": [
@@ -566,6 +576,18 @@
       "title": "업무·매뉴얼·직원·우리매장 개선 구현",
       "status": "complete",
       "description": "업무·매뉴얼·직원·우리매장 4메뉴, 선택형 우리매장 프로필과 POS/배달 업무 추천, TAP/Task 설정·서버 완료 규칙, 채용 초안, 절제된 완료/열기 전환을 구현·배포했다. Supabase operations 배포, Actions 36302001642의 JS 검사·Node 65개·Flutter 분석/94개·공개 빌드·Pages 배포, HTTPS 파일 해시 일치를 확인했다. 실제 주문 연동·외부 공고/지원자 관리는 후속 범위다. 네이티브 빌드·실기기·인증 실계정 저장은 미검증이다."
+    },
+    {
+      "id": "M-017",
+      "title": "Screenshot-led UI and staff operations redesign",
+      "status": "in_progress",
+      "description": "Implemented dark shared UI, preparation checklist, attendance card, staff profiles, parts and role filters, weekday time bands, server-enforced role restrictions and demo code/QR invitations. Flutter 117 and Node 81 tests passed; web build and phone/desktop captures verified. Real membership invitations, secure certificate storage, GPS/Wi-Fi verification, individual permission overrides and additional settlement policies remain unimplemented. No production deployment or native verification."
+    },
+    {
+      "id": "M-018",
+      "title": "파트 중심 아키텍처·근무표·주문 보드 설정",
+      "status": "in_progress",
+      "description": "Implementation and regression checks complete; final visual/web checks and Pages deployment verification in progress. Server deployed. See docs/ARCHITECTURE.md for current boundaries and retained compatibility fields."
     }
   ],
   "history": [
@@ -3792,7 +3814,146 @@
         "https://github.com/ljae/tap2work/actions/runs/36319033926",
         "https://tap2.work/"
       ]
+    },
+    {
+      "id": "H-reference-redesign-2026-09-28",
+      "at": "2026-09-28T10:15:27.887808Z",
+      "type": "implementation",
+      "title": "Sixteen screenshot references: dark UI and staff/part/time-band sheets",
+      "detail": "Applied frontend-design skill and updated shared UI guide. Inspected all 16 screenshots without copying personal/store details. Updated Flutter theme and existing screens; added actual-state preparation and attendance, compact staff profiles, part/time-band assignments, part add/rename/reorder/hide/role mapping and filters, per-day/all-day bands, and server-side restrictions that never expand existing role permissions. Demo invitations support creation, rotation, revocation, clipboard and QR only; no actual joins or messages. Integration-dependent and unimplemented reference functions are listed in the redesign report. Fixed lazy opening-revision capture using a conflict regression test.",
+      "changes": [
+        {
+          "id": "D-045",
+          "previous": {
+            "id": "D-045",
+            "category": "디자인 시스템",
+            "title": "토스 스타일 공통 규칙과 기존 강조색·4개 메뉴 유지",
+            "status": "confirmed",
+            "decision": "Pretendard 제목 24/Bold·본문 16/Medium·설명 13/Regular, 기본 글자 #191F28, 화면 좌우 24px·세로 섹션 32px, 배경 #F2F4F6·흰 카드·16px 모서리·4% 그림자를 공통 규칙으로 적용한다. 사용자 답변에 따라 기존 초록·코랄 강조색과 업무·매뉴얼·직원·우리매장 메뉴를 유지한다. 설정·편집·상세는 24px 상단 모서리와 회색 핸들의 바텀 시트로 제공한다. shimmer 스켈레톤, 0.95배 버튼 눌림·복원, Cupertino 화면 전환과 재사용 프롬프트 템플릿을 적용한다.",
+            "reason": "사용자의 do apply 요청 및 강조색·바텀 시트 범위에 대한 명시적 답변.",
+            "source": "사용자 요청과 답변 · 2026-09-27",
+            "updatedAt": "2026-09-27T11:31:12.143Z"
+          },
+          "next": {
+            "id": "D-045",
+            "category": "디자인 시스템",
+            "title": "Shared UI rules, four destinations and screenshot-led dark surfaces",
+            "status": "confirmed",
+            "decision": "The user requested a whole-app redesign referencing IMG_6081 through IMG_6096. Replace the light gray/white palette with charcoal surfaces, light text, pill choices and teal primary actions. Retain Pretendard 24/16/13 typography, 24px horizontal and 32px section spacing, green/coral accents, four existing destinations, bottom sheets, shimmer, press feedback and reduced motion. Exact colors and feature defaults are implementation choices, not blanket approval of all reference-app policies.",
+            "reason": "The explicit 2026-09-28 screenshot redesign request supersedes the previous light palette while preserving existing restaurant workflows.",
+            "source": "User request: IMG_6081.PNG through IMG_6096.PNG, 2026-09-28",
+            "updatedAt": "2026-09-28T10:15:27.887808Z"
+          },
+          "reason": "The explicit 2026-09-28 screenshot redesign request supersedes the previous light palette while preserving existing restaurant workflows."
+        }
+      ],
+      "files": [
+        "PRODUCT.md",
+        "docs/TOSS_UI_PROMPT_TEMPLATE.md",
+        "docs/REFERENCE_REDESIGN_2026-09-28.md",
+        "app/lib/main.dart",
+        "app/lib/ui/design_tokens.dart",
+        "app/lib/ui/design_system.dart",
+        "app/lib/ui/components.dart",
+        "app/lib/ui/workplace_screens.dart",
+        "app/lib/ui/team_screen.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/lib/ui/calendar_screen.dart",
+        "app/lib/ui/tap_workspace.dart",
+        "app/lib/ui/manual_workspace.dart",
+        "developer/workplace.mjs",
+        "developer/operations.mjs",
+        "developer/test/workplace.test.mjs",
+        "app/test/workplace_test.dart",
+        "app/tool/reference_ui_review.dart"
+      ],
+      "verification": "Flutter analyze passed; 117 Flutter and 81 Node tests passed; npm run check, git diff --check and npm run build:app passed. Bundled-font 390/1200px capture test and 320/390/1200px sheets at 1.5x text verified; stale revision keeps draft. Local /app/ returned HTTP 200. Initial white-card expectation, lazy-list scrolling, lazy revision capture, brace lint and remaining white manual panel were corrected. Native builds/devices, authenticated real-account writes and public deployment not performed."
+    },
+    {
+      "at": "2026-09-28T11:39:30.932081Z",
+      "type": "implementation",
+      "title": "Part-based schedule and living architecture; deploy requested",
+      "detail": "Added domain schedule models and presentation controller, fixed time-axis weekday/part grid, business-hour-derived slots, dated overrides/reset, part-aware crew and repeat assignments, overlap/read permissions, shared pill selectors, calendar navigation, crew terminology, opt-in order board and removal of the task-folder filter. Retained historical IDs, stock semantics, owner-only pay and learning/buddy confirmation. ARCHITECTURE.md and AGENTS.md establish ongoing maintenance.",
+      "changes": [
+        {
+          "id": "D-045",
+          "previous": {
+            "id": "D-045",
+            "category": "디자인 시스템",
+            "title": "Shared UI rules, four destinations and screenshot-led dark surfaces",
+            "status": "confirmed",
+            "decision": "The user requested a whole-app redesign referencing IMG_6081 through IMG_6096. Replace the light gray/white palette with charcoal surfaces, light text, pill choices and teal primary actions. Retain Pretendard 24/16/13 typography, 24px horizontal and 32px section spacing, green/coral accents, four existing destinations, bottom sheets, shimmer, press feedback and reduced motion. Exact colors and feature defaults are implementation choices, not blanket approval of all reference-app policies.",
+            "reason": "The explicit 2026-09-28 screenshot redesign request supersedes the previous light palette while preserving existing restaurant workflows.",
+            "source": "User request: IMG_6081.PNG through IMG_6096.PNG, 2026-09-28",
+            "updatedAt": "2026-09-28T10:15:27.887808Z"
+          },
+          "next": {
+            "id": "D-045",
+            "category": "디자인 시스템",
+            "title": "Shared UI rules, four destinations and screenshot-led dark surfaces",
+            "status": "confirmed",
+            "decision": "The user requested a whole-app redesign referencing IMG_6081 through IMG_6096. Replace the light gray/white palette with charcoal surfaces, light text, pill choices and teal primary actions. Retain Pretendard 24/16/13 typography, 24px horizontal and 32px section spacing, green/coral accents, four existing destinations, bottom sheets, shimmer, press feedback and reduced motion. Exact colors and feature defaults are implementation choices, not blanket approval of all reference-app policies. The four destinations are now 업무, 매뉴얼, 근무표 (calendar icon), 우리매장. All selectors use the shared part-filter pill style; the product term for people is 크루.",
+            "reason": "The explicit 2026-09-28 screenshot redesign request supersedes the previous light palette while preserving existing restaurant workflows.",
+            "source": "User request: IMG_6081.PNG through IMG_6096.PNG, 2026-09-28",
+            "updatedAt": "2026-09-28T11:39:30.932081Z"
+          },
+          "reason": "Explicit user request on 2026-09-28 replaces staff navigation and standardizes selectors and terminology."
+        },
+        {
+          "id": "D-046",
+          "previous": {
+            "id": "D-046",
+            "category": "직원·인건비·UX",
+            "title": "주간 직무별 배정과 대한민국 수당 예상·앱 내 알림",
+            "status": "confirmed",
+            "decision": "매뉴얼 및 우리매장 운영 현황·재고와 발주·직원·인건비 상세는 공통 바텀 시트로 연다. 직원 기본은 월–일 주간 직무/시간 슬롯 충족표이며 요일별 필요 슬롯·분할 배정·부족 시간을 확인한다. 대한민국 기준 주휴·연장·야간·휴일 수당을 포함한 시급제 주간 세전 예상과 근태 기준 계산, 앱 내 확인 목록을 제공한다. 사업장 규모·소정시간·통상시급·개근/휴일 조건은 직접 확인하며 미확인 또는 범위 밖 연속근무의 합계는 보류한다. 휴대폰 푸시는 후속이다.",
+            "reason": "사용자가 상세 시트·주간 배정·인건비 계산을 요청했고 대한민국 수당 전체 및 앱 내 주간 확인 목록을 선택했다.",
+            "source": "2026-09-27 사용자 요청 및 두 질의 답변",
+            "updatedAt": "2026-09-27T12:22:21.277691Z"
+          },
+          "next": {
+            "id": "D-046",
+            "category": "직원·인건비·UX",
+            "title": "파트별 주간 근무표와 인건비 예상",
+            "status": "confirmed",
+            "decision": "근무표는 왼쪽 고정 시간축과 요일별 파트 세부열을 사용한다. 영업시간에서 파트별 슬롯을 생성하고 클릭 시 해당 날짜의 시간과 크루 배정을 조정한다. 기존 배정·야간 근무·반복 근무·중복 방지·충족률과 사장 전용 인건비 계산 및 앱 내 확인 목록을 유지한다. 수당 적용 조건은 직접 확인하며 미확인 조건의 합계는 보류한다. 휴대폰 푸시는 후속이다.",
+            "reason": "사용자가 상세 시트·주간 배정·인건비 계산을 요청했고 대한민국 수당 전체 및 앱 내 주간 확인 목록을 선택했다.",
+            "source": "2026-09-27 사용자 요청 및 두 질의 답변",
+            "updatedAt": "2026-09-28T11:39:30.932081Z"
+          },
+          "reason": "User replaced job management with parts and requested weekday/part subcolumns, business-hour slots and individual time edits."
+        },
+        {
+          "id": "D-047",
+          "previous": null,
+          "next": {
+            "id": "D-047",
+            "category": "파트 운영·아키텍처",
+            "title": "파트 중심 운영, 주문 보드 opt-in, 아키텍처 지속 관리",
+            "status": "confirmed",
+            "decision": "직무 관리는 파트 관리로 대체하고 업무·크루·근무 배정은 partId로 연결한다. 직책은 서버 권한으로 분리한다. 업무 메뉴의 TAP그룹 필터는 삭제하며 매뉴얼 디렉토리와 과거 ID는 유지한다. 우리매장 주문처리 시스템 연결 토글 ON일 때만 주문 보드를 표시한다. 토글 자체는 실제 외부 연동을 의미하지 않는다. docs/ARCHITECTURE.md를 지속 갱신하며 UI 참조와 공통 규칙을 적용한다. 사용자가 완료 후 배포까지 요청했다.",
+            "reason": "2026-09-28 사용자의 명시적인 기능·명칭·배포 요청.",
+            "source": "사용자 요청 · 2026-09-28",
+            "updatedAt": "2026-09-28T11:39:30.932081Z"
+          },
+          "reason": "2026-09-28 사용자의 명시적인 기능·명칭·배포 요청."
+        }
+      ],
+      "files": [
+        "docs/ARCHITECTURE.md",
+        "AGENTS.md",
+        "PRODUCT.md",
+        "app/lib/domain/part_schedule.dart",
+        "app/lib/state/schedule_controller.dart",
+        "app/lib/ui/calendar_screen.dart",
+        "app/lib/ui/components.dart",
+        "developer/parts.mjs",
+        "developer/workplace.mjs",
+        "developer/staff.mjs",
+        "developer/task_settings.mjs"
+      ],
+      "verification": "Flutter analyze passed; full Flutter suite 115 passed; Node suite 85 passed; npm run check and git diff --check passed. Final text-label/layout refinement and bundled-font capture rerun in progress. Initial redirected commands hit sandbox SDK/port restrictions; standard commands ran all checks successfully. Initial stale UI expectations, monthly cell overflow and missing shared test helper references were fixed. Public build passed before final display refinement. Supabase operations deployed successfully; public Pages pending. Native devices and authenticated real-employee writes not tested."
     }
   ],
-  "updatedAt": "2026-09-27T12:30:44.189267Z"
+  "updatedAt": "2026-09-28T11:39:30.932081Z"
 }
