@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 98,
+  "revision": 99,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -649,7 +649,7 @@
       "id": "M-020",
       "title": "공통 시트 가독성·시작 로딩",
       "status": "completed",
-      "description": "Implemented shared editor heading/footer/form-section components, global field and sheet themes, readable manual/settlement/labor forms, and web-to-Flutter-to-store loading with failure retry. Final Flutter analysis and 133 tests, 93 Node tests, relationship checks, local/public builds passed; bundled-font screenshots inspected. Deployment tracked separately; native device profiling not performed."
+      "description": "Implemented and deployed shared readable editor headings, persistent save footers, form sections, global input/sheet themes and continuous web-to-Flutter-to-store loading with retry. Flutter analysis and 133 tests, 93 Node tests, relationship checks, local/public builds and GitHub Pages pipeline passed. Live HTML/bootstrap verified and main.dart.js exactly matched the local public build. Native device profiling not performed."
     }
   ],
   "history": [
@@ -4181,7 +4181,22 @@
         "docs/UI_READABILITY_2026-09-28.md",
         "docs/UI_SETTINGS_RELATIONSHIP_MAP.md"
       ]
+    },
+    {
+      "at": "2026-09-28T14:18:56.579Z",
+      "type": "verification",
+      "title": "Readable sheets and startup loading deployed",
+      "detail": "Source release 343ac196d57c57ec2fb5f6581d2c2f3621f2742e deployed successfully by GitHub Pages run 36434498122. Source commit contains 34 reviewed files. GitHub Git Trees/Commits API used with expected main parent and force:false because local Git metadata is read-only. This documentation-only follow-up uses [skip ci].",
+      "verification": "GitHub Actions independently passed JavaScript checks, 93 Node tests, Flutter dependency resolution, analysis and tests, public build and Pages deployment. Direct HTTPS downloads of live index.html, flutter_bootstrap.js and main.dart.js succeeded. Live HTML includes loading overlay and first-frame handoff, bootstrap includes failure handler, and main.dart.js exactly matches the locally verified public build. DNS resolves in direct network commands; no DNS configuration change was required. Local final Flutter suite: 133 passed. Native devices and authenticated real-employee writes not tested.",
+      "files": [
+        "docs/project-state.json"
+      ],
+      "release": {
+        "commit": "343ac196d57c57ec2fb5f6581d2c2f3621f2742e",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36434498122",
+        "site": "https://tap2.work"
+      }
     }
   ],
-  "updatedAt": "2026-09-28T14:13:33.136Z"
+  "updatedAt": "2026-09-28T14:18:56.579Z"
 }
