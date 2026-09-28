@@ -192,11 +192,8 @@ class LaborDetail extends StatelessWidget {
         );
       }
       final result = person[planned ? 'planned' : 'actual'] as Json;
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('${person['nickname']} 인건비'),
-          leading: const CloseButton(),
-        ),
+      return AppEditorScaffold(
+        title: '${person['nickname']} 인건비',
         body: ListView(
           padding: const EdgeInsets.all(24),
           children: [
@@ -218,8 +215,15 @@ class LaborDetail extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
-                    Expanded(child: Text(entry.value)),
-                    Text(laborMoney(result[entry.key])),
+                    Expanded(child: Text(entry.value, style: AppText.caption)),
+                    const SizedBox(width: 16),
+                    Flexible(
+                      child: Text(
+                        laborMoney(result[entry.key]),
+                        textAlign: TextAlign.end,
+                        style: AppText.body,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -396,141 +400,168 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
   @override
   Widget build(BuildContext context) => PopScope(
     canPop: !saving,
-    child: Scaffold(
-      appBar: AppBar(title: const Text('계산 조건'), leading: const CloseButton()),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          Text(
-            '${widget.person['nickname']} · ${widget.week} 주',
-            style: AppText.body,
-          ),
-          const SizedBox(height: 24),
-          picker('근로계약 기준', scope, {
-            'unknown': '미확인 · 계산 보류',
-            'standard': '시급제 성인 · 고정 근로시간',
-          }, (v) => scope = v),
-          TextButton(
-            onPressed: () => showAppSheet(
-              context,
-              builder: (_) => PayrollSettingsScreen(ops: widget.ops),
-            ),
-            child: const Text('사업장 규모·주휴 포함은 매장 정산 설정에서 변경'),
-          ),
-          number(
-            'hourlyWon',
-            '기본 시급 · 원',
-            draft['hourlyWon'] ?? widget.person['hourlyWon'],
-          ),
-          number(
-            'ordinaryHourlyWon',
-            '통상시급 · 원',
-            draft['ordinaryHourlyWon'] ?? widget.person['hourlyWon'],
-          ),
-          number(
-            'averageWeeklyMinutes',
-            '4주 평균 주 소정근로시간 · 시간',
-            draft['averageWeeklyMinutes'] == null
-                ? null
-                : draft['averageWeeklyMinutes'] / 60,
-          ),
-          number(
-            'restMinutes',
-            '유급 주휴시간 · 시간 (최대 8)',
-            (draft['restMinutes'] ?? 0) / 60,
-          ),
-          const Text(
-            '단시간 근로자의 주휴시간은 4주 소정근로시간 ÷ 같은 기간 통상근로자의 소정근로일수로 확인해 입력하세요. 일반 주 5일·40시간제는 8시간이에요.',
-            style: AppText.caption,
-          ),
-          const SizedBox(height: 16),
-          TextButton(
-            onPressed: () {
-              final average = num.tryParse(
-                controllers['averageWeeklyMinutes']?.text ?? '',
-              );
-              if (average != null && average >= 0 && average <= 40) {
-                field('restMinutes', 0).text = (average / 5).toStringAsFixed(2);
-                setState(() {});
-              }
-            },
-            child: const Text('주 5일·40시간제 기준으로 계산'),
-          ),
-          picker('이번 주 주휴 요건', attendance, {
-            'unknown': '미확인',
-            'met': '개근·주휴 요건 충족',
-            'unmet': '요건 미충족',
-          }, (v) => attendance = v),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('단시간 근로 계약'),
-            value: shortTime,
-            onChanged: (v) => setState(() => shortTime = v),
-          ),
-          if (shortTime) ...[
-            const Text('요일별 소정근로시간', style: AppText.body),
-            for (var i = 0; i < 7; i++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: AppPicker<int>(
-                  label: const ['월', '화', '수', '목', '금', '토', '일'][i],
-                  value: daily[i],
-                  items: [
-                    for (var m = 0; m <= 480; m += 30)
-                      DropdownMenuItem(value: m, child: Text('${m / 60}시간')),
-                  ],
-                  onChanged: (v) => setState(() => daily[i] = v!),
+    child: AppEditorScaffold(
+      title: '계산 조건',
+      subtitle: '${widget.person['nickname']} · ${widget.week} 주',
+      body: AbsorbPointer(
+        absorbing: saving,
+        child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          children: [
+            AppFormSection(
+              title: '시급·근로시간',
+              children: [
+                picker('근로계약 기준', scope, {
+                  'unknown': '미확인 · 계산 보류',
+                  'standard': '시급제 성인 · 고정 근로시간',
+                }, (v) => scope = v),
+                TextButton(
+                  onPressed: () => showAppSheet(
+                    context,
+                    builder: (_) => PayrollSettingsScreen(ops: widget.ops),
+                  ),
+                  child: const Text('사업장 규모·주휴 포함은 매장 정산 설정에서 변경'),
                 ),
-              ),
-          ],
-          const SizedBox(height: 24),
-          const Text('휴일근로 날짜', style: AppText.body),
-          Wrap(
-            spacing: 8,
-            children: [
-              for (var i = 0; i < 7; i++)
-                Builder(
-                  builder: (context) {
-                    final d = laborDate(
-                      DateTime.parse(widget.week).add(Duration(days: i)),
+                number(
+                  'hourlyWon',
+                  '기본 시급 · 원',
+                  draft['hourlyWon'] ?? widget.person['hourlyWon'],
+                ),
+                number(
+                  'ordinaryHourlyWon',
+                  '통상시급 · 원',
+                  draft['ordinaryHourlyWon'] ?? widget.person['hourlyWon'],
+                ),
+                number(
+                  'averageWeeklyMinutes',
+                  '4주 평균 주 소정근로시간 · 시간',
+                  draft['averageWeeklyMinutes'] == null
+                      ? null
+                      : draft['averageWeeklyMinutes'] / 60,
+                ),
+                number(
+                  'restMinutes',
+                  '유급 주휴시간 · 시간 (최대 8)',
+                  (draft['restMinutes'] ?? 0) / 60,
+                ),
+                const Text(
+                  '단시간 근로자의 주휴시간은 4주 소정근로시간 ÷ 같은 기간 통상근로자의 소정근로일수로 확인해 입력하세요. 일반 주 5일·40시간제는 8시간이에요.',
+                  style: AppText.caption,
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    final average = num.tryParse(
+                      controllers['averageWeeklyMinutes']?.text ?? '',
                     );
-                    return FilterChip(
-                      chipAnimationStyle: AppMotion.chipStyle(context),
-                      label: Text(
-                        '${const ['월', '화', '수', '목', '금', '토', '일'][i]} ${d.substring(5)}',
-                      ),
-                      selected: holidays.contains(d),
-                      onSelected: (v) => setState(
-                        () => v ? holidays.add(d) : holidays.remove(d),
-                      ),
-                    );
+                    if (average != null && average >= 0 && average <= 40) {
+                      field('restMinutes', 0).text = (average / 5)
+                          .toStringAsFixed(2);
+                      setState(() {});
+                    }
                   },
+                  child: const Text('주 5일·40시간제 기준으로 계산'),
                 ),
-            ],
-          ),
-          const Text(
-            '주휴일·근로자의 날·사업장에 적용되는 공휴일 등을 선택하세요. 일요일로 자동 지정하지 않아요.',
-            style: AppText.caption,
-          ),
-          const SizedBox(height: 16),
-          number(
-            'otherPaidHolidayMinutes',
-            '주휴 외 유급휴일 지급시간 · 시간',
-            (draft['otherPaidHolidayMinutes'] ?? 0) / 60,
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('휴일 날짜·유급 지급시간 확인'),
-            value: holidaysConfirmed,
-            onChanged: (v) => setState(() => holidaysConfirmed = v),
-          ),
-          if (error != null) Information(error!),
-          const SizedBox(height: 24),
-          PressBounce(
-            child: FilledButton(
-              onPressed: saving ? null : save,
-              child: Text(saving ? '저장 중…' : '이번 주 조건 저장'),
+              ],
             ),
+            AppFormSection(
+              title: '주휴·계약',
+              children: [
+                picker('이번 주 주휴 요건', attendance, {
+                  'unknown': '미확인',
+                  'met': '개근·주휴 요건 충족',
+                  'unmet': '요건 미충족',
+                }, (v) => attendance = v),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('단시간 근로 계약'),
+                  value: shortTime,
+                  onChanged: (v) => setState(() => shortTime = v),
+                ),
+                if (shortTime) ...[
+                  const Text('요일별 소정근로시간', style: AppText.body),
+                  for (var i = 0; i < 7; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: AppPicker<int>(
+                        label: const ['월', '화', '수', '목', '금', '토', '일'][i],
+                        value: daily[i],
+                        items: [
+                          for (var m = 0; m <= 480; m += 30)
+                            DropdownMenuItem(
+                              value: m,
+                              child: Text('${m / 60}시간'),
+                            ),
+                        ],
+                        onChanged: (v) => setState(() => daily[i] = v!),
+                      ),
+                    ),
+                ],
+              ],
+            ),
+            AppFormSection(
+              title: '휴일',
+              children: [
+                const SizedBox(height: 24),
+                const Text('휴일근로 날짜', style: AppText.body),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (var i = 0; i < 7; i++)
+                      Builder(
+                        builder: (context) {
+                          final d = laborDate(
+                            DateTime.parse(widget.week).add(Duration(days: i)),
+                          );
+                          return FilterChip(
+                            chipAnimationStyle: AppMotion.chipStyle(context),
+                            label: Text(
+                              '${const ['월', '화', '수', '목', '금', '토', '일'][i]} ${d.substring(5)}',
+                            ),
+                            selected: holidays.contains(d),
+                            onSelected: (v) => setState(
+                              () => v ? holidays.add(d) : holidays.remove(d),
+                            ),
+                          );
+                        },
+                      ),
+                  ],
+                ),
+                const Text(
+                  '주휴일·근로자의 날·사업장에 적용되는 공휴일 등을 선택하세요. 일요일로 자동 지정하지 않아요.',
+                  style: AppText.caption,
+                ),
+                const SizedBox(height: 16),
+                number(
+                  'otherPaidHolidayMinutes',
+                  '주휴 외 유급휴일 지급시간 · 시간',
+                  (draft['otherPaidHolidayMinutes'] ?? 0) / 60,
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('휴일 날짜·유급 지급시간 확인'),
+                  value: holidaysConfirmed,
+                  onChanged: (v) => setState(() => holidaysConfirmed = v),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      footer: AppSheetFooter(
+        children: [
+          if (error != null)
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                error!,
+                style: AppText.caption.copyWith(color: AppColors.accent),
+              ),
+            ),
+          FilledButton(
+            onPressed: saving || widget.ops.readOnly ? null : save,
+            child: Text(saving ? '저장 중…' : '이번 주 조건 저장'),
           ),
         ],
       ),

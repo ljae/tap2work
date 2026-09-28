@@ -604,8 +604,18 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('우리매장 설정')),
+  Widget build(BuildContext context) => AppEditorScaffold(
+    title: '우리매장 설정',
+    footer: AppSheetFooter(
+      children: [
+        FilledButton(
+          onPressed: widget.ops.isOwner && !widget.ops.readOnly && !saving
+              ? save
+              : null,
+          child: Text(saving ? '저장 중…' : '이 설정 저장'),
+        ),
+      ],
+    ),
     body: Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 720),
@@ -662,14 +672,6 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
             if (widget.ops.data?['revision'] != openingRevision)
               const Information('다른 변경이 저장됐어요. 이 화면을 다시 열어 최신 설정을 확인해 주세요.'),
             const SizedBox(height: 16),
-            PressBounce(
-              child: FilledButton(
-                onPressed: widget.ops.isOwner && !widget.ops.readOnly && !saving
-                    ? save
-                    : null,
-                child: Text(saving ? '저장 중…' : '이 설정 저장'),
-              ),
-            ),
           ],
         ),
       ),

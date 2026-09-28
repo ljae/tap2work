@@ -274,8 +274,8 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     if (templates.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('TAP 설정')),
+      return AppEditorScaffold(
+        title: 'TAP 설정',
         body: const Center(child: Information('먼저 보드 편집에서 TAP을 만들어 주세요.')),
       );
     }
@@ -283,8 +283,18 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
     final config = settings;
     final recurrence = config['recurrence'] as Json;
     final weekdays = List<int>.from(recurrence['weekdays'] ?? []);
-    return Scaffold(
-      appBar: AppBar(title: const Text('TAP 설정')),
+    return AppEditorScaffold(
+      title: 'TAP 설정',
+      footer: AppSheetFooter(
+        children: [
+          FilledButton(
+            onPressed: widget.ops.isLeader && !widget.ops.readOnly && !saving
+                ? save
+                : null,
+            child: Text(saving ? '저장 중…' : '다음 업무부터 적용'),
+          ),
+        ],
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
@@ -395,15 +405,6 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               if (widget.ops.data?['revision'] != revision)
                 const Information('다른 변경이 저장됐어요. 최신 업무를 확인한 뒤 다시 열어 주세요.'),
               const SizedBox(height: 14),
-              PressBounce(
-                child: FilledButton(
-                  onPressed:
-                      widget.ops.isLeader && !widget.ops.readOnly && !saving
-                      ? save
-                      : null,
-                  child: Text(saving ? '저장 중…' : '다음 업무부터 적용'),
-                ),
-              ),
             ],
           ),
         ),

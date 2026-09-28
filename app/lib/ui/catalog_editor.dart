@@ -331,8 +331,8 @@ class _CatalogEditorState extends State<CatalogEditor> {
           .where((row) => row['archivedAt'] == null)
           .toList();
       final items = ops.rows('items');
-      return Scaffold(
-        appBar: AppBar(title: const Text('매장 설정')),
+      return AppEditorScaffold(
+        title: '매장 설정',
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(24),

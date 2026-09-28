@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 97,
+  "revision": 98,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -518,6 +518,16 @@
       "reason": "Explicit 2026-09-28 user request to temporarily disable login, fix the wrong manual edit destination and prevent future connection regressions.",
       "source": "User instruction, 2026-09-28",
       "updatedAt": "2026-09-28T13:28:24.307Z"
+    },
+    {
+      "id": "D-052",
+      "category": "UI/UX",
+      "title": "App-wide readable forms, shared sheet pattern and real startup loading",
+      "status": "confirmed",
+      "decision": "Prioritize improved readability over preserving legacy layouts. Apply shared wrapping sheet headings, bounded reading widths, form sections, persistent save actions, clear input labels and common reduced-motion-aware effects throughout the Flutter UI. Show loading before Flutter web initialization and while initializing the app and reading store data; expose retry on failure and never fabricate progress or delay completion.",
+      "reason": "Explicit user request to improve manual/payroll bottom sheets and all weak UI, propagate better patterns globally, and improve waiting before entering the app.",
+      "source": "User instruction · 2026-09-28",
+      "updatedAt": "2026-09-28T14:13:33.136Z"
     }
   ],
   "milestones": [
@@ -634,6 +644,12 @@
       "title": "샘플 자동 진입·매뉴얼 연결 수정·설정 관계도",
       "status": "completed",
       "description": "Temporary sample-store default, exact Task manual editor with revision-checked save or in-memory public preview, and living UI/settings relationship map plus static contract check. Local Flutter analysis and 126 tests, 90 Node tests, JS checks, local/public builds passed. GitHub Pages run 36429806232 passed and deployed source 256a2fb25cc5f425c3f52143e13c9cca8bb96aa6. Direct tap2.work file readback was blocked by DNS in the command environment. Native and authenticated employee writes were not tested."
+    },
+    {
+      "id": "M-020",
+      "title": "공통 시트 가독성·시작 로딩",
+      "status": "completed",
+      "description": "Implemented shared editor heading/footer/form-section components, global field and sheet themes, readable manual/settlement/labor forms, and web-to-Flutter-to-store loading with failure retry. Final Flutter analysis and 133 tests, 93 Node tests, relationship checks, local/public builds passed; bundled-font screenshots inspected. Deployment tracked separately; native device profiling not performed."
     }
   ],
   "history": [
@@ -4132,7 +4148,40 @@
         "workflow": "https://github.com/ljae/tap2work/actions/runs/36429806232",
         "site": "https://tap2.work"
       }
+    },
+    {
+      "at": "2026-09-28T14:13:33.136Z",
+      "type": "implementation",
+      "title": "Unified readable sheets and startup loading",
+      "detail": "AppEditorScaffold/AppSheetFooter/AppFormSection replace crowded editor layouts across manual, payroll, labor review, board, crew and settings flows. Global input labels and sheet keyboard handling are shared. Store/TAP/hiring save actions remain visible. Startup HTML persists until the first Flutter frame; AppStartup paints before awaiting initialization and OperationsScreen waits for a real snapshot. Error retries return to loading immediately. Existing sample/cloud write boundaries, API payloads and payroll rules are preserved.",
+      "changes": [
+        {
+          "previous": "Crowded floating form labels, inline saves, mixed sheet heading geometry",
+          "next": "Shared wrapping headings, section rhythm, clear labels and persistent save footer",
+          "reason": "User prioritizes a better consistent UI over retaining legacy patterns"
+        },
+        {
+          "previous": "Blank web bootstrap and partial navigation before store data",
+          "next": "Continuous branded loading, real readiness transition and actionable retry",
+          "reason": "User requests better waiting UX before entering app"
+        }
+      ],
+      "verification": "Final Flutter analyze passed; 133 regression tests passed. Earlier capture-inclusive suite 132 passed before two added retry/reduced-motion tests; 390/1200px manual, payroll and loading screenshots inspected. 320/390/1200px enlarged-text keyboard/draft tests passed. 93 Node tests passed, including web first-frame, download/engine failure and retry. npm run check, relationship check and git diff --check passed. Local and public web builds passed using writable SDK clone with cached dependencies. Initial test fixture/timeout assumptions, snackbar overlapping footer and obsolete TextButton expectation were corrected. A chained Flutter test invocation was blocked from binding a socket; standalone invocation succeeded. Pages deployment pending; native devices and authenticated employee writes not tested.",
+      "files": [
+        "app/lib/main.dart",
+        "app/lib/ui/design_system.dart",
+        "app/lib/ui/app_loading_screen.dart",
+        "app/lib/ui/checklist_editor.dart",
+        "app/lib/ui/payroll_settings_screen.dart",
+        "app/lib/ui/labor_panel.dart",
+        "app/web/index.html",
+        "app/web/flutter_bootstrap.js",
+        "app/test/startup_and_sheet_test.dart",
+        "developer/test/startup.test.mjs",
+        "docs/UI_READABILITY_2026-09-28.md",
+        "docs/UI_SETTINGS_RELATIONSHIP_MAP.md"
+      ]
     }
   ],
-  "updatedAt": "2026-09-28T13:43:10.418Z"
+  "updatedAt": "2026-09-28T14:13:33.136Z"
 }

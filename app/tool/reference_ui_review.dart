@@ -92,7 +92,7 @@ void main() {
       await tester.tap(find.text('매장 설정'));
       await tester.pumpAndSettle();
       await capture('sheet-${width.toInt()}');
-      await tester.tap(find.byType(BackButton));
+      await tester.tap(find.byType(CloseButton));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('floating-menu-1')));
       await tester.pumpAndSettle();

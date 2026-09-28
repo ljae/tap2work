@@ -27,6 +27,13 @@ abstract final class AppSpacing {
 }
 
 abstract final class AppText {
+  static const section = TextStyle(
+    fontFamily: 'Pretendard',
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    height: 1.4,
+    color: AppColors.ink,
+  );
   static const title = TextStyle(
     fontFamily: 'Pretendard',
     fontSize: 24,

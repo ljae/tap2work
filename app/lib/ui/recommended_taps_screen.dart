@@ -37,8 +37,8 @@ class _RecommendedTapsScreenState extends State<RecommendedTapsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('맞춤 업무 양식')),
+  Widget build(BuildContext context) => AppEditorScaffold(
+    title: '맞춤 업무 양식',
     body: Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 680),

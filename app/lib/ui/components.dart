@@ -509,7 +509,13 @@ class AppPillField<T> extends StatelessWidget {
       if (decoration.labelText != null)
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: Text(decoration.labelText!, style: AppText.caption),
+          child: Text(
+            decoration.labelText!,
+            style: AppText.body.copyWith(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ConstrainedBox(
         constraints: const BoxConstraints(maxHeight: 216),
@@ -604,9 +610,8 @@ class Information extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: AppColors.lime,
+      color: AppColors.surface,
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: AppColors.line),
     ),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -615,7 +620,7 @@ class Information extends StatelessWidget {
           child: Icon(
             CupertinoIcons.info_circle,
             size: 19,
-            color: AppColors.green,
+            color: AppColors.muted,
           ),
         ),
         const SizedBox(width: 10),

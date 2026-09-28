@@ -66,6 +66,8 @@ class _TeamScreenState extends State<TeamScreen> {
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                spacing: 20,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (!widget.payOnly)
                     TextField(

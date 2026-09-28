@@ -74,7 +74,7 @@ class _PressBounceState extends State<PressBounce> {
   }
 }
 
-/// Form sheets close through the form's back/save controls, preserving PopScope.
+/// Shared route for readable, keyboard-safe sheets. Form drafts keep PopScope.
 Future<T?> showAppSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
@@ -84,38 +84,186 @@ Future<T?> showAppSheet<T>(
   useSafeArea: true,
   isDismissible: false,
   enableDrag: false,
-  // Flutter's built-in handle exposes a semantic dismiss action that calls
-  // pop directly. The decorative handle below cannot bypass draft PopScope.
   showDragHandle: false,
-  backgroundColor: AppColors.surface,
-  constraints: const BoxConstraints(maxWidth: 960),
+  backgroundColor: AppColors.paper,
+  constraints: const BoxConstraints(maxWidth: 880),
   shape: const RoundedRectangleBorder(
-    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
   ),
   clipBehavior: Clip.antiAlias,
   sheetAnimationStyle: AppMotion.panelStyle(context),
-  builder: (context) => FractionallySizedBox(
-    heightFactor: .92,
-    child: Column(
-      children: [
-        ExcludeSemantics(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 12, bottom: 20),
-            child: Container(
-              width: 32,
-              height: 4,
-              decoration: BoxDecoration(
-                color: const Color(0xFF686F78),
-                borderRadius: BorderRadius.circular(2),
-              ),
+  builder: (context) => AnimatedPadding(
+    duration: AppMotion.duration(context, AppMotion.quick),
+    curve: AppMotion.enterCurve,
+    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+    child: FractionallySizedBox(
+      heightFactor: MediaQuery.viewInsetsOf(context).bottom > 0 ? 1 : .94,
+      child: MediaQuery.removeViewInsets(
+        context: context,
+        removeBottom: true,
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            scaffoldBackgroundColor: AppColors.paper,
+            appBarTheme: Theme.of(context).appBarTheme.copyWith(
+              backgroundColor: AppColors.paper,
+              surfaceTintColor: Colors.transparent,
+              toolbarHeight: 72,
+              titleTextStyle: AppText.section,
+              titleSpacing: 16,
             ),
           ),
+          child: Column(
+            children: [
+              ExcludeSemantics(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12, bottom: 4),
+                  child: Container(
+                    width: 32,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.controlLine,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(child: Builder(builder: builder)),
+            ],
+          ),
         ),
-        Expanded(child: builder(context)),
-      ],
+      ),
     ),
   ),
 );
+
+/// A wrapping heading and persistent action area, shared by all form families.
+class AppEditorScaffold extends StatelessWidget {
+  const AppEditorScaffold({
+    super.key,
+    required this.title,
+    required this.body,
+    this.subtitle,
+    this.footer,
+    this.onClose,
+  });
+  final String title;
+  final String? subtitle;
+  final Widget body;
+  final Widget? footer;
+  final VoidCallback? onClose;
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppColors.paper,
+    bottomNavigationBar: footer == null
+        ? null
+        : SafeArea(top: false, child: footer!),
+    body: SafeArea(
+      top: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 12, 12, 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Semantics(
+                        header: true,
+                        child: Text(title, style: AppText.title),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 8),
+                        Text(subtitle!, style: AppText.caption),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                CloseButton(
+                  onPressed: onClose ?? () => Navigator.maybePop(context),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: SizedBox(width: double.infinity, child: body),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class AppSheetFooter extends StatelessWidget {
+  const AppSheetFooter({super.key, required this.children});
+  final List<Widget> children;
+  @override
+  Widget build(BuildContext context) => Container(
+    decoration: const BoxDecoration(
+      color: AppColors.paper,
+      border: Border(top: BorderSide(color: AppColors.line)),
+    ),
+    padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+    child: Center(
+      heightFactor: 1,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 640),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0) const SizedBox(height: 8),
+              children[i],
+            ],
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// One semantic group; the same spacing applies to manuals, pay and settings.
+class AppFormSection extends StatelessWidget {
+  const AppFormSection({
+    super.key,
+    required this.title,
+    required this.children,
+    this.description,
+  });
+  final String title;
+  final String? description;
+  final List<Widget> children;
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.only(bottom: 20),
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Semantics(header: true, child: Text(title, style: AppText.section)),
+        if (description != null) ...[
+          const SizedBox(height: 8),
+          Text(description!, style: AppText.caption),
+        ],
+        for (final child in children) ...[const SizedBox(height: 20), child],
+      ],
+    ),
+  );
+}
 
 class AppPageRoute<T> extends CupertinoPageRoute<T> {
   AppPageRoute({
@@ -151,37 +299,25 @@ class AppSheetPanel extends StatelessWidget {
   final Widget? title, content;
   final List<Widget>? actions;
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppColors.surface,
-    body: SafeArea(
-      top: false,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (title != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-              child: DefaultTextStyle(style: AppText.title, child: title!),
-            ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: content ?? const SizedBox.shrink(),
-            ),
+  Widget build(BuildContext context) => AppEditorScaffold(
+    title: title is Text ? (title as Text).data ?? '' : '',
+    body: SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (title != null && title is! Text) title!,
+              content ?? const SizedBox.shrink(),
+            ],
           ),
-          if (actions != null)
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Wrap(
-                alignment: WrapAlignment.end,
-                spacing: 8,
-                runSpacing: 8,
-                children: actions!,
-              ),
-            ),
-        ],
+        ),
       ),
     ),
+    footer: actions == null ? null : AppSheetFooter(children: actions!),
   );
 }
 

@@ -35,3 +35,7 @@
 ## 검증
 
 `app_motion_test.dart`는 키보드/포인터 활성화, 빠른 화면 교체, polling 시 재생 방지, 실행 중 동작 줄이기 전환, 진행률과 확인창을 검사한다. 기존 모션 테스트는 저장 성공 완료 효과와 초안 보호를 검사한다. `tool/reference_ui_review.dart`는 실제 폰트로 전환 중간 프레임과 정지 화면을 캡처한다. 정적 캡처와 widget 테스트는 실기기 프레임 성능 측정을 대신하지 않는다. 실제 실행 결과는 `project-state.json`에 기록한다.
+
+## 가독성·시작 로딩 확장
+
+`showAppSheet`의 키보드 여백은 공통 quick 모션으로, 정산 주기별 컨트롤 높이는 content 모션으로 전환한다. 저장 성공 여부는 변경하지 않는다. 웹 로딩은 Flutter 첫 프레임 이후 240ms fade로 걷히고, 초기화/매장 데이터 로딩은 실제 완료까지 이어진다. CSS `prefers-reduced-motion`과 Flutter `MediaQuery.disableAnimations` 모두 지원한다. [상세 계약](UI_READABILITY_2026-09-28.md).

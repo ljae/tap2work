@@ -625,11 +625,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           sync();
           final current =
               rows.where((r) => r['id'] == row['id']).firstOrNull ?? row;
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('매뉴얼'),
-              leading: const CloseButton(),
-            ),
+          return AppEditorScaffold(
+            title: '매뉴얼',
             body: content(selected: current),
           );
         },

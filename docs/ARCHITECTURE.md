@@ -78,6 +78,8 @@ flowchart TB
 
 ## 공통 UI/UX 규칙
 
+폼·시트·시작 화면의 현재 구현은 [가독성 개선 기준](UI_READABILITY_2026-09-28.md)을 따른다. `AppEditorScaffold`/`AppSheetFooter`/`AppFormSection`은 제목·저장·섹션의 공통 구현이다. `AppStartup`은 첫 Flutter 화면을 먼저 그린 뒤 초기화하며, 웹 bootstrap 덮개는 첫 프레임에서 제거하고 매장 데이터는 `AppLoadingScreen`에서 기다린다.
+
 앱 전체 모션의 계약·범위·검증 기준은 [MOTION_GUIDE.md](MOTION_GUIDE.md)로 관리한다. `AppMotionScope`가 공통 버튼의 상태 반응을 적용하고 `AppContentTransition`·`showAppDialog`·시트 timing이 화면 이동을 통일한다. 모션은 서버 저장 상태를 만들거나 지연시키지 않는다.
 
 - 스크린샷의 차콜 배경, 다크 카드, 밝은 Pretendard, 초록/코랄 강조색을 사용한다. 참조 앱의 개인 이름·매장 정보는 복제하지 않는다.

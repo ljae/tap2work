@@ -19,7 +19,7 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="작은 매장의 직원·업무·재고·발주와 첫 근무를 함께 연결하는 tap2work.">
-  <meta name="theme-color" content="#193b3a">
+  <meta name="theme-color" content="#101112">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -34,14 +34,57 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
-  <script src="flutter_bootstrap.js" async></script>
+  <style>
+    html, body { margin: 0; background: #101112; color: #f0f2f4; }
+    #app-boot { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; padding: 32px; background: #101112; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; transition: opacity 240ms ease-out; }
+    #app-boot.leaving { opacity: 0; pointer-events: none; }
+    .boot-content { width: min(100%, 360px); text-align: center; }
+    .boot-brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 40px; font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+    .boot-brand img { width: 44px; height: 44px; }
+    #boot-title { font-size: 18px; line-height: 1.4; margin: 0 0 12px; }
+    #boot-message { color: #a0a7af; font-size: 14px; line-height: 1.6; margin: 0; }
+    .boot-track { height: 4px; margin-top: 28px; overflow: hidden; border-radius: 4px; background: #222528; }
+    .boot-track::after { content: ""; display: block; width: 40%; height: 100%; border-radius: inherit; background: #46c69b; animation: boot-progress 1.5s ease-in-out infinite; }
+    #boot-retry { margin-top: 24px; padding: 16px 24px; min-height: 48px; border: 0; border-radius: 14px; background: #007d73; color: white; font: inherit; cursor: pointer; }
+    @keyframes boot-progress { from { transform: translateX(-110%); } to { transform: translateX(350%); } }
+    @media (prefers-reduced-motion: reduce) { #app-boot { transition: none; } .boot-track::after { animation: none; width: 100%; opacity: .5; } }
+  </style>
+  <div id="app-boot">
+    <div class="boot-content">
+      <div class="boot-brand"><img src="favicon.png" alt=""><span>tap2work</span></div>
+      <div role="status" aria-live="polite">
+        <h1 id="boot-title">매장을 준비하고 있어요</h1>
+        <p id="boot-message">오늘의 업무와 근무표를 불러와요.</p>
+      </div>
+      <div class="boot-track" aria-hidden="true"></div>
+      <button id="boot-retry" type="button" hidden>다시 불러오기</button>
+    </div>
+  </div>
+  <noscript>tap2work를 사용하려면 브라우저에서 JavaScript를 켜 주세요.</noscript>
+  <script>
+    (() => {
+      const boot = document.getElementById('app-boot');
+      const message = document.getElementById('boot-message');
+      const retry = document.getElementById('boot-retry');
+      retry.addEventListener('click', () => location.reload());
+      const slowTimer = setTimeout(() => {
+        message.textContent = '연결이 조금 늦어지고 있어요. 잠시 기다리거나 다시 불러와 주세요.';
+        retry.hidden = false;
+      }, 12000);
+      window.tap2workBootFailed = () => {
+        clearTimeout(slowTimer);
+        document.getElementById('boot-title').textContent = '앱을 불러오지 못했어요';
+        message.textContent = '인터넷 연결을 확인하고 다시 시도해 주세요.';
+        document.querySelector('.boot-track').hidden = true;
+        retry.hidden = false;
+      };
+      window.addEventListener('flutter-first-frame', () => {
+        clearTimeout(slowTimer);
+        boot.classList.add('leaving');
+        setTimeout(() => boot.remove(), 260);
+      }, { once: true });
+    })();
+  </script>
+  <script src="flutter_bootstrap.js" async onerror="window.tap2workBootFailed()"></script>
 </body>
 </html>

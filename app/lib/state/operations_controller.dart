@@ -79,6 +79,10 @@ class OperationsController extends ChangeNotifier {
   Future<void> refresh({bool force = false}) async {
     if (_disposed || busy || (_refreshing && !force)) return;
     _refreshing = true;
+    if (data == null && error != null) {
+      error = null;
+      _emit();
+    }
     final generation = _generation;
     try {
       final response = await _repository.read(

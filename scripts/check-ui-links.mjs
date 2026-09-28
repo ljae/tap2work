@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['E06', 'app/lib/main.dart', 'AppStartup', 'app/web/index.html', 'flutter-first-frame'],
+  ['U01', 'app/lib/ui/design_system.dart', 'class AppEditorScaffold', 'app/lib/ui/checklist_editor.dart', 'AppSheetFooter('],
+  ['U02', 'app/lib/ui/design_system.dart', 'class AppFormSection', 'app/lib/ui/payroll_settings_screen.dart', 'AppFormSection('],
   ['E01', 'app/lib/main.dart', "defaultValue: true", 'app/lib/ui/cloud_workspace.dart', 'CloudWorkspace'],
   ['E02', 'scripts/build-site.mjs', 'review-data', 'app/lib/state/operations_controller.dart', 'readOnly'],
   ['S01', 'app/lib/ui/workplace_screens.dart', "'save_workplace_parts'", 'developer/workplace.mjs', "case 'save_workplace_parts'"],

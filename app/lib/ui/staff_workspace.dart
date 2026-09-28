@@ -350,8 +350,16 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('공고 초안')),
+  Widget build(BuildContext context) => AppEditorScaffold(
+    title: '공고 초안',
+    footer: AppSheetFooter(
+      children: [
+        FilledButton(
+          onPressed: !saving && !widget.ops.readOnly ? save : null,
+          child: Text(saving ? '저장 중…' : '초안 저장'),
+        ),
+      ],
+    ),
     body: Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 640),
@@ -409,20 +417,24 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
                   ),
               ],
             ),
+            const SizedBox(height: 20),
             TextField(
               controller: time,
               decoration: const InputDecoration(labelText: '근무 시간 · 선택'),
             ),
+            const SizedBox(height: 20),
             TextField(
               controller: duties,
               maxLines: 3,
               decoration: const InputDecoration(labelText: '하는 일 · 선택'),
             ),
+            const SizedBox(height: 20),
             TextField(
               controller: requirements,
               maxLines: 3,
               decoration: const InputDecoration(labelText: '필요 조건 · 선택'),
             ),
+            const SizedBox(height: 20),
             TextField(
               controller: note,
               maxLines: 3,
@@ -430,12 +442,6 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
             ),
             if (error != null) Information('$error\n초안은 그대로 남아 있어요.'),
             const SizedBox(height: 16),
-            PressBounce(
-              child: FilledButton(
-                onPressed: saving || widget.ops.readOnly ? null : save,
-                child: Text(saving ? '저장 중…' : '초안 저장'),
-              ),
-            ),
           ],
         ),
       ),

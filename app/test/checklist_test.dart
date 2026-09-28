@@ -429,7 +429,7 @@ void main() {
     expect(find.text('카페·커피 · 1'), findsOneWidget);
     expect(
       tester
-          .widget<TextButton>(find.widgetWithText(TextButton, '저장'))
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '저장'))
           .onPressed,
       isNull,
     );

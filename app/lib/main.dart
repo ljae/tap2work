@@ -10,39 +10,89 @@ import 'state/operations_controller.dart';
 import 'ui/operations_screen.dart';
 import 'ui/workspace_screen.dart';
 import 'ui/components.dart';
+import 'ui/app_loading_screen.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final controller = WorkController(DeviceProgressStore());
-  await controller.initialize();
-  final sharedApi = await sharedApiForWeb();
-  // Temporary sample-store entry. Set AUTO_SAMPLE_STORE=false to restore sign-in.
-  const autoSampleStore = bool.fromEnvironment(
-    'AUTO_SAMPLE_STORE',
-    defaultValue: true,
+  runApp(const AppStartup());
+}
+
+class AppStartup extends StatefulWidget {
+  const AppStartup({super.key, this.initialize, this.progressStore});
+  final ProgressStore? progressStore;
+
+  /// Injection boundary for startup success/failure tests.
+  final Future<Widget> Function()? initialize;
+  @override
+  State<AppStartup> createState() => _AppStartupState();
+}
+
+class _AppStartupState extends State<AppStartup> {
+  late final work = WorkController(
+    widget.progressStore ?? DeviceProgressStore(),
   );
-  if (autoSampleStore) {
-    final operations = OperationsController(sharedApi: sharedApi);
-    runApp(Tap2workApp(controller: controller, operations: operations));
-    operations.start();
-    return;
+  OperationsController? operations;
+  Widget? destination;
+  String? error;
+  @override
+  void initState() {
+    super.initState();
+    start();
   }
-  const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-  const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
-  if (supabaseUrl.isNotEmpty && publishableKey.isNotEmpty) {
-    await Supabase.initialize(url: supabaseUrl, publishableKey: publishableKey);
-    runApp(
-      CloudWorkspace(
-        work: controller,
+
+  Future<void> start() async {
+    setState(() => error = null);
+    try {
+      final next = await (widget.initialize?.call() ?? initialize());
+      if (mounted) setState(() => destination = next);
+    } catch (_) {
+      if (mounted) setState(() => error = '앱을 준비하지 못했어요. 연결을 확인하고 다시 시도해 주세요.');
+    }
+  }
+
+  Future<Widget> initialize() async {
+    await work.initialize();
+    final sharedApi = await sharedApiForWeb();
+    // Temporary sample-store entry. Set AUTO_SAMPLE_STORE=false to restore sign-in.
+    const autoSampleStore = bool.fromEnvironment(
+      'AUTO_SAMPLE_STORE',
+      defaultValue: true,
+    );
+    const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+    const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+    if (!autoSampleStore &&
+        supabaseUrl.isNotEmpty &&
+        publishableKey.isNotEmpty) {
+      await Supabase.initialize(
+        url: supabaseUrl,
+        publishableKey: publishableKey,
+      );
+      return CloudWorkspace(
+        work: work,
         client: Supabase.instance.client,
         sharedApi: sharedApi,
-      ),
-    );
-    return;
+      );
+    }
+    if (!mounted) return const SizedBox.shrink();
+    operations = OperationsController(sharedApi: sharedApi);
+    operations!.start();
+    return Tap2workApp(controller: work, operations: operations);
   }
-  final operations = OperationsController(sharedApi: sharedApi);
-  runApp(Tap2workApp(controller: controller, operations: operations));
-  operations.start();
+
+  @override
+  void dispose() {
+    operations?.dispose();
+    work.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      destination ??
+      Tap2workApp(
+        controller: work,
+        homeOverride: AppLoadingScreen(error: error, onRetry: start),
+      );
 }
 
 const _sharedApiKey = 'tap2work.sharedApi';
@@ -147,7 +197,7 @@ class Tap2workApp extends StatelessWidget {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(48, 50),
+          minimumSize: const Size(48, 56),
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           shape: RoundedRectangleBorder(
@@ -185,7 +235,14 @@ class Tap2workApp extends StatelessWidget {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.elevated,
-        constraints: const BoxConstraints(minHeight: 48),
+        constraints: const BoxConstraints(minHeight: 56),
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        labelStyle: AppText.body.copyWith(color: AppColors.muted),
+        floatingLabelStyle: AppText.body.copyWith(color: AppColors.ink),
+        hintStyle: AppText.body.copyWith(color: AppColors.muted),
+        helperStyle: AppText.caption,
+        helperMaxLines: 4,
+        errorMaxLines: 4,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
@@ -232,12 +289,13 @@ class Tap2workApp extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.paper,
+        constraints: BoxConstraints(maxWidth: 880),
         dragHandleColor: AppColors.controlLine,
         dragHandleSize: Size(32, 4),
         showDragHandle: true,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
@@ -269,6 +327,16 @@ class Tap2workApp extends StatelessWidget {
               ? AppColors.ink
               : AppColors.elevated,
         ),
+      ),
+      listTileTheme: const ListTileThemeData(
+        titleTextStyle: AppText.body,
+        subtitleTextStyle: AppText.caption,
+        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.line,
+        space: 24,
+        thickness: 1,
       ),
       dividerColor: AppColors.line,
       snackBarTheme: const SnackBarThemeData(

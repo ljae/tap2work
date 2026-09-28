@@ -998,16 +998,9 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     onPopInvokedWithResult: (didPop, _) {
       if (!didPop) close();
     },
-    child: Scaffold(
-      appBar: AppBar(
-        title: Text(titles[widget.section] ?? '매장 설정'),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: close,
-          icon: const Icon(CupertinoIcons.chevron_left),
-          tooltip: '닫기',
-        ),
-      ),
+    child: AppEditorScaffold(
+      title: titles[widget.section] ?? '매장 설정',
+      onClose: close,
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 640),

@@ -144,16 +144,13 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
             if (context.mounted) Navigator.pop(context);
           }
         },
-        child: Scaffold(
-          appBar: AppBar(
-            leading: CloseButton(onPressed: () => Navigator.maybePop(context)),
-            title: const Text('보드 편집'),
-            actions: [
-              PressBounce(
-                child: TextButton(
-                  onPressed: !enabled || ops.readOnly || !dirty ? null : save,
-                  child: Text(ops.busy ? '저장 중…' : '저장'),
-                ),
+        child: AppEditorScaffold(
+          title: '보드 편집',
+          footer: AppSheetFooter(
+            children: [
+              FilledButton(
+                onPressed: !enabled || ops.readOnly || !dirty ? null : save,
+                child: Text(ops.busy ? '저장 중…' : '저장'),
               ),
             ],
           ),
@@ -984,36 +981,79 @@ class _ActivityEditor extends StatefulWidget {
 class _ActivityEditorState extends State<_ActivityEditor> {
   late final Json step = widget.step;
   late final String original = jsonEncode(widget.step);
-  bool applying = false;
-  bool saving = false;
+  bool applying = false, saving = false;
   String? issue;
   bool get dirty => jsonEncode(step) != original;
+
+  Future<void> submit() async {
+    final problem = checklistStepIssue(step);
+    if (problem != null) {
+      setState(() => issue = problem);
+      return;
+    }
+    if (widget.onSave != null) {
+      setState(() {
+        saving = true;
+        issue = null;
+      });
+      final failure = await widget.onSave!(step);
+      if (!mounted) return;
+      setState(() => saving = false);
+      if (failure != null) {
+        setState(() => issue = failure);
+        return;
+      }
+    }
+    setState(() => applying = true);
+    if (mounted) Navigator.pop(context, step);
+  }
+
+  Widget field(
+    String name,
+    String label, {
+    String? hint,
+    int lines = 1,
+    int? limit,
+  }) => TextFormField(
+    initialValue: step[name] ?? '',
+    minLines: lines,
+    maxLines: lines == 1 ? 1 : lines + 5,
+    maxLength: limit,
+    keyboardType: name.endsWith('Url')
+        ? TextInputType.url
+        : lines > 1
+        ? TextInputType.multiline
+        : TextInputType.text,
+    textInputAction: lines > 1 ? TextInputAction.newline : TextInputAction.next,
+    decoration: InputDecoration(
+      labelText: label,
+      hintText: hint,
+      alignLabelWithHint: true,
+    ),
+    onChanged: (v) => setState(() {
+      step[name] = v.trim();
+      issue = null;
+    }),
+  );
+
   @override
   Widget build(BuildContext context) => PopScope(
-    canPop: applying || !dirty,
+    canPop: applying || (!saving && !dirty),
     onPopInvokedWithResult: (didPop, result) async {
-      if (didPop) return;
+      if (didPop || saving) return;
       final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
           title: const Text('매뉴얼 편집을 취소할까요?'),
-          content: Text(
-            widget.onSave == null
-                ? '아직 초안에 적용하지 않은 내용이 있어요.'
-                : '아직 저장하지 않은 내용이 있어요.',
-          ),
+          content: const Text('아직 저장하지 않은 내용이 있어요.'),
           actions: [
-            PressBounce(
-              child: TextButton(
-                onPressed: () => Navigator.pop(c, false),
-                child: const Text('계속 편집'),
-              ),
+            TextButton(
+              onPressed: () => Navigator.pop(c, false),
+              child: const Text('계속 편집'),
             ),
-            PressBounce(
-              child: FilledButton(
-                onPressed: () => Navigator.pop(c, true),
-                child: const Text('변경 버리기'),
-              ),
+            FilledButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: const Text('변경 버리기'),
             ),
           ],
         ),
@@ -1023,139 +1063,104 @@ class _ActivityEditorState extends State<_ActivityEditor> {
         Navigator.pop(context);
       }
     },
-    child: Scaffold(
-      appBar: AppBar(
-        leading: CloseButton(onPressed: () => Navigator.maybePop(context)),
-        title: Text(widget.onSave == null ? 'Task과 간단 매뉴얼' : '매뉴얼 편집'),
-        actions: [
-          PressBounce(
-            child: TextButton(
-              onPressed: saving
-                  ? null
-                  : () async {
-                      final problem = checklistStepIssue(step);
-                      if (problem != null) {
-                        setState(() => issue = problem);
-                        return;
-                      }
-                      if (widget.onSave != null) {
-                        setState(() => saving = true);
-                        final failure = await widget.onSave!(step);
-                        if (!mounted) return;
-                        setState(() => saving = false);
-                        if (failure != null) {
-                          setState(() => issue = failure);
-                          return;
-                        }
-                      }
-                      setState(() => applying = true);
-                      if (context.mounted) Navigator.pop(context, step);
-                    },
+    child: AppEditorScaffold(
+      title: widget.onSave == null ? 'Task과 간단 매뉴얼' : '매뉴얼 편집',
+      subtitle: widget.groupTitle.isEmpty ? null : 'TAP · ${widget.groupTitle}',
+      body: AbsorbPointer(
+        absorbing: saving,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 688),
+            child: ListView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              children: [
+                if (widget.previewOnly)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 20),
+                    child: Information('공개 샘플에서는 새로고침하면 원래 내용으로 돌아가요.'),
+                  ),
+                AppFormSection(
+                  title: '업무 안내',
+                  description: '방법과 완료 기준을 짧고 명확하게 적어 주세요.',
+                  children: [
+                    field('title', 'Task 이름', hint: '예) 핏물 빼기', limit: 100),
+                    field(
+                      'manual',
+                      '간단 매뉴얼 · 방법과 완료 기준',
+                      hint: '무엇을, 어떤 순서로, 어디까지 하면 끝인지 적어요.',
+                      lines: 4,
+                      limit: 700,
+                    ),
+                  ],
+                ),
+                AppFormSection(
+                  title: '추가 안내',
+                  description: '필요한 경우에만 입력해 주세요.',
+                  children: [
+                    field('tip', '놓치기 쉬운 노하우 (선택)', lines: 2, limit: 400),
+                    TextFormField(
+                      initialValue: ((step['tags'] as List?) ?? []).join(', '),
+                      decoration: const InputDecoration(
+                        labelText: '#연관어 (쉼표로 구분)',
+                        hintText: '주문취소, 환불',
+                        helperText: '최대 20개, 각 30자 이내',
+                      ),
+                      onChanged: (value) => setState(() {
+                        step['tags'] = value
+                            .split(',')
+                            .map(
+                              (tag) =>
+                                  tag.trim().replaceFirst(RegExp(r'^#+'), ''),
+                            )
+                            .where((tag) => tag.isNotEmpty)
+                            .toList();
+                        issue = null;
+                      }),
+                    ),
+                  ],
+                ),
+                AppFormSection(
+                  title: '참고 자료',
+                  description: '사진이나 영상이 있으면 HTTPS 링크를 넣어 주세요.',
+                  children: [
+                    field('imageUrl', '사진 HTTPS 링크 (선택)'),
+                    field('videoUrl', '영상 HTTPS 링크 (선택)'),
+                    field('sourceUrl', '공식 사진 가이드 HTTPS 링크 (선택)'),
+                  ],
+                ),
+                Text(
+                  widget.onSave == null
+                      ? '초안에 적용한 뒤 보드 화면에서 저장해 주세요.'
+                      : '이 Task의 매뉴얼만 바꿔요. 이미 시작한 업무의 기록은 유지돼요.',
+                  style: AppText.caption,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      footer: AppSheetFooter(
+        children: [
+          if (issue != null)
+            Semantics(
+              liveRegion: true,
               child: Text(
-                saving
-                    ? '저장 중…'
-                    : widget.onSave == null
-                    ? '초안에 적용'
-                    : '매뉴얼 저장',
+                issue!,
+                style: AppText.caption.copyWith(color: AppColors.accent),
               ),
+            ),
+          FilledButton(
+            onPressed: saving ? null : submit,
+            child: Text(
+              saving
+                  ? '저장 중…'
+                  : widget.onSave == null
+                  ? '초안에 적용'
+                  : '매뉴얼 저장',
             ),
           ),
         ],
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              if (widget.previewOnly)
-                const Information('공개 샘플에서는 이 화면에서만 바뀌어요. 새로고침하면 원래 내용으로 돌아가요.'),
-              Text(
-                'TAP · ${widget.groupTitle.isEmpty ? '(이름 없음)' : widget.groupTitle}',
-                style: const TextStyle(fontSize: 13, color: AppColors.muted),
-              ),
-              if (issue != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Information(issue!),
-                ),
-              TextFormField(
-                initialValue: step['title'],
-                maxLength: 100,
-                autofocus: (step['title'] as String).isEmpty,
-                decoration: const InputDecoration(
-                  labelText: 'Task 이름',
-                  hintText: '예) 핏물 빼기',
-                ),
-                onChanged: (v) => setState(() {
-                  step['title'] = v.trim();
-                  issue = null;
-                }),
-              ),
-              TextFormField(
-                initialValue: step['manual'],
-                minLines: 3,
-                maxLines: 8,
-                maxLength: 700,
-                decoration: const InputDecoration(
-                  labelText: '간단 매뉴얼 · 방법과 완료 기준',
-                  hintText: '무엇을, 어떤 순서로, 어디까지 하면 끝인지 2~3문장으로.',
-                ),
-                onChanged: (v) => setState(() {
-                  step['manual'] = v.trim();
-                  issue = null;
-                }),
-              ),
-              TextFormField(
-                initialValue: ((step['tags'] as List?) ?? []).join(', '),
-                decoration: const InputDecoration(
-                  labelText: '#연관어 (쉼표로 구분)',
-                  hintText: '주문취소, 환불, 결제취소',
-                  helperText: '최대 20개, 각 30자 이내',
-                ),
-                onChanged: (value) => setState(() {
-                  step['tags'] = value
-                      .split(',')
-                      .map((tag) => tag.trim().replaceFirst(RegExp(r'^#+'), ''))
-                      .where((tag) => tag.isNotEmpty)
-                      .toList();
-                  issue = null;
-                }),
-              ),
-              for (final field in ['videoUrl', 'imageUrl', 'sourceUrl'])
-                TextFormField(
-                  initialValue: step[field] ?? '',
-                  decoration: InputDecoration(
-                    labelText: field == 'videoUrl'
-                        ? '영상 HTTPS 링크 (선택)'
-                        : field == 'imageUrl'
-                        ? '사진 HTTPS 링크 (선택)'
-                        : '공식 사진 가이드 HTTPS 링크 (선택)',
-                  ),
-                  onChanged: (v) => setState(() {
-                    step[field] = v.trim();
-                  }),
-                ),
-              TextFormField(
-                initialValue: step['tip'],
-                minLines: 1,
-                maxLines: 4,
-                maxLength: 400,
-                decoration: const InputDecoration(labelText: '놓치기 쉬운 노하우 (선택)'),
-                onChanged: (v) => setState(() {
-                  step['tip'] = v.trim();
-                  issue = null;
-                }),
-              ),
-              const SizedBox(height: 20),
-              Information(
-                widget.onSave == null
-                    ? '초안에 적용한 뒤 목록 화면에서 저장해 주세요. 시간·온도·용량 같은 실제 기준은 우리 매장 레시피와 장비 설명서에 맞춰 적어요.'
-                    : '이 Task의 매뉴얼만 바꿔요. 이미 시작한 업무의 기록은 유지돼요.',
-              ),
-            ],
-          ),
-        ),
       ),
     ),
   );
