@@ -1,3 +1,4 @@
+import { payrollSettings, applyPayrollEstimate } from './payroll_settings.mjs';
 // Standard adult fixed-hour Korean hourly-pay estimate. All money is gross.
 // Policy/contract/holiday eligibility is explicitly reviewed per employee/week.
 export const laborRuleVersion = 'KR-2026-09-27';
@@ -78,9 +79,11 @@ export function laborEstimate(segments, review, week, rate, planned = false) {
     alerts, status: ready ? 'estimate' : 'needs_review' };
 }
 export function laborView(state, sessionsFor, day) {
+  const policy=payrollSettings(state);
   const weeks = new Set([weekOf(day), ...(state.laborReviews ?? []).map(r => r.week), ...state.staffShifts.map(s => weekOf(s.date))]);
   return { ruleVersion: laborRuleVersion, weeks: [...weeks].sort().map(week => ({ week, people: state.tappers.filter(t => t.active && t.rank !== 'owner').map(t => {
-    const review = (state.laborReviews ?? []).find(r => r.week === week && r.tapperId === t.id);
+    const savedReview = (state.laborReviews ?? []).find(r => r.week === week && r.tapperId === t.id);
+    const review = policy.configured ? {...savedReview,size:policy.businessSize} : savedReview;
     const rate = review?.hourlyWon ?? t.hourlyWon;
     const planned = state.staffShifts.filter(s => s.tapperId === t.id && s.status !== 'leave').map(s => {
       const start = Date.parse(`${s.date}T${s.start}:00+09:00`);
@@ -90,7 +93,7 @@ export function laborView(state, sessionsFor, day) {
     const sessions = sessionsFor(t.id);
     const actual = sessions.flatMap(s => s.segments.map(segment => ({...segment, workday: kstDay(Date.parse(s.start))}))); 
     const result = { tapperId: t.id, nickname: t.nickname, hourlyWon: rate, review: review ?? null,
-      planned: laborEstimate(planned, review, week, rate, true), actual: laborEstimate(actual, review, week, rate) };
+      planned: applyPayrollEstimate(laborEstimate(planned, review, week, rate, true), planned, policy, week, rate), actual: applyPayrollEstimate(laborEstimate(actual, review, week, rate), actual, policy, week, rate) };
     for (const session of sessions.filter(s => kstDay(Date.parse(s.start)) >= week && kstDay(Date.parse(s.start)) <= kstDay(Date.parse(`${week}T00:00:00+09:00`) + 6*dayMs))) {
       const work = session.segments.reduce((n,s)=>n+(Date.parse(s.end)-Date.parse(s.start))/60000,0);
       const pause = (Date.parse(session.end)-Date.parse(session.start))/60000 - work;

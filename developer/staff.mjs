@@ -1,3 +1,4 @@
+import { payrollSettings, savePayrollSettings, settlementPeriod, roundedWorkMinutes } from './payroll_settings.mjs';
 import { validatePart, crewPartIds, partForLegacy } from './parts.mjs';
 import { laborView, weekOf } from './labor.mjs';
 import { randomUUID } from 'node:crypto';
@@ -81,6 +82,7 @@ export function mutateStaff(state, input, actor, now, who, activity) {
   const leader = ['owner', 'manager'].includes(actor.role);
   const owner = actor.role === 'owner';
   switch (input.action) {
+    case 'save_payroll_settings': savePayrollSettings(state,input,actor,now); activity('매장 정산 설정 저장', 'pay'); return true;
     case 'save_labor_review': {
       if (!owner) fail('사장님만 인건비 조건을 저장할 수 있어요.', 403);
       const r = input.review;
@@ -270,7 +272,9 @@ export function staffView(state, actor, now) {
   const owner = actor.role === 'owner';
   const tappers = (state.tappers ?? []).map(t => {
     const sessions = completedSessions(state.attendance.filter(e => e.tapperId === t.id));
-    const start = periodStart(day, t.payPeriod);
+    const policy = payrollSettings(state);
+    const period = policy.configured ? settlementPeriod(day,policy) : null;
+    const start = period?.start ?? periodStart(day, t.payPeriod);
     const actualMinutes = rangeMinutes(sessions, start, now);
     const weeklyActualMinutes = rangeMinutes(sessions, periodStart(day, 'weekly'), now);
     const monthlyMinutes = rangeMinutes(sessions, periodStart(day, 'monthly'), now);
@@ -282,15 +286,16 @@ export function staffView(state, actor, now) {
     }, 0);
     const adjustments = state.payAdjustments.filter(a => a.tapperId === t.id && a.date >= start && a.date <= day).reduce((n, a) => n + a.amountWon, 0);
     const paid = state.payRecords.filter(p => p.tapperId === t.id && p.date >= start && p.date <= day).reduce((n, p) => n + p.amountWon, 0);
-    const gross = Math.round(actualMinutes * t.hourlyWon / 60) + adjustments;
+    const settledMinutes = policy.configured ? roundedWorkMinutes(sessions.flatMap(s=>s.segments), Date.parse(`${start}T00:00:00+09:00`), new Date(now).getTime(),policy.roundingMinutes) : actualMinutes;
+    const gross = Math.round(settledMinutes * t.hourlyWon / 60) + adjustments;
     const monthAdjustments = state.payAdjustments.filter(a => a.tapperId === t.id && a.date >= periodStart(day, 'monthly') && a.date <= day).reduce((n, a) => n + a.amountWon, 0);
     const view = { ...t, plannedMinutes, actualMinutes, weeklyActualMinutes, payPeriodStart: start,
       attendanceState: state.attendance.filter(e => e.tapperId === t.id && !e.voidedAt).at(-1)?.type ?? 'off_duty' };
-    if (owner) Object.assign(view, { adjustments, paid, gross, remaining: gross - paid, monthlyGross: Math.round(monthlyMinutes * t.hourlyWon / 60) + monthAdjustments });
+    if (owner) Object.assign(view, { payPeriod:policy.configured?policy.cycle:t.payPeriod, payPeriodEnd:period?.end, settledMinutes, adjustments, paid, gross, remaining: gross - paid, monthlyGross: Math.round(monthlyMinutes * t.hourlyWon / 60) + monthAdjustments });
     else { delete view.hourlyWon; delete view.payPeriod; delete view.payPeriodStart; delete view.kakaoUrl; delete view.phone; }
     return view;
   });
-  return { ...(owner ? {labor: laborView(state, id => completedSessions(state.attendance.filter(e => e.tapperId === id)), day)} : {}), staffingSlots: staffingSlots(state), tappers, staffShifts: state.staffShifts, attendance: state.attendance.filter(e => owner || e.tapperId === own?.id),
+  return { ...(owner ? {payrollSettings:payrollSettings(state),labor: laborView(state, id => completedSessions(state.attendance.filter(e => e.tapperId === id)), day)} : {}), staffingSlots: staffingSlots(state), tappers, staffShifts: state.staffShifts, attendance: state.attendance.filter(e => owner || e.tapperId === own?.id),
     payAdjustments: owner ? state.payAdjustments : [], payRecords: owner ? state.payRecords : [], payPolicy: owner ? state.payPolicy : undefined };
 }
 

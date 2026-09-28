@@ -1,0 +1,51 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { OperationsStore } from '../operations.mjs';
+import { settlementPeriod, roundedWorkMinutes, applyPayrollEstimate } from '../payroll_settings.mjs';
+import { laborEstimate } from '../labor.mjs';
+const settings={cycle:'monthly',monthStartDay:25,weekStartDay:3,roundingMinutes:10,businessSize:'fivePlus',includeWeeklyRest:false};
+test('settlement month ends, leap year and weekly Korean boundaries',()=>{
+ assert.deepEqual(settlementPeriod('2026-09-24',settings),{start:'2026-08-25',end:'2026-09-24',until:'2026-09-25'});
+ assert.equal(settlementPeriod('2026-09-25',settings).start,'2026-09-25');
+ assert.deepEqual(settlementPeriod('2028-02-29',{...settings,monthStartDay:31}),{start:'2028-02-29',end:'2028-03-30',until:'2028-03-31'});
+ assert.deepEqual(settlementPeriod('2026-09-28',{...settings,cycle:'weekly'}),{start:'2026-09-23',end:'2026-09-29',until:'2026-09-30'});
+});
+test('round daily net minutes once, union duplicates, preserve breaks and source evidence',()=>{
+ const segments=[{start:'2026-09-28T09:00:00+09:00',end:'2026-09-28T12:03:00+09:00'},{start:'2026-09-28T13:00:00+09:00',end:'2026-09-28T14:03:00+09:00'}];
+ const before=JSON.stringify(segments),from=Date.parse('2026-09-28T00:00:00+09:00'),until=from+86400000;
+ assert.equal(roundedWorkMinutes(segments,from,until,10),250);
+ assert.equal(roundedWorkMinutes([...segments,segments[0]],from,until,10),250);
+ assert.equal(roundedWorkMinutes(segments,from,until,0),246);
+ assert.equal(JSON.stringify(segments),before);
+});
+test('weekly rest exclusion preserves accrued amount/count and premium classification uses raw time',()=>{
+ const review={scope:'standard',size:'fivePlus',averageWeeklyMinutes:2400,attendance:'met',restMinutes:480,holidaysConfirmed:true,holidayDates:[],otherPaidHolidayMinutes:0};
+ const segments=[{start:'2026-09-28T09:00:00+09:00',end:'2026-09-28T17:06:00+09:00'}];
+ const raw=laborEstimate(segments,review,'2026-09-28',12000);
+ const excluded=applyPayrollEstimate(raw,segments,{...settings,configured:true},'2026-09-28',12000);
+ assert.equal(excluded.workedMinutes,486);assert.equal(excluded.settledMinutes,490);assert.equal(excluded.overtimeMinutes,6);
+ assert.equal(excluded.weeklyRestAccruedWon,96000);assert.equal(excluded.weeklyRestWeeks,1);assert.equal(excluded.weeklyRestWon,0);
+ assert.equal(excluded.totalWon,98600);
+ const included=applyPayrollEstimate(raw,segments,{...settings,configured:true,includeWeeklyRest:true},'2026-09-28',12000);
+ assert.equal(included.totalWon-excluded.totalWon,96000);
+});
+test('owner-only settings replace legacy cycles, project privately and reject stale/invalid drafts',async t=>{
+ const dir=await mkdtemp(path.join(tmpdir(),'payroll-settings-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const store=new OperationsStore(path.join(dir,'state.json'),()=>new Date('2026-09-28T03:00:00Z'));
+ const before=await store.snapshot('owner');
+ assert.equal(before.payrollSettings.configured,false);
+ const write=(actor,values,revision=before.revision)=>store.mutate(actor,{action:'save_payroll_settings',settings:values,revision});
+ await assert.rejects(write('manager',settings),{status:403});
+ await assert.rejects(write('owner',{...settings,roundingMinutes:7}),{status:400});
+ const saved=await write('owner',settings);
+ assert.equal(saved.payrollSettings.configured,true);assert.equal(saved.payrollSettingsHistory.length,1);
+ assert.ok(saved.tappers.every(p=>p.payPeriod==='monthly'&&p.payPeriodStart==='2026-09-25'));
+ assert.deepEqual(saved.attendance,before.attendance);assert.deepEqual(saved.payRecords,before.payRecords);
+ await assert.rejects(write('owner',settings),{status:409});
+ const crew=await store.snapshot('crew');assert.equal(crew.payrollSettings,undefined);assert.equal(crew.payrollSettingsHistory,undefined);assert.equal(crew.labor,undefined);
+ const changed=await write('owner',{...settings,cycle:'weekly'},saved.revision);
+ assert.ok(changed.tappers.every(p=>p.payPeriodStart==='2026-09-23'));
+});

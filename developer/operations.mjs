@@ -298,7 +298,7 @@ export class OperationsStore {
     delete result.sampleArchive;
     Object.assign(result, staffView(state, actor, this.clock()));
     result.workplace = workplaceView(state, actor);
-    if (actor.role !== 'owner') delete result.demoInvites;
+    if (actor.role !== 'owner') { delete result.demoInvites; delete result.payrollSettings; delete result.payrollSettingsHistory; }
     result.rosterTemplates = rosterTemplates(state);
     result.orderBoardEnabled = state.store?.profile?.orderSystem?.enabled === true;
     result.actor = actor;

@@ -28,14 +28,16 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   void initState() {
     super.initState();
     userId = widget.client.auth.currentUser?.id;
-    ops = controller()..start();
+    ops = controller();
+    if (userId != null) ops.start();
     subscription = widget.client.auth.onAuthStateChange.listen((state) {
       final next = state.session?.user.id;
       if (next == userId || !mounted) return;
       final previous = ops;
       setState(() {
         userId = next;
-        ops = controller()..start();
+        ops = controller();
+        if (userId != null) ops.start();
       });
       previous.dispose();
     });
@@ -66,18 +68,65 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: ops,
-    builder: (context, _) => ops.data?['needsWorkspace'] == true
-        ? _WorkspaceSetup(
-            ops: ops,
-            onAccount: () => openAccount(context, widget.client),
-          )
-        : Tap2workApp(
-            key: ValueKey(userId ?? 'preview'),
-            controller: widget.work,
-            operations: ops,
-            onAccountPressed: (context) => openAccount(context, widget.client),
-            accountEmail: widget.client.auth.currentUser?.email,
-          ),
+    builder: (context, _) => Tap2workApp(
+      key: ValueKey(userId ?? 'sign-in'),
+      controller: widget.work,
+      operations: ops,
+      onAccountPressed: (context) => openAccount(context, widget.client),
+      accountEmail: widget.client.auth.currentUser?.email,
+      homeOverride: userId == null
+          ? Builder(
+              builder: (context) => Scaffold(
+                body: SafeArea(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 460),
+                      child: ListView(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.all(28),
+                        children: [
+                          const BrandLogo(),
+                          const SizedBox(height: 40),
+                          const Text(
+                            '우리 매장의 하루를\n함께 관리해요',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              height: 1.35,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            '근무표, 업무, 매장 설정을 내 계정에 저장해요. 다른 기기로 접속해도 이어서 사용할 수 있어요.',
+                            style: TextStyle(
+                              color: AppColors.muted,
+                              height: 1.6,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          PressBounce(
+                            child: FilledButton(
+                              onPressed: () =>
+                                  openAccount(context, widget.client),
+                              child: const Text('로그인 · 회원가입'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : ops.data?['needsWorkspace'] == true
+          ? Builder(
+              builder: (context) => _WorkspaceSetup(
+                ops: ops,
+                onAccount: () => openAccount(context, widget.client),
+              ),
+            )
+          : null,
+    ),
   );
 }
 
@@ -255,7 +304,7 @@ class _SignInDialogState extends State<_SignInDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '로그인하면 업무와 배치를 저장할 수 있어요. 첫 로그인에서 빈 매장 또는 샘플 매장을 선택합니다.',
+              '로그인하면 모든 매장 설정과 운영 기록을 저장할 수 있어요. 첫 로그인에서 빈 매장 또는 샘플 매장을 선택합니다.',
               style: TextStyle(
                 color: AppColors.muted,
                 fontSize: 13,

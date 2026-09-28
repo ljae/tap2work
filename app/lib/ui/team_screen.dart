@@ -1,3 +1,4 @@
+import 'payroll_settings_screen.dart';
 import 'workplace_screens.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class _TeamScreenState extends State<TeamScreen> {
     final kakao = TextEditingController(text: current?['kakaoUrl'] ?? '');
     final phone = TextEditingController(text: current?['phone'] ?? '');
     var rank = current?['rank'] as String? ?? 'crew';
-    var period = current?['payPeriod'] as String? ?? 'monthly';
+    final period = current?['payPeriod'] as String? ?? 'monthly';
     var employment = current?['employmentType'] as String? ?? '시간알바';
     final duties = <String>{
       ...(current?['workProfile']?['partIds'] as List? ??
@@ -125,18 +126,12 @@ class _TeamScreenState extends State<TeamScreen> {
                       decoration: const InputDecoration(labelText: '시급 · 원'),
                     ),
                   if (widget.payOnly)
-                    AppPicker<String>(
-                      label: '급여방식',
-                      value: period,
-                      items: _periods.entries
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e.key,
-                              child: Text(e.value),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) => update(() => period = v!),
+                    TextButton(
+                      onPressed: () => showAppSheet(
+                        context,
+                        builder: (_) => PayrollSettingsScreen(ops: ops),
+                      ),
+                      child: const Text('매장 정산 설정'),
                     ),
                   if (!widget.payOnly)
                     TextField(
@@ -796,10 +791,14 @@ class _TeamScreenState extends State<TeamScreen> {
                           ),
                           if (widget.payOnly && tapper['gross'] != null) ...[
                             Text(
+                              '${tapper['payPeriodStart']} ~ ${tapper['payPeriodEnd'] ?? ops.data?['day']}',
+                              style: AppText.caption,
+                            ),
+                            Text(
                               '시급 ${money(tapper['hourlyWon'])}원 · ${_periods[tapper['payPeriod']]}',
                             ),
                             Text(
-                              '이번 달 누적 ${money(tapper['monthlyGross'])}원 · 현재 지급 기간 ${money(tapper['gross'])}원',
+                              '기본급·추가보수 ${money(tapper['gross'])}원 · 가산수당 별도 확인',
                             ),
                             Text(
                               '지급 ${money(tapper['paid'])}원 · 잔여 ${money(tapper['remaining'])}원 · 추가보수 ${money(tapper['adjustments'])}원',

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 91,
+  "revision": 92,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -478,6 +478,26 @@
       "reason": "2026-09-28 사용자의 명시적인 기능·명칭·배포 요청.",
       "source": "사용자 요청 · 2026-09-28",
       "updatedAt": "2026-09-28T11:39:30.932081Z"
+    },
+    {
+      "id": "D-048",
+      "category": "Payroll / cloud / branding",
+      "title": "Store-wide settlement settings from IMG_6093",
+      "status": "confirmed",
+      "decision": "Replace crew-specific pay cycle and weekly business-size selector with persisted store-wide monthly/weekly cycle, start day, daily net-time rounding, business size and weekly-rest inclusion. Preserve attendance and payment records; OFF excludes amount while retaining eligibility count.",
+      "reason": "Explicit user request on 2026-09-28",
+      "source": "User screenshot and follow-up instructions",
+      "updatedAt": "2026-09-28T12:18:28.820302+00:00"
+    },
+    {
+      "id": "D-049",
+      "category": "Payroll / cloud / branding",
+      "title": "Authenticated saved workspaces and transparent PNG",
+      "status": "confirmed",
+      "decision": "Production starts with Supabase sign-in and explicit workspace creation. Implemented settings persist through authenticated operations and revision-checked storage; no default public preview. Keep logo geometry with transparent outer PNG canvas.",
+      "reason": "Explicit user request on 2026-09-28",
+      "source": "User screenshot and follow-up instructions",
+      "updatedAt": "2026-09-28T12:18:28.820302+00:00"
     }
   ],
   "milestones": [
@@ -3970,7 +3990,29 @@
         "workflow": "https://github.com/ljae/tap2work/actions/runs/36417158071",
         "site": "https://tap2.work"
       }
+    },
+    {
+      "at": "2026-09-28T12:18:28.820302+00:00",
+      "type": "implementation",
+      "title": "Settlement policy, Supabase-first entry and transparent logo",
+      "detail": "Previous: crew pay cycles and weekly size selection; unauthenticated users entered read-only sample. Next: shared payroll policy with saved history, authenticated production landing, workspace setup inside app theme, fail-closed public build configuration, transparent logo source rendering. Existing authenticated operations persistence reused for all implemented settings. Full payroll/identity integrations remain outside implemented scope.",
+      "verification": "Flutter analyze passed; 120 Flutter tests passed; 90 Node tests passed; npm run check, build:app and build:site passed. Payroll 320/390/1200px enlarged text and conflict tests passed; 390/1200px font captures inspected; PNG alpha checked. Supabase migrations and operations function deployment succeeded. Additional live test-account roundtrip could not start: api.supabase.com DNS ENOTFOUND in this command environment, no account created. Mock cloud independent readback and stale-write tests passed. Initial test scroll and Supabase client fake-async teardown issues fixed. Public Pages deployment pending; native builds not performed.",
+      "changes": [
+        {
+          "previous": "Read-only sample default; per-crew cycle and weekly business size",
+          "next": "Authenticated saved workspace default; shared payroll policy",
+          "reason": "User explicitly requested saved Supabase settings and screenshot payroll policy"
+        }
+      ],
+      "files": [
+        "docs/ARCHITECTURE.md",
+        "app/lib/ui/cloud_workspace.dart",
+        "app/lib/ui/payroll_settings_screen.dart",
+        "developer/payroll_settings.mjs",
+        "developer/test/cloud.test.mjs",
+        "app/assets/branding/generate_brand.py"
+      ]
     }
   ],
-  "updatedAt": "2026-09-28T11:47:08.904016Z"
+  "updatedAt": "2026-09-28T12:18:28.820302+00:00"
 }

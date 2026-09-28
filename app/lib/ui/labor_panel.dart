@@ -1,3 +1,4 @@
+import 'payroll_settings_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -74,7 +75,15 @@ class _LaborPanelState extends State<LaborPanel> {
                 ),
               ),
             ),
-            child: const Text('시급·지급 주기·기록'),
+            child: const Text('시급·지급 기록'),
+          ),
+          TextButton.icon(
+            onPressed: () => showAppSheet(
+              context,
+              builder: (_) => PayrollSettingsScreen(ops: widget.ops),
+            ),
+            icon: const Icon(Icons.tune),
+            label: const Text('정산 설정'),
           ),
           if (weeks.isNotEmpty)
             AppPicker<String>(
@@ -213,6 +222,11 @@ class LaborDetail extends StatelessWidget {
                     Text(laborMoney(result[entry.key])),
                   ],
                 ),
+              ),
+            if (result['weeklyRestIncluded'] == false)
+              Text(
+                '주휴수당 합계 제외 · 발생 ${result['weeklyRestWeeks'] ?? '확인 필요'}주 · 발생액 ${laborMoney(result['weeklyRestAccruedWon'])}',
+                style: AppText.caption,
               ),
             const SizedBox(height: 16),
             Text(
@@ -362,7 +376,7 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
         ...values,
         'tapperId': widget.person['tapperId'],
         'week': widget.week,
-        'size': size,
+        'size': widget.ops.data?['payrollSettings']?['businessSize'] ?? size,
         'scope': scope,
         'attendance': attendance,
         'shortTime': shortTime,
@@ -396,16 +410,13 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
             'unknown': '미확인 · 계산 보류',
             'standard': '시급제 성인 · 고정 근로시간',
           }, (v) => scope = v),
-          picker('상시근로자 기준', size, {
-            'unknown': '미확인',
-            'under5': '5인 미만',
-            'fivePlus': '5인 이상',
-          }, (v) => size = v),
-          const Text(
-            '상시 인원은 법정 산정 기준으로 확인해 주세요. 앱에 등록된 직원 수로 자동 판단하지 않아요.',
-            style: AppText.caption,
+          TextButton(
+            onPressed: () => showAppSheet(
+              context,
+              builder: (_) => PayrollSettingsScreen(ops: widget.ops),
+            ),
+            child: const Text('사업장 규모·주휴 포함은 매장 정산 설정에서 변경'),
           ),
-          const SizedBox(height: 16),
           number(
             'hourlyWon',
             '기본 시급 · 원',

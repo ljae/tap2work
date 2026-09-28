@@ -64,11 +64,13 @@ class Tap2workApp extends StatelessWidget {
     this.operations,
     this.onAccountPressed,
     this.accountEmail,
+    this.homeOverride,
   });
   final WorkController controller;
   final OperationsController? operations;
   final Future<void> Function(BuildContext context)? onAccountPressed;
   final String? accountEmail;
+  final Widget? homeOverride;
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'tap2work',
@@ -267,13 +269,15 @@ class Tap2workApp extends StatelessWidget {
         behavior: SnackBarBehavior.floating,
       ),
     ),
-    home: operations == null
-        ? WorkspaceScreen(controller: controller)
-        : OperationsScreen(
-            operations: operations!,
-            work: controller,
-            onAccountPressed: onAccountPressed,
-            accountEmail: accountEmail,
-          ),
+    home:
+        homeOverride ??
+        (operations == null
+            ? WorkspaceScreen(controller: controller)
+            : OperationsScreen(
+                operations: operations!,
+                work: controller,
+                onAccountPressed: onAccountPressed,
+                accountEmail: accountEmail,
+              )),
   );
 }

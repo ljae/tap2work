@@ -1,3 +1,4 @@
+import 'payroll_settings_screen.dart';
 import 'workplace_screens.dart';
 import 'labor_panel.dart';
 import 'manual_workspace.dart';
@@ -620,6 +621,15 @@ class _OperationsScreenState extends State<OperationsScreen> {
     final delivery = profile['delivery'] as Json? ?? {};
     return [
       if (ops.isOwner) ...[
+        actionCard(
+          CupertinoIcons.money_dollar_circle,
+          '정산 설정',
+          '지급 주기 · 시작일 · 반올림 · 수당',
+          () => showAppSheet(
+            context,
+            builder: (_) => PayrollSettingsScreen(ops: ops),
+          ),
+        ),
         StorePreparation(
           ops: ops,
           onHours: () => openWorkplace('hours'),

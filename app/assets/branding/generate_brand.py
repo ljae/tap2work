@@ -9,7 +9,7 @@ SCALE = 4
 navy = '#193B3A'
 cream = '#FFF9F0'
 coral = '#E45B42'
-image = Image.new('RGB', (SIZE * SCALE, SIZE * SCALE), cream)
+image = Image.new('RGBA', (SIZE * SCALE, SIZE * SCALE), (0, 0, 0, 0))
 d = ImageDraw.Draw(image)
 def box(coords, radius, fill):
     d.rounded_rectangle(tuple(round(v*SCALE) for v in coords), radius=radius*SCALE, fill=fill)
@@ -27,20 +27,24 @@ base = image.resize((SIZE, SIZE), Image.Resampling.LANCZOS)
 brand = ROOT / 'app/assets/branding/tap2work.png'
 base.save(brand, optimize=True)
 base.save(ROOT / 'tap2work.png', optimize=True)
+# Native launcher / maskable icons require an opaque full-bleed canvas.
+opaque = Image.new('RGB', base.size, navy)
+opaque.paste(base, mask=base.getchannel('A'))
 web = ROOT / 'app/web'
 for name, size in [('favicon.png', 64), ('icons/Icon-192.png', 192),
                    ('icons/Icon-512.png', 512), ('icons/Icon-maskable-192.png', 192),
                    ('icons/Icon-maskable-512.png', 512)]:
-    base.resize((size, size), Image.Resampling.LANCZOS).save(web/name, optimize=True)
+    source = opaque if 'maskable' in name else base
+    source.resize((size, size), Image.Resampling.LANCZOS).save(web/name, optimize=True)
 android = ROOT / 'app/android/app/src/main/res'
 for density, size in [('mdpi', 48), ('hdpi', 72), ('xhdpi', 96),
                       ('xxhdpi', 144), ('xxxhdpi', 192)]:
-    base.resize((size, size), Image.Resampling.LANCZOS).save(
+    opaque.resize((size, size), Image.Resampling.LANCZOS).save(
         android / f'mipmap-{density}/ic_launcher.png', optimize=True)
 ios = ROOT / 'app/ios/Runner/Assets.xcassets/AppIcon.appiconset'
 for path in ios.glob('Icon-App-*.png'):
     match = re.search(r'-(\d+(?:\.\d+)?)x\1@(\d+)x\.png$', path.name)
     if match:
         size = round(float(match.group(1))*int(match.group(2)))
-        base.resize((size, size), Image.Resampling.LANCZOS).save(path, optimize=True)
+        opaque.resize((size, size), Image.Resampling.LANCZOS).save(path, optimize=True)
 print('Generated logo and web, Android, iOS icons')

@@ -59,3 +59,18 @@ test('new account chooses blank workspace explicitly; GET alone creates nothing'
  assert.equal(view.items.length,0);assert.equal(view.catalogMenus.length,0);assert.equal(view.tappers.length,1);
  assert.equal(view.demo,false);assert.equal(view.authenticated,true);
 });
+test('settings survive independent cloud reads and reject stale writes',async()=>{
+ const {request}=setup();
+ let state=await (await request()).json();
+ const settings={cycle:'weekly',monthStartDay:25,weekStartDay:3,roundingMinutes:5,businessSize:'fivePlus',includeWeeklyRest:false};
+ const save=async(body)=>{const response=await request({...body,revision:state.revision});assert.equal(response.status,200);state=await (await request()).json();};
+ await save({action:'save_payroll_settings',settings});
+ assert.deepEqual(state.payrollSettings,{...settings,configured:true});
+ await save({action:'save_order_system',enabled:true});
+ assert.equal(state.orderBoardEnabled,true);
+ await save({action:'save_workplace_day',weekday:1,bands:[{name:'영업',start:'09:00',end:'21:00'}]});
+ assert.equal(state.workplace.days[1][0].start,'09:00');
+ assert.equal(state.payrollSettings.roundingMinutes,5);
+ assert.equal((await request({action:'save_order_system',enabled:false,revision:state.revision-1})).status,409);
+ assert.equal((await (await request()).json()).orderBoardEnabled,true);
+});

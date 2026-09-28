@@ -1,4 +1,5 @@
 import 'package:tap2work/ui/workplace_screens.dart';
+import 'package:tap2work/ui/payroll_settings_screen.dart';
 import 'package:tap2work/ui/team_screen.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -102,6 +103,7 @@ void main() {
 
       final theme = Theme.of(tester.element(find.byType(Scaffold).first));
       for (final section in [
+        'payroll',
         'hours',
         'parts',
         'permissions',
@@ -114,7 +116,9 @@ void main() {
             child: MaterialApp(
               debugShowCheckedModeBanner: false,
               theme: theme,
-              home: section == 'people'
+              home: section == 'payroll'
+                  ? PayrollSettingsScreen(ops: ops)
+                  : section == 'people'
                   ? Scaffold(
                       appBar: AppBar(title: const Text('직원')),
                       body: SingleChildScrollView(
