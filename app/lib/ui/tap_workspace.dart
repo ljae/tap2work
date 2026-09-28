@@ -711,6 +711,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                               ),
                             ),
                           PopupMenuButton<String>(
+                            popUpAnimationStyle: AppMotion.dialogStyle(context),
                             iconColor: groupText,
                             tooltip: '주문 그룹 이동',
                             onSelected: (value) =>

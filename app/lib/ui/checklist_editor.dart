@@ -410,6 +410,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
               icon: Icon(open ? Icons.expand_less : Icons.expand_more),
             ),
             PopupMenuButton<String>(
+              popUpAnimationStyle: AppMotion.dialogStyle(context),
               enabled: enabled,
               tooltip: 'TAP 수정·이동·삭제',
               onSelected: (value) {

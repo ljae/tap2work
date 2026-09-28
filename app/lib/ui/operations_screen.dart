@@ -357,6 +357,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     builder: (context, _) => Scaffold(
       appBar: BrandHeader(
         action: PopupMenuButton<String>(
+          popUpAnimationStyle: AppMotion.dialogStyle(context),
           key: const ValueKey('header-account-menu'),
           enabled: !ops.busy,
           constraints: BoxConstraints(

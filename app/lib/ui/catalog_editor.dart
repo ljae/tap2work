@@ -424,6 +424,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
                     subtitle: Text('${menu['category']} · ${menu['price']}원'),
                     trailing: ops.isLeader
                         ? PopupMenuButton<String>(
+                            popUpAnimationStyle: AppMotion.dialogStyle(context),
                             enabled: !ops.busy,
                             onSelected: (value) => value == 'edit'
                                 ? editMenu(menu)
@@ -473,6 +474,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
                     ),
                     trailing: ops.isLeader
                         ? PopupMenuButton<String>(
+                            popUpAnimationStyle: AppMotion.dialogStyle(context),
                             enabled: !ops.busy,
                             onSelected: (value) => value == 'edit'
                                 ? editItem(item)

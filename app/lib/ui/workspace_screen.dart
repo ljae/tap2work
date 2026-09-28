@@ -22,6 +22,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     builder: (context, _) => Scaffold(
       appBar: BrandHeader(
         action: PopupMenuButton<String>(
+          popUpAnimationStyle: AppMotion.dialogStyle(context),
           key: const ValueKey('header-account-menu'),
           tooltip: '체험 역할과 안내',
           onSelected: _menu,

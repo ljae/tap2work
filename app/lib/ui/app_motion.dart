@@ -84,6 +84,9 @@ class AppMotionScope extends StatelessWidget {
     return _MotionMarker(
       child: Theme(
         data: theme.copyWith(
+          expansionTileTheme: theme.expansionTileTheme.copyWith(
+            expansionAnimationStyle: AppMotion.dialogStyle(context),
+          ),
           filledButtonTheme: FilledButtonThemeData(
             style: style(theme.filledButtonTheme.style),
           ),

@@ -469,6 +469,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             else
               Draggable<Json>(data: data, feedback: feedback, child: handle),
             PopupMenuButton<String>(
+              popUpAnimationStyle: AppMotion.dialogStyle(context),
               tooltip: '이동',
               iconSize: 18,
               onSelected: (value) {

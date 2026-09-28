@@ -19,6 +19,7 @@
 | 근무표 하위 메뉴·매뉴얼 탐색 | `AppContentTransition` | 변경된 선택에 반응한다. 데이터 polling·동일 선택은 다시 재생하지 않는다. |
 | 설정·상세·매뉴얼·QR 시트 | `AppMotion.panelStyle` | 진입 360ms, 닫힘 220ms. 초안 취소 확인과 기존 닫기 정책을 유지한다. |
 | 모든 확인창·로그인 창 | `showAppDialog` | 진입 240ms, 닫힘 160ms. 명확한 닫기 동작을 유지한다. |
+| 보조 팝업·접기/펼치기 목록 | `popUpAnimationStyle`, `ExpansionTileTheme` | 공통 240/160ms와 동작 줄이기를 적용한다. 날짜·시간 선택기의 기본 접근성 동작은 유지한다. |
 | 페이지 이동 | `AppPageRoute` | Cupertino 이동, 360/220ms. 동작 줄이기에서는 route 시간도 0이다. |
 | 진행률·로딩 | `AppLinearProgress`, `AppCircularProgress`, `WorkspaceSkeleton` | 확정 진행률 변화는 240ms, 비율 미확정은 로딩으로 읽는다. |
 | 업무 완료 | `CompletionText`, 기존 성공 trigger | 저장 성공 후 완료 모션을 재생한다. 기존 440ms 효과와 520ms 위치 보존 시간을 토큰으로 관리한다. |
