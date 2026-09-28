@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 96,
+  "revision": 97,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -633,7 +633,7 @@
       "id": "M-019",
       "title": "샘플 자동 진입·매뉴얼 연결 수정·설정 관계도",
       "status": "completed",
-      "description": "Temporary sample-store default, exact Task manual editor with revision checked save or in-memory public preview, and living UI/settings relationship map plus static contract check. Flutter analysis and 126 tests, 90 Node tests, JS checks, local/public web builds passed. Public deployment is tracked separately; native and authenticated employee writes were not tested."
+      "description": "Temporary sample-store default, exact Task manual editor with revision-checked save or in-memory public preview, and living UI/settings relationship map plus static contract check. Local Flutter analysis and 126 tests, 90 Node tests, JS checks, local/public builds passed. GitHub Pages run 36429806232 passed and deployed source 256a2fb25cc5f425c3f52143e13c9cca8bb96aa6. Direct tap2.work file readback was blocked by DNS in the command environment. Native and authenticated employee writes were not tested."
     }
   ],
   "history": [
@@ -4117,7 +4117,22 @@
         "package.json",
         "docs/project-state.json"
       ]
+    },
+    {
+      "at": "2026-09-28T13:43:10.418Z",
+      "type": "verification",
+      "title": "Sample-store entry and Task manual link deployed",
+      "detail": "Source release 256a2fb25cc5f425c3f52143e13c9cca8bb96aa6 deployed by GitHub Pages run 36429806232. The source commit was created from 12 reviewed files via GitHub Git Trees/Commits API with force:false against the expected main parent; local Git metadata remains read-only. This documentation-only follow-up uses [skip ci].",
+      "verification": "Local Flutter analyze passed, Flutter suite 126 passed, Node suite 90 passed, npm run check including check:ui-links passed, build:site and build:app passed. GitHub Actions independently passed JS checks, Node tests, Flutter pub get/analyze/tests, public site build and Pages deploy. Command environment DNS could not resolve tap2.work for direct artifact readback; native devices and authenticated real-employee writes not tested.",
+      "files": [
+        "docs/project-state.json"
+      ],
+      "release": {
+        "commit": "256a2fb25cc5f425c3f52143e13c9cca8bb96aa6",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36429806232",
+        "site": "https://tap2.work"
+      }
     }
   ],
-  "updatedAt": "2026-09-28T13:28:24.307Z"
+  "updatedAt": "2026-09-28T13:43:10.418Z"
 }
