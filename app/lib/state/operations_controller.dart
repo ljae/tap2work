@@ -150,6 +150,36 @@ class OperationsController extends ChangeNotifier {
   }
 
   // A preview has one shared in-memory state across Home, Todo and Calendar.
+  bool previewUpdateManualStep(String templateId, String stepId, Json draft) {
+    if (!readOnly || data == null) return false;
+    final template = rows('taskTemplates')
+        .where((t) => t['id'] == templateId && t['archivedAt'] == null)
+        .firstOrNull;
+    final step = (template?['steps'] as List? ?? [])
+        .cast<Json>()
+        .where((s) => s['id'] == stepId)
+        .firstOrNull;
+    if (step == null) return false;
+    step.addAll(draft);
+    for (final row in rows('manualSearch')) {
+      if (row['templateId'] == templateId && row['sourceStepId'] == stepId) {
+        for (final field in [
+          'title',
+          'manual',
+          'tip',
+          'tags',
+          'imageUrl',
+          'videoUrl',
+          'sourceUrl',
+        ]) {
+          row[field] = step[field];
+        }
+      }
+    }
+    _emit();
+    return true;
+  }
+
   void previewMoveTap(
     String id,
     String folder,

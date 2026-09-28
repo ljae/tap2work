@@ -2,6 +2,7 @@
 import { spawnSync } from 'node:child_process';
 const review = process.argv.includes('--review');
 const args = ['build','web','--release','--base-href',review ? '/' : '/app/','--pwa-strategy=none','--no-web-resources-cdn'];
+if (process.env.FLUTTER_SKIP_PUB === '1') args.push('--no-pub');
 if (review) args.push('--dart-define=PUBLIC_REVIEW=true','--output=build/review-web');
 const url = process.env.SUPABASE_URL, key = process.env.SUPABASE_PUBLISHABLE_KEY;
 if (review && (!url || !key)) throw Error('Public app requires Supabase configuration for saved workspaces.');

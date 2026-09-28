@@ -13,6 +13,24 @@ Json directoryData() {
     {'id': 'general', 'name': '오픈'},
     {'id': 'close', 'name': '마감'},
   ];
+  data['taskTemplates'] = [
+    for (final id in ['a', 'b'])
+      {
+        'id': id,
+        'title': id == 'a' ? '위생 TAP' : '정리 TAP',
+        'folderId': id == 'a' ? 'general' : 'close',
+        'steps': [
+          for (final step in id == 'a' ? ['s1', 's2'] : ['s3'])
+            {
+              'id': step,
+              'title': {'s1': '손 씻기', 's2': '소독', 's3': '청소'}[step],
+              'manual': '${{'s1': '손 씻기', 's2': '소독', 's3': '청소'}[step]} 상세 매뉴얼',
+              'tip': '안전 확인',
+              'tags': ['공통'],
+            },
+        ],
+      },
+  ];
   data['manualSearch'] = [
     for (final item in [
       ('a', 's1', '손 씻기', 'general', '오픈'),
@@ -81,6 +99,69 @@ Future<void> moveTask(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('Task manual edit opens exact step and previews without POST', (
+    tester,
+  ) async {
+    var posts = 0;
+    final ops = OperationsController(
+      readOnly: true,
+      client: MockClient((request) async {
+        if (request.method == 'POST') posts++;
+        return response(directoryData());
+      }),
+    );
+    addTearDown(ops.dispose);
+    await mount(tester, ops);
+    await click(tester, 'manual-node-tap:a');
+    await click(tester, 'manual-node-task:s1:a');
+    await tester.tap(find.text('매뉴얼 편집'));
+    await tester.pumpAndSettle();
+    expect(find.text('보드 편집'), findsNothing);
+    expect(find.text('매뉴얼 저장'), findsOneWidget);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, '간단 매뉴얼 · 방법과 완료 기준'),
+      '손을 충분히 씻어요',
+    );
+    await tester.tap(find.text('매뉴얼 저장'));
+    await tester.pumpAndSettle();
+    expect(ops.rows('taskTemplates').first['steps'][0]['manual'], '손을 충분히 씻어요');
+    expect(ops.rows('taskTemplates').first['steps'][1]['manual'], '소독 상세 매뉴얼');
+    expect(find.text('손을 충분히 씻어요'), findsOneWidget);
+    expect(posts, 0);
+  });
+
+  testWidgets('Task manual save targets one step with opening revision', (
+    tester,
+  ) async {
+    Json? sent;
+    final ops = OperationsController(
+      client: MockClient((request) async {
+        if (request.method == 'POST') {
+          sent = jsonDecode(request.body) as Json;
+          return response(directoryData());
+        }
+        return response(directoryData());
+      }),
+    );
+    addTearDown(ops.dispose);
+    await mount(tester, ops);
+    await click(tester, 'manual-node-tap:a');
+    await click(tester, 'manual-node-task:s1:a');
+    await tester.tap(find.text('매뉴얼 편집'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, '간단 매뉴얼 · 방법과 완료 기준'),
+      '손을 충분히 씻어요',
+    );
+    await tester.tap(find.text('매뉴얼 저장'));
+    await tester.pumpAndSettle();
+    expect(sent?['action'], 'save_checklists');
+    expect(sent?['revision'], 2);
+    expect(sent?['templates'][0]['steps'][0]['manual'], '손을 충분히 씻어요');
+    expect(sent?['templates'][0]['steps'][1]['manual'], '소독 상세 매뉴얼');
+    expect(sent?['templates'][1]['steps'][0]['manual'], '청소 상세 매뉴얼');
+  });
+
   testWidgets('directory filters search by group and opens a Task manual', (
     tester,
   ) async {

@@ -16,6 +16,17 @@ Future<void> main() async {
   final controller = WorkController(DeviceProgressStore());
   await controller.initialize();
   final sharedApi = await sharedApiForWeb();
+  // Temporary sample-store entry. Set AUTO_SAMPLE_STORE=false to restore sign-in.
+  const autoSampleStore = bool.fromEnvironment(
+    'AUTO_SAMPLE_STORE',
+    defaultValue: true,
+  );
+  if (autoSampleStore) {
+    final operations = OperationsController(sharedApi: sharedApi);
+    runApp(Tap2workApp(controller: controller, operations: operations));
+    operations.start();
+    return;
+  }
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
   if (supabaseUrl.isNotEmpty && publishableKey.isNotEmpty) {

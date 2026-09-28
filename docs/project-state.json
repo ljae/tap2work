@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 95,
+  "revision": 96,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -508,6 +508,16 @@
       "reason": "Explicit user request to use flutter-animating-apps and the Toss consumer UX guide throughout UI/UX.",
       "source": "User links: nexu-io/open-design flutter-animating-apps and Toss consumer-ux-guide",
       "updatedAt": "2026-09-28T12:36:22.371433+00:00"
+    },
+    {
+      "id": "D-051",
+      "category": "Entry and manual UX",
+      "title": "Temporary automatic sample store and exact Task manual editing",
+      "status": "confirmed",
+      "decision": "Temporarily enter the owner sample store by default without showing sign-in. AUTO_SAMPLE_STORE=false restores the existing Supabase sign-in path. Public review samples remain read-only; local demo uses its separate local store. Manual > Task > Edit manual opens the exact templateId/sourceStepId editor, never the board editor. Maintain the settings/UI/action/consumer relationship map and check it when connections change.",
+      "reason": "Explicit 2026-09-28 user request to temporarily disable login, fix the wrong manual edit destination and prevent future connection regressions.",
+      "source": "User instruction, 2026-09-28",
+      "updatedAt": "2026-09-28T13:28:24.307Z"
     }
   ],
   "milestones": [
@@ -618,6 +628,12 @@
       "title": "파트 중심 아키텍처·근무표·주문 보드 설정",
       "status": "completed",
       "description": "Implemented part-based architecture and schedule, dated slot overrides and crew assignment, shared pill selectors, opt-in order board, crew terminology, and living architecture documentation. Flutter analyze, 115 regression tests plus one bundled-font visual capture test, 85 server tests, JavaScript checks, local/public web builds and live deployment checks passed. Supabase operations and GitHub Pages deployed; https://tap2.work serves the new bundle. Native devices and real authenticated employee writes not tested."
+    },
+    {
+      "id": "M-019",
+      "title": "샘플 자동 진입·매뉴얼 연결 수정·설정 관계도",
+      "status": "completed",
+      "description": "Temporary sample-store default, exact Task manual editor with revision checked save or in-memory public preview, and living UI/settings relationship map plus static contract check. Flutter analysis and 126 tests, 90 Node tests, JS checks, local/public web builds passed. Public deployment is tracked separately; native and authenticated employee writes were not tested."
     }
   ],
   "history": [
@@ -4068,7 +4084,40 @@
         "workflow": "https://github.com/ljae/tap2work/actions/runs/36423126428",
         "site": "https://tap2.work"
       }
+    },
+    {
+      "at": "2026-09-28T13:28:24.307Z",
+      "type": "implementation",
+      "title": "Sample-store entry and manual Task link corrected",
+      "detail": "Previous: production defaulted to Supabase sign-in (D-049), and Manual > Task > Edit manual opened the whole ChecklistEditor by folder. Next: temporary AUTO_SAMPLE_STORE=true enters owner sample; false restores sign-in. The manual action uses templateId/sourceStepId, edits one Task, preserves sibling steps and opening revision, and uses in-memory preview only for public review. docs/UI_SETTINGS_RELATIONSHIP_MAP.md and npm run check:ui-links record and verify UI/settings links. Supabase anonymous writes remain unavailable.",
+      "changes": [
+        {
+          "previous": "Supabase sign-in shown on entry",
+          "next": "Temporary automatic owner sample store; sign-in retained behind AUTO_SAMPLE_STORE=false",
+          "reason": "User explicitly requested temporary login deactivation"
+        },
+        {
+          "previous": "Manual Task edit opened the entire board editor using folderId",
+          "next": "Manual Task edit opens exact templateId/sourceStepId editor",
+          "reason": "The manual edit button was connected to the wrong destination"
+        }
+      ],
+      "verification": "Flutter analyze passed; Flutter test suite 126 passed including targeted manual edit preview/POST and saved payload tests; 90 Node server tests passed; npm run check and check:ui-links passed; npm run build:site and build:app passed using a writable cloned Flutter SDK with --no-pub due to sandbox/network restrictions. Public deployment pending; native devices and real authenticated employee writes not tested.",
+      "files": [
+        "app/lib/main.dart",
+        "app/lib/ui/manual_workspace.dart",
+        "app/lib/ui/checklist_editor.dart",
+        "app/lib/state/operations_controller.dart",
+        "app/test/manual_workspace_test.dart",
+        "docs/UI_SETTINGS_RELATIONSHIP_MAP.md",
+        "docs/ARCHITECTURE.md",
+        "AGENTS.md",
+        "scripts/check-ui-links.mjs",
+        "scripts/build-flutter.mjs",
+        "package.json",
+        "docs/project-state.json"
+      ]
     }
   ],
-  "updatedAt": "2026-09-28T12:42:39.495546+00:00"
+  "updatedAt": "2026-09-28T13:28:24.307Z"
 }

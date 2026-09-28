@@ -654,7 +654,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           ),
           if (canEdit &&
               selected['editable'] == true &&
-              selected['templateId'] != null)
+              selected['templateId'] != null &&
+              selected['sourceStepId'] != null)
             Wrap(
               spacing: 8,
               children: [
@@ -681,9 +682,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                     onPressed: () async {
                       await showAppSheet(
                         context,
-                        builder: (_) => ChecklistEditor(
+                        builder: (_) => ManualTaskEditor(
                           ops: ops,
-                          initialFolder: selected['folderId'],
+                          templateId: selected['templateId'],
+                          sourceStepId: selected['sourceStepId'],
                         ),
                       );
                       if (mounted) setState(() => sync(force: true));

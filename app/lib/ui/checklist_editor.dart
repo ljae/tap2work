@@ -883,10 +883,100 @@ class _GroupSheetState extends State<_GroupSheet> {
   );
 }
 
+/// Opens one reusable Task manual from the manual directory, never the board.
+class ManualTaskEditor extends StatefulWidget {
+  const ManualTaskEditor({
+    super.key,
+    required this.ops,
+    required this.templateId,
+    required this.sourceStepId,
+  });
+  final OperationsController ops;
+  final String templateId, sourceStepId;
+
+  @override
+  State<ManualTaskEditor> createState() => _ManualTaskEditorState();
+}
+
+class _ManualTaskEditorState extends State<ManualTaskEditor> {
+  late final int openingRevision = widget.ops.data?['revision'] ?? -1;
+  late final String openingActor = widget.ops.actorId;
+  late final Json? sourceTemplate = widget.ops
+      .rows('taskTemplates')
+      .where((t) => t['id'] == widget.templateId && t['archivedAt'] == null)
+      .firstOrNull;
+  late final Json? sourceStep = (sourceTemplate?['steps'] as List? ?? [])
+      .cast<Json>()
+      .where((s) => s['id'] == widget.sourceStepId)
+      .firstOrNull;
+
+  Future<String?> save(Json draft) async {
+    final ops = widget.ops;
+    if (!ops.isLeader || ops.actorId != openingActor || ops.busy) {
+      return '편집 권한 또는 매장이 변경됐어요. 다시 열어 주세요.';
+    }
+    if (ops.data?['revision'] != openingRevision) {
+      return '다른 변경이 저장됐어요. 최신 매뉴얼을 다시 열어 주세요.';
+    }
+    if (ops.readOnly) {
+      final updated = ops.previewUpdateManualStep(
+        widget.templateId,
+        widget.sourceStepId,
+        draft,
+      );
+      return updated ? null : '이 Task를 찾지 못했어요. 다시 열어 주세요.';
+    }
+    final snapshot = _copy(ops.data!);
+    final templates = _rows(snapshot['taskTemplates']);
+    final target = templates
+        .where((t) => t['id'] == widget.templateId)
+        .firstOrNull;
+    if (target == null || target['archivedAt'] != null) {
+      return '이 Task를 찾지 못했어요. 다시 열어 주세요.';
+    }
+    final step = _rows(
+      target['steps'],
+    ).where((s) => s['id'] == widget.sourceStepId).firstOrNull;
+    if (step == null) return '이 Task를 찾지 못했어요. 다시 열어 주세요.';
+    step.addAll(draft);
+    final ok = await ops.act('save_checklists', {
+      'revision': openingRevision,
+      'folders': snapshot['checklistFolders'],
+      'templates': templates,
+    });
+    return ok ? null : (ops.error ?? '저장하지 못했어요. 다시 시도해 주세요.');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (sourceTemplate == null || sourceStep == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('매뉴얼 편집')),
+        body: const Center(
+          child: Information('이 Task를 찾지 못했어요. 목록을 새로고침해 주세요.'),
+        ),
+      );
+    }
+    return _ActivityEditor(
+      step: _copy(sourceStep!),
+      groupTitle: '${sourceTemplate!['title'] ?? ''}',
+      onSave: save,
+      previewOnly: widget.ops.readOnly,
+    );
+  }
+}
+
 class _ActivityEditor extends StatefulWidget {
-  const _ActivityEditor({required this.step, required this.groupTitle});
+  const _ActivityEditor({
+    required this.step,
+    required this.groupTitle,
+    this.onSave,
+    this.previewOnly = false,
+  });
   final Json step;
   final String groupTitle;
+  final Future<String?> Function(Json draft)? onSave;
+  final bool previewOnly;
   @override
   State<_ActivityEditor> createState() => _ActivityEditorState();
 }
@@ -895,6 +985,7 @@ class _ActivityEditorState extends State<_ActivityEditor> {
   late final Json step = widget.step;
   late final String original = jsonEncode(widget.step);
   bool applying = false;
+  bool saving = false;
   String? issue;
   bool get dirty => jsonEncode(step) != original;
   @override
@@ -906,7 +997,11 @@ class _ActivityEditorState extends State<_ActivityEditor> {
         context: context,
         builder: (c) => AlertDialog(
           title: const Text('매뉴얼 편집을 취소할까요?'),
-          content: const Text('아직 초안에 적용하지 않은 내용이 있어요.'),
+          content: Text(
+            widget.onSave == null
+                ? '아직 초안에 적용하지 않은 내용이 있어요.'
+                : '아직 저장하지 않은 내용이 있어요.',
+          ),
           actions: [
             PressBounce(
               child: TextButton(
@@ -931,20 +1026,38 @@ class _ActivityEditorState extends State<_ActivityEditor> {
     child: Scaffold(
       appBar: AppBar(
         leading: CloseButton(onPressed: () => Navigator.maybePop(context)),
-        title: const Text('Task과 간단 매뉴얼'),
+        title: Text(widget.onSave == null ? 'Task과 간단 매뉴얼' : '매뉴얼 편집'),
         actions: [
           PressBounce(
             child: TextButton(
-              onPressed: () {
-                final problem = checklistStepIssue(step);
-                if (problem != null) {
-                  setState(() => issue = problem);
-                  return;
-                }
-                setState(() => applying = true);
-                Navigator.pop(context, step);
-              },
-              child: const Text('초안에 적용'),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      final problem = checklistStepIssue(step);
+                      if (problem != null) {
+                        setState(() => issue = problem);
+                        return;
+                      }
+                      if (widget.onSave != null) {
+                        setState(() => saving = true);
+                        final failure = await widget.onSave!(step);
+                        if (!mounted) return;
+                        setState(() => saving = false);
+                        if (failure != null) {
+                          setState(() => issue = failure);
+                          return;
+                        }
+                      }
+                      setState(() => applying = true);
+                      if (context.mounted) Navigator.pop(context, step);
+                    },
+              child: Text(
+                saving
+                    ? '저장 중…'
+                    : widget.onSave == null
+                    ? '초안에 적용'
+                    : '매뉴얼 저장',
+              ),
             ),
           ),
         ],
@@ -955,6 +1068,8 @@ class _ActivityEditorState extends State<_ActivityEditor> {
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
+              if (widget.previewOnly)
+                const Information('공개 샘플에서는 이 화면에서만 바뀌어요. 새로고침하면 원래 내용으로 돌아가요.'),
               Text(
                 'TAP · ${widget.groupTitle.isEmpty ? '(이름 없음)' : widget.groupTitle}',
                 style: const TextStyle(fontSize: 13, color: AppColors.muted),
@@ -1033,8 +1148,10 @@ class _ActivityEditorState extends State<_ActivityEditor> {
                 }),
               ),
               const SizedBox(height: 20),
-              const Information(
-                '초안에 적용한 뒤 목록 화면에서 저장해 주세요. 시간·온도·용량 같은 실제 기준은 우리 매장 레시피와 장비 설명서에 맞춰 적어요.',
+              Information(
+                widget.onSave == null
+                    ? '초안에 적용한 뒤 목록 화면에서 저장해 주세요. 시간·온도·용량 같은 실제 기준은 우리 매장 레시피와 장비 설명서에 맞춰 적어요.'
+                    : '이 Task의 매뉴얼만 바꿔요. 이미 시작한 업무의 기록은 유지돼요.',
               ),
             ],
           ),

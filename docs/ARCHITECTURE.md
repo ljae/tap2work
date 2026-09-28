@@ -2,6 +2,8 @@
 
 최종 수정: 2026-09-28. 이 문서는 **현재 구현의 구조와 변경 규칙**을 관리한다. 제품 결정의 원본은 [project-state.json](project-state.json), 제품 범위는 [PRODUCT.md](../PRODUCT.md)다. 새 화면은 [공통 UI 규칙](TOSS_UI_PROMPT_TEMPLATE.md)과 [스크린샷 참조 기록](REFERENCE_REDESIGN_2026-09-28.md)을 함께 읽고 만든다. 미구현 기능을 구현된 것으로 취급하지 않는다.
 
+설정값과 화면 진입·저장·파생 화면의 연결은 [UI_SETTINGS_RELATIONSHIP_MAP.md](UI_SETTINGS_RELATIONSHIP_MAP.md)에 관리한다. 연결 변경은 해당 표와 `npm run check:ui-links` 및 관련 실행 테스트를 함께 갱신한다. 임시 `AUTO_SAMPLE_STORE=true` 진입은 샘플 owner를 열고, `false`에서 인증 진입을 복원한다. 공개 사이트 샘플의 입력은 저장되지 않으며 인증 매장 저장과 구별한다.
+
 ## 제품 구조
 
 | 주요 메뉴 | 책임 | 하위 기능 |
