@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 92,
+  "revision": 93,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4012,7 +4012,19 @@
         "developer/test/cloud.test.mjs",
         "app/assets/branding/generate_brand.py"
       ]
+    },
+    {
+      "at": "2026-09-28T12:23:42.217702+00:00",
+      "type": "verification",
+      "title": "Payroll, saved cloud workspace entry and transparent logo deployed",
+      "detail": "Source release 0b3e7c73f139fb107c204b8e5fe79219a9940891 deployed through GitHub Pages. Local Git metadata remains read-only; reviewed files were committed via GitHub Git Trees/Commits API against the expected parent with force:false. This documentation-only follow-up does not modify deployed code.",
+      "verification": "GitHub run 36421100297 succeeded: JS checks, 90 server tests, Flutter analysis, 120 Flutter tests, public web build and Pages deployment. Local app and site builds passed. Live main.dart.js and PNG returned HTTP 200; bundle contains save_payroll_settings, sign-in, monthStartDay and includeWeeklyRest; downloaded logo exactly matches transparent local RGBA PNG, outer alpha=0. Supabase operations deployed and anonymous GET returns 401. Independent cloud-read/stale-revision tests pass with mocked Supabase storage. Real test-account roundtrip was not performed due to command-environment DNS failure before account creation. Native builds not performed.",
+      "release": {
+        "commit": "0b3e7c73f139fb107c204b8e5fe79219a9940891",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36421100297",
+        "site": "https://tap2.work"
+      }
     }
   ],
-  "updatedAt": "2026-09-28T12:18:28.820302+00:00"
+  "updatedAt": "2026-09-28T12:23:42.217702+00:00"
 }
