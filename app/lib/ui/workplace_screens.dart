@@ -56,42 +56,44 @@ class SettingRow extends StatelessWidget {
   final Widget? trailing;
   final Color color;
   @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(16),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, color: color, size: 24),
-            const SizedBox(width: 16),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppText.body.copyWith(fontWeight: FontWeight.w700),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 4),
-                  Text(subtitle!, style: AppText.caption),
+  Widget build(BuildContext context) => PressBounce(
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+        child: Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: color, size: 24),
+              const SizedBox(width: 16),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppText.body.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(subtitle!, style: AppText.caption),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          if (trailing != null) ...[
-            const SizedBox(width: 8),
-            trailing!,
-          ] else if (onTap != null)
-            const Icon(
-              CupertinoIcons.chevron_right,
-              size: 18,
-              color: AppColors.muted,
-            ),
-        ],
+            if (trailing != null) ...[
+              const SizedBox(width: 8),
+              trailing!,
+            ] else if (onTap != null)
+              const Icon(
+                CupertinoIcons.chevron_right,
+                size: 18,
+                color: AppColors.muted,
+              ),
+          ],
+        ),
       ),
     ),
   );
@@ -374,7 +376,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       Navigator.pop(context);
       return;
     }
-    final discard = await showDialog<bool>(
+    final discard = await showAppDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('변경을 버릴까요?'),
@@ -517,6 +519,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       children: [
         for (var d = 1; d <= 7; d++)
           ChoiceChip(
+            chipAnimationStyle: AppMotion.chipStyle(context),
             label: Text(const ['월', '화', '수', '목', '금', '토', '일'][d - 1]),
             selected: weekday == d,
             onSelected: saving || dirty
@@ -728,6 +731,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         children: [
           for (final e in {'manager': '점장', 'cook': '조리', 'crew': '크루'}.entries)
             ChoiceChip(
+              chipAnimationStyle: AppMotion.chipStyle(context),
               label: Text(e.value),
               selected: role == e.key,
               onSelected: saving || dirty
@@ -788,6 +792,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       children: [
         for (final part in parts.where((p) => p['hidden'] != true))
           FilterChip(
+            chipAnimationStyle: AppMotion.chipStyle(context),
             label: Text(part['name']),
             selected: partIds.contains(part['id']),
             onSelected: (v) => update(() {
@@ -802,6 +807,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       children: [
         for (final name in ['오픈', '미들', '마감'])
           FilterChip(
+            chipAnimationStyle: AppMotion.chipStyle(context),
             label: Text(name),
             selected: bands.contains(name),
             onSelected: (v) => update(() {
@@ -902,6 +908,9 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                             ? null
                             : () => showModalBottomSheet<void>(
                                 context: context,
+                                sheetAnimationStyle: AppMotion.panelStyle(
+                                  context,
+                                ),
                                 showDragHandle: true,
                                 builder: (c) => SafeArea(
                                   child: Padding(

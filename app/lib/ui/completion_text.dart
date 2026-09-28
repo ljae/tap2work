@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_motion.dart';
 
 /// Plays only when a successful local completion supplies a new trigger.
 class CompletionText extends StatefulWidget {
@@ -28,7 +29,7 @@ class _CompletionTextState extends State<CompletionText>
     super.initState();
     controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 440),
+      duration: AppMotion.completion,
       value: widget.trigger == null ? 1 : 0,
     );
     if (widget.trigger != null) {

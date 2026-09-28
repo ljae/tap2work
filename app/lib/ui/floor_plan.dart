@@ -685,7 +685,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
     if (ops.busy) return;
     final discard =
         !dirty ||
-        await showDialog<bool>(
+        await showAppDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
                 title: const Text('배치 변경을 취소할까요?'),
@@ -838,7 +838,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
   }
 
   Future<void> reload() async {
-    final yes = await showDialog<bool>(
+    final yes = await showAppDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('최신 배치를 불러올까요?'),
@@ -887,7 +887,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
         }
       }
     }
-    final result = await showDialog<Json>(
+    final result = await showAppDialog<Json>(
       context: context,
       builder: (_) =>
           _ItemDialog(item: item, layout: layout, initialSpot: spot),
@@ -906,7 +906,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
   }
 
   Future<void> dimensions() async {
-    final result = await showDialog<Json>(
+    final result = await showAppDialog<Json>(
       context: context,
       builder: (_) => _DimensionsDialog(layout: layout),
     );
@@ -1100,6 +1100,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                       children: [
                         for (final z in zones)
                           ChoiceChip(
+                            chipAnimationStyle: AppMotion.chipStyle(context),
                             label: Text(z['name']),
                             selected: selected == z['id'],
                             onSelected: (_) =>
@@ -1259,6 +1260,7 @@ class _ItemDialogState extends State<_ItemDialog> {
                   children: [
                     for (final preset in ['냉장고', '가스레인지', '오븐', '식기세척기', '포스기'])
                       ActionChip(
+                        chipAnimationStyle: AppMotion.chipStyle(context),
                         label: Text(preset),
                         onPressed: () => name.text = preset,
                       ),

@@ -38,59 +38,71 @@ class _StaffWorkspaceState extends State<StaffWorkspace> {
         ),
       ),
       const SizedBox(height: 16),
-      if (section == 'schedule') CalendarScreen(operations: widget.ops),
-      if (widget.ops.isOwner && section != 'pay')
-        Builder(
-          builder: (context) {
-            final weeks = (widget.ops.data?['labor']?['weeks'] as List? ?? [])
-                .cast<Json>();
-            final day =
-                DateTime.tryParse(widget.ops.data?['day'] ?? '') ??
-                DateTime.now();
-            final monday = laborDate(
-              day.subtract(Duration(days: day.weekday - 1)),
-            );
-            final week = weeks.where((w) => w['week'] == monday).firstOrNull;
-            final people = (week?['people'] as List? ?? []).cast<Json>();
-            final count = people.fold<int>(
-              0,
-              (n, p) => n + (p['planned']['alerts'] as List).length,
-            );
-            return count == 0
-                ? const SizedBox.shrink()
-                : Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(
-                        CupertinoIcons.bell,
-                        color: AppColors.accent,
-                      ),
-                      title: Text('이번 주 수당 확인 $count건'),
-                      trailing: const Icon(CupertinoIcons.chevron_right),
-                      onTap: () => setState(() => section = 'pay'),
-                    ),
+      AppContentTransition(
+        trigger: section,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (section == 'schedule') CalendarScreen(operations: widget.ops),
+            if (widget.ops.isOwner && section != 'pay')
+              Builder(
+                builder: (context) {
+                  final weeks =
+                      (widget.ops.data?['labor']?['weeks'] as List? ?? [])
+                          .cast<Json>();
+                  final day =
+                      DateTime.tryParse(widget.ops.data?['day'] ?? '') ??
+                      DateTime.now();
+                  final monday = laborDate(
+                    day.subtract(Duration(days: day.weekday - 1)),
                   );
-          },
-        ),
-      if (section == 'people') TeamScreen(operations: widget.ops),
-      if (section == 'pay') LaborPanel(ops: widget.ops),
-      if (section == 'learning') ...[
-        const Information('첫 근무 연습과 버디 확인은 각각 기록돼요.'),
-        const SizedBox(height: 12),
-        PressBounce(
-          child: OutlinedButton.icon(
-            icon: const Icon(CupertinoIcons.book),
-            label: const Text('첫 근무 가이드 열기'),
-            onPressed: () => Navigator.of(context).push(
-              AppPageRoute<void>(
-                builder: (_) => WorkspaceScreen(controller: widget.work),
+                  final week = weeks
+                      .where((w) => w['week'] == monday)
+                      .firstOrNull;
+                  final people = (week?['people'] as List? ?? []).cast<Json>();
+                  final count = people.fold<int>(
+                    0,
+                    (n, p) => n + (p['planned']['alerts'] as List).length,
+                  );
+                  return count == 0
+                      ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(
+                              CupertinoIcons.bell,
+                              color: AppColors.accent,
+                            ),
+                            title: Text('이번 주 수당 확인 $count건'),
+                            trailing: const Icon(CupertinoIcons.chevron_right),
+                            onTap: () => setState(() => section = 'pay'),
+                          ),
+                        );
+                },
               ),
-            ),
-          ),
+            if (section == 'people') TeamScreen(operations: widget.ops),
+            if (section == 'pay') LaborPanel(ops: widget.ops),
+            if (section == 'learning') ...[
+              const Information('첫 근무 연습과 버디 확인은 각각 기록돼요.'),
+              const SizedBox(height: 12),
+              PressBounce(
+                child: OutlinedButton.icon(
+                  icon: const Icon(CupertinoIcons.book),
+                  label: const Text('첫 근무 가이드 열기'),
+                  onPressed: () => Navigator.of(context).push(
+                    AppPageRoute<void>(
+                      reduceMotion: AppMotion.reduced(context),
+                      builder: (_) => WorkspaceScreen(controller: widget.work),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            if (section == 'hiring') HiringDrafts(ops: widget.ops),
+          ],
         ),
-      ],
-      if (section == 'hiring') HiringDrafts(ops: widget.ops),
+      ),
     ],
   );
 }
@@ -385,6 +397,7 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
               children: [
                 for (var day = 1; day <= 7; day++)
                   FilterChip(
+                    chipAnimationStyle: AppMotion.chipStyle(context),
                     label: Text(
                       const ['월', '화', '수', '목', '금', '토', '일'][day - 1],
                     ),

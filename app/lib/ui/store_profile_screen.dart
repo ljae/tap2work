@@ -250,6 +250,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     children: [
       for (final entry in options.entries)
         FilterChip(
+          chipAnimationStyle: AppMotion.chipStyle(context),
           label: Text(entry.value),
           selected: selected.contains(entry.key),
           onSelected: (_) => changed(entry.key),
@@ -548,6 +549,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
           children: [
             for (var day = 1; day <= 7; day++)
               FilterChip(
+                chipAnimationStyle: AppMotion.chipStyle(context),
                 label: Text(const ['월', '화', '수', '목', '금', '토', '일'][day - 1]),
                 selected: selected.contains(day),
                 onSelected: (_) => update(() {

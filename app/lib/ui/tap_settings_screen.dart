@@ -352,6 +352,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                   children: [
                     for (var d = 1; d <= 7; d++)
                       FilterChip(
+                        chipAnimationStyle: AppMotion.chipStyle(context),
                         label: Text(days[d - 1]),
                         selected: weekdays.contains(d),
                         onSelected: (_) => update(() {

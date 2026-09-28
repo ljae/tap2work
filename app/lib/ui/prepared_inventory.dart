@@ -38,7 +38,7 @@ class PreparedInventory extends StatelessWidget {
             )['id'];
     String zone = item?['zone'] ?? ops.rows('zones').first['id'];
     final revision = ops.data?['revision'];
-    final accepted = await showDialog<bool>(
+    final accepted = await showAppDialog<bool>(
       context: context,
       builder: (dialog) => StatefulBuilder(
         builder: (dialog, set) => AlertDialog(
@@ -183,7 +183,7 @@ class PreparedInventory extends StatelessWidget {
     final number = TextEditingController(text: '${item['onHand']}');
     final reason = TextEditingController();
     final revision = ops.data?['revision'];
-    final saved = await showDialog<bool>(
+    final saved = await showAppDialog<bool>(
       context: context,
       builder: (dialog) => AlertDialog(
         title: Text('${item['name']} 실제 수량 확인'),

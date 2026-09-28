@@ -27,9 +27,7 @@ Future<void> showChecklistLibrary(
   String? importError;
   await showModalBottomSheet<void>(
     context: context,
-    sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
-        ? AnimationStyle.noAnimation
-        : null,
+    sheetAnimationStyle: AppMotion.panelStyle(context),
     isScrollControlled: true,
     useSafeArea: true,
     builder: (sheetContext) => StatefulBuilder(

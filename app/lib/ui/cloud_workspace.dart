@@ -200,7 +200,7 @@ class _WorkspaceSetup extends StatelessWidget {
 
 Future<void> openAccount(BuildContext context, SupabaseClient client) async {
   if (client.auth.currentUser != null) {
-    final logout = await showDialog<bool>(
+    final logout = await showAppDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('내 계정'),
@@ -223,7 +223,7 @@ Future<void> openAccount(BuildContext context, SupabaseClient client) async {
     );
     if (logout == true) await client.auth.signOut();
   } else {
-    await showDialog<void>(
+    await showAppDialog<void>(
       context: context,
       builder: (_) => _SignInDialog(client: client),
     );
@@ -373,7 +373,7 @@ class _SignInDialogState extends State<_SignInDialog> {
                         const SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(
+                          child: AppCircularProgress(
                             strokeWidth: 2,
                             color: AppColors.surface,
                           ),

@@ -106,7 +106,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
 
   Future<bool> discard() async =>
       !dirty ||
-      await showDialog<bool>(
+      await showAppDialog<bool>(
             context: context,
             builder: (c) => AlertDialog(
               title: const Text('편집을 취소할까요?'),
@@ -235,6 +235,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                             )['folderId'] = f['id'],
                           ),
                           builder: (context, candidates, rejected) => InputChip(
+                            chipAnimationStyle: AppMotion.chipStyle(context),
                             avatar: const Icon(Icons.folder_outlined, size: 18),
                             backgroundColor: candidates.isNotEmpty
                                 ? AppColors.lime
@@ -677,9 +678,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
         : _copy(task);
     final result = await showModalBottomSheet<Json>(
       context: context,
-      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
-          ? AnimationStyle.noAnimation
-          : null,
+      sheetAnimationStyle: AppMotion.panelStyle(context),
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => _GroupSheet(
@@ -902,7 +901,7 @@ class _ActivityEditorState extends State<_ActivityEditor> {
     canPop: applying || !dirty,
     onPopInvokedWithResult: (didPop, result) async {
       if (didPop) return;
-      final discard = await showDialog<bool>(
+      final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
           title: const Text('매뉴얼 편집을 취소할까요?'),

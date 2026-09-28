@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'design_tokens.dart';
+import 'app_motion.dart';
+export 'app_motion.dart';
 
 /// Paint-only feedback keeps the button's original focus, semantics and gesture.
 class PressBounce extends StatefulWidget {
@@ -21,7 +23,18 @@ class _PressBounceState extends State<PressBounce> {
   @override
   Widget build(BuildContext context) {
     final child = widget.child;
-    final enabled = child is! ButtonStyleButton || child.enabled;
+    if (AppMotionScope.contains(context) &&
+        (child is ButtonStyleButton || child is IconButton)) {
+      return child;
+    }
+    final enabled = switch (child) {
+      ButtonStyleButton button => button.enabled,
+      IconButton button => button.onPressed != null,
+      ChoiceChip chip => chip.onSelected != null,
+      FilterChip chip => chip.onSelected != null,
+      InkWell ink => ink.onTap != null || ink.onLongPress != null,
+      _ => true,
+    };
     final reduce = MediaQuery.disableAnimationsOf(context);
     return Listener(
       onPointerDown: enabled
@@ -47,7 +60,7 @@ class _PressBounceState extends State<PressBounce> {
       child: AnimatedContainer(
         duration: reduce
             ? Duration.zero
-            : Duration(milliseconds: pressed ? 70 : 360),
+            : (pressed ? AppMotion.press : AppMotion.release),
         curve: pressed ? Curves.easeOut : Curves.easeOutBack,
         transformAlignment: Alignment.center,
         transform: Matrix4.diagonal3Values(
@@ -80,9 +93,7 @@ Future<T?> showAppSheet<T>(
     borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
   ),
   clipBehavior: Clip.antiAlias,
-  sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
-      ? AnimationStyle.noAnimation
-      : null,
+  sheetAnimationStyle: AppMotion.panelStyle(context),
   builder: (context) => FractionallySizedBox(
     heightFactor: .92,
     child: Column(
@@ -107,7 +118,18 @@ Future<T?> showAppSheet<T>(
 );
 
 class AppPageRoute<T> extends CupertinoPageRoute<T> {
-  AppPageRoute({required super.builder, super.settings});
+  AppPageRoute({
+    required super.builder,
+    super.settings,
+    this.reduceMotion = false,
+  });
+  final bool reduceMotion;
+  @override
+  Duration get transitionDuration =>
+      reduceMotion ? Duration.zero : AppMotion.sheet;
+  @override
+  Duration get reverseTransitionDuration =>
+      reduceMotion ? Duration.zero : AppMotion.exit;
   @override
   Widget buildTransitions(
     BuildContext context,

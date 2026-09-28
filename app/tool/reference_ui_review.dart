@@ -83,6 +83,9 @@ void main() {
       await tester.pumpAndSettle();
       await capture('work-${width.toInt()}');
       await tester.tap(find.byKey(const ValueKey('floating-menu-3')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 60));
+      await capture('store-transition-${width.toInt()}');
       await tester.pumpAndSettle();
       await capture('store-${width.toInt()}');
       await tester.ensureVisible(find.text('매장 설정'));

@@ -316,7 +316,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         });
       }
     }
-    final command = await showDialog<Json>(
+    final command = await showAppDialog<Json>(
       context: context,
       builder: (context) => SimpleDialog(
         title: const Text('이동 위치'),
@@ -799,6 +799,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         ),
                       if (scopeGroup != null || scopeTap != null)
                         InputChip(
+                          chipAnimationStyle: AppMotion.chipStyle(context),
                           label: Text(
                             scopeTap == null
                                 ? '${folders.where((f) => f['id'] == scopeGroup).firstOrNull?['name'] ?? 'TAP그룹'}'
@@ -862,12 +863,18 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                               children: [
                                 SizedBox(width: 340, child: directory()),
                                 const VerticalDivider(width: 1),
-                                Expanded(child: content()),
+                                Expanded(
+                                  child: AppContentTransition(
+                                    trigger: (scopeGroup, scopeTap),
+                                    child: content(),
+                                  ),
+                                ),
                               ],
                             )
-                          : showTree
-                          ? directory()
-                          : content(),
+                          : AppContentTransition(
+                              trigger: (showTree, scopeGroup, scopeTap),
+                              child: showTree ? directory() : content(),
+                            ),
                     ),
                   ),
                 ],

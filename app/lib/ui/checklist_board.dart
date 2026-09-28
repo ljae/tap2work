@@ -121,6 +121,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
+                    chipAnimationStyle: AppMotion.chipStyle(context),
                     label: Text(
                       remaining(s) == 0 ? s : '$s ${remaining(s)}',
                       style: const TextStyle(fontSize: 13),
@@ -140,6 +141,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
           children: [
             if (!ops.isLeader)
               FilterChip(
+                chipAnimationStyle: AppMotion.chipStyle(context),
                 label: const Text('내 담당만'),
                 selected: mineOnly,
                 onSelected: (v) => setState(() => mineOnly = v),
@@ -150,6 +152,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                 ...folders,
               ])
                 ChoiceChip(
+                  chipAnimationStyle: AppMotion.chipStyle(context),
                   label: Text(f['name']),
                   selected: folder == f['id'],
                   onSelected: (_) => setState(() => folder = f['id']),
@@ -215,7 +218,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
       notice('${by?['name'] ?? '동료'}님이 확인한 활동은 본인이나 매니저만 되돌릴 수 있어요.');
       return;
     }
-    final confirm = await showDialog<bool>(
+    final confirm = await showAppDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('확인을 되돌릴까요?'),
@@ -386,7 +389,8 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                       height: 48,
                       alignment: Alignment.center,
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
+                        duration: AppMotion.duration(context, AppMotion.quick),
+                        curve: AppMotion.enterCurve,
                         width: 34,
                         height: 34,
                         decoration: BoxDecoration(
@@ -586,7 +590,7 @@ class _Progress extends StatelessWidget {
         const SizedBox(height: 10),
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
+          child: AppLinearProgress(
             value: total == 0 ? 0 : done / total,
             minHeight: 10,
             backgroundColor: AppColors.surface,
@@ -608,7 +612,7 @@ class _Ring extends StatelessWidget {
     child: Stack(
       alignment: Alignment.center,
       children: [
-        CircularProgressIndicator(
+        AppCircularProgress(
           value: total == 0 ? 0 : done / total,
           strokeWidth: 4,
           backgroundColor: AppColors.line,

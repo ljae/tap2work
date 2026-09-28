@@ -196,7 +196,7 @@ class TapCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: LinearProgressIndicator(
+                          child: AppLinearProgress(
                             value: progress,
                             minHeight: 5,
                             semanticsLabel: '$done/$total 활동 완료',

@@ -495,6 +495,7 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
                       DateTime.parse(widget.week).add(Duration(days: i)),
                     );
                     return FilterChip(
+                      chipAnimationStyle: AppMotion.chipStyle(context),
                       label: Text(
                         '${const ['월', '화', '수', '목', '금', '토', '일'][i]} ${d.substring(5)}',
                       ),

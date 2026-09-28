@@ -88,9 +88,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   Future<void> openManual(Json row) async {
     await showModalBottomSheet<void>(
       context: context,
-      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
-          ? AnimationStyle.noAnimation
-          : null,
+      sheetAnimationStyle: AppMotion.panelStyle(context),
       isScrollControlled: true,
       showDragHandle: true,
       builder: (context) => SafeArea(
@@ -465,7 +463,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 ),
               ),
             ),
-            if (ops.busy) const LinearProgressIndicator(minHeight: 2),
+            if (ops.busy) const AppLinearProgress(minHeight: 2),
             if (ops.error != null)
               MaterialBanner(
                 content: Text(ops.error!, style: const TextStyle(fontSize: 13)),
@@ -502,47 +500,53 @@ class _OperationsScreenState extends State<OperationsScreen> {
               manualSearchBar(),
             ],
             Expanded(
-              child: ops.data == null
-                  ? Center(
-                      child: ops.error == null
-                          ? const WorkspaceSkeleton()
-                          : PressBounce(
-                              child: OutlinedButton(
-                                onPressed: () => ops.refresh(),
-                                child: const Text('매장 다시 연결'),
+              child: AppContentTransition(
+                trigger: (tab, manualQuery.trim().isNotEmpty, ops.data == null),
+                child: ops.data == null
+                    ? Center(
+                        child: ops.error == null
+                            ? const WorkspaceSkeleton()
+                            : PressBounce(
+                                child: OutlinedButton(
+                                  onPressed: () => ops.refresh(),
+                                  child: const Text('매장 다시 연결'),
+                                ),
                               ),
-                            ),
-                    )
-                  : tab == 1
-                  ? ManualWorkspace(ops: ops, query: manualQuery)
-                  : manualQuery.trim().isNotEmpty
-                  ? manualResultList()
-                  : RefreshIndicator(
-                      onRefresh: () => ops.refresh(),
-                      child: SingleChildScrollView(
-                        key: ValueKey(tab),
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 1240),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ...switch (tab) {
-                                  0 => tasks(),
-                                  1 => const <Widget>[],
-                                  2 => [
-                                    StaffWorkspace(ops: ops, work: widget.work),
-                                  ],
-                                  _ => storeHome(),
-                                },
-                              ],
+                      )
+                    : tab == 1
+                    ? ManualWorkspace(ops: ops, query: manualQuery)
+                    : manualQuery.trim().isNotEmpty
+                    ? manualResultList()
+                    : RefreshIndicator(
+                        onRefresh: () => ops.refresh(),
+                        child: SingleChildScrollView(
+                          key: ValueKey(tab),
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 1240),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ...switch (tab) {
+                                    0 => tasks(),
+                                    1 => const <Widget>[],
+                                    2 => [
+                                      StaffWorkspace(
+                                        ops: ops,
+                                        work: widget.work,
+                                      ),
+                                    ],
+                                    _ => storeHome(),
+                                  },
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
+              ),
             ),
           ],
         ),

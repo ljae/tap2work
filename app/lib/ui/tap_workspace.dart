@@ -61,7 +61,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         }
       }
     });
-    celebrationTimer = Timer(const Duration(milliseconds: 520), () {
+    celebrationTimer = Timer(AppMotion.completionHold, () {
       if (!mounted) return;
       setState(() {
         celebratedStepId = null;
@@ -419,6 +419,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               children: [
                 if (!ops.isLeader)
                   FilterChip(
+                    chipAnimationStyle: AppMotion.chipStyle(context),
                     label: const Text('내 담당만'),
                     selected: mineOnly,
                     onSelected: (v) => setState(() => mineOnly = v),
@@ -488,7 +489,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               key: const ValueKey('tap-body-transition'),
               duration: MediaQuery.disableAnimationsOf(context)
                   ? Duration.zero
-                  : const Duration(milliseconds: 360),
+                  : AppMotion.sheet,
               switchInCurve: Curves.easeOutCubic,
               switchOutCurve: Curves.easeInCubic,
               layoutBuilder: (current, previous) =>
@@ -653,7 +654,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: LinearProgressIndicator(
+                        child: AppLinearProgress(
                           value: progress,
                           minHeight: 5,
                           color: complete
@@ -1133,6 +1134,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           spacing: 8,
           children: [
             ChoiceChip(
+              chipAnimationStyle: AppMotion.chipStyle(context),
               label: const Text('전체 파트'),
               selected: selectedPart == null,
               onSelected: (_) => setState(() => selectedPart = null),
@@ -1141,6 +1143,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               ops,
             ).where((p) => p['hidden'] != true))
               ChoiceChip(
+                chipAnimationStyle: AppMotion.chipStyle(context),
                 label: Text(part['name']),
                 selected: selectedPart == part['id'],
                 onSelected: (_) => setState(() => selectedPart = part['id']),
@@ -1193,9 +1196,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           {
             showModalBottomSheet<void>(
               context: context,
-              sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
-                  ? AnimationStyle.noAnimation
-                  : null,
+              sheetAnimationStyle: AppMotion.panelStyle(context),
               isScrollControlled: true,
               showDragHandle: true,
               builder: (context) => SafeArea(
@@ -1508,7 +1509,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         notice('확인한 본인이나 사장님·매니저만 되돌릴 수 있어요.');
         return;
       }
-      final confirmed = await showDialog<bool>(
+      final confirmed = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
           title: const Text('완료를 되돌릴까요?'),

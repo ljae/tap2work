@@ -106,6 +106,7 @@ class _TeamScreenState extends State<TeamScreen> {
                           ops,
                         ).where((p) => p['hidden'] != true))
                           FilterChip(
+                            chipAnimationStyle: AppMotion.chipStyle(context),
                             label: Text(part['name']),
                             selected: duties.contains(part['id']),
                             onSelected: (v) => update(() {
@@ -744,6 +745,7 @@ class _TeamScreenState extends State<TeamScreen> {
                 runSpacing: 8,
                 children: [
                   ChoiceChip(
+                    chipAnimationStyle: AppMotion.chipStyle(context),
                     label: const Text('전체 파트'),
                     selected: selectedPart == null,
                     onSelected: (_) => setState(() => selectedPart = null),
@@ -752,6 +754,7 @@ class _TeamScreenState extends State<TeamScreen> {
                     ops,
                   ).where((p) => p['hidden'] != true))
                     ChoiceChip(
+                      chipAnimationStyle: AppMotion.chipStyle(context),
                       label: Text(part['name']),
                       selected: selectedPart == part['id'],
                       onSelected: (_) =>

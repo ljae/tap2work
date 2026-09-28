@@ -269,7 +269,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
   Future<void> archive(String action, Json row, String label) async {
     final revision = ops.data?['revision'] as int?;
     if (revision == null) return;
-    final yes = await showDialog<bool>(
+    final yes = await showAppDialog<bool>(
       context: context,
       builder: (dialog) => AlertDialog(
         title: Text('$label 보관'),
@@ -296,7 +296,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
   Future<void> startBlank() async {
     final revision = ops.data?['revision'] as int?;
     if (revision == null) return;
-    final yes = await showDialog<bool>(
+    final yes = await showAppDialog<bool>(
       context: context,
       builder: (dialog) => AlertDialog(
         title: const Text('빈 매장으로 시작'),

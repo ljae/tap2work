@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'design_tokens.dart';
 export 'design_tokens.dart';
 export 'design_system.dart';
+import 'design_system.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -238,43 +239,49 @@ class FloatingMenu extends StatelessWidget {
                       child: Semantics(
                         selected: i == selectedIndex,
                         button: true,
-                        child: InkWell(
-                          key: ValueKey('floating-menu-$i'),
-                          onTap: () => onSelected(i),
-                          borderRadius: BorderRadius.circular(17),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 180),
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: i == selectedIndex
-                                  ? AppColors.elevated
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(17),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  items[i].icon,
-                                  size: 21,
-                                  color: i == selectedIndex
-                                      ? AppColors.ink
-                                      : AppColors.muted,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  items[i].label,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
+                        child: PressBounce(
+                          child: InkWell(
+                            key: ValueKey('floating-menu-$i'),
+                            onTap: () => onSelected(i),
+                            borderRadius: BorderRadius.circular(17),
+                            child: AnimatedContainer(
+                              duration: AppMotion.duration(
+                                context,
+                                AppMotion.quick,
+                              ),
+                              curve: AppMotion.enterCurve,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: i == selectedIndex
+                                    ? AppColors.elevated
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(17),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    items[i].icon,
+                                    size: 21,
                                     color: i == selectedIndex
                                         ? AppColors.ink
                                         : AppColors.muted,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    items[i].label,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: i == selectedIndex
+                                          ? AppColors.ink
+                                          : AppColors.muted,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -513,6 +520,7 @@ class AppPillField<T> extends StatelessWidget {
             children: [
               for (final item in items ?? <DropdownMenuItem<T>>[])
                 ChoiceChip(
+                  chipAnimationStyle: AppMotion.chipStyle(context),
                   label: item.child,
                   selected: item.value == initialValue,
                   onSelected: onChanged == null || !item.enabled
@@ -548,6 +556,7 @@ class AppSegmented<T> extends StatelessWidget {
     children: [
       for (final segment in segments)
         ChoiceChip(
+          chipAnimationStyle: AppMotion.chipStyle(context),
           label: segment.label ?? const SizedBox(),
           avatar: segment.icon,
           selected: selected.contains(segment.value),
@@ -578,6 +587,7 @@ class AppChoiceGroup<T> extends StatelessWidget {
     children: [
       for (final value in values)
         ChoiceChip(
+          chipAnimationStyle: AppMotion.chipStyle(context),
           label: Text(labelOf(value)),
           selected: selected == value,
           onSelected: (_) => onSelected(value),

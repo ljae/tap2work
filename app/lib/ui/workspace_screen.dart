@@ -36,41 +36,44 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       ),
       body: SafeArea(
         top: false,
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: SingleChildScrollView(
-              key: ValueKey('page-$selected-${work.role.name}'),
-              padding: const EdgeInsets.fromLTRB(24, 4, 24, 36),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      '체험 버전 · 가상 매장 · 이 기기에만 저장돼요',
-                      style: TextStyle(fontSize: 13, color: AppColors.muted),
+        child: AppContentTransition(
+          trigger: (selected, work.role),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: SingleChildScrollView(
+                key: ValueKey('page-$selected-${work.role.name}'),
+                padding: const EdgeInsets.fromLTRB(24, 4, 24, 36),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        '체험 버전 · 가상 매장 · 이 기기에만 저장돼요',
+                        style: TextStyle(fontSize: 13, color: AppColors.muted),
+                      ),
                     ),
-                  ),
-                  if (work.storageWarning != null) ...[
-                    Information(work.storageWarning!),
-                    gap,
+                    if (work.storageWarning != null) ...[
+                      Information(work.storageWarning!),
+                      gap,
+                    ],
+                    ...switch (selected) {
+                      0 => work.role == DemoRole.buddy ? _buddy() : _today(),
+                      1 => _learning(),
+                      2 => _shifts(),
+                      _ => _team(),
+                    },
+                    const SizedBox(height: 28),
+                    const Center(
+                      child: Text(
+                        '한 번에 하나씩, 함께 배워요.',
+                        style: TextStyle(fontSize: 13, color: AppColors.muted),
+                      ),
+                    ),
                   ],
-                  ...switch (selected) {
-                    0 => work.role == DemoRole.buddy ? _buddy() : _today(),
-                    1 => _learning(),
-                    2 => _shifts(),
-                    _ => _team(),
-                  },
-                  const SizedBox(height: 28),
-                  const Center(
-                    child: Text(
-                      '한 번에 하나씩, 함께 배워요.',
-                      style: TextStyle(fontSize: 13, color: AppColors.muted),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -164,7 +167,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             Row(
               children: [
                 Expanded(
-                  child: LinearProgressIndicator(
+                  child: AppLinearProgress(
                     value: work.approved.length / lessons.length,
                     color: AppColors.lime,
                     backgroundColor: const Color(0xFF536B5D),
@@ -511,9 +514,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     final practiced = work.practiced.contains(lesson.id);
     await showModalBottomSheet<void>(
       context: context,
-      sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
-          ? AnimationStyle.noAnimation
-          : null,
+      sheetAnimationStyle: AppMotion.panelStyle(context),
       isScrollControlled: true,
       showDragHandle: true,
       useSafeArea: true,
@@ -622,7 +623,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
   }
 
   Future<void> _help() async {
-    final result = await showDialog<bool>(
+    final result = await showAppDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('버디와 같이 봐요.'),
@@ -661,7 +662,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       setState(() => selected = 0);
       work.switchRole(action == 'buddy' ? DemoRole.buddy : DemoRole.worker);
     } else if (action == 'about') {
-      await showDialog<void>(
+      await showAppDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('함께 시작하는 첫 근무'),
@@ -679,7 +680,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
         ),
       );
     } else if (action == 'reset') {
-      final reset = await showDialog<bool>(
+      final reset = await showAppDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('체험 기록을 초기화할까요?'),

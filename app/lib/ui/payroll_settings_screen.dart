@@ -42,7 +42,7 @@ class _PayrollSettingsScreenState extends State<PayrollSettingsScreen> {
   Future<void> close() async {
     if (saving) return;
     if (dirty) {
-      final discard = await showDialog<bool>(
+      final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
           title: const Text('변경을 버릴까요?'),

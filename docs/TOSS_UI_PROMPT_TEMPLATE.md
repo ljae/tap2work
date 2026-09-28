@@ -39,6 +39,8 @@ Flutter 앱 tap2work의 UI를 다음 공통 규칙으로 구현한다.
 
 ## 코드 연결
 
+- `app_motion.dart`, [MOTION_GUIDE.md](MOTION_GUIDE.md): 전역 버튼·화면 전환·시트·확인창·진행률 모션. 새 화면도 공통 정책과 동작 줄이기를 적용한다. 아래 기존 press 규칙의 복원 시간은 공통 토큰을 따른다.
+
 - `app/lib/ui/design_tokens.dart`: AppColors, AppSpacing, AppText, appCardShadow
 - `app/lib/ui/design_system.dart`: PressBounce, showAppSheet, AppPageRoute, WorkspaceSkeleton
 - `app/lib/ui/components.dart`: Surface, PageHeading, 공통 헤더·하단 메뉴

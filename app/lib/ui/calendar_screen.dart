@@ -134,6 +134,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         children: [
                           for (var d = 1; d <= 7; d++)
                             FilterChip(
+                              chipAnimationStyle: AppMotion.chipStyle(context),
                               label: Text(weekdays[d - 1]),
                               selected: days.contains(d),
                               onSelected: (v) => update(() {
@@ -640,12 +641,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
             spacing: 8,
             children: [
               ChoiceChip(
+                chipAnimationStyle: AppMotion.chipStyle(context),
                 label: const Text('전체 파트'),
                 selected: model.partId == null,
                 onSelected: (_) => model.selectPart(null),
               ),
               for (final part in model.parts)
                 ChoiceChip(
+                  chipAnimationStyle: AppMotion.chipStyle(context),
                   label: Text(part.name),
                   selected: model.partId == part.id,
                   onSelected: (_) => model.selectPart(part.id),

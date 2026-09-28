@@ -457,7 +457,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                   space(7),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(3),
-                    child: LinearProgressIndicator(
+                    child: AppLinearProgress(
                       value: maximum == 0 ? 0 : (menu[field] as num) / maximum,
                       minHeight: 5,
                       color: index == 0
@@ -536,7 +536,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                             Icons.chat_bubble_outline,
                             color: AppColors.accent,
                           ),
-                          onPressed: () => showDialog<void>(
+                          onPressed: () => showAppDialog<void>(
                             context: context,
                             builder: (_) => AlertDialog(
                               title: const Text('주문 요청사항'),

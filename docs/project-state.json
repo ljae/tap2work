@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 93,
+  "revision": 94,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -498,6 +498,16 @@
       "reason": "Explicit user request on 2026-09-28",
       "source": "User screenshot and follow-up instructions",
       "updatedAt": "2026-09-28T12:18:28.820302+00:00"
+    },
+    {
+      "id": "D-050",
+      "category": "UI motion",
+      "title": "App-wide Toss-inspired interaction motion",
+      "status": "confirmed",
+      "decision": "Apply consistent motion to buttons, selectors, primary and nested navigation, sheets, dialogs, loading and confirmed progress. Keep reduced-motion support, draft protection and server-confirmed completion. Motion tokens and scope are maintained in docs/MOTION_GUIDE.md.",
+      "reason": "Explicit user request to use flutter-animating-apps and the Toss consumer UX guide throughout UI/UX.",
+      "source": "User links: nexu-io/open-design flutter-animating-apps and Toss consumer-ux-guide",
+      "updatedAt": "2026-09-28T12:36:22.371433+00:00"
     }
   ],
   "milestones": [
@@ -4024,7 +4034,29 @@
         "workflow": "https://github.com/ljae/tap2work/actions/runs/36421100297",
         "site": "https://tap2.work"
       }
+    },
+    {
+      "at": "2026-09-28T12:36:22.371433+00:00",
+      "type": "implementation",
+      "title": "Shared motion system across Flutter UI",
+      "detail": "Previous: isolated press/sheet/completion effects with inconsistent dialog, navigation, chip and progress motion. Next: AppMotion tokens, global state-driven button feedback, current-only content transition, all dialog/sheet entry points using shared styles, chip timing and accessible progress. The requested OpenDesign skill is a catalogue; its named upstream is absent from flutter/skills main. Read it and applied the installed flutter-animations workflow/references as fallback. Specific durations are product choices, not official Toss timings. Existing palette, transparent logo, Supabase persistence and completion-success boundary preserved.",
+      "verification": "Flutter analyze passed. flutter test test tool/reference_ui_review.dart: 125 passed (124 regression tests plus one capture); checks cover pointer/keyboard activation, no duplicate bounce, rapid navigation, polling, mid-animation reduced motion, loading semantics, progress and zero-duration dialogs. npm run check and public build passed. 390/1200px transition and settled captures inspected. Initial progress semantics formatting and keyboard timing expectation failures were corrected. Local app build passed; Pages deployment pending. Native devices/frame performance not measured.",
+      "changes": [
+        {
+          "previous": "Screen-specific motion timing and partial reduced-motion coverage",
+          "next": "Shared motion policy for all implemented interaction families",
+          "reason": "User requested consistent Toss-style effects across UI/UX"
+        }
+      ],
+      "files": [
+        "app/lib/ui/app_motion.dart",
+        "app/lib/ui/design_system.dart",
+        "app/lib/ui/components.dart",
+        "app/test/app_motion_test.dart",
+        "docs/MOTION_GUIDE.md",
+        "docs/ARCHITECTURE.md"
+      ]
     }
   ],
-  "updatedAt": "2026-09-28T12:23:42.217702+00:00"
+  "updatedAt": "2026-09-28T12:36:22.371433+00:00"
 }
