@@ -37,3 +37,10 @@ Validation completed:
 - Initial failures: old white-card expectation, lazy-list test scrolling, lazily captured editor revision, and analyzer brace lint. These were corrected. A remaining white manual panel found during visual inspection was corrected.
 
 Native builds, physical-device checks, authenticated real-account writes and production deployment were not performed. The broader reference feature rollout remains in progress because real invitations, secure documents and clock verification need integration work.
+
+
+## Part-centric follow-up and deployment · 2026-09-28
+
+The later user request supersedes the earlier role-mapping editor and folder filters described above. Parts now directly classify tasks, crew and shifts. The third destination is 근무표 with a calendar icon; crew is the shared product term. The weekly grid fixes the left time axis and groups part columns under each weekday, derives requirements from business hours and supports dated time overrides, assignment, repeat shifts and unassignment. All form and workspace selectors use shared pills. Order processing is hidden until the owner enables its setting; external systems remain explicitly unconnected. The continuously maintained contract is [ARCHITECTURE.md](ARCHITECTURE.md).
+
+Final verification: 115 Flutter regression tests plus one bundled-font capture test (116 total), 85 server tests, clean Flutter analysis, JavaScript checks and both web builds. Phone and desktop schedule captures were inspected; weekday headings were aligned to remain visible on a phone and overlapping assignments retain readable widths. GitHub Pages release `936d9c919791c73a3931c73ebbfe439482c87d02` and Supabase operations deployed successfully. [Deployment workflow](https://github.com/ljae/tap2work/actions/runs/36417158071). Live root HTTP 200, new bundle feature markers, part-aware public sample and unauthenticated API 401 were verified. Native devices and authenticated writes involving real crew were not tested.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 90,
+  "revision": 91,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -581,13 +581,13 @@
       "id": "M-017",
       "title": "Screenshot-led UI and staff operations redesign",
       "status": "in_progress",
-      "description": "Implemented dark shared UI, preparation checklist, attendance card, staff profiles, parts and role filters, weekday time bands, server-enforced role restrictions and demo code/QR invitations. Flutter 117 and Node 81 tests passed; web build and phone/desktop captures verified. Real membership invitations, secure certificate storage, GPS/Wi-Fi verification, individual permission overrides and additional settlement policies remain unimplemented. No production deployment or native verification."
+      "description": "Shared screenshot-led dark UI, crew/part/time-band settings, permissions and demo code/QR invitations are implemented and deployed. Part-centric follow-up is completed in M-018. Real membership invitations, secure certificate storage, GPS/Wi-Fi verification, individual permission overrides and additional settlement policies remain unimplemented; native verification not performed."
     },
     {
       "id": "M-018",
       "title": "파트 중심 아키텍처·근무표·주문 보드 설정",
-      "status": "in_progress",
-      "description": "Implementation and regression checks complete; final visual/web checks and Pages deployment verification in progress. Server deployed. See docs/ARCHITECTURE.md for current boundaries and retained compatibility fields."
+      "status": "completed",
+      "description": "Implemented part-based architecture and schedule, dated slot overrides and crew assignment, shared pill selectors, opt-in order board, crew terminology, and living architecture documentation. Flutter analyze, 115 regression tests plus one bundled-font visual capture test, 85 server tests, JavaScript checks, local/public web builds and live deployment checks passed. Supabase operations and GitHub Pages deployed; https://tap2.work serves the new bundle. Native devices and real authenticated employee writes not tested."
     }
   ],
   "history": [
@@ -3953,7 +3953,24 @@
         "developer/task_settings.mjs"
       ],
       "verification": "Flutter analyze passed; full Flutter suite 115 passed; Node suite 85 passed; npm run check and git diff --check passed. Final text-label/layout refinement and bundled-font capture rerun in progress. Initial redirected commands hit sandbox SDK/port restrictions; standard commands ran all checks successfully. Initial stale UI expectations, monthly cell overflow and missing shared test helper references were fixed. Public build passed before final display refinement. Supabase operations deployed successfully; public Pages pending. Native devices and authenticated real-employee writes not tested."
+    },
+    {
+      "at": "2026-09-28T11:47:08.904016Z",
+      "type": "verification",
+      "title": "Part-based redesign verified and deployed to tap2.work",
+      "detail": "Final source release 936d9c919791c73a3931c73ebbfe439482c87d02 deployed successfully through GitHub Pages run 36417158071. Supabase operations function deployed with shared parts/workplace modules. Local dev server restarted; current local API exposes partModelVersion 1 and generated slots. Local .git/index.lock creation was denied by the filesystem policy, so only the reviewed 51 source files were committed via GitHub Git Trees/Commits API, with force:false and the expected main parent. Local source matches the release; local Git HEAD/index remain at the previous commit because that directory is read-only in this environment. This documentation-only follow-up records verification with [skip ci]; it does not change deployed application code.",
+      "verification": "Flutter analyze: no issues. flutter test test tool/reference_ui_review.dart: 116 passed (115 regression tests plus one capture test). npm run test:console: 85 passed, including custom part membership, task completion, date overrides/reset, stale revisions, overnight overlap, order toggle permissions and private pay. npm run check and git diff --check passed. npm run build:site and npm run build:app passed. 390/1200px bundled-font captures inspected; 320/390/1200px enlarged-text tests passed. GitHub Actions independently passed check, server tests, Flutter analyze/tests, public build and deploy. Live https://tap2.work returned 200; live bundle contains save_roster_slot, reset_roster_slot, save_order_system and roster-time-axis; live fresh sample has partModelVersion 1, generated slots and orderBoardEnabled false. Supabase unauthenticated GET returned 401. Native iOS/Android and real authenticated employee writes not performed.",
+      "files": [
+        "docs/ARCHITECTURE.md",
+        "docs/project-state.json",
+        "docs/REFERENCE_REDESIGN_2026-09-28.md"
+      ],
+      "release": {
+        "commit": "936d9c919791c73a3931c73ebbfe439482c87d02",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36417158071",
+        "site": "https://tap2.work"
+      }
     }
   ],
-  "updatedAt": "2026-09-28T11:39:30.932081Z"
+  "updatedAt": "2026-09-28T11:47:08.904016Z"
 }
