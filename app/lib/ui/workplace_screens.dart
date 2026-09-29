@@ -6,6 +6,15 @@ import 'package:flutter/services.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
 
+/// All hours entry points use the same draft, validation and save flow.
+Future<void> openWorkplaceHours(
+  BuildContext context,
+  OperationsController ops,
+) => showAppFormSheet<void>(
+  context: context,
+  builder: (_) => WorkplaceSettings(ops: ops, section: 'hours'),
+);
+
 const defaultParts = <Json>[
   {
     'id': 'kitchen',

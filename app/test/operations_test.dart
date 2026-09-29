@@ -102,6 +102,30 @@ http.Response response(Json value, [int code = 200]) => http.Response(
 );
 
 void main() {
+  testWidgets(
+    'Our Store hours opens the shared closed-day and staffing editor',
+    (tester) async {
+      final ops = OperationsController(
+        client: MockClient((_) async => response(sample())),
+      );
+      final work = WorkController(MemoryStore());
+      addTearDown(ops.dispose);
+      addTearDown(work.dispose);
+      await ops.refresh();
+      await tester.pumpWidget(Tap2workApp(controller: work, operations: ops));
+      await tester.tap(find.byKey(const ValueKey('floating-menu-3')));
+      await tester.pumpAndSettle();
+      final hours = find.text('영업시간 설정').last;
+      await tester.ensureVisible(hours);
+      await tester.tap(hours);
+      await tester.pumpAndSettle();
+      expect(find.text('영업시간·필요 인원'), findsOneWidget);
+      expect(find.text('1. 휴무일을 선택해 주세요'), findsOneWidget);
+      expect(find.text('3교대'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   test(
     'public review loads role samples and never submits mutations',
     () async {

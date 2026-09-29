@@ -214,4 +214,38 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  for (final size in [
+    (320.0, 1.0),
+    (390.0, 1.0),
+    (1200.0, 1.0),
+    (320.0, 1.5),
+  ]) {
+    testWidgets(
+      'calendar settings buttons align at $size and open shared hours',
+      (tester) async {
+        await calendar.mount(
+          tester,
+          width: size.$1,
+          scale: size.$2,
+          readOnly: false,
+        );
+        final crew = find.byKey(const ValueKey('calendar-crew-pattern-button'));
+        final hours = find.byKey(const ValueKey('calendar-hours-button'));
+        expect(tester.getSize(crew), tester.getSize(hours));
+        final a = tester.getRect(crew), b = tester.getRect(hours);
+        if (a.top == b.top) {
+          expect(b.left - a.right, 8);
+        } else {
+          expect(a.left, b.left);
+          expect(b.top - a.bottom, 8);
+        }
+        await tester.tap(hours);
+        await tester.pumpAndSettle();
+        expect(find.text('영업시간·필요 인원'), findsOneWidget);
+        expect(find.text('1. 휴무일을 선택해 주세요'), findsOneWidget);
+        expect(find.text('3교대'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 }

@@ -37,7 +37,7 @@ flowchart LR
 | --- | --- | --- | --- | --- |
 | S01 | `workplace.parts[]` | `workplace_screens.dart` 파트 관리 → `save_workplace_parts` | 업무 전체 파트/개별 파트 필터, 매뉴얼 폴더와 별개, 근무표 요일×파트 열, 크루 파트 선택 | `developer/test/workplace.test.mjs`, 근무표 테스트 |
 | S02 | `tappers[].workProfile.partIds[]`, `bands[]` | `workplace_screens.dart` 크루 프로필 → `save_staff_profile`; `team_screen.dart` 크루 편집 → `save_tapper` | 파트별 업무 수행 가능 여부, 근무표 배정 선택지, 크루 카드. 직책/권한과 분리 | `workplace.test.mjs`, `operations.test.mjs` |
-| S03 | `workplace.days[weekday][]` | 우리매장 영업시간·필요 인원 → `save_workplace_hours` (7일 원자 저장) | `rosterTemplates[]` 생성, 근무표 요일·파트별 기본 슬롯. 전체 영업시간 `store.profile.hours`는 호환 기본값 | `workplace.test.mjs`, `calendar_test.dart` |
+| S03 | `workplace.days[weekday][]` | 우리매장 > 영업시간 설정 / 준비 목록 / 프로필 운영 / 근무표 영업시간·인원 → `openWorkplaceHours` → `save_workplace_hours` (7일 원자 저장) | `rosterTemplates[]` 생성, 근무표 요일·파트별 기본 슬롯. 전체 영업시간 `store.profile.hours`는 호환 기본값 | `workplace.test.mjs`, `calendar_test.dart` |
 | S04 | `rosterOverrides[]` | 근무표 슬롯 클릭 → `save_roster_slot`, `reset_roster_slot` | 선택 날짜의 이름·시작/끝·숨김만 덮어쓰기; 고정 왼쪽 시간축에 반영 | `workplace.test.mjs`, `calendar_test.dart` |
 | S05 | `staffShifts[]`, `shiftPatterns[]` | 근무표 개별 배정 → `save_staff_shift`; 반복은 S28 | 주간/월간 근무표, 필요 슬롯 충족률, 인건비 계획. 출퇴근 기록과 구별 | `workplace.test.mjs`, `calendar_test.dart` |
 | S06 | `store.profile.orderSystem.enabled` | 우리매장 주문처리 시스템 토글 → `save_order_system` | 서버 `orderBoardEnabled`; ON일 때만 업무 주문처리 보드/주문 카드 표시. 주문 기록 유지 | `workplace.test.mjs`, 업무 화면 테스트 |
@@ -149,3 +149,5 @@ S27 드래그는 컬럼 전체에서 30분 경계에 맞춘 시작·끝과 반�
 휴대폰 상단을 간소화해 배정·영업시간 버튼을 우선 배치했다. 파트 관리는 우리매장과 영업시간 설정의 같은 상세 화면으로 연결한다. 영업시간 초안이 있으면 먼저 저장한 뒤 파트 관리로 이동한다.
 
 매뉴얼 편집 범위는 왼쪽 디렉토리 또는 오른쪽 Task 목록 중 하나다. 반대쪽을 길게 누르면 편집 범위를 전환한다. 왼쪽은 계층 들여쓰기·종류별 아이콘·펼치기를 유지하고 ⋯ 메뉴로 이동/이름/삭제한다. 트리 편집 중 Task 클릭은 선택만 하며 상세 시트를 열지 않는다. 휴대폰 디렉토리/매뉴얼 전환, 계정 변경, 권한 해제 시 편집을 종료한다.
+
+근무표 상단 배정/영업시간 버튼은 같은 최소 높이 56px·동일 폭·12px 여백을 사용한다. 최대 480px 영역 안에서 가용 폭과 글자 배율에 따라 2열 또는 동일 폭 세로 배치한다. `schedule_workflow_test.dart`는 320/390/1200px 및 확대 글자에서 실제 버튼 크기·간격과 공통 영업시간 시트 진입을 검사한다. 우리매장 메뉴는 `operations_test.dart`에서 같은 휴무/교대 폼 진입을 검증한다.

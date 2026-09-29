@@ -539,10 +539,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
         title: '영업시간·필요 인원',
         subtitle: '휴무일 → 교대 → 시간·인원',
         icon: CupertinoIcons.clock,
-        onTap: () => showAppFormSheet(
-          context: context,
-          builder: (_) => WorkplaceSettings(ops: widget.ops, section: 'hours'),
-        ),
+        onTap: () => openWorkplaceHours(context, widget.ops),
       ),
       SettingRow(
         title: '파트 관리',

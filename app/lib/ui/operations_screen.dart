@@ -655,10 +655,12 @@ class _OperationsScreenState extends State<OperationsScreen> {
     ),
   );
 
-  Future<void> openWorkplace(String section) => showAppSheet<void>(
-    context,
-    builder: (_) => WorkplaceSettings(ops: ops, section: section),
-  );
+  Future<void> openWorkplace(String section) => section == 'hours'
+      ? openWorkplaceHours(context, ops)
+      : showAppSheet<void>(
+          context,
+          builder: (_) => WorkplaceSettings(ops: ops, section: section),
+        );
 
   List<Widget> storeHome() {
     final profile = ops.data?['store']?['profile'] as Json? ?? {};
@@ -696,8 +698,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
       ),
       actionCard(
         CupertinoIcons.clock,
-        '영업 시간대',
-        '요일별 오픈 · 미들 · 마감',
+        '영업시간 설정',
+        '휴무일 · 교대 시간 · 파트별 필요 인원',
         () => openWorkplace('hours'),
       ),
       actionCard(

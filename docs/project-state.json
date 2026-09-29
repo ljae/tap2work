@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 109,
+  "revision": 110,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4512,7 +4512,22 @@
         "workflow": "https://github.com/ljae/tap2work/actions/runs/36576205023",
         "site": "https://tap2.work"
       }
+    },
+    {
+      "at": "2026-09-29T13:51:14.653960+00:00",
+      "type": "implementation",
+      "title": "Unify hours entry points and align calendar action buttons",
+      "detail": "Our Store label and description now match closed-day/shift/headcount editing. All hours entry points use openWorkplaceHours and the existing shared editor/save contract. Calendar buttons use matching 56px minimum height, equal widths and padding, switching to stacked layout at narrow widths or enlarged text. No data migration.",
+      "verification": "26 relevant widget tests plus six-screenshot capture harness passed; analyzer clean. Captured phone calendar inspected. Tests initially exposed readonly fixture hiding editable action and unequal wrapped-label heights; corrected fixture and narrow breakpoint. Asset test order timeout corrected by preserving original test ordering. 30 UI links passed. Deployment pending.",
+      "files": [
+        "app/lib/ui/calendar_screen.dart",
+        "app/lib/ui/workplace_screens.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/lib/ui/store_profile_screen.dart",
+        "app/test/schedule_workflow_test.dart",
+        "app/test/operations_test.dart"
+      ]
     }
   ],
-  "updatedAt": "2026-09-29T13:39:42.532332+00:00"
+  "updatedAt": "2026-09-29T13:51:14.653960+00:00"
 }

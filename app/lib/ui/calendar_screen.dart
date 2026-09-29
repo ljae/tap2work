@@ -790,7 +790,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           const Padding(
             padding: EdgeInsets.only(top: 16),
             child: Information(
-              '설정한 영업시간이 없어요. 우리매장 → 영업 시간대에서 요일별 시간을 설정해 주세요.',
+              '설정한 영업시간이 없어요. 우리매장 → 영업시간 설정에서 요일별 시간을 설정해 주세요.',
             ),
           ),
         const SizedBox(height: 12),
@@ -1010,29 +1010,72 @@ class _CalendarScreenState extends State<CalendarScreen> {
               style: AppText.caption,
             ),
           ),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            if (model.editable)
-              FilledButton.icon(
-                onPressed: () => showAppFormSheet(
-                  context: context,
-                  builder: (_) =>
-                      CrewPatternScreen(ops: ops, day: model.selected),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final scale = MediaQuery.textScalerOf(context).scale(13) / 13;
+              final paired =
+                  model.editable && constraints.maxWidth >= 360 * scale;
+              final width = paired
+                  ? (constraints.maxWidth - 8) / 2
+                  : constraints.maxWidth;
+              final style = ButtonStyle(
+                minimumSize: const WidgetStatePropertyAll(Size(48, 56)),
+                padding: const WidgetStatePropertyAll(
+                  EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 ),
-                icon: const Icon(Icons.people_outline),
-                label: const Text('크루별 근무 배정'),
-              ),
-            OutlinedButton.icon(
-              onPressed: () => showAppFormSheet(
-                context: context,
-                builder: (_) => WorkplaceSettings(ops: ops, section: 'hours'),
-              ),
-              icon: const Icon(Icons.schedule),
-              label: const Text('영업시간·인원'),
-            ),
-          ],
+                textStyle: WidgetStatePropertyAll(
+                  AppText.caption.copyWith(fontWeight: FontWeight.w700),
+                ),
+                iconSize: const WidgetStatePropertyAll(20),
+                alignment: Alignment.center,
+              );
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (model.editable)
+                    SizedBox(
+                      width: width,
+                      child: PressBounce(
+                        child: FilledButton.icon(
+                          key: const ValueKey('calendar-crew-pattern-button'),
+                          style: style,
+                          onPressed: () => showAppFormSheet(
+                            context: context,
+                            builder: (_) => CrewPatternScreen(
+                              ops: ops,
+                              day: model.selected,
+                            ),
+                          ),
+                          icon: const Icon(Icons.people_outline),
+                          label: const Text(
+                            '크루별 근무 배정',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                  SizedBox(
+                    width: width,
+                    child: PressBounce(
+                      child: OutlinedButton.icon(
+                        key: const ValueKey('calendar-hours-button'),
+                        style: style,
+                        onPressed: () => openWorkplaceHours(context, ops),
+                        icon: const Icon(Icons.schedule),
+                        label: const Text(
+                          '영업시간·인원',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
         const SizedBox(height: 16),
         Row(
