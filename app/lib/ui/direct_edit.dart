@@ -177,42 +177,55 @@ Future<String?> directEditName(
   String value, {
   String title = '이름 변경',
   int maxLength = 100,
-}) async {
-  final controller = TextEditingController(text: value);
-  final result = await showAppDialog<String>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(title),
-      content: TextField(
-        controller: controller,
-        autofocus: true,
-        maxLength: maxLength,
-        decoration: const InputDecoration(labelText: '이름'),
-        onSubmitted: (v) {
-          if (v.trim().isNotEmpty) Navigator.pop(context, v.trim());
-        },
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('취소'),
-        ),
-        FilledButton(
-          onPressed: () {
-            if (controller.text.trim().isNotEmpty) {
-              Navigator.pop(context, controller.text.trim());
-            }
-          },
-          child: const Text('저장'),
-        ),
-      ],
-    ),
-  );
-  // Route exit animation still owns the field until the next frame.
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    controller.dispose();
+}) => showAppDialog<String>(
+  context: context,
+  builder: (_) => _NameDialog(value: value, title: title, maxLength: maxLength),
+);
+
+class _NameDialog extends StatefulWidget {
+  const _NameDialog({
+    required this.value,
+    required this.title,
+    required this.maxLength,
   });
-  return result;
+  final String value, title;
+  final int maxLength;
+  @override
+  State<_NameDialog> createState() => _NameDialogState();
+}
+
+class _NameDialogState extends State<_NameDialog> {
+  late final controller = TextEditingController(text: widget.value);
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void save() {
+    if (controller.text.trim().isNotEmpty) {
+      Navigator.pop(context, controller.text.trim());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.title),
+    content: TextField(
+      controller: controller,
+      autofocus: true,
+      maxLength: widget.maxLength,
+      decoration: const InputDecoration(labelText: '이름'),
+      onSubmitted: (_) => save(),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('취소'),
+      ),
+      FilledButton(onPressed: save, child: const Text('저장')),
+    ],
+  );
 }
 
 Future<void> directEditNode(

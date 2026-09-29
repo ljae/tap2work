@@ -189,4 +189,32 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  testWidgets(
+    'name field survives dialog exit motion and disposes with its route',
+    (tester) async {
+      String? result;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async {
+                  result = await directEditName(context, '원래 이름');
+                },
+                child: const Text('열기'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('열기'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '수정 이름');
+      await tester.tap(find.widgetWithText(FilledButton, '저장'));
+      await tester.pump(const Duration(milliseconds: 30));
+      await tester.pumpAndSettle();
+      expect(result, '수정 이름');
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
