@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 101,
+  "revision": 102,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -513,11 +513,11 @@
       "id": "D-051",
       "category": "Entry and manual UX",
       "title": "Temporary automatic sample store and exact Task manual editing",
-      "status": "confirmed",
+      "status": "superseded",
       "decision": "Temporarily enter the owner sample store by default without showing sign-in. AUTO_SAMPLE_STORE=false restores the existing Supabase sign-in path. Public review samples remain read-only; local demo uses its separate local store. Manual > Task > Edit manual opens the exact templateId/sourceStepId editor, never the board editor. Maintain the settings/UI/action/consumer relationship map and check it when connections change.",
       "reason": "Explicit 2026-09-28 user request to temporarily disable login, fix the wrong manual edit destination and prevent future connection regressions.",
       "source": "User instruction, 2026-09-28",
-      "updatedAt": "2026-09-28T13:28:24.307Z"
+      "updatedAt": "2026-09-29T10:49:41.736Z"
     },
     {
       "id": "D-052",
@@ -538,6 +538,16 @@
       "reason": "2026-09-29 사용자 개선 요청과 두 질의에 대한 명시적 답변",
       "source": "사용자 요청 및 비동기 질의 답변 · 2026-09-29",
       "updatedAt": "2026-09-29T10:16:08.382590Z"
+    },
+    {
+      "id": "D-054",
+      "category": "인증·데이터·성능",
+      "title": "기존 매장의 임시 공용 로그인과 SSO 후속 전환",
+      "status": "confirmed",
+      "decision": "지정한 기존 계정의 매장을 모든 방문자가 조회·수정하도록 공개한다. 로그인 화면에 고정 아이디와 마스킹된 자동 인증 필드를 제공하고 로그인 버튼으로 서버에서 세션을 발급한다. 실제 비밀번호는 배포하지 않는다. 이후 방문은 세션을 복원하고 로그아웃은 현재 브라우저에만 적용한다. Google/Apple SSO는 앱 등록 시 진행한다. 기존 무로그인 읽기 전용 샘플 기본 진입을 대체한다.",
+      "reason": "사용자가 자동 입력·자동 로그인 및 기존 매장 공개를 각각 명시 승인했다.",
+      "source": "사용자 요청 및 기존 매장 공개 질의 답변 · 2026-09-29",
+      "updatedAt": "2026-09-29T10:49:41.736Z"
     }
   ],
   "milestones": [
@@ -4285,7 +4295,23 @@
         "supabase/migrations/20260929020000_public_login.sql",
         "docs/DATABASE_AND_PERFORMANCE.md"
       ]
+    },
+    {
+      "at": "2026-09-29T10:49:41.736Z",
+      "type": "verification",
+      "title": "Shared login and optimized web release verified on tap2.work",
+      "detail": "Source 9566197fa50acbe5a18682622a63e5087a614598 deployed by GitHub Pages run 36557542162. Earlier workflow cancelled after local-scope logout follow-up. Section storage and public-login Edge functions are live. D-054 supersedes D-051.",
+      "verification": "CI passed checks, Node tests, Flutter analysis/tests, public build and Pages deploy. Local full suite 143 Flutter / 101 Node passed; logout follow-up analysis and 3 targeted tests passed. Live Chrome at 390x844: login button 200, workspace 200 in 1086ms from click on unthrottled connection, reload restored workspace 200 without another public login request; 0 page errors. Login and saved-workspace screenshots visually inspected. Initial browser harness body retrieval failed; fixed harness to inspect status/rendered workspace, repeat succeeded. Controlled cold-cache Chrome 10Mbps/80ms/4x CPU, 3 runs: first-frame median 6889ms before vs 5893ms after (14.5% faster); initial resource transfer median 7820328 vs 6543884 bytes (16.3% less). First frame is not the same as saved-workspace readiness. SQL rollback integration rerun passed against live PostgreSQL; existing user content was not changed for testing. No native device tests or billing savings measurement performed.",
+      "release": {
+        "commit": "9566197fa50acbe5a18682622a63e5087a614598",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36557542162",
+        "site": "https://tap2.work"
+      },
+      "files": [
+        "docs/project-state.json",
+        "docs/DATABASE_AND_PERFORMANCE.md"
+      ]
     }
   ],
-  "updatedAt": "2026-09-29T10:44:45.410Z"
+  "updatedAt": "2026-09-29T10:49:41.736Z"
 }

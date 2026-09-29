@@ -69,3 +69,9 @@ HTML에서 main.dart.js와 글꼴을 먼저 요청하고 Chromium의 CanvasKit w
 사용자가 기존 계정 매장 공유를 승인했다. `public-login`은 서버 환경의 고정 이메일만 사용하고 기존 Auth 계정 확인 후 이메일 발송 없이 일회용 링크를 생성·검증한다. 응답은 no-store이며 Flutter가 세션을 저장한다. 방문자가 보낸 이메일/비밀번호는 사용하지 않는다. 모든 방문자가 계정 권한을 공유하므로 개인별 작업자를 식별할 수 없다.
 
 `TAP2WORK_PUBLIC_LOGIN_ENABLED=false`는 신규 공용 로그인만 차단한다. SSO 전환 시 이미 발급된 공유 계정 세션을 별도로 폐기하고 사용자별 멤버십을 구성한다. Google OAuth ID/secret, Apple Services ID/Team ID/Key ID 및 서명 키는 Supabase 관리 화면에 설정한다. callback은 프로젝트의 `/auth/v1/callback`. SSO 버튼은 `ENABLE_SSO` 플래그로 숨긴다.
+
+## 배포 실측
+
+2026-09-29 소스 `9566197` 배포 후 동일한 빈 캐시 Chrome 조건에서 각각 3회 측정했다. 첫 프레임 중앙값 6,889 → 5,893ms (14.5% 단축), 초기 리소스 전송 중앙값 7,820,328 → 6,543,884 bytes (16.3% 감소). 첫 프레임은 로그인/매장 데이터 준비 완료와 다르다. 별도 일반 연결에서 로그인 클릭 → 매장 응답 1,086ms, 새로고침 후 추가 공용 로그인 없이 매장 복원을 확인했다. 실제 청구 금액과 네이티브 성능은 측정하지 않았다.
+
+사전 Flutter 143개·Node 101개 테스트, SQL rollback 통합 검증과 CI 배포 검증을 통과했다. 공유 계정 로그아웃은 `SignOutScope.local`로 다른 방문자의 세션을 유지한다.
