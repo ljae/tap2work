@@ -36,9 +36,15 @@ void main() {
     final output = Directory('../.local/direct-edit-review')
       ..createSync(recursive: true);
     for (final width in [390.0, 1200.0]) {
-      for (final scene in ['work', 'task', 'manual', 'calendar']) {
+      for (final scene in [
+        'work',
+        'task',
+        'manual',
+        'manual-content',
+        'calendar',
+      ]) {
         tester.view.physicalSize = Size(width, 1000);
-        final data = scene == 'manual'
+        final data = scene.startsWith('manual')
             ? directoryData()
             : scene == 'calendar'
             ? calendarData()
@@ -50,7 +56,7 @@ void main() {
         final work = WorkController(MemoryStore());
         await ops.refresh();
         final key = GlobalKey();
-        final content = scene == 'manual'
+        final content = scene.startsWith('manual')
             ? ManualWorkspace(ops: ops, query: '')
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -83,11 +89,24 @@ void main() {
               .onOpen();
           await tester.pumpAndSettle();
         }
+        if (scene.startsWith('manual')) {
+          await tester.tap(find.byKey(const ValueKey('manual-node-tap:a')));
+          await tester.pumpAndSettle();
+          if (scene == 'manual-content' && width < 760) {
+            await tester.tap(find.text('매뉴얼 2'));
+            await tester.pumpAndSettle();
+          }
+        }
         final target = scene == 'work'
             ? find.byKey(const ValueKey('tap-daily-prep'))
             : scene == 'task'
             ? find.text('도구 나누기')
-            : scene == 'manual'
+            : scene == 'manual-content'
+            ? find.descendant(
+                of: find.byKey(const ValueKey('manual-results')),
+                matching: find.text('손 씻기'),
+              )
+            : scene.startsWith('manual')
             ? find.byKey(const ValueKey('manual-node-group:general'))
             : find.byKey(
                 const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0'),

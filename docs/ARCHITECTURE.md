@@ -170,3 +170,7 @@ TaskStepEditor는 원래 자리에서 포커스되는 제목·매뉴얼 입력�
 공휴일은 [holidays-kr](https://github.com/hyunbinseo/holidays-kr)의 공개 연도별 JSON을 날짜 정보만으로 읽는다. 월력요항 가공 자료의 출처와 MIT license를 번들에 보존한다. 캘린더에서만 비동기 조회하며 연도별 메모리 캐시와 번들 fallback을 사용해 최초 앱 로딩·매장 DB 비용에 추가하지 않는다. 실패 시 저장 달력 또는 미확인 표시, 공휴일 때문에 자동 휴무로 바꾸지 않는다. 2026-09-29 가져온 번들은 업데이트 시 갱신하며 런타임은 새로 열린 세션에서 최신 연도를 확인한다.
 
 다국어는 [개인 언어 계획](LOCALIZATION_PLAN.md)의 BCP-47 선호/유효 언어 계약과 기본 fallback만 준비했다. 실제 번역·언어 선택·다국어 초대 발송은 미구현이다.
+
+## 매뉴얼 영역별 직접 편집 · 2026-09-29
+
+`ManualWorkspace`의 편집 상태는 nullable directory/content 범위다. 한 영역만 흔들림과 편집 동작을 활성화한다. 디렉토리의 `DirectEditFrame(controls: false)`는 기존 트리 행을 감싸고, 행 안의 ⋯ 메뉴와 손잡이가 이동·이름·삭제를 담당한다. 들여쓰기와 종류별 아이콘/펼치기를 유지한다. 오른쪽 Task 카드 편집 모양은 유지한다. Task를 폴더에 드롭하면 그 폴더의 TAP을 고르는 UI를 거쳐 기존 `move_manual_node` 계약에 전달한다. Task를 폴더 직속에 저장하지 않는다. revision/actor 검증, 마지막 Task 보호, 실행 스냅샷 보존은 기존 서버 정책을 사용한다. 좁은 화면 영역 전환과 권한/계정 변경은 편집 상태를 종료한다.

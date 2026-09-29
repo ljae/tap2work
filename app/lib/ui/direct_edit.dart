@@ -16,9 +16,10 @@ class DirectEditFrame extends StatefulWidget {
     this.onMove,
     this.onSettings,
     this.controls = true,
+    this.outline = true,
   });
   final Widget child;
-  final bool enabled, active, controls;
+  final bool enabled, active, controls, outline;
   final VoidCallback onEnter;
   final VoidCallback? onRename, onDelete, onMove, onSettings;
   @override
@@ -87,7 +88,7 @@ class _DirectEditFrameState extends State<DirectEditFrame>
           position: DecorationPosition.foreground,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: active
+            border: active && widget.outline
                 ? Border.all(color: AppColors.green, width: 1.5)
                 : null,
           ),

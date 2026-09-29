@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 107,
+  "revision": 108,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4478,7 +4478,29 @@
         "docs/project-state.json",
         "docs/LOCALIZATION_PLAN.md"
       ]
+    },
+    {
+      "at": "2026-09-29T13:35:09.486359+00:00",
+      "type": "implementation",
+      "title": "Manual pane editing preserves folder hierarchy",
+      "detail": "User requested left-only hierarchy editing and right-only Task editing. Added exclusive directory/content edit scope; left keeps indented folder/TAP/Task rows and icons with compact inline menu/drag controls, no rectangular edit outline. Task drop on folder chooses its child TAP. Existing revision-checked move API and execution snapshots preserved. Phone pane switch, actor change and permission loss exit editing.",
+      "changes": [
+        {
+          "previous": "One edit flag activates both panes; per-row action bars turn hierarchy into cards",
+          "next": "Pane-specific edit state; tree rows keep hierarchy and compact controls; right card appearance retained",
+          "reason": "User requested independent editing and recognizable folder > TAP > Task structure"
+        }
+      ],
+      "verification": "15 targeted Flutter tests plus responsive capture harness passed; 10 font-loaded 390/1200 captures generated, wide tree/content inspected. Flutter analysis clean; npm check and 30 UI links passed; four manual-directory server tests passed. Initial tests caught narrow-width overflow and leaf alignment, fixed and rerun. Deployment pending; no native build or live data mutations.",
+      "files": [
+        "app/lib/ui/manual_workspace.dart",
+        "app/lib/ui/direct_edit.dart",
+        "app/test/manual_workspace_test.dart",
+        "app/tool/direct_edit_review.dart",
+        "docs/UI_SETTINGS_RELATIONSHIP_MAP.md",
+        "docs/ARCHITECTURE.md"
+      ]
     }
   ],
-  "updatedAt": "2026-09-29T12:43:31.961565Z"
+  "updatedAt": "2026-09-29T13:35:09.486359+00:00"
 }

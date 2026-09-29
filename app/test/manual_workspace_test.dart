@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:tap2work/state/operations_controller.dart';
 import 'package:tap2work/ui/manual_workspace.dart';
+import 'package:tap2work/ui/direct_edit.dart';
 import 'operations_test.dart' show sample, response;
 
 Json directoryData() {
@@ -106,6 +107,125 @@ Future<void> moveTask(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('editing keeps tree rows compact and isolates the two panes', (
+    tester,
+  ) async {
+    final ops = OperationsController(
+      readOnly: true,
+      client: MockClient((_) async => response(directoryData())),
+    );
+    addTearDown(ops.dispose);
+    await mount(tester, ops);
+    await click(tester, 'manual-node-tap:a');
+    final task = find.byKey(const ValueKey('manual-node-task:s1:a'));
+    final height = tester.getSize(task).height;
+    await tester.longPress(task);
+    await tester.pumpAndSettle();
+    DirectEditFrame frame(String key) =>
+        tester.widget<DirectEditFrame>(find.byKey(ValueKey(key)));
+    expect(frame('manual-tree-frame-task:s1:a').active, isTrue);
+    expect(frame('manual-tree-frame-task:s1:a').controls, isFalse);
+    expect(frame('manual-tree-frame-task:s1:a').outline, isFalse);
+    expect(frame('manual-content-frame-a/s1').active, isFalse);
+    expect(tester.getSize(task).height, height);
+    expect(
+      tester.getTopLeft(task).dx,
+      greaterThan(
+        tester.getTopLeft(find.byKey(const ValueKey('manual-node-tap:a'))).dx,
+      ),
+    );
+    await tester.tap(task);
+    await tester.pumpAndSettle();
+    expect(find.text('손 씻기 상세 매뉴얼'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('manual-actions-task:s1:a')));
+    await tester.pumpAndSettle();
+    expect(find.text('이름 변경'), findsOneWidget);
+    expect(find.text('삭제'), findsOneWidget);
+    await tester.tapAt(const Offset(1100, 20));
+    await tester.pumpAndSettle();
+    await tester.longPress(
+      find.descendant(
+        of: find.byKey(const ValueKey('manual-results')),
+        matching: find.text('손 씻기'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(frame('manual-tree-frame-task:s1:a').active, isFalse);
+    expect(frame('manual-content-frame-a/s1').active, isTrue);
+    expect(
+      find.byKey(const ValueKey('manual-actions-task:s1:a')),
+      findsNothing,
+    );
+    expect(find.byTooltip('이름 변경'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'dropping Task on folder selects a child TAP without flattening hierarchy',
+    (tester) async {
+      var posts = 0;
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((r) async {
+          if (r.method == 'POST') posts++;
+          return response(directoryData());
+        }),
+      );
+      addTearDown(ops.dispose);
+      await mount(tester, ops);
+      await click(tester, 'manual-node-tap:a');
+      await tester.longPress(
+        find.byKey(const ValueKey('manual-node-task:s1:a')),
+      );
+      await tester.pumpAndSettle();
+      final start = tester.getCenter(
+        find.byKey(const ValueKey('manual-drag-task:s1:a')),
+      );
+      final end = tester.getCenter(
+        find.byKey(const ValueKey('manual-node-group:close')),
+      );
+      await tester.dragFrom(start, end - start);
+      await tester.pumpAndSettle();
+      expect(find.text('이 폴더의 TAP 선택'), findsOneWidget);
+      await tester.tap(find.text('마감 / 정리 TAP · 맨 아래'));
+      await tester.pumpAndSettle();
+      await click(tester, 'manual-node-tap:b');
+      expect(
+        find.byKey(const ValueKey('manual-node-task:s1:b')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('manual-node-task:s1:a')), findsNothing);
+      expect(posts, 0);
+    },
+  );
+
+  testWidgets('phone tree edit menu fits and pane switch ends editing', (
+    tester,
+  ) async {
+    final ops = OperationsController(
+      readOnly: true,
+      client: MockClient((_) async => response(directoryData())),
+    );
+    addTearDown(ops.dispose);
+    await mount(tester, ops, width: 320);
+    await click(tester, 'manual-node-tap:a');
+    await tester.longPress(find.byKey(const ValueKey('manual-node-task:s1:a')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('매뉴얼 2'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<DirectEditFrame>(
+            find.byKey(const ValueKey('manual-content-frame-a/s1')),
+          )
+          .active,
+      isFalse,
+    );
+    expect(find.text('편집 완료'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Task manual edit opens exact step and previews without POST', (
     tester,
   ) async {
@@ -230,6 +350,8 @@ void main() {
     await moveTask(tester);
     await click(tester, 'manual-node-tap:b');
     expect(find.byKey(const ValueKey('manual-node-task:s1:a')), findsNothing);
+    await tester.tap(find.text('편집 완료'));
+    await tester.pumpAndSettle();
     await click(tester, 'manual-node-task:s1:b');
     expect(find.text('손 씻기 상세 매뉴얼'), findsOneWidget);
     expect(find.text('마감 / 정리 TAP / Task'), findsOneWidget);
