@@ -20,7 +20,7 @@ function page() {
     return nodes.get(id);
   }
   const context = {
-    document: { getElementById: node, querySelector: node },
+    document: { getElementById: node, querySelector: node, createElement: () => ({}), head: { appendChild() {} } },
     window: { addEventListener(event, callback) { listeners.set(event, callback); } },
     location: { reload() { reloads++; } },
     setTimeout(callback, delay) { const id = ++sequence; timers.set(id, { callback, delay }); return id; },

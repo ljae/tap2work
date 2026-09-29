@@ -11,6 +11,7 @@ import 'checklist_editor.dart';
 import 'tap_settings_screen.dart';
 import 'components.dart';
 import 'tap_card.dart';
+import 'task_step_editor.dart';
 import 'prepared_inventory.dart';
 
 /// TAP그룹 folders filter the TAP board; each TAP opens its Task.
@@ -27,6 +28,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   String? folderId, taskId;
   String? selectedPart;
   String? selectedStepId;
+  String? editingStepId;
+  bool addingStep = false;
+  bool get editing => editingStepId != null || addingStep;
   String? celebratedStepId, celebratedTaskId;
   int completionTick = 0;
   Timer? celebrationTimer;
@@ -100,9 +104,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     final order =
         previewStepOrder['${ops.actorId}/${ops.data?['day']}/${task['id']}'];
     if (order != null) {
-      result.sort(
-        (a, b) => order.indexOf(a['id']).compareTo(order.indexOf(b['id'])),
-      );
+      result.sort((a, b) {
+        final ai = order.indexOf(a['id']), bi = order.indexOf(b['id']);
+        return (ai < 0 ? order.length : ai).compareTo(
+          bi < 0 ? order.length : bi,
+        );
+      });
     }
     return result;
   }
@@ -158,7 +165,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
 
   bool visibleTask(Json task) =>
       !mineOnly ||
-      ops.isLeader ||
+      ops.canEditTasks ||
       task['requiredRole'] == 'all' ||
       task['requiredRole'] == ops.actor['role'];
   String estimatedDuration(Json task) {
@@ -343,6 +350,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       folderId = folder;
       taskId = task;
       selectedStepId = null;
+      editingStepId = null;
+      addingStep = false;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -383,7 +392,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           if (task != null) ...[
             PressBounce(
               child: TextButton.icon(
-                onPressed: () => navigate(folder: folderId),
+                onPressed: editing ? null : () => navigate(folder: folderId),
                 icon: const Icon(CupertinoIcons.chevron_back, size: 18),
                 label: const Text('TAP 목록으로'),
               ),
@@ -396,18 +405,20 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               padding: const EdgeInsets.only(top: 8),
               child: Information('요청사항 · ${task['customer_memo']}'),
             ),
-          if (task != null && ops.isLeader && task['templateId'] != null)
+          if (task != null && ops.canEditTasks && task['templateId'] != null)
             PressBounce(
               child: TextButton.icon(
-                onPressed: () => showAppSheet(
-                  context,
-                  builder: (_) => TapSettingsScreen(
-                    ops: ops,
-                    initialTemplateId: task['templateId'],
-                  ),
-                ),
+                onPressed: editing
+                    ? null
+                    : () => showAppSheet(
+                        context,
+                        builder: (_) => TapSettingsScreen(
+                          ops: ops,
+                          initialTemplateId: task['templateId'],
+                        ),
+                      ),
                 icon: const Icon(Icons.tune),
-                label: const Text('이 TAP 설정'),
+                label: const Text('TAP 편집'),
               ),
             ),
           if (task == null) const SizedBox(height: 4),
@@ -417,14 +428,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               runSpacing: 8,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                if (!ops.isLeader)
+                if (!ops.canEditTasks)
                   FilterChip(
                     chipAnimationStyle: AppMotion.chipStyle(context),
                     label: const Text('내 담당만'),
                     selected: mineOnly,
                     onSelected: (v) => setState(() => mineOnly = v),
                   ),
-                if (ops.isLeader)
+                if (ops.canEditTasks)
                   PressBounce(
                     child: TextButton.icon(
                       onPressed: ops.busy
@@ -443,19 +454,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                       label: const Text('보드 편집'),
                     ),
                   ),
-                if (ops.isLeader)
-                  PressBounce(
-                    child: TextButton.icon(
-                      onPressed: ops.busy
-                          ? null
-                          : () => showAppSheet(
-                              context,
-                              builder: (_) => TapSettingsScreen(ops: ops),
-                            ),
-                      icon: const Icon(Icons.tune),
-                      label: const Text('TAP 설정'),
-                    ),
-                  ),
               ],
             ),
           if (task == null) const SizedBox(height: 12),
@@ -463,18 +461,18 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           ...[
             if (task == null) ...[_folderBar(), const SizedBox(height: 16)],
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
               children: [
-                Expanded(
-                  child: Text(
-                    task != null
-                        ? 'Task · ${done(task)}/${total(task)} 완료'
-                        : 'TAP · ${folder == null ? '전체 업무' : '${folder['name']} 그룹'}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.muted,
-                    ),
+                Text(
+                  task != null
+                      ? 'Task · ${done(task)}/${total(task)} 완료'
+                      : 'TAP · ${folder == null ? '전체 업무' : '${folder['name']} 그룹'}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.muted,
                   ),
                 ),
                 if (ops.readOnly)
@@ -990,7 +988,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     final ownCompleted =
         task['completedAt'] != null &&
         task['completedBy']?['id'] == ops.actor['id'];
-    if (!ops.isLeader && task['canComplete'] != true && !ownCompleted) {
+    if (!ops.canEditTasks && task['canComplete'] != true && !ownCompleted) {
       notice('담당 Tap만 이동할 수 있어요.');
       return;
     }
@@ -1175,52 +1173,89 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     Widget card(Json step, int index) => Padding(
       key: ValueKey('sort-small-${step['id']}'),
       padding: const EdgeInsets.only(bottom: 8),
-      child: TapCard(
-        key: ValueKey('small-${step['id']}'),
-        completionTrigger: celebratedStepId == step['id']
-            ? completionTick
-            : null,
-        level: 'Task',
-        emoji: '✓',
-        title: step['title'],
-        subtitle: [
-          subtitleFor(step),
-          if (step['settings']?['estimatedMinutes'] is int &&
-              step['settings']['estimatedMinutes'] > 0)
-            '약 ${step['settings']['estimatedMinutes']}분',
-        ].where((text) => text.isNotEmpty).join(' · '),
+      child: editingStepId == step['id']
+          ? TaskStepEditor(
+              ops: ops,
+              task: task,
+              step: step,
+              onClose: () => setState(() => editingStepId = null),
+            )
+          : TapCard(
+              key: ValueKey('small-${step['id']}'),
+              completionTrigger: celebratedStepId == step['id']
+                  ? completionTick
+                  : null,
+              level: 'Task',
+              onEdit:
+                  !editing &&
+                      ops.canEditTasks &&
+                      task['completedAt'] == null &&
+                      step['completedAt'] == null &&
+                      task['preparedOutputMovementId'] == null
+                  ? () => setState(() {
+                      editingStepId = step['id'];
+                      addingStep = false;
+                    })
+                  : null,
+              dragHandle:
+                  !editing &&
+                      ops.canEditTasks &&
+                      task['settings']?['enforceSequence'] != true
+                  ? ReorderableDragStartListener(
+                      index: index,
+                      child: const SizedBox(
+                        width: 32,
+                        height: 48,
+                        child: Icon(Icons.drag_indicator),
+                      ),
+                    )
+                  : null,
+              emoji: '✓',
+              title: step['title'],
+              subtitle: [
+                subtitleFor(step),
+                if (step['settings']?['estimatedMinutes'] is int &&
+                    step['settings']['estimatedMinutes'] > 0)
+                  '약 ${step['settings']['estimatedMinutes']}분',
+              ].where((text) => text.isNotEmpty).join(' · '),
 
-        sequence: index + 1,
-        selected: selected?['id'] == step['id'],
-        onOpen: () {
-          setState(() => selectedStepId = step['id']);
-          {
-            showModalBottomSheet<void>(
-              context: context,
-              sheetAnimationStyle: AppMotion.panelStyle(context),
-              isScrollControlled: true,
-              showDragHandle: true,
-              builder: (context) => SafeArea(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: _manual(task, step),
-                ),
-              ),
-            );
-          }
-        },
-        checked: step['completedAt'] != null,
-        locked:
-            (step['canComplete'] ?? task['canComplete']) != true ||
-            task['preparedOutputMovementId'] != null,
-        onCheck: () {
-          setState(() => selectedStepId = step['id']);
-          _toggle(task, step);
-        },
-      ),
+              sequence: index + 1,
+              selected: selected?['id'] == step['id'],
+              onOpen: () {
+                setState(() => selectedStepId = step['id']);
+                {
+                  showModalBottomSheet<void>(
+                    context: context,
+                    sheetAnimationStyle: AppMotion.panelStyle(context),
+                    isScrollControlled: true,
+                    showDragHandle: true,
+                    builder: (context) => SafeArea(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: _manual(task, step),
+                      ),
+                    ),
+                  );
+                }
+              },
+              checked: step['completedAt'] != null,
+              locked:
+                  (step['canComplete'] ?? task['canComplete']) != true ||
+                  task['preparedOutputMovementId'] != null,
+              onCheck: editing
+                  ? null
+                  : () {
+                      setState(() => selectedStepId = step['id']);
+                      _toggle(task, step);
+                    },
+            ),
     );
-    Widget list = ops.isLeader && task['settings']?['enforceSequence'] != true
+    Widget list =
+        !editing &&
+            ops.canEditTasks &&
+            task['settings']?['enforceSequence'] != true
         ? ReorderableListView(
+            buildDefaultDragHandles: false,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             onReorder: (oldIndex, newIndex) async {
@@ -1251,7 +1286,38 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               for (final (index, step) in all.indexed) card(step, index),
             ],
           );
-    return list;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        list,
+        if (addingStep)
+          TaskStepEditor(
+            key: ValueKey('add-${task['id']}'),
+            ops: ops,
+            task: task,
+            onClose: () => setState(() => addingStep = false),
+          )
+        else if (ops.canEditTasks &&
+            task['completedAt'] == null &&
+            task['preparedOutputMovementId'] == null)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: PressBounce(
+              child: TextButton.icon(
+                key: const ValueKey('add-task-step'),
+                onPressed: editing || ops.busy || all.length >= 30
+                    ? null
+                    : () => setState(() {
+                        addingStep = true;
+                        editingStepId = null;
+                      }),
+                icon: const Icon(Icons.add),
+                label: const Text('Task 추가'),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   Widget _manual(Json task, Json step) => Column(
@@ -1284,7 +1350,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ],
           ),
         ),
-      if (ops.isLeader && step['completedAt'] == null)
+      if (ops.canEditTasks && step['completedAt'] == null)
         PressBounce(
           child: TextButton.icon(
             icon: const Icon(Icons.edit_outlined),
@@ -1506,7 +1572,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       return;
     }
     if (checked) {
-      if (!ops.isLeader && step['completedBy']?['id'] != ops.actor['id']) {
+      if (!ops.canEditTasks && step['completedBy']?['id'] != ops.actor['id']) {
         notice('확인한 본인이나 사장님·매니저만 되돌릴 수 있어요.');
         return;
       }

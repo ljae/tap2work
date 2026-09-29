@@ -47,15 +47,43 @@ Future<OperationsController> mountSettings(
 }
 
 void main() {
-  testWidgets('stale TAP link opens the available template', (tester) async {
+  testWidgets('stale TAP link never opens an unrelated template', (
+    tester,
+  ) async {
     await mountSettings(
       tester,
       (ops) =>
           TapSettingsScreen(ops: ops, initialTemplateId: 'removed-template'),
     );
     expect(tester.takeException(), isNull);
-    expect(find.text('매장 준비'), findsOneWidget);
+    expect(find.text('매장 준비'), findsNothing);
+    expect(find.textContaining('연결된 TAP 또는 Task를 찾지 못했어요.'), findsOneWidget);
   });
+
+  testWidgets(
+    'Task settings show only selected step without TAP-wide controls',
+    (tester) async {
+      final data = settingsFixture();
+      (data['taskTemplates'] as List).first['steps'].add({
+        'id': 'step-2',
+        'title': '형제 작업',
+      });
+      await mountSettings(
+        tester,
+        (ops) => TapSettingsScreen(
+          ops: ops,
+          initialTemplateId: 'tap-1',
+          initialStepId: 'step-1',
+        ),
+        data: data,
+      );
+      expect(find.text('Task 설정'), findsOneWidget);
+      expect(find.text('재료 확인'), findsOneWidget);
+      expect(find.text('형제 작업'), findsNothing);
+      expect(find.text('Task 순서대로 수행'), findsNothing);
+      expect(find.byKey(const ValueKey('tap-settings-template')), findsNothing);
+    },
+  );
 
   testWidgets('optional quantity target starts empty and accepts input', (
     tester,

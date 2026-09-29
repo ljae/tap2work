@@ -10,7 +10,15 @@ class RecommendedTapsScreen extends StatefulWidget {
 }
 
 class _RecommendedTapsScreenState extends State<RecommendedTapsScreen> {
-  late final int revision = widget.ops.data?['revision'] as int? ?? 0;
+  late final int revision;
+  late final String openingActor;
+  @override
+  void initState() {
+    super.initState();
+    revision = widget.ops.data?['revision'] as int? ?? 0;
+    openingActor = widget.ops.actorId;
+  }
+
   late final List<Json> rows = widget.ops
       .rows('recommendedTaps')
       .map((row) => {...row})
@@ -24,6 +32,13 @@ class _RecommendedTapsScreenState extends State<RecommendedTapsScreen> {
       saving = true;
       error = null;
     });
+    if (openingActor != widget.ops.actorId) {
+      setState(() {
+        saving = false;
+        error = '계정이 변경됐어요. 다시 열어 주세요.';
+      });
+      return;
+    }
     final ok = await widget.ops.act('import_recommended_taps', {
       'revision': revision,
       'ids': selected.toList(),

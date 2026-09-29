@@ -785,7 +785,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
 
   List<Widget> person() => [
     Text('${widget.person?['nickname']}', style: AppText.title),
-    section('파트 · 선택하지 않으면 전체'),
+    section('담당 파트 · 미선택 시 전체 파트 가능'),
     Wrap(
       spacing: 8,
       runSpacing: 8,

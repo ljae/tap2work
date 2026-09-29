@@ -39,7 +39,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
       'custom-${DateTime.now().microsecondsSinceEpoch}-${sequence++}';
 
   OperationsController get ops => widget.ops;
-  bool get enabled => ops.isLeader && ops.actorId == actor && !ops.busy;
+  bool get enabled => ops.canEditTasks && ops.actorId == actor && !ops.busy;
   List<String> get zoneIds =>
       ops.rows('zones').map((z) => z['id'] as String).toList();
 
@@ -896,8 +896,16 @@ class ManualTaskEditor extends StatefulWidget {
 }
 
 class _ManualTaskEditorState extends State<ManualTaskEditor> {
-  late final int openingRevision = widget.ops.data?['revision'] ?? -1;
-  late final String openingActor = widget.ops.actorId;
+  late final int openingRevision;
+  late final String openingActor;
+
+  @override
+  void initState() {
+    super.initState();
+    openingRevision = widget.ops.data?['revision'] ?? -1;
+    openingActor = widget.ops.actorId;
+  }
+
   late final Json? sourceTemplate = widget.ops
       .rows('taskTemplates')
       .where((t) => t['id'] == widget.templateId && t['archivedAt'] == null)
@@ -909,7 +917,7 @@ class _ManualTaskEditorState extends State<ManualTaskEditor> {
 
   Future<String?> save(Json draft) async {
     final ops = widget.ops;
-    if (!ops.isLeader || ops.actorId != openingActor || ops.busy) {
+    if (!ops.canEditTasks || ops.actorId != openingActor || ops.busy) {
       return '편집 권한 또는 매장이 변경됐어요. 다시 열어 주세요.';
     }
     if (ops.data?['revision'] != openingRevision) {

@@ -51,12 +51,13 @@ class _AppStartupState extends State<AppStartup> {
   }
 
   Future<Widget> initialize() async {
-    await work.initialize();
+    final initialization = work.initialize();
     final sharedApi = await sharedApiForWeb();
-    // Temporary sample-store entry. Set AUTO_SAMPLE_STORE=false to restore sign-in.
+    await initialization;
+    // Saved workspaces use Auth; explicit preview remains available separately.
     const autoSampleStore = bool.fromEnvironment(
       'AUTO_SAMPLE_STORE',
-      defaultValue: true,
+      defaultValue: false,
     );
     const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
     const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');

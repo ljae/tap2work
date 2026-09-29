@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 99,
+  "revision": 101,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -528,6 +528,16 @@
       "reason": "Explicit user request to improve manual/payroll bottom sheets and all weak UI, propagate better patterns globally, and improve waiting before entering the app.",
       "source": "User instruction · 2026-09-28",
       "updatedAt": "2026-09-28T14:13:33.136Z"
+    },
+    {
+      "id": "D-053",
+      "category": "업무·설정·UI",
+      "title": "TAP → Task → 매뉴얼 편집 범위와 직접 입력",
+      "status": "confirmed",
+      "decision": "업무 상단에는 보드 편집만 두고 TAP 편집은 해당 Task 목록 상단에 둔다. 권한이 있는 미완료 Task 제목을 클릭하면 커서와 직접 수정 입력을 제공하고 마지막 Task 아래 추가 버튼을 둔다. 사용자 질의 답변에 따라 오늘 선택한 미완료 실행과 연결된 기본 양식을 함께 갱신하고 완료 기록은 보존한다. 담당 파트 미선택은 전체 파트 가능을 유지하며 화면에 명시한다. 매뉴얼의 Task 설정은 선택 Task만 표시한다.",
+      "reason": "2026-09-29 사용자 개선 요청과 두 질의에 대한 명시적 답변",
+      "source": "사용자 요청 및 비동기 질의 답변 · 2026-09-29",
+      "updatedAt": "2026-09-29T10:16:08.382590Z"
     }
   ],
   "milestones": [
@@ -4196,7 +4206,86 @@
         "workflow": "https://github.com/ljae/tap2work/actions/runs/36434498122",
         "site": "https://tap2.work"
       }
+    },
+    {
+      "at": "2026-09-29T10:16:08.382590Z",
+      "type": "implementation",
+      "title": "Review settings relationships and align TAP/Task/manual controls",
+      "detail": "Added inline Task title/manual editor with focus, append action below final Task, revision/actor captured on opening, server save_task_step with source linkage and history, and in-memory preview without POST. Added server canEditTasks projection and enforced task-edit restrictions on ordering. Scoped TAP links and manual Task settings to exact IDs. Removed default reorder handles overlapping manual actions and duplicate inventory heading; wrap status labels and allow three title lines. Confirmed unspecified crew parts mean all parts. Updated source/control/action/consumer map, setting inheritance table and architecture. Existing unrelated workspace changes preserved.",
+      "changes": [
+        {
+          "previous": "Global TAP settings next to board edit; Task title always opens manual",
+          "next": "Board edit only at root; TAP edit inside selected Task list; editable titles focus inline and a separate manual control remains",
+          "reason": "User requested TAP > Task - manual structure and direct editing"
+        },
+        {
+          "previous": "No direct append; template editing and execution manual editing had different scopes",
+          "next": "Append below last Task and edit selected unfinished occurrence plus linked source; completed/other occurrences remain intact",
+          "reason": "User selected today unfinished work + base template"
+        },
+        {
+          "previous": "Crew empty parts interpreted as all without sufficiently explicit wording",
+          "next": "Same behavior explicitly labeled 미선택 시 전체 파트 가능",
+          "reason": "User confirmed keeping all-part eligibility"
+        },
+        {
+          "previous": "Missing TAP ID fell back to an unrelated available template; Task duration opened full TAP rules",
+          "next": "Missing target shows error; Task settings only display selected source step",
+          "reason": "Prevent mistaken edits and match navigation label to destination"
+        }
+      ],
+      "verification": "Flutter analyze passed. Full Flutter suite 141 passed; after retaining append drafts during task status refresh, targeted settings/inline/capture run 13 passed. Server suite 95 passed. npm run check, check:ui-links (22 links) and git diff --check passed. npm run build:app passed (Flutter web). Captured board/tasks/edit at 390/1200 with bundled fonts; phone Task list/editor and desktop Task list visually inspected. Enlarged text/keyboard/320px, original revision on conflict, forbidden manager/crew writes, completed siblings, KST rollover, 30-step cap and preview POST=0 tested. Initial revision test caught late initialization, fixed by initState. Previous stale-link fallback assertion intentionally replaced. Sandbox SDK telemetry/cache and local HTTP binding failures succeeded after authorized reruns. Public site/backend deployment and native device builds not performed.",
+      "files": [
+        "app/lib/ui/task_step_editor.dart",
+        "app/lib/ui/tap_workspace.dart",
+        "app/lib/ui/tap_card.dart",
+        "app/lib/ui/tap_settings_screen.dart",
+        "app/lib/ui/manual_workspace.dart",
+        "app/lib/ui/checklist_editor.dart",
+        "app/lib/ui/workplace_screens.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/lib/state/operations_controller.dart",
+        "developer/operations.mjs",
+        "developer/workplace.mjs",
+        "developer/test/checklists.test.mjs",
+        "app/test/task_inline_edit_test.dart",
+        "app/test/tap_workspace_test.dart",
+        "app/test/settings_screens_test.dart",
+        "app/tool/task_structure_review.dart",
+        "scripts/check-ui-links.mjs",
+        "docs/UI_SETTINGS_RELATIONSHIP_MAP.md",
+        "docs/ARCHITECTURE.md"
+      ]
+    },
+    {
+      "at": "2026-09-29T10:44:45.410Z",
+      "type": "implementation",
+      "title": "Public shared login, section storage and web loading optimization",
+      "detail": "User explicitly approved publishing the existing account workspace to all visitors. Fixed identity login uses server-only magiclink generation and verification without sending email or exposing a password. Persisted Supabase sessions provide subsequent automatic entry; SSO postponed to app registration. Domain documents replace whole-payload writes, indexed conditional RPC reads and active-only 30-second polling reduce work. Official variable Pretendard and preload reduce transfer. Editor opening revisions captured in initState.",
+      "changes": [
+        {
+          "previous": "D-051 automatic read-only sample entry",
+          "next": "One-click shared login to existing account workspace; explicit sample remains read-only",
+          "reason": "User requested fixed account login and confirmed existing workspace publication"
+        },
+        {
+          "previous": "5-second polling and whole JSON writes",
+          "next": "30-second foreground conditional polling and changed-section CAS writes",
+          "reason": "User requested loading, storage and cost optimization"
+        }
+      ],
+      "verification": "Flutter analysis clean; 143 Flutter tests and 101 Node tests passed. npm run check and 22 UI link checks passed. Section SQL integration tested against PostgreSQL in rolled-back transactions. Migrations and operations/public-login Edge functions deployed. Live public login, refresh token exchange and existing workspace read all returned 200. No existing user content edited for smoke testing. Web release pending. Native builds not performed.",
+      "files": [
+        "developer/public_login.mjs",
+        "developer/section_storage.mjs",
+        "developer/supabase_backend.mjs",
+        "app/lib/ui/cloud_workspace.dart",
+        "app/lib/state/operations_controller.dart",
+        "supabase/migrations/20260929010000_section_storage.sql",
+        "supabase/migrations/20260929020000_public_login.sql",
+        "docs/DATABASE_AND_PERFORMANCE.md"
+      ]
     }
   ],
-  "updatedAt": "2026-09-28T14:18:56.579Z"
+  "updatedAt": "2026-09-29T10:44:45.410Z"
 }

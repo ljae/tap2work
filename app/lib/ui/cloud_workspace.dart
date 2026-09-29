@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
+import '../data/auth_provider_repository.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../state/operations_controller.dart';
 import '../state/work_controller.dart';
 import 'components.dart';
@@ -24,6 +28,36 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   late OperationsController ops;
   StreamSubscription<AuthState>? subscription;
   String? userId;
+  bool preview = false;
+  bool signingIn = false;
+  String? loginError;
+  Future<void> publicLogin() async {
+    setState(() {
+      signingIn = true;
+      loginError = null;
+    });
+    try {
+      const url = String.fromEnvironment('SUPABASE_URL');
+      const key = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+      final response = await http
+          .post(
+            Uri.parse('$url/functions/v1/public-login'),
+            headers: {'apikey': key, 'Content-Type': 'application/json'},
+            body: '{}',
+          )
+          .timeout(const Duration(seconds: 20));
+      final body = jsonDecode(response.body) as Map;
+      if (response.statusCode != 200) {
+        throw StateError(body['error'] as String? ?? '로그인에 실패했어요.');
+      }
+      await widget.client.auth.setSession(body['refresh_token'] as String);
+    } catch (_) {
+      if (mounted) setState(() => loginError = '로그인하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      if (mounted) setState(() => signingIn = false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +70,7 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
       final previous = ops;
       setState(() {
         userId = next;
+        preview = false;
         ops = controller();
         if (userId != null) ops.start();
       });
@@ -44,7 +79,7 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   }
 
   OperationsController controller() => userId == null
-      ? OperationsController(sharedApi: widget.sharedApi)
+      ? OperationsController(readOnly: true)
       : OperationsController(
           readOnly: false,
           endpoint: Uri.parse(
@@ -69,12 +104,12 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: ops,
     builder: (context, _) => Tap2workApp(
-      key: ValueKey(userId ?? 'sign-in'),
+      key: ValueKey(userId ?? (preview ? 'preview' : 'sign-in')),
       controller: widget.work,
       operations: ops,
       onAccountPressed: (context) => openAccount(context, widget.client),
       accountEmail: widget.client.auth.currentUser?.email,
-      homeOverride: userId == null
+      homeOverride: userId == null && !preview
           ? Builder(
               builder: (context) => Scaffold(
                 body: SafeArea(
@@ -97,19 +132,31 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
                           ),
                           const SizedBox(height: 16),
                           const Text(
-                            '근무표, 업무, 매장 설정을 내 계정에 저장해요. 다른 기기로 접속해도 이어서 사용할 수 있어요.',
+                            '한 번 로그인하면 다음 방문부터 자동으로 연결돼요.',
                             style: TextStyle(
                               color: AppColors.muted,
                               height: 1.6,
                             ),
                           ),
                           const SizedBox(height: 32),
-                          PressBounce(
-                            child: FilledButton(
-                              onPressed: () =>
-                                  openAccount(context, widget.client),
-                              child: const Text('로그인 · 회원가입'),
-                            ),
+                          const PublicLoginFields(),
+                          const SizedBox(height: 16),
+                          const Text(
+                            '공용 계정의 기존 매장에 접속해요. 방문자가 같은 데이터를 보고 수정하며, 변경 내용은 함께 저장됩니다.',
+                            style: TextStyle(color: AppColors.muted),
+                          ),
+                          const SizedBox(height: 16),
+                          FilledButton(
+                            onPressed: signingIn ? null : publicLogin,
+                            child: Text(signingIn ? '로그인 중…' : '로그인'),
+                          ),
+                          if (loginError != null) Information(loginError!),
+                          TextButton(
+                            onPressed: () {
+                              setState(() => preview = true);
+                              ops.start();
+                            },
+                            child: const Text('저장 없이 샘플 둘러보기'),
                           ),
                         ],
                       ),
@@ -312,6 +359,12 @@ class _SignInDialogState extends State<_SignInDialog> {
               ),
             ),
             const SizedBox(height: 20),
+            if (const bool.fromEnvironment('ENABLE_SSO'))
+              SocialSignInButtons(
+                onSignIn: (provider) =>
+                    startSocialSignIn(widget.client, provider),
+              ),
+            const SizedBox(height: 20),
             if (signup) ...[
               TextField(
                 controller: name,
@@ -407,5 +460,125 @@ class _SignInDialogState extends State<_SignInDialog> {
         ),
       ),
     ),
+  );
+}
+
+Future<void> startSocialSignIn(
+  SupabaseClient client,
+  OAuthProvider provider,
+) async {
+  // Web callback is fixed; never propagate ?api, return URLs or OAuth fragments.
+  if (!kIsWeb) throw StateError('웹에서 계속해 주세요.');
+  final started = await client.auth.signInWithOAuth(
+    provider,
+    redirectTo: 'https://tap2.work/',
+  );
+  if (!started) throw StateError('로그인 페이지를 열지 못했어요.');
+}
+
+class SocialSignInButtons extends StatefulWidget {
+  const SocialSignInButtons({
+    super.key,
+    required this.onSignIn,
+    this.loadProviders = configuredSocialProviders,
+  });
+  final Future<Set<OAuthProvider>> Function() loadProviders;
+  final Future<void> Function(OAuthProvider) onSignIn;
+  @override
+  State<SocialSignInButtons> createState() => _SocialSignInButtonsState();
+}
+
+class _SocialSignInButtonsState extends State<SocialSignInButtons> {
+  Set<OAuthProvider>? providers;
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future<void> load() async {
+    try {
+      final value = await widget.loadProviders();
+      if (mounted) setState(() => providers = value);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          providers = {};
+          error = '로그인 연결 상태를 확인하지 못했어요. 이메일 로그인을 이용하거나 다시 열어 주세요.';
+        });
+      }
+    }
+  }
+
+  bool busy = false;
+  String? error;
+  Future<void> signIn(OAuthProvider provider) async {
+    if (busy) return;
+    setState(() {
+      busy = true;
+      error = null;
+    });
+    try {
+      await widget.onSignIn(provider);
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => error =
+              '로그인 연결을 확인해 주세요. 제공자 설정이 아직 완료되지 않았다면 이메일 로그인을 이용할 수 있어요.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      for (final provider in [OAuthProvider.google, OAuthProvider.apple]) ...[
+        PressBounce(
+          child: OutlinedButton(
+            onPressed: busy || providers?.contains(provider) != true
+                ? null
+                : () => signIn(provider),
+            child: Text(
+              provider == OAuthProvider.google ? 'Google로 계속하기' : 'Apple로 계속하기',
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
+      if (providers != null && providers!.length < 2)
+        const Text(
+          '소셜 로그인 연결 준비 중 · 이메일 로그인은 이용할 수 있어요.',
+          style: AppText.caption,
+        ),
+      if (error != null) Information(error!),
+    ],
+  );
+}
+
+class PublicLoginFields extends StatelessWidget {
+  const PublicLoginFields({super.key});
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      TextFormField(
+        initialValue: 'ljae.m10@gmail.com',
+        readOnly: true,
+        decoration: const InputDecoration(labelText: '공용 로그인 아이디'),
+      ),
+      const SizedBox(height: 12),
+      TextFormField(
+        initialValue: 'temporary',
+        readOnly: true,
+        obscureText: true,
+        decoration: const InputDecoration(
+          labelText: '비밀번호',
+          helperText: '직접 입력 없이 서버에서 자동 로그인합니다.',
+        ),
+      ),
+    ],
   );
 }

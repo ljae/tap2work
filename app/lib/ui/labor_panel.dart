@@ -301,7 +301,15 @@ class LaborReviewEditor extends StatefulWidget {
 
 class _LaborReviewEditorState extends State<LaborReviewEditor> {
   late final Json draft = {...?widget.person['review'] as Json?};
-  late final int revision = widget.ops.data?['revision'] ?? 0;
+  late final int revision;
+  late final String openingActor;
+  @override
+  void initState() {
+    super.initState();
+    revision = widget.ops.data?['revision'] as int? ?? 0;
+    openingActor = widget.ops.actorId;
+  }
+
   final controllers = <String, TextEditingController>{};
   late String size = draft['size'] ?? 'unknown',
       scope = draft['scope'] ?? 'unknown',
@@ -374,6 +382,13 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
       saving = true;
       error = null;
     });
+    if (openingActor != widget.ops.actorId) {
+      setState(() {
+        saving = false;
+        error = '계정이 변경됐어요. 다시 열어 주세요.';
+      });
+      return;
+    }
     final ok = await widget.ops.act('save_labor_review', {
       'revision': revision,
       'review': {

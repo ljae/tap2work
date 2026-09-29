@@ -11,6 +11,7 @@ class TapCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onOpen,
+    this.onEdit,
     this.emoji = '📁',
     this.done = 0,
     this.total = 0,
@@ -30,7 +31,7 @@ class TapCard extends StatelessWidget {
   final String level, title, subtitle, emoji, footer;
   final int done, total;
   final VoidCallback onOpen;
-  final VoidCallback? onCheck;
+  final VoidCallback? onCheck, onEdit;
   final bool checked, locked;
   final bool selected;
   final int? sequence;
@@ -46,7 +47,7 @@ class TapCard extends StatelessWidget {
     final complete = checked || (total > 0 && done == total);
     final tint = accentColor ?? AppColors.accent;
     final largeText = MediaQuery.textScalerOf(context).scale(16) > 20;
-    final openLabel = level.toLowerCase() == 'task' ? '방법 열기' : 'Task 열기';
+    final openLabel = level.toLowerCase() == 'task' ? '매뉴얼 열기' : 'Task 열기';
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -105,7 +106,10 @@ class TapCard extends StatelessWidget {
                         child: Tooltip(
                           message: title,
                           child: InkWell(
-                            onTap: onOpen,
+                            onTap: onEdit ?? onOpen,
+                            mouseCursor: onEdit == null
+                                ? SystemMouseCursors.click
+                                : SystemMouseCursors.text,
                             child: Container(
                               constraints: const BoxConstraints(minHeight: 48),
                               alignment: Alignment.centerLeft,
@@ -114,7 +118,7 @@ class TapCard extends StatelessWidget {
                                 text: title,
                                 trigger: completionTrigger,
                                 holdAfterFall: holdCompletion,
-                                maxLines: 1,
+                                maxLines: 3,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -146,7 +150,7 @@ class TapCard extends StatelessWidget {
                                 if (!largeText)
                                   Text(
                                     level.toLowerCase() == 'task'
-                                        ? '방법'
+                                        ? '매뉴얼'
                                         : 'Task',
                                     style: TextStyle(
                                       fontSize: 13,

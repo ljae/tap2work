@@ -24,7 +24,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   bool editing = false, showTree = true, previewDirty = false;
   final expanded = <String>{};
   OperationsController get ops => widget.ops;
-  bool get canEdit => ops.isLeader && !ops.busy;
+  bool get canEdit => ops.canEditTasks && !ops.busy;
   Json copy(Json row) => jsonDecode(jsonEncode(row)) as Json;
 
   void sync({bool force = false}) {
@@ -659,13 +659,14 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 PressBounce(
                   child: TextButton.icon(
                     icon: const Icon(CupertinoIcons.clock),
-                    label: const Text('소요시간 설정'),
+                    label: const Text('Task 설정'),
                     onPressed: () async {
                       await showAppSheet(
                         context,
                         builder: (_) => TapSettingsScreen(
                           ops: ops,
                           initialTemplateId: selected['templateId'],
+                          initialStepId: selected['sourceStepId'],
                         ),
                       );
                       if (mounted) setState(() => sync(force: true));
@@ -811,7 +812,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                             selectedId = null;
                           }),
                         ),
-                      if (ops.isLeader)
+                      if (ops.canEditTasks)
                         PressBounce(
                           child: TextButton.icon(
                             icon: Icon(

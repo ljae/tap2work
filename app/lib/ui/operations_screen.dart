@@ -622,7 +622,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
             {
               'overview': '운영 현황',
               'inventory': '재고와 발주',
-              'people': '직원',
+              'people': '크루',
               'pay': '인건비',
               'layout': '배치도와 동선',
             }[section]!,
@@ -927,7 +927,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
   ];
 
   List<Widget> inventory() => [
-    const PageHeading('재료 관리', '재고와 발주', '수량을 확인하고 필요한 재료를 한 번에 모아요.'),
     if (ops.isLeader && !ops.readOnly)
       Align(
         alignment: Alignment.centerLeft,

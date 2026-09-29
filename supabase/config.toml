@@ -4,3 +4,7 @@ project_id = "tap2work"
 # The handler validates bearer sessions with Supabase Auth, including new signing keys.
 verify_jwt = false
 entrypoint = "./functions/operations/index.ts"
+
+[functions.public-login]
+verify_jwt = false
+entrypoint = "./functions/public-login/index.ts"

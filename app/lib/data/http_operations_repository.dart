@@ -13,6 +13,8 @@ class HttpOperationsRepository implements OperationsRepository {
   }) : _client = client ?? http.Client();
 
   final http.Client _client;
+  String? _syncActor;
+  Json? _sync;
   final Uri endpoint;
   final bool readOnly;
   final Future<String?> Function()? accessToken;
@@ -35,18 +37,46 @@ class HttpOperationsRepository implements OperationsRepository {
     jsonDecode(utf8.decode(response.bodyBytes)) as Json,
   );
 
+  void remember(OperationsResult result, String actorId) {
+    if (result.statusCode == 200 && result.data['syncWindow'] != null) {
+      _syncActor = actorId;
+      _sync = result.data;
+    }
+  }
+
   @override
   Future<OperationsResult> read({
     required String actorId,
     String? demoToken,
-  }) async => _decode(
-    await _client
-        .get(
-          readOnly ? Uri.base.resolve('review-data/$actorId.json') : endpoint,
-          headers: await _headers(actorId, demoToken),
-        )
-        .timeout(const Duration(seconds: 10)),
-  );
+  }) async {
+    var uri = readOnly
+        ? Uri.base.resolve('review-data/$actorId.json')
+        : endpoint;
+    if (!readOnly &&
+        accessToken != null &&
+        _syncActor == actorId &&
+        _sync != null) {
+      uri = uri.replace(
+        queryParameters: {
+          ...uri.queryParameters,
+          'revision': '${_sync!['revision']}',
+          'window': '${_sync!['syncWindow']}',
+          'role': '${_sync!['actor']['role']}',
+          'workspace': '${_sync!['workspaceId']}',
+        },
+      );
+    }
+    final result = _decode(
+      await _client
+          .get(uri, headers: await _headers(actorId, demoToken))
+          .timeout(const Duration(seconds: 10)),
+    );
+    if (result.statusCode == 200 && result.data['unchanged'] == true) {
+      return const OperationsResult(304, {});
+    }
+    remember(result, actorId);
+    return result;
+  }
 
   @override
   Future<OperationsResult> write({
@@ -55,7 +85,7 @@ class HttpOperationsRepository implements OperationsRepository {
     required Json values,
   }) async {
     if (readOnly) throw StateError('공개 미리보기에서는 저장할 수 없어요.');
-    return _decode(
+    final result = _decode(
       await _client
           .post(
             endpoint,
@@ -67,6 +97,8 @@ class HttpOperationsRepository implements OperationsRepository {
           )
           .timeout(const Duration(seconds: 10)),
     );
+    remember(result, actorId);
+    return result;
   }
 
   @override

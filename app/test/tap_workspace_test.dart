@@ -13,6 +13,7 @@ Future<void> mountBoard(
   WidgetTester tester,
   OperationsController ops, {
   double width = 1200,
+  double textScale = 1,
 }) async {
   tester.view.physicalSize = Size(width, 1500);
   tester.view.devicePixelRatio = 1;
@@ -21,6 +22,12 @@ Future<void> mountBoard(
   await ops.refresh();
   await tester.pumpWidget(
     MaterialApp(
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(textScaler: TextScaler.linear(textScale)),
+        child: child!,
+      ),
       home: Scaffold(
         body: SingleChildScrollView(
           child: Padding(
@@ -395,7 +402,7 @@ void main() {
         tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).selected,
         isTrue,
       );
-      expect(find.text('방법'), findsNWidgets(2));
+      expect(find.text('매뉴얼'), findsNWidgets(2));
       if (width < 700) {
         expect(find.text('생재료와 완성식품 도구를 따로 놓아요.'), findsNothing);
       }

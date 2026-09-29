@@ -1,9 +1,10 @@
 import { OperationsStore, seedOperations, emptyOperations } from './operations.mjs';
+import { sectionPatch } from './section_storage.mjs';
 import { ensureStaff } from './staff.mjs';
 import { StoreError } from './store.mjs';
 
 // Both Edge Functions and Node tests use this handler; demo actor headers are ignored.
-export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.work', 'https://www.tap2.work'], fetcher = fetch, clock = () => new Date() }) {
+export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.work', 'https://www.tap2.work'], fetcher = fetch, clock = () => new Date(), sectionStorage = false }) {
   if (!url || !serviceKey) throw new Error('Supabase server configuration is missing');
   const headers = { apikey: serviceKey, ...(serviceKey.startsWith('eyJ') ? { Authorization: `Bearer ${serviceKey}` } : {}), 'Content-Type': 'application/json' };
   async function rest(path, options = {}) {
@@ -27,7 +28,17 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       if (!auth.ok) throw new StoreError('로그인이 만료됐어요. 다시 로그인해 주세요.', 401);
       const user = await auth.json();
       if (!/^[\da-f-]{36}$/i.test(user.id ?? '')) throw new StoreError('사용자를 확인하지 못했어요.', 401);
-      let memberships = await rest(`tap2work_members?user_id=eq.${user.id}&select=workspace_id,role,display_name`);
+      const query = new URL(request.url).searchParams;
+      const readWorkspace = () => rest('rpc/tap2work_read_workspace', {method:'POST', body:JSON.stringify({
+        p_user_id:user.id,
+        p_revision:request.method === 'GET' && /^\d+$/.test(query.get('revision') ?? '') ? Number(query.get('revision')) : null,
+        p_window:request.method === 'GET' && /^\d+$/.test(query.get('window') ?? '') ? Number(query.get('window')) : null,
+        p_role:request.method === 'GET' ? query.get('role') : null,
+        p_workspace_id: request.method === 'GET' ? query.get('workspace') : null,
+      })});
+      let document = sectionStorage ? await readWorkspace() : null;
+      if (document?.unchanged) return reply(200, document);
+      let memberships = sectionStorage ? (document.member ? [document.member] : []) : await rest(`tap2work_members?user_id=eq.${user.id}&select=workspace_id,role,display_name`);
       let createdWorkspace = false;
       if (!memberships.length) {
         if (request.method === 'GET') return reply(200, { needsWorkspace: true, authenticated: true });
@@ -45,19 +56,27 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
         }
         await rest('rpc/tap2work_bootstrap', { method: 'POST', body: JSON.stringify({ p_user_id: user.id, p_name: ownerName, p_state: initial }) });
         createdWorkspace = true;
-        memberships = await rest(`tap2work_members?user_id=eq.${user.id}&select=workspace_id,role,display_name`);
+        if (sectionStorage) document = await readWorkspace();
+        memberships = sectionStorage ? [document.member] : await rest(`tap2work_members?user_id=eq.${user.id}&select=workspace_id,role,display_name`);
       }
       const member = memberships[0];
       if (!member) throw new StoreError('매장 권한이 없어요.', 403);
       const actor = { id: user.id, name: member.display_name, role: member.role, label: {owner:'사장님',manager:'매니저',cook:'조리 담당',crew:'크루'}[member.role] };
+      let original = document?.payload;
       const persistence = {
         async read() {
+          if (sectionStorage) return structuredClone(original);
           const rows = await rest(`tap2work_state?workspace_id=eq.${member.workspace_id}&select=payload`);
           if (!rows[0]) throw new StoreError('매장을 찾지 못했어요.', 404);
           return rows[0].payload;
         },
         async save(state, revision) {
-          const saved = await rest('rpc/tap2work_save_state', { method: 'POST', body: JSON.stringify({ p_workspace_id: member.workspace_id, p_expected_revision: revision, p_payload: state }) });
+          const patch = sectionStorage ? sectionPatch(original, state) : null;
+          const saved = await rest(sectionStorage ? 'rpc/tap2work_patch_state' : 'rpc/tap2work_save_state', { method:'POST', body:JSON.stringify({
+            p_workspace_id:member.workspace_id, p_expected_revision:revision,
+            ...(sectionStorage ? {p_changes:patch.changes,p_removed:patch.removed} : {p_payload:state}),
+          }) });
+          if (saved && sectionStorage) original = structuredClone(state);
           if (!saved) throw new StoreError('동료가 먼저 수정했어요. 새로고침 후 다시 시도해 주세요.', 409);
         },
       };
@@ -72,7 +91,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
         if (!input || typeof input !== 'object' || Array.isArray(input)) throw new StoreError('요청 형식을 확인해 주세요.');
         result = await store.mutate(user.id, input);
       }
-      return reply(200, { ...result, workspaceId: member.workspace_id });
+      return reply(200, { ...result, workspaceId: member.workspace_id, ...(sectionStorage ? {syncWindow: document.window} : {}) });
     } catch (error) {
       return reply(error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : '요청을 처리하지 못했어요. 다시 시도해 주세요.' });
     }

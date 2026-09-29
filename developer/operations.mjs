@@ -302,6 +302,7 @@ export class OperationsStore {
     result.rosterTemplates = rosterTemplates(state);
     result.orderBoardEnabled = state.store?.profile?.orderSystem?.enabled === true;
     result.actor = actor;
+    result.canEditTasks = ['owner', 'manager'].includes(actor.role) && (actor.role === 'owner' || state.workplace?.restrictions?.[actor.role]?.tasks !== false);
     result.serverTime = iso(this.clock());
     result.demo = !this.trustedActor;
     result.authenticated = Boolean(this.trustedActor);
@@ -479,6 +480,28 @@ export class OperationsStore {
           for (const step of task.steps) if (!step.completedAt) { step.completedAt = iso(now); step.completedBy = who; }
           task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done';
           activity(`${task.title} · 실제 ${input.quantity} 완성`); break;
+        }
+        case 'save_task_step': {
+          leadership(actor);
+          const task = state.tasks.find(t => t.id === input.taskId && t.kind === 'routine' && !t.archivedAt && !t.supersededAt && t.date === state.day);
+          if (!task || task.completedAt || task.preparedOutputMovementId) fail('오늘 진행 중인 TAP만 편집할 수 있어요.', 409);
+          const adding = input.stepId == null;
+          const step = adding ? { id: randomUUID(), tip: '', tags: [] } : task.steps.find(s => s.id === input.stepId);
+          if (!step || step.completedAt) fail('미완료 Task만 편집할 수 있어요.', 409);
+          const title = text(input.title, 'Task 이름', 100), manual = text(input.manual, '매뉴얼', 700);
+          const template = state.taskTemplates.find(t => t.id === (step.sourceTemplateId ?? task.templateId) && !t.archivedAt);
+          const source = template?.steps.find(s => s.id === (step.sourceStepId ?? step.id));
+          if (adding && (task.steps.length >= 30 || (template && template.steps.length >= 30))) fail('Task는 최대 30개까지 추가할 수 있어요.');
+          if (!adding) {
+            step.manualHistory ??= [];
+            step.manualHistory.push({ title: step.title, manual: step.manual, at: iso(now), actor: who });
+          }
+          Object.assign(step, { title, manual });
+          if (adding) task.steps.push(step);
+          if (adding && template) template.steps.push(structuredClone(step));
+          else if (source) Object.assign(source, { title, manual });
+          if (template && (adding || source)) template.version++;
+          activity(`${task.title} · Task ${adding ? '추가' : '수정'}`); break;
         }
         case 'save_step_manual': {
           leadership(actor);

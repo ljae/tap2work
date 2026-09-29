@@ -282,7 +282,15 @@ class HiringDraftEditor extends StatefulWidget {
 }
 
 class _HiringDraftEditorState extends State<HiringDraftEditor> {
-  late final int revision = widget.ops.data?['revision'] as int? ?? 0;
+  late final int revision;
+  late final String openingActor;
+  @override
+  void initState() {
+    super.initState();
+    revision = widget.ops.data?['revision'] as int? ?? 0;
+    openingActor = widget.ops.actorId;
+  }
+
   late String role =
       widget.existing?['partId'] ??
       (storeParts(widget.ops).any((p) => p['id'] == widget.defaultRole)
@@ -329,6 +337,13 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
       saving = true;
       error = null;
     });
+    if (openingActor != widget.ops.actorId) {
+      setState(() {
+        saving = false;
+        error = '계정이 변경됐어요. 다시 열어 주세요.';
+      });
+      return;
+    }
     final ok = await widget.ops.act('save_hiring_draft', {
       'revision': revision,
       if (widget.existing != null) 'id': widget.existing!['id'],

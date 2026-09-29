@@ -10,19 +10,26 @@ class TapSettingsScreen extends StatefulWidget {
     super.key,
     required this.ops,
     this.initialTemplateId,
+    this.initialStepId,
   });
   final OperationsController ops;
-  final String? initialTemplateId;
+  final String? initialTemplateId, initialStepId;
   @override
   State<TapSettingsScreen> createState() => _TapSettingsScreenState();
 }
 
 class _TapSettingsScreenState extends State<TapSettingsScreen> {
-  late final int revision = widget.ops.data?['revision'] as int? ?? 0;
-  late final String openingActor = widget.ops.actorId;
+  late final int revision;
+  late final String openingActor;
   late final List<Json> templates =
       (jsonDecode(jsonEncode(widget.ops.rows('taskTemplates'))) as List)
-          .cast<Json>();
+          .cast<Json>()
+          .where(
+            (row) =>
+                widget.initialTemplateId == null ||
+                row['id'] == widget.initialTemplateId,
+          )
+          .toList();
   String? selectedId;
   bool saving = false;
   String? error;
@@ -40,6 +47,8 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
   @override
   void initState() {
     super.initState();
+    revision = widget.ops.data?['revision'] as int? ?? 0;
+    openingActor = widget.ops.actorId;
     selectedId = templates.any((row) => row['id'] == widget.initialTemplateId)
         ? widget.initialTemplateId
         : templates.firstOrNull?['id'];
@@ -273,10 +282,20 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (templates.isEmpty) {
+    if (templates.isEmpty ||
+        (widget.initialStepId != null &&
+            !(template['steps'] as List).any(
+              (step) => step['id'] == widget.initialStepId,
+            ))) {
       return AppEditorScaffold(
         title: 'TAP 설정',
-        body: const Center(child: Information('먼저 보드 편집에서 TAP을 만들어 주세요.')),
+        body: Center(
+          child: Information(
+            widget.initialTemplateId == null
+                ? '먼저 보드 편집에서 TAP을 만들어 주세요.'
+                : '연결된 TAP 또는 Task를 찾지 못했어요. 목록을 새로고침해 주세요.',
+          ),
+        ),
       );
     }
     final task = template;
@@ -284,11 +303,12 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
     final recurrence = config['recurrence'] as Json;
     final weekdays = List<int>.from(recurrence['weekdays'] ?? []);
     return AppEditorScaffold(
-      title: 'TAP 설정',
+      title: widget.initialStepId == null ? 'TAP 설정' : 'Task 설정',
       footer: AppSheetFooter(
         children: [
           FilledButton(
-            onPressed: widget.ops.isLeader && !widget.ops.readOnly && !saving
+            onPressed:
+                widget.ops.canEditTasks && !widget.ops.readOnly && !saving
                 ? save
                 : null,
             child: Text(saving ? '저장 중…' : '다음 업무부터 적용'),
@@ -305,98 +325,107 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               if (widget.ops.readOnly)
                 const Information('공개 미리보기에서는 설정을 저장하지 않아요.'),
               const SizedBox(height: 14),
-              AppPillField<String>(
-                key: const ValueKey('tap-settings-template'),
-                initialValue: selectedId,
-                decoration: const InputDecoration(labelText: 'TAP 선택'),
-                items: [
-                  for (final row in templates)
-                    DropdownMenuItem(
-                      value: '${row['id']}',
-                      child: Text(
-                        '${row['title']}',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
-                onChanged: (v) => setState(() {
-                  selectedId = v;
-                  invalidTargetSteps.clear();
-                  error = null;
-                }),
-              ),
-              const SizedBox(height: 16),
-              AppPillField<String>(
-                key: ValueKey('type-$selectedId'),
-                initialValue: config['type'],
-                decoration: const InputDecoration(labelText: '업무 유형'),
-                items: [
-                  for (final entry in types.entries)
-                    DropdownMenuItem(
-                      value: entry.key,
-                      child: Text(entry.value),
-                    ),
-                ],
-                onChanged: (v) => update(() => config['type'] = v),
-              ),
-              switchRow(
-                '다음 업무에도 사용',
-                config['enabled'] == true,
-                (v) => update(() => config['enabled'] = v),
-              ),
-              const Text('반복', style: TextStyle(fontWeight: FontWeight.w700)),
-              AppSegmented<String>(
-                segments: const [
-                  ButtonSegment(value: 'daily', label: Text('매일')),
-                  ButtonSegment(value: 'weekly', label: Text('요일 선택')),
-                ],
-                selected: {recurrence['mode'] ?? 'daily'},
-                onSelectionChanged: (v) => update(() {
-                  recurrence['mode'] = v.first;
-                  recurrence['weekdays'] = v.first == 'daily' ? <int>[] : [1];
-                }),
-              ),
-              if (recurrence['mode'] == 'weekly')
-                Wrap(
-                  spacing: 6,
-                  children: [
-                    for (var d = 1; d <= 7; d++)
-                      FilterChip(
-                        chipAnimationStyle: AppMotion.chipStyle(context),
-                        label: Text(days[d - 1]),
-                        selected: weekdays.contains(d),
-                        onSelected: (_) => update(() {
-                          final selected = List<int>.from(
-                            recurrence['weekdays'],
-                          );
-                          selected.contains(d)
-                              ? selected.remove(d)
-                              : selected.add(d);
-                          recurrence['weekdays'] = selected;
-                        }),
+              if (widget.initialTemplateId != null)
+                Text('${task['title']}', style: AppText.title)
+              else
+                AppPillField<String>(
+                  key: const ValueKey('tap-settings-template'),
+                  initialValue: selectedId,
+                  decoration: const InputDecoration(labelText: 'TAP 선택'),
+                  items: [
+                    for (final row in templates)
+                      DropdownMenuItem(
+                        value: '${row['id']}',
+                        child: Text(
+                          '${row['title']}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                   ],
+                  onChanged: (v) => setState(() {
+                    selectedId = v;
+                    invalidTargetSteps.clear();
+                    error = null;
+                  }),
                 ),
-              switchRow(
-                'TAP에서 한 번에 완료 허용',
-                config['allowBulkComplete'] == true,
-                (v) => update(() => config['allowBulkComplete'] = v),
-              ),
-              switchRow(
-                'Task 순서대로 수행',
-                config['enforceSequence'] == true,
-                (v) => update(() => config['enforceSequence'] = v),
-              ),
-              const SizedBox(height: 18),
-              Text(
-                'Task · ${(task['steps'] as List).length}개',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+              if (widget.initialStepId == null) ...[
+                const SizedBox(height: 16),
+                AppPillField<String>(
+                  key: ValueKey('type-$selectedId'),
+                  initialValue: config['type'],
+                  decoration: const InputDecoration(labelText: '업무 유형'),
+                  items: [
+                    for (final entry in types.entries)
+                      DropdownMenuItem(
+                        value: entry.key,
+                        child: Text(entry.value),
+                      ),
+                  ],
+                  onChanged: (v) => update(() => config['type'] = v),
                 ),
-              ),
+                switchRow(
+                  '다음 업무에도 사용',
+                  config['enabled'] == true,
+                  (v) => update(() => config['enabled'] = v),
+                ),
+                const Text('반복', style: TextStyle(fontWeight: FontWeight.w700)),
+                AppSegmented<String>(
+                  segments: const [
+                    ButtonSegment(value: 'daily', label: Text('매일')),
+                    ButtonSegment(value: 'weekly', label: Text('요일 선택')),
+                  ],
+                  selected: {recurrence['mode'] ?? 'daily'},
+                  onSelectionChanged: (v) => update(() {
+                    recurrence['mode'] = v.first;
+                    recurrence['weekdays'] = v.first == 'daily' ? <int>[] : [1];
+                  }),
+                ),
+                if (recurrence['mode'] == 'weekly')
+                  Wrap(
+                    spacing: 6,
+                    children: [
+                      for (var d = 1; d <= 7; d++)
+                        FilterChip(
+                          chipAnimationStyle: AppMotion.chipStyle(context),
+                          label: Text(days[d - 1]),
+                          selected: weekdays.contains(d),
+                          onSelected: (_) => update(() {
+                            final selected = List<int>.from(
+                              recurrence['weekdays'],
+                            );
+                            selected.contains(d)
+                                ? selected.remove(d)
+                                : selected.add(d);
+                            recurrence['weekdays'] = selected;
+                          }),
+                        ),
+                    ],
+                  ),
+                switchRow(
+                  'TAP에서 한 번에 완료 허용',
+                  config['allowBulkComplete'] == true,
+                  (v) => update(() => config['allowBulkComplete'] = v),
+                ),
+                switchRow(
+                  'Task 순서대로 수행',
+                  config['enforceSequence'] == true,
+                  (v) => update(() => config['enforceSequence'] = v),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'Task · ${(task['steps'] as List).length}개',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
               const SizedBox(height: 10),
-              for (final step in (task['steps'] as List).cast<Json>())
+              for (final step in (task['steps'] as List).cast<Json>().where(
+                (step) =>
+                    widget.initialStepId == null ||
+                    step['id'] == widget.initialStepId,
+              ))
                 KeyedSubtree(
                   key: ValueKey('settings-$selectedId-${step['id']}'),
                   child: stepCard(step),

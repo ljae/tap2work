@@ -270,3 +270,50 @@ test('order and prep lanes stay separate; linked orders survive folder editing a
   assert.equal(state.dashboard.queue.find(t => t.id === order.orderId).status, '조리 중');
   assert.equal((await store.snapshot('owner')).tasks.filter(t => t.orderId === order.orderId).length, 1);
 });
+
+test('inline Task edits/additions preserve completed siblings and update only their source', async t => {
+  const {store, act, file, midnight} = await setup(t);
+  const initial = await store.snapshot('owner');
+  const task = initial.tasks.find(row => row.templateId === PREP);
+  await act('complete_step', {taskId: task.id, stepId: task.steps[0].id});
+  const before = await store.snapshot('owner');
+  const completed = before.tasks.find(row => row.id === task.id).steps[0];
+  const edited = await act('save_task_step', {taskId: task.id, stepId: task.steps[1].id, title: '바뀐 작업', manual: '바뀐 방법'});
+  const current = edited.tasks.find(row => row.id === task.id);
+  assert.deepEqual(current.steps[0], completed);
+  assert.equal(current.steps[1].title, '바뀐 작업');
+  assert.equal(edited.taskTemplates.find(row => row.id === PREP).steps[1].manual, '바뀐 방법');
+  assert.deepEqual(edited.taskTemplates.find(row => row.id === CLOSE), before.taskTemplates.find(row => row.id === CLOSE));
+  assert.equal(current.steps[1].manualHistory.at(-1).title, task.steps[1].title);
+  const added = await act('save_task_step', {taskId: task.id, title: '추가 작업', manual: '추가 방법'});
+  const newStep = added.tasks.find(row => row.id === task.id).steps.at(-1);
+  assert.equal(newStep.title, '추가 작업');
+  assert.equal(added.taskTemplates.find(row => row.id === PREP).steps.at(-1).id, newStep.id);
+  assert.ok(added.manualSearch.some(row => row.sourceStepId === newStep.id));
+  await assert.rejects(act('save_task_step', {taskId: task.id, stepId: completed.id, title: '수정', manual: '금지'}), {status:409});
+  await assert.rejects(store.mutate('owner', {action:'save_task_step', revision:before.revision, taskId:task.id, title:'오래된 입력', manual:'금지'}), {status:409});
+  await assert.rejects(act('save_task_step', {taskId:task.id, title:' ', manual:'빈 이름'}), {status:400});
+  await assert.rejects(act('save_task_step', {taskId:task.id, title:'권한', manual:'금지'}, 'crew'), {status:403});
+  await act('save_workplace_permissions', {role:'manager', permissions:{tasks:false}});
+  assert.equal((await store.snapshot('manager')).canEditTasks, false);
+  await assert.rejects(act('save_task_step', {taskId:task.id, title:'권한', manual:'금지'}, 'manager'), {status:403});
+  await assert.rejects(act('reorder_small_taps', {taskId:task.id, stepIds:[]}, 'manager'), {status:403});
+  midnight();
+  await assert.rejects(act('save_task_step', {taskId:task.id, title:'어제', manual:'금지'}), {status:409});
+  const stored = JSON.parse(await readFile(file));
+  assert.deepEqual(stored.tasks.find(row => row.id === task.id).steps[0].completedAt, completed.completedAt);
+});
+
+test('inline Task creation caps lists and protects finished TAPs and source-less orders', async t => {
+  const {store, act} = await setup(t);
+  let state = await store.snapshot('owner');
+  const order = state.tasks.find(row => row.orderId && !row.completedAt);
+  const templates = structuredClone(state.taskTemplates);
+  state = await act('save_task_step', {taskId:order.id, title:'주문 확인 추가', manual:'이 주문만 확인'});
+  assert.deepEqual(state.taskTemplates, templates);
+  const task = state.tasks.find(row => row.templateId === PREP);
+  for (let i = task.steps.length; i < 30; i++) await act('save_task_step', {taskId:task.id, title:`추가 ${i}`, manual:'확인'});
+  await assert.rejects(act('save_task_step', {taskId:task.id, title:'초과', manual:'확인'}), {status:400});
+  await act('complete_task', {taskId:task.id});
+  await assert.rejects(act('save_task_step', {taskId:task.id, title:'완료 후', manual:'확인'}), {status:409});
+});

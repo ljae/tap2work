@@ -7,7 +7,7 @@ const label = value => {
   return value.trim();
 };
 export const permissionActions = {
-  tasks: ['create_task', 'save_checklists', 'save_tap_settings', 'save_step_manual', 'move_manual_node', 'import_recommended_taps'],
+  tasks: ['save_task_step', 'reorder_small_taps', 'reorder_big_taps', 'create_task', 'save_checklists', 'save_tap_settings', 'save_step_manual', 'move_manual_node', 'import_recommended_taps'],
   complete: ['complete_task', 'complete_step', 'reopen_step', 'move_tap', 'complete_preparation'],
   schedule: ['save_roster_slot', 'reset_roster_slot', 'delete_staff_shift', 'save_staffing_slots', 'assign_staffing_slot', 'save_staff_shift', 'save_shift_pattern', 'assign_cover', 'update_shift'],
   stock: ['check_stock', 'count_prepared_item'],

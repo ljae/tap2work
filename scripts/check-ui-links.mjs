@@ -5,10 +5,13 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S22', 'app/lib/ui/task_step_editor.dart', "'save_task_step'", 'developer/operations.mjs', "case 'save_task_step'"],
+  ['S23', 'app/lib/ui/tap_workspace.dart', "Text('Task 추가')", 'app/lib/ui/task_step_editor.dart', 'class TaskStepEditor'],
+  ['S24', 'app/lib/state/operations_controller.dart', 'get canEditTasks', 'developer/operations.mjs', 'result.canEditTasks'],
   ['E06', 'app/lib/main.dart', 'AppStartup', 'app/web/index.html', 'flutter-first-frame'],
   ['U01', 'app/lib/ui/design_system.dart', 'class AppEditorScaffold', 'app/lib/ui/checklist_editor.dart', 'AppSheetFooter('],
   ['U02', 'app/lib/ui/design_system.dart', 'class AppFormSection', 'app/lib/ui/payroll_settings_screen.dart', 'AppFormSection('],
-  ['E01', 'app/lib/main.dart', "defaultValue: true", 'app/lib/ui/cloud_workspace.dart', 'CloudWorkspace'],
+  ['E01', 'app/lib/main.dart', "defaultValue: false", 'app/lib/ui/cloud_workspace.dart', 'CloudWorkspace'],
   ['E02', 'scripts/build-site.mjs', 'review-data', 'app/lib/state/operations_controller.dart', 'readOnly'],
   ['S01', 'app/lib/ui/workplace_screens.dart', "'save_workplace_parts'", 'developer/workplace.mjs', "case 'save_workplace_parts'"],
   ['S02', 'app/lib/ui/workplace_screens.dart', "'save_staff_profile'", 'developer/workplace.mjs', "case 'save_staff_profile'"],
@@ -46,6 +49,15 @@ const manual = await readFile(path.join(root, 'app/lib/ui/manual_workspace.dart'
 const editButton = manual.match(/label: const Text\('매뉴얼 편집'\)[\s\S]*?if \(mounted\) setState\(\(\) => sync\(force: true\)\);/);
 if (!editButton || !editButton[0].includes('ManualTaskEditor(') || editButton[0].includes('ChecklistEditor(')) {
   console.error('S12: manual edit must open ManualTaskEditor for the selected Task');
+  errors++;
+}
+const board = await readFile(path.join(root, 'app/lib/ui/tap_workspace.dart'), 'utf8');
+if (board.includes("Text('TAP 설정')") || !board.includes('buildDefaultDragHandles: false')) {
+  console.error('Board must not expose global TAP settings or overlapping default drag handles');
+  errors++;
+}
+if (!manual.includes("initialStepId: selected['sourceStepId']")) {
+  console.error('S13: Task settings must target the selected source step');
   errors++;
 }
 if (errors) process.exit(1);

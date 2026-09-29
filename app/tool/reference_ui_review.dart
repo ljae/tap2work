@@ -20,9 +20,7 @@ void main() {
     tester,
   ) async {
     final fonts = FontLoader('Pretendard');
-    for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
-      fonts.addFont(rootBundle.load('assets/fonts/Pretendard-$weight.otf'));
-    }
+    fonts.addFont(rootBundle.load('assets/fonts/PretendardVariable.ttf'));
     await fonts.load();
     await (FontLoader(
       'MaterialIcons',

@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 import '../data/http_operations_repository.dart';
@@ -7,7 +8,7 @@ import '../domain/operations_repository.dart';
 export '../domain/operations_repository.dart' show Json;
 
 /// Public preview, local demo, or verified Supabase workspace transport.
-class OperationsController extends ChangeNotifier {
+class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   OperationsController({
     http.Client? client,
     OperationsRepository? repository,
@@ -49,6 +50,8 @@ class OperationsController extends ChangeNotifier {
   bool _disposed = false;
   int _generation = 0;
   Timer? _timer;
+  bool _observing = false;
+  bool _foreground = true;
   String? _token;
 
   List<Json> rows(String key) => (data?[key] as List? ?? []).cast<Json>();
@@ -56,12 +59,35 @@ class OperationsController extends ChangeNotifier {
       data?['actor'] as Json? ??
       {'name': '서연', 'label': '사장님', 'role': 'owner', 'emoji': '🌻'};
   bool get isLeader => ['owner', 'manager'].contains(actor['role']);
+  bool get canEditTasks => isLeader && data?['canEditTasks'] != false;
   bool get isOwner => actor['role'] == 'owner';
 
   Future<void> start() async {
+    if (!_observing) {
+      WidgetsBinding.instance.addObserver(this);
+      _observing = true;
+    }
     await refresh();
-    if (!_disposed && !readOnly) {
-      _timer ??= Timer.periodic(const Duration(seconds: 5), (_) => refresh());
+    scheduleRefresh();
+  }
+
+  void scheduleRefresh() {
+    _timer?.cancel();
+    if (_disposed || readOnly || !_foreground) return;
+    _timer = Timer(const Duration(seconds: 30), () async {
+      await refresh();
+      scheduleRefresh();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground) {
+      refresh();
+      scheduleRefresh();
+    } else {
+      _timer?.cancel();
     }
   }
 
@@ -90,6 +116,10 @@ class OperationsController extends ChangeNotifier {
         demoToken: _token,
       );
       if (_disposed || generation != _generation) return;
+      if (response.statusCode == 304) {
+        error = null;
+        return;
+      }
       final body = response.data;
       if (response.statusCode != 200) throw Exception(body['error']);
       _previewTickets.clear();
@@ -179,6 +209,61 @@ class OperationsController extends ChangeNotifier {
           row[field] = step[field];
         }
       }
+    }
+    _emit();
+    return true;
+  }
+
+  bool previewSaveTaskStep(String taskId, String? stepId, Json draft) {
+    if (!readOnly || !canEditTasks || data == null) return false;
+    final task = rows('tasks').where((t) => t['id'] == taskId).firstOrNull;
+    if (task == null ||
+        task['completedAt'] != null ||
+        task['preparedOutputMovementId'] != null) {
+      return false;
+    }
+    final steps = (task['steps'] as List).cast<Json>();
+    final step = stepId == null
+        ? <String, dynamic>{
+            'id': 'preview-${DateTime.now().microsecondsSinceEpoch}',
+            'tip': '',
+            'tags': <String>[],
+          }
+        : steps.where((s) => s['id'] == stepId).firstOrNull;
+    if (step == null || step['completedAt'] != null) return false;
+    final template = rows('taskTemplates')
+        .where(
+          (t) =>
+              t['id'] == (step['sourceTemplateId'] ?? task['templateId']) &&
+              t['archivedAt'] == null,
+        )
+        .firstOrNull;
+    final sourceSteps = (template?['steps'] as List? ?? []).cast<Json>();
+    if (stepId == null && (steps.length >= 30 || sourceSteps.length >= 30)) {
+      return false;
+    }
+    step.addAll(draft);
+    if (stepId == null) {
+      (task['steps'] as List).add(step);
+      if (template != null) {
+        (template['steps'] as List).add({...step});
+        (data!['manualSearch'] as List? ?? []).add({
+          ...step,
+          'id': "${template['id']}/${step['id']}",
+          'templateId': template['id'],
+          'sourceStepId': step['id'],
+          'tapId': template['id'],
+          'tapTitle': template['title'],
+          'folderId': template['folderId'],
+          'editable': true,
+        });
+      }
+    } else if (template != null) {
+      previewUpdateManualStep(
+        template['id'],
+        step['sourceStepId'] ?? step['id'],
+        draft,
+      );
     }
     _emit();
     return true;
@@ -462,6 +547,7 @@ class OperationsController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _timer?.cancel();
+    if (_observing) WidgetsBinding.instance.removeObserver(this);
     _repository.close();
     super.dispose();
   }
