@@ -377,7 +377,7 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
     ),
     body: Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640),
+        constraints: const BoxConstraints(maxWidth: appEditorWidth),
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [

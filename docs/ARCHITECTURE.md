@@ -182,3 +182,7 @@ TaskStepEditor는 원래 자리에서 포커스되는 제목·매뉴얼 입력�
 ## Empty manual definitions (2026-09-29)
 
 The user confirmed folders and TAPs may be empty. ManualWorkspace keeps taskTemplates metadata independently from manualSearch rows, including public-preview moves. Long press selects the add parent. New TAPs start with steps: []; last Task move/delete preserves the TAP. Shared checklist validation accepts 0-30 Tasks. ensureDueTasks skips empty definitions; existing execution snapshots and work-action protections remain. This supersedes the earlier last-Task protection for manual definitions only.
+
+## 설정 시트 정렬 · 2026-09-29
+
+AppEditorScaffold는 688px 공통 읽기 폭과 위쪽 본문 정렬, AppSheetFooter는 640px 입력 폭을 사용한다. AppSheetActions는 같은 폭·최소 높이의 반응형 버튼 행이다. PreparedItemEditor가 준비품/실제 수량 입력의 컨트롤러·초안·opening actor/revision을 소유하며 성공 시에만 닫는다. API/DB 계약은 기존 save_prepared_item/count_prepared_item을 유지한다. 파트·직책 권한·크루 파트 저장도 고정 footer를 사용한다. [검토 범위·검증](SETTINGS_SHEET_AUDIT_2026-09-29.md). 매뉴얼 트리의 이름 텍스트는 편집 모드에서 이름 변경을 열고 화살표/손잡이는 펼치기/이동을 유지한다. 메뉴 연결 제한은 원본 일관성을 위해 유지한다.

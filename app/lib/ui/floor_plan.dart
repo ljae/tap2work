@@ -887,7 +887,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
         }
       }
     }
-    final result = await showAppDialog<Json>(
+    final result = await showAppFormSheet<Json>(
       context: context,
       builder: (_) =>
           _ItemDialog(item: item, layout: layout, initialSpot: spot),
@@ -906,7 +906,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
   }
 
   Future<void> dimensions() async {
-    final result = await showAppDialog<Json>(
+    final result = await showAppFormSheet<Json>(
       context: context,
       builder: (_) => _DimensionsDialog(layout: layout),
     );
@@ -1203,7 +1203,7 @@ class _ItemDialogState extends State<_ItemDialog> {
         ),
       );
   @override
-  Widget build(BuildContext context) => AlertDialog(
+  Widget build(BuildContext context) => AppSheetPanel(
     title: Text(widget.item == null ? '테이블·기기 추가' : '배치 항목 수정'),
     content: SizedBox(
       width: 420,
@@ -1212,6 +1212,8 @@ class _ItemDialogState extends State<_ItemDialog> {
           key: form,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 20,
             children: [
               AppPicker<String>(
                 label: '종류',
@@ -1369,7 +1371,7 @@ class _DimensionsDialogState extends State<_DimensionsDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
+  Widget build(BuildContext context) => AppSheetPanel(
     title: const Text('매장 크기·이름'),
     content: SizedBox(
       width: 360,
@@ -1378,6 +1380,8 @@ class _DimensionsDialogState extends State<_DimensionsDialog> {
           key: form,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 20,
             children: [
               TextFormField(
                 controller: name,

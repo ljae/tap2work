@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 111,
+  "revision": 112,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4553,7 +4553,33 @@
       ],
       "detail": "Last manual Task may be deleted/moved, empty TAP accepts Tasks and remains rename/move/delete capable; long press selects correct add parent. Server/checklist draft validation aligned. No empty daily execution is generated; existing execution snapshots and work-action protections remain.",
       "verification": "Full Flutter suite 164 passed, full Node suite 115 passed, analysis clean, npm check and 30 UI links passed. Ten 390/1200 font-loaded captures passed; empty folder/TAP tree inspected. Older tests expecting nonempty TAP rejected new behavior and were updated; final suites passed. API/web deployment pending. No real data writes/native build."
+    },
+    {
+      "at": "2026-09-29T14:15:26.040690+00:00",
+      "type": "verification",
+      "title": "Empty manual containers deployed",
+      "detail": "Source 8b18e55c08052b9e9f1fe5e010de46d9123cbd73 deployed via successful Pages run 36579058756 and operations Edge Function. Browser-only synthetic GET fixture verified empty TAP visible and Task add offered; writes 0 and page errors 0. No real store records added.",
+      "verification": "CI full tests, analysis and build/deployment passed.",
+      "release": {
+        "commit": "8b18e55c08052b9e9f1fe5e010de46d9123cbd73",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36579058756",
+        "site": "https://tap2.work"
+      }
+    },
+    {
+      "at": "2026-09-29T14:15:26.040690+00:00",
+      "type": "implementation",
+      "title": "Settings sheet UI audit and direct tree name editing",
+      "detail": "Prepared add/edit/count use sectioned sheets with persistent save, failure-preserved drafts and owned controllers. Unified heading/body/footer widths, top-aligned short content, adaptive equal actions; pinned parts/permissions/person saves. Converted layout field dialogs and crew/store detail headings. Tree editing opens exact folder/TAP/Task rename by clicking its name; original menu-linked restrictions remain.",
+      "verification": "Full Flutter suite 172 passed, analysis clean. 22 sheet families tested at 320/390/1200 with 1.5x text, keyboard and scrolling; profile tabs covered. 66 font-loaded captures generated and phone contact sheets reviewed. Targeted 36 tests passed for sheets/manual/layout/draft preservation before final full suite. UI links passed. Deployment pending; no native build or real writes.",
+      "files": [
+        "app/lib/ui/prepared_item_editor.dart",
+        "app/lib/ui/design_system.dart",
+        "app/lib/ui/manual_workspace.dart",
+        "app/test/settings_sheet_audit_test.dart",
+        "docs/SETTINGS_SHEET_AUDIT_2026-09-29.md"
+      ]
     }
   ],
-  "updatedAt": "2026-09-29T13:57:56.898402+00:00"
+  "updatedAt": "2026-09-29T14:15:26.040690+00:00"
 }

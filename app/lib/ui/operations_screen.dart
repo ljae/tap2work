@@ -616,19 +616,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
     context,
     builder: (sheetContext) => ListenableBuilder(
       listenable: Listenable.merge([ops, detailRevision]),
-      builder: (context, _) => Scaffold(
-        appBar: AppBar(
-          title: Text(
-            {
-              'overview': '운영 현황',
-              'inventory': '재고와 발주',
-              'people': '크루',
-              'pay': '인건비',
-              'layout': '배치도와 동선',
-            }[section]!,
-          ),
-          leading: const CloseButton(),
-        ),
+      builder: (context, _) => AppEditorScaffold(
+        title: {
+          'overview': '운영 현황',
+          'inventory': '재고와 발주',
+          'people': '크루',
+          'pay': '인건비',
+          'layout': '배치도와 동선',
+        }[section]!,
         body: SingleChildScrollView(
           primary: false,
           padding: const EdgeInsets.all(24),

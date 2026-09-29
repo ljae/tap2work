@@ -136,6 +136,8 @@ Future<T?> showAppSheet<T>(
   ),
 );
 
+const appEditorWidth = 688.0;
+
 /// A wrapping heading and persistent action area, shared by all form families.
 class AppEditorScaffold extends StatelessWidget {
   const AppEditorScaffold({
@@ -162,37 +164,43 @@ class AppEditorScaffold extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 12, 12, 16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Semantics(
-                        header: true,
-                        child: Text(title, style: AppText.title),
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: appEditorWidth),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 12, 16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Semantics(
+                            header: true,
+                            child: Text(title, style: AppText.title),
+                          ),
+                          if (subtitle != null) ...[
+                            const SizedBox(height: 8),
+                            Text(subtitle!, style: AppText.caption),
+                          ],
+                        ],
                       ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 8),
-                        Text(subtitle!, style: AppText.caption),
-                      ],
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 8),
+                    CloseButton(
+                      onPressed: onClose ?? () => Navigator.maybePop(context),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                CloseButton(
-                  onPressed: onClose ?? () => Navigator.maybePop(context),
-                ),
-              ],
+              ),
             ),
           ),
           Expanded(
-            child: Center(
+            child: Align(
+              alignment: Alignment.topCenter,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 760),
+                constraints: const BoxConstraints(maxWidth: appEditorWidth),
                 child: SizedBox(width: double.infinity, child: body),
               ),
             ),
@@ -229,6 +237,60 @@ class AppSheetFooter extends StatelessWidget {
         ),
       ),
     ),
+  );
+}
+
+/// Keeps related sheet actions aligned while allowing large text to wrap.
+class AppSheetActions extends StatelessWidget {
+  const AppSheetActions({super.key, required this.children});
+  final List<Widget> children;
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+      final horizontal =
+          children.length > 1 && box.maxWidth >= children.length * 130 * scale;
+      final theme = Theme.of(context);
+      const size = WidgetStatePropertyAll(Size(48, 56));
+      return Theme(
+        data: theme.copyWith(
+          filledButtonTheme: FilledButtonThemeData(
+            style: (theme.filledButtonTheme.style ?? const ButtonStyle())
+                .copyWith(minimumSize: size),
+          ),
+          outlinedButtonTheme: OutlinedButtonThemeData(
+            style: (theme.outlinedButtonTheme.style ?? const ButtonStyle())
+                .copyWith(minimumSize: size),
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: (theme.textButtonTheme.style ?? const ButtonStyle())
+                .copyWith(minimumSize: size),
+          ),
+        ),
+        child: horizontal
+            ? IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < children.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 8),
+                      Expanded(child: children[i]),
+                    ],
+                  ],
+                ),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = 0; i < children.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 8),
+                    children[i],
+                  ],
+                ],
+              ),
+      );
+    },
   );
 }
 
@@ -317,7 +379,9 @@ class AppSheetPanel extends StatelessWidget {
         ),
       ),
     ),
-    footer: actions == null ? null : AppSheetFooter(children: actions!),
+    footer: actions == null
+        ? null
+        : AppSheetFooter(children: [AppSheetActions(children: actions!)]),
   );
 }
 

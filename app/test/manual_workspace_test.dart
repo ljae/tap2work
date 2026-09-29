@@ -93,11 +93,11 @@ Future<void> click(WidgetTester tester, String key) async {
 }
 
 Future<void> moveTask(WidgetTester tester) async {
+  await click(tester, 'manual-node-tap:a');
   await tester.longPress(
     find.byKey(const ValueKey('manual-node-group:general')),
   );
   await tester.pumpAndSettle();
-  await click(tester, 'manual-node-tap:a');
   final start = tester.getCenter(
     find.byKey(const ValueKey('manual-drag-task:s1:a')),
   );
@@ -107,6 +107,44 @@ Future<void> moveTask(WidgetTester tester) async {
 }
 
 void main() {
+  for (final entry in [
+    ('group', 'general', null),
+    ('tap', 'a', null),
+    ('task', 's1', 'a'),
+  ]) {
+    testWidgets('tree name click renames ${entry.$1} with exact identity', (
+      tester,
+    ) async {
+      Json? sent;
+      final ops = OperationsController(
+        client: MockClient((r) async {
+          if (r.method == 'POST') sent = jsonDecode(r.body) as Json;
+          return response(directoryData());
+        }),
+      );
+      addTearDown(ops.dispose);
+      await mount(tester, ops);
+      await click(tester, 'manual-node-tap:a');
+      final id =
+          '${entry.$1}:${entry.$2}${entry.$3 == null ? '' : ':${entry.$3}'}';
+      await tester.longPress(find.byKey(ValueKey('manual-node-$id')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(ValueKey('manual-rename-$id')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.widgetWithText(TextField, '이름'), '새 이름');
+      await tester.tap(find.text('저장'));
+      await tester.pumpAndSettle();
+      expect(sent?['action'], 'edit_manual_node');
+      expect(sent?['operation'], 'rename');
+      expect(sent?['kind'], entry.$1);
+      expect(sent?['id'], entry.$2);
+      expect(sent?['parentId'], entry.$3);
+      expect(sent?['name'], '새 이름');
+      expect(sent?['revision'], 2);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets(
     'empty folders and TAPs remain editable and accept the last Task',
     (tester) async {

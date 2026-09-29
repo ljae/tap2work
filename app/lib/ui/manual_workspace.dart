@@ -493,15 +493,48 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            label,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: selected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
+                          Tooltip(
+                            message: editingTree && editable && !linkedMenu
+                                ? '이름을 눌러 변경'
+                                : label,
+                            child: InkWell(
+                              key: ValueKey('manual-rename-$key'),
+                              mouseCursor:
+                                  editingTree && editable && !linkedMenu
+                                  ? SystemMouseCursors.text
+                                  : SystemMouseCursors.click,
+                              onTap:
+                                  editingTree &&
+                                      editable &&
+                                      canEdit &&
+                                      !linkedMenu
+                                  ? () {
+                                      onTap();
+                                      directEditNode(
+                                        context,
+                                        ops,
+                                        'edit_manual_node',
+                                        {
+                                          'kind': kind,
+                                          'id': id,
+                                          'parentId': tapId,
+                                          'operation': 'rename',
+                                        },
+                                        label,
+                                      );
+                                    }
+                                  : null,
+                              child: Text(
+                                label,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: selected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                ),
+                              ),
                             ),
                           ),
                           if (durationText != null)
@@ -1014,7 +1047,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
                         editingTree
-                            ? '폴더 구조 편집 · TAP은 폴더로, Task는 TAP으로 옮겨요. 같은 단계에 놓으면 앞에 배치돼요.'
+                            ? '폴더 구조 편집 · 이름을 눌러 수정해요. TAP은 폴더로, Task는 TAP으로 옮겨요.'
                             : 'Task 편집 · 카드에서 이름·위치·삭제를 선택해요.',
                         style: TextStyle(fontSize: 13, color: AppColors.muted),
                       ),

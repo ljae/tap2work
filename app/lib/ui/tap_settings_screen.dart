@@ -317,7 +317,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
+          constraints: const BoxConstraints(maxWidth: appEditorWidth),
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [

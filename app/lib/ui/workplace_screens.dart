@@ -721,8 +721,6 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     counts[id] = (counts[id] ?? 1) + delta;
   });
   List<Widget> orderSystem() => [
-    const Text('주문처리 시스템 연결', style: AppText.title),
-    const SizedBox(height: 16),
     SwitchListTile.adaptive(
       contentPadding: EdgeInsets.zero,
       title: const Text('주문처리 보드 사용'),
@@ -809,15 +807,6 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         ),
       ],
     ),
-    saveButton(() async {
-      await save('save_workplace_parts', {'parts': parts});
-      if (mounted && error == null) {
-        setState(
-          () => parts = (jsonDecode(jsonEncode(storeParts(ops))) as List)
-              .cast<Json>(),
-        );
-      }
-    }),
   ];
   void addPart() {
     if (partName.text.trim().isEmpty) return;
@@ -878,12 +867,6 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           ],
         ),
       ),
-      saveButton(
-        () => save('save_workplace_permissions', {
-          'role': role,
-          'permissions': restrictions[role] ?? {},
-        }),
-      ),
     ];
   }
 
@@ -924,13 +907,6 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     const Text(
       '활동 파트와 선호 시간대예요. 실제 근무는 근무표에 별도로 배정해 주세요.',
       style: AppText.caption,
-    ),
-    saveButton(
-      () => save('save_staff_profile', {
-        'tapperId': widget.person!['id'],
-        'partIds': partIds.toList(),
-        'bands': bands.toList(),
-      }),
     ),
   ];
   List<Widget> invite() => [
@@ -1096,6 +1072,38 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       ),
     ),
   ];
+  bool get hasSaveFooter => const [
+    'hours',
+    'parts',
+    'permissions',
+    'person',
+  ].contains(widget.section);
+  Future<void> saveSection() async {
+    switch (widget.section) {
+      case 'hours':
+        await save('save_workplace_hours', {'days': days});
+      case 'parts':
+        await save('save_workplace_parts', {'parts': parts});
+        if (mounted && error == null) {
+          setState(
+            () => parts = (jsonDecode(jsonEncode(storeParts(ops))) as List)
+                .cast<Json>(),
+          );
+        }
+      case 'permissions':
+        await save('save_workplace_permissions', {
+          'role': role,
+          'permissions': restrictions[role] ?? {},
+        });
+      case 'person':
+        await save('save_staff_profile', {
+          'tapperId': widget.person!['id'],
+          'partIds': partIds.toList(),
+          'bands': bands.toList(),
+        });
+    }
+  }
+
   @override
   Widget build(BuildContext context) => PopScope(
     canPop: !dirty,
@@ -1104,7 +1112,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     },
     child: AppEditorScaffold(
       title: titles[widget.section] ?? '매장 설정',
-      footer: widget.section == 'hours'
+      footer: hasSaveFooter
           ? AppSheetFooter(
               children: [
                 if (error != null)
@@ -1113,10 +1121,14 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                     style: AppText.caption.copyWith(color: AppColors.accent),
                   ),
                 FilledButton(
-                  onPressed: editable
-                      ? () => save('save_workplace_hours', {'days': days})
-                      : null,
-                  child: Text(saving ? '저장 중…' : '일주일 설정 저장'),
+                  onPressed: editable ? saveSection : null,
+                  child: Text(
+                    saving
+                        ? '저장 중…'
+                        : widget.section == 'hours'
+                        ? '일주일 설정 저장'
+                        : '저장',
+                  ),
                 ),
               ],
             )
@@ -1124,7 +1136,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       onClose: close,
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 640),
+          constraints: const BoxConstraints(maxWidth: appEditorWidth),
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
@@ -1147,7 +1159,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                   ),
                 ],
               },
-              if (error != null && widget.section != 'hours')
+              if (error != null && !hasSaveFooter)
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: Information(error!),

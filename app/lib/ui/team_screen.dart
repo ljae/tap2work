@@ -214,6 +214,8 @@ class _TeamScreenState extends State<TeamScreen> {
           title: Text('${tapper['nickname']} 근무 배정'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 20,
             children: [
               PressBounce(
                 child: OutlinedButton(
@@ -455,12 +457,8 @@ class _TeamScreenState extends State<TeamScreen> {
         final bands = (person['workProfile']?['bands'] as List? ?? []).join(
           ' · ',
         );
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('직원 정보'),
-            centerTitle: true,
-            leading: const CloseButton(),
-          ),
+        return AppEditorScaffold(
+          title: '크루 정보',
           body: ListView(
             padding: const EdgeInsets.all(24),
             children: [
@@ -475,11 +473,8 @@ class _TeamScreenState extends State<TeamScreen> {
                     icon: CupertinoIcons.money_dollar_circle,
                     onTap: () => showAppSheet(
                       context,
-                      builder: (_) => Scaffold(
-                        appBar: AppBar(
-                          title: const Text('시급·정산'),
-                          leading: const CloseButton(),
-                        ),
+                      builder: (_) => AppEditorScaffold(
+                        title: '시급·정산',
                         body: SingleChildScrollView(
                           padding: const EdgeInsets.all(24),
                           child: TeamScreen(operations: ops, payOnly: true),

@@ -71,10 +71,11 @@ class _CatalogEditorState extends State<CatalogEditor> {
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       for (final field in fields)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: 20),
                           child: field.key == 'zone'
                               ? AppPillField<String>(
                                   initialValue: inputs['zone']!.text.isEmpty

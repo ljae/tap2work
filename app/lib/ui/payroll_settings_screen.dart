@@ -112,7 +112,7 @@ class _PayrollSettingsScreenState extends State<PayrollSettingsScreen> {
               absorbing: saving,
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 688),
+                  constraints: const BoxConstraints(maxWidth: appEditorWidth),
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                     children: [

@@ -142,6 +142,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AppPicker<String>(
                   label: '파트',

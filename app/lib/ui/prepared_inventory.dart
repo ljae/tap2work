@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import 'prepared_item_editor.dart';
 
 /// A prepared portion is kitchen output; supplier stock keeps its own ledger.
 class PreparedInventory extends StatelessWidget {
@@ -8,232 +9,17 @@ class PreparedInventory extends StatelessWidget {
   final OperationsController ops;
 
   Future<void> _save(BuildContext context, Json? item) async {
-    final reports = (ops.data?['dashboard']?['reports'] as List? ?? [])
-        .cast<Json>();
-    final menus = (reports.firstOrNull?['menus'] as List? ?? []).cast<Json>();
-    final name = TextEditingController(text: item?['name'] ?? '');
-    final unit = TextEditingController(text: item?['unit'] ?? '인분');
-    final minimum = TextEditingController(text: '${item?['minimum'] ?? 2}');
-    final target = TextEditingController(text: '${item?['target'] ?? 10}');
-    final batch = TextEditingController(
-      text: '${item?['batchQuantity'] ?? 10}',
-    );
-    final instructions = TextEditingController(
-      text: item?['instructions'] ?? '매장 절차에 따라 준비하고 실제 완성 수량을 세세요.',
-    );
-    final uses = {
-      for (final menu in menus)
-        menu['id'] as String: TextEditingController(
-          text:
-              '${(item?['menuUses'] as List? ?? []).cast<Json>().where((u) => u['menuId'] == menu['id']).firstOrNull?['quantity'] ?? ''}',
-        ),
-    };
-    String folder =
-        item?['folderId'] ??
-        ops
-            .rows('checklistFolders')
-            .firstWhere(
-              (f) => f['id'] == 'bone-preparation',
-              orElse: () => ops.rows('checklistFolders').first,
-            )['id'];
-    String zone = item?['zone'] ?? ops.rows('zones').first['id'];
-    final revision = ops.data?['revision'];
-    final accepted = await showAppDialog<bool>(
+    await showAppFormSheet<bool>(
       context: context,
-      builder: (dialog) => StatefulBuilder(
-        builder: (dialog, set) => AlertDialog(
-          title: Text(item == null ? '준비품 추가' : '${item['name']} 설정'),
-          content: SizedBox(
-            width: 480,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: name,
-                    decoration: const InputDecoration(labelText: '준비품 이름'),
-                  ),
-                  TextField(
-                    controller: unit,
-                    decoration: const InputDecoration(
-                      labelText: '단위 · 예: 인분, 개',
-                    ),
-                  ),
-                  for (final (title, controller) in [
-                    ('부족 기준', minimum),
-                    ('목표 수량', target),
-                    ('기본 준비량', batch),
-                  ])
-                    TextField(
-                      controller: controller,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: title),
-                    ),
-                  AppPicker<String>(
-                    label: '준비 TAP그룹',
-                    value: folder,
-                    items: [
-                      for (final f in ops.rows('checklistFolders'))
-                        DropdownMenuItem(
-                          value: f['id'] as String,
-                          child: Text(f['name']),
-                        ),
-                    ],
-                    onChanged: (v) => set(() => folder = v!),
-                  ),
-                  AppPicker<String>(
-                    label: '준비 장소',
-                    value: zone,
-                    items: [
-                      for (final z in ops.rows('zones'))
-                        DropdownMenuItem(
-                          value: z['id'] as String,
-                          child: Text(z['name']),
-                        ),
-                    ],
-                    onChanged: (v) => set(() => zone = v!),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    '메뉴 1개당 사용하는 준비품 수량',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  for (final menu in menus)
-                    TextField(
-                      controller: uses[menu['id']],
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: menu['name'],
-                        hintText: '사용하지 않으면 비워 두세요',
-                      ),
-                    ),
-                  TextField(
-                    controller: instructions,
-                    minLines: 2,
-                    maxLines: 5,
-                    maxLength: 700,
-                    decoration: const InputDecoration(
-                      labelText: '준비 방법 · 매장 기준',
-                    ),
-                  ),
-                  const Text('예시 수량입니다. 실제 매장 기준으로 수정해 주세요.'),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            PressBounce(
-              child: TextButton(
-                onPressed: () => Navigator.pop(dialog, false),
-                child: const Text('취소'),
-              ),
-            ),
-            PressBounce(
-              child: FilledButton(
-                onPressed: () => Navigator.pop(dialog, true),
-                child: const Text('저장'),
-              ),
-            ),
-          ],
-        ),
-      ),
+      builder: (_) => PreparedItemEditor(ops: ops, item: item),
     );
-    if (accepted == true) {
-      final ok = await ops.act('save_prepared_item', {
-        'revision': revision,
-        if (item != null) 'id': item['id'],
-        'name': name.text.trim(),
-        'unit': unit.text.trim(),
-        'minimum': int.tryParse(minimum.text),
-        'target': int.tryParse(target.text),
-        'batchQuantity': int.tryParse(batch.text),
-        'folderId': folder,
-        'zone': zone,
-        'instructions': instructions.text.trim(),
-        'menuUses': [
-          for (final menu in menus)
-            if (uses[menu['id']]!.text.trim().isNotEmpty)
-              {
-                'menuId': menu['id'],
-                'quantity': int.tryParse(uses[menu['id']]!.text.trim()),
-              },
-        ],
-      });
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(ok ? '준비품 기준을 저장했어요.' : ops.error ?? '저장하지 못했어요.'),
-          ),
-        );
-      }
-    }
-    name.dispose();
-    unit.dispose();
-    minimum.dispose();
-    target.dispose();
-    batch.dispose();
-    instructions.dispose();
-    for (final controller in uses.values) {
-      controller.dispose();
-    }
   }
 
   Future<void> _count(BuildContext context, Json item) async {
-    final number = TextEditingController(text: '${item['onHand']}');
-    final reason = TextEditingController();
-    final revision = ops.data?['revision'];
-    final saved = await showAppDialog<bool>(
+    await showAppFormSheet<bool>(
       context: context,
-      builder: (dialog) => AlertDialog(
-        title: Text('${item['name']} 실제 수량 확인'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: number,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: '현재 수량 · ${item['unit']}'),
-            ),
-            TextField(
-              controller: reason,
-              decoration: const InputDecoration(labelText: '보정 이유 · 예: 실사, 폐기'),
-            ),
-          ],
-        ),
-        actions: [
-          PressBounce(
-            child: TextButton(
-              onPressed: () => Navigator.pop(dialog, false),
-              child: const Text('취소'),
-            ),
-          ),
-          PressBounce(
-            child: FilledButton(
-              onPressed: () => Navigator.pop(dialog, true),
-              child: const Text('기록'),
-            ),
-          ),
-        ],
-      ),
+      builder: (_) => PreparedItemEditor(ops: ops, item: item, countOnly: true),
     );
-    if (saved == true) {
-      final ok = await ops.act('count_prepared_item', {
-        'revision': revision,
-        'id': item['id'],
-        'quantity': int.tryParse(number.text),
-        'reason': reason.text.trim(),
-      });
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(ok ? '실제 수량을 기록했어요.' : ops.error ?? '기록하지 못했어요.'),
-          ),
-        );
-      }
-    }
-    number.dispose();
-    reason.dispose();
   }
 
   @override
