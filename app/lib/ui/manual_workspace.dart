@@ -494,6 +494,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Tooltip(
+                            triggerMode: TooltipTriggerMode.manual,
                             message: editingTree && editable && !linkedMenu
                                 ? '이름을 눌러 변경'
                                 : label,

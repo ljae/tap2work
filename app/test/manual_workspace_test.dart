@@ -127,7 +127,7 @@ void main() {
       await click(tester, 'manual-node-tap:a');
       final id =
           '${entry.$1}:${entry.$2}${entry.$3 == null ? '' : ':${entry.$3}'}';
-      await tester.longPress(find.byKey(ValueKey('manual-node-$id')));
+      await tester.longPress(find.byKey(ValueKey('manual-rename-$id')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(ValueKey('manual-rename-$id')));
       await tester.pumpAndSettle();
