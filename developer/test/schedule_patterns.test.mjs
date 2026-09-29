@@ -50,7 +50,9 @@ test('own leave and shortened shift require owner approval; requests never chang
  assert.equal((await store.snapshot('cook')).shiftChangeRequests.length,0);
  const request=state.shiftChangeRequests[0];
  await assert.rejects(act('manager','review_shift_change',{id:request.id,decision:'approved'}),{status:403});
+ await act('owner','save_staff_shift',{...shift,label:'Updated label'});
  state=await act('owner','review_shift_change',{id:request.id,decision:'approved'});
+ assert.equal(state.staffShifts.find(s=>s.id===shift.id).label,'Updated label');
  assert.equal(state.staffShifts.find(s=>s.id===shift.id).start,'10:00');assert.equal(state.shiftChangeRequests[0].status,'approved');
  const attendance=state.attendance;
  state=await act('crew','request_shift_change',{shiftId:shift.id,kind:'leave',reason:'휴무'});

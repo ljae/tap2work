@@ -41,7 +41,8 @@ export function mutateShiftRequest(state,input,actor,now,activity,validShift,val
     if(!shift || shiftVersion(shift)!==row.version) fail('신청 이후 근무가 바뀌었어요. 반려 후 다시 신청해 주세요.',409);
     if(interval(shift)[0]<=now.getTime()) fail('이미 시작한 근무는 승인할 수 없어요.',409);
     if(row.kind==='shorten') {validShift(row.after,state);validateOverlap(state,row.after,new Set([shift.id]));}
-    Object.assign(shift,row.after,{approvedRequestId:row.id});
+    // Approval changes only the requested fields, preserving later labels and metadata.
+    Object.assign(shift,{start:row.after.start,end:row.after.end,status:row.after.status,approvedRequestId:row.id});
   }
   Object.assign(row,{status:input.decision,reviewedAt:now.toISOString(),reviewedBy:actor.id});
   activity(input.decision==='approved'?'근무 변경 승인·반영':'근무 변경 반려');return true;

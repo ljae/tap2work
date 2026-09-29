@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 106,
+  "revision": 107,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4460,7 +4460,25 @@
         "developer/test/section_storage.test.mjs",
         "docs/project-state.json"
       ]
+    },
+    {
+      "at": "2026-09-29T12:43:31.961565Z",
+      "type": "verification",
+      "title": "Final scheduling web release and field-only approval API deployed",
+      "detail": "Web source e86e140c0883547c0dfe0f7e980625bb5adbf440 deployed by successful Pages run 36569490517. The operations function was additionally deployed with a targeted fix: owner approval writes requested start/end/status and approval reference only, preserving labels and unrelated metadata edited after submission. This verification commit contains that server fix and regression assertion; no web source differs from the successful release. Shared employee target remains proposed/unconfigured until explicit user selection in the app; existing crew and assignments were not mutated for testing.",
+      "verification": "Final CI: Flutter analysis clean, 155 Flutter tests and 113 Node tests passed, 30 UI links, web build and Pages deployment succeeded. Local final Node suite 113 passed after metadata-preservation assertion; six targeted server cases passed. Live Chrome 390x844 on final deployment: authenticated operations GET 200, three holiday year requests 200, crew-pattern save and closed-day-first hours/sticky save visible, employee switch choice visible, compact calendar screenshot inspected, operations POSTs 0 and page errors 0. Employee creation, actual shift writes and approval were tested with isolated fixtures rather than live records. Six responsive snapshots passed; no native build or physical-device verification.",
+      "release": {
+        "commit": "e86e140c0883547c0dfe0f7e980625bb5adbf440",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36569490517",
+        "site": "https://tap2.work"
+      },
+      "files": [
+        "developer/shift_requests.mjs",
+        "developer/test/schedule_patterns.test.mjs",
+        "docs/project-state.json",
+        "docs/LOCALIZATION_PLAN.md"
+      ]
     }
   ],
-  "updatedAt": "2026-09-29T12:38:24.469504Z"
+  "updatedAt": "2026-09-29T12:43:31.961565Z"
 }
