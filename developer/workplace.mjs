@@ -7,9 +7,9 @@ const label = value => {
   return value.trim();
 };
 export const permissionActions = {
-  tasks: ['save_task_step', 'reorder_small_taps', 'reorder_big_taps', 'create_task', 'save_checklists', 'save_tap_settings', 'save_step_manual', 'move_manual_node', 'import_recommended_taps'],
+  tasks: ['edit_work_node', 'edit_manual_node', 'save_task_step', 'reorder_small_taps', 'reorder_big_taps', 'create_task', 'save_checklists', 'save_tap_settings', 'save_step_manual', 'move_manual_node', 'import_recommended_taps'],
   complete: ['complete_task', 'complete_step', 'reopen_step', 'move_tap', 'complete_preparation'],
-  schedule: ['save_roster_slot', 'reset_roster_slot', 'delete_staff_shift', 'save_staffing_slots', 'assign_staffing_slot', 'save_staff_shift', 'save_shift_pattern', 'assign_cover', 'update_shift'],
+  schedule: ['save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'delete_staff_shift', 'save_staffing_slots', 'assign_staffing_slot', 'save_staff_shift', 'save_shift_pattern', 'assign_cover', 'update_shift'],
   stock: ['check_stock', 'count_prepared_item'],
   orders: ['place_order', 'receive_order'],
 };
@@ -27,9 +27,9 @@ export function checkWorkplacePermission(state, actor, action) {
   }
 }
 export function mutateWorkplace(state, input, actor, now, activity, authenticated) {
-  const actions = ['save_roster_slot', 'reset_roster_slot', 'save_order_system', 'save_workplace_parts', 'save_workplace_day', 'save_workplace_permissions', 'save_staff_profile', 'create_demo_invite', 'revoke_demo_invite'];
+  const actions = ['save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'save_order_system', 'save_workplace_parts', 'save_workplace_day', 'save_workplace_permissions', 'save_staff_profile', 'create_demo_invite', 'revoke_demo_invite'];
   if (!actions.includes(input.action)) return false;
-  if (['save_roster_slot','reset_roster_slot'].includes(input.action)) {
+  if (['save_roster_slot','delete_roster_slot','reset_roster_slot'].includes(input.action)) {
     if (!['owner','manager'].includes(actor.role)) fail('매니저 이상만 슬롯을 바꿀 수 있어요.', 403);
     const weekday = validRosterDate(input.date);
     validatePart(state, input.partId);
@@ -38,7 +38,8 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
     if (!template && !existing) fail('슬롯이 변경됐어요. 다시 열어 주세요.', 409);
     if (input.action === 'save_roster_slot') validRosterTimes(input.start, input.end);
     state.rosterOverrides = (state.rosterOverrides ?? []).filter(t => t !== existing);
-    if (input.action === 'save_roster_slot') state.rosterOverrides.push({ date: input.date, partId: input.partId, templateId: input.templateId, name: template?.name ?? existing.name, start: input.start, end: input.end });
+    if (input.action === 'save_roster_slot') state.rosterOverrides.push({ date: input.date, partId: input.partId, templateId: input.templateId, name: input.name == null ? template?.name ?? existing.name : (()=>{if(typeof input.name !== 'string' || !input.name.trim() || input.name.trim().length>100)fail('이름은 1~100자로 입력해 주세요.');return input.name.trim();})(), start: input.start, end: input.end });
+    if(input.action === 'delete_roster_slot') state.rosterOverrides.push({...template,...existing,date:input.date,partId:input.partId,templateId:input.templateId,hidden:true});
     activity('날짜별 파트 슬롯 시간 조정'); return true;
   }
   if (actor.role !== 'owner') fail('사장님만 이 설정을 바꿀 수 있어요.', 403);

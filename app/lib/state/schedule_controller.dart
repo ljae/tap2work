@@ -44,7 +44,10 @@ class ScheduleController extends ChangeNotifier {
   List<RosterSlot> slots(DateTime day) =>
       slotsForDay(operations.data ?? {}, day, visibleParts);
   bool get editable =>
-      operations.isLeader && !operations.readOnly && !operations.busy;
+      operations.isLeader &&
+      operations.data?['canEditSchedule'] != false &&
+      !operations.readOnly &&
+      !operations.busy;
   void selectPart(String? id) {
     partId = id;
     notifyListeners();

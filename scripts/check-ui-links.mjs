@@ -5,6 +5,10 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['U03', 'app/lib/ui/direct_edit.dart', 'onLongPress:', 'app/lib/ui/calendar_screen.dart', 'DirectEditFrame('],
+  ['S25', 'app/lib/ui/tap_workspace.dart', "'edit_work_node'", 'developer/operations.mjs', "case 'edit_work_node'"],
+  ['S26', 'app/lib/ui/manual_workspace.dart', "'edit_manual_node'", 'developer/operations.mjs', "case 'edit_manual_node'"],
+  ['S27', 'app/lib/ui/calendar_screen.dart', "'delete_roster_slot'", 'developer/workplace.mjs', "'delete_roster_slot'"],
   ['S22', 'app/lib/ui/task_step_editor.dart', "'save_task_step'", 'developer/operations.mjs', "case 'save_task_step'"],
   ['S23', 'app/lib/ui/tap_workspace.dart', "Text('Task 추가')", 'app/lib/ui/task_step_editor.dart', 'class TaskStepEditor'],
   ['S24', 'app/lib/state/operations_controller.dart', 'get canEditTasks', 'developer/operations.mjs', 'result.canEditTasks'],
@@ -21,7 +25,7 @@ const contracts = [
   ['S07', 'app/lib/ui/workplace_screens.dart', "'save_workplace_permissions'", 'developer/workplace.mjs', "case 'save_workplace_permissions'"],
   ['S08', 'app/lib/ui/store_profile_screen.dart', "'save_store_profile'", 'developer/operations.mjs', "case 'save_store_profile'"],
   ['S09', 'app/lib/ui/payroll_settings_screen.dart', "'save_payroll_settings'", 'developer/staff.mjs', "case 'save_payroll_settings'"],
-  ['S11', 'app/lib/ui/checklist_editor.dart', 'class ChecklistEditor', 'developer/operations.mjs', "case 'save_checklists'"],
+  ['S11', 'app/lib/ui/tap_workspace.dart', 'DirectEditFrame(', 'developer/operations.mjs', "case 'edit_work_node'"],
   ['S12', 'app/lib/ui/manual_workspace.dart', 'ManualTaskEditor(', 'app/lib/ui/checklist_editor.dart', 'class ManualTaskEditor'],
   ['S13', 'app/lib/ui/manual_workspace.dart', 'initialTemplateId:', 'app/lib/ui/tap_settings_screen.dart', "'save_tap_settings'"],
   ['S14', 'app/lib/ui/manual_workspace.dart', "'move_manual_node'", 'developer/operations.mjs', "case 'move_manual_node'"],
@@ -52,7 +56,7 @@ if (!editButton || !editButton[0].includes('ManualTaskEditor(') || editButton[0]
   errors++;
 }
 const board = await readFile(path.join(root, 'app/lib/ui/tap_workspace.dart'), 'utf8');
-if (board.includes("Text('TAP 설정')") || !board.includes('buildDefaultDragHandles: false')) {
+if (board.includes("Text('보드 편집')") || manual.includes("'구조 편집'") || board.includes("Text('TAP 설정')") || !board.includes('buildDefaultDragHandles: false')) {
   console.error('Board must not expose global TAP settings or overlapping default drag handles');
   errors++;
 }

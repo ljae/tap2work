@@ -4,6 +4,7 @@ import '../domain/part_schedule.dart';
 import '../state/operations_controller.dart';
 import '../state/schedule_controller.dart';
 import 'components.dart';
+import 'direct_edit.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key, required this.operations});
@@ -14,6 +15,139 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   late ScheduleController model;
+  bool arranging = false;
+  String? arrangingActor;
+  RosterSlot? selectedSlot;
+  bool get editMode =>
+      arranging && arrangingActor == ops.actorId && model.editable;
+  void enterEdit(RosterSlot slot) => setState(() {
+    arranging = true;
+    arrangingActor = ops.actorId;
+    selectedSlot = slot;
+  });
+  Json slotInput(RosterSlot slot) => {
+    'date': slot.date,
+    'partId': slot.partId,
+    'start': slot.start,
+    'end': slot.end,
+    if (slot.shiftId != null) ...{
+      'id': slot.shiftId,
+      'tapperId': slot.crewId,
+    } else
+      'templateId': slot.templateId,
+  };
+  Future<void> renameSlot(RosterSlot slot) async {
+    final revision = ops.data?['revision'], actor = ops.actorId;
+    final name = await directEditName(context, slot.name);
+    if (name == null || !mounted || actor != ops.actorId || !model.editable) {
+      return;
+    }
+    final ok = await ops
+        .act(slot.shiftId == null ? 'save_roster_slot' : 'save_staff_shift', {
+          ...slotInput(slot),
+          slot.shiftId == null ? 'name' : 'label': name,
+          'revision': revision,
+        });
+    if (mounted) {
+      if (ok) setState(() => selectedSlot = null);
+      notice(ok ? '이름을 변경했어요.' : ops.error ?? '저장하지 못했어요.');
+    }
+  }
+
+  void notice(String text) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  Future<void> deleteSlot(RosterSlot slot) async {
+    final revision = ops.data?['revision'], actor = ops.actorId;
+    final yes = await showAppDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('근무 삭제'),
+        content: Text(
+          slot.shiftId == null
+              ? '이 날짜의 필요 슬롯만 삭제해요. 기본 영업시간은 유지됩니다.'
+              : '선택한 근무 배정을 해제해요. 출퇴근 기록은 유지됩니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+    if (yes != true || !mounted || actor != ops.actorId || !model.editable) {
+      return;
+    }
+    final ok = await ops.act(
+      slot.shiftId == null ? 'delete_roster_slot' : 'delete_staff_shift',
+      {...slotInput(slot), 'revision': revision},
+    );
+    if (mounted) {
+      if (ok) setState(() => selectedSlot = null);
+      notice(ok ? '근무표에 반영했어요.' : ops.error ?? '삭제하지 못했어요.');
+    }
+  }
+
+  Future<void> dropSlot(
+    Json payload,
+    DateTime day,
+    WorkPart part,
+    int minute,
+  ) async {
+    if (!editMode || payload['actor'] != ops.actorId) return;
+    final duration = payload['duration'] as int;
+    final ok = await ops
+        .act(payload['id'] == null ? 'save_roster_slot' : 'save_staff_shift', {
+          ...payload,
+          'date': rosterDate(day),
+          'partId': part.id,
+          'start': rosterClock(minute),
+          'end': rosterClock(minute + duration),
+        });
+    if (mounted) {
+      if (ok) setState(() => selectedSlot = null);
+      notice(ok ? '근무를 옮겼어요.' : ops.error ?? '이동하지 못했어요.');
+    }
+  }
+
+  Widget slotFrame(RosterSlot slot, Widget child) {
+    final frame = DirectEditFrame(
+      enabled: model.editable,
+      active: editMode,
+      onEnter: () => enterEdit(slot),
+      controls: false,
+      child: editMode
+          ? GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => selectedSlot = slot),
+              child: IgnorePointer(child: child),
+            )
+          : child,
+    );
+    if (!editMode) return frame;
+    return Draggable<Json>(
+      data: {
+        ...slotInput(slot),
+        'duration': slot.endMinute - slot.startMinute,
+        'revision': ops.data?['revision'],
+        'actor': ops.actorId,
+      },
+      feedback: Material(
+        color: AppColors.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(slot.name),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: .3, child: frame),
+      child: frame,
+    );
+  }
+
   final horizontal = ScrollController();
   final vertical = ScrollController();
   static const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
@@ -21,6 +155,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void initState() {
     super.initState();
     model = ScheduleController(widget.operations);
+  }
+
+  @override
+  void didUpdateWidget(covariant CalendarScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.operations != widget.operations) {
+      model.dispose();
+      model = ScheduleController(widget.operations);
+      arranging = false;
+      selectedSlot = null;
+    }
   }
 
   @override
@@ -36,6 +181,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> edit(RosterSlot slot) async {
     if (!model.editable) return;
     final revision = ops.data!['revision'];
+    final actor = ops.actorId;
     var start = slot.start, end = slot.end;
     String? crewId = slot.crewId;
     var repeat = 1;
@@ -153,14 +299,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
           actions: [
-            if (slot.shiftId != null)
-              TextButton(
-                onPressed: () => Navigator.pop(context, {
-                  'action': 'delete_staff_shift',
-                  'id': slot.shiftId,
-                }),
-                child: const Text('배정 해제'),
-              ),
             if (slot.adjusted)
               TextButton(
                 onPressed: () => Navigator.pop(context, {
@@ -202,7 +340,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
       ),
     );
-    if (result == null || !mounted) return;
+    if (result == null || !mounted || actor != ops.actorId || !model.editable) {
+      return;
+    }
     final action = result.remove('action') as String;
     final ok = await ops.act(action, {...result, 'revision': revision});
     if (mounted) {
@@ -501,86 +641,134 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
     final lanes = ends.isEmpty ? 1 : ends.length;
     final laneWidth = width / lanes;
-    return SizedBox(
-      height: (until - from) * scale + 24,
-      child: Stack(
-        children: [
-          for (var m = from; m < until; m += 30)
-            Positioned(
-              top: (m - from) * scale,
-              left: 0,
-              right: 0,
-              height: 48,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: AppColors.line),
-                    right: BorderSide(color: AppColors.line),
+    return Builder(
+      builder: (columnContext) => DragTarget<Json>(
+        onWillAcceptWithDetails: (d) =>
+            editMode &&
+            d.data['actor'] == ops.actorId &&
+            (d.data['id'] != null ||
+                (d.data['date'] == rosterDate(day) &&
+                    d.data['partId'] == part.id)),
+        onAcceptWithDetails: (d) {
+          final box = columnContext.findRenderObject() as RenderBox;
+          final minute =
+              (from +
+                      (box.globalToLocal(d.offset).dy / scale / 30).round() *
+                          30)
+                  .clamp(0, 1410);
+          dropSlot(d.data, day, part, minute);
+        },
+        builder: (context, candidates, rejected) => SizedBox(
+          height: (until - from) * scale + 24,
+          child: Stack(
+            children: [
+              for (var m = from; m < until; m += 30)
+                Positioned(
+                  top: (m - from) * scale,
+                  left: 0,
+                  right: 0,
+                  height: 48,
+                  child: DragTarget<Json>(
+                    key: ValueKey(
+                      'roster-drop-${rosterDate(day)}-${part.id}-$m',
+                    ),
+                    onWillAcceptWithDetails: (d) =>
+                        editMode &&
+                        d.data['actor'] == ops.actorId &&
+                        (d.data['id'] != null ||
+                            (d.data['date'] == rosterDate(day) &&
+                                d.data['partId'] == part.id)),
+                    onAcceptWithDetails: (d) => dropSlot(d.data, day, part, m),
+                    builder: (context, candidates, rejected) => Container(
+                      color: candidates.isEmpty
+                          ? null
+                          : AppColors.green.withValues(alpha: .25),
+                      decoration: candidates.isNotEmpty
+                          ? null
+                          : BoxDecoration(
+                              border: Border(
+                                top: BorderSide(color: AppColors.line),
+                                right: BorderSide(color: AppColors.line),
+                              ),
+                            ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          for (var i = 0; i < slots.length; i++)
-            Positioned(
-              top: (slots[i].startMinute - from) * scale + 2,
-              left: positions[i] * laneWidth + 3,
-              width: laneWidth - 6,
-              height: (slots[i].endMinute - slots[i].startMinute) * scale - 4,
-              child: Semantics(
-                button: true,
-                label:
-                    '${slots[i].date} ${part.name} ${slots[i].name} ${slots[i].start} ${slots[i].end}',
-                child: Material(
-                  color: slots[i].crewId == null
-                      ? AppColors.surface
-                      : AppColors.lime,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                      color: slots[i].crewId == null
-                          ? AppColors.line
-                          : AppColors.green,
-                    ),
-                  ),
-                  child: InkWell(
-                    key: ValueKey(
-                      'roster-${slots[i].date}-${slots[i].partId}-${slots[i].shiftId ?? slots[i].templateId}',
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: model.editable ? () => edit(slots[i]) : null,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              slots[i].name,
-                              style: AppText.body.copyWith(
-                                fontWeight: FontWeight.w700,
+              for (var i = 0; i < slots.length; i++)
+                Positioned(
+                  top: (slots[i].startMinute - from) * scale + 2,
+                  left: positions[i] * laneWidth + 3,
+                  width: laneWidth - 6,
+                  height:
+                      (slots[i].endMinute - slots[i].startMinute) * scale - 4,
+                  child: slotFrame(
+                    slots[i],
+                    Semantics(
+                      button: true,
+                      label:
+                          '${slots[i].date} ${part.name} ${slots[i].name} ${slots[i].start} ${slots[i].end}',
+                      child: Material(
+                        color: slots[i].crewId == null
+                            ? AppColors.surface
+                            : AppColors.lime,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: slots[i].crewId == null
+                                ? AppColors.line
+                                : AppColors.green,
+                          ),
+                        ),
+                        child: InkWell(
+                          key: ValueKey(
+                            'roster-${slots[i].date}-${slots[i].partId}-${slots[i].shiftId ?? slots[i].templateId}',
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: model.editable
+                              ? () {
+                                  if (editMode) {
+                                    setState(() => selectedSlot = slots[i]);
+                                  } else {
+                                    edit(slots[i]);
+                                  }
+                                }
+                              : null,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    slots[i].name,
+                                    style: AppText.body.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${slots[i].start}\n${slots[i].overnight ? '다음 날 ' : ''}${slots[i].end}',
+                                    style: AppText.caption,
+                                  ),
+                                  Text(
+                                    slots[i].crewId == null
+                                        ? '미배정${slots[i].adjusted ? ' · 조정됨' : ''}'
+                                        : '배정',
+                                    style: AppText.caption.copyWith(
+                                      color: AppColors.green,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            Text(
-                              '${slots[i].start}\n${slots[i].overnight ? '다음 날 ' : ''}${slots[i].end}',
-                              style: AppText.caption,
-                            ),
-                            Text(
-                              slots[i].crewId == null
-                                  ? '미배정${slots[i].adjusted ? ' · 조정됨' : ''}'
-                                  : '배정',
-                              style: AppText.caption.copyWith(
-                                color: AppColors.green,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -591,6 +779,40 @@ class _CalendarScreenState extends State<CalendarScreen> {
     builder: (context, _) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (ops.isLeader &&
+            ops.data?['canEditSchedule'] != false &&
+            !ops.readOnly)
+          DirectEditBar(
+            active: editMode,
+            onDone: () => setState(() {
+              arranging = false;
+              selectedSlot = null;
+            }),
+          ),
+        if (editMode && selectedSlot != null)
+          Wrap(
+            spacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(selectedSlot!.name, style: AppText.caption),
+              IconButton(
+                tooltip: '시간·크루 변경',
+                onPressed: () => edit(selectedSlot!),
+                icon: const Icon(Icons.tune),
+              ),
+              IconButton(
+                tooltip: '이름 변경',
+                onPressed: () => renameSlot(selectedSlot!),
+                icon: const Icon(Icons.edit_outlined),
+              ),
+              IconButton(
+                tooltip: '삭제',
+                onPressed: () => deleteSlot(selectedSlot!),
+                icon: const Icon(Icons.delete_outline),
+                color: AppColors.accent,
+              ),
+            ],
+          ),
         Row(
           children: [
             const Expanded(child: Text('보기', style: AppText.caption)),

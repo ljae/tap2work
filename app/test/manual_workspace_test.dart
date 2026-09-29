@@ -24,7 +24,8 @@ Json directoryData() {
             {
               'id': step,
               'title': {'s1': '손 씻기', 's2': '소독', 's3': '청소'}[step],
-              'manual': '${{'s1': '손 씻기', 's2': '소독', 's3': '청소'}[step]} 상세 매뉴얼',
+              'manual':
+                  '${{'s1': '손 씻기', 's2': '소독', 's3': '청소'}[step]} 상세 매뉴얼',
               'tip': '안전 확인',
               'tags': ['공통'],
             },
@@ -73,6 +74,10 @@ Future<void> mount(
   await ops.refresh();
   await tester.pumpWidget(
     MaterialApp(
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: true),
+        child: child!,
+      ),
       home: Scaffold(
         body: ManualWorkspace(ops: ops, query: query),
       ),
@@ -87,7 +92,9 @@ Future<void> click(WidgetTester tester, String key) async {
 }
 
 Future<void> moveTask(WidgetTester tester) async {
-  await tester.tap(find.text('구조 편집'));
+  await tester.longPress(
+    find.byKey(const ValueKey('manual-node-group:general')),
+  );
   await tester.pumpAndSettle();
   await click(tester, 'manual-node-tap:a');
   final start = tester.getCenter(

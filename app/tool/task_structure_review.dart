@@ -18,6 +18,9 @@ void main() {
   testWidgets('capture TAP hierarchy and inline editor with real fonts', (
     tester,
   ) async {
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
     final fonts = FontLoader('Pretendard');
     fonts.addFont(rootBundle.load('assets/fonts/PretendardVariable.ttf'));
     await fonts.load();
@@ -81,6 +84,8 @@ void main() {
           .onOpen();
       await tester.pumpAndSettle();
       await capture('tasks');
+      await tester.longPress(find.text('도구 나누기'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('도구 나누기'));
       await tester.pumpAndSettle();
       await capture('edit');

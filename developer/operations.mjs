@@ -1,3 +1,4 @@
+import {editManualNode, editWorkNode} from './direct_edit.mjs';
 import { ensurePartModel, actorWithParts, rosterTemplates } from './parts.mjs';
 import { workplaceView, mutateWorkplace, checkWorkplacePermission } from './workplace.mjs';
 import { moveManualNode } from './manual_directory.mjs';
@@ -296,12 +297,14 @@ export class OperationsStore {
     const result = structuredClone(state);
     result.hasSampleArchive = Boolean(state.sampleArchive);
     delete result.sampleArchive;
+    delete result.operationEditHistory;
     Object.assign(result, staffView(state, actor, this.clock()));
     result.workplace = workplaceView(state, actor);
     if (actor.role !== 'owner') { delete result.demoInvites; delete result.payrollSettings; delete result.payrollSettingsHistory; }
     result.rosterTemplates = rosterTemplates(state);
     result.orderBoardEnabled = state.store?.profile?.orderSystem?.enabled === true;
     result.actor = actor;
+    result.canEditSchedule = ['owner','manager'].includes(actor.role) && (actor.role === 'owner' || state.workplace?.restrictions?.[actor.role]?.schedule !== false);
     result.canEditTasks = ['owner', 'manager'].includes(actor.role) && (actor.role === 'owner' || state.workplace?.restrictions?.[actor.role]?.tasks !== false);
     result.serverTime = iso(this.clock());
     result.demo = !this.trustedActor;
@@ -480,6 +483,12 @@ export class OperationsStore {
           for (const step of task.steps) if (!step.completedAt) { step.completedAt = iso(now); step.completedBy = who; }
           task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done';
           activity(`${task.title} · 실제 ${input.quantity} 완성`); break;
+        }
+        case 'edit_manual_node': {
+          leadership(actor); editManualNode(state,input,actor,now); activity('매뉴얼 항목 편집'); break;
+        }
+        case 'edit_work_node': {
+          leadership(actor); editWorkNode(state,input,actor,now); activity('업무 항목 편집'); break;
         }
         case 'save_task_step': {
           leadership(actor);

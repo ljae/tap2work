@@ -6,6 +6,8 @@ abstract final class AppMotion {
   static const completionHold = Duration(milliseconds: 520);
   static const press = Duration(milliseconds: 80);
   static const release = Duration(milliseconds: 260);
+  static const editWiggle = Duration(milliseconds: 180);
+  static const editWiggleRadians = .016;
   static const quick = Duration(milliseconds: 160);
   static const content = Duration(milliseconds: 240);
   static const sheet = Duration(milliseconds: 360);

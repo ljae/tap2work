@@ -70,6 +70,7 @@ Future<OperationsController> mount(
         body: MediaQuery(
           data: MediaQueryData(
             size: Size(width, 1400),
+            disableAnimations: tester.platformDispatcher.accessibilityFeatures.disableAnimations,
             textScaler: TextScaler.linear(scale),
           ),
           child: SingleChildScrollView(child: CalendarScreen(operations: ops)),

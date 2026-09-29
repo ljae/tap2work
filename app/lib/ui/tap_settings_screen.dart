@@ -292,7 +292,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
         body: Center(
           child: Information(
             widget.initialTemplateId == null
-                ? '먼저 보드 편집에서 TAP을 만들어 주세요.'
+                ? '업무 화면의 TAP 추가로 만들어 주세요.'
                 : '연결된 TAP 또는 Task를 찾지 못했어요. 목록을 새로고침해 주세요.',
           ),
         ),

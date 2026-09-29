@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 102,
+  "revision": 103,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -548,6 +548,26 @@
       "reason": "사용자가 자동 입력·자동 로그인 및 기존 매장 공개를 각각 명시 승인했다.",
       "source": "사용자 요청 및 기존 매장 공개 질의 답변 · 2026-09-29",
       "updatedAt": "2026-09-29T10:49:41.736Z"
+    },
+    {
+      "id": "D-055",
+      "category": "UI/UX·편집",
+      "title": "길게 누르는 권한 기반 공통 편집",
+      "status": "confirmed",
+      "decision": "업무·근무표·매뉴얼 항목을 길게 누르면 수정 권한이 있을 때만 흔들리는 편집 모드로 진입한다. 위치 이동·이름·휴지통을 해당 항목에서 제공하고 편집 완료로 종료한다. 보드/구조 편집의 별도 진입 버튼은 제거하며 상세 규칙·본문·시간/크루 배정은 문맥 설정으로 유지한다. 동작 줄이기는 정지 표시로 대체한다.",
+      "reason": "사용자가 Apple 폴더 편집 같은 직접 조작과 중복 편집 화면 정리를 요청했다.",
+      "source": "사용자 지시 · 2026-09-29",
+      "updatedAt": "2026-09-29T11:15:51.324Z"
+    },
+    {
+      "id": "D-056",
+      "category": "근무표",
+      "title": "근무 표시 이름과 크루 이름 분리",
+      "status": "proposed",
+      "decision": "근무표 이름 변경은 선택한 근무의 label/날짜별 슬롯 name만 변경하고 크루 nickname은 유지한다. 현재 기본 구현이며 질의 답변에 따라 조정한다.",
+      "reason": "사용자에게 두 범위를 질의했다. 답변 전 기존 사람 정보에 영향을 주지 않는 범위로 구현했다.",
+      "source": "진행 중 질의의 기본 구현 · 2026-09-29",
+      "updatedAt": "2026-09-29T11:15:51.324Z"
     }
   ],
   "milestones": [
@@ -4311,7 +4331,32 @@
         "docs/project-state.json",
         "docs/DATABASE_AND_PERFORMANCE.md"
       ]
+    },
+    {
+      "at": "2026-09-29T11:15:51.324Z",
+      "type": "implementation",
+      "title": "Permission-gated long-press editing across work, manuals and schedule",
+      "detail": "Applied installed find-skills, flutter-animations and flutter-add-widget-test skills; searched skills ecosystem and selected existing Flutter-specific skills. Added shared DirectEditFrame/Bar with long press, right-click, accessibility action, small repeating rotation, reduced motion and lifecycle cleanup. Removed live board/structure edit entry buttons. Inline context rename/delete/add and existing move actions use revision/actor checks. Work mutation changes unfinished occurrence and source; manual mutation changes reusable definitions, preserves history and protects linked/last nodes. Schedule labels and dated hidden slots, permission projection and grid drag reuse overlap/part validation. Public structural preview stays unsaved.",
+      "changes": [
+        {
+          "previous": "Separate board/structure editor entry and always-visible drag handles",
+          "next": "Long-press editing with context actions and explicit Done; detail settings remain contextual",
+          "reason": "User requested intuitive Apple-folder-like editing and removal of duplicate screens"
+        }
+      ],
+      "verification": "Flutter analysis clean. Full Flutter suite 147 passed, followed by 4 direct-edit tests after small validation changes; Node suite 105 passed and 4 direct server cases rerun. npm run check and 26 UI link checks passed. Eight 390/1200 screenshots captured with bundled fonts; phone work/task/manual/calendar and wide manual inspected. New tests cover motion/reduced motion, permission loss, source/history scope, CAS/role denial, date-only deletion, actual schedule drag and original revision. Tests exposed title Tooltip swallowing long press, nested calendar scroll intercepting drag, 5px short-slot overflow and stale ScheduleController after repository replacement; fixed and rerun. Updated prior tap-to-edit/structure-button tests to long-press entry. Native devices not tested; deployment pending.",
+      "files": [
+        "app/lib/ui/direct_edit.dart",
+        "app/lib/ui/tap_workspace.dart",
+        "app/lib/ui/manual_workspace.dart",
+        "app/lib/ui/calendar_screen.dart",
+        "developer/direct_edit.mjs",
+        "developer/staff.mjs",
+        "developer/workplace.mjs",
+        "developer/operations.mjs",
+        "docs/UI_SETTINGS_RELATIONSHIP_MAP.md"
+      ]
     }
   ],
-  "updatedAt": "2026-09-29T10:49:41.736Z"
+  "updatedAt": "2026-09-29T11:15:51.324Z"
 }

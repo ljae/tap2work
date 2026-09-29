@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import 'direct_edit.dart';
 import 'tap_settings_screen.dart';
 import 'checklist_editor.dart';
 
@@ -468,31 +469,46 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               )
             else
               Draggable<Json>(data: data, feedback: feedback, child: handle),
-            PopupMenuButton<String>(
-              popUpAnimationStyle: AppMotion.dialogStyle(context),
-              tooltip: '이동',
-              iconSize: 18,
-              onSelected: (value) {
-                if (value == 'move') {
-                  chooseDestination(data);
-                } else {
-                  final command = shift(data, value == 'up' ? -1 : 1);
-                  if (command != null) move(command);
-                }
-              },
-              itemBuilder: (_) => [
-                if (shift(data, -1) != null)
-                  const PopupMenuItem(value: 'up', child: Text('위로')),
-                if (shift(data, 1) != null)
-                  const PopupMenuItem(value: 'down', child: Text('아래로')),
-                const PopupMenuItem(value: 'move', child: Text('이동 위치 선택')),
-              ],
-            ),
           ],
         ],
       ),
     );
-    if (!editing || !editable || !canEdit) return row(false);
+    final source = ops
+        .rows('taskTemplates')
+        .where((t) => t['id'] == (kind == 'tap' ? id : tapId))
+        .firstOrNull;
+    final linkedMenu = source?['menuManualId'] != null;
+    final deletable =
+        !linkedMenu &&
+        (kind == 'group'
+            ? id != 'general' &&
+                  !rows.any((r) => r['folderId'] == id) &&
+                  !ops.rows('preparedItems').any((r) => r['folderId'] == id)
+            : kind != 'task' || (source?['steps'] as List? ?? []).length > 1);
+    Widget surface(bool hovering) => DirectEditFrame(
+      enabled: editable && canEdit,
+      active: editing,
+      onEnter: () => setState(() => editing = true),
+      onRename: linkedMenu
+          ? null
+          : () => directEditNode(context, ops, 'edit_manual_node', {
+              'kind': kind,
+              'id': id,
+              'parentId': tapId,
+              'operation': 'rename',
+            }, label),
+      onDelete: !deletable
+          ? null
+          : () => directEditNode(context, ops, 'edit_manual_node', {
+              'kind': kind,
+              'id': id,
+              'parentId': tapId,
+              'operation': 'delete',
+            }, label),
+      onMove: () => chooseDestination(data),
+      child: row(hovering),
+    );
+    if (!editing || !editable || !canEdit) return surface(false);
     return DragTarget<Json>(
       key: ValueKey('manual-drop-$key'),
       onWillAcceptWithDetails: (d) =>
@@ -508,7 +524,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         );
         if (command != null) move(command);
       },
-      builder: (_, candidates, _) => row(candidates.isNotEmpty),
+      builder: (_, candidates, _) => surface(candidates.isNotEmpty),
     );
   }
 
@@ -741,24 +757,53 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           );
         }
         final row = found[index];
-        return AppCard(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            title: Text(
-              row['title'],
-              style: const TextStyle(fontWeight: FontWeight.w600),
+        final source = ops
+            .rows('taskTemplates')
+            .where((t) => t['id'] == row['templateId'])
+            .firstOrNull;
+        final linked = source?['menuManualId'] != null;
+        return DirectEditFrame(
+          enabled: canEdit && row['editable'] == true,
+          active: editing,
+          onEnter: () => setState(() => editing = true),
+          onRename: linked
+              ? null
+              : () => directEditNode(context, ops, 'edit_manual_node', {
+                  'kind': 'task',
+                  'id': row['sourceStepId'],
+                  'parentId': row['templateId'],
+                  'operation': 'rename',
+                }, row['title']),
+          onDelete: linked || (source?['steps'] as List? ?? []).length <= 1
+              ? null
+              : () => directEditNode(context, ops, 'edit_manual_node', {
+                  'kind': 'task',
+                  'id': row['sourceStepId'],
+                  'parentId': row['templateId'],
+                  'operation': 'delete',
+                }, row['title']),
+          onMove: () => chooseDestination(
+            drag('task', row['sourceStepId'], tapId: row['templateId']),
+          ),
+          child: AppCard(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: ListTile(
+              title: Text(
+                row['title'],
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(duration([row]), maxLines: 1),
+              trailing: const Icon(CupertinoIcons.chevron_right, size: 16),
+              onTap: () {
+                setState(() {
+                  selectedId = row['id'];
+                  expanded.add('group:${row['folderId']}');
+                  expanded.add('tap:${row['tapId']}');
+                  showTree = false;
+                });
+                openManual(row);
+              },
             ),
-            subtitle: Text(duration([row]), maxLines: 1),
-            trailing: const Icon(CupertinoIcons.chevron_right, size: 16),
-            onTap: () {
-              setState(() {
-                selectedId = row['id'];
-                expanded.add('group:${row['folderId']}');
-                expanded.add('tap:${row['tapId']}');
-                showTree = false;
-              });
-              openManual(row);
-            },
           ),
         );
       },
@@ -813,18 +858,24 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                           }),
                         ),
                       if (ops.canEditTasks)
-                        PressBounce(
-                          child: TextButton.icon(
-                            icon: Icon(
-                              editing
-                                  ? Icons.check
-                                  : Icons.drive_file_move_outline,
-                            ),
-                            label: Text(editing ? '편집 완료' : '구조 편집'),
-                            onPressed: ops.busy
-                                ? null
-                                : () => setState(() => editing = !editing),
-                          ),
+                        DirectEditBar(
+                          active: editing,
+                          onDone: () => setState(() => editing = false),
+                          onAdd: () =>
+                              directEditNode(context, ops, 'edit_manual_node', {
+                                'kind': scopeTap != null
+                                    ? 'task'
+                                    : scopeGroup != null
+                                    ? 'tap'
+                                    : 'group',
+                                'parentId': scopeTap ?? scopeGroup,
+                                'operation': 'add',
+                              }, ''),
+                          addLabel: scopeTap != null
+                              ? 'Task 추가'
+                              : scopeGroup != null
+                              ? 'TAP 추가'
+                              : '그룹 추가',
                         ),
                       if (editing && ops.readOnly)
                         const Text(

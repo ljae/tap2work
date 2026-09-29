@@ -64,7 +64,7 @@ function validShift(input, state) {
   if (![input.start, input.end].every(v => ['00', '30'].includes(v.slice(3)))) fail('근무 시간은 30분 단위로 입력해 주세요.');
   const employmentType = input.employmentType ?? tapper.employmentType ?? '시간알바';
   if (!employmentTypes.includes(employmentType)) fail('고용형태를 확인해 주세요.');
-  return { tapperId: tapper.id, partId, duty: input.duty ?? state.workplace?.parts.find(p => p.id === partId)?.duties?.[0] ?? partId, date: input.date, start: input.start, end: input.end, employmentType };
+  return { ...(Object.hasOwn(input,'label') ? {label:safeText(input.label,100,'근무 이름',false)} : {}), tapperId: tapper.id, partId, duty: input.duty ?? state.workplace?.parts.find(p => p.id === partId)?.duties?.[0] ?? partId, date: input.date, start: input.start, end: input.end, employmentType };
 }
 function interval(shift) {
   const start = Date.parse(`${shift.date}T${shift.start}:00+09:00`);

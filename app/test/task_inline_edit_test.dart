@@ -10,6 +10,17 @@ import 'operations_test.dart' show response;
 import 'tap_workspace_test.dart' show mountBoard, openCard;
 
 void main() {
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized()
+        .platformDispatcher
+        .accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+      disableAnimations: true,
+    );
+  });
+  tearDown(() {
+    TestWidgetsFlutterBinding.ensureInitialized().platformDispatcher
+        .clearAccessibilityFeaturesTestValue();
+  });
   for (final width in [320.0, 390.0, 1200.0]) {
     testWidgets(
       'inline edit and append are focused, isolated and preview-only at $width',
@@ -24,10 +35,14 @@ void main() {
         );
         addTearDown(ops.dispose);
         await mountBoard(tester, ops, width: width);
-        expect(find.text('보드 편집'), findsOneWidget);
+        expect(find.text('보드 편집'), findsNothing);
         expect(find.text('TAP 설정'), findsNothing);
         await openCard(tester, 'tap-daily-prep');
-        expect(find.text('TAP 편집'), findsOneWidget);
+        if (ops.canEditTasks) {
+          await tester.longPress(find.text('도구 나누기'));
+          await tester.pumpAndSettle();
+        }
+        expect(find.text('TAP 규칙'), findsOneWidget);
         expect(find.text('보드 편집'), findsNothing);
         final last = find.byKey(const ValueKey('small-s2'));
         final add = find.byKey(const ValueKey('add-task-step'));
@@ -105,6 +120,10 @@ void main() {
     addTearDown(tester.view.resetViewInsets);
     await mountBoard(tester, ops, width: 320, textScale: 2);
     await openCard(tester, 'tap-daily-prep');
+    if (ops.canEditTasks) {
+      await tester.longPress(find.text('도구 나누기'));
+      await tester.pumpAndSettle();
+    }
     await tester.ensureVisible(find.text('도구 나누기'));
     await tester.tap(find.text('도구 나누기'));
     await tester.pumpAndSettle();
@@ -135,6 +154,10 @@ void main() {
     addTearDown(ops.dispose);
     await mountBoard(tester, ops);
     await openCard(tester, 'tap-daily-prep');
+    if (ops.canEditTasks) {
+      await tester.longPress(find.text('도구 나누기'));
+      await tester.pumpAndSettle();
+    }
     await tester.tap(find.text('도구 나누기'));
     await tester.pumpAndSettle();
     await tester.enterText(
@@ -169,6 +192,10 @@ void main() {
       await mountBoard(tester, ops);
       expect(find.text('보드 편집'), findsNothing);
       await openCard(tester, 'tap-daily-prep');
+      if (ops.canEditTasks) {
+        await tester.longPress(find.text('도구 나누기'));
+        await tester.pumpAndSettle();
+      }
       expect(find.text('TAP 편집'), findsNothing);
       expect(find.byKey(const ValueKey('add-task-step')), findsNothing);
       expect(find.byType(ReorderableDragStartListener), findsNothing);
@@ -196,6 +223,10 @@ void main() {
       addTearDown(ops.dispose);
       await mountBoard(tester, ops, width: 320);
       await openCard(tester, 'tap-daily-prep');
+      if (ops.canEditTasks) {
+        await tester.longPress(find.text('도구 나누기'));
+        await tester.pumpAndSettle();
+      }
       final card = find.byKey(const ValueKey('small-s1'));
       expect(tester.widget<TapCard>(card).onEdit, isNull);
       final drag = find.descendant(

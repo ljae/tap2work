@@ -74,6 +74,7 @@ List<RosterSlot> slotsForDay(
         .firstOrNull;
     final row = override ?? template;
     seen.add('${template['id']}/${template['partId']}');
+    if (row['hidden'] == true) continue;
     final match = shifts
         .where(
           (s) =>
@@ -100,7 +101,9 @@ List<RosterSlot> slotsForDay(
   }
   // A later hours change must not silently discard a date-specific adjustment.
   for (final row in overrides.where(
-    (r) => !seen.contains('${r['templateId']}/${r['partId']}'),
+    (r) =>
+        r['hidden'] != true &&
+        !seen.contains('${r['templateId']}/${r['partId']}'),
   )) {
     result.add(
       RosterSlot(
@@ -129,7 +132,9 @@ List<RosterSlot> slotsForDay(
         partId: part,
         start: row['start'],
         end: row['end'],
-        name: person?['nickname'] ?? '크루',
+        name: (row['label'] as String? ?? '').isNotEmpty
+            ? row['label']
+            : person?['nickname'] ?? '크루',
         shiftId: row['id'],
         crewId: row['tapperId'],
       ),

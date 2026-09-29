@@ -39,3 +39,7 @@
 ## 가독성·시작 로딩 확장
 
 `showAppSheet`의 키보드 여백은 공통 quick 모션으로, 정산 주기별 컨트롤 높이는 content 모션으로 전환한다. 저장 성공 여부는 변경하지 않는다. 웹 로딩은 Flutter 첫 프레임 이후 240ms fade로 걷히고, 초기화/매장 데이터 로딩은 실제 완료까지 이어진다. CSS `prefers-reduced-motion`과 Flutter `MediaQuery.disableAnimations` 모두 지원한다. [상세 계약](UI_READABILITY_2026-09-28.md).
+
+## 길게 눌러 편집
+
+업무·매뉴얼·근무표의 DirectEditFrame은 편집 권한이 있을 때만 180ms 역방향 반복의 작은 회전을 보여준다. 표시는 테두리와 실제 이름/휴지통/이동 동작을 동반한다. 동작 줄이기에서는 정지 표시, 편집 완료·권한 회수·TickerMode 비활성·dispose 시 중지한다. 화면 전체를 매 프레임 다시 구성하지 않고 AnimatedBuilder child를 재사용한다. `flutter-animations`의 lifecycle/reduced-motion 지침과 `flutter-add-widget-test`의 제스처 검증을 적용했다.

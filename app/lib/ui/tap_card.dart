@@ -104,6 +104,7 @@ class TapCard extends StatelessWidget {
                       ],
                       Expanded(
                         child: Tooltip(
+                          triggerMode: TooltipTriggerMode.manual,
                           message: title,
                           child: InkWell(
                             onTap: onEdit ?? onOpen,
