@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 105,
+  "revision": 106,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4442,7 +4442,25 @@
         "app/lib/ui/workplace_screens.dart",
         "docs/LOCALIZATION_PLAN.md"
       ]
+    },
+    {
+      "at": "2026-09-29T12:38:24.469504Z",
+      "type": "verification",
+      "title": "First schedule release verified live; compact phone header follow-up",
+      "detail": "Source 7b5f8aa57c45fe1a098a5dfcfbe68a7468250862 deployed successfully by Pages run 36568544888 and the operations Edge Function. Live Chrome phone: authenticated operations GET 200, three public holiday year GETs 200, crew-pattern and hours sheets rendered, employee switch choice rendered. No operations POSTs or page errors. Existing employee identity was not modified or created. Follow-up compacts calendar toolbar/source notice to expose slots sooner, keeps part management in Our Store and the common hours sheet, and adds a section-storage test against owner-cache reuse in employee mode.",
+      "verification": "CI for first release: analysis, 155 Flutter tests, 112 Node tests, 30 links and web build/deploy passed. Final local server suite now 113 passed with additional section-cache isolation test; 22 targeted Flutter tests passed for compact header, hours, direct edit, resize/preview and request states. Analysis clean. Six updated 390/1200 captures passed, phone calendar and sticky-save hours inspected. Browser response-body retrieval failed in initial harness, then status/rendered checks succeeded; Flutter semantics represented some chips/menu entries as labels, so screenshots and coordinate menu selection verified them. Live writes 0. Native testing not performed. Compact web follow-up deployment pending.",
+      "release": {
+        "commit": "7b5f8aa57c45fe1a098a5dfcfbe68a7468250862",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36568544888",
+        "site": "https://tap2.work"
+      },
+      "files": [
+        "app/lib/ui/calendar_screen.dart",
+        "app/lib/ui/workplace_screens.dart",
+        "developer/test/section_storage.test.mjs",
+        "docs/project-state.json"
+      ]
     }
   ],
-  "updatedAt": "2026-09-29T12:28:27.556730Z"
+  "updatedAt": "2026-09-29T12:38:24.469504Z"
 }

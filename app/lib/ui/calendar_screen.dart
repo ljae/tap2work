@@ -635,7 +635,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       }
       partWidths[part.id] = columnWidth * maximum;
     }
-    final headerHeight = 132.0 * textScale.clamp(1, 1.6);
+    final headerHeight = 100.0 * textScale.clamp(1, 1.6);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1030,38 +1030,50 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 builder: (_) => WorkplaceSettings(ops: ops, section: 'hours'),
               ),
               icon: const Icon(Icons.schedule),
-              label: const Text('영업시간·필요 인원'),
-            ),
-            TextButton(
-              onPressed: () => showAppFormSheet(
-                context: context,
-                builder: (_) => WorkplaceSettings(ops: ops, section: 'parts'),
-              ),
-              child: const Text('파트 관리'),
+              label: const Text('영업시간·인원'),
             ),
           ],
         ),
         const SizedBox(height: 16),
-        Text(
-          liveHolidayYears.contains(model.selected.year)
-              ? '대한민국 공휴일 · 최신 달력'
-              : '대한민국 공휴일 · 저장된 달력 (2026.09.29)',
-          style: AppText.caption,
+        Row(
+          children: [
+            Expanded(
+              child:
+                  ops.isLeader &&
+                      ops.data?['canEditSchedule'] != false &&
+                      !ops.readOnly
+                  ? DirectEditBar(
+                      active: editMode,
+                      onDone: () => setState(() {
+                        arranging = false;
+                        selectedSlot = null;
+                      }),
+                    )
+                  : const Text('대한민국 달력', style: AppText.caption),
+            ),
+            IconButton(
+              tooltip: '공휴일 출처·상태',
+              icon: const Icon(Icons.info_outline, size: 20),
+              onPressed: () => showAppDialog(
+                context: context,
+                builder: (c) => AlertDialog(
+                  title: const Text('대한민국 공휴일'),
+                  content: Text(
+                    '${liveHolidayYears.contains(model.selected.year) ? '최신 달력을 확인했어요.' : '저장된 달력 (2026.09.29)을 표시하고 있어요.'}\n출처: holidays-kr (월력요항 가공 자료)\n공휴일과 매장 휴무는 별도예요.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(c),
+                      child: const Text('닫기'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
         if (!holidays.keys.any((d) => d.startsWith('${model.selected.year}-')))
           const Text('이 연도의 공휴일 정보를 불러오지 못했어요.', style: AppText.caption),
-        const Text('출처: holidays-kr · 공휴일과 매장 휴무는 별도', style: AppText.caption),
-        const SizedBox(height: 16),
-        if (ops.isLeader &&
-            ops.data?['canEditSchedule'] != false &&
-            !ops.readOnly)
-          DirectEditBar(
-            active: editMode,
-            onDone: () => setState(() {
-              arranging = false;
-              selectedSlot = null;
-            }),
-          ),
         if (editMode && selectedSlot != null)
           Wrap(
             spacing: 4,

@@ -79,3 +79,12 @@ test('section storage retains server role projection and write permissions',asyn
   assert.equal(view.payrollSettings,undefined);assert.equal(view.taskTemplates,undefined);
   const response=await x.request({action:'save_order_system',enabled:true,revision:view.revision});assert.equal(response.status,403);
 });
+test('section employee view cannot reuse owner cache or write owner settings; preferences retain Korean fallback',async()=>{
+ const x=fixture();let view=await(await x.request()).json();
+ let response=await x.request({action:'setup_shared_employee',revision:view.revision});assert.equal(response.status,200);view=await response.json();
+ const query=`?view=employee&revision=${view.revision}&window=${view.syncWindow}&role=owner&workspace=workspace-a`;
+ response=await x.request(null,query);assert.equal(response.status,200);const employee=await response.json();
+ assert.equal(employee.unchanged,undefined);assert.equal(employee.actor.role,'crew');assert.equal(employee.canEditTasks,false);assert.equal(employee.canEditSchedule,false);assert.equal(employee.languageContext.effectiveLocale,'ko');assert.equal(employee.payrollSettings,undefined);
+ response=await x.request({action:'save_order_system',revision:employee.revision,enabled:true},query);assert.equal(response.status,403);
+ const owner=await(await x.request()).json();assert.equal(owner.actor.role,'owner');assert.equal(owner.sharedEmployeeId,view.sharedEmployeeId);
+});

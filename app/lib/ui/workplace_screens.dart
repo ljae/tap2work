@@ -681,6 +681,26 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       ),
     ],
     const SizedBox(height: 16),
+    TextButton.icon(
+      onPressed: dirty || saving
+          ? null
+          : () =>
+                showAppFormSheet(
+                  context: context,
+                  builder: (_) => WorkplaceSettings(ops: ops, section: 'parts'),
+                ).then((_) {
+                  if (mounted && !dirty) {
+                    setState(() {
+                      parts = (jsonDecode(jsonEncode(storeParts(ops))) as List)
+                          .cast<Json>();
+                      days = initialDays();
+                      revision = ops.data?['revision'] ?? revision;
+                    });
+                  }
+                }),
+      icon: const Icon(Icons.groups_outlined),
+      label: const Text('파트 관리'),
+    ),
     const Text(
       '시간·필요 인원은 기본 슬롯에 반영돼요. 이미 배정한 근무는 유지돼요. 파트 이름과 추가·숨김은 파트 관리에서 변경해요.',
       style: AppText.caption,
