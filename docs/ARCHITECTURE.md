@@ -130,7 +130,7 @@ flowchart TB
 
 `CloudWorkspace`는 로그인 → 새 계정의 매장 생성 → 인증된 운영 화면 순서로 진입한다. 모두 공통 MaterialApp 테마 내부에 둔다. 로그인 전 샘플 API를 자동 요청하지 않는다. 공개 빌드에 Supabase URL/공개 키가 없으면 빌드를 실패시킨다.
 
-설정은 `OperationsController.act` → Bearer 인증 → `createCloudHandler`의 소속/직책 검사 → `OperationsStore` → `tap2work_save_state`로 저장한다. 파트/영업시간/권한/주문 보드/정산은 서버 전용 `tap2work_state.payload`에 저장하므로 별도 컬럼이 필요하지 않다. revision 충돌은 409로 거절하고 직책별 응답을 반환한다. 비로그인 쓰기를 허용하지 않는다.
+설정은 `OperationsController.act` → Bearer 인증 → `createCloudHandler`의 소속/직책 검사 → `OperationsStore` → `tap2work_patch_state`로 저장한다. 파트/영업시간/권한/주문 보드/정산은 서버 전용 `tap2work_documents` 영역별 문서에 저장하며 `tap2work_state`는 revision 잠금과 이관 전 복구 사본을 보유한다. revision 충돌은 409로 거절하고 직책별 응답을 반환한다. 비로그인 쓰기를 허용하지 않는다.
 
 보건증·위치/Wi-Fi 인증·실계정 초대·외부 POS는 저장 연결만으로 구현된 기능이 아니다. 미연동 표시를 유지한다. 첫 근무 학습 진도는 기존 기기 로컬 범위다.
 
@@ -139,7 +139,7 @@ flowchart TB
 
 ## TAP → Task → 매뉴얼 편집 계약 · 2026-09-29
 
-업무 보드 상단은 보드 편집만 제공한다. 선택 TAP의 Task 목록 상단에 TAP 편집을 두며 해당 원본 ID로만 연다. 매뉴얼의 Task 설정은 templateId/sourceStepId로 해당 Task의 규칙만 표시한다. 사라진 대상은 오류를 표시하며 다른 양식을 대신 열지 않는다.
+업무 보드에는 TAP 추가와 길게 누르기 안내를 제공한다. 길게 누르면 이름·이동·삭제를 직접 처리하고 선택 TAP의 규칙은 해당 원본 ID로만 연다. 기존 보드 편집 진입을 대체한다. 매뉴얼의 Task 설정은 templateId/sourceStepId로 해당 Task의 규칙만 표시한다. 사라진 대상은 오류를 표시하며 다른 양식을 대신 열지 않는다.
 
 `save_task_step(taskId, stepId?, title, manual, revision)`은 오늘의 미완료 실행을 수정한다. stepId가 없으면 서버가 UUID로 새 Task를 끝에 추가한다. 사용자 확정에 따라 선택한 실행과 연결된 기본 양식을 함께 갱신하고 원본 버전을 올린다. sourceTemplateId/sourceStepId가 있으면 이를 우선하며 원본이 없는 주문 Task는 실행만 변경한다. 완료된 형제, 다른 실행, 과거 기록, 수량/순서 규칙은 보존한다. 전체 완료/완성 재고 반영 TAP은 편집할 수 없으며 30개 한도와 Korean day/revision/직책 제한을 서버에서 검사한다. 기존 내용은 manualHistory에 남긴다.
 

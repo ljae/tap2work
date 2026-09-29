@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 103,
+  "revision": 104,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4356,7 +4356,24 @@
         "developer/operations.mjs",
         "docs/UI_SETTINGS_RELATIONSHIP_MAP.md"
       ]
+    },
+    {
+      "at": "2026-09-29T11:26:45.051Z",
+      "type": "verification",
+      "title": "Direct editing deployed and verified on all three live destinations",
+      "detail": "Final source 8637127d706efbbd40e3346fb3f9e0970616bb2b deployed by GitHub Pages run 36561106920. Operations Edge Function includes direct-edit server module. Follow-up keeps rename TextEditingController owned by the dialog State through exit animation. Current architecture and relationship tables reconciled with removed board editor and section DB storage.",
+      "verification": "Final CI: Flutter analysis clean, 148 Flutter tests and 105 Node tests passed, JavaScript/UI link checks, public build and Pages deploy succeeded. Local follow-up analysis and 5 direct-edit tests passed, including real drag and dialog exit motion. Eight direct-edit screenshots and prior hierarchy capture passed. Live Chrome 390x844: authenticated workspace 200; work long press showed Done and 14 allowed delete controls; Done exited; manual and schedule long presses each showed Done. Final smoke recorded 0 operations POSTs and 0 page errors, leaving existing user content unchanged. Initial smoke locator assumed an offscreen default group and one calendar gesture did not enter mode; retry on visible settled targets verified all three. No native build/device tests performed.",
+      "release": {
+        "commit": "8637127d706efbbd40e3346fb3f9e0970616bb2b",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36561106920",
+        "site": "https://tap2.work"
+      },
+      "files": [
+        "docs/project-state.json",
+        "docs/ARCHITECTURE.md",
+        "docs/UI_SETTINGS_RELATIONSHIP_MAP.md"
+      ]
     }
   ],
-  "updatedAt": "2026-09-29T11:15:51.324Z"
+  "updatedAt": "2026-09-29T11:26:45.051Z"
 }
