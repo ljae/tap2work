@@ -186,3 +186,7 @@ The user confirmed folders and TAPs may be empty. ManualWorkspace keeps taskTemp
 ## 설정 시트 정렬 · 2026-09-29
 
 AppEditorScaffold는 688px 공통 읽기 폭과 위쪽 본문 정렬, AppSheetFooter는 640px 입력 폭을 사용한다. AppSheetActions는 같은 폭·최소 높이의 반응형 버튼 행이다. PreparedItemEditor가 준비품/실제 수량 입력의 컨트롤러·초안·opening actor/revision을 소유하며 성공 시에만 닫는다. API/DB 계약은 기존 save_prepared_item/count_prepared_item을 유지한다. 파트·직책 권한·크루 파트 저장도 고정 footer를 사용한다. [검토 범위·검증](SETTINGS_SHEET_AUDIT_2026-09-29.md). 매뉴얼 트리의 이름 텍스트는 편집 모드에서 이름 변경을 열고 화살표/손잡이는 펼치기/이동을 유지한다. 메뉴 연결 제한은 원본 일관성을 위해 유지한다.
+
+### Manual display names (2026-09-29)
+
+Sales-linked template/step `manualTitle` is an optional display override. `edit_manual_node(rename)` stores this override without changing sales menu names or canonical titles. Manual tree/search/detail/editor use `manualTitle ?? title`; `save_checklists` validates and preserves overrides, while menu synchronization updates canonical titles only. An alias follows a moved Task. Existing revision/role guards and linked-menu delete protection remain. No SQL migration is required for this JSON metadata.

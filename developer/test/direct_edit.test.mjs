@@ -48,3 +48,23 @@ test('roster labels and per-date deletion preserve crew and original hours, rese
  const old=s.staffShifts[0];const crew=s.tappers.find(r=>r.id===old.tapperId);s=await act('save_staff_shift',{...old,label:'마감 지원'});
  assert.equal(s.staffShifts.find(r=>r.id===old.id).label,'마감 지원');assert.equal(s.tappers.find(r=>r.id===crew.id).nickname,crew.nickname);
 });
+
+test('menu manual aliases preserve sales names through body save and catalog sync',async t=>{
+ const {store,act}=await setup(t);let s=await store.snapshot('owner');
+ const template=s.taskTemplates.find(t=>t.menuManualId);assert.ok(template);
+ const step=template.steps[0], menus=structuredClone(s.catalogMenus);
+ s=await act('edit_manual_node',{kind:'tap',id:template.id,operation:'rename',name:'조리 가이드'});
+ s=await act('edit_manual_node',{kind:'task',parentId:template.id,id:step.id,operation:'rename',name:'완성 순서'});
+ const check=()=>{const tap=s.taskTemplates.find(t=>t.id===template.id);assert.equal(tap.title,template.title);assert.equal(tap.steps[0].title,step.title);assert.equal(tap.manualTitle,'조리 가이드');assert.equal(tap.steps[0].manualTitle,'완성 순서');const row=s.manualSearch.find(r=>r.id===`${template.id}/${step.id}`);assert.equal(row.tapTitle,'조리 가이드');assert.equal(row.title,'완성 순서');assert.deepEqual(s.catalogMenus,menus);};
+ check();
+ const templates=structuredClone(s.taskTemplates);const edited=templates.find(t=>t.id===template.id);
+ delete edited.manualTitle;delete edited.steps[0].manualTitle;edited.steps[0].manual='매뉴얼 내용 수정';
+ s=await act('save_checklists',{folders:s.checklistFolders,templates});check();
+ s=await store.snapshot('owner');check();
+ const menu=menus.find(m=>m.id===template.menuManualId);
+ s=await act('save_menu',{...menu,name:'판매 메뉴 새 이름'});
+ const synced=s.taskTemplates.find(t=>t.id===template.id);assert.equal(synced.title,'판매 메뉴 새 이름');assert.equal(synced.manualTitle,'조리 가이드');assert.equal(synced.steps[0].manualTitle,'완성 순서');
+ assert.equal(s.manualSearch.find(r=>r.id===`${template.id}/${step.id}`).title,'완성 순서');
+ await assert.rejects(act('edit_manual_node',{kind:'tap',id:template.id,operation:'delete'}),{status:400});
+ await assert.rejects(act('edit_manual_node',{kind:'tap',id:template.id,operation:'rename',name:'권한 없음'},'crew'),{status:403});
+});

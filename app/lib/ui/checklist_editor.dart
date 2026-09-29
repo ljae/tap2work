@@ -923,6 +923,14 @@ class _ManualTaskEditorState extends State<ManualTaskEditor> {
     if (ops.data?['revision'] != openingRevision) {
       return '다른 변경이 저장됐어요. 최신 매뉴얼을 다시 열어 주세요.';
     }
+    if (sourceTemplate?['menuManualId'] != null ||
+        sourceStep?['manualTitle'] != null) {
+      draft = {
+        ...draft,
+        'manualTitle': draft['title'],
+        'title': sourceStep!['title'],
+      };
+    }
     if (ops.readOnly) {
       final updated = ops.previewUpdateManualStep(
         widget.templateId,
@@ -963,8 +971,12 @@ class _ManualTaskEditorState extends State<ManualTaskEditor> {
       );
     }
     return _ActivityEditor(
-      step: _copy(sourceStep!),
-      groupTitle: '${sourceTemplate!['title'] ?? ''}',
+      step: {
+        ..._copy(sourceStep!),
+        'title': sourceStep!['manualTitle'] ?? sourceStep!['title'],
+      },
+      groupTitle:
+          '${sourceTemplate!['manualTitle'] ?? sourceTemplate!['title'] ?? ''}',
       onSave: save,
       previewOnly: widget.ops.readOnly,
     );

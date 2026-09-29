@@ -27,7 +27,7 @@ function manualSearchIndex(state) {
       if (rows.has(key)) continue;
       rows.set(key, {
         id: key, taskId: template ? null : task.id, stepId: step.id,
-        tapTitle: task.title, title: step.title,
+        tapTitle: task.manualTitle ?? task.title, title: step.manualTitle ?? step.title,
         folderId: task.folderId ?? 'general',
         folderName: state.checklistFolders.find(folder => folder.id === task.folderId)?.name ?? '기본 업무',
         tapId: template ? task.id : `occurrence:${task.id}`,

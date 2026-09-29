@@ -65,7 +65,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         {
           'tapId': t['id'],
           'templateId': t['id'],
-          'tapTitle': t['title'],
+          'tapTitle': t['manualTitle'] ?? t['title'],
           'folderId': t['folderId'] ?? 'general',
           'editable': true,
         },
@@ -495,20 +495,15 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         children: [
                           Tooltip(
                             triggerMode: TooltipTriggerMode.manual,
-                            message: editingTree && editable && !linkedMenu
+                            message: editingTree && editable
                                 ? '이름을 눌러 변경'
                                 : label,
                             child: InkWell(
                               key: ValueKey('manual-rename-$key'),
-                              mouseCursor:
-                                  editingTree && editable && !linkedMenu
+                              mouseCursor: editingTree && editable
                                   ? SystemMouseCursors.text
                                   : SystemMouseCursors.click,
-                              onTap:
-                                  editingTree &&
-                                      editable &&
-                                      canEdit &&
-                                      !linkedMenu
+                              onTap: editingTree && editable && canEdit
                                   ? () {
                                       onTap();
                                       directEditNode(
@@ -582,8 +577,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               },
               itemBuilder: (_) => [
                 const PopupMenuItem(value: 'move', child: Text('위치 이동')),
-                if (!linkedMenu)
-                  const PopupMenuItem(value: 'rename', child: Text('이름 변경')),
+                const PopupMenuItem(value: 'rename', child: Text('이름 변경')),
                 if (deletable)
                   const PopupMenuItem(
                     value: 'delete',
@@ -912,14 +906,12 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           key: ValueKey('manual-content-frame-${row['id']}'),
           active: editingContent,
           onEnter: () => setState(() => editPane = _ManualEditPane.content),
-          onRename: linked
-              ? null
-              : () => directEditNode(context, ops, 'edit_manual_node', {
-                  'kind': 'task',
-                  'id': row['sourceStepId'],
-                  'parentId': row['templateId'],
-                  'operation': 'rename',
-                }, row['title']),
+          onRename: () => directEditNode(context, ops, 'edit_manual_node', {
+            'kind': 'task',
+            'id': row['sourceStepId'],
+            'parentId': row['templateId'],
+            'operation': 'rename',
+          }, row['title']),
           onDelete: linked
               ? null
               : () => directEditNode(context, ops, 'edit_manual_node', {

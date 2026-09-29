@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 112,
+  "revision": 113,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4579,6 +4579,20 @@
         "app/test/settings_sheet_audit_test.dart",
         "docs/SETTINGS_SHEET_AUDIT_2026-09-29.md"
       ]
+    },
+    {
+      "at": "2026-09-29T14:24:38.657696+00:00",
+      "type": "implementation",
+      "title": "Independent manual display names for sales-linked TAP and Task",
+      "changes": [
+        {
+          "previous": "Sales-linked manual names could only be changed through menu management",
+          "next": "Authorized manual rename stores manualTitle on TAP/Task; sales menu and source title remain unchanged",
+          "reason": "User explicitly selected manual-only display names"
+        }
+      ],
+      "detail": "Tree, search, detail and manual editor use aliases. Full checklist saves preserve aliases and catalog sync preserves them; menu-linked deletion protection remains. JSON metadata requires no SQL migration. Settings sheet release 18a2216 passed Pages run 36581514574.",
+      "verification": "Flutter full suite 174 passed, analyzer clean, Node 116 passed, JS check and 30 UI links passed. Additional linked body-save widget check pending; alias deployment pending."
     }
   ],
   "updatedAt": "2026-09-29T14:15:26.040690+00:00"

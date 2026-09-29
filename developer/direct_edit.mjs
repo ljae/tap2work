@@ -24,12 +24,12 @@ export function editManualNode(state,input,actor,now) {
   const template=state.taskTemplates.find(t=>t.id===(kind==='tap'?id:input.parentId));
   const row=kind==='group'?state.checklistFolders.find(f=>f.id===id):kind==='tap'?template:template?.steps.find(s=>s.id===id);
   if(!row)fail('항목이 변경되었어요. 새로고침해 주세요.',409);
-  if(template?.menuManualId)fail('메뉴와 연결된 이름·삭제는 메뉴 관리에서 변경해 주세요.');
   if(operation==='rename') {
-    remember(state,row,actor,now);row[kind==='group'?'name':'title']=name(input.name,kind==='group'?40:100);
+    remember(state,row,actor,now);row[kind==='group'?'name':(template?.menuManualId||row.manualTitle!=null)?'manualTitle':'title']=name(input.name,kind==='group'?40:100);
     if(template)template.version=(template.version??1)+1;
     return;
   }
+  if(template?.menuManualId)fail('메뉴와 연결된 항목 삭제는 메뉴 관리에서 변경해 주세요.');
   if(kind==='group') {
     if(id==='general'||state.taskTemplates.some(t=>t.folderId===id)||(state.preparedItems??[]).some(p=>p.folderId===id))fail('기본 그룹 또는 연결된 TAP이 있는 그룹은 삭제할 수 없어요.');
     remember(state,row,actor,now);state.checklistFolders=state.checklistFolders.filter(f=>f!==row);state.bigTapOrder=(state.bigTapOrder??[]).filter(v=>v!==id);

@@ -145,6 +145,43 @@ void main() {
     });
   }
 
+  for (final entry in [('tap', 'a', null), ('task', 's1', 'a')]) {
+    testWidgets(
+      'menu-linked tree name click renames ${entry.$1} with exact identity',
+      (tester) async {
+        Json? sent;
+        final ops = OperationsController(
+          client: MockClient((r) async {
+            if (r.method == 'POST') sent = jsonDecode(r.body) as Json;
+            final data = directoryData();
+            (data['taskTemplates'] as List).first['menuManualId'] = 'menu-1';
+            return response(data);
+          }),
+        );
+        addTearDown(ops.dispose);
+        await mount(tester, ops);
+        await click(tester, 'manual-node-tap:a');
+        final id =
+            '${entry.$1}:${entry.$2}${entry.$3 == null ? '' : ':${entry.$3}'}';
+        await tester.longPress(find.byKey(ValueKey('manual-rename-$id')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(ValueKey('manual-rename-$id')));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.widgetWithText(TextField, '이름'), '새 이름');
+        await tester.tap(find.text('저장'));
+        await tester.pumpAndSettle();
+        expect(sent?['action'], 'edit_manual_node');
+        expect(sent?['operation'], 'rename');
+        expect(sent?['kind'], entry.$1);
+        expect(sent?['id'], entry.$2);
+        expect(sent?['parentId'], entry.$3);
+        expect(sent?['name'], '새 이름');
+        expect(sent?['revision'], 2);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
   testWidgets(
     'empty folders and TAPs remain editable and accept the last Task',
     (tester) async {
@@ -382,6 +419,46 @@ void main() {
     expect(sent?['templates'][0]['steps'][1]['manual'], '소독 상세 매뉴얼');
     expect(sent?['templates'][1]['steps'][0]['manual'], '청소 상세 매뉴얼');
   });
+
+  testWidgets(
+    'Linked manual body save preserves display alias and source title',
+    (tester) async {
+      final data = directoryData();
+      data['taskTemplates'][0]['menuManualId'] = 'menu';
+      data['taskTemplates'][0]['manualTitle'] = '조리 가이드';
+      data['taskTemplates'][0]['steps'][0]['manualTitle'] = '완성 순서';
+      Json? sent;
+      final ops = OperationsController(
+        client: MockClient((request) async {
+          if (request.method == 'POST') {
+            sent = jsonDecode(request.body) as Json;
+            return response(data);
+          }
+          return response(data);
+        }),
+      );
+      addTearDown(ops.dispose);
+      await mount(tester, ops);
+      await click(tester, 'manual-node-tap:a');
+      await click(tester, 'manual-node-task:s1:a');
+      await tester.tap(find.text('매뉴얼 편집'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, '간단 매뉴얼 · 방법과 완료 기준'),
+        '손을 충분히 씻어요',
+      );
+      await tester.tap(find.text('매뉴얼 저장'));
+      await tester.pumpAndSettle();
+      expect(sent?['templates'][0]['manualTitle'], '조리 가이드');
+      expect(sent?['templates'][0]['steps'][0]['manualTitle'], '완성 순서');
+      expect(sent?['templates'][0]['steps'][0]['title'], '손 씻기');
+      expect(sent?['action'], 'save_checklists');
+      expect(sent?['revision'], 2);
+      expect(sent?['templates'][0]['steps'][0]['manual'], '손을 충분히 씻어요');
+      expect(sent?['templates'][0]['steps'][1]['manual'], '소독 상세 매뉴얼');
+      expect(sent?['templates'][1]['steps'][0]['manual'], '청소 상세 매뉴얼');
+    },
+  );
 
   testWidgets('directory filters search by group and opens a Task manual', (
     tester,

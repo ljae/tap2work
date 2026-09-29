@@ -206,7 +206,9 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
           'videoUrl',
           'sourceUrl',
         ]) {
-          row[field] = step[field];
+          row[field] = field == 'title'
+              ? step['manualTitle'] ?? step[field]
+              : step[field];
         }
       }
     }
