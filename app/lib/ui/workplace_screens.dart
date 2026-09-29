@@ -211,7 +211,10 @@ class AttendanceCard extends StatelessWidget {
     final shifts = ops
         .rows('staffShifts')
         .where(
-          (s) => s['tapperId'] == own['id'] && s['date'] == ops.data?['day'],
+          (s) =>
+              s['status'] != 'leave' &&
+              s['tapperId'] == own['id'] &&
+              s['date'] == ops.data?['day'],
         )
         .toList();
     Future<void> act(String action) async {
@@ -330,9 +333,32 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
 
   late List<Json> parts =
       (jsonDecode(jsonEncode(storeParts(widget.ops))) as List).cast<Json>();
-  late Json days = jsonDecode(
-    jsonEncode(widget.ops.data?['workplace']?['days'] ?? {}),
-  );
+  late Json days = initialDays();
+  Json initialDays() {
+    final saved =
+        jsonDecode(jsonEncode(ops.data?['workplace']?['days'] ?? {})) as Json;
+    final hours = ops.data?['store']?['profile']?['hours'] as Json?;
+    for (var d = 1; d <= 7; d++) {
+      saved.putIfAbsent(
+        '$d',
+        () => hours != null && (hours['weekdays'] as List? ?? []).contains(d)
+            ? <Json>[
+                {
+                  'name': '전체',
+                  'start': hours['opening'],
+                  'end': hours['closing'],
+                },
+              ]
+            : hours == null
+            ? <Json>[
+                {'name': '전체', 'start': '09:00', 'end': '22:00'},
+              ]
+            : <Json>[],
+      );
+    }
+    return saved;
+  }
+
   late Json restrictions = jsonDecode(
     jsonEncode(widget.ops.data?['workplace']?['restrictions'] ?? {}),
   );
@@ -352,7 +378,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   static const titles = {
     'order-system': '주문처리 시스템 연결',
     'parts': '파트 관리',
-    'hours': '요일별 시간대',
+    'hours': '영업시간·필요 인원',
     'permissions': '직책별 권한',
     'person': '파트·시간대 수정',
     'invite': '직원 초대',
@@ -445,12 +471,15 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   List<Json> get dayBands => (days['$weekday'] as List? ?? []).cast<Json>();
   void preset(int count) {
     final hours = ops.data?['store']?['profile']?['hours'] as Json? ?? {};
-    final start = _minute(hours['opening'] ?? '09:00');
-    final end = _minute(hours['closing'] ?? '22:00');
-    if (hours['endsNextDay'] == true ||
-        end <= start ||
-        end - start < count * 30) {
-      setState(() => error = '이 시간대 편집은 당일 영업을 지원해요. 야간 영업은 매장 설정에서 확인해 주세요.');
+    final start = _minute(
+      dayBands.firstOrNull?['start'] ?? hours['opening'] ?? '09:00',
+    );
+    var end = _minute(
+      dayBands.lastOrNull?['end'] ?? hours['closing'] ?? '22:00',
+    );
+    if (end <= start) end += 1440;
+    if (end - start < count * 30) {
+      setState(() => error = '시간대당 30분 이상 필요해요.');
       return;
     }
     final names = count == 1
@@ -482,7 +511,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   }
 
   static String _time(int minute) =>
-      '${(minute ~/ 60).toString().padLeft(2, '0')}:${(minute % 60).toString().padLeft(2, '0')}';
+      '${(minute ~/ 60 % 24).toString().padLeft(2, '0')}:${(minute % 60).toString().padLeft(2, '0')}';
   Future<void> editBoundary(int index, bool start) async {
     final row = dayBands[index];
     final value = _minute(row[start ? 'start' : 'end']);
@@ -505,117 +534,163 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     });
   }
 
+  bool get canDraftHours => ops.isOwner && !saving && !ops.busy;
+  static const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
   List<Widget> hours() => [
-    const Text('요일마다 다르게 할까요?', style: AppText.title),
-    const SizedBox(height: 8),
-    const Text(
-      '시간대를 나누고 경계를 눌러 조정해요. 근무 배정과 필요 인원은 근무표에서 관리해요.',
-      style: AppText.caption,
-    ),
-    const SizedBox(height: 24),
+    const Text('1. 휴무일을 선택해 주세요', style: AppText.title),
+    const SizedBox(height: 16),
     Wrap(
-      spacing: 6,
-      runSpacing: 6,
+      spacing: 8,
+      runSpacing: 8,
       children: [
         for (var d = 1; d <= 7; d++)
-          ChoiceChip(
-            chipAnimationStyle: AppMotion.chipStyle(context),
-            label: Text(const ['월', '화', '수', '목', '금', '토', '일'][d - 1]),
-            selected: weekday == d,
-            onSelected: saving || dirty
-                ? null
-                : (_) => setState(() => weekday = d),
+          FilterChip(
+            label: Text(dayNames[d - 1]),
+            selected: (days['$d'] as List).isEmpty,
+            onSelected: canDraftHours
+                ? (closed) => update(() {
+                    days['$d'] = closed
+                        ? <Json>[]
+                        : <Json>[
+                            {'name': '전체', 'start': '09:00', 'end': '22:00'},
+                          ];
+                    if (!closed) weekday = d;
+                  })
+                : null,
           ),
       ],
     ),
-    const SizedBox(height: 24),
+    const SizedBox(height: 8),
+    const Text(
+      '선택한 요일은 매장 휴무예요. 공휴일 표시는 영업 여부를 바꾸지 않아요.',
+      style: AppText.caption,
+    ),
+    section('2. 영업일의 교대와 시간을 정해 주세요'),
     Wrap(
-      spacing: 10,
-      runSpacing: 10,
+      spacing: 8,
+      runSpacing: 8,
       children: [
-        for (final entry in {1: '한 타임으로', 2: '2교대', 3: '3교대'}.entries)
-          OutlinedButton(
-            onPressed: () => preset(entry.key),
-            child: Text(entry.value),
-          ),
-        OutlinedButton(
-          onPressed: () => update(() => days['$weekday'] = <Json>[]),
-          child: const Text('휴무'),
-        ),
+        for (var d = 1; d <= 7; d++)
+          if ((days['$d'] as List).isNotEmpty)
+            ChoiceChip(
+              label: Text(dayNames[d - 1]),
+              selected: weekday == d,
+              onSelected: saving ? null : (_) => setState(() => weekday = d),
+            ),
       ],
     ),
-    if (dirty && !ops.readOnly)
-      const Padding(
-        padding: EdgeInsets.only(top: 12),
-        child: Text('저장한 뒤 다른 요일을 선택할 수 있어요.', style: AppText.caption),
-      ),
-    section('이렇게 나뉘어요'),
+    const SizedBox(height: 16),
     if (dayBands.isEmpty)
-      const Information('설정된 시간대가 없어요. 휴무일이거나 아직 설정하지 않은 요일이에요.'),
-    for (var i = 0; i < dayBands.length; i++)
-      Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Surface(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${dayBands[i]['name']}',
-                style: AppText.body.copyWith(
-                  color: [
-                    AppColors.amber,
-                    AppColors.green,
-                    AppColors.blue,
-                  ][i % 3],
-                  fontWeight: FontWeight.w700,
+      const Information('휴무일이에요. 위에서 영업일을 선택하거나 휴무를 해제해 주세요.'),
+    if (dayBands.isNotEmpty) ...[
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final entry in {1: '한 타임', 2: '2교대', 3: '3교대'}.entries)
+            ChoiceChip(
+              label: Text(entry.value),
+              selected: dayBands.length == entry.key,
+              onSelected: canDraftHours ? (_) => preset(entry.key) : null,
+            ),
+        ],
+      ),
+      const SizedBox(height: 16),
+      for (var i = 0; i < dayBands.length; i++)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Surface(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${dayBands[i]['name']}', style: AppText.body),
+                Wrap(
+                  spacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: canDraftHours
+                          ? () => editBoundary(i, true)
+                          : null,
+                      child: Text('${dayBands[i]['start']}'),
+                    ),
+                    const Text('–'),
+                    TextButton(
+                      onPressed: canDraftHours
+                          ? () => editBoundary(i, false)
+                          : null,
+                      child: Text('${dayBands[i]['end']}'),
+                    ),
+                    if (_minute(dayBands[i]['end']) <=
+                        _minute(dayBands[i]['start']))
+                      const Text('다음 날', style: AppText.caption),
+                  ],
                 ),
-              ),
-              Wrap(
-                spacing: 8,
-                children: [
-                  TextButton(
-                    onPressed: () => editBoundary(i, true),
-                    child: Text('${dayBands[i]['start']}'),
+                const SizedBox(height: 8),
+                for (final part in parts.where((p) => p['hidden'] != true))
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('${part['name']}', style: AppText.caption),
+                      ),
+                      IconButton(
+                        tooltip: '${part['name']} 인원 줄이기',
+                        onPressed:
+                            canDraftHours &&
+                                ((dayBands[i]['headcounts']
+                                            as Map?)?[part['id']] ??
+                                        1) >
+                                    0
+                            ? () => changeCount(i, part['id'], -1)
+                            : null,
+                        icon: const Icon(Icons.remove),
+                      ),
+                      Text(
+                        '${(dayBands[i]['headcounts'] as Map?)?[part['id']] ?? 1}명',
+                      ),
+                      IconButton(
+                        tooltip: '${part['name']} 인원 늘리기',
+                        onPressed:
+                            canDraftHours &&
+                                ((dayBands[i]['headcounts']
+                                            as Map?)?[part['id']] ??
+                                        1) <
+                                    12
+                            ? () => changeCount(i, part['id'], 1)
+                            : null,
+                        icon: const Icon(Icons.add),
+                      ),
+                    ],
                   ),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 12),
-                    child: Text('–'),
-                  ),
-                  TextButton(
-                    onPressed: () => editBoundary(i, false),
-                    child: Text('${dayBands[i]['end']}'),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-    saveButton(
-      () => save('save_workplace_day', {'weekday': weekday, 'bands': dayBands}),
-      label: '이 요일만 적용',
-    ),
-    TextButton(
-      onPressed: editable
-          ? () =>
-                save('save_workplace_day', {
-                  'weekday': weekday,
-                  'bands': dayBands,
-                  'allDays': true,
-                }).then((_) {
-                  if (mounted && error == null) {
-                    setState(
-                      () => days = jsonDecode(
-                        jsonEncode(ops.data?['workplace']?['days'] ?? {}),
-                      ),
-                    );
+      OutlinedButton(
+        onPressed: canDraftHours
+            ? () => update(() {
+                for (var d = 1; d <= 7; d++) {
+                  if ((days['$d'] as List).isNotEmpty && d != weekday) {
+                    days['$d'] = jsonDecode(jsonEncode(dayBands));
                   }
-                })
-          : null,
-      child: const Text('모든 요일에 적용'),
+                }
+              })
+            : null,
+        child: const Text('다른 영업일에 복사'),
+      ),
+    ],
+    const SizedBox(height: 16),
+    const Text(
+      '시간·필요 인원은 기본 슬롯에 반영돼요. 이미 배정한 근무는 유지돼요. 파트 이름과 추가·숨김은 파트 관리에서 변경해요.',
+      style: AppText.caption,
     ),
   ];
+  void changeCount(int index, String id, int delta) => update(() {
+    dayBands[index]['headcounts'] ??= <String, dynamic>{};
+    final counts = dayBands[index]['headcounts'] as Map;
+    counts[id] = (counts[id] ?? 1) + delta;
+  });
   List<Widget> orderSystem() => [
     const Text('주문처리 시스템 연결', style: AppText.title),
     const SizedBox(height: 16),
@@ -1000,6 +1075,23 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     },
     child: AppEditorScaffold(
       title: titles[widget.section] ?? '매장 설정',
+      footer: widget.section == 'hours'
+          ? AppSheetFooter(
+              children: [
+                if (error != null)
+                  Text(
+                    error!,
+                    style: AppText.caption.copyWith(color: AppColors.accent),
+                  ),
+                FilledButton(
+                  onPressed: editable
+                      ? () => save('save_workplace_hours', {'days': days})
+                      : null,
+                  child: Text(saving ? '저장 중…' : '일주일 설정 저장'),
+                ),
+              ],
+            )
+          : null,
       onClose: close,
       body: Center(
         child: ConstrainedBox(
@@ -1026,7 +1118,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                   ),
                 ],
               },
-              if (error != null)
+              if (error != null && widget.section != 'hours')
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: Information(error!),

@@ -75,3 +75,11 @@ HTML에서 main.dart.js와 글꼴을 먼저 요청하고 Chromium의 CanvasKit w
 2026-09-29 소스 `9566197` 배포 후 동일한 빈 캐시 Chrome 조건에서 각각 3회 측정했다. 첫 프레임 중앙값 6,889 → 5,893ms (14.5% 단축), 초기 리소스 전송 중앙값 7,820,328 → 6,543,884 bytes (16.3% 감소). 첫 프레임은 로그인/매장 데이터 준비 완료와 다르다. 별도 일반 연결에서 로그인 클릭 → 매장 응답 1,086ms, 새로고침 후 추가 공용 로그인 없이 매장 복원을 확인했다. 실제 청구 금액과 네이티브 성능은 측정하지 않았다.
 
 사전 Flutter 143개·Node 101개 테스트, SQL rollback 통합 검증과 CI 배포 검증을 통과했다. 공유 계정 로그아웃은 `SignOutScope.local`로 다른 방문자의 세션을 유지한다.
+
+## 근무 양식·승인·언어 기반 추가
+
+2026-09-29: `crewPatterns`, `shiftChangeRequests`, `sharedEmployeeId`는 기존 workspace section 문서에 저장한다. `staffShifts`의 `patternId/base/approvedRequestId`와 `workplace.days[].headcounts`를 확장했다. 저장은 기존 JWT·권한 검사 + workspace revision CAS + 변경 section만 patch하는 흐름이다. 전체 상태 복제 테이블이나 반복 배정 cron은 추가하지 않는다. 선택 기간 최대 90일을 명시적으로 생성하고 날짜별 수정은 해당 section만 저장한다. 대기 신청은 staffShifts를 바꾸지 않아 근무/급여 계획과 신청이 섞이지 않는다.
+
+공휴일은 공개 파일 CDN을 연도별로 읽고 앱 세션 메모리에 캐시하며 번들 달력으로 실패를 대체한다. 매장 DB에서 공휴일을 매번 조회/저장하지 않으며 앱 초기 진입을 기다리게 하지 않는다. 새 직원 모드는 권한 투영 혼용을 방지하기 위해 unchanged shortcut을 사용하지 않고 서버에서 재투영한다. 향후 개인 SSO 멤버십 전환 시 일반 crew role cache 경로를 사용한다. 이번 비용 개선은 구조적 변경이며 실제 청구 비용을 측정하지 않았다.
+
+개인 언어는 향후 tappers.preferences.locale, 초대는 invitation.locale, 매장 기본은 store.locale/timeZone에 저장하는 계약이다. 현재는 한국어 fallback resolver만 제공하며 언어별 운영 DB를 복제하지 않는다. 상세는 LOCALIZATION_PLAN.md.

@@ -5,6 +5,11 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S28', 'app/lib/ui/crew_pattern_screen.dart', "'save_crew_pattern'", 'developer/crew_patterns.mjs', "'apply_crew_pattern'"],
+  ['S29', 'app/lib/ui/shift_change_panel.dart', "'request_shift_change'", 'developer/shift_requests.mjs', "'review_shift_change'"],
+  ['E07', 'app/lib/ui/cloud_workspace.dart', "'setup_shared_employee'", 'developer/supabase_backend.mjs', "query.get('view') === 'employee'"],
+  ['S30', 'app/lib/ui/calendar_screen.dart', 'KoreanHolidays', 'app/lib/domain/korean_holidays.dart', 'https://holidays.hyunbin.page/'],
+
   ['U03', 'app/lib/ui/direct_edit.dart', 'onLongPress:', 'app/lib/ui/calendar_screen.dart', 'DirectEditFrame('],
   ['S25', 'app/lib/ui/tap_workspace.dart', "'edit_work_node'", 'developer/operations.mjs', "case 'edit_work_node'"],
   ['S26', 'app/lib/ui/manual_workspace.dart', "'edit_manual_node'", 'developer/operations.mjs', "case 'edit_manual_node'"],
@@ -19,7 +24,7 @@ const contracts = [
   ['E02', 'scripts/build-site.mjs', 'review-data', 'app/lib/state/operations_controller.dart', 'readOnly'],
   ['S01', 'app/lib/ui/workplace_screens.dart', "'save_workplace_parts'", 'developer/workplace.mjs', "case 'save_workplace_parts'"],
   ['S02', 'app/lib/ui/workplace_screens.dart', "'save_staff_profile'", 'developer/workplace.mjs', "case 'save_staff_profile'"],
-  ['S03', 'app/lib/ui/workplace_screens.dart', "'save_workplace_day'", 'developer/workplace.mjs', "case 'save_workplace_day'"],
+  ['S03', 'app/lib/ui/workplace_screens.dart', "'save_workplace_hours'", 'developer/workplace.mjs', "case 'save_workplace_hours'"],
   ['S04', 'app/lib/ui/calendar_screen.dart', "'save_roster_slot'", 'developer/workplace.mjs', "'save_roster_slot'"],
   ['S06', 'app/lib/ui/workplace_screens.dart', "'save_order_system'", 'developer/workplace.mjs', "case 'save_order_system'"],
   ['S07', 'app/lib/ui/workplace_screens.dart', "'save_workplace_permissions'", 'developer/workplace.mjs', "case 'save_workplace_permissions'"],

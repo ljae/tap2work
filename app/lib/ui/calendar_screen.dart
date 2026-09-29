@@ -1,3 +1,8 @@
+import 'package:flutter/gestures.dart';
+import 'shift_change_panel.dart';
+import '../domain/korean_holidays.dart';
+import 'crew_pattern_screen.dart';
+import 'workplace_screens.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../domain/part_schedule.dart';
@@ -18,6 +23,60 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool arranging = false;
   String? arrangingActor;
   RosterSlot? selectedSlot;
+  Map<String, String> holidays = {};
+  final holidayYears = <int>{};
+  final liveHolidayYears = <int>{};
+  String? previewColumn;
+  int? previewMinute, previewDuration;
+  String? resizingId;
+  int? resizingEnd;
+  double resizeOrigin = 0;
+  Json? resizePayload;
+  String slotKey(RosterSlot s) =>
+      '${s.date}/${s.partId}/${s.shiftId ?? s.templateId}';
+  int shownEnd(RosterSlot s) =>
+      resizingId == slotKey(s) ? resizingEnd ?? s.endMinute : s.endMinute;
+  Future<void> loadHolidays() async {
+    final bundled = await KoreanHolidays.bundled().catchError(
+      (Object _) => <String, String>{},
+    );
+    if (!mounted) return;
+    setState(() => holidays = {...bundled, ...holidays});
+    for (final year in {
+      model.selected.year - 1,
+      model.selected.year,
+      model.selected.year + 1,
+    }) {
+      if (!holidayYears.add(year)) continue;
+      KoreanHolidays.year(year)
+          .then((dates) {
+            if (mounted) {
+              setState(() {
+                holidays.addAll(dates);
+                liveHolidayYears.add(year);
+              });
+            }
+          })
+          .catchError((Object _) {});
+    }
+  }
+
+  String dayNote(DateTime day) {
+    final days = ops.data?['workplace']?['days'] as Map? ?? {};
+    final configured = days['${day.weekday}'] as List?;
+    return [
+      if (holidays[rosterDate(day)] != null) holidays[rosterDate(day)]!,
+      if (configured != null && configured.isEmpty) '매장 휴무',
+    ].join(' · ');
+  }
+
+  Color dayColor(DateTime day) =>
+      holidays.containsKey(rosterDate(day)) || day.weekday == 7
+      ? AppColors.accent
+      : day.weekday == 6
+      ? AppColors.blue
+      : AppColors.ink;
+
   bool get editMode =>
       arranging && arrangingActor == ops.actorId && model.editable;
   void enterEdit(RosterSlot slot) => setState(() {
@@ -114,6 +173,38 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
+  bool ownSlot(RosterSlot slot) =>
+      !ops.readOnly &&
+      !ops.busy &&
+      ops
+          .rows('tappers')
+          .any((p) => p['id'] == slot.crewId && p['actorId'] == ops.actorId);
+  String requestLabel(RosterSlot slot) {
+    final request = ops
+        .rows('shiftChangeRequests')
+        .where((r) => r['shiftId'] == slot.shiftId)
+        .lastOrNull;
+    final current = ops
+        .rows('staffShifts')
+        .where((s) => s['id'] == slot.shiftId)
+        .firstOrNull;
+    final matches =
+        request != null &&
+        current != null &&
+        [
+          'date',
+          'partId',
+          'start',
+          'end',
+          'status',
+        ].every((k) => request['after'][k] == current[k]);
+    return request?['status'] == 'pending'
+        ? ' · 변경 신청 중'
+        : request?['status'] == 'approved' && matches
+        ? ' · 승인 반영'
+        : '';
+  }
+
   Widget slotFrame(RosterSlot slot, Widget child) {
     final frame = DirectEditFrame(
       enabled: model.editable,
@@ -129,22 +220,114 @@ class _CalendarScreenState extends State<CalendarScreen> {
           : child,
     );
     if (!editMode) return frame;
-    return Draggable<Json>(
-      data: {
-        ...slotInput(slot),
-        'duration': slot.endMinute - slot.startMinute,
-        'revision': ops.data?['revision'],
-        'actor': ops.actorId,
-      },
-      feedback: Material(
-        color: AppColors.surface,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text(slot.name),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Draggable<Json>(
+          dragAnchorStrategy: pointerDragAnchorStrategy,
+          onDragEnd: (_) => setState(() {
+            previewColumn = null;
+            previewMinute = null;
+          }),
+          data: {
+            ...slotInput(slot),
+            'duration': slot.endMinute - slot.startMinute,
+            'revision': ops.data?['revision'],
+            'actor': ops.actorId,
+          },
+          feedback: Material(
+            color: AppColors.surface,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(slot.name),
+            ),
+          ),
+          childWhenDragging: Opacity(opacity: .3, child: frame),
+          child: frame,
         ),
-      ),
-      childWhenDragging: Opacity(opacity: .3, child: frame),
-      child: frame,
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 32,
+          child: Semantics(
+            label: '종료 시간 높이 조절',
+            button: true,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.resizeUpDown,
+              child: GestureDetector(
+                dragStartBehavior: DragStartBehavior.down,
+                key: ValueKey(
+                  'resize-${slot.shiftId ?? slot.templateId}-${slot.date}',
+                ),
+                behavior: HitTestBehavior.opaque,
+                onVerticalDragStart: (d) {
+                  resizeOrigin = d.globalPosition.dy;
+                  resizePayload = {
+                    ...slotInput(slot),
+                    'actor': ops.actorId,
+                    'revision': ops.data?['revision'],
+                  };
+                  setState(() {
+                    resizingId = slotKey(slot);
+                    resizingEnd = slot.endMinute;
+                  });
+                },
+                onVerticalDragUpdate: (d) => setState(() {
+                  resizingEnd =
+                      (slot.endMinute +
+                              ((d.globalPosition.dy - resizeOrigin) /
+                                          (48 / 30) /
+                                          30)
+                                      .round() *
+                                  30)
+                          .clamp(
+                            slot.startMinute + 30,
+                            slot.startMinute + 1410,
+                          );
+                }),
+                onVerticalDragCancel: () => setState(() {
+                  resizingId = null;
+                  resizingEnd = null;
+                }),
+                onVerticalDragEnd: (_) async {
+                  final end = resizingEnd, payload = resizePayload;
+                  setState(() {
+                    resizingId = null;
+                    resizingEnd = null;
+                  });
+                  if (end == null ||
+                      payload == null ||
+                      !editMode ||
+                      payload['actor'] != ops.actorId ||
+                      end == slot.endMinute) {
+                    return;
+                  }
+                  final ok = await ops.act(
+                    slot.shiftId == null
+                        ? 'save_roster_slot'
+                        : 'save_staff_shift',
+                    {...payload, 'end': rosterClock(end)},
+                  );
+                  if (mounted) {
+                    notice(ok ? '시간을 조정했어요.' : ops.error ?? '저장하지 못했어요.');
+                  }
+                },
+                child: Container(
+                  alignment: Alignment.bottomCenter,
+                  decoration: BoxDecoration(
+                    color: AppColors.green.withValues(alpha: .18),
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(12),
+                    ),
+                  ),
+                  child: const Icon(Icons.drag_handle, size: 24),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -155,6 +338,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void initState() {
     super.initState();
     model = ScheduleController(widget.operations);
+    loadHolidays();
   }
 
   @override
@@ -266,34 +450,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                   if (crew.isEmpty)
                     const Text('이 파트에 배정 가능한 크루가 없어요.', style: AppText.caption),
-                  if (slot.shiftId == null && crewId != null) ...[
-                    const SizedBox(height: 16),
-                    AppChoiceGroup<int>(
-                      values: const [1, 28, 84],
-                      selected: repeat,
-                      labelOf: (v) => v == 1 ? '이번 날짜만' : '${v ~/ 7}주 반복',
-                      onSelected: (v) => update(() => repeat = v),
-                    ),
-                    if (repeat > 1)
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          for (var d = 1; d <= 7; d++)
-                            FilterChip(
-                              chipAnimationStyle: AppMotion.chipStyle(context),
-                              label: Text(weekdays[d - 1]),
-                              selected: days.contains(d),
-                              onSelected: (v) => update(() {
-                                if (v) {
-                                  days.add(d);
-                                } else {
-                                  days.remove(d);
-                                }
-                              }),
-                            ),
-                        ],
-                      ),
-                  ],
                 ],
               ),
             ),
@@ -358,6 +514,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return LayoutBuilder(
       builder: (context, box) => Wrap(
         children: [
+          for (var w = 0; w < 7; w++)
+            SizedBox(
+              width: box.maxWidth / 7,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  weekdays[w],
+                  textAlign: TextAlign.center,
+                  style: AppText.caption.copyWith(
+                    color: w == 6
+                        ? AppColors.accent
+                        : w == 5
+                        ? AppColors.blue
+                        : AppColors.ink,
+                  ),
+                ),
+              ),
+            ),
           for (var n = 0; n < 42; n++)
             Builder(
               builder: (context) {
@@ -369,7 +543,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 return SizedBox(
                   width: box.maxWidth / 7,
                   height:
-                      90 * (MediaQuery.textScalerOf(context).scale(14) / 14),
+                      132 * (MediaQuery.textScalerOf(context).scale(14) / 14),
                   child: InkWell(
                     onTap: () => model.selectDay(day),
                     child: Container(
@@ -383,11 +557,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             '${day.day}',
                             style: TextStyle(
                               color: day.month == first.month
-                                  ? AppColors.ink
+                                  ? dayColor(day)
                                   : AppColors.muted,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          if (dayNote(day).isNotEmpty)
+                            Expanded(
+                              child: Tooltip(
+                                message: dayNote(day),
+                                child: Text(
+                                  dayNote(day),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppText.caption.copyWith(
+                                    color: dayColor(day),
+                                  ),
+                                ),
+                              ),
+                            ),
                           Text(
                             '$assigned',
                             style: AppText.caption,
@@ -420,9 +607,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               60;
     final until = all.isEmpty
         ? 22 * 60
-        : ((all.map((s) => s.endMinute).reduce((a, b) => a > b ? a : b) + 59) ~/
-              60 *
-              60);
+        : ((all.map(shownEnd).reduce((a, b) => a > b ? a : b) + 59) ~/ 60 * 60);
     // 30 minutes is a 48px touch target; never compress the day/part columns.
     const scale = 48.0 / 30;
     final gridHeight = (until - from) * scale;
@@ -450,7 +635,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       }
       partWidths[part.id] = columnWidth * maximum;
     }
-    final headerHeight = 88.0 * textScale.clamp(1, 1.6);
+    final headerHeight = 132.0 * textScale.clamp(1, 1.6);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -537,9 +722,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         ),
                                       ),
                                       child: Text(
-                                        '${day.month}/${day.day} ${weekdays[day.weekday - 1]}',
+                                        '${day.month}/${day.day} ${weekdays[day.weekday - 1]}${dayNote(day).isEmpty ? '' : '\n${dayNote(day)}'}',
                                         style: AppText.body.copyWith(
                                           fontWeight: FontWeight.w700,
+                                          color: dayColor(day),
                                         ),
                                       ),
                                     ),
@@ -609,7 +795,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         const SizedBox(height: 12),
         const Text(
-          '빈 슬롯을 누르면 시간을 조정하거나 크루를 배정해요. 배정된 근무는 영업시간을 바꿔도 유지돼요.',
+          '길게 눌러 편집해요. 아래 손잡이로 종료 시간을, 드래그로 위치를 30분 단위로 조정해요.',
           style: AppText.caption,
         ),
       ],
@@ -649,11 +835,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
             (d.data['id'] != null ||
                 (d.data['date'] == rosterDate(day) &&
                     d.data['partId'] == part.id)),
+        onMove: (d) {
+          final box = columnContext.findRenderObject() as RenderBox;
+          final minute =
+              (from +
+                      (box.globalToLocal(d.offset).dy / scale / 30).floor() *
+                          30)
+                  .clamp(0, 1410);
+          if (previewColumn != '${rosterDate(day)}/${part.id}' ||
+              previewMinute != minute) {
+            setState(() {
+              previewColumn = '${rosterDate(day)}/${part.id}';
+              previewMinute = minute;
+              previewDuration = d.data['duration'] as int;
+            });
+          }
+        },
+        onLeave: (_) {
+          if (previewColumn == '${rosterDate(day)}/${part.id}') {
+            setState(() => previewColumn = null);
+          }
+        },
         onAcceptWithDetails: (d) {
           final box = columnContext.findRenderObject() as RenderBox;
           final minute =
               (from +
-                      (box.globalToLocal(d.offset).dy / scale / 30).round() *
+                      (box.globalToLocal(d.offset).dy / scale / 30).floor() *
                           30)
                   .clamp(0, 1410);
           dropSlot(d.data, day, part, minute);
@@ -668,29 +875,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   left: 0,
                   right: 0,
                   height: 48,
-                  child: DragTarget<Json>(
+                  child: Container(
                     key: ValueKey(
                       'roster-drop-${rosterDate(day)}-${part.id}-$m',
                     ),
-                    onWillAcceptWithDetails: (d) =>
-                        editMode &&
-                        d.data['actor'] == ops.actorId &&
-                        (d.data['id'] != null ||
-                            (d.data['date'] == rosterDate(day) &&
-                                d.data['partId'] == part.id)),
-                    onAcceptWithDetails: (d) => dropSlot(d.data, day, part, m),
-                    builder: (context, candidates, rejected) => Container(
-                      color: candidates.isEmpty
-                          ? null
-                          : AppColors.green.withValues(alpha: .25),
-                      decoration: candidates.isNotEmpty
-                          ? null
-                          : BoxDecoration(
-                              border: Border(
-                                top: BorderSide(color: AppColors.line),
-                                right: BorderSide(color: AppColors.line),
-                              ),
-                            ),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: AppColors.line),
+                        right: BorderSide(color: AppColors.line),
+                      ),
                     ),
                   ),
                 ),
@@ -700,13 +893,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   left: positions[i] * laneWidth + 3,
                   width: laneWidth - 6,
                   height:
-                      (slots[i].endMinute - slots[i].startMinute) * scale - 4,
+                      (shownEnd(slots[i]) - slots[i].startMinute) * scale - 4,
                   child: slotFrame(
                     slots[i],
                     Semantics(
                       button: true,
                       label:
-                          '${slots[i].date} ${part.name} ${slots[i].name} ${slots[i].start} ${slots[i].end}',
+                          '${slots[i].date} ${part.name} ${slots[i].name} ${slots[i].start} ${rosterClock(shownEnd(slots[i]))}',
                       child: Material(
                         color: slots[i].crewId == null
                             ? AppColors.surface
@@ -732,6 +925,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     edit(slots[i]);
                                   }
                                 }
+                              : ownSlot(slots[i])
+                              ? () => requestShiftChange(
+                                  context,
+                                  ops,
+                                  slots[i].shiftId!,
+                                )
                               : null,
                           child: Padding(
                             padding: const EdgeInsets.all(8),
@@ -746,13 +945,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     ),
                                   ),
                                   Text(
-                                    '${slots[i].start}\n${slots[i].overnight ? '다음 날 ' : ''}${slots[i].end}',
+                                    '${slots[i].start}\n${slots[i].overnight ? '다음 날 ' : ''}${rosterClock(shownEnd(slots[i]))}',
                                     style: AppText.caption,
                                   ),
                                   Text(
                                     slots[i].crewId == null
                                         ? '미배정${slots[i].adjusted ? ' · 조정됨' : ''}'
-                                        : '배정',
+                                        : '${slots[i].adjusted ? '배정 · 미세조정' : '배정'}${requestLabel(slots[i])}',
                                     style: AppText.caption.copyWith(
                                       color: AppColors.green,
                                     ),
@@ -762,6 +961,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             ),
                           ),
                         ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (previewColumn == '${rosterDate(day)}/${part.id}' &&
+                  previewMinute != null)
+                Positioned(
+                  top: (previewMinute! - from) * scale,
+                  left: 3,
+                  right: 3,
+                  height: previewDuration! * scale,
+                  child: IgnorePointer(
+                    child: Container(
+                      key: const ValueKey('roster-drop-preview'),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.green.withValues(alpha: .28),
+                        border: Border.all(color: AppColors.green, width: 2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${rosterClock(previewMinute!)}–${previewMinute! + previewDuration! >= 1440 ? '다음 날 ' : ''}${rosterClock(previewMinute! + previewDuration!)}\n여기에 배정',
+                        style: AppText.body,
                       ),
                     ),
                   ),
@@ -779,6 +1001,57 @@ class _CalendarScreenState extends State<CalendarScreen> {
     builder: (context, _) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        ShiftChangePanel(ops: ops),
+        if (!ops.isLeader)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 16),
+            child: Text(
+              '내 근무를 눌러 휴무·단축을 신청해요. 승인 전에는 원래 근무가 유지돼요.',
+              style: AppText.caption,
+            ),
+          ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (model.editable)
+              FilledButton.icon(
+                onPressed: () => showAppFormSheet(
+                  context: context,
+                  builder: (_) =>
+                      CrewPatternScreen(ops: ops, day: model.selected),
+                ),
+                icon: const Icon(Icons.people_outline),
+                label: const Text('크루별 근무 배정'),
+              ),
+            OutlinedButton.icon(
+              onPressed: () => showAppFormSheet(
+                context: context,
+                builder: (_) => WorkplaceSettings(ops: ops, section: 'hours'),
+              ),
+              icon: const Icon(Icons.schedule),
+              label: const Text('영업시간·필요 인원'),
+            ),
+            TextButton(
+              onPressed: () => showAppFormSheet(
+                context: context,
+                builder: (_) => WorkplaceSettings(ops: ops, section: 'parts'),
+              ),
+              child: const Text('파트 관리'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          liveHolidayYears.contains(model.selected.year)
+              ? '대한민국 공휴일 · 최신 달력'
+              : '대한민국 공휴일 · 저장된 달력 (2026.09.29)',
+          style: AppText.caption,
+        ),
+        if (!holidays.keys.any((d) => d.startsWith('${model.selected.year}-')))
+          const Text('이 연도의 공휴일 정보를 불러오지 못했어요.', style: AppText.caption),
+        const Text('출처: holidays-kr · 공휴일과 매장 휴무는 별도', style: AppText.caption),
+        const SizedBox(height: 16),
         if (ops.isLeader &&
             ops.data?['canEditSchedule'] != false &&
             !ops.readOnly)
@@ -831,7 +1104,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
           children: [
             IconButton(
               tooltip: '이전',
-              onPressed: () => model.move(-1),
+              onPressed: () {
+                model.move(-1);
+                loadHolidays();
+              },
               icon: const Icon(CupertinoIcons.chevron_left),
             ),
             Expanded(
@@ -845,7 +1121,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
             IconButton(
               tooltip: '다음',
-              onPressed: () => model.move(1),
+              onPressed: () {
+                model.move(1);
+                loadHolidays();
+              },
               icon: const Icon(CupertinoIcons.chevron_right),
             ),
             TextButton(

@@ -154,3 +154,19 @@ TaskStepEditor는 원래 자리에서 포커스되는 제목·매뉴얼 입력�
 `developer/direct_edit.mjs`는 `edit_work_node`와 `edit_manual_node`의 이름·추가·삭제를 담당한다. 업무 변경은 오늘 미완료 실행과 연결된 양식, 매뉴얼 변경은 양식만 대상으로 한다. 원본 삭제 사본은 서버 전용 operationEditHistory에 보관하고 응답에서 제외한다. 기본/연결 그룹, 마지막 Task, 완료/재고 반영/주문 연결 실행을 보호한다. 현재 완료 이력은 수정하지 않는다. 영역별 문서 저장/CAS가 새 영역도 그대로 보존한다.
 
 근무표는 `canEditSchedule` 서버 투영을 사용한다. 편집 중 DragTarget이 날짜·파트·30분 위치를 결정하고 원래 revision으로 저장한다. 기존 중복 근무·파트 자격 검증을 재사용한다. 배정 근무는 label, 필요 슬롯은 날짜별 name을 지원한다. `delete_roster_slot`은 해당 날짜 override의 hidden=true로 표시하고 기본 영업시간을 보존한다. 빈 슬롯 드래그는 같은 날짜/파트 안에서 시간만 이동하며 배정 근무는 날짜·파트를 옮길 수 있다. 근무 이름을 크루 이름과 분리하는 것은 질의 답변 전 적용한 기본 구현이며 사용자 선택은 아직 proposed다.
+
+## 2026-09-29 근무 배정·변경 승인·개인 언어 준비
+
+`crew_patterns.mjs`는 재사용 양식(crewPatterns)과 날짜별 유효 근무(staffShifts)를 분리한다. generated shift의 patternId/base는 원본 계약이며 달력 저장은 유효 필드만 바꾼다. A/B주는 저장한 월요일 anchor를 기준으로 계산한다. 명시적 적용 기간(오늘 이후 최대 90일)의 해당 pattern만 교체하며 별도 배정·출퇴근은 보존한다. 이미 시작했거나 승인 반영된 근무, 범위 밖으로 옮긴 근무는 교체를 거절한다. 전체 후보에 대한 겹침·파트 검증이 성공한 뒤 원자 저장한다. 기존 section DB CAS를 재사용해 별도 마이그레이션/정기 배치 비용을 추가하지 않는다.
+
+`shift_requests.mjs`의 shiftChangeRequests는 본인 근무 휴무/단축 신청과 사장님 승인에 한정한다. pending은 근무를 바꾸지 않고 approved에서만 status/time을 변경한다. before/after/version/신청·처리 시각을 저장하고 원본 근무가 바뀌었으면 승인을 거절한다. 직원은 자신의 신청만 투영받는다. 출퇴근/급여 지급 원본은 역수정하지 않는다.
+
+임시 공용 계정의 계정 메뉴에서 직원 화면으로 전환할 수 있다. 기존 owner 멤버십을 검증한 서버가 지정 sharedEmployeeId의 active crew만 선택해 권한을 축소한다. 실제 employee JWT는 이 경로로 owner가 될 수 없다. 이 기능은 같은 공용 인증 세션의 역할 보기 전환이며 개인별 SSO 계정을 발급한 것이 아니다. 신규 단기 계약 크루 연결은 명시적 setup_shared_employee action으로 수행하며 기존 크루 계약·급여·근무는 변경하지 않는다. 시급 0은 신규 미설정 초기값으로 실제 계약 금액을 의미하지 않는다. actor/controller를 교체해 이전 역할의 초안을 재사용하지 않는다.
+
+영업시간 설정은 휴무 → 교대 수 → 경계 시간/파트별 인원으로 통일한다. workplace.days[weekday]는 **배열**이며 band.headcounts[partId]가 필요 슬롯 수다. save_workplace_hours는 7일 원자 저장, 기존 save_workplace_day는 구버전 호환 API로 유지한다. 프로필 운영 탭은 공통 영업시간/파트 관리로 이동해 중복 편집을 제거한다. 자정을 넘긴 후의 추가 교대는 다음 요일에 설정한다. 날짜별 overrides와 기존 배정은 기본시간 변경으로 삭제하지 않는다.
+
+달력 drag target은 컬럼 전체 한 곳이다. 실제 저장과 같은 30분 floor 경계에 ghost/시각 라벨을 표시하고 하단 handle로 종료를 조절한다. gesture 시작 revision/actor를 보존하며 끝에서만 저장한다. 움직임 줄이기, 기존 키보드 시간 시트, 파트 ID 연결을 유지한다.
+
+공휴일은 [holidays-kr](https://github.com/hyunbinseo/holidays-kr)의 공개 연도별 JSON을 날짜 정보만으로 읽는다. 월력요항 가공 자료의 출처와 MIT license를 번들에 보존한다. 캘린더에서만 비동기 조회하며 연도별 메모리 캐시와 번들 fallback을 사용해 최초 앱 로딩·매장 DB 비용에 추가하지 않는다. 실패 시 저장 달력 또는 미확인 표시, 공휴일 때문에 자동 휴무로 바꾸지 않는다. 2026-09-29 가져온 번들은 업데이트 시 갱신하며 런타임은 새로 열린 세션에서 최신 연도를 확인한다.
+
+다국어는 [개인 언어 계획](LOCALIZATION_PLAN.md)의 BCP-47 선호/유효 언어 계약과 기본 fallback만 준비했다. 실제 번역·언어 선택·다국어 초대 발송은 미구현이다.

@@ -9,7 +9,7 @@ const label = value => {
 export const permissionActions = {
   tasks: ['edit_work_node', 'edit_manual_node', 'save_task_step', 'reorder_small_taps', 'reorder_big_taps', 'create_task', 'save_checklists', 'save_tap_settings', 'save_step_manual', 'move_manual_node', 'import_recommended_taps'],
   complete: ['complete_task', 'complete_step', 'reopen_step', 'move_tap', 'complete_preparation'],
-  schedule: ['save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'delete_staff_shift', 'save_staffing_slots', 'assign_staffing_slot', 'save_staff_shift', 'save_shift_pattern', 'assign_cover', 'update_shift'],
+  schedule: ['save_crew_pattern', 'apply_crew_pattern', 'save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'delete_staff_shift', 'save_staffing_slots', 'assign_staffing_slot', 'save_staff_shift', 'save_shift_pattern', 'assign_cover', 'update_shift'],
   stock: ['check_stock', 'count_prepared_item'],
   orders: ['place_order', 'receive_order'],
 };
@@ -27,7 +27,7 @@ export function checkWorkplacePermission(state, actor, action) {
   }
 }
 export function mutateWorkplace(state, input, actor, now, activity, authenticated) {
-  const actions = ['save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'save_order_system', 'save_workplace_parts', 'save_workplace_day', 'save_workplace_permissions', 'save_staff_profile', 'create_demo_invite', 'revoke_demo_invite'];
+  const actions = ['save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'save_order_system', 'save_workplace_hours', 'save_workplace_parts', 'save_workplace_day', 'save_workplace_permissions', 'save_staff_profile', 'create_demo_invite', 'revoke_demo_invite'];
   if (!actions.includes(input.action)) return false;
   if (['save_roster_slot','delete_roster_slot','reset_roster_slot'].includes(input.action)) {
     if (!['owner','manager'].includes(actor.role)) fail('매니저 이상만 슬롯을 바꿀 수 있어요.', 403);
@@ -64,6 +64,32 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
       if (!parts.some(p => !p.hidden)) fail('보이는 파트가 하나 이상 필요해요.');
       for (const part of config.parts) if (!parts.some(p => p.id === part.id)) fail('기록을 보존하기 위해 파트를 삭제하는 대신 숨겨 주세요.');
       config.parts = parts;
+      break;
+    }
+    case 'save_workplace_hours': {
+      if (!input.days || Object.keys(input.days).length !== 7) fail('일주일 영업시간을 확인해 주세요.');
+      const next = {};
+      const minute = t => Number(t.slice(0,2))*60+Number(t.slice(3));
+      for (let day=1; day<=7; day++) {
+        const bands = input.days[day];
+        if (!Array.isArray(bands) || bands.length > 6) fail('요일별 시간대를 확인해 주세요.');
+        let total=0;
+        next[day] = bands.map((b,i) => {
+          validRosterTimes(b.start,b.end);
+          if (i && bands[i-1].end < bands[i-1].start) fail('자정을 넘긴 다음 시간대는 다음 요일에 설정해 주세요.');
+          if (i && bands[i-1].end !== b.start) fail('시간대 경계를 빈틈 없이 연결해 주세요.');
+          total += (minute(b.end)-minute(b.start)+1440)%1440;
+          if (total >= 1440) fail('영업시간은 24시간 미만으로 설정해 주세요.');
+          const headcounts = b.headcounts ?? {};
+          if (!headcounts || Array.isArray(headcounts) || typeof headcounts !== 'object') fail('필요 인원을 확인해 주세요.');
+          for (const [id,n] of Object.entries(headcounts)) {
+            validatePart(state,id,{allowHidden:true});
+            if (!Number.isInteger(n) || n<0 || n>12) fail('파트 인원은 0–12명으로 설정해 주세요.');
+          }
+          return {name:label(b.name), start:b.start, end:b.end, headcounts};
+        });
+      }
+      config.days = next;
       break;
     }
     case 'save_workplace_day': {

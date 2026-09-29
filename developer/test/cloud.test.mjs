@@ -74,3 +74,15 @@ test('settings survive independent cloud reads and reject stale writes',async()=
  assert.equal((await request({action:'save_order_system',enabled:false,revision:state.revision-1})).status,409);
  assert.equal((await (await request()).json()).orderBoardEnabled,true);
 });
+test('shared owner can enter fixed employee projection, employee mode denies owner writes and real crew cannot escalate',async()=>{
+ const {request,handler}=setup();
+ let state=await (await request()).json();
+ let r=await request({action:'setup_shared_employee',revision:state.revision});assert.equal(r.status,200);state=await r.json();
+ const crew=state.tappers.find(t=>t.id===state.sharedEmployeeId);assert.equal(crew.contractType,'short_term');
+ const endpoint='https://example.supabase.co/functions/v1/operations?view=employee';
+ const headers={Authorization:'Bearer session','Content-Type':'application/json'};
+ r=await handler(new Request(endpoint,{headers}));assert.equal(r.status,200);const employee=await r.json();
+ assert.equal(employee.actor.role,'crew');assert.equal(employee.actor.id,crew.actorId);assert.equal(employee.canEditSchedule,false);assert.equal(employee.labor,undefined);
+ r=await handler(new Request(endpoint,{method:'POST',headers,body:JSON.stringify({action:'save_order_system',enabled:true,revision:employee.revision})}));assert.equal(r.status,403);
+ const actual=setup('crew');r=await actual.handler(new Request(endpoint,{headers}));assert.equal(r.status,403);
+});

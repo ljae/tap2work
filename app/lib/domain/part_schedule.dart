@@ -137,6 +137,14 @@ List<RosterSlot> slotsForDay(
             : person?['nickname'] ?? '크루',
         shiftId: row['id'],
         crewId: row['tapperId'],
+        adjusted:
+            row['base'] != null &&
+            [
+              'date',
+              'partId',
+              'start',
+              'end',
+            ].any((k) => row[k] != row['base'][k]),
       ),
     );
   }

@@ -1,0 +1,21 @@
+# 개인 언어와 다국어 배포 준비
+
+2026-09-29 사용자 요청: 현재는 한국어 UI/UX·기능 개발에 집중한다. 기능 확정 후 다국어 배포, 한국 매장의 외국인 크루 개인 언어 설정, 해당 언어의 초대를 지원한다. 지금 전체 번역·메시지 발송은 구현하지 않는다.
+
+## 지금 반영한 경계
+
+- `developer/localization.mjs`는 BCP-47 언어 태그를 정규화하고 저장 희망 언어와 실제 제공 언어를 구분한다. `app/lib/domain/locale_policy.dart`도 제공 언어를 `ko`로 명시한다.
+- 계약: `store.locale`(매장 기본, 누락 시 ko), `tappers[].preferences.locale`(개인 선호, 누락 시 매장), `invitation.locale`(명시적 초대 언어, 누락 시 개인 → 매장). 필드는 번역한 언어 이름이 아닌 `ko`, `en-US`, `vi` 같은 코드다. 기존 JSON section 저장이 추가 필드를 수용하므로 언어별 테이블/복제 DB는 만들지 않는다.
+- snapshot `languageContext`: storeLocale, preferredLocale, effectiveLocale, invitationLocale, effectiveInvitationLocale, timeZone. 아직 한국어만 제공한다. 지원 전의 개인 언어는 유실시키지 않되 UI는 ko fallback이다. 이번 배포는 선호를 저장하는 UI/API를 제공하지 않는다.
+- 근무 날짜는 매장 현지 날짜 YYYY-MM-DD, 시간은 HH:mm, 감사 시각은 UTC ISO로 유지한다. 현재 매장 시간대 Asia/Seoul. 개인 언어를 바꾸어도 영업일·A/B주·마감일·급여 경계가 달라지지 않는다. 다른 국가/시간대 영업 지원은 별도 서버 날짜 계산 전환이 필요하다.
+- 파트/크루/TAP/Task의 관계는 기존 ID를 사용한다. 새 근무 신청은 `leave`, `shorten`, `pending`, `approved`, `rejected`, `cancelled` 코드로 저장하며 한국어 라벨은 UI에서만 사용한다. 사용자 작성 파트명·매뉴얼·신청 사유는 원문으로 유지한다.
+
+## 기능 확정 후 단계 (계획, 미구현)
+
+1. Flutter gen_l10n/ARB와 AppLocalizations 도입. 공통 네비게이션·폼 라벨부터 안정된 의미 키로 이전. 문장 조합 대신 이름/날짜/개수 placeholder와 ICU plural을 사용한다. 비즈니스 로직·ID를 번역 문자열과 비교하지 않는다.
+2. 로그인 사용자별 선호 API/화면, 기기 캐시와 계정 전환 초기화. 직원 본인의 선호만 수정 가능, 사장님은 직원 언어를 일괄 덮어쓰지 않는다. 개인 → 매장 → 지원 언어 fallback을 적용한다.
+3. 서버 오류에 안정된 code와 params를 더하고 현재 한국어 message를 호환 fallback으로 남긴다. 신규 소비자가 준비될 때까지 기존 클라이언트를 깨지 않는다.
+4. 인증된 실제 초대 기능을 구현할 때 locale·templateVersion·상태·만료를 고정 저장하고 발송 전 해당 언어 미리보기를 제공한다. 지원하지 않는 언어로 발송했다고 표시하지 않으며 fallback 시 명시적으로 확인한다. 현재 체험 초대 코드는 실제 초대가 아니다. 이번 작업은 초대나 이메일을 보내지 않았다.
+5. 번역 검수, 확대 글자/긴 문장/RTL/폰트 coverage, 날짜·숫자 표시, 단수·복수, 언어 전환 중 초안·권한 보존 테스트. 번역본은 원본 매뉴얼 version과 묶고 오래된 번역을 표시한다. 자동 번역·외부 모델 전송은 별도 제품 결정 및 연동 범위다.
+
+지원 언어 목록과 번역 공급자, 실제 초대 채널은 아직 확정하지 않았다. 현재 번역율 또는 다국어 출시 완료로 보고하지 않는다.

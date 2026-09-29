@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 104,
+  "revision": 105,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -568,6 +568,46 @@
       "reason": "사용자에게 두 범위를 질의했다. 답변 전 기존 사람 정보에 영향을 주지 않는 범위로 구현했다.",
       "source": "진행 중 질의의 기본 구현 · 2026-09-29",
       "updatedAt": "2026-09-29T11:15:51.324Z"
+    },
+    {
+      "id": "D-057",
+      "category": "Schedule / identity / localization",
+      "title": "Reusable crew schedules and date-specific fine adjustments",
+      "status": "confirmed",
+      "decision": "Weekly or alternating A/B templates; explicit selected-range reapply resets only generated shifts, preserving independent shifts and attendance. Holidays are display-only, store closure remains independent. Closed weekdays precede shift bands and part headcounts in settings.",
+      "reason": "User request and two explicit scope answers.",
+      "source": "User conversation 2026-09-29",
+      "updatedAt": "2026-09-29T12:28:27.556730Z"
+    },
+    {
+      "id": "D-058",
+      "category": "Schedule / identity / localization",
+      "title": "Shared-account employee view and owner-approved shift changes",
+      "status": "confirmed",
+      "decision": "Allow short-term crew view from the shared account. Crew request their own leave/shortening; pending retains effective schedule, owner approval applies the change, with distinct states.",
+      "reason": "User request; identity target is separately proposed, not assumed.",
+      "source": "User conversation 2026-09-29",
+      "updatedAt": "2026-09-29T12:28:27.556730Z"
+    },
+    {
+      "id": "D-059",
+      "category": "Schedule / identity / localization",
+      "title": "Prepare personal and invitation locale contracts before translation",
+      "status": "confirmed",
+      "decision": "Keep Korean UI during feature development. Separate store default, personal BCP-47 preference, effective shipped language and invitation locale. Actual translations, language controls and localized invitation delivery are future work after feature confirmation.",
+      "reason": "User explicitly requested minimal groundwork instead of full localization now.",
+      "source": "User conversation 2026-09-29",
+      "updatedAt": "2026-09-29T12:28:27.556730Z"
+    },
+    {
+      "id": "D-060",
+      "category": "Schedule / identity / localization",
+      "title": "Identity linked to shared employee view",
+      "status": "proposed",
+      "decision": "Default implementation offers creation of a separate short-term crew on explicit first employee-entry action, without changing existing staff. Whether to link an existing crew was asked and remains unanswered. Do not auto-create production crew during deployment or verification.",
+      "reason": "Pending user clarification; absence of an answer is not approval.",
+      "source": "User conversation 2026-09-29",
+      "updatedAt": "2026-09-29T12:28:27.556730Z"
     }
   ],
   "milestones": [
@@ -4373,7 +4413,36 @@
         "docs/ARCHITECTURE.md",
         "docs/UI_SETTINGS_RELATIONSHIP_MAP.md"
       ]
+    },
+    {
+      "at": "2026-09-29T12:28:27.556730Z",
+      "type": "implementation",
+      "title": "Schedule patterns, precise calendar editing, employee approval and locale groundwork",
+      "detail": "Added reusable crewPatterns with weekly/A-B anchor, generated shift base metadata, atomic selected-range reapplication, public Korean holiday JSON and bundled fallback, drag ghost and resize, closed-day-first hours/headcounts, unified profile hours link. Added fixed server-downscoped employee view and own leave/shorten requests with owner approval and original-shift version checks. BCP-47 preference/invitation/time-zone resolver ships Korean only. No production employee/schedule mutations or external messages performed.",
+      "changes": [
+        {
+          "previous": "One-off repetition, date edits and duplicate hours forms",
+          "next": "Reusable A/B base, explicit date-range apply, gesture preview and unified weekly hours/headcounts",
+          "reason": "User scheduling request"
+        },
+        {
+          "previous": "Only owner view from shared login, no employee leave approval",
+          "next": "Restricted employee view with owner-reviewed change requests",
+          "reason": "User short-term employee access request"
+        }
+      ],
+      "verification": "Full Flutter suite 155 and Node suite 112 passed; analysis previously clean. 30 UI links and npm check passed. Six font-loaded 390/1200 captures generated and phone calendar/hours/patterns visually inspected. Tests caught nested holiday JSON, resize gesture slop and lazy-list assumptions; fixed. Follow-up found pinned-footer error was offscreen; moved inline error beside save, rerun pending. Capture harness fixture generic/runAsync issues fixed. Web review build passed before final footer polish. No native builds/device tests; deployment pending.",
+      "files": [
+        "developer/crew_patterns.mjs",
+        "developer/shift_requests.mjs",
+        "developer/localization.mjs",
+        "app/lib/ui/calendar_screen.dart",
+        "app/lib/ui/crew_pattern_screen.dart",
+        "app/lib/ui/shift_change_panel.dart",
+        "app/lib/ui/workplace_screens.dart",
+        "docs/LOCALIZATION_PLAN.md"
+      ]
     }
   ],
-  "updatedAt": "2026-09-29T11:26:45.051Z"
+  "updatedAt": "2026-09-29T12:28:27.556730Z"
 }

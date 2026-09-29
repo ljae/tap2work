@@ -29,6 +29,7 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   StreamSubscription<AuthState>? subscription;
   String? userId;
   bool preview = false;
+  bool employeeMode = false;
   bool signingIn = false;
   String? loginError;
   Future<void> publicLogin() async {
@@ -71,6 +72,7 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
       setState(() {
         userId = next;
         preview = false;
+        employeeMode = false;
         ops = controller();
         if (userId != null) ops.start();
       });
@@ -83,7 +85,7 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
       : OperationsController(
           readOnly: false,
           endpoint: Uri.parse(
-            '${const String.fromEnvironment('SUPABASE_URL')}/functions/v1/operations',
+            '${const String.fromEnvironment('SUPABASE_URL')}/functions/v1/operations${employeeMode ? '?view=employee' : ''}',
           ),
           accessToken: () async {
             var session = widget.client.auth.currentSession;
@@ -93,6 +95,60 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
             return session?.accessToken;
           },
         );
+  Future<void> account(BuildContext context) async {
+    if (ops.data?['canSwitchEmployee'] != true) {
+      await openAccount(context, widget.client);
+      return;
+    }
+    final result = await showAppDialog<String>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('계정·화면 전환'),
+        content: Text(
+          '${widget.client.auth.currentUser?.email ?? ''}\n현재: ${employeeMode ? '단기 계약 크루' : '사장님'}${!employeeMode && ops.data?['sharedEmployeeId'] == null ? '\n\n처음 선택하면 별도의 단기 계약 크루를 만들어요. 기존 직원 정보는 바꾸지 않아요.' : ''}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, 'switch'),
+            child: Text(employeeMode ? '사장님으로 보기' : '단기 계약 직원으로 보기'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(c, 'logout'),
+            child: const Text('로그아웃'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(c),
+            child: const Text('닫기'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (result == 'logout') {
+      await widget.client.auth.signOut(scope: SignOutScope.local);
+      return;
+    }
+    if (result != 'switch') return;
+    if (!employeeMode && ops.data?['sharedEmployeeId'] == null) {
+      final ok = await ops.act('setup_shared_employee', {});
+      if (!ok || !mounted) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(ops.error ?? '직원 화면을 연결하지 못했어요.')),
+          );
+        }
+        return;
+      }
+    }
+    final previous = ops;
+    setState(() {
+      employeeMode = !employeeMode;
+      ops = controller();
+      ops.start();
+    });
+    previous.dispose();
+  }
+
   @override
   void dispose() {
     subscription?.cancel();
@@ -104,10 +160,12 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: ops,
     builder: (context, _) => Tap2workApp(
-      key: ValueKey(userId ?? (preview ? 'preview' : 'sign-in')),
+      key: ValueKey(
+        '${userId ?? (preview ? 'preview' : 'sign-in')}/$employeeMode',
+      ),
       controller: widget.work,
       operations: ops,
-      onAccountPressed: (context) => openAccount(context, widget.client),
+      onAccountPressed: account,
       accountEmail: widget.client.auth.currentUser?.email,
       homeOverride: userId == null && !preview
           ? Builder(

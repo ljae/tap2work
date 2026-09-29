@@ -69,6 +69,8 @@ flutter:
       fonts:
         - asset: assets/fonts/PretendardVariable.ttf
   assets:
+    - assets/calendar/kr.json
+    - assets/calendar/LICENSE.txt
     - assets/fonts/PRETENDARD-OFL.txt
     - assets/branding/tap2work.png
     - assets/menu/menu_tap2.png

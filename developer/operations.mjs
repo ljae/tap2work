@@ -1,3 +1,4 @@
+import { languageContext } from './localization.mjs';
 import {editManualNode, editWorkNode} from './direct_edit.mjs';
 import { ensurePartModel, actorWithParts, rosterTemplates } from './parts.mjs';
 import { workplaceView, mutateWorkplace, checkWorkplacePermission } from './workplace.mjs';
@@ -300,6 +301,10 @@ export class OperationsStore {
     delete result.operationEditHistory;
     Object.assign(result, staffView(state, actor, this.clock()));
     result.workplace = workplaceView(state, actor);
+    const ownCrew = state.tappers.find(t => t.actorId === actor.id && t.active);
+    result.languageContext = languageContext(state,ownCrew);
+    result.shiftChangeRequests = (state.shiftChangeRequests ?? []).filter(r => actor.role === 'owner' || r.tapperId === ownCrew?.id);
+    if (!['owner','manager'].includes(actor.role)) result.crewPatterns = (state.crewPatterns ?? []).filter(p => p.tapperId === ownCrew?.id);
     if (actor.role !== 'owner') { delete result.demoInvites; delete result.payrollSettings; delete result.payrollSettingsHistory; }
     result.rosterTemplates = rosterTemplates(state);
     result.orderBoardEnabled = state.store?.profile?.orderSystem?.enabled === true;

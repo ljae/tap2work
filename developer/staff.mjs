@@ -1,3 +1,5 @@
+import { mutateShiftRequest } from './shift_requests.mjs';
+import { mutateCrewPattern } from './crew_patterns.mjs';
 import { payrollSettings, savePayrollSettings, settlementPeriod, roundedWorkMinutes } from './payroll_settings.mjs';
 import { validatePart, crewPartIds, partForLegacy } from './parts.mjs';
 import { laborView, weekOf } from './labor.mjs';
@@ -81,6 +83,8 @@ const addDays = (date, count) => new Date(Date.parse(`${date}T00:00:00Z`) + coun
 export function mutateStaff(state, input, actor, now, who, activity) {
   const leader = ['owner', 'manager'].includes(actor.role);
   const owner = actor.role === 'owner';
+  if (mutateShiftRequest(state,input,actor,now,activity,validShift,validateOverlap,interval)) return true;
+  if (mutateCrewPattern(state, input, actor, now, activity, validShift, validateOverlap, interval)) return true;
   switch (input.action) {
     case 'save_payroll_settings': savePayrollSettings(state,input,actor,now); activity('매장 정산 설정 저장', 'pay'); return true;
     case 'save_labor_review': {
@@ -174,7 +178,10 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       const row = input.id ? state.staffShifts.find(s => s.id === input.id) : null;
       if (input.id && !row) fail('근무를 찾지 못했어요.', 404);
       validateOverlap(state, next, new Set(row ? [row.id] : []));
-      if (row) Object.assign(row, next); else state.staffShifts.push({ id: randomUUID(), ...next, status: 'planned' });
+      if (row) {
+        if (row.tapperId !== next.tapperId) { delete row.patternId; delete row.base; }
+        Object.assign(row, next);
+      } else state.staffShifts.push({ id: randomUUID(), ...next, status: 'planned' });
       activity(`${state.tappers.find(t => t.id === next.tapperId).nickname} 근무 배정`); return true;
     }
     case 'save_shift_pattern': {
@@ -280,7 +287,7 @@ export function staffView(state, actor, now) {
     const monthlyMinutes = rangeMinutes(sessions, periodStart(day, 'monthly'), now);
     const weekEnd = new Date(`${periodStart(day, 'weekly')}T00:00:00Z`);
     weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
-    const plannedMinutes = state.staffShifts.filter(s => s.tapperId === t.id && s.date >= periodStart(day, 'weekly') && s.date <= weekEnd.toISOString().slice(0, 10)).reduce((n, s) => {
+    const plannedMinutes = state.staffShifts.filter(s => s.status !== 'leave' && s.tapperId === t.id && s.date >= periodStart(day, 'weekly') && s.date <= weekEnd.toISOString().slice(0, 10)).reduce((n, s) => {
       const [sh, sm] = s.start.split(':').map(Number), [eh, em] = s.end.split(':').map(Number);
       return n + ((eh * 60 + em - sh * 60 - sm + 1440) % 1440);
     }, 0);

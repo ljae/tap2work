@@ -54,7 +54,8 @@ export function rosterTemplates(state) {
     const bands = configured ? workplace.days[weekday] : hours ? hours.weekdays.includes(weekday) ? [{ name: '전체', start: hours.opening, end: hours.closing }] : [] : null;
     if (bands !== null) {
       for (const part of partsOf(state).filter(p => !p.hidden)) for (const [index, band] of bands.entries()) {
-        result.push({ id: `band-${weekday}-${part.id}-${index}`, weekday, partId: part.id, name: band.name, start: band.start, end: band.end, source: 'hours' });
+        const count = band.headcounts?.[part.id] ?? 1;
+        for (let seat=0; seat<count; seat++) result.push({ id: `band-${weekday}-${part.id}-${index}${seat ? `-seat-${seat}` : ''}`, weekday, partId: part.id, name: band.name, start: band.start, end: band.end, source: 'hours' });
       }
     } else {
       for (const slot of state.staffingSlots ?? []) {

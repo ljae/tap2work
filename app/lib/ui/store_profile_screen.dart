@@ -530,92 +530,47 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     );
   }
 
-  Widget hoursForm() {
-    final value = hours;
-    final selected = List<int>.from(value['weekdays'] ?? []);
-    final times = [
-      for (var hour = 0; hour < 24; hour++)
-        for (final minute in ['00', '30'])
-          '${hour.toString().padLeft(2, '0')}:$minute',
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Information('실제 영업시간 안내에 사용해요. 입력해도 근무 배정 시간은 바뀌지 않아요.'),
-        const SizedBox(height: 12),
-        const Text('영업 요일'),
-        Wrap(
-          spacing: 6,
-          children: [
-            for (var day = 1; day <= 7; day++)
-              FilterChip(
-                chipAnimationStyle: AppMotion.chipStyle(context),
-                label: Text(const ['월', '화', '수', '목', '금', '토', '일'][day - 1]),
-                selected: selected.contains(day),
-                onSelected: (_) => update(() {
-                  final next = List<int>.from(value['weekdays'] ?? []);
-                  next.contains(day) ? next.remove(day) : next.add(day);
-                  value['weekdays'] = next;
-                  draft['hours'] = value;
-                }),
-              ),
-          ],
+  Widget hoursForm() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Information('영업시간과 파트별 필요 인원을 한 곳에서 관리해요.'),
+      const SizedBox(height: 16),
+      SettingRow(
+        title: '영업시간·필요 인원',
+        subtitle: '휴무일 → 교대 → 시간·인원',
+        icon: CupertinoIcons.clock,
+        onTap: () => showAppFormSheet(
+          context: context,
+          builder: (_) => WorkplaceSettings(ops: widget.ops, section: 'hours'),
         ),
-        const SizedBox(height: 14),
-        AppPillField<String>(
-          initialValue: times.contains(value['opening'])
-              ? value['opening']
-              : '09:00',
-          decoration: const InputDecoration(labelText: '영업 시작'),
-          items: [
-            for (final time in times)
-              DropdownMenuItem(value: time, child: Text(time)),
-          ],
-          onChanged: (v) => update(() {
-            value['opening'] = v;
-            draft['hours'] = value;
-          }),
+      ),
+      SettingRow(
+        title: '파트 관리',
+        subtitle: '이름·순서·숨김',
+        icon: CupertinoIcons.person_2,
+        onTap: () => showAppFormSheet(
+          context: context,
+          builder: (_) => WorkplaceSettings(ops: widget.ops, section: 'parts'),
         ),
-        const SizedBox(height: 12),
-        AppPillField<String>(
-          initialValue: times.contains(value['closing'])
-              ? value['closing']
-              : '21:00',
-          decoration: const InputDecoration(labelText: '영업 종료'),
-          items: [
-            for (final time in times)
-              DropdownMenuItem(value: time, child: Text(time)),
-          ],
-          onChanged: (v) => update(() {
-            value['closing'] = v;
-            draft['hours'] = value;
-          }),
-        ),
-        settingSwitch(
-          '다음 날 영업 종료',
-          value['endsNextDay'] == true,
-          (v) => update(() {
-            value['endsNextDay'] = v;
-            draft['hours'] = value;
-          }),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) => AppEditorScaffold(
     title: '우리매장 설정',
-    footer: AppSheetFooter(
-      children: [
-        FilledButton(
-          onPressed: widget.ops.isOwner && !widget.ops.readOnly && !saving
-              ? save
-              : null,
-          child: Text(saving ? '저장 중…' : '이 설정 저장'),
-        ),
-      ],
-    ),
+    footer: section == 'hours'
+        ? null
+        : AppSheetFooter(
+            children: [
+              FilledButton(
+                onPressed: widget.ops.isOwner && !widget.ops.readOnly && !saving
+                    ? save
+                    : null,
+                child: Text(saving ? '저장 중…' : '이 설정 저장'),
+              ),
+            ],
+          ),
     body: Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 720),

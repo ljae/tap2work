@@ -576,7 +576,12 @@ class _TeamScreenState extends State<TeamScreen> {
                       SettingRow(
                         title:
                             '${shift['date']} · ${shift['start']}–${shift['end']}',
-                        subtitle: partLabel(ops, shift['partId']),
+                        subtitle:
+                            '${partLabel(ops, shift['partId'])}${shift['status'] == 'leave'
+                                ? ' · 승인된 휴무'
+                                : shift['approvedRequestId'] != null
+                                ? ' · 승인 반영'
+                                : ''}',
                       ),
                     if (ops.isLeader)
                       TextButton(

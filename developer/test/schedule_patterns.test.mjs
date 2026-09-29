@@ -1,0 +1,79 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {OperationsStore} from '../operations.mjs';
+import {languageContext,canonicalLocale} from '../localization.mjs';
+async function setup(t){const dir=await mkdtemp(path.join(tmpdir(),'tap-pattern-'));t.after(()=>rm(dir,{recursive:true,force:true}));const store=new OperationsStore(path.join(dir,'state.json'),()=>new Date('2026-09-28T00:00:00Z'));const act=async(actor,action,body={})=>store.mutate(actor,{revision:(await store.snapshot(actor)).revision,action,...body});return {store,act};}
+const pattern={tapperId:'tapper-cook',anchor:'2026-10-05',cycleWeeks:2,entries:[{week:0,weekday:1,partId:'kitchen',start:'09:00',end:'14:00'},{week:1,weekday:1,partId:'kitchen',start:'14:00',end:'18:00'}]};
+test('weekly A/B assignments retain base; reapply clears fine adjustments only within selected pattern range',async t=>{
+ const {act}=await setup(t);
+ await act('owner','save_crew_pattern',pattern);
+ let state=await act('owner','apply_crew_pattern',{tapperId:'tapper-cook',from:'2026-10-05',until:'2026-10-19'});
+ const generated=state.staffShifts.filter(s=>s.patternId);assert.deepEqual(generated.map(s=>s.start),['09:00','14:00','09:00']);
+ const first=generated[0];state=await act('manager','save_staff_shift',{...first,start:'10:00'});
+ assert.equal(state.staffShifts.find(s=>s.id===first.id).base.start,'09:00');
+ await act('owner','save_staff_shift',{tapperId:'tapper-cook',date:'2026-10-06',partId:'kitchen',start:'10:00',end:'12:00'});
+ state=await act('owner','apply_crew_pattern',{tapperId:'tapper-cook',from:'2026-10-05',until:'2026-10-11'});
+ assert.equal(state.staffShifts.find(s=>s.patternId && s.date==='2026-10-05').start,'09:00');
+ assert.ok(state.staffShifts.some(s=>s.id===generated[1].id));assert.ok(state.staffShifts.some(s=>!s.patternId && s.date==='2026-10-06'));
+ await assert.rejects(act('crew','apply_crew_pattern',{tapperId:'tapper-cook',from:'2026-10-05',until:'2026-10-11'}),{status:403});
+ await act('owner','save_workplace_permissions',{role:'manager',permissions:{schedule:false}});
+ await assert.rejects(act('manager','save_crew_pattern',pattern),{status:403});
+});
+test('overlap rejects complete application and invalid A/B cycle wrap',async t=>{
+ const {store,act}=await setup(t);
+ await act('owner','save_crew_pattern',pattern);
+ await act('owner','save_staff_shift',{tapperId:'tapper-cook',date:'2026-10-12',partId:'kitchen',start:'15:00',end:'17:00'});
+ const before=await store.snapshot('owner');
+ await assert.rejects(act('owner','apply_crew_pattern',{tapperId:'tapper-cook',from:'2026-10-05',until:'2026-10-19'}),{status:409});
+ assert.deepEqual((await store.snapshot('owner')).staffShifts,before.staffShifts);
+ await assert.rejects(act('owner','save_crew_pattern',{...pattern,cycleWeeks:1,entries:[{week:0,weekday:7,partId:'kitchen',start:'23:00',end:'03:00'},{week:0,weekday:1,partId:'kitchen',start:'02:00',end:'06:00'}]}),{status:409});
+});
+test('whole week hours and headcounts are atomic, preserve part IDs and existing shifts',async t=>{
+ const {store,act}=await setup(t), before=await store.snapshot('owner');
+ const days=Object.fromEntries([1,2,3,4,5,6,7].map(d=>[d,d===7?[]:[{name:'영업',start:'22:00',end:'02:00',headcounts:{kitchen:2,hall:0,management:1}}]]));
+ const state=await act('owner','save_workplace_hours',{days});
+ assert.equal(state.rosterTemplates.filter(s=>s.weekday===1 && s.partId==='kitchen').length,2);
+ assert.equal(state.rosterTemplates.filter(s=>s.weekday===7).length,0);assert.deepEqual(state.staffShifts,before.staffShifts);
+ await assert.rejects(act('owner','save_workplace_hours',{days:{...days,1:[{name:'영업',start:'09:00',end:'18:00',headcounts:{unknown:1}}]}}),{status:400});
+ assert.deepEqual((await store.snapshot('owner')).workplace.days,state.workplace.days);
+});
+test('own leave and shortened shift require owner approval; requests never change schedule before approval',async t=>{
+ const {store,act}=await setup(t);
+ let state=await act('owner','save_staff_shift',{tapperId:'tapper-crew',partId:'hall',date:'2026-10-06',start:'09:00',end:'18:00'});
+ const shift=state.staffShifts.find(s=>s.date==='2026-10-06');
+ await assert.rejects(act('cook','request_shift_change',{shiftId:shift.id,kind:'leave',reason:'개인 일정'}),{status:403});
+ state=await act('crew','request_shift_change',{shiftId:shift.id,kind:'shorten',start:'10:00',end:'16:00',reason:'개인 일정'});
+ assert.equal(state.staffShifts.find(s=>s.id===shift.id).start,'09:00');
+ assert.equal((await store.snapshot('cook')).shiftChangeRequests.length,0);
+ const request=state.shiftChangeRequests[0];
+ await assert.rejects(act('manager','review_shift_change',{id:request.id,decision:'approved'}),{status:403});
+ state=await act('owner','review_shift_change',{id:request.id,decision:'approved'});
+ assert.equal(state.staffShifts.find(s=>s.id===shift.id).start,'10:00');assert.equal(state.shiftChangeRequests[0].status,'approved');
+ const attendance=state.attendance;
+ state=await act('crew','request_shift_change',{shiftId:shift.id,kind:'leave',reason:'휴무'});
+ const leave=state.shiftChangeRequests.at(-1);
+ await act('owner','save_staff_shift',{...state.staffShifts.find(s=>s.id===shift.id),end:'15:00'});
+ await assert.rejects(act('owner','review_shift_change',{id:leave.id,decision:'approved'}),{status:409});
+ state=await act('owner','review_shift_change',{id:leave.id,decision:'rejected'});assert.deepEqual(state.attendance,attendance);
+});
+test('future language preferences preserve per-person choice and explicit invitation override without claiming translations',()=>{
+ const state={store:{locale:'ko',timeZone:'Asia/Seoul'}};
+ assert.deepEqual(languageContext(state,{preferences:{locale:'vi'}},{locale:'en-US'}),{storeLocale:'ko',preferredLocale:'vi',effectiveLocale:'ko',invitationLocale:'en-US',effectiveInvitationLocale:'ko',timeZone:'Asia/Seoul'});
+ assert.equal(canonicalLocale('../../secret'),null);assert.equal(languageContext(state,null).effectiveLocale,'ko');
+});
+test('leave approval and cancellation retain original shift/attendance history and reject duplicate decisions',async t=>{
+ const {store,act}=await setup(t);
+ let state=await act('owner','save_staff_shift',{tapperId:'tapper-crew',partId:'hall',date:'2026-10-07',start:'09:00',end:'18:00'});
+ const shift=state.staffShifts.find(s=>s.date==='2026-10-07');
+ state=await act('crew','request_shift_change',{shiftId:shift.id,kind:'leave',reason:'휴무 신청'});
+ let request=state.shiftChangeRequests.at(-1);
+ state=await act('crew','cancel_shift_change',{id:request.id});assert.equal(state.shiftChangeRequests.at(-1).status,'cancelled');
+ state=await act('crew','request_shift_change',{shiftId:shift.id,kind:'leave',reason:'휴무 신청'});request=state.shiftChangeRequests.at(-1);
+ const before=await store.snapshot('owner');
+ state=await act('owner','review_shift_change',{id:request.id,decision:'approved'});
+ assert.equal(state.staffShifts.find(s=>s.id===shift.id).status,'leave');assert.equal(state.shiftChangeRequests.at(-1).before.start,'09:00');assert.deepEqual(state.attendance,before.attendance);
+ await assert.rejects(act('owner','review_shift_change',{id:request.id,decision:'approved'}),{status:409});
+});

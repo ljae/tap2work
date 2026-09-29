@@ -31,7 +31,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       const query = new URL(request.url).searchParams;
       const readWorkspace = () => rest('rpc/tap2work_read_workspace', {method:'POST', body:JSON.stringify({
         p_user_id:user.id,
-        p_revision:request.method === 'GET' && /^\d+$/.test(query.get('revision') ?? '') ? Number(query.get('revision')) : null,
+        p_revision:request.method === 'GET' && query.get('view') !== 'employee' && /^\d+$/.test(query.get('revision') ?? '') ? Number(query.get('revision')) : null,
         p_window:request.method === 'GET' && /^\d+$/.test(query.get('window') ?? '') ? Number(query.get('window')) : null,
         p_role:request.method === 'GET' ? query.get('role') : null,
         p_workspace_id: request.method === 'GET' ? query.get('workspace') : null,
@@ -63,6 +63,14 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       if (!member) throw new StoreError('매장 권한이 없어요.', 403);
       const actor = { id: user.id, name: member.display_name, role: member.role, label: {owner:'사장님',manager:'매니저',cook:'조리 담당',crew:'크루'}[member.role] };
       let original = document?.payload;
+      const employeeMode = query.get('view') === 'employee';
+      if (employeeMode) {
+        if (member.role !== 'owner') throw new StoreError('화면 전환 권한이 없어요.',403);
+        const payload = original ?? (await rest(`tap2work_state?workspace_id=eq.${member.workspace_id}&select=payload`))[0]?.payload;
+        const employee = payload?.tappers?.find(t => t.id === payload.sharedEmployeeId && t.active && t.rank === 'crew');
+        if (!employee) throw new StoreError('직원 화면을 먼저 연결해 주세요.',409);
+        Object.assign(actor,{id:employee.actorId,name:employee.nickname,role:'crew',label:'단기 계약 크루'});
+      }
       const persistence = {
         async read() {
           if (sectionStorage) return structuredClone(original);
@@ -91,7 +99,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
         if (!input || typeof input !== 'object' || Array.isArray(input)) throw new StoreError('요청 형식을 확인해 주세요.');
         result = await store.mutate(user.id, input);
       }
-      return reply(200, { ...result, workspaceId: member.workspace_id, ...(sectionStorage ? {syncWindow: document.window} : {}) });
+      return reply(200, { ...result, canSwitchEmployee: member.role === 'owner', employeeMode, workspaceId: member.workspace_id, ...(sectionStorage ? {syncWindow: document.window} : {}) });
     } catch (error) {
       return reply(error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : '요청을 처리하지 못했어요. 다시 시도해 주세요.' });
     }
