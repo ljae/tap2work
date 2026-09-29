@@ -206,7 +206,7 @@ test('stale drafts, forged permissions and invalid checklist data leave state in
   const { store, act } = await setup(t);
   const state = await store.snapshot('owner');
   await assert.rejects(act('save_checklists', draft(state), 'crew'), { status: 403 });
-  for (const alter of [s => s.templates[0].steps = [], s => s.templates[0].steps.push(s.templates[0].steps[0]), s => s.templates[0].steps[0].manual = '', s => s.templates[0].steps[0].tip = '가'.repeat(401), s => s.templates[0].steps[0].tip = 123, s => s.templates[0].zone = 'missing', s => s.templates[0].folderId = 'missing', s => s.templates[0].slot = '야식', s => s.folders.push(s.folders[0]), s => s.templates.push(s.templates[0]), s => s.folders = [], s => s.templates[0] = null]) {
+  for (const alter of [s => s.templates[0].steps = null, s => s.templates[0].steps.push(s.templates[0].steps[0]), s => s.templates[0].steps[0].manual = '', s => s.templates[0].steps[0].tip = '가'.repeat(401), s => s.templates[0].steps[0].tip = 123, s => s.templates[0].zone = 'missing', s => s.templates[0].folderId = 'missing', s => s.templates[0].slot = '야식', s => s.folders.push(s.folders[0]), s => s.templates.push(s.templates[0]), s => s.folders = [], s => s.templates[0] = null]) {
     const bad = structuredClone(draft(state)); alter(bad);
     await assert.rejects(act('save_checklists', bad), { status: 400 });
   }
@@ -316,4 +316,13 @@ test('inline Task creation caps lists and protects finished TAPs and source-less
   await assert.rejects(act('save_task_step', {taskId:task.id, title:'초과', manual:'확인'}), {status:400});
   await act('complete_task', {taskId:task.id});
   await assert.rejects(act('save_task_step', {taskId:task.id, title:'완료 후', manual:'확인'}), {status:409});
+});
+
+test('empty TAP definitions save and survive refresh without generating empty daily work', async t => {
+ const {store,act}=await setup(t);const state=await store.snapshot('owner');const payload=draft(state);
+ payload.templates.push({id:'empty-tap',title:'빈 TAP',folderId:'general',slot:'준비',requiredRole:'all',zone:null,steps:[]});
+ await act('save_checklists',payload);
+ const next=await store.snapshot('owner');
+ assert.deepEqual(next.taskTemplates.find(t=>t.id==='empty-tap').steps,[]);
+ assert.ok(!next.tasks.some(t=>t.templateId==='empty-tap'));
 });

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 110,
+  "revision": 111,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4527,7 +4527,33 @@
         "app/test/schedule_workflow_test.dart",
         "app/test/operations_test.dart"
       ]
+    },
+    {
+      "at": "2026-09-29T13:57:56.898402+00:00",
+      "type": "verification",
+      "title": "Shared hours settings deployed and verified",
+      "detail": "Source 528e20deb9f7bae618f31e1d0ac3c54e227d25f5 deployed successfully by Pages run 36578203040. Live phone opened crew pattern, calendar hours and Our Store hours: both hours entries show closed-day-first form and weekly save. Operations writes 0, page errors 0.",
+      "verification": "CI full tests, analysis, web build/deploy passed. Local 26 widget tests and six responsive captures passed.",
+      "release": {
+        "commit": "528e20deb9f7bae618f31e1d0ac3c54e227d25f5",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36578203040",
+        "site": "https://tap2.work"
+      }
+    },
+    {
+      "at": "2026-09-29T13:57:56.898402+00:00",
+      "type": "implementation",
+      "title": "Allow empty manual folders and TAP definitions",
+      "changes": [
+        {
+          "previous": "Manual TAP required at least one Task and was inferred from Task search rows",
+          "next": "TAP definitions allow 0-30 Tasks and remain independently visible/editable; new TAP starts empty",
+          "reason": "User explicitly confirmed folders and TAPs may be empty"
+        }
+      ],
+      "detail": "Last manual Task may be deleted/moved, empty TAP accepts Tasks and remains rename/move/delete capable; long press selects correct add parent. Server/checklist draft validation aligned. No empty daily execution is generated; existing execution snapshots and work-action protections remain.",
+      "verification": "Full Flutter suite 164 passed, full Node suite 115 passed, analysis clean, npm check and 30 UI links passed. Ten 390/1200 font-loaded captures passed; empty folder/TAP tree inspected. Older tests expecting nonempty TAP rejected new behavior and were updated; final suites passed. API/web deployment pending. No real data writes/native build."
     }
   ],
-  "updatedAt": "2026-09-29T13:51:14.653960+00:00"
+  "updatedAt": "2026-09-29T13:57:56.898402+00:00"
 }

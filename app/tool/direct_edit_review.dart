@@ -49,6 +49,18 @@ void main() {
             : scene == 'calendar'
             ? calendarData()
             : fixture();
+        if (scene.startsWith('manual')) {
+          (data['taskTemplates'] as List).add({
+            'id': 'empty',
+            'title': '빈 TAP',
+            'folderId': 'general',
+            'steps': [],
+          });
+          (data['checklistFolders'] as List).add({
+            'id': 'empty-folder',
+            'name': '빈 폴더',
+          });
+        }
         final ops = OperationsController(
           readOnly: false,
           client: MockClient((_) async => response(data)),

@@ -42,7 +42,7 @@ int runChecklistDraftChecks() {
     'Oversized tips must not be silently lost.',
   );
   draft['steps'] = [];
-  check(checklistTaskIssue(draft) != null, 'A task needs at least one action.');
+  check(checklistTaskIssue(draft) == null, 'A TAP may have no Tasks.');
   draft['steps'] = [null];
   check(
     checklistTaskIssue(draft) != null,
@@ -196,9 +196,9 @@ int runChecklistDraftChecks() {
           fromTaskId: 'a',
           stepId: 'one',
           toTaskId: 'b',
-        ) !=
+        ) ==
         null,
-    'The last activity of a group cannot be moved away.',
+    'The last activity may move away while its group remains.',
   );
   moving[1]['steps'] = List.generate(
     30,

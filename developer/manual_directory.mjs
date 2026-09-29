@@ -34,7 +34,6 @@ export function moveManualNode(state, input) {
     const step = get(source.steps, input.id, 'Task');
     if (source === target && input.beforeId === input.id) return;
     if (source !== target) {
-      if (source.steps.length <= 1) fail('TAP에는 Task가 하나 이상 남아야 해요.');
       if (target.steps.length >= 30) fail('한 TAP의 Task는 최대 30개예요.');
       if (target.steps.some(row => row.id === step.id)) step.id = `manual-${randomUUID()}`;
     }

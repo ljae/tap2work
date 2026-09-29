@@ -178,3 +178,7 @@ TaskStepEditor는 원래 자리에서 포커스되는 제목·매뉴얼 입력�
 ## 영업시간 진입과 근무표 버튼 정렬 · 2026-09-29
 
 우리매장 영업시간 설정·준비 목록·프로필 운영과 근무표 영업시간·인원은 `openWorkplaceHours` 하나로 같은 `WorkplaceSettings(section: hours)`를 연다. 휴무/교대/파트별 필요 인원과 저장 계약은 동일하며 별도 폼/DB를 만들지 않는다. 근무표 두 동작은 동일한 버튼 치수와 부모 폭/글자 배율 기반 2열 또는 세로 배치를 사용한다.
+
+## Empty manual definitions (2026-09-29)
+
+The user confirmed folders and TAPs may be empty. ManualWorkspace keeps taskTemplates metadata independently from manualSearch rows, including public-preview moves. Long press selects the add parent. New TAPs start with steps: []; last Task move/delete preserves the TAP. Shared checklist validation accepts 0-30 Tasks. ensureDueTasks skips empty definitions; existing execution snapshots and work-action protections remain. This supersedes the earlier last-Task protection for manual definitions only.

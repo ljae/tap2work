@@ -347,12 +347,16 @@ void main() {
       await longDrag(tester, find.text('솥 물량 확인'), find.text('전처리 준비'));
       await tester.ensureVisible(find.text('도구 나누기'));
       await longDrag(tester, find.text('도구 나누기'), find.text('전처리 준비'));
-      expect(find.text('그룹에는 활동이 하나 이상 남아야 해요.'), findsOneWidget);
+      expect(find.textContaining('· Task 0개'), findsOneWidget);
       await tester.tap(find.text('저장'));
       await tester.pumpAndSettle();
       final templates = (submitted!['templates'] as List).cast<Json>();
-      expect((templates[0]['steps'] as List).map((s) => s['id']), ['s2', 'b1']);
-      expect((templates[1]['steps'] as List).map((s) => s['id']), ['s1']);
+      expect((templates[0]['steps'] as List).map((s) => s['id']), [
+        's2',
+        'b1',
+        's1',
+      ]);
+      expect(templates[1]['steps'], isEmpty);
     },
   );
   testWidgets(

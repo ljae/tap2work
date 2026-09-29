@@ -15,7 +15,7 @@ export function editManualNode(state,input,actor,now) {
     if(kind==='tap') {
       if(!state.checklistFolders.some(f=>f.id===input.parentId))fail('그룹을 선택해 주세요.');
       if(state.taskTemplates.length>=650)fail('TAP 개수 한도를 넘었어요.');
-      state.taskTemplates.push({id:randomUUID(),title,emoji:'📋',folderId:input.parentId,slot:'오픈',requiredRole:'all',partId:null,zone:null,version:1,steps:[{id:randomUUID(),title:'새 Task',manual:'진행 방법을 입력해 주세요.',tip:'',tags:[]}]});return;
+      state.taskTemplates.push({id:randomUUID(),title,emoji:'📋',folderId:input.parentId,slot:'오픈',requiredRole:'all',partId:null,zone:null,version:1,steps:[]});return;
     }
     const target=state.taskTemplates.find(t=>t.id===input.parentId);
     if(!target||target.steps.length>=30)fail('Task를 추가할 TAP을 확인해 주세요.');
@@ -36,7 +36,6 @@ export function editManualNode(state,input,actor,now) {
   } else if(kind==='tap') {
     remember(state,row,actor,now);state.taskTemplates=state.taskTemplates.filter(t=>t!==row);
   } else {
-    if(template.steps.length<=1)fail('TAP에는 Task가 하나 이상 필요해요.');
     remember(state,row,actor,now);template.steps=template.steps.filter(s=>s!==row);template.version=(template.version??1)+1;
   }
 }

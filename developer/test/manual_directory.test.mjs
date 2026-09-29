@@ -31,11 +31,10 @@ test('manual directory moves preserve Task manual/settings and today snapshots',
  await x.act({kind:'group',id:'close',beforeId:'general'});
  assert.deepEqual(x.raw().bigTapOrder,['close','general']);
 });
-test('manual directory rejects missing targets, last Task without partial edits, and resolves ID collisions',()=>{
+test('manual directory rejects missing targets without partial edits, and resolves ID collisions',()=>{
  const x=fixture(); const state=structuredClone(x.raw());
  const previous=structuredClone(state);
- assert.throws(()=>moveManualNode(state,{kind:'task',sourceTapId:'b',id:'s3',targetId:'a'}),/하나 이상/);
- assert.deepEqual(state,previous);
+
  assert.throws(()=>moveManualNode(state,{kind:'task',sourceTapId:'a',id:'s1',targetId:'b',beforeId:'missing'}),/이동 위치/);
  assert.deepEqual(state,previous);
  state.taskTemplates[1].steps.push(structuredClone(state.taskTemplates[0].steps[0]));
@@ -62,4 +61,15 @@ test('Task reordering stays linked to the same manual and validates before persi
  assert.deepEqual(x.raw().taskTemplates[0].steps.map(s=>s.id),['s2','s1']);
  assert.equal(x.raw().taskTemplates[0].steps[0].manual,'s2 매뉴얼');
  await assert.rejects(()=>x.act({kind:'tap',id:'a',targetId:'close',beforeId:'a-missing'}),{status:400});
+});
+
+test('last Task moves out and back into an empty TAP without losing definitions',async()=>{
+ const x=fixture();const before=await x.store.snapshot(x.actor.id);const executions=structuredClone(x.raw().tasks);
+ await x.act({kind:'task',sourceTapId:'b',id:'s3',targetId:'a'});
+ assert.deepEqual(x.raw().taskTemplates.find(t=>t.id==='b').steps,[]);
+ await x.act({kind:'tap',id:'b',targetId:'general'});
+ const view=await x.act({kind:'task',sourceTapId:'a',id:'s3',targetId:'b'});
+ assert.equal(view.manualSearch.find(r=>r.id==='b/s3').folderId,'general');
+ assert.deepEqual(x.raw().tasks,executions);
+ assert.equal(before.taskTemplates.length,view.taskTemplates.length);
 });

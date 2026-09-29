@@ -577,7 +577,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
           ),
           IconButton(
             tooltip: 'Task 삭제',
-            onPressed: enabled && steps.length > 1
+            onPressed: enabled
                 ? () => change(() => (task['steps'] as List).remove(step))
                 : null,
             icon: const Icon(Icons.delete_outline, size: 20),

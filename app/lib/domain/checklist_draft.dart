@@ -21,8 +21,8 @@ String? checklistTaskIssue(ChecklistJson task) {
       value is String && value.trim().isNotEmpty && value.length <= max;
   if (!valid(task['title'], 100)) return '그룹 이름을 1~100자로 입력해 주세요.';
   final steps = task['steps'];
-  if (steps is! List || steps.isEmpty || steps.length > checklistStepLimit) {
-    return '활동은 1~30개로 구성해 주세요.';
+  if (steps is! List || steps.length > checklistStepLimit) {
+    return '활동은 최대 30개로 구성해 주세요.';
   }
   for (final (index, step) in steps.indexed) {
     if (step is! Map || !valid(step['title'], 100)) {
@@ -84,7 +84,6 @@ String? moveChecklistStep({
   final step = source.where((s) => s['id'] == stepId).firstOrNull;
   if (step == null) return '활동을 찾지 못했어요.';
   if (from == to) return null;
-  if (source.length == 1) return '그룹에는 활동이 하나 이상 남아야 해요.';
   final target = (to['steps'] as List).cast<ChecklistJson>();
   if (target.length >= checklistStepLimit) return '한 그룹의 활동은 최대 30개예요.';
   source.remove(step);

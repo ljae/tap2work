@@ -23,8 +23,15 @@ test('manual rename/delete/add is scoped to definitions and prevents orphaned fo
  assert.deepEqual(s.tasks,before.tasks);assert.equal(s.taskTemplates.find(t=>t.id===template.id).title,'변경된 TAP');
  await assert.rejects(act('edit_manual_node',{kind:'group',id:template.folderId,operation:'delete'}),{status:400});
  s=await act('edit_manual_node',{kind:'group',operation:'add',name:'새 그룹'});const folder=s.checklistFolders.find(f=>f.name==='새 그룹');
- s=await act('edit_manual_node',{kind:'tap',parentId:folder.id,operation:'add',name:'새 TAP'});const tap=s.taskTemplates.find(t=>t.title==='새 TAP');assert.equal(tap.steps.length,1);
- await assert.rejects(act('edit_manual_node',{kind:'task',parentId:tap.id,id:tap.steps[0].id,operation:'delete'}),{status:400});
+ s=await act('edit_manual_node',{kind:'tap',parentId:folder.id,operation:'add',name:'새 TAP'});const tap=s.taskTemplates.find(t=>t.title==='새 TAP');assert.equal(tap.steps.length,0);
+ assert.ok(!s.tasks.some(t=>t.templateId===tap.id));
+ s=await act('edit_manual_node',{kind:'task',parentId:tap.id,operation:'add',name:'첫 Task'});
+ const step=s.taskTemplates.find(t=>t.id===tap.id).steps[0];
+ const executions=structuredClone(s.tasks);
+ s=await act('edit_manual_node',{kind:'task',parentId:tap.id,id:step.id,operation:'delete'});
+ assert.deepEqual(s.taskTemplates.find(t=>t.id===tap.id).steps,[]);assert.deepEqual(s.tasks,executions);
+ s=await act('edit_manual_node',{kind:'tap',id:tap.id,operation:'rename',name:'빈 TAP'});
+ assert.equal(s.taskTemplates.find(t=>t.id===tap.id).title,'빈 TAP');
  await act('edit_manual_node',{kind:'tap',id:tap.id,operation:'delete'});s=await act('edit_manual_node',{kind:'group',id:folder.id,operation:'delete'});assert.ok(!s.checklistFolders.some(f=>f.id===folder.id));
 });
 test('role restrictions remove projected edit permission and reject all direct mutations',async t=>{

@@ -107,6 +107,62 @@ Future<void> moveTask(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets(
+    'empty folders and TAPs remain editable and accept the last Task',
+    (tester) async {
+      final data = directoryData();
+      (data['checklistFolders'] as List).add({'id': 'empty', 'name': '빈 폴더'});
+      (data['taskTemplates'] as List).add({
+        'id': 'c',
+        'title': '빈 TAP',
+        'folderId': 'general',
+        'steps': [],
+      });
+      var posts = 0;
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((r) async {
+          if (r.method == 'POST') posts++;
+          return response(data);
+        }),
+      );
+      addTearDown(ops.dispose);
+      await mount(tester, ops);
+      expect(find.byKey(const ValueKey('manual-node-tap:c')), findsOneWidget);
+      await tester.longPress(find.byKey(const ValueKey('manual-node-tap:c')));
+      await tester.pumpAndSettle();
+      expect(find.text('Task 추가'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('manual-actions-tap:c')));
+      await tester.pumpAndSettle();
+      expect(find.text('이름 변경'), findsOneWidget);
+      expect(find.text('삭제'), findsOneWidget);
+      await tester.tapAt(const Offset(1100, 20));
+      await tester.pumpAndSettle();
+      await click(tester, 'manual-node-tap:b');
+      final start = tester.getCenter(
+        find.byKey(const ValueKey('manual-drag-task:s3:b')),
+      );
+      final end = tester.getCenter(
+        find.byKey(const ValueKey('manual-node-tap:c')),
+      );
+      await tester.dragFrom(start, end - start);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('manual-node-tap:b')), findsOneWidget);
+      await click(tester, 'manual-node-tap:c');
+      expect(
+        find.byKey(const ValueKey('manual-node-task:s3:c')),
+        findsOneWidget,
+      );
+      await tester.longPress(
+        find.byKey(const ValueKey('manual-node-group:empty')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('TAP 추가'), findsOneWidget);
+      expect(posts, 0);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('editing keeps tree rows compact and isolates the two panes', (
     tester,
   ) async {

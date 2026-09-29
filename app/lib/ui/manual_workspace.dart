@@ -20,7 +20,7 @@ class ManualWorkspace extends StatefulWidget {
 enum _ManualEditPane { directory, content }
 
 class _ManualWorkspaceState extends State<ManualWorkspace> {
-  List<Json> rows = [], folders = [];
+  List<Json> rows = [], folders = [], taps = [];
   int revision = -1;
   String actor = '';
   String? scopeGroup, scopeTap, selectedId;
@@ -59,6 +59,26 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       row['folderName'] = folders.firstWhere(
         (f) => f['id'] == row['folderId'],
       )['name'];
+    }
+    taps = [
+      for (final t in ops.rows('taskTemplates'))
+        {
+          'tapId': t['id'],
+          'templateId': t['id'],
+          'tapTitle': t['title'],
+          'folderId': t['folderId'] ?? 'general',
+          'editable': true,
+        },
+    ];
+    for (final row in rows) {
+      if (!taps.any((t) => t['tapId'] == row['tapId'])) taps.add(copy(row));
+    }
+    for (final tap in taps) {
+      tap['folderName'] =
+          folders
+              .where((f) => f['id'] == tap['folderId'])
+              .firstOrNull?['name'] ??
+          '기본 업무';
     }
     final order = List<String>.from(ops.data?['bigTapOrder'] ?? []);
     if (order.isNotEmpty) {
@@ -183,6 +203,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     // Public preview changes remain inside this view, never sent to a write API.
     final nextRows = rows.map(copy).toList();
     final nextFolders = folders.map(copy).toList();
+    final nextTaps = taps.map(copy).toList();
     final kind = command['kind'];
     if (kind == 'group') {
       final moving = nextFolders.firstWhere((f) => f['id'] == command['id']);
@@ -199,7 +220,18 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       final target = nextFolders
           .where((f) => f['id'] == command['targetId'])
           .firstOrNull;
-      if (moving.isEmpty || target == null) return;
+      final tap = nextTaps
+          .where((t) => t['tapId'] == command['id'])
+          .firstOrNull;
+      if (tap == null || target == null) return;
+      nextTaps.remove(tap);
+      tap['folderId'] = target['id'];
+      tap['folderName'] = target['name'];
+      final tapAt = command['beforeId'] == null
+          ? nextTaps.length
+          : nextTaps.indexWhere((t) => t['tapId'] == command['beforeId']);
+      if (tapAt < 0) return;
+      nextTaps.insert(tapAt, tap);
       nextRows.removeWhere((r) => r['tapId'] == command['id']);
       for (final r in moving) {
         r['folderId'] = target['id'];
@@ -208,8 +240,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       final at = command['beforeId'] == null
           ? nextRows.length
           : nextRows.indexWhere((r) => r['tapId'] == command['beforeId']);
-      if (at < 0) return;
-      nextRows.insertAll(at, moving);
+      nextRows.insertAll(at < 0 ? nextRows.length : at, moving);
     } else {
       final source = nextRows
           .where((r) => r['tapId'] == command['sourceTapId'])
@@ -220,12 +251,11 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       final moving = source
           .where((r) => r['sourceStepId'] == command['id'])
           .firstOrNull;
-      if (moving == null || target.isEmpty) return;
+      final parent = nextTaps
+          .where((t) => t['tapId'] == command['targetId'])
+          .firstOrNull;
+      if (moving == null || parent == null) return;
       final different = command['sourceTapId'] != command['targetId'];
-      if (different && source.length <= 1) {
-        notice('TAP에는 Task가 하나 이상 남아야 해요.');
-        return;
-      }
       if (different && target.length >= 30) {
         notice('한 TAP의 Task는 최대 30개예요.');
         return;
@@ -235,7 +265,6 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             'manual-${DateTime.now().microsecondsSinceEpoch}';
         moving['stepId'] = moving['sourceStepId'];
       }
-      final parent = target.first;
       nextRows.remove(moving);
       moving.addAll({
         'tapId': parent['tapId'],
@@ -258,6 +287,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     setState(() {
       rows = nextRows;
       folders = nextFolders;
+      taps = nextTaps;
       previewDirty = true;
       scopeTap = null;
       scopeGroup = null;
@@ -322,7 +352,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       }
     } else {
       final seen = <String>{};
-      for (final row in rows.where(
+      for (final row in taps.where(
         (r) =>
             r['editable'] == true &&
             (folderId == null || r['folderId'] == folderId),
@@ -400,9 +430,9 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         !linkedMenu &&
         (kind == 'group'
             ? id != 'general' &&
-                  !rows.any((r) => r['folderId'] == id) &&
+                  !taps.any((r) => r['folderId'] == id) &&
                   !ops.rows('preparedItems').any((r) => r['folderId'] == id)
-            : kind != 'task' || (source?['steps'] as List? ?? []).length > 1);
+            : true);
     Widget row(bool hovering) => Container(
       margin: const EdgeInsets.only(bottom: 2),
       decoration: BoxDecoration(
@@ -553,7 +583,16 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         active: editingTree,
         controls: false,
         outline: false,
-        onEnter: () => setState(() => editPane = _ManualEditPane.directory),
+        onEnter: () => setState(() {
+          editPane = _ManualEditPane.directory;
+          scopeGroup = kind == 'group' ? id : folderId;
+          scopeTap = kind == 'group'
+              ? null
+              : kind == 'tap'
+              ? id
+              : tapId;
+          selectedId = null;
+        }),
         child: row(hovering),
       ),
     );
@@ -594,7 +633,24 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     for (final folder in folders) {
       final all = rows.where((r) => r['folderId'] == folder['id']).toList();
       final matching = all.where(matches).toList();
-      if (widget.query.trim().isNotEmpty && matching.isEmpty) continue;
+      final folderTaps = taps
+          .where((t) => t['folderId'] == folder['id'])
+          .toList();
+      final visibleTaps = folderTaps
+          .where(
+            (t) =>
+                widget.query.trim().isEmpty ||
+                matching.any((r) => r['tapId'] == t['tapId']) ||
+                normalize(
+                  '${folder['name']} ${t['tapTitle']}',
+                ).contains(normalize(widget.query).trim()),
+          )
+          .toList();
+      if (widget.query.trim().isNotEmpty &&
+          visibleTaps.isEmpty &&
+          !normalize(folder['name']).contains(normalize(widget.query).trim())) {
+        continue;
+      }
       nodes.add(
         node(
           kind: 'group',
@@ -602,8 +658,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           label: folder['name'],
           depth: 0,
           selected: scopeGroup == folder['id'] && scopeTap == null,
-          count: all.map((r) => r['tapId']).toSet().length,
-          hasChildren: all.isNotEmpty,
+          count: folderTaps.length,
+          hasChildren: folderTaps.isNotEmpty,
           onTap: () => setState(() {
             scopeGroup = folder['id'];
             scopeTap = null;
@@ -615,9 +671,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       if (!expanded.contains('group:${folder['id']}') && widget.query.isEmpty) {
         continue;
       }
-      final seen = <String>{};
-      for (final tap in matching) {
-        if (!seen.add(tap['tapId'])) continue;
+      for (final tap in visibleTaps) {
         final children = matching
             .where((r) => r['tapId'] == tap['tapId'])
             .toList();
@@ -632,11 +686,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             depth: 1,
             editable: tap['editable'] == true,
             selected: scopeTap == tap['tapId'],
-            hasChildren: true,
+            hasChildren: children.isNotEmpty,
             count: children.length,
-            durationText: duration(
-              all.where((r) => r['tapId'] == tap['tapId']).toList(),
-            ),
+            durationText: all.where((r) => r['tapId'] == tap['tapId']).isEmpty
+                ? 'Task 0개'
+                : duration(
+                    all.where((r) => r['tapId'] == tap['tapId']).toList(),
+                  ),
             onTap: () => setState(() {
               scopeGroup = folder['id'];
               scopeTap = tap['tapId'];
@@ -800,9 +856,15 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       itemCount: found.isEmpty ? 1 : found.length,
       itemBuilder: (_, index) {
         if (found.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('검색 결과가 없어요.'),
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              widget.query.trim().isNotEmpty
+                  ? '검색 결과가 없어요.'
+                  : canEdit
+                  ? 'Task가 없어요. TAP을 선택하고 Task를 추가해 주세요.'
+                  : '등록된 Task가 없어요.',
+            ),
           );
         }
         final row = found[index];
@@ -824,7 +886,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                   'parentId': row['templateId'],
                   'operation': 'rename',
                 }, row['title']),
-          onDelete: linked || (source?['steps'] as List? ?? []).length <= 1
+          onDelete: linked
               ? null
               : () => directEditNode(context, ops, 'edit_manual_node', {
                   'kind': 'task',
@@ -902,7 +964,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                           label: Text(
                             scopeTap == null
                                 ? '${folders.where((f) => f['id'] == scopeGroup).firstOrNull?['name'] ?? 'TAP그룹'}'
-                                : '${rows.where((r) => r['tapId'] == scopeTap).firstOrNull?['tapTitle'] ?? 'TAP'}',
+                                : '${taps.where((r) => r['tapId'] == scopeTap).firstOrNull?['tapTitle'] ?? 'TAP'}',
                           ),
                           onDeleted: () => setState(() {
                             scopeGroup = null;
