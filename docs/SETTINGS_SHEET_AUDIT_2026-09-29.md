@@ -34,3 +34,5 @@ Flutter `app/lib/ui`의 showAppSheet/showAppFormSheet/showModalBottomSheet, AppE
 `settings_sheet_audit_test.dart`는 22개 화면 유형을 320/390/1200px, 글자 1.5배, 키보드 280px 및 아래쪽 스크롤 상태로 검사한다. 프로필은 하위 탭도 전환한다. `settings_sheet_review.dart`는 실제 글꼴을 넣어 66개 캡처를 생성한다. 폰 22개 유형을 모아 시각 검토했고 준비품/공통 액션은 큰 이미지로 추가 확인했다. 캡처는 `.local/settings-sheet-review`이며 배포하지 않는다.
 
 전체 Flutter 172개 테스트와 분석이 통과했다. 새 서버 API/DB 변경은 없다. 네이티브 빌드·실기기 키보드 및 모든 하위 옵션 조합의 수동 검증은 수행하지 않았다. 배포 후 실제 사이트에서는 저장하지 않고 시트 진입과 이름 편집창을 확인한다.
+
+배포 후 390px 준비품 추가의 제목·기본 정보·고정 저장 버튼과 1200px 트리 이름 편집창을 확인했다. GET 응답에만 삽입한 빈 TAP을 사용했으며 operations 저장 요청 0건, 브라우저 오류 0건이었다. 매뉴얼 이름 별도 저장 변경은 후속 릴리스에 포함하며 서버 검증은 project-state에 기록한다.

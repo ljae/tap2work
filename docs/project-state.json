@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 113,
+  "revision": 115,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -608,6 +608,16 @@
       "reason": "Pending user clarification; absence of an answer is not approval.",
       "source": "User conversation 2026-09-29",
       "updatedAt": "2026-09-29T12:28:27.556730Z"
+    },
+    {
+      "id": "D-061",
+      "category": "매뉴얼",
+      "title": "판매 메뉴와 독립된 매뉴얼 표시 이름",
+      "status": "confirmed",
+      "decision": "판매 메뉴 연결 TAP·Task의 이름 수정은 매뉴얼 표시 이름만 변경하고 판매 메뉴 이름은 유지한다.",
+      "reason": "사용자가 매뉴얼 표시 이름만 변경하는 방식을 명시적으로 선택했다.",
+      "source": "사용자 답변 · 2026-09-29",
+      "updatedAt": "2026-09-29"
     }
   ],
   "milestones": [
@@ -4593,6 +4603,25 @@
       ],
       "detail": "Tree, search, detail and manual editor use aliases. Full checklist saves preserve aliases and catalog sync preserves them; menu-linked deletion protection remains. JSON metadata requires no SQL migration. Settings sheet release 18a2216 passed Pages run 36581514574.",
       "verification": "Flutter full suite 174 passed, analyzer clean, Node 116 passed, JS check and 30 UI links passed. Additional linked body-save widget check pending; alias deployment pending."
+    },
+    {
+      "at": "2026-09-29T14:26:44.213160+00:00",
+      "type": "verification",
+      "title": "Settings sheets and direct tree rename verified live",
+      "detail": "Pages run 36581514574 successfully deployed source 18a2216a3dd67123b461b1928917085c55cea5f5. At 390px prepared-item add has one header, basic section and pinned save; at 1200px long press plus name click opens rename. Synthetic GET-only empty TAP, operations writes 0, page errors 0. Initial browser locator targeted composite row/subtitle; corrected to visible name coordinates.",
+      "verification": "Additional linked manual body-save widget passed; targeted manual suite 17 passed. Earlier full Flutter suite 174 and Node 116 passed. Alias source 00b28c06a0f95a25ce51dca692b9f8d958ce75cd is awaiting Pages verification; operations API deployment succeeded."
+    },
+    {
+      "at": "2026-09-29T14:29:26.290520+00:00",
+      "type": "verification",
+      "title": "Manual display aliases deployed and verified",
+      "detail": "Source 00b28c06a0f95a25ce51dca692b9f8d958ce75cd deployed successfully by Pages run 36582531789 and operations Edge Function. Browser-only GET fixture with original sales title plus manualTitle/menuManualId confirmed alias in tree and direct rename dialog. Prepared sheet title/basic section/pinned save also confirmed. Operations writes 0, browser errors 0. No real store data changed.",
+      "verification": "CI analysis, full Flutter tests, 116 Node tests, web build and deployment passed. Local full Flutter 174 plus final targeted manual 17 tests passed. Native build not performed.",
+      "release": {
+        "commit": "00b28c06a0f95a25ce51dca692b9f8d958ce75cd",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36582531789",
+        "site": "https://tap2.work"
+      }
     }
   ],
   "updatedAt": "2026-09-29T14:15:26.040690+00:00"
