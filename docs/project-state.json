@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 108,
+  "revision": 109,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4500,7 +4500,19 @@
         "docs/UI_SETTINGS_RELATIONSHIP_MAP.md",
         "docs/ARCHITECTURE.md"
       ]
+    },
+    {
+      "at": "2026-09-29T13:39:42.532332+00:00",
+      "type": "verification",
+      "title": "Manual pane editing deployed and verified live",
+      "detail": "Pages deployed source 21f9169cd8bdb23f4ae07f037848f392575a11a8 via successful run 36576205023. Chrome at 1200px authenticated workspace GET 200: long-press tree displays tree-only mode with zero right-side move actions; right Task long-press switches to Task-only mode. Live operations writes 0; page errors 0. Tree and content screenshots inspected.",
+      "verification": "CI analysis, complete Flutter suite, 113 server tests, 30 UI relationship checks and web build/deployment passed. Local 15 targeted Flutter tests and ten responsive captures passed. Browser initial semantics-leaf locator missed Task labels; screenshot-guided coordinate long press passed. No live data changes, native build or physical-device test.",
+      "release": {
+        "commit": "21f9169cd8bdb23f4ae07f037848f392575a11a8",
+        "workflow": "https://github.com/ljae/tap2work/actions/runs/36576205023",
+        "site": "https://tap2.work"
+      }
     }
   ],
-  "updatedAt": "2026-09-29T13:35:09.486359+00:00"
+  "updatedAt": "2026-09-29T13:39:42.532332+00:00"
 }
