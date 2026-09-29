@@ -268,7 +268,7 @@ Future<void> openAccount(BuildContext context, SupabaseClient client) async {
         ],
       ),
     );
-    if (logout == true) await client.auth.signOut();
+    if (logout == true) await client.auth.signOut(scope: SignOutScope.local);
   } else {
     await showAppDialog<void>(
       context: context,
