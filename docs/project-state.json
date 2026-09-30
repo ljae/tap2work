@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 128,
+  "revision": 129,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4795,7 +4795,14 @@
       "title": "Complete business-hours UI and server release checks",
       "detail": "Final built web preview at390px shows compact hour/minute wheel and weekly timetable at readable scale, fixed time axis, overlap lanes and part filter. Fixture is injected only in browser GET; all operations POST blocked. No production settings or records changed.",
       "verification": "Server147/147; Flutter analysis clean; JS checks and UI-link30 pass; Flutter full suite result in final release verification. Web release build succeeded; preview smoke wheel/timetable true, writes0, errors0; screenshots visually reviewed. Native and physical VoiceOver/TalkBack not run. Deployment pending."
+    },
+    {
+      "at": "2026-09-30T13:12:57.248234+00:00",
+      "type": "deployment",
+      "title": "Deploy D-064 business hours wheel and business-day schedule integration",
+      "detail": "Published web4ddff51dcd3011afc4e053c8ee6b88fffdae12c1 at https://tap2.work via successful GitHub Pages36719478274; Operations Supabase function deployed. Existing stores keep default00:00 boundary until explicitly saved. Final live unmodified web checked at390px: workspaceGET200, hours boundary wheel/cancel, weekly timetable/back. Browser GET fixture only, operationsPOST blocked. No store settings, attendance, payroll or completed records altered by smoke.",
+      "verification": "Local final Flutter227/227, server147/147, analysis clean, JS and UI-link30 checks passed. Release web build and all CI checks/deploy successful. Live smoke wheel=true, timetable=true, writes0, errors0. Compact wheel and timetable screenshots reviewed in compiled web preview. Native build and real-device screen readers not tested."
     }
   ],
-  "updatedAt": "2026-09-30T13:07:49.382433+00:00"
+  "updatedAt": "2026-09-30T13:12:57.248234+00:00"
 }
