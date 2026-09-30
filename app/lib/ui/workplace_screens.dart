@@ -500,7 +500,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   );
   List<Json> get dayBands => (days['$weekday'] as List? ?? []).cast<Json>();
   String newBandId() =>
-      'custom-${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 32)}';
+      'custom-${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(0x100000000)}';
 
   Future<void> editBand([Json? band]) async {
     if (!canDraftHours) return;

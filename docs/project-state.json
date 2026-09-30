@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 123,
+  "revision": 124,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4750,7 +4750,14 @@
       "title": "Integrate shared time-band work, roster handover, and application UI audit",
       "detail": "Implemented confirmed D-063 assignment modes and per-band shared occurrences, same-part support completion, scheduled-day anyone, approved partial-OFF/replacement handover with completed history retained, stable crew colors and actual assignment filters. Reviewed common navigation, settings sheets, long names, large text, keyboard and KPI layouts. Release preparation; no production save requests or native build.",
       "verification": "Final server suite 142/142; Flutter full suite 221/221; subsequent assignment/filter regression suite 19/19; Flutter analysis clean; npm run check and 30 UI-link checks passed. Earlier integration failures recorded above are resolved. Physical VoiceOver/TalkBack and all role/input combinations were not tested. Deployment pending."
+    },
+    {
+      "at": "2026-09-30T11:12:33.280795+00:00",
+      "type": "development",
+      "title": "Fix web-only time-band ID range after deployed smoke test",
+      "detail": "First release 1fb7298 and Pages36706321527 passed server142 and Flutter222 tests but live browser new-band action threw: dart2js compiled 1 << 32 to zero. Use literal 0x100000000 for Random.secure nextInt maximum. No production save requests sent during smoke; GET fixture injected only in browser. Follow-up deployment and live verification pending.",
+      "verification": "First deployment CI succeeded including analysis and build. Browser smoke exposed runtime issue absent in VM widget tests. Targeted tests rerunning."
     }
   ],
-  "updatedAt": "2026-09-30T11:04:40.236654+00:00"
+  "updatedAt": "2026-09-30T11:12:33.280795+00:00"
 }
