@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 124,
+  "revision": 125,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4757,7 +4757,14 @@
       "title": "Fix web-only time-band ID range after deployed smoke test",
       "detail": "First release 1fb7298 and Pages36706321527 passed server142 and Flutter222 tests but live browser new-band action threw: dart2js compiled 1 << 32 to zero. Use literal 0x100000000 for Random.secure nextInt maximum. No production save requests sent during smoke; GET fixture injected only in browser. Follow-up deployment and live verification pending.",
       "verification": "First deployment CI succeeded including analysis and build. Browser smoke exposed runtime issue absent in VM widget tests. Targeted tests rerunning."
+    },
+    {
+      "at": "2026-09-30T11:18:33.222387+00:00",
+      "type": "deployment",
+      "title": "Deploy and verify shared time-band assignments and UI improvements",
+      "detail": "Operations Supabase function deployed; web ce87cce5459dd4b6096305efa8822fc470ff765e published at https://tap2.work via Pages36707128826. Live unmodified web bundle verified at 390x844: login GET200, roster hours, add time band, connected work, scheduled assignment preselected part/band, save action visible, discard draft. Browser-only GET fixture; operations POST blocked and zero save requests. Screenshots reviewed; no real-store edits performed by smoke actions.",
+      "verification": "GitHub CI successful: server142, Flutter222, analysis, JS/UI-link checks, web build and deploy. Web-only bit-shift bug found during initial deployment smoke fixed and reverified. Live smoke band/apply/assignment/save each1, writes0, pageerrors0; accessibility tree confirms scheduled mode/part/band checked. Native builds and physical screen-reader certification not performed."
     }
   ],
-  "updatedAt": "2026-09-30T11:12:33.280795+00:00"
+  "updatedAt": "2026-09-30T11:18:33.222387+00:00"
 }
