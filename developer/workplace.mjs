@@ -1,4 +1,4 @@
-import { defaultWorkplace, validatePart, rosterTemplates, validRosterDate, validRosterTimes } from './parts.mjs';
+import { defaultWorkplace, workplaceBands, workplaceBandDays, validatePart, rosterTemplates, validRosterDate, validRosterTimes } from './parts.mjs';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
 const fail = (message, status = 400) => { throw new StoreError(message, status); };
@@ -6,6 +6,30 @@ const label = value => {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > 40) fail('이름은 1–40자로 입력해 주세요.');
   return value.trim();
 };
+function normalizeBands(state, bands, oldRows, day) {
+  if (!Array.isArray(bands) || bands.length > 24) fail('요일별 시간대는 최대 24개예요.');
+  const old = workplaceBands(oldRows ?? [], day);
+  const normalized = bands.map((b, i) => {
+    if (!b || typeof b !== 'object' || Array.isArray(b)) fail('시간대를 확인해 주세요.');
+    validRosterTimes(b.start,b.end);
+    const id = b.id ?? (b.custom === true ? `custom-${randomUUID()}` : old[i]?.id ?? `legacy-band-${day}-${i}`);
+    if (typeof id !== 'string' || !/^[a-zA-Z][a-zA-Z0-9_-]{0,99}$/.test(id)) fail('시간대 ID를 확인해 주세요.');
+    const existing = old.find(row => row.id === id);
+    // Legacy slot identity is immutable; accept copies only with a valid legacy index.
+    const legacyIndex = existing?.legacyIndex ?? b.legacyIndex ?? (b.id == null && b.custom !== true && !old[i] ? i : undefined);
+    if (legacyIndex !== undefined && (!Number.isInteger(legacyIndex) || legacyIndex < 0 || legacyIndex > 23)) fail('기존 시간대 ID를 확인해 주세요.');
+    const headcounts = b.headcounts ?? existing?.headcounts ?? {};
+    if (!headcounts || Array.isArray(headcounts) || typeof headcounts !== 'object') fail('필요 인원을 확인해 주세요.');
+    for (const [partId,n] of Object.entries(headcounts)) {
+      validatePart(state,partId,{allowHidden:true});
+      if (!Number.isInteger(n) || n<0 || n>12) fail('파트 인원은 0–12명으로 설정해 주세요.');
+    }
+    if ((b.custom === true || existing?.custom === true) && !Object.values(headcounts).some(n => n > 0)) fail('필요 인원이 있는 파트를 하나 이상 선택해 주세요.');
+    return { id, ...(legacyIndex === undefined ? {} : { legacyIndex }), ...(b.custom === true || existing?.custom === true ? {custom:true} : {}), name:label(b.name), start:b.start, end:b.end, headcounts:structuredClone(headcounts) };
+  });
+  if (new Set(normalized.map(b => b.id)).size !== bands.length || new Set(normalized.map(b => b.legacyIndex).filter(i => i !== undefined)).size !== normalized.filter(b => b.legacyIndex !== undefined).length) fail('중복 시간대 ID를 확인해 주세요.');
+  return normalized;
+}
 export const permissionActions = {
   tasks: ['edit_work_node', 'edit_manual_node', 'save_task_step', 'reorder_small_taps', 'reorder_big_taps', 'create_task', 'save_checklists', 'save_tap_settings', 'save_step_manual', 'move_manual_node', 'import_recommended_taps'],
   complete: ['complete_task', 'complete_step', 'reopen_step', 'move_tap', 'complete_preparation'],
@@ -16,6 +40,7 @@ export const permissionActions = {
 export const workplaceDefaults = defaultWorkplace;
 export function workplaceView(state, actor) {
   const config = structuredClone(state.workplace ?? workplaceDefaults());
+  config.days = workplaceBandDays(state, {includeHours:true});
   if (actor.role !== 'owner') delete config.restrictions;
   return config;
 }
@@ -69,40 +94,19 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
     case 'save_workplace_hours': {
       if (!input.days || Object.keys(input.days).length !== 7) fail('일주일 영업시간을 확인해 주세요.');
       const next = {};
-      const minute = t => Number(t.slice(0,2))*60+Number(t.slice(3));
       for (let day=1; day<=7; day++) {
         const bands = input.days[day];
-        if (!Array.isArray(bands) || bands.length > 6) fail('요일별 시간대를 확인해 주세요.');
-        let total=0;
-        next[day] = bands.map((b,i) => {
-          validRosterTimes(b.start,b.end);
-          if (i && bands[i-1].end < bands[i-1].start) fail('자정을 넘긴 다음 시간대는 다음 요일에 설정해 주세요.');
-          if (i && bands[i-1].end !== b.start) fail('시간대 경계를 빈틈 없이 연결해 주세요.');
-          total += (minute(b.end)-minute(b.start)+1440)%1440;
-          if (total >= 1440) fail('영업시간은 24시간 미만으로 설정해 주세요.');
-          const headcounts = b.headcounts ?? {};
-          if (!headcounts || Array.isArray(headcounts) || typeof headcounts !== 'object') fail('필요 인원을 확인해 주세요.');
-          for (const [id,n] of Object.entries(headcounts)) {
-            validatePart(state,id,{allowHidden:true});
-            if (!Number.isInteger(n) || n<0 || n>12) fail('파트 인원은 0–12명으로 설정해 주세요.');
-          }
-          return {name:label(b.name), start:b.start, end:b.end, headcounts};
-        });
+        next[day] = normalizeBands(state, bands, config.days?.[day], day);
       }
       config.days = next;
       break;
     }
     case 'save_workplace_day': {
       if (!Number.isInteger(input.weekday) || input.weekday < 1 || input.weekday > 7) fail('요일을 확인해 주세요.');
-      const bands = input.bands;
-      if (!Array.isArray(bands) || bands.length > 6) fail('시간대는 최대 6개예요.');
-      const validTime = t => typeof t === 'string' && /^(?:[01]\d|2[0-3]):(?:00|30)$/.test(t);
-      for (const [i, band] of bands.entries()) {
-        if (!validTime(band.start) || !validTime(band.end) || band.start >= band.end || (i && bands[i-1].end !== band.start)) fail('시간대는 같은 날, 30분 단위로 빈틈 없이 나눠 주세요.');
+      config.days ??= {};
+      for (const day of input.allDays === true ? [1,2,3,4,5,6,7] : [input.weekday]) {
+        config.days[day] = normalizeBands(state, input.bands, config.days[day], day);
       }
-      if (new Set(bands.map(b => label(b.name))).size !== bands.length) fail('시간대 이름이 중복됐어요.');
-      const normalized = bands.map(b => ({ name: label(b.name), start: b.start, end: b.end }));
-      for (const day of input.allDays === true ? [1,2,3,4,5,6,7] : [input.weekday]) config.days[day] = normalized;
       break;
     }
     case 'save_workplace_permissions': {

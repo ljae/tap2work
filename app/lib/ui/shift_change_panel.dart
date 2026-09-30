@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../domain/part_schedule.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import 'shift_replacement_sheet.dart';
 
 Future<void> requestShiftChange(
   BuildContext context,
@@ -14,30 +15,24 @@ Future<void> requestShiftChange(
       .firstOrNull;
   if (shift == null) return;
   final revision = ops.data?['revision'], actor = ops.actorId;
-  final result = await showAppFormSheet<Json>(
+  await showAppFormSheet<Json>(
     context: context,
-    builder: (_) => _RequestSheet(shift: shift),
+    builder: (_) =>
+        _RequestSheet(shift: shift, ops: ops, revision: revision, actor: actor),
   );
-  if (result == null || !context.mounted || actor != ops.actorId) return;
-  final ok = await ops.act('request_shift_change', {
-    'revision': revision,
-    'shiftId': shiftId,
-    ...result,
-  });
-  if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          ok ? '신청했어요. 승인 전에는 원래 근무가 유지돼요.' : ops.error ?? '신청하지 못했어요.',
-        ),
-      ),
-    );
-  }
 }
 
 class _RequestSheet extends StatefulWidget {
-  const _RequestSheet({required this.shift});
+  const _RequestSheet({
+    required this.shift,
+    required this.ops,
+    required this.revision,
+    required this.actor,
+  });
   final Json shift;
+  final OperationsController ops;
+  final dynamic revision;
+  final String actor;
   @override
   State<_RequestSheet> createState() => _RequestSheetState();
 }
@@ -46,6 +41,34 @@ class _RequestSheetState extends State<_RequestSheet> {
   String kind = 'leave';
   late String start = widget.shift['start'], end = widget.shift['end'];
   final reason = TextEditingController();
+  bool saving = false;
+  String? error;
+  Future<void> submit() async {
+    if (saving || widget.ops.actorId != widget.actor || widget.ops.readOnly) {
+      return;
+    }
+    setState(() => saving = true);
+    final ok = await widget.ops.act('request_shift_change', {
+      'revision': widget.revision,
+      'shiftId': widget.shift['id'],
+      'kind': kind,
+      'start': start,
+      'end': end,
+      'reason': reason.text,
+    });
+    if (!mounted) return;
+    setState(() {
+      saving = false;
+      error = ok ? null : widget.ops.error;
+    });
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('신청했어요. 승인 전에는 원래 근무가 유지돼요.')),
+      );
+      Navigator.pop(context);
+    }
+  }
+
   @override
   void dispose() {
     reason.dispose();
@@ -65,18 +88,24 @@ class _RequestSheetState extends State<_RequestSheet> {
           ),
           const SizedBox(height: 16),
           AppChoiceGroup<String>(
-            values: const ['leave', 'shorten'],
+            values: const ['leave', 'partial_off', 'shorten'],
             selected: kind,
-            labelOf: (v) => v == 'leave' ? '휴무 신청' : '단축 근무',
+            labelOf: (v) => v == 'leave'
+                ? '휴무 신청'
+                : v == 'partial_off'
+                ? '일부 시간 OFF'
+                : '단축 근무',
             onSelected: (v) => setState(() => kind = v),
           ),
-          if (kind == 'shorten') ...[
+          if (kind != 'leave') ...[
             const SizedBox(height: 16),
             for (final first in [true, false])
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: AppPicker<String>(
-                  label: first ? '변경 시작' : '변경 종료',
+                  label: kind == 'partial_off'
+                      ? (first ? 'OFF 시작' : 'OFF 종료')
+                      : (first ? '변경 시작' : '변경 종료'),
                   value: first ? start : end,
                   items: [
                     for (var m = 0; m < 1440; m += 30)
@@ -90,6 +119,11 @@ class _RequestSheetState extends State<_RequestSheet> {
                 ),
               ),
           ],
+          if (kind == 'partial_off')
+            const Text(
+              '선택한 시간만 쉬고, 앞뒤 시간은 계속 근무해요. 야간 근무의 이른 시각은 다음 날이에요.',
+              style: AppText.caption,
+            ),
           const SizedBox(height: 16),
           TextField(
             controller: reason,
@@ -98,22 +132,18 @@ class _RequestSheetState extends State<_RequestSheet> {
             decoration: const InputDecoration(labelText: '신청 이유'),
           ),
           const Text('사장님 승인 후 근무표에 반영돼요.', style: AppText.caption),
+          if (error != null) Information('$error\n입력한 내용은 유지돼요.'),
         ],
       ),
     ),
     actions: [
       TextButton(
-        onPressed: () => Navigator.pop(context),
+        onPressed: saving ? null : () => Navigator.pop(context),
         child: const Text('취소'),
       ),
       FilledButton(
-        onPressed: () => Navigator.pop(context, {
-          'kind': kind,
-          'start': start,
-          'end': end,
-          'reason': reason.text,
-        }),
-        child: const Text('신청'),
+        onPressed: saving ? null : submit,
+        child: Text(saving ? '신청 중…' : '신청'),
       ),
     ],
   );
@@ -135,7 +165,7 @@ class ShiftChangePanel extends StatelessWidget {
               : '신청을 취소할까요?',
         ),
         content: Text(
-          '${row['before']['date']} · ${row['before']['start']}–${row['before']['end']} → ${row['kind'] == 'leave' ? '휴무' : '${row['after']['start']}–${row['after']['end']}'}',
+          '${row['before']['date']} · ${row['before']['start']}–${row['before']['end']} → ${shiftChangeSummary(row)}',
         ),
         actions: [
           TextButton(
@@ -199,9 +229,41 @@ class ShiftChangePanel extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${r['before']['start']}–${r['before']['end']} → ${r['kind'] == 'leave' ? '휴무' : '${r['after']['start']}–${r['after']['end']}'}',
+                      '${r['before']['start']}–${r['before']['end']} → ${shiftChangeSummary(r)}',
                     ),
                     Text('${r['reason']}', style: AppText.caption),
+                    if (r['status'] == 'approved')
+                      for (final vacancy
+                          in (r['vacancies'] as List? ?? []).cast<Json>())
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: vacancy['replacementShiftId'] != null
+                              ? Text(
+                                  '${vacancy['start']}–${vacancy['end']} · 대체 배정 완료 · ${ops.rows('tappers').where((p) => p['id'] == vacancy['replacementTapperId']).firstOrNull?['nickname'] ?? '크루'}',
+                                  style: AppText.caption,
+                                )
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${vacancy['date']} ${vacancy['start']}–${vacancy['end']} · 대체 미배정',
+                                      style: AppText.caption,
+                                    ),
+                                    if (ops.isOwner &&
+                                        !ops.readOnly &&
+                                        !ops.busy)
+                                      OutlinedButton(
+                                        onPressed: () => showShiftReplacement(
+                                          context,
+                                          ops,
+                                          r,
+                                          vacancy,
+                                        ),
+                                        child: const Text('대체 크루 배정'),
+                                      ),
+                                  ],
+                                ),
+                        ),
                     if (r['status'] == 'pending' && !ops.readOnly && !ops.busy)
                       Wrap(
                         spacing: 8,
@@ -230,4 +292,14 @@ class ShiftChangePanel extends StatelessWidget {
       ),
     );
   }
+}
+
+String shiftChangeSummary(Json row) {
+  if (row['kind'] == 'leave') return '휴무';
+  if (row['kind'] == 'partial_off') {
+    final vacancies = (row['vacancies'] as List? ?? []).cast<Json>();
+    final segments = (row['segments'] as List? ?? []).cast<Json>();
+    return '${vacancies.map((v) => "${v['start']}–${v['end']} OFF").join(', ')} · 근무 ${segments.map((s) => "${s['start']}–${s['end']}").join(' / ')}';
+  }
+  return "${row['after']['start']}–${row['after']['end']}";
 }

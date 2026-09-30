@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 116,
+  "revision": 123,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -574,20 +574,20 @@
       "category": "Schedule / identity / localization",
       "title": "Reusable crew schedules and date-specific fine adjustments",
       "status": "confirmed",
-      "decision": "Weekly or alternating A/B templates; explicit selected-range reapply resets only generated shifts, preserving independent shifts and attendance. Holidays are display-only, store closure remains independent. Closed weekdays precede shift bands and part headcounts in settings.",
+      "decision": "Weekly/A-B crew patterns carry partId and stable workplace day-band timeBandId. Date-specific edits remain effective shifts. Explicit range reapply preserves occurrence dates with approved OFF, linked replacements, attendance, started shifts and pending requests, updating other recurring dates. Independent shifts remain. Holidays and store closure remain independent.",
       "reason": "User request and two explicit scope answers.",
       "source": "User conversation 2026-09-29",
-      "updatedAt": "2026-09-29T12:28:27.556730Z"
+      "updatedAt": "2026-09-30T10:55:12.372812+00:00"
     },
     {
       "id": "D-058",
       "category": "Schedule / identity / localization",
       "title": "Shared-account employee view and owner-approved shift changes",
       "status": "confirmed",
-      "decision": "Allow short-term crew view from the shared account. Crew request their own leave/shortening; pending retains effective schedule, owner approval applies the change, with distinct states.",
+      "decision": "Crew request own full leave, shortening or partial OFF. Pending keeps effective shifts unchanged; owner approval applies leave or splits actual work around OFF. Owner assigns an available active same-part eligible replacement to each approved vacancy, preserving request/shift/vacancy links and timeBandId. No automatic notification. Effective staffShifts feed task handover.",
       "reason": "User request; identity target is separately proposed, not assumed.",
       "source": "User conversation 2026-09-29",
-      "updatedAt": "2026-09-29T12:28:27.556730Z"
+      "updatedAt": "2026-09-30T10:55:12.372812+00:00"
     },
     {
       "id": "D-059",
@@ -627,6 +627,16 @@
       "decision": "신규 UI/UX와 개선 작업은 docs/UI_UX_GUIDELINES.md를 우선 참조한다. Toss consumer UX guide를 Aside CLI로 확인하고 기존 tap2work 제품 결정·공통 컴포넌트에 맞춰 적용한다. 기존 TOSS_UI_PROMPT_TEMPLATE.md는 구현 요청용 요약으로 유지한다.",
       "reason": "사용자가 별도 맞춤 Markdown 가이드와 향후 우선 참조 방식을 요청했다.",
       "source": "사용자 요청 · 2026-09-30",
+      "updatedAt": "2026-09-30"
+    },
+    {
+      "id": "D-063",
+      "category": "시간대·업무 담당·근무표",
+      "title": "시간대별 공동 업무와 실제 근무 배정 기반 자동 담당",
+      "status": "confirmed",
+      "decision": "시간대 중복을 허용하고 파트별 필요 인원을 합산한다. TAP에 시간대·파트 자동 배정, 특정 크루, 누구나 옵션을 두고 Task는 TAP을 따르거나 개별 설정한다. 시간대마다 별도 공동 업무를 수행하고 한 명의 완료가 공유된다. 같은 파트의 다른 크루도 지원 완료할 수 있다. 누구나는 그날 실제 근무가 배정된 모든 크루다. 승인된 OFF·대타는 변경된 구간의 미완료 업무에 자동 인계하며 완료 기록은 보존한다. 실제 담당 이름과 고정 색상을 표시하고 앱 전체를 UI/UX 가이드로 검토한다.",
+      "reason": "사용자가 5가지 질의의 답과 전체 UI/UX 검토를 명시했다. 중복 금지 답변은 이후 중복 허용 지시로 대체되었다.",
+      "source": "사용자 답변 · 2026-09-30",
       "updatedAt": "2026-09-30"
     }
   ],
@@ -4647,7 +4657,100 @@
       "detail": "Aside CLI 1.26.916.1741 guide and read-only exec session 640Ur7tn983nwgh7 inspected official page body/canonical URL. Separates general UX principles from Toss mini-app requirements; preserves project palette, four destinations, sheet alignment, manual aliases, permissions, schedules, draft protection and localization groundwork. Includes implementation request template and review checklist. Prompt summary width aligned with current 688/640 component constants. No application or data contracts changed.",
       "verification": "Five Markdown files passed local relative-link and whitespace checks; check:ui-links passed 30 links. Source compared with design_tokens.dart and design_system.dart. JSON validity and isolated diff checked before commit. Flutter/native tests and deployment not run for this documentation-only change.",
       "sourceUrl": "https://developers-apps-in-toss.toss.im/landing-page/landing-page-en/design/consumer-ux-guide"
+    },
+    {
+      "at": "2026-09-30T10:49:02.687996+00:00",
+      "type": "decision",
+      "title": "Confirm time-band work assignment and schedule handover scope",
+      "changes": [
+        {
+          "previous": "Same-part overlapping time bands were briefly selected as disallowed; badges represented eligible crew",
+          "next": "Overlapping requirements add up; effective scheduled crew are assignees, with same-part support completion allowed",
+          "reason": "User revised overlap decision and explicitly confirmed shared/per-band/support/anyone/automatic-handover choices"
+        }
+      ],
+      "detail": "Implementation in progress. Existing approved exceptions and attendance must survive repeated schedule application. No production records have been edited during development. App-wide UI audit requested."
+    },
+    {
+      "at": "2026-09-30T10:50:38.636934+00:00",
+      "type": "development",
+      "title": "Integrate shared work assignments with effective roster and completion snapshots",
+      "changes": [
+        {
+          "previous": "Daily TAP occurrences used legacy role/part eligibility without actual roster assignee projection; assignment settings did not exist.",
+          "next": "TAP scheduled/crew/anyone/legacy and Task inherit/override settings generate distinct shared band occurrences; server projects actual intervals and authorizes support/crew/anyone completion.",
+          "reason": "User confirmed additive overlapping bands, shared completion, actual roster assignees, same-part support, and approved leave/replacement updates."
+        },
+        {
+          "previous": "TAP settings applied to next occurrences only.",
+          "next": "Assignment changes regenerate today unstarted executions; processing/started/completed executions retain snapshots. Non-assignment-only settings keep next-occurrence behavior.",
+          "reason": "User explicitly requested today unstarted updates while retaining started/completed history."
+        }
+      ],
+      "detail": "Added developer/work_assignments.mjs; integrated settings validation, generation, projection and all completion paths. Completed step/TAP assignmentSnapshot evidence is persisted, assignmentView/isMine are response-only. Effective shift timeBandId requires exact band match; unlinked shifts fall back to part+absolute overlap. Real approved leave/replacement and partial OFF APIs covered. No schedule files edited, SQL migration, commit or deployment. UI implementation is a parallel task.",
+      "verification": "New work_assignments integration tests: 8/8 passed. Latest npm run test:console: 132/133 passed; remaining workplace.test.mjs day-bands exact-object assertion expects no stable id/legacyIndex, but parallel band work adds those fields. npm run check including check:ui-links passed; new module node --check and scoped git diff --check passed. Flutter/native checks not run for backend-only changes."
+    },
+    {
+      "at": "2026-09-30T10:52:41.620932+00:00",
+      "type": "development",
+      "title": "Refine assignment handover intervals and legacy/mixed projection contract",
+      "detail": "User follow-up: scheduled assignees clipped to immutable generation-time assignmentWindow, retained when band is renamed/deleted. Anyone uses KST calendar-day overlap including previous-night shifts. Assignee startDate/endDate disambiguate midnight. All-legacy assignmentView omitted; mixed Task overrides expose top-level mode mixed even if unmatched. Crew selection permits only selected active people (plus existing leadership rules), never same-part support; scheduled support remains allowed. No schedule files, deployment, commit or migrations.",
+      "verification": "Assignment integration suite 10/10 passed including interval clipping, deleted band retention, overnight anyone, mixed projection and same-part crew-mode rejection. Latest full test:console 134/135 passed; sole failure remains workplace.test.mjs exact day-band objects vs parallel stable id/legacyIndex changes. npm run check/check:ui-links, new module syntax and scoped diff whitespace checks passed. Flutter/native not run."
+    },
+    {
+      "at": "2026-09-30T10:55:12.372812+00:00",
+      "type": "implementation",
+      "title": "Approved partial OFF and linked same-part replacement with protected recurring reapply",
+      "changes": [
+        {
+          "id": "D-057",
+          "previous": "Weekly or alternating A/B templates; explicit selected-range reapply resets only generated shifts, preserving independent shifts and attendance. Holidays are display-only, store closure remains independent. Closed weekdays precede shift bands and part headcounts in settings.",
+          "next": "Weekly/A-B crew patterns carry partId and stable workplace day-band timeBandId. Date-specific edits remain effective shifts. Explicit range reapply preserves occurrence dates with approved OFF, linked replacements, attendance, started shifts and pending requests, updating other recurring dates. Independent shifts remain. Holidays and store closure remain independent.",
+          "reason": "Explicit user-approved schedule exception scope, 2026-09-30"
+        },
+        {
+          "id": "D-058",
+          "previous": "Allow short-term crew view from the shared account. Crew request their own leave/shortening; pending retains effective schedule, owner approval applies the change, with distinct states.",
+          "next": "Crew request own full leave, shortening or partial OFF. Pending keeps effective shifts unchanged; owner approval applies leave or splits actual work around OFF. Owner assigns an available active same-part eligible replacement to each approved vacancy, preserving request/shift/vacancy links and timeBandId. No automatic notification. Effective staffShifts feed task handover.",
+          "reason": "Explicit user-approved schedule exception scope, 2026-09-30"
+        }
+      ],
+      "detail": "Added partial OFF request/review and effective split shifts, owner-only replacement selection and linked IDs, stable timeBandId in patterns/base/segments/replacement, KST overnight preservation, opening actor/revision and failed-draft preservation. Calendar uses shared crewColor with names and approval/replacement text. No new dispatch action, notifications, commit, deployment or real store writes. Updated architecture/UI relationship/guideline records.",
+      "verification": "25 targeted Node tests passed (schedule exceptions/patterns/task assignment integration); 22 Flutter schedule/exception/calendar tests passed, including 320/390/1200px enlarged-text replacement sheets. flutter analyze clean. npm check and check:ui-links passed. Latest full console run: 138/139 passed; workplace.test.mjs:27 legacy band strict comparison fails because parallel stable-band changes add id/headcounts/legacyIndex. Earlier new widget fixture map typing failure fixed and rerun passed. No native build, live writes or screenshot capture performed.",
+      "files": [
+        "developer/crew_patterns.mjs",
+        "developer/shift_requests.mjs",
+        "developer/schedule_exceptions.mjs",
+        "developer/staff.mjs",
+        "app/lib/ui/crew_pattern_screen.dart",
+        "app/lib/ui/shift_change_panel.dart",
+        "app/lib/ui/shift_replacement_sheet.dart",
+        "app/lib/ui/calendar_screen.dart",
+        "developer/test/schedule_exceptions.test.mjs",
+        "app/test/schedule_exceptions_test.dart"
+      ]
+    },
+    {
+      "at": "2026-09-30T10:55:39.684870+00:00",
+      "type": "development",
+      "title": "Validate part-band compatibility, normalize assignment defaults, and reuse response projections",
+      "detail": "Scheduled TAP/Task saves reject missing band/part and nonpositive part headcounts; missing count defaults to one only for legacy non-custom bands. Semantic setting comparison treats absent TAP legacy/Task inherit as explicit defaults and ignores ID order, avoiding accidental today regeneration. Started unlinked legacy daily TAP prevents new same-day band occurrences. Response-scoped people/shift index and Task projection cache remove duplicate parent-to-step work without persisting caches. Band occurrences store only matching Tasks; existing 30-Task/100-ID input bounds remain; no empty legacy completion snapshots. UI action label settings save and explanatory application timing documented. No schedule edits, SQL migration, commit or deployment.",
+      "verification": "work_assignments.test.mjs 12/12 passed. Latest complete test:console 140/141 passed; remaining workplace.test.mjs day-band exact-object comparison omits stable id/legacyIndex introduced by parallel band work. npm run check (including UI links), standalone new-module syntax and scoped diff check passed. Backend scope only; Flutter/native not run."
+    },
+    {
+      "at": "2026-09-30T10:56:47.770256+00:00",
+      "type": "development",
+      "title": "Unify work assignment lookup with advertised stable and implicit profile-hours bands",
+      "detail": "Validation and daily occurrence lookup now use parts.workplaceBandDays(state,{includeHours:true}), matching workplaceView and rosterTemplates. UI-advertised virtual profile-hour bands are valid assignment targets and share stable IDs across equivalent weekdays. Coordinated helper/headcount/window contract with Parfit thread 01a0f1e9-5276-7512-834e-8a8d0bc5df12; no schedule files changed.",
+      "verification": "Assignment integration tests 13/13 passed. Latest full server tests 141/142 passed; workplace.test.mjs legacy day-band exact equality remains the one parallel stable-ID failure and was reported to Parfit. New module syntax, UI links and scoped diff checks passed. Prior npm run check passed before this shared-helper-only follow-up. No deployment/commit/native build."
+    },
+    {
+      "at": "2026-09-30T11:04:40.236654+00:00",
+      "type": "development",
+      "title": "Integrate shared time-band work, roster handover, and application UI audit",
+      "detail": "Implemented confirmed D-063 assignment modes and per-band shared occurrences, same-part support completion, scheduled-day anyone, approved partial-OFF/replacement handover with completed history retained, stable crew colors and actual assignment filters. Reviewed common navigation, settings sheets, long names, large text, keyboard and KPI layouts. Release preparation; no production save requests or native build.",
+      "verification": "Final server suite 142/142; Flutter full suite 221/221; subsequent assignment/filter regression suite 19/19; Flutter analysis clean; npm run check and 30 UI-link checks passed. Earlier integration failures recorded above are resolved. Physical VoiceOver/TalkBack and all role/input combinations were not tested. Deployment pending."
     }
   ],
-  "updatedAt": "2026-09-29T14:15:26.040690+00:00"
+  "updatedAt": "2026-09-30T11:04:40.236654+00:00"
 }

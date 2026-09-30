@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import 'time_band_editor.dart';
+import 'band_work_links.dart';
 
 /// All hours entry points use the same draft, validation and save flow.
 Future<void> openWorkplaceHours(
@@ -138,7 +141,7 @@ class _StorePreparationState extends State<StorePreparation> {
         tap: widget.onHours,
       ),
       (
-        title: '직원 준비',
+        title: '크루 준비',
         done: ops
             .rows('tappers')
             .where((p) => p['active'] == true && p['rank'] != 'owner')
@@ -338,6 +341,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     super.initState();
     revision = widget.ops.data?['revision'] as int? ?? 0;
     actorId = widget.ops.actorId;
+    if (widget.section == 'hours') days = initialDays();
   }
 
   late List<Json> parts =
@@ -365,6 +369,15 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             : <Json>[],
       );
     }
+    for (var d = 1; d <= 7; d++) {
+      final rows = (saved['$d'] as List).cast<Json>();
+      for (var i = 0; i < rows.length; i++) {
+        if (rows[i]['id'] == null) {
+          rows[i]['id'] = 'legacy-band-$d-$i';
+          rows[i]['legacyIndex'] = i;
+        }
+      }
+    }
     return saved;
   }
 
@@ -383,14 +396,19 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   String? error;
   final partName = TextEditingController();
   OperationsController get ops => widget.ops;
-  bool get editable => ops.isOwner && !ops.readOnly && !saving && !ops.busy;
+  bool get editable =>
+      ops.actorId == actorId &&
+      ops.isOwner &&
+      !ops.readOnly &&
+      !saving &&
+      !ops.busy;
   static const titles = {
     'order-system': '주문처리 시스템 연결',
     'parts': '파트 관리',
     'hours': '영업시간·필요 인원',
     'permissions': '직책별 권한',
     'person': '파트·시간대 수정',
-    'invite': '직원 초대',
+    'invite': '크루 초대',
     'verification': '출퇴근 인증 설정',
     'certificate': '보건증',
     'settlement': '정산 설정',
@@ -407,6 +425,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     error = null;
   });
   Future<void> close() async {
+    if (saving) return;
     if (!dirty) {
       Navigator.pop(context);
       return;
@@ -430,12 +449,14 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     );
     if (discard == true && mounted) {
       setState(() => dirty = false);
-      Navigator.pop(context);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.pop(context);
+      });
     }
   }
 
   Future<void> save(String action, Json values) async {
-    if (ops.actorId != actorId) {
+    if (!editable) {
       setState(() => error = '계정이 바뀌었어요. 닫고 다시 열어 주세요.');
       return;
     }
@@ -478,18 +499,203 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     child: Text(text, style: AppText.caption),
   );
   List<Json> get dayBands => (days['$weekday'] as List? ?? []).cast<Json>();
-  void preset(int count) {
+  String newBandId() =>
+      'custom-${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 32)}';
+
+  Future<void> editBand([Json? band]) async {
+    if (!canDraftHours) return;
+    final id = band?['id'] ?? newBandId();
+    final selectedDays = <int>{
+      if (band == null) weekday,
+      if (band != null)
+        for (var d = 1; d <= 7; d++)
+          if ((days['$d'] as List).any((b) => b['id'] == id)) d,
+    };
+    final result = await showAppFormSheet<Json>(
+      context: context,
+      builder: (_) => TimeBandEditor(
+        parts: parts.where((p) => p['hidden'] != true).toList(),
+        openDays: {
+          for (var d = 1; d <= 7; d++)
+            if ((days['$d'] as List).isNotEmpty) d,
+        },
+        initialDays: selectedDays,
+        band: band == null ? null : jsonDecode(jsonEncode(band)) as Json,
+      ),
+    );
+    if (result == null || !mounted || !canDraftHours) return;
+    final chosen = Set<int>.from(result['days']);
+    for (final d in chosen) {
+      final rows = days['$d'] as List;
+      if (rows.length >= 24 && !rows.any((b) => b['id'] == id)) {
+        setState(() => error = '요일별 시간대는 최대 24개예요.');
+        return;
+      }
+    }
+    update(() {
+      for (var d = 1; d <= 7; d++) {
+        final rows = days['$d'] as List;
+        final index = rows.indexWhere((b) => b['id'] == id);
+        if (!chosen.contains(d)) {
+          if (index >= 0) rows.removeAt(index);
+          continue;
+        }
+        final next = jsonDecode(jsonEncode(result['band'])) as Json;
+        next['id'] = id;
+        // A legacy index belongs to its original weekday, never a new copy.
+        next.remove('legacyIndex');
+        if (index >= 0 && rows[index]['legacyIndex'] != null) {
+          next['legacyIndex'] = rows[index]['legacyIndex'];
+        }
+        if (index >= 0) {
+          rows[index] = next;
+        } else {
+          rows.add(next);
+        }
+      }
+    });
+  }
+
+  bool canLinkBand(Json band) =>
+      !dirty &&
+      !saving &&
+      !ops.busy &&
+      !ops.readOnly &&
+      ops.actorId == actorId &&
+      ops.canEditTasks &&
+      (ops.data?['workplace']?['days'] as Map? ?? {}).values.any(
+        (rows) => (rows as List).any((row) => row['id'] == band['id']),
+      );
+
+  Future<void> openBandWork(Json band) async {
+    if (!canLinkBand(band)) return;
+    await showAppFormSheet<void>(
+      context: context,
+      builder: (_) =>
+          BandWorkLinks(ops: ops, bandId: band['id'], bandName: band['name']),
+    );
+    if (mounted && !dirty && ops.actorId == actorId) {
+      setState(() {
+        parts = (jsonDecode(jsonEncode(storeParts(ops))) as List).cast<Json>();
+        days = initialDays();
+        revision = ops.data?['revision'] ?? revision;
+      });
+    }
+  }
+
+  String bandRemovalMessage(Json band) {
+    final id = band['id'];
+    final linkedWork = ops
+        .rows('taskTemplates')
+        .any(
+          (tap) =>
+              tap['archivedAt'] == null &&
+              [tap, ...(tap['steps'] as List? ?? []).cast<Json>()].any(
+                (row) =>
+                    (row['settings']?['assignment']?['timeBandIds'] as List? ??
+                            [])
+                        .contains(id),
+              ),
+        );
+    final linkedPattern = ops
+        .rows('crewPatterns')
+        .any(
+          (pattern) => (pattern['entries'] as List? ?? []).any(
+            (entry) => entry['timeBandId'] == id && entry['weekday'] == weekday,
+          ),
+        );
+    return [
+      '일주일 설정을 저장하면 선택한 요일에서 이 시간대와 필요 인원을 제거해요. 마지막 시간대를 지우면 휴무일이 돼요.',
+      if (linkedWork) '이 시간대에 연결된 TAP·Task는 이후 해당 요일에 새로 생성되지 않아요.',
+      if (linkedPattern) '연결된 반복 배정은 다시 적용하기 전에 시간대 설정을 확인해 주세요.',
+      if (linkedWork || linkedPattern) '연결 설정은 자동으로 지우지 않아요.',
+      '이미 배정한 근무와 완료 기록은 유지돼요.',
+    ].join('\n\n');
+  }
+
+  Future<void> deleteBand(Json band) async {
+    if (!canDraftHours) return;
+    final confirmed = await showAppDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text('${band['name']} 시간대를 삭제할까요?'),
+        content: SingleChildScrollView(child: Text(bandRemovalMessage(band))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('시간대 삭제'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted && canDraftHours) {
+      update(() => dayBands.remove(band));
+    }
+  }
+
+  Future<void> preset(int count) async {
+    if (!canDraftHours) return;
+    final base = dayBands.where((b) => b['custom'] != true).toList();
+    final custom = dayBands.where((b) => b['custom'] == true).toList();
+    final linkedIds = <String>{
+      for (final tap in ops.rows('taskTemplates'))
+        for (final row in [tap, ...(tap['steps'] as List? ?? []).cast<Json>()])
+          ...List<String>.from(
+            row['settings']?['assignment']?['timeBandIds'] ?? [],
+          ),
+    };
+    final retained = base
+        .skip(count)
+        .where((b) => linkedIds.contains(b['id']))
+        .toList();
+    if (count + custom.length + retained.length > 24) {
+      setState(() => error = '요일별 시간대는 최대 24개예요.');
+      return;
+    }
     final hours = ops.data?['store']?['profile']?['hours'] as Json? ?? {};
     final start = _minute(
-      dayBands.firstOrNull?['start'] ?? hours['opening'] ?? '09:00',
+      base.firstOrNull?['start'] ?? hours['opening'] ?? '09:00',
     );
-    var end = _minute(
-      dayBands.lastOrNull?['end'] ?? hours['closing'] ?? '22:00',
-    );
+    var end = _minute(base.lastOrNull?['end'] ?? hours['closing'] ?? '22:00');
     if (end <= start) end += 1440;
     if (end - start < count * 30) {
       setState(() => error = '시간대당 30분 이상 필요해요.');
       return;
+    }
+    final resetsSettings =
+        dirty ||
+        base.length > 1 ||
+        base.any(
+          (b) =>
+              b['name'] != '전체' ||
+              linkedIds.contains(b['id']) ||
+              (b['headcounts'] as Map? ?? {}).values.any((n) => n != 1),
+        );
+    if (resetsSettings) {
+      final confirmed = await showAppDialog<bool>(
+        context: context,
+        builder: (c) => AlertDialog(
+          title: const Text('교대 기본값을 적용할까요?'),
+          content: const Text(
+            '기본 교대의 이름·시간·필요 인원을 다시 나눠요. 추가한 시간대와 연결된 시간대 ID는 유지해요. 줄어든 교대 중 업무가 연결된 시간대는 추가 시간대로 남아요.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(c, false),
+              child: const Text('계속 수정'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: const Text('기본값 적용'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted || !canDraftHours) return;
     }
     final names = count == 1
         ? ['전체']
@@ -500,6 +706,12 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       () => days['$weekday'] = [
         for (var i = 0; i < count; i++)
           {
+            'id': base.elementAtOrNull(i)?['id'] ?? newBandId(),
+            if (base.elementAtOrNull(i)?['legacyIndex'] != null)
+              'legacyIndex': base[i]['legacyIndex'],
+            'headcounts': {
+              for (final p in parts) p['id']: p['hidden'] == true ? 0 : 1,
+            },
             'name': names[i],
             'start': _time(
               start + ((end - start) * i / count / 30).round() * 30,
@@ -510,6 +722,16 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                     start + ((end - start) * (i + 1) / count / 30).round() * 30,
                   ),
           },
+        for (final row in retained)
+          {
+            ...row,
+            'custom': true,
+            'headcounts': {
+              for (final p in parts)
+                p['id']: (row['headcounts'] as Map?)?[p['id']] ?? 1,
+            },
+          },
+        ...custom,
       ],
     );
   }
@@ -536,14 +758,11 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     final text = _time(chosen.hour * 60 + chosen.minute);
     update(() {
       row[start ? 'start' : 'end'] = text;
-      if (start && index > 0) dayBands[index - 1]['end'] = text;
-      if (!start && index + 1 < dayBands.length) {
-        dayBands[index + 1]['start'] = text;
-      }
     });
   }
 
-  bool get canDraftHours => ops.isOwner && !saving && !ops.busy;
+  bool get canDraftHours =>
+      ops.actorId == actorId && ops.isOwner && !saving && !ops.busy;
   static const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
   List<Widget> hours() => [
     const Text('1. 휴무일을 선택해 주세요', style: AppText.title),
@@ -561,7 +780,12 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                     days['$d'] = closed
                         ? <Json>[]
                         : <Json>[
-                            {'name': '전체', 'start': '09:00', 'end': '22:00'},
+                            {
+                              'id': newBandId(),
+                              'name': '전체',
+                              'start': '09:00',
+                              'end': '22:00',
+                            },
                           ];
                     if (!closed) weekday = d;
                   })
@@ -571,7 +795,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     ),
     const SizedBox(height: 8),
     const Text(
-      '선택한 요일은 매장 휴무예요. 공휴일 표시는 영업 여부를 바꾸지 않아요.',
+      '휴무로 저장하면 해당 요일의 시간대와 필요 인원이 제거되고, 그 시간대에 연결된 TAP·Task는 새로 생성되지 않아요. 연결된 반복 배정은 다시 적용하기 전에 확인해 주세요. 연결 설정·기존 근무·완료 기록은 유지돼요. 공휴일 표시는 영업 여부를 바꾸지 않아요.',
       style: AppText.caption,
     ),
     section('2. 영업일의 교대와 시간을 정해 주세요'),
@@ -599,7 +823,9 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           for (final entry in {1: '한 타임', 2: '2교대', 3: '3교대'}.entries)
             ChoiceChip(
               label: Text(entry.value),
-              selected: dayBands.length == entry.key,
+              selected:
+                  dayBands.where((b) => b['custom'] != true).length ==
+                  entry.key,
               onSelected: canDraftHours ? (_) => preset(entry.key) : null,
             ),
         ],
@@ -614,6 +840,30 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('${dayBands[i]['name']}', style: AppText.body),
+                Wrap(
+                  key: ValueKey('time-band-actions-${dayBands[i]['id']}'),
+                  spacing: 8,
+                  children: [
+                    TextButton(
+                      onPressed: canLinkBand(dayBands[i])
+                          ? () => openBandWork(dayBands[i])
+                          : null,
+                      child: const Text('연결 업무'),
+                    ),
+                    TextButton(
+                      onPressed: canDraftHours
+                          ? () => editBand(dayBands[i])
+                          : null,
+                      child: const Text('시간대 수정'),
+                    ),
+                    TextButton(
+                      onPressed: canDraftHours
+                          ? () => deleteBand(dayBands[i])
+                          : null,
+                      child: const Text('시간대 삭제'),
+                    ),
+                  ],
+                ),
                 Wrap(
                   spacing: 8,
                   crossAxisAlignment: WrapCrossAlignment.center,
@@ -649,14 +899,16 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                             canDraftHours &&
                                 ((dayBands[i]['headcounts']
                                             as Map?)?[part['id']] ??
-                                        1) >
+                                        (dayBands[i]['custom'] == true
+                                            ? 0
+                                            : 1)) >
                                     0
                             ? () => changeCount(i, part['id'], -1)
                             : null,
                         icon: const Icon(Icons.remove),
                       ),
                       Text(
-                        '${(dayBands[i]['headcounts'] as Map?)?[part['id']] ?? 1}명',
+                        '${(dayBands[i]['headcounts'] as Map?)?[part['id']] ?? (dayBands[i]['custom'] == true ? 0 : 1)}명',
                       ),
                       IconButton(
                         tooltip: '${part['name']} 인원 늘리기',
@@ -664,7 +916,9 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                             canDraftHours &&
                                 ((dayBands[i]['headcounts']
                                             as Map?)?[part['id']] ??
-                                        1) <
+                                        (dayBands[i]['custom'] == true
+                                            ? 0
+                                            : 1)) <
                                     12
                             ? () => changeCount(i, part['id'], 1)
                             : null,
@@ -676,12 +930,34 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             ),
           ),
         ),
+      OutlinedButton.icon(
+        onPressed: canDraftHours && dayBands.length < 24
+            ? () => editBand()
+            : null,
+        icon: const Icon(Icons.add),
+        label: const Text('시간대 추가'),
+      ),
+      const Text('시간대가 겹치면 파트별 필요 인원을 합산해요.', style: AppText.caption),
       OutlinedButton(
         onPressed: canDraftHours
             ? () => update(() {
                 for (var d = 1; d <= 7; d++) {
                   if ((days['$d'] as List).isNotEmpty && d != weekday) {
-                    days['$d'] = jsonDecode(jsonEncode(dayBands));
+                    final previous = (days['$d'] as List).cast<Json>();
+                    days['$d'] = [
+                      for (final band in dayBands)
+                        {
+                          ...jsonDecode(jsonEncode(band)) as Json
+                            ..remove('legacyIndex'),
+                          if (previous
+                                  .where((b) => b['id'] == band['id'])
+                                  .firstOrNull?['legacyIndex'] !=
+                              null)
+                            'legacyIndex': previous.firstWhere(
+                              (b) => b['id'] == band['id'],
+                            )['legacyIndex'],
+                        },
+                    ];
                   }
                 }
               })
@@ -718,7 +994,8 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   void changeCount(int index, String id, int delta) => update(() {
     dayBands[index]['headcounts'] ??= <String, dynamic>{};
     final counts = dayBands[index]['headcounts'] as Map;
-    counts[id] = (counts[id] ?? 1) + delta;
+    counts[id] =
+        (counts[id] ?? (dayBands[index]['custom'] == true ? 0 : 1)) + delta;
   });
   List<Widget> orderSystem() => [
     SwitchListTile.adaptive(
@@ -738,7 +1015,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   List<Widget> partEditor() => [
     const Text('파트로 나누면 더 간단해요', style: AppText.title),
     const SizedBox(height: 8),
-    const Text('직원과 할 일을 파트별로 살펴보세요. 숨겨도 기존 기록은 남아요.', style: AppText.caption),
+    const Text('크루과 할 일을 파트별로 살펴보세요. 숨겨도 기존 기록은 남아요.', style: AppText.caption),
     const SizedBox(height: 24),
     ReorderableListView.builder(
       shrinkWrap: true,
@@ -914,7 +1191,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     const SizedBox(height: 20),
     for (final e in {
       'hourly': '알바용 코드',
-      'employee': '직원용 코드',
+      'employee': '크루용 코드',
       'manager': '점장용 코드',
     }.entries)
       Padding(
@@ -1106,7 +1383,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
 
   @override
   Widget build(BuildContext context) => PopScope(
-    canPop: !dirty,
+    canPop: !dirty && !saving,
     onPopInvokedWithResult: (didPop, _) {
       if (!didPop) close();
     },

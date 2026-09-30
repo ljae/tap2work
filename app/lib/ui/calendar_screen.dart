@@ -10,6 +10,7 @@ import '../state/operations_controller.dart';
 import '../state/schedule_controller.dart';
 import 'components.dart';
 import 'direct_edit.dart';
+import 'crew_colors.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key, required this.operations});
@@ -180,29 +181,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
           .rows('tappers')
           .any((p) => p['id'] == slot.crewId && p['actorId'] == ops.actorId);
   String requestLabel(RosterSlot slot) {
-    final request = ops
-        .rows('shiftChangeRequests')
-        .where((r) => r['shiftId'] == slot.shiftId)
-        .lastOrNull;
     final current = ops
         .rows('staffShifts')
         .where((s) => s['id'] == slot.shiftId)
         .firstOrNull;
-    final matches =
-        request != null &&
-        current != null &&
-        [
-          'date',
-          'partId',
-          'start',
-          'end',
-          'status',
-        ].every((k) => request['after'][k] == current[k]);
-    return request?['status'] == 'pending'
-        ? ' · 변경 신청 중'
-        : request?['status'] == 'approved' && matches
-        ? ' · 승인 반영'
-        : '';
+    final requests = ops.rows('shiftChangeRequests');
+    if (requests.any(
+      (r) => r['shiftId'] == slot.shiftId && r['status'] == 'pending',
+    )) {
+      return ' · 변경 신청 중';
+    }
+    if (current?['replacementForRequestId'] != null) return ' · 대체 배정';
+    final approval = requests
+        .where(
+          (r) =>
+              r['id'] == current?['approvedRequestId'] &&
+              r['status'] == 'approved',
+        )
+        .firstOrNull;
+    if (approval != null) return ' · 승인 반영';
+    return '';
   }
 
   Widget slotFrame(RosterSlot slot, Widget child) {
@@ -903,13 +901,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       child: Material(
                         color: slots[i].crewId == null
                             ? AppColors.surface
-                            : AppColors.lime,
+                            : crewColor(
+                                slots[i].crewId!,
+                              ).withValues(alpha: .12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
                             color: slots[i].crewId == null
                                 ? AppColors.line
-                                : AppColors.green,
+                                : crewColor(slots[i].crewId!),
                           ),
                         ),
                         child: InkWell(

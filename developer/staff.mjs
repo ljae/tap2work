@@ -64,9 +64,10 @@ function validShift(input, state) {
   if (typeof input.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(input.date) || (!Number.isFinite(Date.parse(`${input.date}T00:00:00Z`)) || new Date(`${input.date}T00:00:00Z`).toISOString().slice(0, 10) !== input.date)) fail('근무 날짜를 확인해 주세요.');
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.start) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.end) || input.start === input.end) fail('근무 시작·종료 시각을 확인해 주세요.');
   if (![input.start, input.end].every(v => ['00', '30'].includes(v.slice(3)))) fail('근무 시간은 30분 단위로 입력해 주세요.');
+  if (input.timeBandId != null && (typeof input.timeBandId !== 'string' || !input.timeBandId || input.timeBandId.length > 100)) fail('시간대 ID를 확인해 주세요.');
   const employmentType = input.employmentType ?? tapper.employmentType ?? '시간알바';
   if (!employmentTypes.includes(employmentType)) fail('고용형태를 확인해 주세요.');
-  return { ...(Object.hasOwn(input,'label') ? {label:safeText(input.label,100,'근무 이름',false)} : {}), tapperId: tapper.id, partId, duty: input.duty ?? state.workplace?.parts.find(p => p.id === partId)?.duties?.[0] ?? partId, date: input.date, start: input.start, end: input.end, employmentType };
+  return { ...(input.timeBandId ? {timeBandId: input.timeBandId} : {}), ...(Object.hasOwn(input,'label') ? {label:safeText(input.label,100,'근무 이름',false)} : {}), tapperId: tapper.id, partId, duty: input.duty ?? state.workplace?.parts.find(p => p.id === partId)?.duties?.[0] ?? partId, date: input.date, start: input.start, end: input.end, employmentType };
 }
 function interval(shift) {
   const start = Date.parse(`${shift.date}T${shift.start}:00+09:00`);

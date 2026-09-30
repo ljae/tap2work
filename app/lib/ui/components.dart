@@ -66,8 +66,8 @@ class HeaderAccountButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     alignment: Alignment.center,
     decoration: BoxDecoration(
       color: AppColors.surface,
@@ -232,62 +232,69 @@ class FloatingMenu extends StatelessWidget {
             ),
             child: Padding(
               padding: const EdgeInsets.all(5),
-              child: Row(
-                children: [
-                  for (var i = 0; i < items.length; i++)
-                    Expanded(
-                      child: Semantics(
-                        selected: i == selectedIndex,
-                        button: true,
-                        child: PressBounce(
-                          child: InkWell(
-                            key: ValueKey('floating-menu-$i'),
-                            onTap: () => onSelected(i),
-                            borderRadius: BorderRadius.circular(17),
-                            child: AnimatedContainer(
-                              duration: AppMotion.duration(
-                                context,
-                                AppMotion.quick,
-                              ),
-                              curve: AppMotion.enterCurve,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: i == selectedIndex
-                                    ? AppColors.elevated
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(17),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    items[i].icon,
-                                    size: 21,
-                                    color: i == selectedIndex
-                                        ? AppColors.ink
-                                        : AppColors.muted,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    items[i].label,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < items.length; i++)
+                      Expanded(
+                        child: Semantics(
+                          selected: i == selectedIndex,
+                          button: true,
+                          child: PressBounce(
+                            child: InkWell(
+                              key: ValueKey('floating-menu-$i'),
+                              onTap: () => onSelected(i),
+                              borderRadius: BorderRadius.circular(17),
+                              child: AnimatedContainer(
+                                duration: AppMotion.duration(
+                                  context,
+                                  AppMotion.quick,
+                                ),
+                                curve: AppMotion.enterCurve,
+                                constraints: const BoxConstraints(
+                                  minHeight: 60,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: i == selectedIndex
+                                      ? AppColors.elevated
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(17),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      items[i].icon,
+                                      size: 21,
                                       color: i == selectedIndex
                                           ? AppColors.ink
                                           : AppColors.muted,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      items[i].label,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: i == selectedIndex
+                                            ? AppColors.ink
+                                            : AppColors.muted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -394,18 +401,7 @@ class SectionHeading extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Semantics(
-          header: true,
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -.4,
-              color: AppColors.ink,
-            ),
-          ),
-        ),
+        Semantics(header: true, child: Text(title, style: AppText.section)),
         const SizedBox(height: 5),
         Text(
           subtitle,
@@ -450,12 +446,14 @@ class AppStatusPill extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: attention ? AppColors.accent : AppColors.green,
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: attention ? AppColors.accent : AppColors.green,
+            ),
           ),
         ),
       ],
@@ -474,7 +472,7 @@ class AppPicker<T> extends StatelessWidget {
   final String label;
   final T? value;
   final List<DropdownMenuItem<T>> items;
-  final ValueChanged<T?> onChanged;
+  final ValueChanged<T?>? onChanged;
 
   @override
   Widget build(BuildContext context) => AppPillField<T>(
@@ -483,6 +481,38 @@ class AppPicker<T> extends StatelessWidget {
     items: items,
     onChanged: onChanged,
   );
+}
+
+/// Chip defaults force one line; form choices must retain their full meaning.
+class _WrappingChoiceLabel extends StatelessWidget {
+  const _WrappingChoiceLabel(
+    this.child,
+    this.availableWidth, {
+    this.hasAvatar = false,
+  });
+  final Widget child;
+  final double availableWidth;
+  final bool hasAvatar;
+  @override
+  Widget build(BuildContext context) {
+    final theme = ChipTheme.of(context);
+    // Reserve chip chrome before its dry layout measures the label height.
+    final chrome =
+        (theme.padding ?? const EdgeInsets.all(4)).horizontal +
+        (theme.labelPadding ?? const EdgeInsets.symmetric(horizontal: 8))
+            .horizontal +
+        (hasAvatar || theme.showCheckmark != false ? 48 : 0);
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: (availableWidth - chrome).clamp(1, double.infinity),
+      ),
+      child: DefaultTextStyle(
+        style: DefaultTextStyle.of(context).style,
+        softWrap: true,
+        child: child,
+      ),
+    );
+  }
 }
 
 /// One selection language across filters, forms, and workspace tabs.
@@ -503,41 +533,43 @@ class AppPillField<T> extends StatelessWidget {
   final bool isExpanded;
   final String? Function(T?)? validator;
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (decoration.labelText != null)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Text(
-            decoration.labelText!,
-            style: AppText.body.copyWith(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (decoration.labelText != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              decoration.labelText!,
+              style: AppText.body.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 216),
+          child: SingleChildScrollView(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final item in items ?? <DropdownMenuItem<T>>[])
+                  ChoiceChip(
+                    chipAnimationStyle: AppMotion.chipStyle(context),
+                    label: _WrappingChoiceLabel(item.child, box.maxWidth),
+                    selected: item.value == initialValue,
+                    onSelected: onChanged == null || !item.enabled
+                        ? null
+                        : (_) => onChanged!(item.value),
+                  ),
+              ],
             ),
           ),
         ),
-      ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 216),
-        child: SingleChildScrollView(
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final item in items ?? <DropdownMenuItem<T>>[])
-                ChoiceChip(
-                  chipAnimationStyle: AppMotion.chipStyle(context),
-                  label: item.child,
-                  selected: item.value == initialValue,
-                  onSelected: onChanged == null || !item.enabled
-                      ? null
-                      : (_) => onChanged!(item.value),
-                ),
-            ],
-          ),
-        ),
-      ),
-    ],
+      ],
+    ),
   );
 }
 
@@ -556,21 +588,27 @@ class AppSegmented<T> extends StatelessWidget {
   final bool showSelectedIcon;
   final ButtonStyle? style;
   @override
-  Widget build(BuildContext context) => Wrap(
-    spacing: 8,
-    runSpacing: 8,
-    children: [
-      for (final segment in segments)
-        ChoiceChip(
-          chipAnimationStyle: AppMotion.chipStyle(context),
-          label: segment.label ?? const SizedBox(),
-          avatar: segment.icon,
-          selected: selected.contains(segment.value),
-          onSelected: onSelectionChanged == null || !segment.enabled
-              ? null
-              : (_) => onSelectionChanged!({segment.value}),
-        ),
-    ],
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) => Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final segment in segments)
+          ChoiceChip(
+            chipAnimationStyle: AppMotion.chipStyle(context),
+            label: _WrappingChoiceLabel(
+              segment.label ?? const SizedBox(),
+              box.maxWidth,
+              hasAvatar: segment.icon != null,
+            ),
+            avatar: segment.icon,
+            selected: selected.contains(segment.value),
+            onSelected: onSelectionChanged == null || !segment.enabled
+                ? null
+                : (_) => onSelectionChanged!({segment.value}),
+          ),
+      ],
+    ),
   );
 }
 
@@ -587,18 +625,20 @@ class AppChoiceGroup<T> extends StatelessWidget {
   final String Function(T) labelOf;
   final ValueChanged<T> onSelected;
   @override
-  Widget build(BuildContext context) => Wrap(
-    spacing: 8,
-    runSpacing: 8,
-    children: [
-      for (final value in values)
-        ChoiceChip(
-          chipAnimationStyle: AppMotion.chipStyle(context),
-          label: Text(labelOf(value)),
-          selected: selected == value,
-          onSelected: (_) => onSelected(value),
-        ),
-    ],
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) => Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final value in values)
+          ChoiceChip(
+            chipAnimationStyle: AppMotion.chipStyle(context),
+            label: _WrappingChoiceLabel(Text(labelOf(value)), box.maxWidth),
+            selected: selected == value,
+            onSelected: (_) => onSelected(value),
+          ),
+      ],
+    ),
   );
 }
 

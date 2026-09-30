@@ -1,3 +1,4 @@
+import 'crew_colors.dart';
 import 'workplace_screens.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -247,8 +248,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     return result;
   }
 
+  bool hasAssigned(Json task) =>
+      task['assignmentView'] is Map &&
+      task['assignmentView']['mode'] != 'legacy';
+
   bool visibleTask(Json task) =>
       !mineOnly ||
+      (hasAssigned(task)
+          ? task['assignmentView']['isMine'] == true
+          : legacyMine(task));
+  bool legacyMine(Json task) =>
       ops.canEditTasks ||
       task['requiredRole'] == 'all' ||
       task['requiredRole'] == ops.actor['role'];
@@ -271,6 +280,23 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               .firstOrNull?['name']
           as String? ??
       '';
+  bool matchesPart(Json task, Json part) {
+    if (hasAssigned(task)) {
+      final views = [
+        for (final step in steps(task))
+          if (hasAssigned(step)) step['assignmentView'] as Map,
+      ];
+      if (views.isEmpty) views.add(task['assignmentView'] as Map);
+      return views.any(
+        (view) => view['partId'] == null || view['partId'] == part['id'],
+      );
+    }
+    return task.containsKey('partId')
+        ? task['partId'] == null || task['partId'] == part['id']
+        : task['requiredRole'] == 'all' ||
+              (part['roles'] as List? ?? []).contains(task['requiredRole']);
+  }
+
   String role(Json task) {
     if (task.containsKey('partId')) {
       return storeParts(
@@ -298,6 +324,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   }
 
   List<Json> assignees(Json task) {
+    if (hasAssigned(task)) {
+      final all = (task['assignmentView']['assignees'] as List? ?? [])
+          .whereType<Json>();
+      return {for (final person in all) person['id']: person}.values.toList();
+    }
     final required = task['requiredRole'];
     if (task.containsKey('partId')
         ? task['partId'] == null
@@ -322,6 +353,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   }
 
   String assigneeLabel(Json task) {
+    final view = hasAssigned(task) ? task['assignmentView'] as Map : null;
+    if (view != null) {
+      final label =
+          view['timeBandName'] ??
+          (view['mode'] == 'anyone' ? '오늘 근무 크루' : '담당');
+      final partName = storeParts(
+        ops,
+      ).where((p) => p['id'] == view['partId']).firstOrNull?['name'];
+      return '$label${partName == null ? '' : ' · $partName'} · ${view['unassigned'] == true ? '담당 미배정' : '공동 업무'}';
+    }
     final people = assignees(task);
     if (task.containsKey('partId')
         ? task['partId'] == null
@@ -331,20 +372,20 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     return '${role(task)} · ${people.isEmpty ? '담당자 미지정' : '가능한 담당자'}';
   }
 
-  Color personColor(String id) {
-    var hash = 0;
-    for (final unit in id.codeUnits) {
-      hash = (hash * 31 + unit) & 0x7fffffff;
-    }
-    const palette = [
-      Color(0xFF62C7AF),
-      Color(0xFFE49ABF),
-      Color(0xFF8DBAEA),
-      Color(0xFFE9AC4C),
-      Color(0xFFB7A5E3),
-    ];
-    return palette[hash % palette.length];
+  String assignmentTimes(Json task, dynamic id) {
+    final all = (task['assignmentView']?['assignees'] as List? ?? [])
+        .whereType<Map>()
+        .where((p) => p['id'] == id && p['start'] != null && p['end'] != null);
+    final times = all
+        .map(
+          (p) =>
+              '${p['start']}–${p['startDate'] != null && p['endDate'] != null && p['startDate'] != p['endDate'] ? '다음 날 ' : ''}${p['end']}',
+        )
+        .toSet();
+    return times.isEmpty ? '' : ' · ${times.join(', ')}';
   }
+
+  Color personColor(String id) => crewColor(id);
 
   Color assigneeColor(Json task) {
     final people = assignees(task);
@@ -373,9 +414,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 ),
               ),
               const SizedBox(width: 4),
-              Text(
-                person['nickname'].toString(),
-                style: const TextStyle(fontSize: 13, color: AppColors.ink),
+              Flexible(
+                child: Text(
+                  '${person['nickname']}${assignmentTimes(task, person['id'])}',
+                  style: const TextStyle(fontSize: 13, color: AppColors.ink),
+                ),
               ),
             ],
           ),
@@ -459,16 +502,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           .where((p) => p['id'] == selectedPart && p['hidden'] != true)
           .firstOrNull;
       final scoped = (folder == null ? groups : inFolder(folder['id']))
-          .where(
-            (task) =>
-                part == null ||
-                (task.containsKey('partId')
-                    ? task['partId'] == null || task['partId'] == part['id']
-                    : task['requiredRole'] == 'all' ||
-                          (part['roles'] as List? ?? []).contains(
-                            task['requiredRole'],
-                          )),
-          )
+          .where((task) => part == null || matchesPart(task, part))
           .where(visibleTask)
           .toList();
       return Column(
@@ -1320,9 +1354,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                       )
                     : null,
                 emoji: '✓',
+                assigneeBadges: hasAssigned(step) ? assigneeBadges(step) : null,
+                accentColor: hasAssigned(step) ? assigneeColor(step) : null,
                 title: step['title'],
                 subtitle: [
                   subtitleFor(step),
+                  if (hasAssigned(step)) assigneeLabel(step),
                   if (step['settings']?['estimatedMinutes'] is int &&
                       step['settings']['estimatedMinutes'] > 0)
                     '약 ${step['settings']['estimatedMinutes']}분',

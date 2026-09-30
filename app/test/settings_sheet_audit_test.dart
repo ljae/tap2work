@@ -159,7 +159,7 @@ void main() {
             reason: '${entry.key} initial',
           );
           if (entry.key == 'profile') {
-            for (final label in ['POS', '배달', '직원', '운영', '기본']) {
+            for (final label in ['POS', '배달', '크루', '운영', '기본']) {
               final tab = find.text(label).first;
               await tester.ensureVisible(tab);
               await tester.tap(tab);

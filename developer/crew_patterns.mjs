@@ -1,3 +1,4 @@
+import { hasAttendance, timeBandFields } from './schedule_exceptions.mjs';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
 import { validRosterDate } from './parts.mjs';
@@ -17,7 +18,7 @@ export function mutateCrewPattern(state, input, actor, now, activity, validShift
     const entries = input.entries.map(e => {
       if (!Number.isInteger(e.week) || e.week < 0 || e.week >= input.cycleWeeks || !Number.isInteger(e.weekday) || e.weekday < 1 || e.weekday > 7) fail('배정 요일을 확인해 주세요.');
       const next = validShift({ ...e, tapperId: input.tapperId, date: dateAt(input.anchor, e.week * 7 + e.weekday - 1) }, state);
-      return { week: e.week, weekday: e.weekday, partId: next.partId, start: next.start, end: next.end };
+      return { ...timeBandFields(state, e, e.weekday), week: e.week, weekday: e.weekday, partId: next.partId, start: next.start, end: next.end };
     });
     // Validate adjacent weeks, including Sunday overnight crossing the cycle.
     const proposed = [];
@@ -35,19 +36,32 @@ export function mutateCrewPattern(state, input, actor, now, activity, validShift
   const today = new Date(now.getTime() + 9 * 3600000).toISOString().slice(0, 10);
   if (count < 1 || count > 90 || input.from < today) fail('오늘 이후, 최대 90일 범위를 선택해 주세요.');
   const inRange = date => date >= input.from && date <= input.until;
-  const protectedShift = s => s.approvedRequestId || s.status !== 'planned' || interval(s)[0] <= now.getTime() || (state.attendance ?? []).some(e => e.tapperId === s.tapperId && new Date(Date.parse(e.at) + 9 * 3600000).toISOString().slice(0, 10) === s.date);
-  const replaced = state.staffShifts.filter(s => s.patternId === old.id && inRange(s.base?.date ?? s.date));
-  if (replaced.some(s => protectedShift(s) || !inRange(s.date))) fail('이미 시작한 근무 또는 범위 밖으로 이동한 근무가 있어요. 적용 기간을 다시 확인해 주세요.', 409);
+  const protectedShift = s => s.approvedRequestId || s.replacementForRequestId || s.status !== 'planned' || interval(s)[0] <= now.getTime() || hasAttendance(state, s, interval) || (state.shiftChangeRequests ?? []).some(r => r.shiftId === s.id && r.status === 'pending');
+  const candidates = state.staffShifts.filter(s => s.patternId === old.id && inRange(s.base?.date ?? s.date));
+  // Keep the whole occurrence date, even if its pattern times were later changed.
+  // Also protect incoming crew replacements that belong to a different pattern.
+  const preservedDates = new Set((state.attendance ?? []).filter(e => e.tapperId === old.tapperId).map(e => new Date(Date.parse(e.at) + 9 * 3600000).toISOString().slice(0, 10)));
+  for (const s of state.staffShifts.filter(s => s.tapperId === old.tapperId)) {
+    if (protectedShift(s) || s.patternId === old.id && !inRange(s.date)) {
+      preservedDates.add(s.date);
+      if (s.patternId === old.id) preservedDates.add(s.base?.date ?? s.date);
+      if (interval(s)[1] > Date.parse(`${s.date}T23:59:59+09:00`)) preservedDates.add(dateAt(s.date, 1));
+    }
+  }
+  const protectedIntervals = state.staffShifts.filter(s => s.tapperId === old.tapperId && protectedShift(s)).map(interval);
+  const replaced = candidates.filter(s => !preservedDates.has(s.base?.date ?? s.date) && !preservedDates.has(s.date) && !protectedIntervals.some(([a,b]) => {const [c,d] = interval(s); return c < b && a < d;}));
   const next = state.staffShifts.filter(s => !replaced.includes(s));
   for (let n = 0; n < count; n++) {
     const date = dateAt(input.from, n), weekday = validRosterDate(date);
+    if (preservedDates.has(date)) continue;
     const offset = Math.floor((Date.parse(date) - Date.parse(old.anchor)) / 604800000);
     const week = ((offset % old.cycleWeeks) + old.cycleWeeks) % old.cycleWeeks;
     for (const e of old.entries.filter(e => e.week === week && e.weekday === weekday)) {
-      const shift = validShift({ ...e, date, tapperId: old.tapperId }, state);
-      if (interval(shift)[0] <= now.getTime()) continue;
+      const shift = { ...validShift({ ...e, date, tapperId: old.tapperId }, state), ...timeBandFields(state, e, weekday) };
+      const [start, end] = interval(shift);
+      if (start <= now.getTime() || protectedIntervals.some(([a,b]) => start < b && a < end)) continue;
       validateOverlap({ staffShifts: next }, shift);
-      next.push({ ...shift, id: randomUUID(), status: 'planned', patternId: old.id, base: { date, partId: shift.partId, start: shift.start, end: shift.end } });
+      next.push({ ...shift, id: randomUUID(), status: 'planned', patternId: old.id, base: { ...timeBandFields(state, e, weekday), date, partId: shift.partId, start: shift.start, end: shift.end } });
     }
   }
   state.staffShifts = next;

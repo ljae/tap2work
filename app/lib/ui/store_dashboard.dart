@@ -237,29 +237,33 @@ class _StoreDashboardState extends State<StoreDashboard> {
         ],
       ),
       space(),
-      adaptive([
-        metric(
-          money ? '순매출' : '전체 주문',
-          money
-              ? '${_number(summary['revenue'])}원'
-              : '${summary['orderCount']}건',
-          money ? '결제 금액 − 할인 − 환불' : '취소 주문 제외',
-          dark: true,
-        ),
-        metric(
-          money ? '주문 건수' : '처리 중 주문',
-          money ? '${summary['orderCount']}건' : '${summary['activeCount']}건',
-          money ? '취소 ${summary['cancelledCount']}건 별도' : '선택 기간·채널 기준',
-        ),
-        metric(
-          money ? '평균 결제액' : '완료 주문',
-          money
-              ? '${_number(summary['average'])}원'
-              : '${report['statuses']['완료']}건',
-          money ? '순매출 ÷ 결제 주문 ${summary['paidCount']}건' : '선택 기간·채널 기준',
-        ),
-        metric('처리 중 주문', '${summary['activeCount']}건', '접수 · 조리 중 · 준비 완료'),
-      ], minWidth: 250),
+      adaptive(
+        [
+          metric(
+            money ? '순매출' : '전체 주문',
+            money
+                ? '${_number(summary['revenue'])}원'
+                : '${summary['orderCount']}건',
+            money ? '결제 금액 − 할인 − 환불' : '취소 주문 제외',
+            dark: true,
+          ),
+          metric(
+            money ? '주문 건수' : '처리 중 주문',
+            money ? '${summary['orderCount']}건' : '${summary['activeCount']}건',
+            money ? '취소 ${summary['cancelledCount']}건 별도' : '선택 기간·채널 기준',
+          ),
+          metric(
+            money ? '평균 결제액' : '완료 주문',
+            money
+                ? '${_number(summary['average'])}원'
+                : '${report['statuses']['완료']}건',
+            money ? '순매출 ÷ 결제 주문 ${summary['paidCount']}건' : '선택 기간·채널 기준',
+          ),
+          metric('처리 중 주문', '${summary['activeCount']}건', '접수 · 조리 중 · 준비 완료'),
+        ],
+        minWidth: 250 * MediaQuery.textScalerOf(context).scale(24) / 24,
+        mobileMinWidth: 135 * MediaQuery.textScalerOf(context).scale(24) / 24,
+      ),
       space(),
       if (money)
         Padding(
@@ -313,17 +317,14 @@ class _StoreDashboardState extends State<StoreDashboard> {
           ),
         ),
         space(12),
-        FittedBox(
-          alignment: Alignment.centerLeft,
-          fit: BoxFit.scaleDown,
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -.8,
-              color: dark ? Colors.white : AppColors.ink,
-            ),
+        Text(
+          value,
+          softWrap: true,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -.8,
+            color: dark ? Colors.white : AppColors.ink,
           ),
         ),
         space(8),

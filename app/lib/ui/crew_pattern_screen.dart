@@ -15,8 +15,8 @@ class CrewPatternScreen extends StatefulWidget {
 
 class _CrewPatternScreenState extends State<CrewPatternScreen> {
   OperationsController get ops => widget.ops;
-  late final actor = ops.actorId;
-  late int revision = ops.data?['revision'] ?? 0;
+  late final String actor;
+  late int revision;
   String? crewId;
   int cycle = 1, week = 0;
   late DateTime anchor = widget.day.subtract(
@@ -39,6 +39,8 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
   @override
   void initState() {
     super.initState();
+    actor = ops.actorId;
+    revision = ops.data?['revision'] ?? 0;
     final today = DateTime.tryParse(ops.data?['day'] ?? '') ?? DateTime.now();
     if (from.isBefore(today)) {
       from = today;
@@ -130,6 +132,13 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
     }
     var part = existing?['partId'] as String? ?? parts.first['id'] as String;
     if (!parts.any((p) => p['id'] == part)) part = parts.first['id'];
+    final bands =
+        ((ops.data?['workplace']?['days']?['$weekday'] as List?) ?? [])
+            .cast<Json>()
+            .where((b) => b['id'] is String)
+            .toList();
+    String bandId = existing?['timeBandId'] as String? ?? '';
+    if (!bands.any((b) => b['id'] == bandId)) bandId = '';
     var start = existing?['start'] as String? ?? '09:00',
         end = existing?['end'] as String? ?? '18:00';
     final result = await showAppFormSheet<Json>(
@@ -155,6 +164,27 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                       ),
                   ],
                   onChanged: (v) => update(() => part = v!),
+                ),
+                const SizedBox(height: 16),
+                AppPicker<String>(
+                  label: '영업 시간대',
+                  value: bandId,
+                  items: [
+                    const DropdownMenuItem(value: '', child: Text('직접 시간 지정')),
+                    for (final b in bands)
+                      DropdownMenuItem(
+                        value: b['id'] as String,
+                        child: Text('${b['name']} · ${b['start']}–${b['end']}'),
+                      ),
+                  ],
+                  onChanged: (v) => update(() {
+                    bandId = v!;
+                    final band = bands.where((b) => b['id'] == v).firstOrNull;
+                    if (band != null) {
+                      start = band['start'];
+                      end = band['end'];
+                    }
+                  }),
                 ),
                 const SizedBox(height: 16),
                 for (final isStart in [true, false])
@@ -191,6 +221,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                       'week': week,
                       'weekday': weekday,
                       'partId': part,
+                      if (bandId.isNotEmpty) 'timeBandId': bandId,
                       'start': start,
                       'end': end,
                     }),
@@ -260,7 +291,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
       builder: (c) => AlertDialog(
         title: const Text('기본 배정을 적용할까요?'),
         content: Text(
-          '${rosterDate(from)} ~ ${rosterDate(until)}\n${people.where((p) => p['id'] == crewId).first['nickname']} · 기존 반복 근무 $replaced건 교체\n\n이 기간의 반복 배정과 미세조정을 초기화해요. 별도 근무·출퇴근 기록은 보존해요. 시간이 겹치면 전체 적용을 멈춰요.',
+          '${rosterDate(from)} ~ ${rosterDate(until)}\n${people.where((p) => p['id'] == crewId).first['nickname']} · 기존 반복 근무 $replaced건 중 보호되지 않은 날짜 갱신\n\n승인된 OFF·대체 배정·출퇴근·대기 신청이 있는 날짜는 유지해요. 나머지 날짜의 반복 배정과 미세조정만 초기화해요. 별도 근무는 보존해요. 시간이 겹치면 전체 적용을 멈춰요.',
         ),
         actions: [
           TextButton(
@@ -418,7 +449,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
               const Text('근무표에 적용', style: AppText.title),
               const SizedBox(height: 8),
               const Text(
-                '저장한 기본 배정을 선택한 기간에 넣어요. 재적용하면 해당 반복 근무의 미세조정이 사라져요.',
+                '선택한 기간에 기본 배정을 넣어요. 승인된 OFF·대체 배정·출퇴근·대기 신청이 있는 날짜는 유지해요. 나머지 반복 근무의 날짜별 조정은 초기화돼요.',
                 style: AppText.caption,
               ),
               Wrap(

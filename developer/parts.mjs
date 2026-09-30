@@ -25,9 +25,43 @@ export function validatePart(state, id, { allowAll = false, allowHidden = false 
   if (!part) throw new StoreError('사용 중인 파트를 선택해 주세요.', 400);
   return part.id;
 }
+// Metadata is deterministic for old records, so reads do not rewrite real data.
+export function workplaceBands(bands, weekday) {
+  return bands.map((band, index) => band.id ? { ...band } : {
+    ...band, id: `legacy-band-${weekday}-${index}`, legacyIndex: index,
+  });
+}
+// Equivalent unversioned bands share one link target across weekdays.
+// Existing explicit IDs are never renamed; legacyIndex remains weekday-local.
+export function workplaceBandDays(state, { includeHours = false } = {}) {
+  const days = structuredClone(state.workplace?.days ?? {});
+  const hours = state.store?.profile?.hours;
+  if (includeHours && hours) for (let day = 1; day <= 7; day++) {
+    days[day] ??= hours.weekdays.includes(day) ? [{name:'전체',start:hours.opening,end:hours.closing}] : [];
+  }
+  const shared = new Map();
+  for (const day of Object.keys(days).sort((a,b) => Number(a)-Number(b))) {
+    const occurrences = new Map();
+    days[day] = days[day].map((band, index) => {
+      if (band.id) return band;
+      const counts = partsOf(state).map(p => [p.id, band.headcounts?.[p.id] ?? (band.custom === true ? 0 : 1)]).sort(([a],[b]) => a.localeCompare(b));
+      const descriptor = JSON.stringify([band.name, band.start, band.end, counts]);
+      const occurrence = occurrences.get(descriptor) ?? 0;
+      occurrences.set(descriptor, occurrence + 1);
+      const signature = `${descriptor}:${occurrence}`;
+      if (!shared.has(signature)) shared.set(signature, `legacy-band-${day}-${index}`);
+      return { ...band, id: shared.get(signature), legacyIndex:index };
+    });
+  }
+  return days;
+}
 export function ensurePartModel(state) {
   let changed = false;
   if (!state.workplace) { state.workplace = defaultWorkplace(); changed = true; }
+  if (Object.values(state.workplace.days ?? {}).some(bands => bands.some(b => !b.id))) {
+    state.workplace.days = workplaceBandDays(state);
+    changed = true;
+  }
   for (const person of state.tappers ?? []) {
     if (!person.workProfile || !Object.hasOwn(person.workProfile, 'partIds')) {
       person.workProfile = { ...person.workProfile, partIds: crewPartIds(state, person), bands: person.workProfile?.bands ?? [] }; changed = true;
@@ -49,13 +83,15 @@ export function rosterTemplates(state) {
   const result = [];
   const workplace = state.workplace ?? defaultWorkplace();
   const hours = state.store?.profile?.hours;
+  const identifiedDays = workplaceBandDays(state, {includeHours:true});
   for (let weekday = 1; weekday <= 7; weekday++) {
     const configured = Object.hasOwn(workplace.days ?? {}, weekday);
-    const bands = configured ? workplace.days[weekday] : hours ? hours.weekdays.includes(weekday) ? [{ name: '전체', start: hours.opening, end: hours.closing }] : [] : null;
+    const bands = configured || hours ? identifiedDays[weekday] : null;
     if (bands !== null) {
       for (const part of partsOf(state).filter(p => !p.hidden)) for (const [index, band] of bands.entries()) {
-        const count = band.headcounts?.[part.id] ?? 1;
-        for (let seat=0; seat<count; seat++) result.push({ id: `band-${weekday}-${part.id}-${index}${seat ? `-seat-${seat}` : ''}`, weekday, partId: part.id, name: band.name, start: band.start, end: band.end, source: 'hours' });
+        const count = band.headcounts?.[part.id] ?? (band.custom === true ? 0 : 1);
+        const key = band.legacyIndex ?? band.id ?? index;
+        for (let seat=0; seat<count; seat++) result.push({ id: `band-${weekday}-${part.id}-${key}${seat ? `-seat-${seat}` : ''}`, weekday, bandId: band.id ?? `legacy-band-${weekday}-${index}`, partId: part.id, name: band.name, start: band.start, end: band.end, source: 'hours' });
       }
     } else {
       for (const slot of state.staffingSlots ?? []) {

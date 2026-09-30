@@ -362,7 +362,9 @@ class AppSheetPanel extends StatelessWidget {
   final List<Widget>? actions;
   @override
   Widget build(BuildContext context) => AppEditorScaffold(
-    title: title is Text ? (title as Text).data ?? '' : '',
+    title: title is Text
+        ? (title as Text).data ?? (title as Text).textSpan?.toPlainText() ?? ''
+        : '',
     body: SingleChildScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),

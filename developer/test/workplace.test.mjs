@@ -24,18 +24,25 @@ test('parts preserve IDs, reject removal and stale drafts, and save staff select
   assert.deepEqual(saved.tappers.find(t=>t.id==='tapper-crew').workProfile.bands,['오픈']);
   await assert.rejects(act('crew','save_staff_profile',{tapperId:'tapper-crew',partIds:[],bands:[]}),{status:403});
 });
-test('day bands validate boundaries and apply independently or to all days without changing assigned shifts', async t => {
+test('day bands keep stable metadata, allow overlaps and apply independently without changing assigned shifts', async t => {
   const {store,act}=await setup(t);
   const before=await store.snapshot('owner');
   const bands=[{name:'오픈',start:'09:00',end:'13:30'},{name:'마감',start:'13:30',end:'22:00'}];
   let next=await act('owner','save_workplace_day',{weekday:7,bands});
-  assert.deepEqual(next.workplace.days['7'],bands);
+  assert.deepEqual(next.workplace.days['7'], bands.map((band,index) => ({...band,id:`legacy-band-7-${index}`,legacyIndex:index,headcounts:{}})));
+  const savedIds = next.workplace.days['7'].map(b => b.id);
   assert.equal(next.workplace.days['1'],undefined);
   next=await act('owner','save_workplace_day',{weekday:7,bands,allDays:true});
   assert.equal(Object.keys(next.workplace.days).length,7);
   assert.deepEqual(next.staffShifts,before.staffShifts);
-  await assert.rejects(act('owner','save_workplace_day',{weekday:1,bands:[bands[0],{...bands[1],start:'12:30'}]}),{status:400});
-  await assert.rejects(act('owner','save_workplace_day',{weekday:1,bands:[{name:'야간',start:'22:00',end:'06:00'}]}),{status:400});
+  assert.deepEqual(next.workplace.days['7'].map(b => b.id), savedIds);
+  next=await act('owner','save_workplace_day',{weekday:1,bands:[bands[0],{...bands[1],start:'12:30'}]});
+  assert.equal(next.workplace.days['1'][1].start,'12:30');
+  next=await act('owner','save_workplace_day',{weekday:1,bands:[{name:'야간',start:'22:00',end:'06:00'}]});
+  assert.equal(next.workplace.days['1'][0].end,'06:00');
+  assert.deepEqual(next.staffShifts,before.staffShifts);
+  await assert.rejects(act('owner','save_workplace_day',{weekday:1,bands:[{...bands[0],start:'09:15'}]}),{status:400});
+  await assert.rejects(act('owner','save_workplace_day',{weekday:1,bands:[{...bands[0],end:'09:00'}]}),{status:400});
 });
 test('role restrictions are enforced on the server and completion projection; pay stays owner-only', async t => {
   const {store,act}=await setup(t);

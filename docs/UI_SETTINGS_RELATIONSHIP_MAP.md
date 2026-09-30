@@ -135,8 +135,8 @@ flowchart LR
 
 | ID | 원본 → 컨트롤 → 액션 | 저장 후 소비 | 검증 |
 | --- | --- | --- | --- |
-| S28 | `crewPatterns[]` → 근무표 상단 `CrewPatternScreen` → `save_crew_pattern`, `apply_crew_pattern` | 매주/월요일 기준 A·B주, 크루/파트 ID/시간. 선택한 오늘 이후 1–90일에만 배정. `staffShifts.patternId/base`가 원본, 화면은 유효 시간 소비. 재적용은 해당 반복 배정만 교체하며 별도 근무·출퇴근 보존. 겹침·시작됨·승인 변경·범위 밖 이동은 거절 | `schedule_patterns.test.mjs`, `schedule_workflow_test.dart` |
-| S29 | `shiftChangeRequests[]` → 직원 본인 슬롯 → `request_shift_change`, `cancel_shift_change`; 사장님 → `review_shift_change` | 대기=기존 시간, 승인=유효 시간 변경/leave, 반려·취소=원본 유지. before/after/status와 신청·처리 시각 보존. 신청 후 근무 변경 시 승인 거절 | 서버 본인/직책/중복/기록 보호, 위젯 신청과 상태 구분 |
+| S28 | `crewPatterns[]` → 근무표 상단 `CrewPatternScreen` → `save_crew_pattern`, `apply_crew_pattern` | 매주/월요일 기준 A·B주, 크루/파트 ID/`timeBandId`/시간. 선택한 오늘 이후 1–90일에만 배정. `staffShifts.patternId/base`가 원본, 화면은 유효 시간 소비. 재적용은 해당 반복 배정만 교체하며 별도 근무·출퇴근 보존. 승인 OFF·대체·출퇴근·대기 신청·범위 밖 이동이 있는 날짜는 건너뛰고 보존. 그 밖의 겹침은 전체 거절 | `schedule_patterns.test.mjs`, `schedule_workflow_test.dart` |
+| S29 | `shiftChangeRequests[]` → 직원 본인 슬롯 → `request_shift_change`, `cancel_shift_change`; 사장님 → `review_shift_change` | 대기=기존 시간, 승인=유효 시간 변경/leave. `partial_off`는 앞뒤 실제 근무 구간으로 분할하며 `timeBandId` 유지. 승인 빈 구간 → 대체 크루 시트 → `review_shift_change(assign_replacement)`로 같은 파트 가능 크루를 연결. 반려·취소=원본 유지. before/after/status와 신청·처리 시각 보존. 신청 후 근무 변경 시 승인 거절 | 서버 본인/직책/중복/기록 보호, 위젯 신청과 상태 구분 |
 | E07 | 공용 계정 메뉴 → 사장님/단기 계약 직원 화면 → `setup_shared_employee`, `?view=employee` | 사장 멤버십의 지정 크루로만 서버에서 권한 축소. 기존 크루 수정 없이 신규 크루 연결. 급여·일정 편집·승인은 직원 모드에서 불가. 실제 직원 JWT는 모드 전환으로 상승 불가 | `cloud.test.mjs`; 외부 메시지 발송 없음 |
 | S30 | 공개 대한민국 공휴일 JSON → `KoreanHolidays` → 주·월 달력 | 연도별 최초 조회·메모리 캐시, 실패 시 번들 달력/미확인 안내. 정보 버튼에서 출처·갱신 상태 확인. 크루 정보 미전송, DB 쓰기 없음. 공휴일 표시와 매장 휴무 독립 | JSON 파싱·대체공휴일 테스트, 출처/캐시 표시 |
 
@@ -163,3 +163,19 @@ Empty manual containers (2026-09-29): folder and TAP definitions remain visible 
 | ID | Source | Control → action | Consumer | Verification |
 |---|---|---|---|---|
 | S33 | taskTemplates[].manualTitle / steps[].manualTitle | 왼쪽 이름 클릭·오른쪽 이름 변경 → edit_manual_node(rename); 본문 → save_checklists | 매뉴얼 트리·검색·상세·편집 표시명; 판매 메뉴명은 독립 유지 | direct_edit.test.mjs, manual_workspace_test.dart |
+
+| ID | Source | Control → action | Consumer | Verification |
+|---|---|---|---|---|
+| S34 | `taskTemplates[].settings.assignment`, `steps[].settings.assignment` | TAP/Task 배정 또는 시간대에서 동일 TAP 설정 편집 → `save_tap_settings` | 오늘 미착수 실행을 밴드별 재생성; 진행·완료 설정/배정 증빙 보존. `tasks[].assignmentView`, `steps[].assignmentView`가 실제 크루·구간·내 배정 표시를 제공. legacy는 가능 배지, scheduled는 미배정 같은 파트 지원 완료 가능 | `work_assignments.test.mjs`, UI 연동은 담당 에이전트 검증 |
+
+S34의 모드는 TAP scheduled/crew/anyone/legacy, Task는 inherit 추가. scheduled는 stable timeBandIds와 필수 partId, crew는 tapper ID 배열 crewIds를 저장한다. 저장 버튼은 “설정 저장”, 설명은 “배정 변경은 오늘 미착수 업무부터 · 나머지 규칙은 다음 업무부터 · 진행/완료 기록 유지”; 배정 외 규칙만 바꾸면 기존 다음 업무 적용을 유지한다. 전체 projection 계약은 ARCHITECTURE의 Work assignment integration 절을 따른다.
+
+## 시간대와 업무 담당 · 2026-09-30
+
+| ID | Source | Control → action | Consumer | Verification |
+|---|---|---|---|---|
+| S34 | workplace.days[].id/name/start/end/headcounts | 영업시간 → 시간대 추가·수정·요일 적용 → save_workplace_hours | 필요 슬롯·반복 배정의 시간대 선택·업무 담당 | time_band_editor_test.dart, 시간대 서버 테스트 |
+| S35 | taskTemplates.settings.assignment / steps.settings.assignment | TAP/Task 담당 설정 또는 시간대 연결 업무 → save_tap_settings | 시간대별 공동 실행·assignmentView·내 담당만·완료 권한 | work_assignment_ui_test.dart, work_assignments.test.mjs |
+| S36 | crewPatterns / staffShifts / shiftChangeRequests | 크루별 반복 배정·부분 OFF 신청/승인·빈 구간 대타 | 날짜별 근무표·미완료 업무 자동 인계·완료 담당 스냅샷 | schedule_exceptions.test.mjs, 관련 근무표 위젯 테스트 |
+
+담당 표시는 실제 배정, 지원 완료는 권한으로 분리한다. `누구나`는 그날 유효 근무 크루다. 기존 파트 미선택=전체 파트 가능 설정과 혼동하지 않는다. [상세 계약](SCHEDULE_WORK_ASSIGNMENTS.md).

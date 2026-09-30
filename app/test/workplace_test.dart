@@ -50,7 +50,13 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull, reason: section);
         if (section == 'hours') {
+          await tester.scrollUntilVisible(find.text('3교대'), 200);
+          await tester.ensureVisible(find.text('3교대'));
+          await tester.pumpAndSettle();
           await tester.tap(find.text('3교대'));
+          await tester.pumpAndSettle();
+          await tester.scrollUntilVisible(find.text('오픈'), 200);
+          await tester.ensureVisible(find.text('오픈'));
           await tester.pumpAndSettle();
           expect(find.text('오픈'), findsOneWidget);
           await tester.scrollUntilVisible(find.text('미들'), 200);

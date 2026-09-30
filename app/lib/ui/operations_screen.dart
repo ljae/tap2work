@@ -700,7 +700,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
       actionCard(
         CupertinoIcons.person_2_square_stack,
         '파트 관리',
-        '직원 · 할 일 파트',
+        '크루 · 할 일 파트',
         () => openWorkplace('parts'),
       ),
       if (ops.isOwner) ...[
@@ -714,7 +714,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         ),
         actionCard(
           CupertinoIcons.person_add,
-          '직원 초대',
+          '크루 초대',
           '코드 · QR 체험',
           () => openWorkplace('invite'),
         ),
@@ -760,8 +760,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
         ),
       actionCard(
         CupertinoIcons.person_2,
-        '직원',
-        '직원 정보 · 근무',
+        '크루',
+        '크루 정보 · 근무',
         () => openStoreDetail('people'),
       ),
       if (ops.isLeader)

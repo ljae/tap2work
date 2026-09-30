@@ -1,3 +1,4 @@
+import { assignmentContext, assignmentOccurrences, assignmentView, assignmentPermission, snapshotAssignments } from './work_assignments.mjs';
 import { languageContext } from './localization.mjs';
 import {editManualNode, editWorkNode} from './direct_edit.mjs';
 import { ensurePartModel, actorWithParts, rosterTemplates } from './parts.mjs';
@@ -227,7 +228,7 @@ export function emptyOperations(now = new Date(), ownerId, ownerName = '사장�
   return state;
 }
 
-function allowed(actor, task) { return ['owner', 'manager'].includes(actor.role) || (Object.hasOwn(task, 'partId') ? task.partId == null || actor.partIds?.includes(task.partId) : task.requiredRole === 'all' || task.requiredRole === actor.role); }
+function allowed(actor, task, state) { const permission = state && assignmentPermission(state, actor, task); if (permission != null) return permission; return ['owner', 'manager'].includes(actor.role) || (Object.hasOwn(task, 'partId') ? task.partId == null || actor.partIds?.includes(task.partId) : task.requiredRole === 'all' || task.requiredRole === actor.role); }
 function leadership(actor) { if (!['owner', 'manager'].includes(actor.role)) fail('사장님 또는 매니저가 처리할 수 있어요.', 403); }
 function stockReview(item) {
   if (!item.lastOrderedAt) return null;
@@ -252,9 +253,14 @@ function ensureDueTasks(state, now) {
   if (ensurePreparationTaps(state, now)) changed = true;
   for (const template of state.taskTemplates) {
     if (template.archivedAt || template.menuManualId || template.steps.length === 0 || !repeatsOn(template, date)) continue;
-    const id = `daily-${template.id}-v${template.version}-${date}`;
-    if (!state.tasks.some(task => task.templateId === template.id && task.date === date && !task.archivedAt)) {
-      state.tasks.push({ ...structuredClone(template), templateId: template.id, id, date, dueAt: iso(now), kind: 'routine', boardStatus: 'todo', completedAt: null, completedBy: null }); changed = true;
+    const existing = state.tasks.filter(task => task.templateId === template.id && task.date === date && !task.archivedAt);
+    // Settings changes leave started/completed snapshots alone, including their band set.
+    if (existing.some(task => task.timeBandId == null && task.version !== template.version && (task.completedAt || task.boardStatus === 'processing' || task.steps?.some(s => s.completedAt)))) continue;
+    for (const occurrence of assignmentOccurrences(state, template, date)) {
+      const id = `daily-${template.id}-v${template.version}-${date}${occurrence.timeBandId ? `-band-${encodeURIComponent(occurrence.timeBandId)}` : ''}`;
+      if (!existing.some(task => (task.timeBandId ?? null) === occurrence.timeBandId)) {
+        state.tasks.push({ ...structuredClone(template), ...structuredClone(occurrence), templateId: template.id, id, date, dueAt: iso(now), kind: 'routine', boardStatus: 'todo', completedAt: null, completedBy: null }); changed = true;
+      }
     }
   }
   for (const item of state.items) {
@@ -332,9 +338,14 @@ export class OperationsStore {
       item.reviewCompletedAt = task?.completedAt ?? null;
     }
     const completionEnabled = actor.role === 'owner' || state.workplace?.restrictions?.[actor.role]?.complete !== false;
+    const assignments = assignmentContext(state);
     for (const task of result.tasks) {
-      task.canComplete = completionEnabled && !task.completedAt && (allowed(actor, task) || task.steps?.some(step => !step.completedAt && canCompleteStep(actor, task, step)));
-      if (task.steps) for (const step of task.steps) step.canComplete = completionEnabled && !step.completedAt && canCompleteStep(actor, task, step);
+      task.assignmentView = assignmentView(state, task, null, actor, assignments);
+      if (task.assignmentView.mode === 'legacy') delete task.assignmentView;
+      delete task.assignmentSnapshot;
+      for (const step of task.steps ?? []) { step.assignmentView = assignmentView(state, task, step, actor, assignments); if (step.assignmentView.mode === 'legacy') delete step.assignmentView; delete step.assignmentSnapshot; }
+      task.canComplete = completionEnabled && !task.completedAt && (task.steps?.length ? task.steps.some(step => !step.completedAt && canCompleteStep(actor, task, step, state, assignments)) : allowed(actor, task, state));
+      if (task.steps) for (const step of task.steps) step.canComplete = completionEnabled && !step.completedAt && canCompleteStep(actor, task, step, state, assignments);
       if (task.kind === 'routine') {
         const index = state.taskTemplates.findIndex(row => row.id === task.templateId);
         const current = state.taskTemplates[index];
@@ -483,10 +494,10 @@ export class OperationsStore {
         case 'complete_preparation': {
           const task = state.tasks.find(t => t.id === input.taskId && t.preparedItemId && !t.archivedAt && t.date === state.day);
           if (!task) fail('준비 Tap을 찾지 못했어요.', 404);
-          if (task.supersededAt || task.completedAt || !allowed(actor, task)) fail('준비 Tap 상태와 담당자를 확인해 주세요.', 409);
+          if (task.supersededAt || task.completedAt || !(task.steps?.length ? task.steps.filter(s => !s.completedAt).every(s => canCompleteStep(actor, task, s, state)) : allowed(actor, task, state))) fail('준비 Tap 상태와 담당자를 확인해 주세요.', 409);
           finishPreparation(state, task, input.quantity, now, who);
-          for (const step of task.steps) if (!step.completedAt) { step.completedAt = iso(now); step.completedBy = who; }
-          task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done';
+          for (const step of task.steps) if (!step.completedAt) { snapshotAssignments(state, task, step); step.completedAt = iso(now); step.completedBy = who; }
+          snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done';
           activity(`${task.title} · 실제 ${input.quantity} 완성`); break;
         }
         case 'edit_manual_node': {
@@ -554,8 +565,8 @@ export class OperationsStore {
         }
         case 'save_tap_settings': {
           leadership(actor);
-          const template = saveTapSettings(state, input);
-          activity(`${template.title} · 다음 업무부터 설정 변경`); break;
+          const template = saveTapSettings(state, input, now);
+          activity(`${template.title} · 설정 변경 · 배정 변경은 오늘 미착수 업무부터 반영`); break;
         }
         case 'import_recommended_taps': {
           leadership(actor);
@@ -574,6 +585,7 @@ export class OperationsStore {
           }
           reopenStep(task, input.stepId, actor, ['owner', 'manager'].includes(actor.role));
           delete task.steps.find(step => step.id === input.stepId)?.actualQuantity;
+          delete task.steps.find(step => step.id === input.stepId)?.assignmentSnapshot; delete task.assignmentSnapshot;
           task.boardStatus = 'processing';
           activity(`${task.title} · 확인 되돌림`); break;
         }
@@ -586,57 +598,57 @@ export class OperationsStore {
           if (task.kind === 'routine' && task.date !== state.day) fail('오늘 업무를 다시 확인해 주세요.', 409);
           if (task.completedAt) fail(`${task.completedBy.name}님이 이미 확인했어요.`, 409);
           const selectedStep = input.action === 'complete_step' ? task.steps?.find(step => step.id === input.stepId) : null;
-          if (!allowed(actor, task) && !(selectedStep && canCompleteStep(actor, task, selectedStep))) fail('이 업무의 담당 직급이 아니에요. 매니저에게 알려 주세요.', 403);
+          if (!(selectedStep ? canCompleteStep(actor, task, selectedStep, state) : task.steps?.length ? task.steps.filter(s => !s.completedAt).every(s => canCompleteStep(actor, task, s, state)) : allowed(actor, task, state))) fail('이 업무의 담당 직급이 아니에요. 매니저에게 알려 주세요.', 403);
           if (task.preparedItemId && input.action === 'complete_task') fail('실제 완성 수량을 입력해 주세요.');
           if (input.action === 'complete_step') {
             const step = task.steps?.find(row => row.id === input.stepId);
             if (task.kind !== 'routine' || !step) fail('행위를 찾지 못했어요.', 404);
             if (step.completedAt) fail('동료가 이미 확인한 행위예요.', 409);
-            const issue = completeStepIssue(actor, task, step, input.quantity);
+            const issue = completeStepIssue(actor, task, step, input.quantity, state);
             if (issue) fail(issue, issue.includes('담당') ? 403 : 409);
             if (task.preparedItemId && task.steps.filter(row => !row.completedAt).length === 1) {
               finishPreparation(state, task, input.quantity, now, who);
             }
-            step.completedAt = iso(now); step.completedBy = who;
+            snapshotAssignments(state, task, step); step.completedAt = iso(now); step.completedBy = who;
             if (step.settings?.completionKind === 'quantity') step.actualQuantity = input.quantity;
             task.boardStatus = 'processing';
             activity(`${task.title} · ${step.title} 완료`);
-            if (task.steps.every(row => row.completedAt)) { task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; }
+            if (task.steps.every(row => row.completedAt)) { snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; }
             break;
           }
           if (task.kind === 'routine') {
-            const issue = bulkCompleteIssue(actor, task);
+            const issue = bulkCompleteIssue(actor, task, state);
             if (issue) fail(issue, issue.includes('담당') ? 403 : 409);
           }
           if (task.kind === 'routine') for (const step of task.steps ?? []) if (!step.completedAt) {
-            step.completedAt = iso(now); step.completedBy = who; step.completionSource = 'tap_bulk';
+            snapshotAssignments(state, task, step); step.completedAt = iso(now); step.completedBy = who; step.completionSource = 'tap_bulk';
           }
           if (task.kind === 'stock') { const item = itemFor(task.itemId); item.quantity = amount(input.quantity); item.lastCheckedAt = iso(now); item.checkedBy = who; }
-          task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; activity(`${task.title} 완료`); break;
+          snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; activity(`${task.title} 완료`); break;
         }
         case 'move_tap': {
           const task = state.tasks.find(row => row.id === input.taskId && row.kind === 'routine' && row.date === state.day && !row.archivedAt && !row.supersededAt);
           if (!task) fail('오늘 Tap을 찾지 못했어요.', 404);
-          if (!allowed(actor, task)) fail('이 Tap의 담당자가 아니에요.', 403);
+          if (!(task.steps?.length ? task.steps.some(s => canCompleteStep(actor, task, s, state)) : allowed(actor, task, state))) fail('이 Tap의 담당자가 아니에요.', 403);
           if (!state.checklistFolders.some(folder => folder.id === input.folderId)) fail('TAP그룹을 찾지 못했어요.');
           if (!['todo', 'processing', 'done', 'keep'].includes(input.status)) fail('Tap 상태를 확인해 주세요.');
           const moving = task.orderId ? state.tasks.filter(t => t.orderId === task.orderId && !t.archivedAt && !t.supersededAt) : [task];
           if (moving.some(t => t.preparedItemId && t.completedAt && !['done', 'keep'].includes(input.status))) fail('완성 수량이 반영된 준비 Tap은 되돌릴 수 없어요.', 409);
           if (moving.some(t => t.preparedItemId && !t.completedAt && input.status === 'done')) fail('실제 완성 수량을 입력해 주세요.');
           for (const task of moving) {
-          if (!allowed(actor, task)) fail('이 Tap의 담당자가 아니에요.', 403);
+          if (!(task.steps?.length ? task.steps.some(s => canCompleteStep(actor, task, s, state)) : allowed(actor, task, state))) fail('이 Tap의 담당자가 아니에요.', 403);
           if (input.status === 'done' && !task.completedAt) {
-            const issue = bulkCompleteIssue(actor, task);
+            const issue = bulkCompleteIssue(actor, task, state);
             if (issue) fail(issue, issue.includes('담당') ? 403 : 409);
-            for (const step of task.steps ?? []) if (!step.completedAt) { step.completedAt = iso(now); step.completedBy = who; step.completionSource = 'tap_bulk'; }
-            task.completedAt = iso(now); task.completedBy = who;
+            for (const step of task.steps ?? []) if (!step.completedAt) { snapshotAssignments(state, task, step); step.completedAt = iso(now); step.completedBy = who; step.completionSource = 'tap_bulk'; }
+            snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who;
           }
           if (input.status !== 'done' && input.status !== 'keep' && task.completedAt) {
             if (task.completedBy?.id !== actor.id && !['owner', 'manager'].includes(actor.role)) fail('완료한 본인이나 리더만 되돌릴 수 있어요.', 403);
             for (const step of task.steps ?? []) if (step.completedAt) {
-              delete step.completedAt; delete step.completedBy; delete step.completionSource;
+              delete step.completedAt; delete step.completedBy; delete step.completionSource; delete step.assignmentSnapshot;
             }
-            task.completedAt = null; task.completedBy = null;
+            task.completedAt = null; task.completedBy = null; delete task.assignmentSnapshot;
           }
           }
           const laneStatus = row => {
@@ -669,7 +681,7 @@ export class OperationsStore {
         }
         case 'check_stock': {
           const item = itemFor(input.itemId); item.quantity = amount(input.quantity); item.lastCheckedAt = iso(now); item.checkedBy = who;
-          for (const task of state.tasks.filter(task => task.itemId === item.id && !task.completedAt && !task.supersededAt && new Date(task.dueAt) <= now)) { task.completedAt = iso(now); task.completedBy = who; }
+          for (const task of state.tasks.filter(task => task.itemId === item.id && !task.completedAt && !task.supersededAt && new Date(task.dueAt) <= now)) { snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who; }
           activity(`${item.name} 재고 ${item.quantity}${item.unit} 확인`); break;
         }
         case 'place_order': {

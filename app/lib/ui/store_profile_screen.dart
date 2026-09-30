@@ -184,7 +184,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     } else if (section == 'staffing') {
       if (staffCount.text.trim().isNotEmpty &&
           int.tryParse(staffCount.text.trim()) == null) {
-        setState(() => error = '직원 수는 숫자로 입력해 주세요.');
+        setState(() => error = '크루 수는 숫자로 입력해 주세요.');
         return;
       }
       values = {
@@ -476,9 +476,9 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        textField('직원 수 · 미입력 가능', staffCount, numeric: true),
+        textField('크루 수 · 미입력 가능', staffCount, numeric: true),
         settingSwitch(
-          '직원 수에 사장 포함',
+          '크루 수에 사장 포함',
           s['includesOwner'] == true,
           (v) => update(() {
             s['includesOwner'] = v;
@@ -525,7 +525,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
               ),
             ],
           ),
-        const Information('입력한 직원 수는 등록된 직원 명단이나 확정 근무 인원과 별도로 보관돼요.'),
+        const Information('입력한 크루 수는 등록된 크루 명단이나 확정 근무 인원과 별도로 보관돼요.'),
       ],
     );
   }
@@ -595,7 +595,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
                   ButtonSegment(value: 'basic', label: Text('기본')),
                   ButtonSegment(value: 'pos', label: Text('POS')),
                   ButtonSegment(value: 'delivery', label: Text('배달')),
-                  ButtonSegment(value: 'staffing', label: Text('직원')),
+                  ButtonSegment(value: 'staffing', label: Text('크루')),
                   ButtonSegment(value: 'hours', label: Text('운영')),
                 ],
                 selected: {section},
