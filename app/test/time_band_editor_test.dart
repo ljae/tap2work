@@ -75,6 +75,12 @@ Future<OperationsController> mount(
     ),
   );
   await tester.pumpAndSettle();
+  await tester.scrollUntilVisible(
+    find.text('2교대'),
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.pumpAndSettle();
   return ops;
 }
 
@@ -88,7 +94,11 @@ void main() {
         conflict: true,
         write: (v) => written = v,
       );
-      await tester.scrollUntilVisible(find.text('시간대 추가'), 180);
+      await tester.scrollUntilVisible(
+        find.text('시간대 추가'),
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('시간대 추가'));
       await tester.pumpAndSettle();
@@ -172,6 +182,11 @@ void main() {
     (tester) async {
       var writes = 0;
       await mount(tester, readOnly: true, write: (_) => writes++);
+      await tester.scrollUntilVisible(
+        find.text('연결 업무').first,
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(
         tester
             .widget<TextButton>(find.widgetWithText(TextButton, '연결 업무'))
@@ -197,7 +212,11 @@ void main() {
     (tester) async {
       final writes = <Json>[];
       await mount(tester, write: writes.add);
-      await tester.scrollUntilVisible(find.text('다른 영업일에 복사'), 200);
+      await tester.scrollUntilVisible(
+        find.text('다른 영업일에 복사'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('다른 영업일에 복사'));
       await tester.tap(find.text('일주일 설정 저장'));
@@ -207,7 +226,11 @@ void main() {
         days.values.every((rows) => rows.first['id'] == 'legacy-band-1-0'),
         isTrue,
       );
-      await tester.scrollUntilVisible(find.text('시간대 수정'), -200);
+      await tester.scrollUntilVisible(
+        find.text('시간대 수정'),
+        -200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('시간대 수정'));
       await tester.pumpAndSettle();
@@ -219,7 +242,11 @@ void main() {
       expect(writes.last['days']['1'].first['id'], 'legacy-band-1-0');
       expect(writes.last['days']['1'].first['name'], '이른 오픈');
       expect(writes.last['days']['1'].first['legacyIndex'], 0);
-      await tester.scrollUntilVisible(find.text('시간대 삭제'), -200);
+      await tester.scrollUntilVisible(
+        find.text('시간대 삭제'),
+        -200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('시간대 삭제'));
       await tester.pumpAndSettle();
@@ -237,6 +264,11 @@ void main() {
     'saved linked work uses shared sheet and local changes disable entry',
     (tester) async {
       await mount(tester);
+      await tester.scrollUntilVisible(
+        find.text('연결 업무').first,
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.text('연결 업무'));
       await tester.pumpAndSettle();
       expect(find.text('전체 · 연결 업무'), findsOneWidget);
@@ -359,7 +391,11 @@ void main() {
       final writes = <Json>[];
       await mount(tester, initialData: data, write: writes.add);
       expect(find.textContaining('휴무로 저장하면 해당 요일'), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('시간대 삭제'), 180);
+      await tester.scrollUntilVisible(
+        find.text('시간대 삭제'),
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('시간대 삭제'));
       await tester.pumpAndSettle();

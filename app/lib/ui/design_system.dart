@@ -78,6 +78,7 @@ class _PressBounceState extends State<PressBounce> {
 Future<T?> showAppSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
+  double? preferredHeight,
 }) => showModalBottomSheet<T>(
   context: context,
   isScrollControlled: true,
@@ -97,7 +98,14 @@ Future<T?> showAppSheet<T>(
     curve: AppMotion.enterCurve,
     padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
     child: FractionallySizedBox(
-      heightFactor: MediaQuery.viewInsetsOf(context).bottom > 0 ? 1 : .94,
+      heightFactor: MediaQuery.viewInsetsOf(context).bottom > 0
+          ? 1
+          : preferredHeight == null
+          ? .94
+          : (preferredHeight / MediaQuery.sizeOf(context).height).clamp(
+              .2,
+              .94,
+            ),
       child: MediaQuery.removeViewInsets(
         context: context,
         removeBottom: true,
@@ -354,7 +362,12 @@ class AppPageRoute<T> extends CupertinoPageRoute<T> {
 Future<T?> showAppFormSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
-}) => showAppSheet<T>(context, builder: builder);
+  double? preferredHeight,
+}) => showAppSheet<T>(
+  context,
+  builder: builder,
+  preferredHeight: preferredHeight,
+);
 
 class AppSheetPanel extends StatelessWidget {
   const AppSheetPanel({super.key, this.title, this.content, this.actions});

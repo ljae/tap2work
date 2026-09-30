@@ -121,6 +121,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('영업시간·필요 인원'), findsOneWidget);
       expect(find.text('1. 휴무일을 선택해 주세요'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('3교대'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       expect(find.text('3교대'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },

@@ -1,3 +1,4 @@
+import { businessDate, boundaryOf } from './business_day.mjs';
 import { assignmentContext, assignmentOccurrences, assignmentView, assignmentPermission, snapshotAssignments } from './work_assignments.mjs';
 import { languageContext } from './localization.mjs';
 import {editManualNode, editWorkNode} from './direct_edit.mjs';
@@ -246,7 +247,7 @@ function ensureDueTasks(state, now) {
     if (match && ticket.targetMinutes == null) { ticket.targetMinutes = [20, 25, 30][(Number(match[1]) - 1) % 3]; changed = true; }
   }
   if (ensurePosGuides(state, now)) changed = true;
-  const date = koreanDate(now);
+  const date = businessDate(state, now);
   if (state.day !== date) { state.day = date; changed = true; }
   if (ensurePreparedItems(state, now)) changed = true;
   if (ensureOrderTaps(state, now)) changed = true;
@@ -259,7 +260,7 @@ function ensureDueTasks(state, now) {
     for (const occurrence of assignmentOccurrences(state, template, date)) {
       const id = `daily-${template.id}-v${template.version}-${date}${occurrence.timeBandId ? `-band-${encodeURIComponent(occurrence.timeBandId)}` : ''}`;
       if (!existing.some(task => (task.timeBandId ?? null) === occurrence.timeBandId)) {
-        state.tasks.push({ ...structuredClone(template), ...structuredClone(occurrence), templateId: template.id, id, date, dueAt: iso(now), kind: 'routine', boardStatus: 'todo', completedAt: null, completedBy: null }); changed = true;
+        state.tasks.push({ ...structuredClone(template), ...structuredClone(occurrence), templateId: template.id, id, date, businessDayStart: boundaryOf(state), dueAt: iso(now), kind: 'routine', boardStatus: 'todo', completedAt: null, completedBy: null }); changed = true;
       }
     }
   }

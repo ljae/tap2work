@@ -221,3 +221,12 @@ Owner-only `review_shift_change(decision: assign_replacement,id,vacancyId,tapper
 [시간대·업무 담당 계약](SCHEDULE_WORK_ASSIGNMENTS.md)이 D-063의 적용 기준이다. 과거의 동일 파트 시간대 중복 금지 제안은 폐기하고 필요 인원을 합산한다. TAP/Task의 settings.assignment는 시간대·파트, 지정 크루, 그날 근무하는 누구나, 기존 규칙, Task 상속을 구분한다. 시간대마다 공유 실행을 생성하고 실제 근무 구간으로 담당을 파생하며 완료 기록은 보존한다. UI는 서버 assignmentView와 canComplete를 각각 담당·권한에 사용한다. 시간대 연결 업무와 TAP 설정은 같은 저장 경로다. 승인된 부분 OFF·대타를 반복 배정 재적용에서 보존하도록 이전의 전체 범위 거절 정책을 대체한다. 정확한 구현·검증 상태는 최신 project-state 이력에 기록한다.
 
 Assignment projection performance: one response-scoped assignmentContext indexes active people/shifts and memoizes each Task/parent projection. Parent aggregation and step capability projection reuse the same values; the context never persists or crosses mutations. Existing 30-Task template and 100-ID assignment-list validation bounds apply; each band occurrence stores only matching Tasks and a scalar window snapshot, not the roster or a persisted projection. Legacy completions do not add empty assignment snapshots. Actual completed assignee evidence is retained without truncation.
+
+## 영업일과 파트별 교대 · D-064
+
+- `workplace.businessDayStart`는 KST 30분 단위 HH:mm이며 미설정은 00:00이다. `business_day.mjs`가 업무 날짜, 영업일→실제 시작 날짜 변환, 파트별 유효 시간을 제공한다.
+- `workplace.days[weekday][].partTimes[partId] = {start,end}`는 동일 시간대 ID의 파트별 예외다. 파트별 예외가 없으면 공통 시간을 따른다. 슬롯 생성·TAP 담당·크루 배정 시간 선택이 같은 유효 시간을 사용한다. 공통 교대 재분할은 기존 파트 예외와 인원·ID를 보존한다.
+- 설정 요일과 반복 배정의 입력 날짜는 영업일이다. 경계 전 시작 시각은 다음 실제 날짜로 변환한다. `staffShifts.date`와 출퇴근은 실제 날짜/시각을 유지하고, 조회 응답의 `businessDate`로 근무표를 묶는다. `dateIsBusinessDay:true`는 근무표 입력을 서버에서 실제 날짜로 바꾸는 명시적 플래그다. 반복 근무 `base.businessDate`는 재적용 범위를 보존한다.
+- 일별 업무의 `date`와 `state.day`는 영업일이다. 새로운 실행은 `businessDayStart`와 시간대의 `assignmentWindow`/파트 예외를 스냅샷으로 보관한다. 기존 실행·완료 이력은 재날짜 지정하지 않는다. 누구나 담당은 해당 실행 영업일 경계부터 24시간의 실제 근무 교집합이다. 출퇴근 원본, 급여·매출의 실제 날짜 계산은 바꾸지 않는다.
+- 숫자 휠은 `time_wheel.dart` 한 구현을 사용한다. 영업시간, 시간대, 반복 배정, 날짜별 근무, OFF·단축 신청에서 동일한 24시간/30분 입력·취소/적용을 사용한다.
+- `hours_timetable.dart`는 공통/파트별 요일 시간표를 렌더링한다. 왼쪽 시간축, 가로 스크롤 요일열, 겹침 레인, 독립적인 시작/종료 드래그와 적용 예정 시각을 제공한다. 수치 편집을 대안으로 제공한다. 시간표는 설정 초안을 수정하고 상위 화면의 revision 기반 일괄 저장을 사용한다.

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -70,7 +71,10 @@ Future<OperationsController> mount(
         body: MediaQuery(
           data: MediaQueryData(
             size: Size(width, 1400),
-            disableAnimations: tester.platformDispatcher.accessibilityFeatures.disableAnimations,
+            disableAnimations: tester
+                .platformDispatcher
+                .accessibilityFeatures
+                .disableAnimations,
             textScaler: TextScaler.linear(scale),
           ),
           child: SingleChildScrollView(child: CalendarScreen(operations: ops)),
@@ -130,9 +134,14 @@ void main() {
       );
       await tester.pumpAndSettle();
       ops.data!['revision'] = 99;
-      final ten = find.widgetWithText(ChoiceChip, '10:00').first;
-      await tester.ensureVisible(ten);
-      await tester.tap(ten);
+      await tester.tap(find.text('시작 시간 09:00'));
+      await tester.pumpAndSettle();
+      tester
+          .widget<CupertinoPicker>(find.byType(CupertinoPicker).first)
+          .scrollController!
+          .jumpToItem(10);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, '적용'));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, '저장'));
       await tester.pumpAndSettle();

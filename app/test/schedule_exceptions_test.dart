@@ -1,9 +1,9 @@
+import 'package:tap2work/ui/time_wheel.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
 import 'package:tap2work/state/operations_controller.dart';
-import 'package:tap2work/ui/components.dart';
 import 'package:tap2work/ui/crew_pattern_screen.dart';
 import 'package:tap2work/ui/shift_change_panel.dart';
 import 'package:tap2work/ui/shift_replacement_sheet.dart';
@@ -56,9 +56,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('일부 시간 OFF'));
       await tester.pumpAndSettle();
-      final fields = find.byType(AppPicker<String>);
-      (tester.widget<AppPicker<String>>(fields.at(0))).onChanged!('12:00');
-      (tester.widget<AppPicker<String>>(fields.at(1))).onChanged!('14:00');
+      final fields = find.byType(AppTimeField);
+      (tester.widget<AppTimeField>(fields.at(0))).onChanged!('12:00');
+      (tester.widget<AppTimeField>(fields.at(1))).onChanged!('14:00');
       await tester.pump();
       await tester.enterText(find.byType(TextField), '개인 일정');
       await tester.tap(find.widgetWithText(FilledButton, '신청'));

@@ -1,3 +1,4 @@
+import { actualDate, bandForPart, businessWindow } from './business_day.mjs';
 import { crewPartIds, partForLegacy, validatePart, workplaceBandDays } from './parts.mjs';
 import { StoreError } from './store.mjs';
 
@@ -50,7 +51,7 @@ export function assignmentOccurrences(state, template, date) {
   const ids = [...new Set(configs.filter(c => c.mode === 'scheduled').flatMap(c => c.timeBandIds))];
   const bands = bandsOn(state,date).filter(b => ids.includes(b.id));
   if (!ids.length) return [{ timeBandId: null, steps: template.steps }];
-  return bands.map(b => ({ timeBandId: b.id, timeBandName: b.name, assignmentWindow: {id:b.id,name:b.name,date,start:b.start,end:b.end},
+  return bands.map(b => ({ timeBandId: b.id, timeBandName: b.name, assignmentWindow: {id:b.id,name:b.name,date:actualDate(state,date,b.start),start:b.start,end:b.end,...(b.partTimes ? {partTimes:b.partTimes} : {})},
     steps: template.steps.filter(step => { const c = assignmentOf(template,step); return c.mode !== 'scheduled' || c.timeBandIds.includes(b.id); }) }));
 }
 export function assignmentView(state, task, step, actor, context = assignmentContext(state)) {
@@ -65,11 +66,13 @@ function projectAssignment(state, task, step, actor, context) {
   if (!step && task.completedAt && task.assignmentSnapshot) return { ...structuredClone(task.assignmentSnapshot), isMine: task.assignmentSnapshot.assignees.some(p => p.actorId === actor?.id) };
   const config = assignmentOf(task,step);
   let mode = config.mode;
-  const band = task.assignmentWindow ?? bandsOn(state,task.date).find(b => b.id === task.timeBandId);
-  const window = mode === 'scheduled' && band ? interval({...band,date:task.date}) : mode === 'anyone' ? interval({date:task.date,start:'00:00',end:'00:00'}) : null;
+  const originalBand = task.assignmentWindow ?? bandsOn(state,task.date).find(b => b.id === task.timeBandId);
+  const band = originalBand ? bandForPart(originalBand, config.partId) : null;
+  const bandDate = band ? (task.assignmentWindow ? (band.start === originalBand.start ? originalBand.date : actualDate({workplace:{businessDayStart:task.businessDayStart ?? '00:00'}},task.date,band.start)) : actualDate(state,task.date,band.start)) : task.date;
+  const window = mode === 'scheduled' && band ? interval({...band,date:bandDate}) : mode === 'anyone' ? businessWindow(state,task.date,task.businessDayStart ?? '00:00') : null;
   let shifts = window ? context.shifts : context.shifts.filter(s => s.date === task.date);
   if (window) shifts = shifts.filter(s => {const [a,b] = interval(s);return a < window[1] && window[0] < b;});
-  if (mode === 'scheduled') shifts = shifts.filter(s => band && config.timeBandIds.includes(band.id) && (s.partId ?? partForLegacy(state,s.duty)) === config.partId && (s.timeBandId ? s.timeBandId === band.id : true) && overlaps(s,{...band,date:task.date}));
+  if (mode === 'scheduled') shifts = shifts.filter(s => band && config.timeBandIds.includes(band.id) && (s.partId ?? partForLegacy(state,s.duty)) === config.partId && (s.timeBandId ? s.timeBandId === band.id : true) && overlaps(s,{...band,date:bandDate}));
   if (mode === 'crew') shifts = shifts.filter(s => config.crewIds.includes(s.tapperId));
   if (mode === 'legacy') shifts = [];
   let assignees = shifts.map(s => { const p = context.people.get(s.tapperId); return { id:p.id,nickname:p.nickname, ...(p.actorId ? {actorId:p.actorId} : {}),...(() => {const [a,b] = interval(s);return clockFields(window ? Math.max(a,window[0]) : a,window ? Math.min(b,window[1]) : b);})() }; });

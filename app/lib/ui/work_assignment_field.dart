@@ -48,7 +48,9 @@ class WorkAssignmentField extends StatelessWidget {
         .where(
           (b) =>
               current['partId'] == null ||
-              ((b['headcounts'] as Map?)?[current['partId']] ?? 1) > 0,
+              ((b['headcounts'] as Map?)?[current['partId']] ??
+                      (b['custom'] == true ? 0 : 1)) >
+                  0,
         )
         .toList();
     final ids = List<String>.from(current['timeBandIds'] ?? []);
@@ -115,7 +117,7 @@ class WorkAssignmentField extends StatelessWidget {
                   FilterChip(
                     label: _AssignmentLabel(
                       box.maxWidth,
-                      "${b['name']} ${b['start']}–${b['end']} · ${(b['weekdays'] as List).map((d) => ['월', '화', '수', '목', '금', '토', '일'][(d as int) - 1]).join('·')}",
+                      "${b['name']} ${b['partTimes']?[current['partId']]?['start'] ?? b['start']}–${b['partTimes']?[current['partId']]?['end'] ?? b['end']} · ${(b['weekdays'] as List).map((d) => ['월', '화', '수', '목', '금', '토', '일'][(d as int) - 1]).join('·')} (요일별 조정 가능)",
                     ),
                     selected: ids.contains(b['id']),
                     onSelected: (selected) {
@@ -168,7 +170,7 @@ class WorkAssignmentField extends StatelessWidget {
           ],
           if (mode == 'anyone')
             const Text(
-              '그날 실제 근무가 배정된 크루의 공용 업무예요. 휴무만 있는 크루는 제외해요.',
+              '매장 영업일 경계부터 다음 경계까지 근무가 배정된 크루의 공용 업무예요. 휴무만 있는 크루는 제외해요.',
               style: AppText.caption,
             ),
           if (mode == 'legacy')

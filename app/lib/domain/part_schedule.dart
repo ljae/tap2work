@@ -31,13 +31,17 @@ class RosterSlot {
     this.shiftId,
     this.crewId,
     this.adjusted = false,
+    this.dayOffset = 0,
   });
   final String date, partId, start, end, name;
   final String? templateId, shiftId, crewId;
   final bool adjusted;
-  int get startMinute => rosterMinute(start);
+  final int dayOffset;
+  String get actualDate =>
+      rosterDate(DateTime.parse(date).add(Duration(days: dayOffset)));
+  int get startMinute => rosterMinute(start) + dayOffset * 1440;
   int get endMinute {
-    final e = rosterMinute(end);
+    final e = rosterMinute(end) + dayOffset * 1440;
     return e <= startMinute ? e + 1440 : e;
   }
 
@@ -51,6 +55,8 @@ List<RosterSlot> slotsForDay(
   bool includeCovered = false,
 }) {
   final date = rosterDate(day);
+  final boundary = data['workplace']?['businessDayStart'] ?? '00:00';
+  int offset(String time) => time.compareTo(boundary) < 0 ? 1 : 0;
   final templates = (data['rosterTemplates'] as List? ?? []).cast<Json>();
   final overrides = (data['rosterOverrides'] as List? ?? [])
       .cast<Json>()
@@ -58,7 +64,10 @@ List<RosterSlot> slotsForDay(
       .toList();
   final shifts = (data['staffShifts'] as List? ?? [])
       .cast<Json>()
-      .where((r) => r['date'] == date && r['status'] != 'leave')
+      .where(
+        (r) =>
+            (r['businessDate'] ?? r['date']) == date && r['status'] != 'leave',
+      )
       .toList();
   final crew = (data['tappers'] as List? ?? []).cast<Json>();
   final result = <RosterSlot>[];
@@ -91,6 +100,7 @@ List<RosterSlot> slotsForDay(
           date: date,
           partId: row['partId'],
           start: row['start'],
+          dayOffset: offset(row['start']),
           end: row['end'],
           name: row['name'] ?? '영업 시간대',
           templateId: template['id'],
@@ -110,6 +120,7 @@ List<RosterSlot> slotsForDay(
         date: date,
         partId: row['partId'],
         start: row['start'],
+        dayOffset: offset(row['start']),
         end: row['end'],
         name: row['name'] ?? '조정한 슬롯',
         templateId: row['templateId'],
@@ -131,6 +142,7 @@ List<RosterSlot> slotsForDay(
         date: date,
         partId: part,
         start: row['start'],
+        dayOffset: offset(row['start']),
         end: row['end'],
         name: (row['label'] as String? ?? '').isNotEmpty
             ? row['label']

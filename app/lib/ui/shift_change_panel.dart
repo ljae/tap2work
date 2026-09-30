@@ -1,5 +1,5 @@
+import 'time_wheel.dart';
 import 'package:flutter/material.dart';
-import '../domain/part_schedule.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
 import 'shift_replacement_sheet.dart';
@@ -102,20 +102,13 @@ class _RequestSheetState extends State<_RequestSheet> {
             for (final first in [true, false])
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
-                child: AppPicker<String>(
+                child: AppTimeField(
                   label: kind == 'partial_off'
                       ? (first ? 'OFF 시작' : 'OFF 종료')
                       : (first ? '변경 시작' : '변경 종료'),
                   value: first ? start : end,
-                  items: [
-                    for (var m = 0; m < 1440; m += 30)
-                      DropdownMenuItem(
-                        value: rosterClock(m),
-                        child: Text(rosterClock(m)),
-                      ),
-                  ],
-                  onChanged: (v) =>
-                      setState(() => first ? start = v! : end = v!),
+
+                  onChanged: (v) => setState(() => first ? start = v : end = v),
                 ),
               ),
           ],

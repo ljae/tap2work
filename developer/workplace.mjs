@@ -18,6 +18,14 @@ function normalizeBands(state, bands, oldRows, day) {
     // Legacy slot identity is immutable; accept copies only with a valid legacy index.
     const legacyIndex = existing?.legacyIndex ?? b.legacyIndex ?? (b.id == null && b.custom !== true && !old[i] ? i : undefined);
     if (legacyIndex !== undefined && (!Number.isInteger(legacyIndex) || legacyIndex < 0 || legacyIndex > 23)) fail('기존 시간대 ID를 확인해 주세요.');
+    const partTimes = {};
+    if (b.partTimes != null) {
+      if (typeof b.partTimes !== 'object' || Array.isArray(b.partTimes)) fail('파트별 시간을 확인해 주세요.');
+      for (const [partId,times] of Object.entries(b.partTimes)) {
+        validatePart(state,partId,{allowHidden:true}); validRosterTimes(times?.start,times?.end);
+        partTimes[partId] = {start:times.start,end:times.end};
+      }
+    }
     const headcounts = b.headcounts ?? existing?.headcounts ?? {};
     if (!headcounts || Array.isArray(headcounts) || typeof headcounts !== 'object') fail('필요 인원을 확인해 주세요.');
     for (const [partId,n] of Object.entries(headcounts)) {
@@ -25,7 +33,7 @@ function normalizeBands(state, bands, oldRows, day) {
       if (!Number.isInteger(n) || n<0 || n>12) fail('파트 인원은 0–12명으로 설정해 주세요.');
     }
     if ((b.custom === true || existing?.custom === true) && !Object.values(headcounts).some(n => n > 0)) fail('필요 인원이 있는 파트를 하나 이상 선택해 주세요.');
-    return { id, ...(legacyIndex === undefined ? {} : { legacyIndex }), ...(b.custom === true || existing?.custom === true ? {custom:true} : {}), name:label(b.name), start:b.start, end:b.end, headcounts:structuredClone(headcounts) };
+    return { id, ...(legacyIndex === undefined ? {} : { legacyIndex }), ...(b.custom === true || existing?.custom === true ? {custom:true} : {}), name:label(b.name), start:b.start, end:b.end, headcounts:structuredClone(headcounts), ...(Object.keys(partTimes).length ? {partTimes} : {}) };
   });
   if (new Set(normalized.map(b => b.id)).size !== bands.length || new Set(normalized.map(b => b.legacyIndex).filter(i => i !== undefined)).size !== normalized.filter(b => b.legacyIndex !== undefined).length) fail('중복 시간대 ID를 확인해 주세요.');
   return normalized;
@@ -92,6 +100,10 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
       break;
     }
     case 'save_workplace_hours': {
+      if (input.businessDayStart !== undefined) {
+        if (typeof input.businessDayStart !== 'string' || !/^(?:[01]\d|2[0-3]):(?:00|30)$/.test(input.businessDayStart)) fail('영업일 경계는 30분 단위로 선택해 주세요.');
+        config.businessDayStart = input.businessDayStart;
+      }
       if (!input.days || Object.keys(input.days).length !== 7) fail('일주일 영업시간을 확인해 주세요.');
       const next = {};
       for (let day=1; day<=7; day++) {

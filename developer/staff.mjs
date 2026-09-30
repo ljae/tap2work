@@ -1,3 +1,4 @@
+import { actualDate, businessDate } from './business_day.mjs';
 import { mutateShiftRequest } from './shift_requests.mjs';
 import { mutateCrewPattern } from './crew_patterns.mjs';
 import { payrollSettings, savePayrollSettings, settlementPeriod, roundedWorkMinutes } from './payroll_settings.mjs';
@@ -67,7 +68,7 @@ function validShift(input, state) {
   if (input.timeBandId != null && (typeof input.timeBandId !== 'string' || !input.timeBandId || input.timeBandId.length > 100)) fail('시간대 ID를 확인해 주세요.');
   const employmentType = input.employmentType ?? tapper.employmentType ?? '시간알바';
   if (!employmentTypes.includes(employmentType)) fail('고용형태를 확인해 주세요.');
-  return { ...(input.timeBandId ? {timeBandId: input.timeBandId} : {}), ...(Object.hasOwn(input,'label') ? {label:safeText(input.label,100,'근무 이름',false)} : {}), tapperId: tapper.id, partId, duty: input.duty ?? state.workplace?.parts.find(p => p.id === partId)?.duties?.[0] ?? partId, date: input.date, start: input.start, end: input.end, employmentType };
+  return { ...(input.timeBandId ? {timeBandId: input.timeBandId} : {}), ...(Object.hasOwn(input,'label') ? {label:safeText(input.label,100,'근무 이름',false)} : {}), tapperId: tapper.id, partId, duty: input.duty ?? state.workplace?.parts.find(p => p.id === partId)?.duties?.[0] ?? partId, date: input.dateIsBusinessDay === true ? actualDate(state,input.date,input.start) : input.date, start: input.start, end: input.end, employmentType };
 }
 function interval(shift) {
   const start = Date.parse(`${shift.date}T${shift.start}:00+09:00`);
@@ -303,7 +304,7 @@ export function staffView(state, actor, now) {
     else { delete view.hourlyWon; delete view.payPeriod; delete view.payPeriodStart; delete view.kakaoUrl; delete view.phone; }
     return view;
   });
-  return { ...(owner ? {payrollSettings:payrollSettings(state),labor: laborView(state, id => completedSessions(state.attendance.filter(e => e.tapperId === id)), day)} : {}), staffingSlots: staffingSlots(state), tappers, staffShifts: state.staffShifts, attendance: state.attendance.filter(e => owner || e.tapperId === own?.id),
+  return { ...(owner ? {payrollSettings:payrollSettings(state),labor: laborView(state, id => completedSessions(state.attendance.filter(e => e.tapperId === id)), day)} : {}), staffingSlots: staffingSlots(state), tappers, staffShifts: state.staffShifts.map(s=>({...s,businessDate:businessDate(state,`${s.date}T${s.start}:00+09:00`)})), attendance: state.attendance.filter(e => owner || e.tapperId === own?.id),
     payAdjustments: owner ? state.payAdjustments : [], payRecords: owner ? state.payRecords : [], payPolicy: owner ? state.payPolicy : undefined };
 }
 

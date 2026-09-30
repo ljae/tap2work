@@ -1,3 +1,5 @@
+import 'time_wheel.dart';
+import 'hours_timetable.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -347,6 +349,10 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   late List<Json> parts =
       (jsonDecode(jsonEncode(storeParts(widget.ops))) as List).cast<Json>();
   late Json days = initialDays();
+  late String businessDayStart =
+      ops.data?['workplace']?['businessDayStart'] ?? '00:00';
+  String? hoursPart;
+  bool showHoursList = false;
   Json initialDays() {
     final saved =
         jsonDecode(jsonEncode(ops.data?['workplace']?['days'] ?? {})) as Json;
@@ -499,6 +505,11 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     child: Text(text, style: AppText.caption),
   );
   List<Json> get dayBands => (days['$weekday'] as List? ?? []).cast<Json>();
+  List<Json> get operatingBands {
+    final base = dayBands.where((b) => b['custom'] != true).toList();
+    return base.isEmpty ? dayBands : base;
+  }
+
   String newBandId() =>
       'custom-${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(0x100000000)}';
 
@@ -658,9 +669,11 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     }
     final hours = ops.data?['store']?['profile']?['hours'] as Json? ?? {};
     final start = _minute(
-      base.firstOrNull?['start'] ?? hours['opening'] ?? '09:00',
+      operatingBands.firstOrNull?['start'] ?? hours['opening'] ?? '09:00',
     );
-    var end = _minute(base.lastOrNull?['end'] ?? hours['closing'] ?? '22:00');
+    var end = _minute(
+      operatingBands.lastOrNull?['end'] ?? hours['closing'] ?? '22:00',
+    );
     if (end <= start) end += 1440;
     if (end - start < count * 30) {
       setState(() => error = '시간대당 30분 이상 필요해요.');
@@ -668,6 +681,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     }
     final resetsSettings =
         dirty ||
+        custom.isNotEmpty ||
         base.length > 1 ||
         base.any(
           (b) =>
@@ -681,7 +695,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         builder: (c) => AlertDialog(
           title: const Text('교대 기본값을 적용할까요?'),
           content: const Text(
-            '기본 교대의 이름·시간·필요 인원을 다시 나눠요. 추가한 시간대와 연결된 시간대 ID는 유지해요. 줄어든 교대 중 업무가 연결된 시간대는 추가 시간대로 남아요.',
+            '기본 교대의 이름·공통 시간을 다시 나눠요. 기존 파트별 시간과 필요 인원은 유지해요. 추가한 시간대와 연결된 시간대 ID는 유지해요. 줄어든 교대 중 업무가 연결된 시간대는 추가 시간대로 남아요.',
           ),
           actions: [
             TextButton(
@@ -707,10 +721,15 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         for (var i = 0; i < count; i++)
           {
             'id': base.elementAtOrNull(i)?['id'] ?? newBandId(),
+            if (base.elementAtOrNull(i)?['partTimes'] != null)
+              'partTimes': base[i]['partTimes'],
             if (base.elementAtOrNull(i)?['legacyIndex'] != null)
               'legacyIndex': base[i]['legacyIndex'],
             'headcounts': {
-              for (final p in parts) p['id']: p['hidden'] == true ? 0 : 1,
+              for (final p in parts)
+                p['id']: p['hidden'] == true
+                    ? 0
+                    : (base.elementAtOrNull(i)?['headcounts']?[p['id']] ?? 1),
             },
             'name': names[i],
             'start': _time(
@@ -746,18 +765,14 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   Future<void> editBoundary(int index, bool start) async {
     final row = dayBands[index];
     final value = _minute(row[start ? 'start' : 'end']);
-    final chosen = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: value ~/ 60, minute: value % 60),
+    final chosen = await showTimeWheel(
+      context,
+      title: start ? '시작 시간' : '종료 시간',
+      value: _time(value),
     );
     if (chosen == null || !mounted) return;
-    if (chosen.minute != 0 && chosen.minute != 30) {
-      setState(() => error = '00분 또는 30분을 선택해 주세요.');
-      return;
-    }
-    final text = _time(chosen.hour * 60 + chosen.minute);
     update(() {
-      row[start ? 'start' : 'end'] = text;
+      row[start ? 'start' : 'end'] = chosen;
     });
   }
 
@@ -799,6 +814,117 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       style: AppText.caption,
     ),
     section('2. 영업일의 교대와 시간을 정해 주세요'),
+    AppTimeField(
+      label: '영업일 경계',
+      value: businessDayStart,
+      onChanged: canDraftHours
+          ? (v) => update(() => businessDayStart = v)
+          : null,
+    ),
+    const Text(
+      '경계 이전 시각은 전날 영업일에 속해요. 실제 출퇴근 시각과 완료 기록은 유지해요.',
+      style: AppText.caption,
+    ),
+    const SizedBox(height: 16),
+    OutlinedButton.icon(
+      onPressed: () => showAppFormSheet<void>(
+        context: context,
+        builder: (c) => StatefulBuilder(
+          builder: (c, refresh) => AppSheetPanel(
+            title: const Text('요일별 영업시간'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ChoiceChip(
+                      label: const Text('공통 교대'),
+                      selected: hoursPart == null,
+                      onSelected: (_) {
+                        setState(() => hoursPart = null);
+                        refresh(() {});
+                      },
+                    ),
+                    for (final p in parts.where((p) => p['hidden'] != true))
+                      ChoiceChip(
+                        label: Text(p['name']),
+                        selected: hoursPart == p['id'],
+                        onSelected: (_) {
+                          setState(() => hoursPart = p['id']);
+                          refresh(() {});
+                        },
+                      ),
+                  ],
+                ),
+                HoursTimetable(
+                  days: days,
+                  parts: parts,
+                  partId: hoursPart,
+                  boundary: businessDayStart,
+                  editable: canDraftHours,
+                  onChange: (day, id, start, end) {
+                    update(() {
+                      final row = (days['$day'] as List).firstWhere(
+                        (b) => b['id'] == id,
+                      );
+                      if (hoursPart == null) {
+                        row['start'] = start;
+                        row['end'] = end;
+                      } else {
+                        row['partTimes'] ??= <String, dynamic>{};
+                        row['partTimes'][hoursPart] = {
+                          'start': start,
+                          'end': end,
+                        };
+                      }
+                    });
+                    refresh(() {});
+                  },
+                ),
+                if (hoursPart != null)
+                  TextButton(
+                    onPressed: canDraftHours
+                        ? () {
+                            update(() {
+                              for (final rows in days.values) {
+                                for (final row in rows) {
+                                  (row['partTimes'] as Map?)?.remove(hoursPart);
+                                }
+                              }
+                            });
+                            refresh(() {});
+                          }
+                        : null,
+                    child: const Text('이 파트를 공통 시간으로 되돌리기'),
+                  ),
+                Text(
+                  hoursPart == null
+                      ? '공통 교대를 조정해요. 별도 파트 시간은 유지해요.'
+                      : '선택한 파트만 공통 교대에서 분리해 조정해요.',
+                  style: AppText.caption,
+                ),
+                const Text(
+                  '위·아래 손잡이를 끌거나 블록을 눌러 시간을 바꿔요. 변경은 이전 화면에서 저장해 주세요.',
+                  style: AppText.caption,
+                ),
+              ],
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(c),
+                child: const Text('설정으로 돌아가기'),
+              ),
+            ],
+          ),
+        ),
+      ),
+      icon: const Icon(CupertinoIcons.calendar),
+      label: const Text('요일별 시간표 조정'),
+    ),
+    const SizedBox(height: 16),
     Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -816,6 +942,30 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     if (dayBands.isEmpty)
       const Information('휴무일이에요. 위에서 영업일을 선택하거나 휴무를 해제해 주세요.'),
     if (dayBands.isNotEmpty) ...[
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          AppTimeField(
+            label: '영업 시작',
+            value: operatingBands.first['start'],
+            onChanged: canDraftHours
+                ? (v) => update(() => operatingBands.first['start'] = v)
+                : null,
+          ),
+          AppTimeField(
+            label: '영업 종료',
+            value: operatingBands.last['end'],
+            onChanged: canDraftHours
+                ? (v) => update(() => operatingBands.last['end'] = v)
+                : null,
+          ),
+        ],
+      ),
+      const Text(
+        '영업시간을 정한 뒤 교대 수를 선택하면 균등 분할해요. 시간표에서 각 블록을 다시 조정할 수 있어요.',
+        style: AppText.caption,
+      ),
       Wrap(
         spacing: 8,
         runSpacing: 8,
@@ -1358,7 +1508,10 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   Future<void> saveSection() async {
     switch (widget.section) {
       case 'hours':
-        await save('save_workplace_hours', {'days': days});
+        await save('save_workplace_hours', {
+          'days': days,
+          'businessDayStart': businessDayStart,
+        });
       case 'parts':
         await save('save_workplace_parts', {'parts': parts});
         if (mounted && error == null) {

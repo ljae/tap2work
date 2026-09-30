@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 125,
+  "revision": 128,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -638,6 +638,16 @@
       "reason": "사용자가 5가지 질의의 답과 전체 UI/UX 검토를 명시했다. 중복 금지 답변은 이후 중복 허용 지시로 대체되었다.",
       "source": "사용자 답변 · 2026-09-30",
       "updatedAt": "2026-09-30"
+    },
+    {
+      "id": "D-064",
+      "category": "영업시간·영업일·공통 시간 입력",
+      "title": "숫자 휠과 요일별 교대 시간표 및 영업일 경계",
+      "status": "confirmed",
+      "decision": "공통 교대를 기본으로 필요 시 파트별 시작·종료를 분리한다. 선택한 시간대 블록만 독립 수정하고 겹침·빈 구간을 표시한다. 숫자 휠과 드래그는 30분 단위다. 매장별 영업일 경계를 설정하고 업무·근무의 영업일 구분과 누구나 담당 범위에 적용한다. 기존 ID·완료 기록·실제 출퇴근 시각은 보존한다.",
+      "reason": "사용자가 네 가지 선택을 명시했다. 이전 자정 기준 고정과 목록/시계형 시간 입력을 매장 경계 및 공통 숫자 휠로 변경한다. 기존 매장은 경계를 직접 바꾸기 전 00:00을 유지한다.",
+      "source": "사용자 답변 · 2026-09-30",
+      "updatedAt": "2026-09-30T13:01:23.027758+00:00"
     }
   ],
   "milestones": [
@@ -4764,7 +4774,28 @@
       "title": "Deploy and verify shared time-band assignments and UI improvements",
       "detail": "Operations Supabase function deployed; web ce87cce5459dd4b6096305efa8822fc470ff765e published at https://tap2.work via Pages36707128826. Live unmodified web bundle verified at 390x844: login GET200, roster hours, add time band, connected work, scheduled assignment preselected part/band, save action visible, discard draft. Browser-only GET fixture; operations POST blocked and zero save requests. Screenshots reviewed; no real-store edits performed by smoke actions.",
       "verification": "GitHub CI successful: server142, Flutter222, analysis, JS/UI-link checks, web build and deploy. Web-only bit-shift bug found during initial deployment smoke fixed and reverified. Live smoke band/apply/assignment/save each1, writes0, pageerrors0; accessibility tree confirms scheduled mode/part/band checked. Native builds and physical screen-reader certification not performed."
+    },
+    {
+      "at": "2026-09-30T13:01:23.027758+00:00",
+      "type": "development",
+      "title": "Implement operational-day boundary, per-part band times and shared wheel timetable",
+      "detail": "Previous: midnight-only daily operations, list-based hours and mixed time controls. Next: businessDayStart with default00:00; partTimes preserves band IDs; half-hour wheel used by hours, bands, recurring crew assignments, shift edits and change requests. Weekly timetable independently resizes endpoints and shows overlapping lanes/gaps. Attendance/payroll wall-clock data is not rewritten. Source business-day dates convert to real next-day dates for roster mutation and recurrence; daily Tasks snapshot boundary/window. UI and server verification in progress; no production settings changed.",
+      "verification": "Server146/146 before adding final API boundary test; new boundary suite5/5 including next-morning repeat apply and completed-history preservation. Hours/calendar targeted17/17. Full Flutter run and static analysis underway; first full run exposed two obsolete picker/viewport assertions, updated for new controls. Deployment pending."
+    },
+    {
+      "at": "2026-09-30T13:06:59.146133+00:00",
+      "type": "verification",
+      "title": "Verify business-day integration and web wheel/timetable preview",
+      "detail": "API boundary tests confirm 06:00 exact turnover, year rollover, next-day actual roster dates, same-band part overrides, operational anyone window, repeat reapply no duplicates and immutable completed history. Built web bundle smoke on390px opens wheel and weekly timetable with GET-only injected fixture; zero writes/errors. Visual review reduced wheel sheet to preferredHeight and timetable scale to1.6px/min; fixed large-text day header height and union-based gap detection.",
+      "verification": "Server147/147; earlier Flutter full227/227 and clean analysis. Final layout follow-up initially exposed3 header overflows; fixed, related16/16 passed. Final full suite/analysis and web visual rerun underway. No deployment yet."
+    },
+    {
+      "at": "2026-09-30T13:07:49.382433+00:00",
+      "type": "verification",
+      "title": "Complete business-hours UI and server release checks",
+      "detail": "Final built web preview at390px shows compact hour/minute wheel and weekly timetable at readable scale, fixed time axis, overlap lanes and part filter. Fixture is injected only in browser GET; all operations POST blocked. No production settings or records changed.",
+      "verification": "Server147/147; Flutter analysis clean; JS checks and UI-link30 pass; Flutter full suite result in final release verification. Web release build succeeded; preview smoke wheel/timetable true, writes0, errors0; screenshots visually reviewed. Native and physical VoiceOver/TalkBack not run. Deployment pending."
     }
   ],
-  "updatedAt": "2026-09-30T11:18:33.222387+00:00"
+  "updatedAt": "2026-09-30T13:07:49.382433+00:00"
 }

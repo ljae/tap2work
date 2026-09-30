@@ -1,3 +1,4 @@
+import 'time_wheel.dart';
 import 'payroll_settings_screen.dart';
 import 'workplace_screens.dart';
 import 'package:flutter/cupertino.dart';
@@ -249,11 +250,20 @@ class _TeamScreenState extends State<TeamScreen> {
               PressBounce(
                 child: OutlinedButton(
                   onPressed: () async {
-                    final next = await showTimePicker(
-                      context: context,
-                      initialTime: start,
+                    final next = await showTimeWheel(
+                      context,
+                      title: '시작 시간',
+                      value:
+                          '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}',
                     );
-                    if (next != null) update(() => start = next);
+                    if (next != null) {
+                      update(
+                        () => start = TimeOfDay(
+                          hour: int.parse(next.split(':')[0]),
+                          minute: int.parse(next.split(':')[1]),
+                        ),
+                      );
+                    }
                   },
                   child: Text('시작 ${start.format(context)}'),
                 ),
@@ -261,11 +271,20 @@ class _TeamScreenState extends State<TeamScreen> {
               PressBounce(
                 child: OutlinedButton(
                   onPressed: () async {
-                    final next = await showTimePicker(
-                      context: context,
-                      initialTime: end,
+                    final next = await showTimeWheel(
+                      context,
+                      title: '종료 시간',
+                      value:
+                          '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}',
                     );
-                    if (next != null) update(() => end = next);
+                    if (next != null) {
+                      update(
+                        () => end = TimeOfDay(
+                          hour: int.parse(next.split(':')[0]),
+                          minute: int.parse(next.split(':')[1]),
+                        ),
+                      );
+                    }
                   },
                   child: Text('종료 ${end.format(context)}'),
                 ),

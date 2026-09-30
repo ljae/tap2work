@@ -1,3 +1,4 @@
+import 'time_wheel.dart';
 import 'package:flutter/gestures.dart';
 import 'shift_change_panel.dart';
 import '../domain/korean_holidays.dart';
@@ -87,6 +88,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   });
   Json slotInput(RosterSlot slot) => {
     'date': slot.date,
+    if (slot.shiftId != null) 'dateIsBusinessDay': true,
     'partId': slot.partId,
     'start': slot.start,
     'end': slot.end,
@@ -164,6 +166,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         .act(payload['id'] == null ? 'save_roster_slot' : 'save_staff_shift', {
           ...payload,
           'date': rosterDate(day),
+          if (payload['id'] != null) 'dateIsBusinessDay': true,
           'partId': part.id,
           'start': rosterClock(minute),
           'end': rosterClock(minute + duration),
@@ -398,30 +401,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     style: AppText.title,
                   ),
                   const SizedBox(height: 16),
-                  AppPicker<String>(
+                  AppTimeField(
                     label: '시작 시간',
                     value: start,
-                    items: [
-                      for (var m = 0; m < 1440; m += 30)
-                        DropdownMenuItem(
-                          value: rosterClock(m),
-                          child: Text(rosterClock(m)),
-                        ),
-                    ],
-                    onChanged: (v) => update(() => start = v!),
+
+                    onChanged: (v) => update(() => start = v),
                   ),
                   const SizedBox(height: 16),
-                  AppPicker<String>(
+                  AppTimeField(
                     label: '종료 시간',
                     value: end,
-                    items: [
-                      for (var m = 0; m < 1440; m += 30)
-                        DropdownMenuItem(
-                          value: rosterClock(m),
-                          child: Text(rosterClock(m)),
-                        ),
-                    ],
-                    onChanged: (v) => update(() => end = v!),
+
+                    onChanged: (v) => update(() => end = v),
                   ),
                   if (end.compareTo(start) < 0)
                     const Padding(
@@ -477,6 +468,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           ? 'save_shift_pattern'
                           : 'save_staff_shift',
                       'date': slot.date,
+                      if (crewId != null) 'dateIsBusinessDay': true,
                       'partId': slot.partId,
                       'start': start,
                       'end': end,
@@ -1001,6 +993,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     builder: (context, _) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          '영업일 기준 · ${ops.data?['workplace']?['businessDayStart'] ?? '00:00'}부터 다음날 같은 시각까지',
+          style: AppText.caption,
+        ),
         ShiftChangePanel(ops: ops),
         if (!ops.isLeader)
           const Padding(

@@ -1,3 +1,4 @@
+import 'time_wheel.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../domain/part_schedule.dart';
@@ -163,7 +164,17 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                         child: Text(p['name']),
                       ),
                   ],
-                  onChanged: (v) => update(() => part = v!),
+                  onChanged: (v) => update(() {
+                    part = v!;
+                    final band = bands
+                        .where((b) => b['id'] == bandId)
+                        .firstOrNull;
+                    if (band != null) {
+                      start =
+                          band['partTimes']?[part]?['start'] ?? band['start'];
+                      end = band['partTimes']?[part]?['end'] ?? band['end'];
+                    }
+                  }),
                 ),
                 const SizedBox(height: 16),
                 AppPicker<String>(
@@ -174,15 +185,18 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                     for (final b in bands)
                       DropdownMenuItem(
                         value: b['id'] as String,
-                        child: Text('${b['name']} · ${b['start']}–${b['end']}'),
+                        child: Text(
+                          '${b['name']} · ${b['partTimes']?[part]?['start'] ?? b['start']}–${b['partTimes']?[part]?['end'] ?? b['end']}',
+                        ),
                       ),
                   ],
                   onChanged: (v) => update(() {
                     bandId = v!;
                     final band = bands.where((b) => b['id'] == v).firstOrNull;
                     if (band != null) {
-                      start = band['start'];
-                      end = band['end'];
+                      start =
+                          band['partTimes']?[part]?['start'] ?? band['start'];
+                      end = band['partTimes']?[part]?['end'] ?? band['end'];
                     }
                   }),
                 ),
@@ -190,18 +204,12 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                 for (final isStart in [true, false])
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: AppPicker<String>(
+                    child: AppTimeField(
                       label: isStart ? '시작' : '종료',
                       value: isStart ? start : end,
-                      items: [
-                        for (var m = 0; m < 1440; m += 30)
-                          DropdownMenuItem(
-                            value: rosterClock(m),
-                            child: Text(rosterClock(m)),
-                          ),
-                      ],
+
                       onChanged: (v) =>
-                          update(() => isStart ? start = v! : end = v!),
+                          update(() => isStart ? start = v : end = v),
                     ),
                   ),
                 if (end.compareTo(start) < 0)

@@ -1,3 +1,4 @@
+import 'time_wheel.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -67,19 +68,13 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
   }
 
   Future<void> time(bool first) async {
-    final v = (first ? start : end).split(':').map(int.parse).toList();
-    final t = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: v[0], minute: v[1]),
+    final value = await showTimeWheel(
+      context,
+      title: first ? '시작 시간' : '종료 시간',
+      value: first ? start : end,
     );
-    if (t == null || !mounted) return;
+    if (value == null || !mounted) return;
     setState(() {
-      if (t.minute % 30 != 0) {
-        error = '00분 또는 30분을 선택해 주세요.';
-        return;
-      }
-      final value =
-          '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
       if (first) {
         start = value;
       } else {

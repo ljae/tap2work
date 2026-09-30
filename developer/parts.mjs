@@ -1,3 +1,4 @@
+import { bandForPart } from './business_day.mjs';
 // Stable part IDs are the operational classification. Rank remains authorization.
 import { StoreError } from './store.mjs';
 export function defaultWorkplace() {
@@ -91,7 +92,7 @@ export function rosterTemplates(state) {
       for (const part of partsOf(state).filter(p => !p.hidden)) for (const [index, band] of bands.entries()) {
         const count = band.headcounts?.[part.id] ?? (band.custom === true ? 0 : 1);
         const key = band.legacyIndex ?? band.id ?? index;
-        for (let seat=0; seat<count; seat++) result.push({ id: `band-${weekday}-${part.id}-${key}${seat ? `-seat-${seat}` : ''}`, weekday, bandId: band.id ?? `legacy-band-${weekday}-${index}`, partId: part.id, name: band.name, start: band.start, end: band.end, source: 'hours' });
+        for (let seat=0; seat<count; seat++) result.push({ id: `band-${weekday}-${part.id}-${key}${seat ? `-seat-${seat}` : ''}`, weekday, bandId: band.id ?? `legacy-band-${weekday}-${index}`, partId: part.id, name: band.name, start: bandForPart(band,part.id).start, end: bandForPart(band,part.id).end, source: 'hours' });
       }
     } else {
       for (const slot of state.staffingSlots ?? []) {
