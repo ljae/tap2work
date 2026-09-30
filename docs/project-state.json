@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 115,
+  "revision": 116,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -618,6 +618,16 @@
       "reason": "사용자가 매뉴얼 표시 이름만 변경하는 방식을 명시적으로 선택했다.",
       "source": "사용자 답변 · 2026-09-29",
       "updatedAt": "2026-09-29"
+    },
+    {
+      "id": "D-062",
+      "category": "UI/UX",
+      "title": "맞춤 UI/UX 가이드라인 우선 참조",
+      "status": "confirmed",
+      "decision": "신규 UI/UX와 개선 작업은 docs/UI_UX_GUIDELINES.md를 우선 참조한다. Toss consumer UX guide를 Aside CLI로 확인하고 기존 tap2work 제품 결정·공통 컴포넌트에 맞춰 적용한다. 기존 TOSS_UI_PROMPT_TEMPLATE.md는 구현 요청용 요약으로 유지한다.",
+      "reason": "사용자가 별도 맞춤 Markdown 가이드와 향후 우선 참조 방식을 요청했다.",
+      "source": "사용자 요청 · 2026-09-30",
+      "updatedAt": "2026-09-30"
     }
   ],
   "milestones": [
@@ -4622,6 +4632,21 @@
         "workflow": "https://github.com/ljae/tap2work/actions/runs/36582531789",
         "site": "https://tap2.work"
       }
+    },
+    {
+      "at": "2026-09-30T09:36:42.835976+00:00",
+      "type": "documentation",
+      "title": "Establish customized UI/UX guide as first design reference",
+      "changes": [
+        {
+          "previous": "TOSS_UI_PROMPT_TEMPLATE.md and scattered UI records were the main UI reference",
+          "next": "UI_UX_GUIDELINES.md is the first design reference; AGENTS, PRODUCT, ARCHITECTURE and the prompt template link to it",
+          "reason": "Explicit user request to consult Toss guide through Aside CLI and create a customized Markdown standard"
+        }
+      ],
+      "detail": "Aside CLI 1.26.916.1741 guide and read-only exec session 640Ur7tn983nwgh7 inspected official page body/canonical URL. Separates general UX principles from Toss mini-app requirements; preserves project palette, four destinations, sheet alignment, manual aliases, permissions, schedules, draft protection and localization groundwork. Includes implementation request template and review checklist. Prompt summary width aligned with current 688/640 component constants. No application or data contracts changed.",
+      "verification": "Five Markdown files passed local relative-link and whitespace checks; check:ui-links passed 30 links. Source compared with design_tokens.dart and design_system.dart. JSON validity and isolated diff checked before commit. Flutter/native tests and deployment not run for this documentation-only change.",
+      "sourceUrl": "https://developers-apps-in-toss.toss.im/landing-page/landing-page-en/design/consumer-ux-guide"
     }
   ],
   "updatedAt": "2026-09-29T14:15:26.040690+00:00"

@@ -1,8 +1,9 @@
 # Toss UI 프롬프트 템플릿 · tap2work
 
-새 화면이나 UI 개선 요청의 맨 앞에 다음 가이드를 붙인다. 이 문서는 사용자 요청으로 정한 앱 디자인 규칙이며 토스의 공식 디자인 시스템 문서는 아니다.
+먼저 [tap2work 맞춤 UI/UX 가이드라인](UI_UX_GUIDELINES.md)을 읽는다. 이 파일은 해당 기준을 구현 요청에 붙이는 요약 템플릿이다. 새 화면이나 UI 개선 요청의 맨 앞에 다음 가이드를 붙인다. 이 문서는 사용자 요청으로 정한 앱 디자인 규칙이며 토스의 공식 디자인 시스템 문서는 아니다.
 
 ```text
+docs/UI_UX_GUIDELINES.md와 최신 확정 결정을 먼저 확인한다.
 Flutter 앱 tap2work의 UI를 다음 공통 규칙으로 구현한다.
 
 1. 모든 텍스트는 앱에 번들된 Pretendard를 사용한다. 화면 제목은 24sp/Bold,
@@ -20,7 +21,7 @@ Flutter 앱 tap2work의 UI를 다음 공통 규칙으로 구현한다.
 6. 설정·편집·상세는 showAppSheet/showModalBottomSheet를 사용한다.
    상단 모서리 28px, 회색의 얇은 중앙 드래그 핸들, SafeArea와 키보드 대응을 제공한다.
    AppEditorScaffold와 AppSheetFooter로 제목 줄바꿈과 하단 저장 동작을 통일한다.
-   AppFormSection의 섹션 제목 18sp, 입력 간격 20px, 읽기 폭 640–760px를 사용한다.
+   AppFormSection의 섹션 제목 18sp, 입력 간격 20px, 공통 편집 폭 688px와 기본 좌우 여백을 뺀 입력/footer 폭 640px를 사용한다.
    저장하지 않은 편집이 있는 시트는 닫기 버튼과 기존 취소 확인으로 나간다.
    이 편집 시트에서는 바깥 탭·끌어내리기 닫기를 막는다. 읽기 상세는 일반 시트를 쓴다.
 7. 데이터 최초 로딩에는 shimmer 패키지의 회색 스켈레톤을 사용한다.
