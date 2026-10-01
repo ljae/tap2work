@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 130,
+  "revision": 131,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4822,7 +4822,14 @@
       "next": "Half-hour coverage subtracts each person once per instant, merging uncovered spans; coral vacancies open assignment. Truncated gaps cannot overwrite source requirements. CrewWeekGrid edits weekly/A-B drafts with weekday columns, time rows and add/edit/delete. Optional wide shared sheet/editor supports seven days on desktop.",
       "reason": "Implement user schedule UI request while preserving existing time-band IDs, opening revision, role checks and explicit pattern application.",
       "verification": "Flutter analyze passed. 33 related tests passed including partial vacancy writes, weekly add/delete, band links, A/B, overnight boundary, multiple required people, drag/resize and shared settings sheets. 19 server schedule/time-band tests passed. UI link contract 30 passed; git diff --check passed. 390/1200 screenshots reviewed; 320/390/1200 enlarged-text widget checks passed. npm run build:app succeeded. Earlier compile references and two obsolete/fixture tests were corrected before the passing run. No deployment or native/device build performed."
+    },
+    {
+      "at": "2026-10-01T10:27:16.755155+00:00",
+      "type": "deployment",
+      "title": "Deploy weekly crew grid and explicit schedule vacancies",
+      "detail": "Published 869235b83d84f84041281f620310a520312dcb28 to https://tap2.work through successful GitHub Pages run 36848676872. Release based on latest origin/main in an isolated checkout, including only schedule changes and related documentation. No backend or store data writes.",
+      "verification": "CI Flutter analysis, 232 Flutter tests, 147 server tests, JS/UI-link checks and production web build/deploy passed. Live HTTPS index.html and main.dart.js exactly matched the CI Pages artifact bytes. Main bundle SHA256 d0355fce280bf6ed02ba8bdaa499cd99388a911cdc64f3dcd0aec650c8174d1d. No native/device build or post-deploy browser interaction performed."
     }
   ],
-  "updatedAt": "2026-10-01T10:13:21.150966+00:00"
+  "updatedAt": "2026-10-01T10:27:16.755155+00:00"
 }
