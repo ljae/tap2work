@@ -181,3 +181,7 @@ Flutter 변경은 분석과 관련 위젯 테스트를 수행한다. 설정 연�
 ### 공통 시간 입력과 주간 시간표 · D-064
 
 영업시간·교대·근무 배정·OFF/단축의 시간 입력은 `AppTimeField`/`showTimeWheel`의 24시간 숫자 휠(시, 00/30분)과 명시적인 취소/적용을 재사용한다. 같은 의미의 입력에 시계형·임의 분 단위·별도 드롭다운을 새로 만들지 않는다. 요일별 시간표는 고정 시간축과 충분한 열 너비/가로 스크롤을 사용하고 시간대 겹침·빈 구간을 표시한다. 선택한 블록만 변경하며 드래그 중 적용 예정 시각을 보인다. 파트 분리는 기존 시간대 ID의 예외로 표시한다. 드래그가 어려운 경우 블록을 눌러 같은 숫자 휠로 수정한다. 영업일 경계 전 시각은 다음날 표시를 제공하며 실제 날짜와 업무 귀속 날짜를 구별한다.
+
+### Assignment result and weekly editor (2026-10-01)
+
+Show actual assignments using crew names/colors and only the uncovered intervals using coral, explicit vacancy text and an assignment action. Crew pattern editing uses weekday columns and time rows: empty cells add, existing blocks edit/delete. Grid-focused editors may opt into a 1440px maximum width. Phones retain a fixed time axis and horizontal scrolling without shrinking text. Ordinary form widths and fixed save footers remain unchanged.

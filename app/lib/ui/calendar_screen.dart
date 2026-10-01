@@ -35,7 +35,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   double resizeOrigin = 0;
   Json? resizePayload;
   String slotKey(RosterSlot s) =>
-      '${s.date}/${s.partId}/${s.shiftId ?? s.templateId}';
+      '${s.date}/${s.partId}/${s.shiftId ?? s.templateId}/${s.start}';
   int shownEnd(RosterSlot s) =>
       resizingId == slotKey(s) ? resizingEnd ?? s.endMinute : s.endMinute;
   Future<void> loadHolidays() async {
@@ -207,6 +207,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget slotFrame(RosterSlot slot, Widget child) {
+    if (slot.vacancy) return child;
     final frame = DirectEditFrame(
       enabled: model.editable,
       active: editMode,
@@ -396,7 +397,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 children: [
                   Text(
                     slot.shiftId == null
-                        ? '슬롯 시간과 크루 배정'
+                        ? '미배정 시간에 크루 배정'
                         : '${slot.name} 근무 조정',
                     style: AppText.title,
                   ),
@@ -424,7 +425,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     label: '담당 크루',
                     value: crewId,
                     items: [
-                      if (slot.shiftId == null)
+                      if (slot.shiftId == null && !slot.vacancy)
                         const DropdownMenuItem(
                           value: null,
                           child: Text('미배정 · 시간만 저장'),
@@ -444,7 +445,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
           actions: [
-            if (slot.adjusted)
+            if (slot.adjusted && !slot.vacancy)
               TextButton(
                 onPressed: () => Navigator.pop(context, {
                   'action': 'reset_roster_slot',
@@ -459,7 +460,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
               child: const Text('취소'),
             ),
             FilledButton(
-              onPressed: start == end || (repeat > 1 && days.isEmpty)
+              onPressed:
+                  start == end ||
+                      (slot.vacancy && crewId == null) ||
+                      (repeat > 1 && days.isEmpty)
                   ? null
                   : () => Navigator.pop(context, {
                       'action': crewId == null
@@ -635,7 +639,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
           style: AppText.caption,
         ),
         const SizedBox(height: 12),
-        const SizedBox(height: 12),
+        const Text('크루 색상은 배정된 근무 · 코랄은 미배정 시간', style: AppText.caption),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (var i = 0; i < days.length; i++)
+                TextButton(
+                  onPressed: () => horizontal.animateTo(
+                    (i * partWidths.values.fold<double>(0, (a, b) => a + b))
+                        .clamp(0, horizontal.position.maxScrollExtent),
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                  ),
+                  child: Text('${days[i].day} ${weekdays[i]}'),
+                ),
+            ],
+          ),
+        ),
         SizedBox(
           height: 640,
           child: Scrollbar(
@@ -892,7 +914,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           '${slots[i].date} ${part.name} ${slots[i].name} ${slots[i].start} ${rosterClock(shownEnd(slots[i]))}',
                       child: Material(
                         color: slots[i].crewId == null
-                            ? AppColors.surface
+                            ? AppColors.accent.withValues(alpha: .08)
                             : crewColor(
                                 slots[i].crewId!,
                               ).withValues(alpha: .12),
@@ -900,18 +922,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
                             color: slots[i].crewId == null
-                                ? AppColors.line
+                                ? AppColors.accent.withValues(alpha: .6)
                                 : crewColor(slots[i].crewId!),
                           ),
                         ),
                         child: InkWell(
                           key: ValueKey(
-                            'roster-${slots[i].date}-${slots[i].partId}-${slots[i].shiftId ?? slots[i].templateId}',
+                            'roster-${slots[i].date}-${slots[i].partId}-${slots[i].shiftId ?? slots[i].templateId}${slots[i].vacancy ? '-${slots[i].start}' : ''}',
                           ),
                           borderRadius: BorderRadius.circular(12),
                           onTap: model.editable
                               ? () {
-                                  if (editMode) {
+                                  if (editMode && !slots[i].vacancy) {
                                     setState(() => selectedSlot = slots[i]);
                                   } else {
                                     edit(slots[i]);
@@ -937,15 +959,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     ),
                                   ),
                                   Text(
-                                    '${slots[i].start}\n${slots[i].overnight ? '다음 날 ' : ''}${rosterClock(shownEnd(slots[i]))}',
+                                    '${slots[i].start}–${slots[i].overnight ? '다음 날 ' : ''}${rosterClock(shownEnd(slots[i]))}',
                                     style: AppText.caption,
                                   ),
                                   Text(
                                     slots[i].crewId == null
-                                        ? '미배정${slots[i].adjusted ? ' · 조정됨' : ''}'
+                                        ? (model.editable
+                                              ? '+ 크루 배정 · 미배정'
+                                              : '미배정')
                                         : '${slots[i].adjusted ? '배정 · 미세조정' : '배정'}${requestLabel(slots[i])}',
                                     style: AppText.caption.copyWith(
-                                      color: AppColors.green,
+                                      color: slots[i].crewId == null
+                                          ? AppColors.accent
+                                          : crewColor(slots[i].crewId!),
                                     ),
                                   ),
                                 ],
@@ -1040,6 +1066,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           style: style,
                           onPressed: () => showAppFormSheet(
                             context: context,
+                            maxWidth: 1440,
                             builder: (_) => CrewPatternScreen(
                               ops: ops,
                               day: model.selected,

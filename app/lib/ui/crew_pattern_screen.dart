@@ -1,4 +1,5 @@
 import 'time_wheel.dart';
+import 'crew_week_grid.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../domain/part_schedule.dart';
@@ -119,7 +120,8 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
     });
   }
 
-  Future<void> add(int weekday, [Json? existing]) async {
+  Future<void> add(int weekday, [Json? existing, int? minute]) async {
+    if (!editable || crewId == null) return;
     final person = people.where((p) => p['id'] == crewId).first;
     final ids = person['workProfile']?['partIds'] as List? ?? [];
     final parts = storeParts(ops)
@@ -140,8 +142,8 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
             .toList();
     String bandId = existing?['timeBandId'] as String? ?? '';
     if (!bands.any((b) => b['id'] == bandId)) bandId = '';
-    var start = existing?['start'] as String? ?? '09:00',
-        end = existing?['end'] as String? ?? '18:00';
+    var start = existing?['start'] as String? ?? rosterClock(minute ?? 540),
+        end = existing?['end'] as String? ?? rosterClock((minute ?? 540) + 60);
     final result = await showAppFormSheet<Json>(
       context: context,
       builder: (c) => StatefulBuilder(
@@ -218,6 +220,12 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
             ),
           ),
           actions: [
+            if (existing != null)
+              TextButton(
+                onPressed: () =>
+                    Navigator.pop(c, <String, dynamic>{'delete': true}),
+                child: const Text('배정 삭제'),
+              ),
             TextButton(
               onPressed: () => Navigator.pop(c),
               child: const Text('취소'),
@@ -242,7 +250,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
     if (result != null && mounted) {
       setState(() {
         if (existing != null) entries.remove(existing);
-        entries.add(result);
+        if (result['delete'] != true) entries.add(result);
         dirty = true;
       });
     }
@@ -342,6 +350,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
     },
     child: AppEditorScaffold(
       title: '크루별 근무 배정',
+      maxWidth: 1440,
       onClose: close,
       footer: AppSheetFooter(
         children: [
@@ -353,7 +362,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
+          constraints: const BoxConstraints(maxWidth: 1440),
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
@@ -379,11 +388,14 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                 values: const [1, 2],
                 selected: cycle,
                 labelOf: (n) => n == 1 ? '매주 동일' : '2주 교대',
-                onSelected: (n) => setState(() {
-                  cycle = n;
-                  week = 0;
-                  dirty = true;
-                }),
+                onSelected: (n) {
+                  if (!editable) return;
+                  setState(() {
+                    cycle = n;
+                    week = 0;
+                    dirty = true;
+                  });
+                },
               ),
               if (cycle == 2) ...[
                 TextButton(
@@ -398,61 +410,21 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                 ),
               ],
               const SizedBox(height: 16),
-              for (var d = 1; d <= 7; d++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Surface(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '${const ['월', '화', '수', '목', '금', '토', '일'][d - 1]}요일',
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: '요일 배정 추가',
-                              onPressed: editable ? () => add(d) : null,
-                              icon: const Icon(Icons.add),
-                            ),
-                          ],
-                        ),
-                        if (!entries.any(
-                          (e) => e['week'] == week && e['weekday'] == d,
-                        ))
-                          const Text('배정 없음', style: AppText.caption),
-                        for (final e in entries.where(
-                          (e) => e['week'] == week && e['weekday'] == d,
-                        ))
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextButton(
-                                  onPressed: editable ? () => add(d, e) : null,
-                                  child: Text(
-                                    '${partLabel(ops, e['partId'])} · ${e['start']}–${e['end']}',
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: '요일 배정 삭제',
-                                onPressed: editable
-                                    ? () => setState(() {
-                                        entries.remove(e);
-                                        dirty = true;
-                                      })
-                                    : null,
-                                icon: const Icon(Icons.delete_outline),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
+              const Text(
+                '빈 시간을 눌러 배정해요. 배정 블록을 누르면 수정·삭제할 수 있어요.',
+                style: AppText.caption,
+              ),
+              const SizedBox(height: 12),
+              CrewWeekGrid(
+                entries: entries.where((e) => e['week'] == week).toList(),
+                crewId: crewId ?? '',
+                boundary:
+                    ops.data?['workplace']?['businessDayStart'] ?? '00:00',
+                editable: editable && crewId != null,
+                partName: (id) => partLabel(ops, id),
+                onAdd: (day, minute) => add(day, null, minute),
+                onEdit: (day, entry) => add(day, entry),
+              ),
               const SizedBox(height: 16),
               const Text('근무표에 적용', style: AppText.title),
               const SizedBox(height: 8),

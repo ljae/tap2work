@@ -79,6 +79,7 @@ Future<T?> showAppSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
   double? preferredHeight,
+  double maxWidth = 880,
 }) => showModalBottomSheet<T>(
   context: context,
   isScrollControlled: true,
@@ -87,7 +88,7 @@ Future<T?> showAppSheet<T>(
   enableDrag: false,
   showDragHandle: false,
   backgroundColor: AppColors.paper,
-  constraints: const BoxConstraints(maxWidth: 880),
+  constraints: BoxConstraints(maxWidth: maxWidth),
   shape: const RoundedRectangleBorder(
     borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
   ),
@@ -155,7 +156,9 @@ class AppEditorScaffold extends StatelessWidget {
     this.subtitle,
     this.footer,
     this.onClose,
+    this.maxWidth = appEditorWidth,
   });
+  final double maxWidth;
   final String title;
   final String? subtitle;
   final Widget body;
@@ -174,7 +177,7 @@ class AppEditorScaffold extends StatelessWidget {
         children: [
           Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: appEditorWidth),
+              constraints: BoxConstraints(maxWidth: maxWidth),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 12, 12, 16),
                 child: Row(
@@ -208,7 +211,7 @@ class AppEditorScaffold extends StatelessWidget {
             child: Align(
               alignment: Alignment.topCenter,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: appEditorWidth),
+                constraints: BoxConstraints(maxWidth: maxWidth),
                 child: SizedBox(width: double.infinity, child: body),
               ),
             ),
@@ -363,10 +366,12 @@ Future<T?> showAppFormSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   double? preferredHeight,
+  double maxWidth = 880,
 }) => showAppSheet<T>(
   context,
   builder: builder,
   preferredHeight: preferredHeight,
+  maxWidth: maxWidth,
 );
 
 class AppSheetPanel extends StatelessWidget {

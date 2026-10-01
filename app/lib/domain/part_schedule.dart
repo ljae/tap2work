@@ -32,10 +32,11 @@ class RosterSlot {
     this.crewId,
     this.adjusted = false,
     this.dayOffset = 0,
+    this.vacancy = false,
   });
   final String date, partId, start, end, name;
   final String? templateId, shiftId, crewId;
-  final bool adjusted;
+  final bool adjusted, vacancy;
   final int dayOffset;
   String get actualDate =>
       rosterDate(DateTime.parse(date).add(Duration(days: dayOffset)));
@@ -72,7 +73,6 @@ List<RosterSlot> slotsForDay(
   final crew = (data['tappers'] as List? ?? []).cast<Json>();
   final result = <RosterSlot>[];
   final seen = <String>{};
-  final matchedShifts = <String>{};
   for (final template in templates.where((t) => t['weekday'] == day.weekday)) {
     final override = overrides
         .where(
@@ -84,30 +84,18 @@ List<RosterSlot> slotsForDay(
     final row = override ?? template;
     seen.add('${template['id']}/${template['partId']}');
     if (row['hidden'] == true) continue;
-    final match = shifts
-        .where(
-          (s) =>
-              !matchedShifts.contains(s['id']) &&
-              s['partId'] == row['partId'] &&
-              s['start'] == row['start'] &&
-              s['end'] == row['end'],
-        )
-        .firstOrNull;
-    if (match != null) matchedShifts.add(match['id']);
-    if (includeCovered || match == null) {
-      result.add(
-        RosterSlot(
-          date: date,
-          partId: row['partId'],
-          start: row['start'],
-          dayOffset: offset(row['start']),
-          end: row['end'],
-          name: row['name'] ?? '영업 시간대',
-          templateId: template['id'],
-          adjusted: override != null,
-        ),
-      );
-    }
+    result.add(
+      RosterSlot(
+        date: date,
+        partId: row['partId'],
+        start: row['start'],
+        dayOffset: offset(row['start']),
+        end: row['end'],
+        name: row['name'] ?? '영업 시간대',
+        templateId: template['id'],
+        adjusted: override != null,
+      ),
+    );
   }
   // A later hours change must not silently discard a date-specific adjustment.
   for (final row in overrides.where(
@@ -160,7 +148,71 @@ List<RosterSlot> slotsForDay(
       ),
     );
   }
-  return result.where((r) => parts.any((p) => p.id == r.partId)).toList();
+  final visible = result
+      .where((r) => parts.any((p) => p.id == r.partId))
+      .toList();
+  if (includeCovered) return visible;
+  // Allocate each person only once at each instant, including split shifts and
+  // shifts that began the previous day. Keep only genuinely uncovered spans.
+  final used = <String>{};
+  final vacancies = <RosterSlot>[];
+  for (final slot in visible.where((s) => s.crewId == null)) {
+    int? gap;
+    void flush(int end) {
+      if (gap == null) return;
+      vacancies.add(
+        RosterSlot(
+          date: slot.date,
+          partId: slot.partId,
+          start: rosterClock(gap!),
+          end: rosterClock(end),
+          dayOffset: gap! ~/ 1440,
+          name: slot.name,
+          templateId: slot.templateId,
+          adjusted: slot.adjusted,
+          vacancy: gap != slot.startMinute || end != slot.endMinute,
+        ),
+      );
+      gap = null;
+    }
+
+    for (var minute = slot.startMinute; minute < slot.endMinute; minute += 30) {
+      final at = DateTime.parse(
+        '${slot.date}T00:00:00+09:00',
+      ).add(Duration(minutes: minute));
+      String? match;
+      for (final shift in (data['staffShifts'] as List? ?? []).cast<Json>()) {
+        if (shift['status'] == 'leave') continue;
+        final part =
+            shift['partId'] ??
+            (shift['duty'] == '조리'
+                ? 'kitchen'
+                : shift['duty'] == 'cashier'
+                ? 'management'
+                : 'hall');
+        final key = '${shift['tapperId']}/${at.millisecondsSinceEpoch}';
+        if (part != slot.partId || used.contains(key)) continue;
+        final start = DateTime.parse(
+          '${shift['date']}T${shift['start']}:00+09:00',
+        );
+        var end = DateTime.parse('${shift['date']}T${shift['end']}:00+09:00');
+        if (!end.isAfter(start)) end = end.add(const Duration(days: 1));
+        if (!start.isAfter(at) &&
+            !end.isBefore(at.add(const Duration(minutes: 30)))) {
+          match = key;
+          break;
+        }
+      }
+      if (match == null) {
+        gap ??= minute;
+      } else {
+        used.add(match);
+        flush(minute);
+      }
+    }
+    flush(slot.endMinute);
+  }
+  return [...visible.where((s) => s.crewId != null), ...vacancies];
 }
 
 /// Count a crew member at most once per half hour, even across two parts or

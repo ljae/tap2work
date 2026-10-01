@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 129,
+  "revision": 130,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -648,6 +648,16 @@
       "reason": "사용자가 네 가지 선택을 명시했다. 이전 자정 기준 고정과 목록/시계형 시간 입력을 매장 경계 및 공통 숫자 휠로 변경한다. 기존 매장은 경계를 직접 바꾸기 전 00:00을 유지한다.",
       "source": "사용자 답변 · 2026-09-30",
       "updatedAt": "2026-09-30T13:01:23.027758+00:00"
+    },
+    {
+      "id": "D-065",
+      "category": "Schedule UI",
+      "title": "Assignment results, explicit vacancies and weekly crew grid",
+      "status": "confirmed",
+      "decision": "Show actual crew assignments and separately mark only uncovered required intervals with an assignment action. Edit crew patterns using weekday columns and time rows, adding via empty cells and editing existing blocks.",
+      "reason": "User requested the supplied schedule reference and a whole-week time-grid assignment workflow.",
+      "source": "User request 2026-10-01 with schedule reference image",
+      "updatedAt": "2026-10-01T10:13:21.150966+00:00"
     }
   ],
   "milestones": [
@@ -4802,7 +4812,17 @@
       "title": "Deploy D-064 business hours wheel and business-day schedule integration",
       "detail": "Published web4ddff51dcd3011afc4e053c8ee6b88fffdae12c1 at https://tap2.work via successful GitHub Pages36719478274; Operations Supabase function deployed. Existing stores keep default00:00 boundary until explicitly saved. Final live unmodified web checked at390px: workspaceGET200, hours boundary wheel/cancel, weekly timetable/back. Browser GET fixture only, operationsPOST blocked. No store settings, attendance, payroll or completed records altered by smoke.",
       "verification": "Local final Flutter227/227, server147/147, analysis clean, JS and UI-link30 checks passed. Release web build and all CI checks/deploy successful. Live smoke wheel=true, timetable=true, writes0, errors0. Compact wheel and timetable screenshots reviewed in compiled web preview. Native build and real-device screen readers not tested."
+    },
+    {
+      "at": "2026-10-01T10:13:21.150966+00:00",
+      "type": "implementation",
+      "title": "Assignment vacancies and weekly crew editor",
+      "decisionId": "D-065",
+      "previous": "Only exact full-slot matches hid requirements; partial assignments left full required blocks visible. Crew patterns used a vertical weekday list.",
+      "next": "Half-hour coverage subtracts each person once per instant, merging uncovered spans; coral vacancies open assignment. Truncated gaps cannot overwrite source requirements. CrewWeekGrid edits weekly/A-B drafts with weekday columns, time rows and add/edit/delete. Optional wide shared sheet/editor supports seven days on desktop.",
+      "reason": "Implement user schedule UI request while preserving existing time-band IDs, opening revision, role checks and explicit pattern application.",
+      "verification": "Flutter analyze passed. 33 related tests passed including partial vacancy writes, weekly add/delete, band links, A/B, overnight boundary, multiple required people, drag/resize and shared settings sheets. 19 server schedule/time-band tests passed. UI link contract 30 passed; git diff --check passed. 390/1200 screenshots reviewed; 320/390/1200 enlarged-text widget checks passed. npm run build:app succeeded. Earlier compile references and two obsolete/fixture tests were corrected before the passing run. No deployment or native/device build performed."
     }
   ],
-  "updatedAt": "2026-09-30T13:12:57.248234+00:00"
+  "updatedAt": "2026-10-01T10:13:21.150966+00:00"
 }

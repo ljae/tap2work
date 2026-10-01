@@ -26,6 +26,98 @@ void main() {
       );
     },
   );
+  testWidgets('weekly cells create and delete draft entries before saving', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 1100);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final data = calendar.calendarData();
+    final writes = <Json>[];
+    final ops = OperationsController(
+      readOnly: false,
+      client: MockClient((r) async {
+        if (r.method == 'POST') writes.add(jsonDecode(r.body) as Json);
+        return response(data);
+      }),
+    );
+    addTearDown(ops.dispose);
+    await ops.refresh();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CrewPatternScreen(ops: ops, day: DateTime(2026, 9, 28)),
+      ),
+    );
+    final cell = find.byKey(const ValueKey('crew-cell-2-600'));
+    await tester.ensureVisible(cell);
+    await tester.tap(cell);
+    await tester.pumpAndSettle();
+    expect(find.text('화요일 배정'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, '반영'));
+    await tester.pumpAndSettle();
+    expect(writes, isEmpty);
+    expect(find.text('10:00–11:00'), findsOneWidget);
+    await tester.tap(find.text('기본 배정 저장'));
+    await tester.pumpAndSettle();
+    final entry = (writes.single['entries'] as List).single;
+    expect(entry['weekday'], 2);
+    expect(entry['start'], '10:00');
+    expect(entry['end'], '11:00');
+    expect(writes.single['revision'], 12);
+    await tester.tap(find.text('10:00–11:00'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('배정 삭제'));
+    await tester.pumpAndSettle();
+    expect(find.text('10:00–11:00'), findsNothing);
+    await tester.tap(find.text('기본 배정 저장'));
+    await tester.pumpAndSettle();
+    expect(writes.last['entries'], isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('partial vacancy assigns only the uncovered time', (
+    tester,
+  ) async {
+    final data = calendar.calendarData();
+    data['staffShifts'] = [
+      {
+        'id': 'a',
+        'tapperId': 'cook',
+        'partId': 'kitchen',
+        'date': '2026-09-28',
+        'start': '09:00',
+        'end': '10:00',
+      },
+    ];
+    Json? written;
+    await calendar.mount(
+      tester,
+      data: data,
+      readOnly: false,
+      width: 1200,
+      write: (v) => written = v,
+    );
+    final gap = find.byKey(
+      const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0-10:00'),
+    );
+    await tester.tap(gap);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '저장'))
+          .onPressed,
+      isNull,
+    );
+    await tester.tap(find.widgetWithText(ChoiceChip, '현우'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, '저장'));
+    await tester.pumpAndSettle();
+    expect(written?['action'], 'save_staff_shift');
+    expect(written?['start'], '10:00');
+    expect(written?['end'], '14:00');
+    expect(written?['revision'], 12);
+    expect(written?['templateId'], isNull);
+  });
   testWidgets(
     'drag ghost predicts saved time and resizing keeps opening revision',
     (tester) async {

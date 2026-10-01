@@ -230,3 +230,9 @@ Assignment projection performance: one response-scoped assignmentContext indexes
 - 일별 업무의 `date`와 `state.day`는 영업일이다. 새로운 실행은 `businessDayStart`와 시간대의 `assignmentWindow`/파트 예외를 스냅샷으로 보관한다. 기존 실행·완료 이력은 재날짜 지정하지 않는다. 누구나 담당은 해당 실행 영업일 경계부터 24시간의 실제 근무 교집합이다. 출퇴근 원본, 급여·매출의 실제 날짜 계산은 바꾸지 않는다.
 - 숫자 휠은 `time_wheel.dart` 한 구현을 사용한다. 영업시간, 시간대, 반복 배정, 날짜별 근무, OFF·단축 신청에서 동일한 24시간/30분 입력·취소/적용을 사용한다.
 - `hours_timetable.dart`는 공통/파트별 요일 시간표를 렌더링한다. 왼쪽 시간축, 가로 스크롤 요일열, 겹침 레인, 독립적인 시작/종료 드래그와 적용 예정 시각을 제공한다. 수치 편집을 대안으로 제공한다. 시간표는 설정 초안을 수정하고 상위 화면의 revision 기반 일괄 저장을 사용한다.
+
+## Weekly assignment results (2026-10-01)
+
+slotsForDay subtracts effective crew coverage from required slots in 30-minute increments, counting each person once per instant. Consecutive uncovered intervals become vacancy blocks; partial, split and previous-night shifts count. includeCovered retains requirements for coverage totals. Assigned blocks use crew colors; vacancies use coral and an explicit assignment action. A truncated vacancy is assignment-only: it cannot overwrite, resize or delete the source requirement. Fully empty source slots retain date-specific time editing.
+
+CrewWeekGrid replaces the vertical weekday list with weekday columns and time rows for the selected crew's weekly/A-B draft. Empty cells open a one-hour draft starting at the selected half hour; existing blocks open edit/delete. Common time wheels, parts and stable band selection remain. Drafts write only through save_crew_pattern; explicit range application retains existing protections. Overlapping drafts use adjacent lanes and server validation. The time axis stays fixed during horizontal scrolling. The shared sheet/editor has an optional maximum width of 1440 for this grid; ordinary form defaults remain unchanged.

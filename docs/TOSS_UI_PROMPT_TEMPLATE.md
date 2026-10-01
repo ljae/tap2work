@@ -54,3 +54,5 @@ Flutter 3.41.2에서 사용 가능한 `shimmer` 3.0.0을 잠금 파일과 함께
 2026-09-28 추가: 아키텍처와 화면 구성의 현재 기준은 [ARCHITECTURE.md](ARCHITECTURE.md). 직무 대신 파트, 사람은 크루로 표기한다. 선택 UI는 업무의 파트 필터와 같은 pill로 통일한다. 근무표는 고정 시간축/요일별 파트열을 사용하며 글자를 줄이는 대신 스크롤과 열 폭 확대로 가독성을 확보한다.
 
 2026-09-28 가독성 추가 기준: [UI_READABILITY_2026-09-28.md](UI_READABILITY_2026-09-28.md). 개선된 공통 폼/시트 패턴을 기존 화면에도 적용한다. 웹 파일 로딩 → Flutter 초기화 → 매장 snapshot까지 일관된 로딩을 제공하며 가짜 진행률·강제 대기시간을 넣지 않는다.
+
+2026-10-01: distinguish assigned work from partially uncovered intervals. Crew pattern editing uses weekday columns and time rows, with empty-cell add and block edit/delete. Grid-focused editors may opt into a 1440px maximum width; ordinary forms retain the 688px default.

@@ -210,7 +210,7 @@ void main() {
         home: CrewPatternScreen(ops: ops, day: DateTime(2026, 10, 5)),
       ),
     );
-    await tester.tap(find.byTooltip('요일 배정 추가').first);
+    await tester.tap(find.byKey(const ValueKey('crew-cell-1-540')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('오전 · 09:00–14:00'));
     await tester.pumpAndSettle();
