@@ -185,3 +185,7 @@ Flutter 변경은 분석과 관련 위젯 테스트를 수행한다. 설정 연�
 ### Assignment result and weekly editor (2026-10-01)
 
 Show actual assignments using crew names/colors and only the uncovered intervals using coral, explicit vacancy text and an assignment action. Crew pattern editing uses weekday columns and time rows: empty cells add, existing blocks edit/delete. Grid-focused editors may opt into a 1440px maximum width. Phones retain a fixed time axis and horizontal scrolling without shrinking text. Ordinary form widths and fixed save footers remain unchanged.
+
+### 날짜별 파트 카드 · 2026-10-01
+
+근무표의 기본 주간 보기는 선택 날짜를 초록 밑줄로 표시하고 파트를 세로 카드로 묶는다. 크루 이름·이니셜·근무 시간·배정 상태를 표시하며 미배정은 코랄 아이콘과 문구로 구분한다. 사진이 없는 크루의 사진을 임의로 만들지 않는다. 하나의 카드는 파트 폭을 채우고 복수 카드는 화면 폭/글자 배율에 맞춰 줄바꿈한다. 시간축 조정은 명시적인 시간표 보기로 접근한다.

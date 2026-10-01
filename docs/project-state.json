@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 131,
+  "revision": 133,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -658,6 +658,16 @@
       "reason": "User requested the supplied schedule reference and a whole-week time-grid assignment workflow.",
       "source": "User request 2026-10-01 with schedule reference image",
       "updatedAt": "2026-10-01T10:13:21.150966+00:00"
+    },
+    {
+      "id": "D-066",
+      "category": "근무표 UI",
+      "title": "날짜 탭과 파트별 근무 카드",
+      "status": "confirmed",
+      "decision": "사용자 제공 이미지에 맞춰 기본 주간 보기를 날짜 탭과 세로 파트 카드로 구성한다. 크루 이름·시간·배정 상태와 미배정을 구분한다. 기존 시간축은 시간표 보기에서 유지한다.",
+      "reason": "사용자가 해당 이미지와 유사한 달력 근무표 UI 개선을 요청했다.",
+      "source": "사용자 이미지 요청 · 2026-10-01",
+      "updatedAt": "2026-10-01T11:49:31.824390+00:00"
     }
   ],
   "milestones": [
@@ -4829,7 +4839,17 @@
       "title": "Deploy weekly crew grid and explicit schedule vacancies",
       "detail": "Published 869235b83d84f84041281f620310a520312dcb28 to https://tap2.work through successful GitHub Pages run 36848676872. Release based on latest origin/main in an isolated checkout, including only schedule changes and related documentation. No backend or store data writes.",
       "verification": "CI Flutter analysis, 232 Flutter tests, 147 server tests, JS/UI-link checks and production web build/deploy passed. Live HTTPS index.html and main.dart.js exactly matched the CI Pages artifact bytes. Main bundle SHA256 d0355fce280bf6ed02ba8bdaa499cd99388a911cdc64f3dcd0aec650c8174d1d. No native/device build or post-deploy browser interaction performed."
+    },
+    {
+      "at": "2026-10-01T11:49:31.824390+00:00",
+      "type": "implementation",
+      "title": "날짜 선택과 파트 카드 중심 근무표",
+      "decisionId": "D-066",
+      "previous": "주간 기본 화면에서 요일×파트 시간축 전체를 가로 스크롤했다.",
+      "next": "기본 파트별 보기는 선택 날짜의 파트 카드·크루 이니셜/색상·시간·배정 상태를 표시한다. 날짜 선택과 보기 전환은 로컬 조회 상태다. 기존 날짜별 편집/본인 신청/길게 누르기와 시간표 드래그 편집을 유지한다.",
+      "reason": "제공 이미지의 날짜 탭·파트 그룹·색상 카드 구조를 휴대폰에서 읽기 쉽게 적용했다.",
+      "verification": "Flutter analyze 통과. 관련 35개 테스트 통과 후 최종 카드 폭/편집 조정과 기본 보기 저장 테스트를 포함한 calendar+시각 캡처 10개 재검증 통과. 320/390/1200px 1.5배 글자·날짜 전환 무저장 검사 통과. 390/1200px 캡처 확인. UI 링크 30개 검사와 변경 파일 diff 공백 검사 통과. npm run build:app 웹 빌드 통과. 배포·네이티브/실기기 검증 미수행."
     }
   ],
-  "updatedAt": "2026-10-01T10:27:16.755155+00:00"
+  "updatedAt": "2026-10-01T11:49:31.824390+00:00"
 }

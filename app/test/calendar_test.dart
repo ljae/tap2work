@@ -51,6 +51,7 @@ Future<OperationsController> mount(
   void Function(Json)? write,
   double width = 390,
   double scale = 1,
+  bool timeline = true,
 }) async {
   tester.view.physicalSize = Size(width, 1400);
   tester.view.devicePixelRatio = 1;
@@ -83,10 +84,53 @@ Future<OperationsController> mount(
     ),
   );
   await tester.pumpAndSettle();
+  if (timeline) {
+    await tester.tap(find.widgetWithText(ChoiceChip, '시간표'));
+    await tester.pumpAndSettle();
+  }
   return ops;
 }
 
 void main() {
+  for (final width in [320.0, 390.0, 1200.0]) {
+    testWidgets('part cards switch selected date without writes at $width', (
+      tester,
+    ) async {
+      var writes = 0;
+      await mount(
+        tester,
+        width: width,
+        scale: 1.5,
+        timeline: false,
+        write: (_) => writes++,
+      );
+      expect(find.byKey(const ValueKey('roster-day-parts')), findsOneWidget);
+      expect(find.byKey(const ValueKey('roster-part-kitchen')), findsOneWidget);
+      expect(
+        find.byKey(
+          const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('roster-day-2026-09-29')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(
+          const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0'),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('roster-2026-09-29-kitchen-band-2-kitchen-0'),
+        ),
+        findsOneWidget,
+      );
+      expect(writes, 0);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   for (final width in [320.0, 390.0, 1200.0]) {
     testWidgets(
       'fixed time axis, weekday parts and month fit $width with enlarged text',
@@ -126,7 +170,12 @@ void main() {
     'empty slot saves per-date time adjustment with opening revision',
     (tester) async {
       Json? sent;
-      final ops = await mount(tester, readOnly: false, write: (v) => sent = v);
+      final ops = await mount(
+        tester,
+        readOnly: false,
+        timeline: false,
+        write: (v) => sent = v,
+      );
       await tester.tap(
         find.byKey(
           const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0'),
@@ -155,7 +204,12 @@ void main() {
   );
   testWidgets('slot assignment uses part and crew IDs', (tester) async {
     Json? sent;
-    await mount(tester, readOnly: false, write: (v) => sent = v);
+    await mount(
+      tester,
+      readOnly: false,
+      timeline: false,
+      write: (v) => sent = v,
+    );
     await tester.tap(
       find.byKey(const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0')),
     );
