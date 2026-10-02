@@ -60,25 +60,25 @@ void main() {
           await tester.tap(find.text('3교대'));
           await tester.pumpAndSettle();
           await tester.scrollUntilVisible(
-            find.text('오픈'),
+            find.text('오전'),
             200,
             scrollable: find.byType(Scrollable).first,
           );
-          await tester.ensureVisible(find.text('오픈').last);
+          await tester.ensureVisible(find.text('오전').last);
           await tester.pumpAndSettle();
-          expect(find.text('오픈'), findsWidgets);
+          expect(find.text('오전'), findsWidgets);
           await tester.scrollUntilVisible(
-            find.text('미들'),
+            find.text('오후'),
             200,
             scrollable: find.byType(Scrollable).first,
           );
-          expect(find.text('미들'), findsWidgets);
+          expect(find.text('오후'), findsWidgets);
           await tester.scrollUntilVisible(
-            find.text('마감'),
+            find.text('저녁'),
             200,
             scrollable: find.byType(Scrollable).first,
           );
-          expect(find.text('마감'), findsWidgets);
+          expect(find.text('저녁'), findsWidgets);
           expect(tester.takeException(), isNull);
         }
       }
@@ -127,11 +127,11 @@ void main() {
     expect((written?['days']['1'] as List).length, 2);
     expect(find.textContaining('입력한 내용은 그대로'), findsOneWidget);
     await tester.scrollUntilVisible(
-      find.text('오픈'),
-      -200,
+      find.text('오전'),
+      200,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('오픈'), findsWidgets);
+    expect(find.text('오전'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 }

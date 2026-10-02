@@ -274,8 +274,18 @@ void main() {
       expect(find.text('전체 · 연결 업무'), findsOneWidget);
       await tester.tap(find.byType(CloseButton).last);
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('2교대'),
+        -180,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.text('2교대'));
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('연결 업무').first,
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(
         tester
             .widget<TextButton>(find.widgetWithText(TextButton, '연결 업무').first)
@@ -334,13 +344,13 @@ void main() {
       ];
       Json? written;
       await mount(tester, initialData: data, write: (v) => written = v);
-      await tester.tap(find.text('한 타임'));
+      await tester.tap(find.text('1교대'));
       await tester.pumpAndSettle();
       expect(find.text('교대 기본값을 적용할까요?'), findsOneWidget);
       await tester.tap(find.text('계속 수정'));
       await tester.pumpAndSettle();
       expect(written, isNull);
-      await tester.tap(find.text('한 타임'));
+      await tester.tap(find.text('1교대'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('기본값 적용'));
       await tester.pumpAndSettle();
@@ -390,6 +400,11 @@ void main() {
       final before = jsonEncode([data['taskTemplates'], data['crewPatterns']]);
       final writes = <Json>[];
       await mount(tester, initialData: data, write: writes.add);
+      await tester.scrollUntilVisible(
+        find.textContaining('휴무로 저장하면 해당 요일'),
+        -180,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.textContaining('휴무로 저장하면 해당 요일'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('시간대 삭제'),

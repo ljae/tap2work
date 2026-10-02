@@ -1,5 +1,6 @@
 import 'time_wheel.dart';
 import 'hours_timetable.dart';
+import 'business_hours_slider.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -343,7 +344,23 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     super.initState();
     revision = widget.ops.data?['revision'] as int? ?? 0;
     actorId = widget.ops.actorId;
-    if (widget.section == 'hours') days = initialDays();
+    if (widget.section == 'hours') {
+      days = initialDays();
+      weekday =
+          [
+            for (var d = 1; d <= 7; d++)
+              if ((days['$d'] as List).isNotEmpty) d,
+          ].firstOrNull ??
+          1;
+      final signatures = [
+        for (final rows in days.values)
+          if ((rows as List).isNotEmpty)
+            jsonEncode([
+              for (final b in rows) [b['name'], b['start'], b['end']],
+            ]),
+      ];
+      allHours = signatures.toSet().length <= 1;
+    }
   }
 
   late List<Json> parts =
@@ -351,6 +368,10 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   late Json days = initialDays();
   late String businessDayStart =
       ops.data?['workplace']?['businessDayStart'] ?? '00:00';
+  late Json breaks = jsonDecode(
+    jsonEncode(ops.data?['workplace']?['breaks'] ?? {}),
+  );
+  bool allHours = false;
   String? hoursPart;
   bool showHoursList = false;
   Json initialDays() {
@@ -370,7 +391,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
               ]
             : hours == null
             ? <Json>[
-                {'name': '전체', 'start': '09:00', 'end': '22:00'},
+                {'name': '전체', 'start': '06:00', 'end': '22:00'},
               ]
             : <Json>[],
       );
@@ -659,6 +680,31 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             row['settings']?['assignment']?['timeBandIds'] ?? [],
           ),
     };
+    for (final d in hoursTargets) {
+      final rows = (days['$d'] as List).cast<Json>();
+      final normal = rows.where((b) => b['custom'] != true).toList();
+      final operating = normal.isEmpty ? rows : normal;
+      final start = _minute(operating.first['start']);
+      var end = _minute(operating.last['end']);
+      if (end <= start) end += 1440;
+      final retainedCount = normal
+          .skip(count)
+          .where(
+            (b) => linkedIds.contains(b['id']) || linkedPatternBand(b['id']),
+          )
+          .length;
+      if (end - start < count * 30 ||
+          count +
+                  rows.where((b) => b['custom'] == true).length +
+                  retainedCount >
+              24) {
+        setState(
+          () => error =
+              '${dayNames[d - 1]}요일의 영업시간과 추가 시간대를 확인해 주세요. 교대마다 30분 이상 필요해요.',
+        );
+        return;
+      }
+    }
     final retained = base
         .skip(count)
         .where((b) => linkedIds.contains(b['id']))
@@ -669,7 +715,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     }
     final hours = ops.data?['store']?['profile']?['hours'] as Json? ?? {};
     final start = _minute(
-      operatingBands.firstOrNull?['start'] ?? hours['opening'] ?? '09:00',
+      operatingBands.firstOrNull?['start'] ?? hours['opening'] ?? '06:00',
     );
     var end = _minute(
       operatingBands.lastOrNull?['end'] ?? hours['closing'] ?? '22:00',
@@ -681,6 +727,8 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     }
     final resetsSettings =
         dirty ||
+        (allHours &&
+            hoursTargets.any((d) => (days['$d'] as List).length > 1)) ||
         custom.isNotEmpty ||
         base.length > 1 ||
         base.any(
@@ -711,49 +759,89 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       );
       if (confirmed != true || !mounted || !canDraftHours) return;
     }
-    final names = count == 1
-        ? ['전체']
-        : count == 2
-        ? ['오픈', '마감']
-        : ['오픈', '미들', '마감'];
-    update(
-      () => days['$weekday'] = [
-        for (var i = 0; i < count; i++)
-          {
-            'id': base.elementAtOrNull(i)?['id'] ?? newBandId(),
-            if (base.elementAtOrNull(i)?['partTimes'] != null)
-              'partTimes': base[i]['partTimes'],
-            if (base.elementAtOrNull(i)?['legacyIndex'] != null)
-              'legacyIndex': base[i]['legacyIndex'],
-            'headcounts': {
-              for (final p in parts)
-                p['id']: p['hidden'] == true
-                    ? 0
-                    : (base.elementAtOrNull(i)?['headcounts']?[p['id']] ?? 1),
+    update(() {
+      for (final d in hoursTargets) {
+        final rows = (days['$d'] as List).cast<Json>();
+        final base = rows.where((b) => b['custom'] != true).toList();
+        final operating = base.isEmpty ? rows : base;
+        final start = _minute(operating.first['start']);
+        var end = _minute(operating.last['end']);
+        if (end <= start) end += 1440;
+        if (end - start < count * 30) {
+          error = '${dayNames[d - 1]}요일은 시간대당 30분 이상 필요해요.';
+          continue;
+        }
+        final cuts = shiftBoundaries(start, end, count);
+        final names = count == 1
+            ? ['전체']
+            : count == 2
+            ? ['오전', '오후']
+            : ['오전', '오후', '저녁'];
+        days['$d'] = [
+          for (var i = 0; i < count; i++)
+            {
+              ...?base.elementAtOrNull(i),
+              'id': base.elementAtOrNull(i)?['id'] ?? newBandId(),
+              'name': names[i],
+              'start': _time(cuts[i]),
+              'end': _time(cuts[i + 1]),
             },
-            'name': names[i],
-            'start': _time(
-              start + ((end - start) * i / count / 30).round() * 30,
-            ),
-            'end': i == count - 1
-                ? _time(end)
-                : _time(
-                    start + ((end - start) * (i + 1) / count / 30).round() * 30,
-                  ),
-          },
-        for (final row in retained)
-          {
-            ...row,
-            'custom': true,
-            'headcounts': {
-              for (final p in parts)
-                p['id']: (row['headcounts'] as Map?)?[p['id']] ?? 1,
-            },
-          },
-        ...custom,
-      ],
-    );
+          for (final row in base.skip(count))
+            if (linkedIds.contains(row['id']) || linkedPatternBand(row['id']))
+              {
+                ...row,
+                'custom': true,
+                'headcounts': {
+                  for (final p in parts)
+                    p['id']: row['headcounts']?[p['id']] ?? 1,
+                },
+              },
+          ...rows.where((b) => b['custom'] == true),
+        ];
+      }
+    });
   }
+
+  bool linkedPatternBand(dynamic id) =>
+      (ops.data?['crewPatterns'] as List? ?? []).any(
+        (pattern) => (pattern['entries'] as List? ?? []).any(
+          (entry) => entry['timeBandId'] == id,
+        ),
+      );
+  Iterable<int> get hoursTargets => allHours
+      ? [
+          for (var d = 1; d <= 7; d++)
+            if ((days['$d'] as List).isNotEmpty) d,
+        ]
+      : [weekday];
+  void changeHours(int start, int end) => update(() {
+    for (final d in hoursTargets) {
+      final rows = (days['$d'] as List).cast<Json>();
+      final base = rows.where((b) => b['custom'] != true).toList();
+      final bands = base.isEmpty ? rows : base;
+      if (end - start < bands.length * 30) continue;
+      final cuts = shiftBoundaries(start, end, bands.length.clamp(1, 3));
+      if (bands.length > 3) continue;
+      for (var i = 0; i < bands.length; i++) {
+        bands[i]['start'] = _time(cuts[i]);
+        bands[i]['end'] = _time(cuts[i + 1]);
+      }
+      final pause = breaks['$d'];
+      if (pause != null) {
+        var bs = _minute(pause['start']);
+        if (bs < start) bs += 1440;
+        var be = _minute(pause['end']);
+        if (be <= bs) be += 1440;
+        if (bs < start || be > end) {
+          final nextStart = bs.clamp(start, end - 30);
+          breaks['$d'] = {
+            'start': _time(nextStart),
+            'end': _time(be.clamp(nextStart + 30, end)),
+          };
+        }
+      }
+    }
+  });
 
   static int _minute(String time) {
     final p = time.split(':').map(int.parse).toList();
@@ -798,11 +886,20 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                             {
                               'id': newBandId(),
                               'name': '전체',
-                              'start': '09:00',
+                              'start': '06:00',
                               'end': '22:00',
                             },
                           ];
+                    if (closed) breaks.remove('$d');
                     if (!closed) weekday = d;
+                    if (closed && weekday == d) {
+                      weekday =
+                          [
+                            for (var n = 1; n <= 7; n++)
+                              if ((days['$n'] as List).isNotEmpty) n,
+                          ].firstOrNull ??
+                          d;
+                    }
                   })
                 : null,
           ),
@@ -814,6 +911,103 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       style: AppText.caption,
     ),
     section('2. 영업일의 교대와 시간을 정해 주세요'),
+    Wrap(
+      spacing: 8,
+      children: [
+        for (final mode in [true, false])
+          SizedBox(
+            width: 124,
+            child: CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Text(mode ? '전체' : '개별'),
+              value: allHours == mode,
+              onChanged: canDraftHours
+                  ? (_) => setState(() => allHours = mode)
+                  : null,
+            ),
+          ),
+      ],
+    ),
+    Text(
+      allHours ? '시간·교대·브레이크 변경을 모든 영업일에 적용해요. 휴무일은 유지해요.' : '선택한 요일만 변경해요.',
+      style: AppText.caption,
+    ),
+    Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (var d = 1; d <= 7; d++)
+          if ((days['$d'] as List).isNotEmpty)
+            ChoiceChip(
+              label: Text(dayNames[d - 1]),
+              selected: weekday == d,
+              onSelected: saving ? null : (_) => setState(() => weekday = d),
+            ),
+      ],
+    ),
+    if (dayBands.isNotEmpty) ...[
+      const SizedBox(height: 16),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final entry in {1: '1교대', 2: '2교대', 3: '3교대'}.entries)
+            ChoiceChip(
+              label: Text(entry.value),
+              selected:
+                  dayBands.where((b) => b['custom'] != true).length ==
+                  entry.key,
+              onSelected: canDraftHours ? (_) => preset(entry.key) : null,
+            ),
+        ],
+      ),
+      BusinessHoursSlider(
+        bands: operatingBands,
+        breakTime: breaks['$weekday'] as Json?,
+        enabled: canDraftHours,
+        onHours: changeHours,
+        onBreak: (pause) => update(() {
+          for (final d in hoursTargets) {
+            if (pause == null) {
+              breaks.remove('$d');
+            } else {
+              final rows = (days['$d'] as List)
+                  .cast<Json>()
+                  .where((b) => b['custom'] != true)
+                  .toList();
+              if (rows.isEmpty) continue;
+              final start = _minute(rows.first['start']);
+              var end = _minute(rows.last['end']);
+              if (end <= start) end += 1440;
+              var bs = _minute(pause['start']);
+              if (bs < start) bs += 1440;
+              var be = _minute(pause['end']);
+              if (be <= bs) be += 1440;
+              bs = bs.clamp(start, end - 30);
+              be = be.clamp(bs + 30, end);
+              breaks['$d'] = {'start': _time(bs), 'end': _time(be)};
+            }
+          }
+        }),
+        onBoundary: (i, minute) => update(() {
+          for (final d in hoursTargets) {
+            final rows = (days['$d'] as List)
+                .cast<Json>()
+                .where((b) => b['custom'] != true)
+                .toList();
+            if (i + 1 >= rows.length) continue;
+            var left = _minute(rows[i]['start']);
+            var right = _minute(rows[i + 1]['end']);
+            if (right <= left) right += 1440;
+            if (minute <= left || minute >= right) continue;
+            rows[i]['end'] = _time(minute);
+            rows[i + 1]['start'] = _time(minute);
+          }
+        }),
+      ),
+    ],
+    section('상세 시간·필요 인원'),
     AppTimeField(
       label: '영업일 경계',
       value: businessDayStart,
@@ -925,62 +1119,8 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       label: const Text('요일별 시간표 조정'),
     ),
     const SizedBox(height: 16),
-    Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (var d = 1; d <= 7; d++)
-          if ((days['$d'] as List).isNotEmpty)
-            ChoiceChip(
-              label: Text(dayNames[d - 1]),
-              selected: weekday == d,
-              onSelected: saving ? null : (_) => setState(() => weekday = d),
-            ),
-      ],
-    ),
-    const SizedBox(height: 16),
-    if (dayBands.isEmpty)
-      const Information('휴무일이에요. 위에서 영업일을 선택하거나 휴무를 해제해 주세요.'),
+    if (dayBands.isEmpty) const Information('휴무일이에요. 위에서 휴무를 해제해 주세요.'),
     if (dayBands.isNotEmpty) ...[
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          AppTimeField(
-            label: '영업 시작',
-            value: operatingBands.first['start'],
-            onChanged: canDraftHours
-                ? (v) => update(() => operatingBands.first['start'] = v)
-                : null,
-          ),
-          AppTimeField(
-            label: '영업 종료',
-            value: operatingBands.last['end'],
-            onChanged: canDraftHours
-                ? (v) => update(() => operatingBands.last['end'] = v)
-                : null,
-          ),
-        ],
-      ),
-      const Text(
-        '영업시간을 정한 뒤 교대 수를 선택하면 균등 분할해요. 시간표에서 각 블록을 다시 조정할 수 있어요.',
-        style: AppText.caption,
-      ),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final entry in {1: '한 타임', 2: '2교대', 3: '3교대'}.entries)
-            ChoiceChip(
-              label: Text(entry.value),
-              selected:
-                  dayBands.where((b) => b['custom'] != true).length ==
-                  entry.key,
-              onSelected: canDraftHours ? (_) => preset(entry.key) : null,
-            ),
-        ],
-      ),
-      const SizedBox(height: 16),
       for (var i = 0; i < dayBands.length; i++)
         Padding(
           padding: const EdgeInsets.only(bottom: 16),
@@ -1094,6 +1234,11 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                 for (var d = 1; d <= 7; d++) {
                   if ((days['$d'] as List).isNotEmpty && d != weekday) {
                     final previous = (days['$d'] as List).cast<Json>();
+                    if (breaks['$weekday'] == null) {
+                      breaks.remove('$d');
+                    } else {
+                      breaks['$d'] = {...breaks['$weekday'] as Json};
+                    }
                     days['$d'] = [
                       for (final band in dayBands)
                         {
@@ -1510,6 +1655,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       case 'hours':
         await save('save_workplace_hours', {
           'days': days,
+          'breaks': breaks,
           'businessDayStart': businessDayStart,
         });
       case 'parts':

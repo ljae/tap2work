@@ -56,3 +56,5 @@ Flutter 3.41.2에서 사용 가능한 `shimmer` 3.0.0을 잠금 파일과 함께
 2026-09-28 가독성 추가 기준: [UI_READABILITY_2026-09-28.md](UI_READABILITY_2026-09-28.md). 개선된 공통 폼/시트 패턴을 기존 화면에도 적용한다. 웹 파일 로딩 → Flutter 초기화 → 매장 snapshot까지 일관된 로딩을 제공하며 가짜 진행률·강제 대기시간을 넣지 않는다.
 
 2026-10-01: distinguish assigned work from partially uncovered intervals. Crew pattern editing uses weekday columns and time rows, with empty-cell add and block edit/delete. Grid-focused editors may opt into a 1440px maximum width; ordinary forms retain the 688px default.
+
+2026-10-03: 영업시간은 사용자 요청에 따라 휴무 토글 아래 전체/개별 체크박스와 세로 시간 슬라이더를 사용한다. 06:00–22:00/1교대 기본값, 브레이크 ON 시 15:00–17:00, 1–3교대 구간을 적용하며 기존 저장값과 숫자 휠 대안은 유지한다.

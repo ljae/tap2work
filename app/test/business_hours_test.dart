@@ -6,6 +6,31 @@ import 'package:tap2work/ui/hours_timetable.dart';
 import 'package:tap2work/domain/part_schedule.dart';
 
 void main() {
+  test(
+    'post-break requirement stays on next actual date with midnight boundary',
+    () {
+      final data = <String, dynamic>{
+        'workplace': {'businessDayStart': '00:00'},
+        'rosterTemplates': [
+          {
+            'id': 'night-after-break',
+            'weekday': 1,
+            'partId': 'kitchen',
+            'name': '야간',
+            'start': '02:00',
+            'end': '05:00',
+            'dayOffset': 1,
+          },
+        ],
+      };
+      final slots = slotsForDay(data, DateTime(2026, 10, 5), const [
+        WorkPart('kitchen', '주방'),
+      ]);
+      expect(slots.single.actualDate, '2026-10-06');
+      expect(slots.single.startMinute, 1560);
+    },
+  );
+
   testWidgets(
     'wheel requires apply, cancels draft and returns exact half hour',
     (tester) async {

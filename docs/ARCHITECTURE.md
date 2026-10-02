@@ -240,3 +240,11 @@ CrewWeekGrid replaces the vertical weekday list with weekday columns and time ro
 ## 근무표 날짜별 파트 카드 · 2026-10-01
 
 기본 주간 보기는 날짜 탭에서 선택한 하루의 파트를 세로 카드로 표시한다. 같은 `ScheduleController.slots`와 주간 `rosterCoverage`를 소비하며 크루 배정 색상/이름과 미배정 상태를 구분한다. 날짜 탭은 조회 상태만 변경한다. 파트별 카드 클릭은 기존 날짜별 시간·크루 편집 또는 본인 변경 신청으로 연결한다. 시간표 보기에는 기존 고정 시간축과 드래그/높이 편집을 유지한다. 카드 높이는 시간을 의미하지 않으며 정확한 시간 비교는 시간표에서 한다. 저장 API·revision·권한·영업일 계약은 그대로다.
+
+## 영업시간·브레이크 편집 · 2026-10-03
+
+`BusinessHoursSlider`는 영업 시작/종료와 브레이크를 같은 세로 시간축에 표시한다. 숫자 휠은 드래그 대안으로 유지한다. 상위 `WorkplaceSettings`가 opening revision과 7일 초안을 소유하고 전체/개별 범위·교대 수·시간 경계·휴무를 반영한다. 기본 영업일은 06:00–22:00 1교대이며 저장된 기존 값은 자동 변경하지 않는다. 교대 수는 1–3, 기본 경계는 2교대 15:00 / 3교대 12:00·18:00이다. 각 교대는 최소 30분이며 짧은/야간 영업은 범위 안에서 나눈다. 커스텀 시간대와 참조된 기존 ID는 보존한다.
+
+선택적 `workplace.breaks`는 요일 키 → `{start,end}`다. 키 없음은 OFF, 체크 시 기본 15:00–17:00(영업 구간 안으로 보정). `save_workplace_hours`는 `days`, `breaks`, `businessDayStart`를 한 revision에 저장한다. 구 클라이언트가 `breaks`를 생략하면 기존 값을 보존하고, 휴무로 바꾼 요일은 제거한다. 기존 `save_workplace_day`에도 브레이크 범위 검증을 적용한다. `business_breaks.mjs`가 영업일 경계와 자정 넘김을 해석해 검증·구간 차집합을 담당하고 `parts.mjs`가 각 파트/인원의 필요 슬롯을 생성한다. 브레이크 뒤 분할 슬롯은 `-after-break` ID suffix를 갖고 `bandId`는 원본을 유지한다. 날짜별 예외·실제 배정·출퇴근은 변경하지 않는다. 업무 연결 시간대와 반복 배정 자체를 재작성하거나 실제 휴게/급여에서 공제하지 않는다.
+
+야간 브레이크 뒤 분할 슬롯에는 필요한 경우 `dayOffset: 1`을 투영한다. Flutter `part_schedule.dart`가 이를 소비해 00:00 경계에서도 다음 실제 날짜를 보존한다.

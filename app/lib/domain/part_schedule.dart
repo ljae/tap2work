@@ -89,7 +89,7 @@ List<RosterSlot> slotsForDay(
         date: date,
         partId: row['partId'],
         start: row['start'],
-        dayOffset: offset(row['start']),
+        dayOffset: row['dayOffset'] as int? ?? offset(row['start']),
         end: row['end'],
         name: row['name'] ?? '영업 시간대',
         templateId: template['id'],
@@ -108,7 +108,7 @@ List<RosterSlot> slotsForDay(
         date: date,
         partId: row['partId'],
         start: row['start'],
-        dayOffset: offset(row['start']),
+        dayOffset: row['dayOffset'] as int? ?? offset(row['start']),
         end: row['end'],
         name: row['name'] ?? '조정한 슬롯',
         templateId: row['templateId'],
@@ -130,7 +130,7 @@ List<RosterSlot> slotsForDay(
         date: date,
         partId: part,
         start: row['start'],
-        dayOffset: offset(row['start']),
+        dayOffset: row['dayOffset'] as int? ?? offset(row['start']),
         end: row['end'],
         name: (row['label'] as String? ?? '').isNotEmpty
             ? row['label']

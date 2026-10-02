@@ -1,3 +1,4 @@
+import { normalizeBreaks } from './business_breaks.mjs';
 import { defaultWorkplace, workplaceBands, workplaceBandDays, validatePart, rosterTemplates, validRosterDate, validRosterTimes } from './parts.mjs';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
@@ -110,6 +111,7 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
         const bands = input.days[day];
         next[day] = normalizeBands(state, bands, config.days?.[day], day);
       }
+      config.breaks = normalizeBreaks(next, input.breaks ?? Object.fromEntries(Object.entries(config.breaks ?? {}).filter(([d]) => next[d]?.length)), config.businessDayStart);
       config.days = next;
       break;
     }
@@ -119,6 +121,7 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
       for (const day of input.allDays === true ? [1,2,3,4,5,6,7] : [input.weekday]) {
         config.days[day] = normalizeBands(state, input.bands, config.days[day], day);
       }
+      config.breaks = normalizeBreaks(config.days, Object.fromEntries(Object.entries(config.breaks ?? {}).filter(([d]) => config.days[d]?.length)), config.businessDayStart);
       break;
     }
     case 'save_workplace_permissions': {
