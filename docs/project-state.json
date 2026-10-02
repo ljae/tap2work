@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 135,
+  "revision": 136,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4876,7 +4876,15 @@
       "next": "새 영업일 06:00–22:00/1교대, 전체/개별 편집, 세로 영업시간·브레이크 슬라이더와 숫자 휠 대안. 구현 기본 경계는 2교대 15시, 3교대 12/18시이며 짧은/야간 영업은 30분 이상으로 보정. breaks[weekday]를 days와 원자 저장하고 필요 슬롯에서 제외한다. 야간 분할 뒤 dayOffset으로 실제 다음날을 유지한다. 실제 출퇴근 휴게나 급여 공제는 변경하지 않는다.",
       "reason": "휴무·영업시간·브레이크·교대를 한 흐름으로 묶었다. 기존 ID·파트 시간 예외·인원·참조된 시간대·이미 배정한 근무는 보존한다.",
       "verification": "Flutter analyze 및 관련48개 테스트 통과. 이후 야간 날짜 회귀1개 추가 후 business_hours_test 및 앱 테마 시각검증7개 통과(중복 포함). 320/390/1200px 및 글자1.5배 검증, 320/390px 슬라이더와 390px 설정 시트 캡처 확인. 서버150/150, npm run check, check:ui-links30개 통과. 초기 서버4개는 sandbox listen EPERM으로 실패 후 허용 환경에서 통과. 스크롤 테스트 및 새 fixture 타입과 lint 실패는 수정 후 통과. npm run build:app 통과. 배포·네이티브 실기기 미검증."
+    },
+    {
+      "at": "2026-10-02T16:42:31.038313+00:00",
+      "type": "deployment",
+      "title": "영업시간 슬라이더 및 브레이크 근무표 연계 배포 완료",
+      "decisionId": "D-067",
+      "detail": "15a2f1ebfde254c68e5b1c46a6c843291d4a9020을 https://tap2.work 에 게시. GitHub Pages run 37035157443 성공. 최신 main 기반 별도 checkout에 이번 변경 17개 파일만 반영. Supabase operations 함수 version 28 → 29, ACTIVE. 데이터 마이그레이션·실제 매장 설정 변경 없음.",
+      "verification": "배포 checkout에서 Flutter 전체241/241 및 analyze, 서버150/150, JS/UI 링크 검사 통과. GitHub CI 테스트·웹 빌드·게시 성공. 공개 HTTPS index.html과 main.dart.js가 Pages artifact와 바이트 단위 일치. main.dart.js SHA256 2c042e7dc72ff1efd6d185c007d0c1e2e2265fa67e83604e948ea0d6be032f27. 서버 미인증 GET 401 및 OPTIONS 204, tap2.work CORS 응답 확인. 배포 후 인증 사용자 UI 조작 및 네이티브 실기기 검증 미수행."
     }
   ],
-  "updatedAt": "2026-10-02T16:28:42.339938+00:00"
+  "updatedAt": "2026-10-02T16:42:31.038313+00:00"
 }
