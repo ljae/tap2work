@@ -22,7 +22,7 @@ void main() {
       data['workplace']['days']['7'] = <Map<String, dynamic>>[];
       Map<String, dynamic>? written;
       await mount(tester, initialData: data, write: (v) => written = v);
-      await tester.tap(find.text('교대 시간 분할'));
+      await tester.tap(find.text('시간설정'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.byType(BusinessHoursSlider),
@@ -44,7 +44,7 @@ void main() {
       );
       await tester.tap(find.text('개별'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('교대 시간 분할'));
+      await tester.tap(find.text('시간설정'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.byType(BusinessHoursSlider),
@@ -76,7 +76,7 @@ void main() {
     data['workplace']['days']['7'] = <Map<String, dynamic>>[];
     Map<String, dynamic>? written;
     await mount(tester, initialData: data, write: (v) => written = v);
-    await tester.tap(find.text('교대 시간 분할'));
+    await tester.tap(find.text('시간설정'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('3교대'));
     await tester.pumpAndSettle();
@@ -108,7 +108,7 @@ void main() {
     'timeline drag snaps half hours and keeps adjacent shifts connected',
     (tester) async {
       await mount(tester);
-      await tester.tap(find.text('교대 시간 분할'));
+      await tester.tap(find.text('시간설정'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('3교대'));
       await tester.pumpAndSettle();
@@ -123,6 +123,92 @@ void main() {
       expect(bands[0]['end'], isNot('12:00'));
       expect(hoursMinute(bands[0]['end']) % 30, 0);
       expect(bands[0]['end'], bands[1]['start']);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'two tabs retain breaks and legacy data without details controls',
+    (tester) async {
+      final data = fixture();
+      data['workplace']['days']['1'][0]['partTimes'] = {
+        'kitchen': {'start': '09:30', 'end': '20:00'},
+      };
+      data['workplace']['days']['1'].add({
+        'id': 'peak',
+        'custom': true,
+        'name': '피크',
+        'start': '12:00',
+        'end': '13:00',
+        'headcounts': {'kitchen': 2},
+      });
+      Map<String, dynamic>? written;
+      await mount(tester, initialData: data, write: (v) => written = v);
+      expect(find.text('휴무일'), findsOneWidget);
+      expect(find.text('상세 설정'), findsNothing);
+      expect(find.text('휴무일 설정'), findsNothing);
+      expect(find.text('교대 시간 분할'), findsNothing);
+      await tester.ensureVisible(find.text('브레이크 타임'));
+      await tester.tap(find.text('브레이크 타임'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const ValueKey('break-label-0')));
+      await tester.drag(
+        find.byKey(const ValueKey('break-label-0')),
+        const Offset(-50, 0),
+      );
+      await tester.pumpAndSettle();
+      final pause = tester
+          .widget<BusinessHoursSlider>(find.byType(BusinessHoursSlider))
+          .breakTime!;
+      expect(hoursMinute(pause['start']), lessThan(900));
+      expect(hoursMinute(pause['start']) % 30, 0);
+      expect(pause['end'], '17:00');
+      expect(find.text('휴식 시작'), findsNothing);
+      expect(find.text('휴식 종료'), findsNothing);
+      await tester.tap(find.text('다음 단계'));
+      await tester.pumpAndSettle();
+      expect(find.text('상세 설정'), findsNothing);
+      await tester.tap(find.text('일주일 설정 저장'));
+      await tester.pumpAndSettle();
+      expect(written!['breaks']['1'], pause);
+      expect(written!['days']['1'][0]['partTimes'], {
+        'kitchen': {'start': '09:30', 'end': '20:00'},
+      });
+      expect(written!['days']['1'][1]['id'], 'peak');
+    },
+  );
+
+  testWidgets(
+    'overnight break handles stay within opening and preserve half hours',
+    (tester) async {
+      Map<String, dynamic>? pause = {'start': '01:00', 'end': '03:00'};
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, refresh) => BusinessHoursSlider(
+                bands: const [
+                  {'name': '전체', 'start': '22:00', 'end': '05:00'},
+                ],
+                breakTime: pause,
+                enabled: true,
+                onHours: (_, _) {},
+                onBoundary: (_, _) {},
+                onBreak: (value) => refresh(() => pause = value),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('오픈'), findsOneWidget);
+      await tester.drag(
+        find.byKey(const ValueKey('break-thumb-1')),
+        const Offset(800, 0),
+      );
+      await tester.pumpAndSettle();
+      expect(pause!['end'], '05:00');
+      expect(pause!['start'], '01:00');
       expect(tester.takeException(), isNull);
     },
   );

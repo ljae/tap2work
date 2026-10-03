@@ -75,65 +75,10 @@ Future<OperationsController> mount(
     ),
   );
   await tester.pumpAndSettle();
-  await tester.tap(find.text('인원 배치').first);
-  await tester.pumpAndSettle();
-  await tester.tap(find.text('상세 설정'));
-  await tester.pumpAndSettle();
   return ops;
 }
 
 void main() {
-  testWidgets(
-    'add overlapping band to weekdays, preserve legacy IDs and conflict draft',
-    (tester) async {
-      Json? written;
-      final ops = await mount(
-        tester,
-        conflict: true,
-        write: (v) => written = v,
-      );
-      await tester.scrollUntilVisible(
-        find.text('시간대 추가'),
-        180,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('시간대 추가'));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), '점심 피크');
-      await tester.tap(find.widgetWithText(FilterChip, '주방'));
-      await tester.scrollUntilVisible(
-        find.descendant(
-          of: find.byType(TimeBandEditor),
-          matching: find.widgetWithText(FilterChip, '화'),
-        ),
-        180,
-        scrollable: find.byType(Scrollable).last,
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(
-        find.descendant(
-          of: find.byType(TimeBandEditor),
-          matching: find.widgetWithText(FilterChip, '화'),
-        ),
-      );
-      await tester.tap(find.text('시간대 적용'));
-      await tester.pumpAndSettle();
-      expect(find.byType(TimeBandEditor), findsNothing);
-      ops.data!['revision'] = 99;
-      await tester.tap(find.text('일주일 설정 저장'));
-      await tester.pumpAndSettle();
-      expect(written?['revision'], 12);
-      final monday = written!['days']['1'] as List;
-      final tuesday = written!['days']['2'] as List;
-      expect(monday.first['id'], 'legacy-band-1-0');
-      expect(monday.last['id'], startsWith('custom-'));
-      expect(tuesday.last['id'], monday.last['id']);
-      expect(monday.last['headcounts'], {'kitchen': 1, 'hall': 0});
-      expect(find.textContaining('입력한 내용은 그대로'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
   testWidgets(
     'editor validates required selection and protects discarded draft at narrow width',
     (tester) async {
@@ -172,136 +117,6 @@ void main() {
       await tester.tap(find.text('계속 수정'));
       await tester.pumpAndSettle();
       expect(find.text('피크'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
-  testWidgets(
-    'saved band links disable after local edits and preview never writes',
-    (tester) async {
-      var writes = 0;
-      await mount(tester, readOnly: true, write: (_) => writes++);
-      await tester.scrollUntilVisible(
-        find.text('연결 업무').first,
-        100,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(
-        tester
-            .widget<TextButton>(find.widgetWithText(TextButton, '연결 업무'))
-            .onPressed,
-        isNull,
-      );
-      expect(
-        tester
-            .widget<FilledButton>(
-              find.widgetWithText(FilledButton, '일주일 설정 저장'),
-            )
-            .onPressed,
-        isNull,
-      );
-      await tester.tap(find.text('교대 시간 분할'));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('2교대'));
-      await tester.tap(find.text('2교대'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('인원 배치').first);
-      await tester.pumpAndSettle();
-      expect(writes, 0);
-      expect(tester.takeException(), isNull);
-    },
-  );
-  testWidgets(
-    'copy preserves shared IDs, edit keeps identity, delete only changes the draft',
-    (tester) async {
-      final writes = <Json>[];
-      await mount(tester, write: writes.add);
-      await tester.scrollUntilVisible(
-        find.text('다른 영업일에 복사'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('다른 영업일에 복사'));
-      await tester.tap(find.text('일주일 설정 저장'));
-      await tester.pumpAndSettle();
-      final days = writes.last['days'] as Map;
-      expect(
-        days.values.every((rows) => rows.first['id'] == 'legacy-band-1-0'),
-        isTrue,
-      );
-      await tester.scrollUntilVisible(
-        find.text('시간대 수정'),
-        -200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('시간대 수정'));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), '이른 오픈');
-      await tester.tap(find.text('시간대 적용'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('일주일 설정 저장'));
-      await tester.pumpAndSettle();
-      expect(writes.last['days']['1'].first['id'], 'legacy-band-1-0');
-      expect(writes.last['days']['1'].first['name'], '이른 오픈');
-      expect(writes.last['days']['1'].first['legacyIndex'], 0);
-      await tester.scrollUntilVisible(
-        find.text('시간대 삭제'),
-        -200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('시간대 삭제'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilledButton, '시간대 삭제'));
-      await tester.pumpAndSettle();
-      expect(writes.length, 2);
-      await tester.tap(find.text('일주일 설정 저장'));
-      await tester.pumpAndSettle();
-      expect(writes.last['days']['1'], isEmpty);
-      expect(writes.last['days']['2'], isNotEmpty);
-      expect(tester.takeException(), isNull);
-    },
-  );
-  testWidgets(
-    'saved linked work uses shared sheet and local changes disable entry',
-    (tester) async {
-      await mount(tester);
-      await tester.scrollUntilVisible(
-        find.text('연결 업무').first,
-        100,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(find.text('연결 업무'));
-      await tester.pumpAndSettle();
-      expect(find.text('전체 · 연결 업무'), findsOneWidget);
-      await tester.tap(find.byType(CloseButton).last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('교대 시간 분할'));
-      await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text('2교대'),
-        -180,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(find.text('교대 시간 분할'));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('2교대'));
-      await tester.tap(find.text('2교대'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('인원 배치').first);
-      await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text('연결 업무').first,
-        180,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(
-        tester
-            .widget<TextButton>(find.widgetWithText(TextButton, '연결 업무').first)
-            .onPressed,
-        isNull,
-      );
       expect(tester.takeException(), isNull);
     },
   );
@@ -354,7 +169,7 @@ void main() {
       ];
       Json? written;
       await mount(tester, initialData: data, write: (v) => written = v);
-      await tester.tap(find.text('교대 시간 분할'));
+      await tester.tap(find.text('시간설정'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('1교대'));
       await tester.pumpAndSettle();
@@ -374,76 +189,6 @@ void main() {
       expect(rows[1]['legacyIndex'], 2);
       expect(rows[1]['start'], '17:00');
       expect(tester.takeException(), isNull);
-    },
-  );
-  testWidgets(
-    'referenced band removal explains downstream effects without mutating links',
-    (tester) async {
-      final data = fixture();
-      data['taskTemplates'] = [
-        {
-          'id': 'tap',
-          'steps': [
-            {
-              'id': 'task',
-              'settings': {
-                'assignment': {
-                  'mode': 'scheduled',
-                  'timeBandIds': ['legacy-band-1-0'],
-                },
-              },
-            },
-          ],
-        },
-      ];
-      data['crewPatterns'] = [
-        {
-          'id': 'pattern',
-          'entries': [
-            {'weekday': 1, 'timeBandId': 'legacy-band-1-0'},
-          ],
-        },
-      ];
-      final before = jsonEncode([data['taskTemplates'], data['crewPatterns']]);
-      final writes = <Json>[];
-      await mount(tester, initialData: data, write: writes.add);
-      await tester.scrollUntilVisible(
-        find.text('시간대 삭제'),
-        180,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('시간대 삭제'));
-      await tester.pumpAndSettle();
-      final dialog = find.descendant(
-        of: find.byType(AlertDialog),
-        matching: find.byType(Text),
-      );
-      expect(
-        tester.widgetList<Text>(dialog).map((w) => w.data).join(),
-        contains('TAP·Task는 이후 해당 요일에 새로 생성되지 않아요'),
-      );
-      expect(
-        tester.widgetList<Text>(dialog).map((w) => w.data).join(),
-        contains('연결된 반복 배정은 다시 적용하기 전에'),
-      );
-      expect(
-        tester.widgetList<Text>(dialog).map((w) => w.data).join(),
-        contains('이미 배정한 근무와 완료 기록은 유지돼요'),
-      );
-      await tester.tap(find.widgetWithText(FilledButton, '시간대 삭제'));
-      await tester.pumpAndSettle();
-      expect(writes, isEmpty);
-      expect(jsonEncode([data['taskTemplates'], data['crewPatterns']]), before);
-      await tester.tap(find.text('일주일 설정 저장'));
-      await tester.pumpAndSettle();
-      expect(writes.single['days']['1'], isEmpty);
-      expect(
-        writes.single.keys.toSet(),
-        containsAll(['action', 'revision', 'days']),
-      );
-      expect(writes.single.containsKey('taskTemplates'), isFalse);
-      expect(writes.single.containsKey('crewPatterns'), isFalse);
     },
   );
 }

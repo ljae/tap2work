@@ -76,11 +76,19 @@ void main() {
         );
         await tester.tap(find.text('열기'));
         await tester.pumpAndSettle();
-        for (final stage in ['휴무일 설정', '교대 시간 분할', '인원 배치']) {
+        for (final stage in ['시간설정', '인원 배치']) {
           await tester.tap(find.text(stage).first);
           await tester.pumpAndSettle();
-          if (stage == '교대 시간 분할') {
+          if (stage == '시간설정') {
+            await tester.ensureVisible(find.text('3교대'));
             await tester.tap(find.text('3교대'));
+            await tester.pumpAndSettle();
+            await tester.ensureVisible(find.text('브레이크 타임'));
+            await tester.tap(find.text('브레이크 타임'));
+            await tester.pumpAndSettle();
+            await tester.ensureVisible(
+              find.byKey(const ValueKey('break-label-1')),
+            );
             await tester.pumpAndSettle();
           }
           await tester.runAsync(() async {

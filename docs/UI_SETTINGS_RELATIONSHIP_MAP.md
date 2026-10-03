@@ -37,7 +37,7 @@ flowchart LR
 | --- | --- | --- | --- | --- |
 | S01 | `workplace.parts[]` | `workplace_screens.dart` 파트 관리 → `save_workplace_parts` | 업무 전체 파트/개별 파트 필터, 매뉴얼 폴더와 별개, 근무표 요일×파트 열, 크루 파트 선택 | `developer/test/workplace.test.mjs`, 근무표 테스트 |
 | S02 | `tappers[].workProfile.partIds[]`, `bands[]` | `workplace_screens.dart` 크루 프로필 → `save_staff_profile`; `team_screen.dart` 크루 편집 → `save_tapper` | 파트별 업무 수행 가능 여부, 근무표 배정 선택지, 크루 카드. 직책/권한과 분리 | `workplace.test.mjs`, `operations.test.mjs` |
-| S03 | `workplace.days[weekday][]`, `workplace.breaks[weekday]` | 우리매장 > 영업시간 설정 / 준비 목록 / 프로필 운영 / 근무표 영업시간·인원 → `openWorkplaceHours` → 휴무일/교대 시간/인원 배치 탭·전체/개별·가로 24시간 타임라인·교대×파트 카운터 표 → `save_workplace_hours` (7일·브레이크 원자 저장) | `rosterTemplates[]` 생성, 브레이크 제외 근무표 요일·파트별 기본 슬롯·필요 시간 충족률. 전체 영업시간 `store.profile.hours`는 호환 기본값 | `workplace.test.mjs`, `calendar_test.dart` |
+| S03 | `workplace.days[weekday][]`, `workplace.breaks[weekday]` | 우리매장 > 영업시간 설정 / 준비 목록 / 프로필 운영 / 근무표 영업시간·인원 → `openWorkplaceHours` → 시간설정(휴무일 포함)/인원 배치 탭·전체/개별·시간 표기가 붙은 영업/브레이크 드래그 막대·교대×파트 카운터 표 → `save_workplace_hours` (7일·브레이크 원자 저장) | `rosterTemplates[]` 생성, 브레이크 제외 근무표 요일·파트별 기본 슬롯·필요 시간 충족률. 전체 영업시간 `store.profile.hours`는 호환 기본값 | `workplace.test.mjs`, `calendar_test.dart` |
 | S04 | `rosterOverrides[]` | 근무표 슬롯 클릭 → `save_roster_slot`, `reset_roster_slot` | 선택 날짜의 이름·시작/끝·숨김만 덮어쓰기; 고정 왼쪽 시간축에 반영 | `workplace.test.mjs`, `calendar_test.dart` |
 | S05 | `staffShifts[]`, `shiftPatterns[]` | 근무표 개별 배정 → `save_staff_shift`; 반복은 S28 | 주간/월간 근무표, 필요 슬롯 충족률, 인건비 계획. 출퇴근 기록과 구별 | `workplace.test.mjs`, `calendar_test.dart` |
 | S06 | `store.profile.orderSystem.enabled` | 우리매장 주문처리 시스템 토글 → `save_order_system` | 서버 `orderBoardEnabled`; ON일 때만 업무 주문처리 보드/주문 카드 표시. 주문 기록 유지 | `workplace.test.mjs`, 업무 화면 테스트 |
@@ -140,13 +140,13 @@ flowchart LR
 | E07 | 공용 계정 메뉴 → 사장님/단기 계약 직원 화면 → `setup_shared_employee`, `?view=employee` | 사장 멤버십의 지정 크루로만 서버에서 권한 축소. 기존 크루 수정 없이 신규 크루 연결. 급여·일정 편집·승인은 직원 모드에서 불가. 실제 직원 JWT는 모드 전환으로 상승 불가 | `cloud.test.mjs`; 외부 메시지 발송 없음 |
 | S30 | 공개 대한민국 공휴일 JSON → `KoreanHolidays` → 주·월 달력 | 연도별 최초 조회·메모리 캐시, 실패 시 번들 달력/미확인 안내. 정보 버튼에서 출처·갱신 상태 확인. 크루 정보 미전송, DB 쓰기 없음. 공휴일 표시와 매장 휴무 독립 | JSON 파싱·대체공휴일 테스트, 출처/캐시 표시 |
 
-S03은 휴무일을 먼저 선택하고 영업일별 한 타임/2교대/3교대와 시간·파트별 인원(0–12)을 편집한다. 다른 영업일에 복사해도 휴무일은 유지한다. 저장은 opening revision으로 7일 모두 원자 반영하며 실제 근무를 재생성하지 않는다. `headcounts[partId]` 수만큼 필요 슬롯을 생성해 충족률에도 반영한다. 첫 인원의 기존 template ID는 유지하고 추가 인원은 seat suffix를 쓴다. 자정을 넘긴 **뒤의** 별도 시간대는 다음 요일에 설정한다. 파트 편집은 별도 파트 관리가 유일한 원본이며 숨김/이름 변경에도 ID·기록을 보존한다.
+S03은 휴무일을 먼저 선택하고 영업일별 한 타임/2교대/3교대와 시간·파트별 인원(0–12)을 편집한다. 전체 적용은 휴무일을 제외한다. 별도 복사·상세 편집 버튼은 제거했다. 저장은 opening revision으로 7일 모두 원자 반영하며 실제 근무를 재생성하지 않는다. `headcounts[partId]` 수만큼 필요 슬롯을 생성해 충족률에도 반영한다. 첫 인원의 기존 template ID는 유지하고 추가 인원은 seat suffix를 쓴다. 자정을 넘긴 **뒤의** 별도 시간대는 다음 요일에 설정한다. 파트 편집은 별도 파트 관리가 유일한 원본이며 숨김/이름 변경에도 ID·기록을 보존한다.
 
 S27 드래그는 컬럼 전체에서 30분 경계에 맞춘 시작·끝과 반투명 배정 영역을 표시한다. 아래 손잡이의 높이 조절은 종료 시간만 수정하며 실제 gesture 종료 시 한 번 저장한다. 원본 pattern/base는 변경하지 않는다. 키보드·접근성 대안은 기존 시간·크루 시트다.
 
 다국어 준비 계약은 [LOCALIZATION_PLAN.md](LOCALIZATION_PLAN.md). 한국어만 제공하는 현재 화면에 동작하지 않는 언어 선택기는 추가하지 않는다.
 
-휴대폰 상단을 간소화해 배정·영업시간 버튼을 우선 배치했다. 파트 관리는 우리매장과 영업시간 설정의 같은 상세 화면으로 연결한다. 영업시간 초안이 있으면 먼저 저장한 뒤 파트 관리로 이동한다.
+휴대폰 상단을 간소화해 배정·영업시간 버튼을 우선 배치했다. 파트 관리는 우리매장에서 접근한다. 영업시간 시트의 파트 관리·상세 설정 진입은 제거했다.
 
 매뉴얼 편집 범위는 왼쪽 디렉토리 또는 오른쪽 Task 목록 중 하나다. 반대쪽을 길게 누르면 편집 범위를 전환한다. 왼쪽은 계층 들여쓰기·종류별 아이콘·펼치기를 유지하고 ⋯ 메뉴로 이동/이름/삭제한다. 트리 편집 중 Task 클릭은 선택만 하며 상세 시트를 열지 않는다. 휴대폰 디렉토리/매뉴얼 전환, 계정 변경, 권한 해제 시 편집을 종료한다.
 
@@ -174,8 +174,8 @@ S34의 모드는 TAP scheduled/crew/anyone/legacy, Task는 inherit 추가. sched
 
 | ID | Source | Control → action | Consumer | Verification |
 |---|---|---|---|---|
-| S34 | workplace.days[].id/name/start/end/headcounts | 영업시간 → 시간대 추가·수정·요일 적용 → save_workplace_hours | 필요 슬롯·반복 배정의 시간대 선택·업무 담당 | time_band_editor_test.dart, 시간대 서버 테스트 |
-| S35 | taskTemplates.settings.assignment / steps.settings.assignment | TAP/Task 담당 설정 또는 시간대 연결 업무 → save_tap_settings | 시간대별 공동 실행·assignmentView·내 담당만·완료 권한 | work_assignment_ui_test.dart, work_assignments.test.mjs |
+| S34 | workplace.days[].id/name/start/end/headcounts | 시간설정 → 1–3교대·조정선 시간 드래그/휠·전체/개별 → save_workplace_hours (상세 추가/수정/삭제 진입 제거, 기존 추가 시간대 보존) | 필요 슬롯·반복 배정의 시간대 선택·업무 담당 | time_band_editor_test.dart, 시간대 서버 테스트 |
+| S35 | taskTemplates.settings.assignment / steps.settings.assignment | TAP/Task 담당 설정 → save_tap_settings (영업시간 시트의 연결 업무 진입 제거) | 시간대별 공동 실행·assignmentView·내 담당만·완료 권한 | work_assignment_ui_test.dart, work_assignments.test.mjs |
 | S36 | crewPatterns / staffShifts / shiftChangeRequests | 크루별 반복 배정·부분 OFF 신청/승인·빈 구간 대타 | 날짜별 근무표·미완료 업무 자동 인계·완료 담당 스냅샷 | schedule_exceptions.test.mjs, 관련 근무표 위젯 테스트 |
 
 담당 표시는 실제 배정, 지원 완료는 권한으로 분리한다. `누구나`는 그날 유효 근무 크루다. 기존 파트 미선택=전체 파트 가능 설정과 혼동하지 않는다. [상세 계약](SCHEDULE_WORK_ASSIGNMENTS.md).
@@ -185,7 +185,7 @@ S34의 모드는 TAP scheduled/crew/anyone/legacy, Task는 inherit 추가. sched
 | 원본 | 화면 → 컨트롤 → 저장 | 영향 소비자 | 검증 |
 |---|---|---|---|
 | workplace.businessDayStart | 공통 영업시간 → 영업일 중 가장 이른 시작으로 경계 자동 산출(입력 필드 없음) → save_workplace_hours | state.day, 새 업무의 영업일 스냅샷, 누구나 담당, 근무표 businessDate, 반복 배정의 실제 날짜 변환 | business_day.test.mjs, business_hours_test.dart |
-| workplace.days[].start/end/partTimes/headcounts | 영업시간 → 시작·종료 휠/교대 분할 → 요일별 시간표 조정(공통·파트 선택, 독립 손잡이/휠) → 상위 일괄 저장 | rosterTemplates, 업무 assignmentWindow, crew pattern 시간 선택 | business_hours_test.dart, time_band_editor_test.dart, workplace_test.dart |
+| workplace.days[].start/end/partTimes/headcounts | 시간설정 → 조정선 드래그/시간 탭 휠·교대 분할 → 일괄 저장 (기존 partTimes 보존, 이 시트의 별도 파트 시간 편집 제거) | rosterTemplates, 업무 assignmentWindow, crew pattern 시간 선택 | business_hours_test.dart, time_band_editor_test.dart, workplace_test.dart |
 | 날짜별 근무·반복 배정·변경 신청의 시작/종료 | AppTimeField → showTimeWheel → 기존 저장·신청 API | 실제 근무 구간, 미완료 업무 담당 및 승인 흐름 | calendar_test.dart, schedule_exceptions_test.dart |
 
 S03의 이전 “자정 이후 별도 시간대는 다음 요일에 입력” 기준은 D-064로 대체된다. 설정한 영업일 경계 이전 시간은 선택한 영업일의 다음 실제 날짜로 해석한다. 경계 미설정 매장은 이전 00:00 기준을 유지한다. 영업시간 저장만으로 이미 배정된 근무·완료 업무·출퇴근을 덮어쓰지 않는다.
@@ -212,4 +212,4 @@ S03은 새 영업일 06:00–22:00/1교대, 브레이크 OFF에서 시작한다.
 
 `breaks`는 매장 영업 중단 구간이며 크루의 실제 휴게/급여 공제가 아니다. `business_breaks.mjs`가 범위·30분 단위·휴무를 검증하고 `parts.mjs`가 파트별 필요 슬롯에서 교집합을 제외한다. 분할 전반부는 기존 슬롯 ID, 후반부는 `-after-break` suffix를 사용한다. 기존 날짜별 예외·배정·출퇴근·업무 완료 기록은 수정하지 않는다. 검증: `business_hours_slider_test.dart`, `workplace_test.dart`, `business_breaks.test.mjs`, `workplace.test.mjs`.
 
-2026-10-03 최신: S03은 3단계 탭과 고정 footer로 변경했다. 1–3교대 버튼은 즉시 재분할하고 인원/ID/파트 예외를 유지한다. 인원 셀은 전체/개별 범위에서 기본 교대 순서 또는 추가 시간대 ID로 매칭한다. 영업일 경계는 저장 시 영업 시작에서 산출하며 전체 휴무는 기존 경계를 유지한다. 상세 시간·업무 연결은 접힌 상세 설정에서 접근한다. 검증: `business_hours_slider_test.dart`, `time_band_editor_test.dart`, `workplace_test.dart`, `business_day.test.mjs`, `business_breaks.test.mjs`.
+2026-10-03 최신 수정: S03은 `시간설정 / 인원 배치` 두 탭이다. 시간설정에 휴무일을 포함하며 고정 다음/저장 footer를 유지한다. 막대 안 교대명과 조정선 시간을 표시하고, 브레이크 선/시간은 주황색·동일 드래그 방식이다. 별도 시간 필드와 양쪽 상세 설정은 제거했다. 전체/개별 인원 적용과 영업 시작 경계, 추가 시간대·파트 예외·연결 ID 보존은 유지한다. 검증: `business_hours_slider_test.dart`(브레이크 드래그/야간 범위/중복 필드 제거/저장값 보존), `workplace_test.dart`, `time_band_editor_test.dart`(독립 편집기와 기존 ID 보존), 관련 서버 테스트.
