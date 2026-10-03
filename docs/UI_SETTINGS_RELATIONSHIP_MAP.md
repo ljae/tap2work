@@ -219,3 +219,5 @@ S03은 새 영업일 06:00–22:00/1교대, 브레이크 OFF에서 시작한다.
 2026-10-03 토글 배치 후속: S03의 `days` → 휴무 요일 선택 줄 아래 휴무일 토글 / 영업시간 바 아래 2교대 이상 토글 → 기존 `toggleClosedDays`·`preset` → `save_workplace_hours`·근무표·업무 담당 소비 경로를 유지한다. `breaks` → 주황색 바·시간 아래 브레이크 토글 → 기존 `onBreak` → 같은 저장 및 슬롯 차감 경로다. OFF에서는 해당 조건부 UI만 숨기며 토글은 남는다. 관련 위젯·서버 테스트와 320/390/1200px 캡처로 확인한다.
 
 휴무일 요일 칩 크기 후속: 7개 칩의 외부 너비는 48, 라벨은 최소 24×24의 동일 영역에서 중앙 정렬한다. 글자 모양·선택 상태에 따라 버튼 크기가 달라지지 않으며 기존 줄바꿈·휴무 토글·저장 동작을 유지한다.
+
+Latest weekday-selector correction (2026-10-03): supersedes the preceding closed-day placement and sizing notes. The closed-day switch comes BEFORE its weekday selector. Closed-day FilterChip and individual-day ChoiceChip share the existing ChipTheme, plain text labels, 8px spacing and no checkmark. Remove closed-day-only 48px width / 24px label constraints. Both rows now have matching button geometry; multiple closed-day selection and single editing-day selection retain their existing actions and save consumers. Shift and break switches remain below their tracks. Capture both rows together at 320/390/1200px.

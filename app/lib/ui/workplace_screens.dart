@@ -881,48 +881,35 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
 
   List<Widget> hours() => [
     if (hoursStep == 0) ...[
-      if (useClosedDays)
-        Wrap(
-          spacing: 0,
-          runSpacing: 8,
-          children: [
-            for (var d = 1; d <= 7; d++)
-              SizedBox(
-                width: 48,
-                child: FilterChip(
-                  showCheckmark: false,
-                  labelPadding: EdgeInsets.zero,
-                  label: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minWidth: 24,
-                      minHeight: 24,
-                    ),
-                    child: Center(
-                      child: Text(
-                        dayNames[d - 1],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          decoration: (days['$d'] as List).isEmpty
-                              ? TextDecoration.lineThrough
-                              : null,
-                        ),
-                      ),
-                    ),
-                  ),
-                  selected: (days['$d'] as List).isEmpty,
-                  onSelected: canDraftHours
-                      ? (closed) => setClosedDay(d, closed)
-                      : null,
-                ),
-              ),
-          ],
-        ),
       SwitchListTile(
         contentPadding: EdgeInsets.zero,
         title: const Text('휴무일'),
         value: useClosedDays,
         onChanged: canDraftHours ? toggleClosedDays : null,
       ),
+      if (useClosedDays)
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (var d = 1; d <= 7; d++)
+              FilterChip(
+                showCheckmark: false,
+                label: Text(
+                  dayNames[d - 1],
+                  style: TextStyle(
+                    decoration: (days['$d'] as List).isEmpty
+                        ? TextDecoration.lineThrough
+                        : null,
+                  ),
+                ),
+                selected: (days['$d'] as List).isEmpty,
+                onSelected: canDraftHours
+                    ? (closed) => setClosedDay(d, closed)
+                    : null,
+              ),
+          ],
+        ),
     ],
     ...[
       Wrap(
@@ -951,6 +938,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             for (var d = 1; d <= 7; d++)
               if ((days['$d'] as List).isNotEmpty)
                 ChoiceChip(
+                  showCheckmark: false,
                   label: Text(dayNames[d - 1]),
                   selected: weekday == d,
                   onSelected: saving

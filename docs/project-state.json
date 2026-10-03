@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 147,
+  "revision": 148,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -704,10 +704,10 @@
       "category": "UI/UX·영업시간",
       "title": "휴무일·복수 교대의 선택형 토글",
       "status": "confirmed",
-      "decision": "시간설정의 옵션을 휴무일 → 2교대 이상 → 브레이크 타임 순서의 토글로 구성한다. ON일 때만 해당 요일·2/3교대·브레이크 선택 UI를 표시한다. 토글은 해당 선택 줄·조정 바 아래에 배치한다: 휴무일은 요일 선택 아래, 2교대 이상은 영업시간 바 아래, 브레이크 타임은 주황색 바·시간 아래.",
+      "decision": "시간설정 옵션은 휴무일, 2교대 이상, 브레이크 타임 순서다. 휴무일은 토글 아래에 요일 선택을 표시하고 개별 편집 요일 선택과 같은 크기 및 간격을 사용한다. 교대 및 브레이크 토글은 해당 바 아래에 둔다. ON일 때만 관련 선택 UI를 표시한다.",
       "reason": "사용자가 브레이크 타임과 동일한 토글·조건부 선택 UI와 표시 순서를 요청했다.",
       "source": "사용자 후속 요청 · 2026-10-03",
-      "updatedAt": "2026-10-03T14:16:50.422682+00:00"
+      "updatedAt": "2026-10-03T14:35:21.599127+00:00"
     }
   ],
   "milestones": [
@@ -5017,7 +5017,18 @@
       "decisionId": "D-070",
       "detail": "사용자 요청으로 c7dfef35ba6d3e3016b6341a080e1c572b5826c0를 https://tap2.work에 게시. Pages run 37129542307 성공. 별도 배포 checkout에서 요청 변경 5개 파일만 반영했다. 토글 하단 배치와 휴무일 7개 버튼 크기 통일을 함께 배포했다.",
       "verification": "GitHub CI 코드 검사·서버 전체 테스트·Flutter 분석 및 전체 테스트·공개 웹 빌드·게시 통과. HTTPS index 및 해시 main/bootstrap HTTP 200, Pages artifact와 바이트 일치. main SHA256 629ff60b9d45d7b4dd1d5325c4bb6493958ed62cbae18c83f7777c8378b5f96f. 공개 artifact에 .local/developer/project-state.json 없음. 설치형 iOS 실기기 및 실제 매장 설정 변경은 수행하지 않음."
+    },
+    {
+      "at": "2026-10-03T14:35:21.599127+00:00",
+      "type": "implementation",
+      "title": "휴무일 선택 위치와 요일 버튼 크기 정정",
+      "decisionId": "D-070",
+      "previous": "시간설정의 옵션을 휴무일 → 2교대 이상 → 브레이크 타임 순서의 토글로 구성한다. ON일 때만 해당 요일·2/3교대·브레이크 선택 UI를 표시한다. 토글은 해당 선택 줄·조정 바 아래에 배치한다: 휴무일은 요일 선택 아래, 2교대 이상은 영업시간 바 아래, 브레이크 타임은 주황색 바·시간 아래.",
+      "next": "시간설정 옵션은 휴무일, 2교대 이상, 브레이크 타임 순서다. 휴무일은 토글 아래에 요일 선택을 표시하고 개별 편집 요일 선택과 같은 크기 및 간격을 사용한다. 교대 및 브레이크 토글은 해당 바 아래에 둔다. ON일 때만 관련 선택 UI를 표시한다.",
+      "reason": "User clarified that the closed-day selector belongs below its switch and must match the individual-day selector.",
+      "detail": "Removed closed-day-only width and label constraints. Both selector rows use the same ChipTheme, text labels, 8px spacing and hidden checkmarks. Multiple closed-day and single editing-day actions are preserved. Capture tool now opens both rows together.",
+      "verification": "Flutter analyze passed; related Flutter widgets/capture 16/16 and server 11/11 passed; check:ui-links passed. Generated 320/390/1200px captures and visually confirmed both selector rows match at 390px. Deployment verification follows."
     }
   ],
-  "updatedAt": "2026-10-03T14:30:43.418177+00:00"
+  "updatedAt": "2026-10-03T14:35:21.599127+00:00"
 }

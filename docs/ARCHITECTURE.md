@@ -262,3 +262,5 @@ CrewWeekGrid replaces the vertical weekday list with weekday columns and time ro
 시간설정 컨트롤 배치 후속: 휴무일 토글은 ON일 때 나타나는 요일 선택 줄 아래, 2교대 이상 토글·선택 칩은 영업시간 바 아래, 브레이크 토글은 ON일 때 나타나는 주황색 바·시간 아래에 둔다. `BusinessHoursSlider.shiftControls`는 영업시간 바와 브레이크 바 사이에 상위 화면의 교대 컨트롤을 배치하는 슬롯이다. 토글 순서와 조건부 표시·초안·저장 계약은 유지한다.
 
 휴무일 요일 칩 크기 후속: 7개 칩의 외부 너비는 48, 라벨은 최소 24×24의 동일 영역에서 중앙 정렬한다. 글자 모양·선택 상태에 따라 버튼 크기가 달라지지 않으며 기존 줄바꿈·휴무 토글·저장 동작을 유지한다.
+
+Latest weekday-selector correction (2026-10-03): supersedes the preceding closed-day placement and sizing notes. The closed-day switch comes BEFORE its weekday selector. Closed-day FilterChip and individual-day ChoiceChip share the existing ChipTheme, plain text labels, 8px spacing and no checkmark. Remove closed-day-only 48px width / 24px label constraints. Both rows now have matching button geometry; multiple closed-day selection and single editing-day selection retain their existing actions and save consumers. Shift and break switches remain below their tracks. Capture both rows together at 320/390/1200px.
