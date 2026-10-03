@@ -258,3 +258,7 @@ CrewWeekGrid replaces the vertical weekday list with weekday columns and time ro
 ## 웹 배포 캐시 · 2026-10-03
 
 `build-flutter.mjs`는 성공한 웹 빌드에 `version-web-assets.mjs`를 적용한다. main.dart.js 내용 해시를 entrypoint 파일명에 넣고, 이 경로를 포함한 bootstrap의 해시도 파일명에 넣는다. index의 preload/script는 같은 버전을 참조해 앱만 바뀌어도 HTML·loader·entrypoint 주소가 함께 갱신된다. 이전 문서와의 전환을 위해 안정된 원래 파일도 유지한다. Flutter 생성 형식이 달라지면 배포를 실패시켜 버전 처리 누락을 방지한다. 시작 실패의 다시 불러오기는 기존 경로·쿼리·fragment를 유지하고 `_refresh`를 추가해 캐시된 HTML을 우회한다. 인증 저장소·매장 데이터는 삭제하지 않는다. 이미 실행 중인 홈 화면 앱은 자동 재시작하지 않으며 사용자가 종료 후 다시 열어야 한다. GitHub Pages의 HTML 캐시 유효기간은 별도로 존재한다.
+
+시간설정 컨트롤 배치 후속: 휴무일 토글은 ON일 때 나타나는 요일 선택 줄 아래, 2교대 이상 토글·선택 칩은 영업시간 바 아래, 브레이크 토글은 ON일 때 나타나는 주황색 바·시간 아래에 둔다. `BusinessHoursSlider.shiftControls`는 영업시간 바와 브레이크 바 사이에 상위 화면의 교대 컨트롤을 배치하는 슬롯이다. 토글 순서와 조건부 표시·초안·저장 계약은 유지한다.
+
+휴무일 요일 칩 크기 후속: 7개 칩의 외부 너비는 48, 라벨은 최소 24×24의 동일 영역에서 중앙 정렬한다. 글자 모양·선택 상태에 따라 버튼 크기가 달라지지 않으며 기존 줄바꿈·휴무 토글·저장 동작을 유지한다.

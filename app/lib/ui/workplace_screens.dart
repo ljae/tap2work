@@ -881,12 +881,6 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
 
   List<Widget> hours() => [
     if (hoursStep == 0) ...[
-      SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        title: const Text('휴무일'),
-        value: useClosedDays,
-        onChanged: canDraftHours ? toggleClosedDays : null,
-      ),
       if (useClosedDays)
         Wrap(
           spacing: 0,
@@ -898,12 +892,21 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                 child: FilterChip(
                   showCheckmark: false,
                   labelPadding: EdgeInsets.zero,
-                  label: Text(
-                    dayNames[d - 1],
-                    style: TextStyle(
-                      decoration: (days['$d'] as List).isEmpty
-                          ? TextDecoration.lineThrough
-                          : null,
+                  label: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: 24,
+                      minHeight: 24,
+                    ),
+                    child: Center(
+                      child: Text(
+                        dayNames[d - 1],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          decoration: (days['$d'] as List).isEmpty
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
                     ),
                   ),
                   selected: (days['$d'] as List).isEmpty,
@@ -914,6 +917,12 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
               ),
           ],
         ),
+      SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        title: const Text('휴무일'),
+        value: useClosedDays,
+        onChanged: canDraftHours ? toggleClosedDays : null,
+      ),
     ],
     ...[
       Wrap(
@@ -952,39 +961,48 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         ),
     ],
     if (hoursStep == 0 && dayBands.isNotEmpty) ...[
-      SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        title: const Text('2교대 이상'),
-        value: multipleShifts,
-        onChanged: canDraftHours ? (value) => preset(value ? 2 : 1) : null,
-      ),
-      if (multipleShifts)
-        Wrap(
-          spacing: 4,
-          runSpacing: 8,
+      BusinessHoursSlider(
+        shiftControls: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final entry in {2: '2교대', 3: '3교대'}.entries)
-              ChoiceChip(
-                label: Text(entry.value),
-                selected:
-                    dayBands.where((b) => b['custom'] != true).length ==
-                    entry.key,
-                onSelected: canDraftHours ? (_) => preset(entry.key) : null,
-              ),
-            IconButton(
-              tooltip: '시간 조정 도움말',
-              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    '구분선이나 시간을 끌어 30분 단위로 조정해요. 시간을 누르면 숫자로 선택할 수 있어요. 전체는 모든 영업일에 적용해요.',
-                  ),
-                ),
-              ),
-              icon: const Icon(Icons.info_outline),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('2교대 이상'),
+              value: multipleShifts,
+              onChanged: canDraftHours
+                  ? (value) => preset(value ? 2 : 1)
+                  : null,
             ),
+            if (multipleShifts)
+              Wrap(
+                spacing: 4,
+                runSpacing: 8,
+                children: [
+                  for (final entry in {2: '2교대', 3: '3교대'}.entries)
+                    ChoiceChip(
+                      label: Text(entry.value),
+                      selected:
+                          dayBands.where((b) => b['custom'] != true).length ==
+                          entry.key,
+                      onSelected: canDraftHours
+                          ? (_) => preset(entry.key)
+                          : null,
+                    ),
+                  IconButton(
+                    tooltip: '시간 조정 도움말',
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          '구분선이나 시간을 끌어 30분 단위로 조정해요. 시간을 누르면 숫자로 선택할 수 있어요. 전체는 모든 영업일에 적용해요.',
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.info_outline),
+                  ),
+                ],
+              ),
           ],
         ),
-      BusinessHoursSlider(
         bands: operatingBands,
         breakTime: breaks['$weekday'] as Json?,
         enabled: canDraftHours,

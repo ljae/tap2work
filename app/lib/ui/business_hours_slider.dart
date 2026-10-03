@@ -46,7 +46,9 @@ class BusinessHoursSlider extends StatelessWidget {
     required this.onHours,
     required this.onBreak,
     required this.onBoundary,
+    this.shiftControls,
   });
+  final Widget? shiftControls;
   final List<Map<String, dynamic>> bands;
   final Map<String, dynamic>? breakTime;
   final bool enabled;
@@ -141,6 +143,24 @@ class BusinessHoursSlider extends StatelessWidget {
           onChoose: choose,
           id: 'hours',
         ),
+        ?shiftControls,
+        if (pause != null)
+          _HoursTrack(
+            origin: origin,
+            values: pause,
+            color: AppColors.accent,
+            enabled: enabled,
+            names: const [],
+            sizingNames: [
+              for (var i = 0; i < bands.length; i++)
+                shiftLabel(i, bands.length),
+            ],
+            sizingValues: cuts,
+            onChange: changeBreak,
+            onChoose: chooseBreak,
+            id: 'break',
+            below: true,
+          ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: const Text('브레이크 타임'),
@@ -159,23 +179,6 @@ class BusinessHoursSlider extends StatelessWidget {
                 }
               : null,
         ),
-        if (pause != null)
-          _HoursTrack(
-            origin: origin,
-            values: pause,
-            color: AppColors.accent,
-            enabled: enabled,
-            names: const [],
-            sizingNames: [
-              for (var i = 0; i < bands.length; i++)
-                shiftLabel(i, bands.length),
-            ],
-            sizingValues: cuts,
-            onChange: changeBreak,
-            onChoose: chooseBreak,
-            id: 'break',
-            below: true,
-          ),
       ],
     );
   }
