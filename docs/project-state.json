@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 143,
+  "revision": 144,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4982,7 +4982,15 @@
       "decisionId": "D-070",
       "detail": "설치된 앱에서 시간설정 변경이 보이지 않는 제보 후 데스크톱 브라우저에서도 이전 UI와 캐시 응답을 확인했다. GitHub Pages의 max-age=600과 배포마다 동일했던 index/bootstrap이 이전 main.dart.js를 재사용할 수 있었다. Flutter 빌드 후 main 내용 해시 파일명, 이를 참조하는 bootstrap 해시 파일명, index 참조를 함께 생성한다. 이전 문서용 원래 파일을 유지하고 생성 형식 변경 시 빌드를 실패시킨다. 시작 실패 재시도는 경로·쿼리·fragment를 보존한 캐시 우회 URL을 사용한다. 실행 중인 앱을 강제로 재시작하거나 로그인·매장 데이터를 삭제하지 않는다.",
       "verification": "캐시 변경·동일 빌드·loader 단독 변경·잘못된 생성 형식 및 시작 재시도 테스트 6/6, 서버 전체 153/153, npm run check 및 check:ui-links 통과. npm run build:app 성공 및 생성 HTML/loader/해시 main 참조 확인. Flutter 소스 변경 없음. 설치된 iOS 앱 실기기 재시작 검증은 미수행. 공개 배포 검증은 후속 기록."
+    },
+    {
+      "at": "2026-10-03T14:11:55.799593+00:00",
+      "type": "deployment",
+      "title": "설치형 웹 앱 캐시 수정 배포 완료",
+      "decisionId": "D-070",
+      "detail": "64a76d74f7cc0c4237a3a8162d34c5d39e97a5c4를 tap2.work에 게시. Pages run 37128502368 성공. 시간설정 토글 UI가 포함된 동일한 최신 Flutter 앱을 내용 해시가 붙은 entrypoint/loader로 제공한다. 이미 실행 중인 홈 화면 앱에는 완전 종료 후 재실행 안내가 필요하다.",
+      "verification": "GitHub CI npm check, 서버 153개 테스트, Flutter analyze 및 전체 Flutter 테스트, 공개 웹 빌드·게시 성공. index.html, main.c2bd223bb3682d2935f9.dart.js, flutter_bootstrap.74a7a4cc71b5512e82e6.js 모두 HTTP 200이며 Pages artifact와 바이트 일치. 일반 루트 URL도 버전 파일 참조 확인. main SHA256 c2bd223bb3682d2935f9f13ba6217119b3e81a27a69275027a71d0f21bea7b1d. .local/developer/project-state.json이 공개 artifact에 없음. 설치된 iOS 앱 실기기 갱신·배포 후 로그인 매장 설정 변경은 수행하지 않음."
     }
   ],
-  "updatedAt": "2026-10-03T14:06:48.789831+00:00"
+  "updatedAt": "2026-10-03T14:11:55.799593+00:00"
 }
