@@ -49,204 +49,209 @@ class BusinessHoursSlider extends StatelessWidget {
     final start = hoursMinute(bands.first['start']);
     var end = hoursMinute(bands.last['end']);
     if (end <= start) end += 1440;
-    final max = start + 1410;
-    final pauseStart = breakTime == null
-        ? 900
-        : hoursMinute(breakTime!['start']);
-    final bs = pauseStart < start ? pauseStart + 1440 : pauseStart;
-    var be = breakTime == null ? 1020 : hoursMinute(breakTime!['end']);
-    if (be <= bs) be += 1440;
-    final validBreak = breakTime != null && bs >= start && be <= end;
-    String time(int minute) =>
-        '${minute >= 1440 ? '다음 날 ' : ''}${hoursTime(minute)}';
-    Widget vertical(
-      String label,
-      RangeValues values,
-      double min,
-      double max,
-      ValueChanged<RangeValues>? change,
-    ) => Semantics(
-      label: label,
-      child: SizedBox(
-        height: 304,
-        width: 56,
-        child: RotatedBox(
-          quarterTurns: 1,
-          child: RangeSlider(
-            activeColor: label.startsWith('브레이크')
-                ? AppColors.accent
-                : AppColors.green,
-            values: values,
-            min: min,
-            max: max,
-            divisions: ((max - min) / 30).round(),
-            labels: RangeLabels(
-              time(values.start.round()),
-              time(values.end.round()),
-            ),
-            semanticFormatterCallback: (v) => time(v.round()),
-            onChanged: change,
-          ),
-        ),
-      ),
-    );
+    // A continuous 24-hour axis also supports overnight opening windows.
+    final origin = end > 1440 ? start : 0;
+    int absolute(String value) {
+      final minute = hoursMinute(value);
+      return minute < start ? minute + 1440 : minute;
+    }
+
+    String display(int value) =>
+        '${value >= 1440 ? '다음 날 ' : ''}${hoursTime(value)}';
+    final cuts = [
+      start,
+      for (final b in bands.take(bands.length - 1)) absolute(b['end']),
+      end,
+    ];
+    void change(int i, int minute) {
+      if (!enabled) return;
+      if (i == 0) {
+        if (minute >= 0 &&
+            minute < end &&
+            end - minute < 1440 &&
+            end - minute >= bands.length * 30) {
+          onHours(minute, end);
+        }
+      } else if (i == cuts.length - 1) {
+        if (minute > start &&
+            minute - start < 1440 &&
+            minute - start >= bands.length * 30) {
+          onHours(start, minute);
+        }
+      } else if (minute >= cuts[i - 1] + 30 && minute <= cuts[i + 1] - 30) {
+        onBoundary(i - 1, minute);
+      }
+    }
+
+    Future<void> choose(int i) async {
+      final value = await showTimeWheel(
+        context,
+        title: i == 0
+            ? '영업 시작'
+            : i == cuts.length - 1
+            ? '영업 종료'
+            : '교대 시간',
+        value: hoursTime(cuts[i]),
+      );
+      if (value == null) return;
+      var minute = hoursMinute(value);
+      if (i > 0 && minute <= start) minute += 1440;
+      change(i, minute);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (var i = 0; i < cuts.length; i++)
+              TextButton(
+                onPressed: enabled ? () => choose(i) : null,
+                child: Text(
+                  '${i == 0
+                      ? '시작'
+                      : i == cuts.length - 1
+                      ? '종료'
+                      : '교대'} ${display(cuts[i])}',
+                ),
+              ),
+          ],
+        ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth - 48;
+            double x(int value) => (value - origin) / 1440 * width + 24;
+            return SizedBox(
+              height: 112,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    left: 24,
+                    right: 24,
+                    top: 24,
+                    height: 40,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: AppColors.paper,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  for (var i = 0; i < cuts.length - 1; i++)
+                    Positioned(
+                      left: x(cuts[i]),
+                      width: (cuts[i + 1] - cuts[i]) / 1440 * width,
+                      top: 24,
+                      height: 40,
+                      child: ColoredBox(
+                        color: AppColors.green.withValues(
+                          alpha: i.isEven ? .35 : .6,
+                        ),
+                      ),
+                    ),
+                  if (breakTime != null &&
+                      absolute(breakTime!['start']) >= start &&
+                      absolute(breakTime!['end']) <= end)
+                    Positioned(
+                      left: x(absolute(breakTime!['start'])),
+                      width:
+                          (absolute(breakTime!['end']) -
+                                  absolute(breakTime!['start']))
+                              .clamp(0, 1440) /
+                          1440 *
+                          width,
+                      top: 56,
+                      height: 8,
+                      child: const ColoredBox(color: AppColors.accent),
+                    ),
+                  for (var i = 0; i < cuts.length; i++)
+                    Positioned(
+                      left: x(cuts[i]) - 24,
+                      top: 20,
+                      width: 48,
+                      height: 48,
+                      child: Semantics(
+                        label: i == 0
+                            ? '영업 시작'
+                            : i == cuts.length - 1
+                            ? '영업 종료'
+                            : '교대 $i',
+                        value: display(cuts[i]),
+                        increasedValue: display(cuts[i] + 30),
+                        decreasedValue: display(cuts[i] - 30),
+                        onIncrease: enabled
+                            ? () => change(i, cuts[i] + 30)
+                            : null,
+                        onDecrease: enabled
+                            ? () => change(i, cuts[i] - 30)
+                            : null,
+                        child: GestureDetector(
+                          key: ValueKey('hours-thumb-$i'),
+                          behavior: HitTestBehavior.opaque,
+                          onHorizontalDragUpdate: enabled
+                              ? (details) {
+                                  final box =
+                                      context.findRenderObject() as RenderBox;
+                                  final local = box
+                                      .globalToLocal(details.globalPosition)
+                                      .dx;
+                                  final minute =
+                                      (origin +
+                                      ((local - 24) / width * 1440) / 30 * 30);
+                                  change(i, (minute / 30).round() * 30);
+                                }
+                              : null,
+                          child: IconButton(
+                            tooltip: display(cuts[i]),
+                            onPressed: enabled ? () => choose(i) : null,
+                            icon: Container(
+                              width: 6,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppColors.green,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  for (var h = 0; h <= 24; h += 6)
+                    Positioned(
+                      left: x(origin + h * 60) - 24,
+                      top: 80,
+                      width: 48,
+                      child: Text(
+                        origin == 0 && h == 24
+                            ? '24:00'
+                            : hoursTime(origin + h * 60),
+                        textAlign: TextAlign.center,
+                        style: AppText.caption,
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+        Wrap(
           spacing: 16,
           runSpacing: 8,
           children: [
-            AppTimeField(
-              label: '영업 시작',
-              value: hoursTime(start),
-              onChanged: enabled
-                  ? (value) {
-                      final nextStart = hoursMinute(value);
-                      var nextEnd = hoursMinute(bands.last['end']);
-                      if (nextEnd <= nextStart) nextEnd += 1440;
-                      if (nextEnd - nextStart < 1440) {
-                        onHours(nextStart, nextEnd);
-                      }
-                    }
-                  : null,
-            ),
-            AppTimeField(
-              label: '영업 종료',
-              value: hoursTime(end),
-              onChanged: enabled
-                  ? (value) {
-                      var nextEnd = hoursMinute(value);
-                      if (nextEnd <= start) nextEnd += 1440;
-                      if (nextEnd - start < 1440) onHours(start, nextEnd);
-                    }
-                  : null,
-            ),
+            for (final band in bands)
+              Text('${band['name']}', style: AppText.caption),
           ],
         ),
-        if (end >= 1440) Text('종료 ${time(end)}', style: AppText.caption),
-        const SizedBox(height: 8),
-        const Text('위·아래 손잡이로 시작과 종료를 조정해요. 30분 단위예요.', style: AppText.caption),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            vertical(
-              '영업시간 슬라이더',
-              RangeValues(start.toDouble(), end.toDouble()),
-              0,
-              max.toDouble(),
-              enabled
-                  ? (v) {
-                      if (v.end - v.start >= bands.length * 30 &&
-                          v.end - v.start < 1440 &&
-                          v.start < 1440) {
-                        onHours(v.start.round(), v.end.round());
-                      }
-                    }
-                  : null,
-            ),
-            Expanded(
-              child: SizedBox(
-                height: 304,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24),
-                  child: Stack(
-                    children: [
-                      for (var i = 0; i < bands.length; i++)
-                        Builder(
-                          builder: (_) {
-                            var s = hoursMinute(bands[i]['start']);
-                            if (s < start) s += 1440;
-                            var e = hoursMinute(bands[i]['end']);
-                            if (e <= s) e += 1440;
-                            return Positioned(
-                              top: s / max * 256,
-                              height: (e - s) / max * 256,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: AppColors.green.withValues(
-                                    alpha: i.isEven ? .25 : .45,
-                                  ),
-                                  border: const Border(
-                                    bottom: BorderSide(
-                                      color: AppColors.paper,
-                                      width: 2,
-                                    ),
-                                  ),
-                                ),
-                                child:
-                                    (e - s) / max * 256 >=
-                                        28 *
-                                            MediaQuery.textScalerOf(
-                                              context,
-                                            ).scale(1)
-                                    ? Text(
-                                        '${bands[i]['name']}',
-                                        style: AppText.caption,
-                                      )
-                                    : null,
-                              ),
-                            );
-                          },
-                        ),
-                      if (validBreak)
-                        Positioned(
-                          top: bs / max * 256,
-                          height: ((be - bs) / max * 256).toDouble(),
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            alignment: Alignment.center,
-                            color: AppColors.accent.withValues(alpha: .9),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            if (validBreak)
-              vertical(
-                '브레이크 타임 슬라이더',
-                RangeValues(bs.toDouble(), be.toDouble()),
-                0,
-                max.toDouble(),
-                enabled
-                    ? (v) {
-                        if (v.end - v.start >= 30 &&
-                            v.start >= start &&
-                            v.end <= end) {
-                          onBreak({
-                            'start': hoursTime(v.start.round()),
-                            'end': hoursTime(v.end.round()),
-                          });
-                        }
-                      }
-                    : null,
-              ),
-          ],
-        ),
-        for (final band in bands)
-          Text(
-            '${band['name']} · ${band['start']}–${band['end']}',
-            style: AppText.caption,
-          ),
-        CheckboxListTile(
+        SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
           title: const Text('브레이크 타임'),
           value: breakTime != null,
-          subtitle: Text(
-            breakTime == null
-                ? '기본 오후 3시–5시 · 영업시간 안에서 적용'
-                : '${breakTime!['start']}–${breakTime!['end']} · 필요 인원에서 제외',
-          ),
           onChanged: enabled
-              ? (v) {
-                  if (v != true) {
+              ? (value) {
+                  if (!value) {
                     onBreak(null);
                     return;
                   }
@@ -258,34 +263,26 @@ class BusinessHoursSlider extends StatelessWidget {
                 }
               : null,
         ),
-        for (
-          var i = 0;
-          i < bands.length - 1 &&
-              bands.length <= 3 &&
-              end - start >= bands.length * 30;
-          i++
-        ) ...[
-          Text(
-            '${bands[i]['name']} / ${bands[i + 1]['name']} 교대',
-            style: AppText.caption,
-          ),
-          Builder(
-            builder: (_) {
-              var v = hoursMinute(bands[i]['end']);
-              if (v <= start) v += 1440;
-              final low = start + (i + 1) * 30;
-              final high = end - (bands.length - i - 1) * 30;
-              return Slider(
-                min: low.toDouble(),
-                max: high.toDouble(),
-                divisions: high > low ? (high - low) ~/ 30 : null,
-                value: v.clamp(low, high).toDouble(),
-                label: time(v),
-                onChanged: enabled && high > low
-                    ? (v) => onBoundary(i, v.round())
+        if (breakTime != null) ...[
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            children: [
+              AppTimeField(
+                label: '휴식 시작',
+                value: breakTime!['start'],
+                onChanged: enabled
+                    ? (v) => onBreak({...breakTime!, 'start': v})
                     : null,
-              );
-            },
+              ),
+              AppTimeField(
+                label: '휴식 종료',
+                value: breakTime!['end'],
+                onChanged: enabled
+                    ? (v) => onBreak({...breakTime!, 'end': v})
+                    : null,
+              ),
+            ],
           ),
         ],
       ],

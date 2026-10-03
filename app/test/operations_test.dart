@@ -120,7 +120,9 @@ void main() {
       await tester.tap(hours);
       await tester.pumpAndSettle();
       expect(find.text('영업시간·필요 인원'), findsOneWidget);
-      expect(find.text('1. 휴무일을 선택해 주세요'), findsOneWidget);
+      expect(find.text('휴무일 설정'), findsOneWidget);
+      await tester.tap(find.text('교대 시간 분할'));
+      await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.text('3교대'),
         200,

@@ -75,11 +75,9 @@ Future<OperationsController> mount(
     ),
   );
   await tester.pumpAndSettle();
-  await tester.scrollUntilVisible(
-    find.text('2교대'),
-    200,
-    scrollable: find.byType(Scrollable).first,
-  );
+  await tester.tap(find.text('인원 배치').first);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('상세 설정'));
   await tester.pumpAndSettle();
   return ops;
 }
@@ -201,7 +199,12 @@ void main() {
             .onPressed,
         isNull,
       );
+      await tester.tap(find.text('교대 시간 분할'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('2교대'));
       await tester.tap(find.text('2교대'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('인원 배치').first);
       await tester.pumpAndSettle();
       expect(writes, 0);
       expect(tester.takeException(), isNull);
@@ -274,12 +277,19 @@ void main() {
       expect(find.text('전체 · 연결 업무'), findsOneWidget);
       await tester.tap(find.byType(CloseButton).last);
       await tester.pumpAndSettle();
+      await tester.tap(find.text('교대 시간 분할'));
+      await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.text('2교대'),
         -180,
         scrollable: find.byType(Scrollable).first,
       );
+      await tester.tap(find.text('교대 시간 분할'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('2교대'));
       await tester.tap(find.text('2교대'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('인원 배치').first);
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.text('연결 업무').first,
@@ -296,7 +306,7 @@ void main() {
     },
   );
   testWidgets(
-    'preset confirmation preserves custom bands and linked IDs when reducing shifts',
+    'immediate preset preserves custom bands and linked IDs when reducing shifts',
     (tester) async {
       final data = fixture();
       final custom = <String, dynamic>{
@@ -344,15 +354,12 @@ void main() {
       ];
       Json? written;
       await mount(tester, initialData: data, write: (v) => written = v);
-      await tester.tap(find.text('1교대'));
+      await tester.tap(find.text('교대 시간 분할'));
       await tester.pumpAndSettle();
-      expect(find.text('교대 기본값을 적용할까요?'), findsOneWidget);
-      await tester.tap(find.text('계속 수정'));
+      await tester.tap(find.text('1교대'));
       await tester.pumpAndSettle();
       expect(written, isNull);
-      await tester.tap(find.text('1교대'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('기본값 적용'));
+      await tester.tap(find.text('인원 배치').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('일주일 설정 저장'));
       await tester.pumpAndSettle();
@@ -400,12 +407,6 @@ void main() {
       final before = jsonEncode([data['taskTemplates'], data['crewPatterns']]);
       final writes = <Json>[];
       await mount(tester, initialData: data, write: writes.add);
-      await tester.scrollUntilVisible(
-        find.textContaining('휴무로 저장하면 해당 요일'),
-        -180,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.textContaining('휴무로 저장하면 해당 요일'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('시간대 삭제'),
         180,

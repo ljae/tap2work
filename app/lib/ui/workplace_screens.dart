@@ -356,7 +356,8 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         for (final rows in days.values)
           if ((rows as List).isNotEmpty)
             jsonEncode([
-              for (final b in rows) [b['name'], b['start'], b['end']],
+              for (final b in rows)
+                [b['name'], b['start'], b['end'], b['headcounts']],
             ]),
       ];
       allHours = signatures.toSet().length <= 1;
@@ -366,11 +367,22 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   late List<Json> parts =
       (jsonDecode(jsonEncode(storeParts(widget.ops))) as List).cast<Json>();
   late Json days = initialDays();
-  late String businessDayStart =
-      ops.data?['workplace']?['businessDayStart'] ?? '00:00';
+  // The opening time is the business-day boundary; no separate input.
+  // The shared boundary uses the earliest opening across operating weekdays.
+  String get businessDayStart {
+    final starts = <String>[
+      for (final rows in days.values)
+        if ((rows as List).isNotEmpty) '${rows.first['start']}',
+    ]..sort();
+    return starts.firstOrNull ??
+        ops.data?['workplace']?['businessDayStart'] ??
+        '00:00';
+  }
+
   late Json breaks = jsonDecode(
     jsonEncode(ops.data?['workplace']?['breaks'] ?? {}),
   );
+  int hoursStep = 0;
   bool allHours = false;
   String? hoursPart;
   bool showHoursList = false;
@@ -725,40 +737,6 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       setState(() => error = '시간대당 30분 이상 필요해요.');
       return;
     }
-    final resetsSettings =
-        dirty ||
-        (allHours &&
-            hoursTargets.any((d) => (days['$d'] as List).length > 1)) ||
-        custom.isNotEmpty ||
-        base.length > 1 ||
-        base.any(
-          (b) =>
-              b['name'] != '전체' ||
-              linkedIds.contains(b['id']) ||
-              (b['headcounts'] as Map? ?? {}).values.any((n) => n != 1),
-        );
-    if (resetsSettings) {
-      final confirmed = await showAppDialog<bool>(
-        context: context,
-        builder: (c) => AlertDialog(
-          title: const Text('교대 기본값을 적용할까요?'),
-          content: const Text(
-            '기본 교대의 이름·공통 시간을 다시 나눠요. 기존 파트별 시간과 필요 인원은 유지해요. 추가한 시간대와 연결된 시간대 ID는 유지해요. 줄어든 교대 중 업무가 연결된 시간대는 추가 시간대로 남아요.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(c, false),
-              child: const Text('계속 수정'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(c, true),
-              child: const Text('기본값 적용'),
-            ),
-          ],
-        ),
-      );
-      if (confirmed != true || !mounted || !canDraftHours) return;
-    }
     update(() {
       for (final d in hoursTargets) {
         final rows = (days['$d'] as List).cast<Json>();
@@ -773,10 +751,10 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         }
         final cuts = shiftBoundaries(start, end, count);
         final names = count == 1
-            ? ['전체']
+            ? ['오픈']
             : count == 2
-            ? ['오전', '오후']
-            : ['오전', '오후', '저녁'];
+            ? ['오픈', '마감']
+            : ['오픈', '미들', '마감'];
         days['$d'] = [
           for (var i = 0; i < count; i++)
             {
@@ -867,86 +845,218 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   bool get canDraftHours =>
       ops.actorId == actorId && ops.isOwner && !saving && !ops.busy;
   static const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
-  List<Widget> hours() => [
-    const Text('1. 휴무일을 선택해 주세요', style: AppText.title),
-    const SizedBox(height: 16),
-    Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (var d = 1; d <= 7; d++)
-          FilterChip(
-            label: Text(dayNames[d - 1]),
-            selected: (days['$d'] as List).isEmpty,
-            onSelected: canDraftHours
-                ? (closed) => update(() {
-                    days['$d'] = closed
-                        ? <Json>[]
-                        : <Json>[
-                            {
-                              'id': newBandId(),
-                              'name': '전체',
-                              'start': '06:00',
-                              'end': '22:00',
-                            },
-                          ];
-                    if (closed) breaks.remove('$d');
-                    if (!closed) weekday = d;
-                    if (closed && weekday == d) {
-                      weekday =
-                          [
-                            for (var n = 1; n <= 7; n++)
-                              if ((days['$n'] as List).isNotEmpty) n,
-                          ].firstOrNull ??
-                          d;
-                    }
-                  })
-                : null,
+  Widget hoursHeading(String title, String help) => Row(
+    children: [
+      Expanded(child: Text(title, style: AppText.section)),
+      IconButton(
+        tooltip: '$title 도움말',
+        onPressed: () => ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(help))),
+        icon: const Icon(Icons.info_outline),
+      ),
+    ],
+  );
+
+  int countFor(Json band, String part) =>
+      (band['headcounts'] as Map?)?[part] ?? (band['custom'] == true ? 0 : 1);
+
+  Future<void> editCount(int index, Json part) async {
+    var count = countFor(dayBands[index], part['id']);
+    final value = await showAppDialog<int>(
+      context: context,
+      builder: (c) => StatefulBuilder(
+        builder: (c, refresh) => AlertDialog(
+          title: Text('${dayBands[index]['name']} · ${part['name']}'),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                tooltip: '인원 줄이기',
+                onPressed: count > 0 ? () => refresh(() => count--) : null,
+                icon: const Icon(Icons.remove),
+              ),
+              Text('$count명', style: AppText.title),
+              IconButton(
+                tooltip: '인원 늘리기',
+                onPressed: count < 12 ? () => refresh(() => count++) : null,
+                icon: const Icon(Icons.add),
+              ),
+            ],
           ),
-      ],
-    ),
-    const SizedBox(height: 8),
-    const Text(
-      '휴무로 저장하면 해당 요일의 시간대와 필요 인원이 제거되고, 그 시간대에 연결된 TAP·Task는 새로 생성되지 않아요. 연결된 반복 배정은 다시 적용하기 전에 확인해 주세요. 연결 설정·기존 근무·완료 기록은 유지돼요. 공휴일 표시는 영업 여부를 바꾸지 않아요.',
-      style: AppText.caption,
-    ),
-    section('2. 영업일의 교대와 시간을 정해 주세요'),
-    Wrap(
-      spacing: 8,
-      children: [
-        for (final mode in [true, false])
-          SizedBox(
-            width: 124,
-            child: CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-              title: Text(mode ? '전체' : '개별'),
-              value: allHours == mode,
-              onChanged: canDraftHours
-                  ? (_) => setState(() => allHours = mode)
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(c),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(c, count),
+              child: const Text('적용'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (value == null || !mounted || !canDraftHours) return;
+    final source = dayBands[index];
+    final ordinal = dayBands
+        .where((b) => b['custom'] != true)
+        .toList()
+        .indexOf(source);
+    update(() {
+      for (final d in hoursTargets) {
+        final rows = (days['$d'] as List).cast<Json>();
+        final target = source['custom'] == true
+            ? rows.where((b) => b['id'] == source['id']).firstOrNull
+            : rows.where((b) => b['custom'] != true).elementAtOrNull(ordinal);
+        if (target == null) continue;
+        target['headcounts'] ??= <String, dynamic>{};
+        target['headcounts'][part['id']] = value;
+      }
+    });
+  }
+
+  Widget staffingMatrix() {
+    final visibleParts = parts.where((p) => p['hidden'] != true).toList();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scale = MediaQuery.textScalerOf(context).scale(1);
+        final width = max(
+          constraints.maxWidth,
+          (visibleParts.length + 1) * 68.0 * scale,
+        );
+        Widget label(String text) => Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(text, textAlign: TextAlign.center),
+        );
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: width,
+            child: Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              border: TableBorder.all(
+                color: AppColors.muted.withValues(alpha: .25),
+              ),
+              children: [
+                TableRow(
+                  decoration: const BoxDecoration(color: AppColors.elevated),
+                  children: [
+                    label('교대'),
+                    for (final p in visibleParts) label(p['name']),
+                  ],
+                ),
+                for (var i = 0; i < dayBands.length; i++)
+                  TableRow(
+                    children: [
+                      label(dayBands[i]['name']),
+                      for (final p in visibleParts)
+                        Semantics(
+                          label: '${dayBands[i]['name']} ${p['name']} 필요 인원',
+                          child: TextButton(
+                            onPressed: canDraftHours
+                                ? () => editCount(i, p)
+                                : null,
+                            style: TextButton.styleFrom(
+                              minimumSize: const Size(48, 56),
+                            ),
+                            child: Text('${countFor(dayBands[i], p['id'])}'),
+                          ),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  List<Widget> hours() => [
+    if (hoursStep == 0) ...[
+      hoursHeading(
+        '휴무일',
+        '선택한 요일은 휴무예요. 저장하면 해당 요일의 필요 인원은 제거돼요. 기존 배정·완료 기록은 유지돼요.',
+      ),
+      const SizedBox(height: 16),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (var d = 1; d <= 7; d++)
+            FilterChip(
+              label: Text(dayNames[d - 1]),
+              selected: (days['$d'] as List).isEmpty,
+              onSelected: canDraftHours
+                  ? (closed) => update(() {
+                      days['$d'] = closed
+                          ? <Json>[]
+                          : <Json>[
+                              {
+                                'id': newBandId(),
+                                'name': '전체',
+                                'start': '06:00',
+                                'end': '22:00',
+                              },
+                            ];
+                      if (closed) breaks.remove('$d');
+                      if (!closed) weekday = d;
+                      if (closed && weekday == d) {
+                        weekday =
+                            [
+                              for (var n = 1; n <= 7; n++)
+                                if ((days['$n'] as List).isNotEmpty) n,
+                            ].firstOrNull ??
+                            d;
+                      }
+                    })
                   : null,
             ),
-          ),
-      ],
-    ),
-    Text(
-      allHours ? '시간·교대·브레이크 변경을 모든 영업일에 적용해요. 휴무일은 유지해요.' : '선택한 요일만 변경해요.',
-      style: AppText.caption,
-    ),
-    Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (var d = 1; d <= 7; d++)
-          if ((days['$d'] as List).isNotEmpty)
-            ChoiceChip(
-              label: Text(dayNames[d - 1]),
-              selected: weekday == d,
-              onSelected: saving ? null : (_) => setState(() => weekday = d),
+        ],
+      ),
+    ],
+    if (hoursStep > 0) ...[
+      Wrap(
+        spacing: 8,
+        children: [
+          for (final mode in [true, false])
+            SizedBox(
+              width: 124,
+              child: CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                title: Text(mode ? '전체' : '개별'),
+                value: allHours == mode,
+                onChanged: canDraftHours
+                    ? (_) => setState(() => allHours = mode)
+                    : null,
+              ),
             ),
-      ],
-    ),
-    if (dayBands.isNotEmpty) ...[
+        ],
+      ),
+      if (!allHours)
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (var d = 1; d <= 7; d++)
+              if ((days['$d'] as List).isNotEmpty)
+                ChoiceChip(
+                  label: Text(dayNames[d - 1]),
+                  selected: weekday == d,
+                  onSelected: saving
+                      ? null
+                      : (_) => setState(() => weekday = d),
+                ),
+          ],
+        ),
+    ],
+    if (hoursStep == 1 && dayBands.isNotEmpty) ...[
+      hoursHeading(
+        '교대 시간',
+        '구분선을 끌거나 시간을 눌러 30분 단위로 조정해요. 전체는 모든 영업일에 적용해요. 영업 시작을 영업일 기준으로 사용해요.',
+      ),
       const SizedBox(height: 16),
       Wrap(
         spacing: 8,
@@ -998,293 +1108,267 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                 .toList();
             if (i + 1 >= rows.length) continue;
             var left = _minute(rows[i]['start']);
+            final opening = _minute(rows.first['start']);
+            if (left < opening) left += 1440;
             var right = _minute(rows[i + 1]['end']);
             if (right <= left) right += 1440;
-            if (minute <= left || minute >= right) continue;
+            if (minute < left + 30 || minute > right - 30) continue;
             rows[i]['end'] = _time(minute);
             rows[i + 1]['start'] = _time(minute);
           }
         }),
       ),
     ],
-    section('상세 시간·필요 인원'),
-    AppTimeField(
-      label: '영업일 경계',
-      value: businessDayStart,
-      onChanged: canDraftHours
-          ? (v) => update(() => businessDayStart = v)
-          : null,
-    ),
-    const Text(
-      '경계 이전 시각은 전날 영업일에 속해요. 실제 출퇴근 시각과 완료 기록은 유지해요.',
-      style: AppText.caption,
-    ),
-    const SizedBox(height: 16),
-    OutlinedButton.icon(
-      onPressed: () => showAppFormSheet<void>(
-        context: context,
-        builder: (c) => StatefulBuilder(
-          builder: (c, refresh) => AppSheetPanel(
-            title: const Text('요일별 영업시간'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    ChoiceChip(
-                      label: const Text('공통 교대'),
-                      selected: hoursPart == null,
-                      onSelected: (_) {
-                        setState(() => hoursPart = null);
-                        refresh(() {});
-                      },
-                    ),
-                    for (final p in parts.where((p) => p['hidden'] != true))
-                      ChoiceChip(
-                        label: Text(p['name']),
-                        selected: hoursPart == p['id'],
-                        onSelected: (_) {
-                          setState(() => hoursPart = p['id']);
+    if (hoursStep == 2 && dayBands.isNotEmpty) ...[
+      hoursHeading(
+        '인원 배치',
+        '셀을 눌러 필요한 인원을 입력해요. 전체는 모든 영업일의 같은 교대에 적용해요. 별도 시간대는 상세 설정에서 관리해요.',
+      ),
+      staffingMatrix(),
+      const SizedBox(height: 16),
+    ],
+    if (hoursStep > 0 && dayBands.isEmpty)
+      const Information('휴무일이에요. 휴무일 설정에서 영업일을 선택해 주세요.'),
+    if (hoursStep > 0)
+      ExpansionTile(
+        key: const PageStorageKey('hours-details'),
+        title: const Text('상세 설정'),
+        tilePadding: EdgeInsets.zero,
+        children: [
+          OutlinedButton.icon(
+            onPressed: () => showAppFormSheet<void>(
+              context: context,
+              builder: (c) => StatefulBuilder(
+                builder: (c, refresh) => AppSheetPanel(
+                  title: const Text('요일별 영업시간'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('공통 교대'),
+                            selected: hoursPart == null,
+                            onSelected: (_) {
+                              setState(() => hoursPart = null);
+                              refresh(() {});
+                            },
+                          ),
+                          for (final p in parts.where(
+                            (p) => p['hidden'] != true,
+                          ))
+                            ChoiceChip(
+                              label: Text(p['name']),
+                              selected: hoursPart == p['id'],
+                              onSelected: (_) {
+                                setState(() => hoursPart = p['id']);
+                                refresh(() {});
+                              },
+                            ),
+                        ],
+                      ),
+                      HoursTimetable(
+                        days: days,
+                        parts: parts,
+                        partId: hoursPart,
+                        boundary: businessDayStart,
+                        editable: canDraftHours,
+                        onChange: (day, id, start, end) {
+                          update(() {
+                            final row = (days['$day'] as List).firstWhere(
+                              (b) => b['id'] == id,
+                            );
+                            if (hoursPart == null) {
+                              row['start'] = start;
+                              row['end'] = end;
+                            } else {
+                              row['partTimes'] ??= <String, dynamic>{};
+                              row['partTimes'][hoursPart] = {
+                                'start': start,
+                                'end': end,
+                              };
+                            }
+                          });
                           refresh(() {});
                         },
                       ),
-                  ],
-                ),
-                HoursTimetable(
-                  days: days,
-                  parts: parts,
-                  partId: hoursPart,
-                  boundary: businessDayStart,
-                  editable: canDraftHours,
-                  onChange: (day, id, start, end) {
-                    update(() {
-                      final row = (days['$day'] as List).firstWhere(
-                        (b) => b['id'] == id,
-                      );
-                      if (hoursPart == null) {
-                        row['start'] = start;
-                        row['end'] = end;
-                      } else {
-                        row['partTimes'] ??= <String, dynamic>{};
-                        row['partTimes'][hoursPart] = {
-                          'start': start,
-                          'end': end,
-                        };
-                      }
-                    });
-                    refresh(() {});
-                  },
-                ),
-                if (hoursPart != null)
-                  TextButton(
-                    onPressed: canDraftHours
-                        ? () {
-                            update(() {
-                              for (final rows in days.values) {
-                                for (final row in rows) {
-                                  (row['partTimes'] as Map?)?.remove(hoursPart);
+                      if (hoursPart != null)
+                        TextButton(
+                          onPressed: canDraftHours
+                              ? () {
+                                  update(() {
+                                    for (final rows in days.values) {
+                                      for (final row in rows) {
+                                        (row['partTimes'] as Map?)?.remove(
+                                          hoursPart,
+                                        );
+                                      }
+                                    }
+                                  });
+                                  refresh(() {});
                                 }
-                              }
-                            });
-                            refresh(() {});
-                          }
-                        : null,
-                    child: const Text('이 파트를 공통 시간으로 되돌리기'),
-                  ),
-                Text(
-                  hoursPart == null
-                      ? '공통 교대를 조정해요. 별도 파트 시간은 유지해요.'
-                      : '선택한 파트만 공통 교대에서 분리해 조정해요.',
-                  style: AppText.caption,
-                ),
-                const Text(
-                  '위·아래 손잡이를 끌거나 블록을 눌러 시간을 바꿔요. 변경은 이전 화면에서 저장해 주세요.',
-                  style: AppText.caption,
-                ),
-              ],
-            ),
-            actions: [
-              FilledButton(
-                onPressed: () => Navigator.pop(c),
-                child: const Text('설정으로 돌아가기'),
-              ),
-            ],
-          ),
-        ),
-      ),
-      icon: const Icon(CupertinoIcons.calendar),
-      label: const Text('요일별 시간표 조정'),
-    ),
-    const SizedBox(height: 16),
-    if (dayBands.isEmpty) const Information('휴무일이에요. 위에서 휴무를 해제해 주세요.'),
-    if (dayBands.isNotEmpty) ...[
-      for (var i = 0; i < dayBands.length; i++)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Surface(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${dayBands[i]['name']}', style: AppText.body),
-                Wrap(
-                  key: ValueKey('time-band-actions-${dayBands[i]['id']}'),
-                  spacing: 8,
-                  children: [
-                    TextButton(
-                      onPressed: canLinkBand(dayBands[i])
-                          ? () => openBandWork(dayBands[i])
-                          : null,
-                      child: const Text('연결 업무'),
-                    ),
-                    TextButton(
-                      onPressed: canDraftHours
-                          ? () => editBand(dayBands[i])
-                          : null,
-                      child: const Text('시간대 수정'),
-                    ),
-                    TextButton(
-                      onPressed: canDraftHours
-                          ? () => deleteBand(dayBands[i])
-                          : null,
-                      child: const Text('시간대 삭제'),
-                    ),
-                  ],
-                ),
-                Wrap(
-                  spacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: canDraftHours
-                          ? () => editBoundary(i, true)
-                          : null,
-                      child: Text('${dayBands[i]['start']}'),
-                    ),
-                    const Text('–'),
-                    TextButton(
-                      onPressed: canDraftHours
-                          ? () => editBoundary(i, false)
-                          : null,
-                      child: Text('${dayBands[i]['end']}'),
-                    ),
-                    if (_minute(dayBands[i]['end']) <=
-                        _minute(dayBands[i]['start']))
-                      const Text('다음 날', style: AppText.caption),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                for (final part in parts.where((p) => p['hidden'] != true))
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text('${part['name']}', style: AppText.caption),
-                      ),
-                      IconButton(
-                        tooltip: '${part['name']} 인원 줄이기',
-                        onPressed:
-                            canDraftHours &&
-                                ((dayBands[i]['headcounts']
-                                            as Map?)?[part['id']] ??
-                                        (dayBands[i]['custom'] == true
-                                            ? 0
-                                            : 1)) >
-                                    0
-                            ? () => changeCount(i, part['id'], -1)
-                            : null,
-                        icon: const Icon(Icons.remove),
-                      ),
+                              : null,
+                          child: const Text('이 파트를 공통 시간으로 되돌리기'),
+                        ),
                       Text(
-                        '${(dayBands[i]['headcounts'] as Map?)?[part['id']] ?? (dayBands[i]['custom'] == true ? 0 : 1)}명',
+                        hoursPart == null
+                            ? '공통 교대를 조정해요. 별도 파트 시간은 유지해요.'
+                            : '선택한 파트만 공통 교대에서 분리해 조정해요.',
+                        style: AppText.caption,
                       ),
-                      IconButton(
-                        tooltip: '${part['name']} 인원 늘리기',
-                        onPressed:
-                            canDraftHours &&
-                                ((dayBands[i]['headcounts']
-                                            as Map?)?[part['id']] ??
-                                        (dayBands[i]['custom'] == true
-                                            ? 0
-                                            : 1)) <
-                                    12
-                            ? () => changeCount(i, part['id'], 1)
-                            : null,
-                        icon: const Icon(Icons.add),
+                      const Text(
+                        '위·아래 손잡이를 끌거나 블록을 눌러 시간을 바꿔요. 변경은 이전 화면에서 저장해 주세요.',
+                        style: AppText.caption,
                       ),
                     ],
                   ),
-              ],
+                  actions: [
+                    FilledButton(
+                      onPressed: () => Navigator.pop(c),
+                      child: const Text('설정으로 돌아가기'),
+                    ),
+                  ],
+                ),
+              ),
             ),
+            icon: const Icon(CupertinoIcons.calendar),
+            label: const Text('요일별 시간표 조정'),
           ),
-        ),
-      OutlinedButton.icon(
-        onPressed: canDraftHours && dayBands.length < 24
-            ? () => editBand()
-            : null,
-        icon: const Icon(Icons.add),
-        label: const Text('시간대 추가'),
+          const SizedBox(height: 16),
+          if (dayBands.isEmpty) const Information('휴무일이에요. 위에서 휴무를 해제해 주세요.'),
+          if (dayBands.isNotEmpty) ...[
+            for (var i = 0; i < dayBands.length; i++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Surface(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${dayBands[i]['name']}', style: AppText.body),
+                      Wrap(
+                        key: ValueKey('time-band-actions-${dayBands[i]['id']}'),
+                        spacing: 8,
+                        children: [
+                          TextButton(
+                            onPressed: canLinkBand(dayBands[i])
+                                ? () => openBandWork(dayBands[i])
+                                : null,
+                            child: const Text('연결 업무'),
+                          ),
+                          TextButton(
+                            onPressed: canDraftHours
+                                ? () => editBand(dayBands[i])
+                                : null,
+                            child: const Text('시간대 수정'),
+                          ),
+                          TextButton(
+                            onPressed: canDraftHours
+                                ? () => deleteBand(dayBands[i])
+                                : null,
+                            child: const Text('시간대 삭제'),
+                          ),
+                        ],
+                      ),
+                      Wrap(
+                        spacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          TextButton(
+                            onPressed: canDraftHours
+                                ? () => editBoundary(i, true)
+                                : null,
+                            child: Text('${dayBands[i]['start']}'),
+                          ),
+                          const Text('–'),
+                          TextButton(
+                            onPressed: canDraftHours
+                                ? () => editBoundary(i, false)
+                                : null,
+                            child: Text('${dayBands[i]['end']}'),
+                          ),
+                          if (_minute(dayBands[i]['end']) <=
+                              _minute(dayBands[i]['start']))
+                            const Text('다음 날', style: AppText.caption),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            OutlinedButton.icon(
+              onPressed: canDraftHours && dayBands.length < 24
+                  ? () => editBand()
+                  : null,
+              icon: const Icon(Icons.add),
+              label: const Text('시간대 추가'),
+            ),
+            const Text('시간대가 겹치면 파트별 필요 인원을 합산해요.', style: AppText.caption),
+            OutlinedButton(
+              onPressed: canDraftHours
+                  ? () => update(() {
+                      for (var d = 1; d <= 7; d++) {
+                        if ((days['$d'] as List).isNotEmpty && d != weekday) {
+                          final previous = (days['$d'] as List).cast<Json>();
+                          if (breaks['$weekday'] == null) {
+                            breaks.remove('$d');
+                          } else {
+                            breaks['$d'] = {...breaks['$weekday'] as Json};
+                          }
+                          days['$d'] = [
+                            for (final band in dayBands)
+                              {
+                                ...jsonDecode(jsonEncode(band)) as Json
+                                  ..remove('legacyIndex'),
+                                if (previous
+                                        .where((b) => b['id'] == band['id'])
+                                        .firstOrNull?['legacyIndex'] !=
+                                    null)
+                                  'legacyIndex': previous.firstWhere(
+                                    (b) => b['id'] == band['id'],
+                                  )['legacyIndex'],
+                              },
+                          ];
+                        }
+                      }
+                    })
+                  : null,
+              child: const Text('다른 영업일에 복사'),
+            ),
+          ],
+          const SizedBox(height: 16),
+          TextButton.icon(
+            onPressed: dirty || saving
+                ? null
+                : () =>
+                      showAppFormSheet(
+                        context: context,
+                        builder: (_) =>
+                            WorkplaceSettings(ops: ops, section: 'parts'),
+                      ).then((_) {
+                        if (mounted && !dirty) {
+                          setState(() {
+                            parts =
+                                (jsonDecode(jsonEncode(storeParts(ops)))
+                                        as List)
+                                    .cast<Json>();
+                            days = initialDays();
+                            revision = ops.data?['revision'] ?? revision;
+                          });
+                        }
+                      }),
+            icon: const Icon(Icons.groups_outlined),
+            label: const Text('파트 관리'),
+          ),
+          const Text(
+            '시간·필요 인원은 기본 슬롯에 반영돼요. 이미 배정한 근무는 유지돼요. 파트 이름과 추가·숨김은 파트 관리에서 변경해요.',
+            style: AppText.caption,
+          ),
+        ],
       ),
-      const Text('시간대가 겹치면 파트별 필요 인원을 합산해요.', style: AppText.caption),
-      OutlinedButton(
-        onPressed: canDraftHours
-            ? () => update(() {
-                for (var d = 1; d <= 7; d++) {
-                  if ((days['$d'] as List).isNotEmpty && d != weekday) {
-                    final previous = (days['$d'] as List).cast<Json>();
-                    if (breaks['$weekday'] == null) {
-                      breaks.remove('$d');
-                    } else {
-                      breaks['$d'] = {...breaks['$weekday'] as Json};
-                    }
-                    days['$d'] = [
-                      for (final band in dayBands)
-                        {
-                          ...jsonDecode(jsonEncode(band)) as Json
-                            ..remove('legacyIndex'),
-                          if (previous
-                                  .where((b) => b['id'] == band['id'])
-                                  .firstOrNull?['legacyIndex'] !=
-                              null)
-                            'legacyIndex': previous.firstWhere(
-                              (b) => b['id'] == band['id'],
-                            )['legacyIndex'],
-                        },
-                    ];
-                  }
-                }
-              })
-            : null,
-        child: const Text('다른 영업일에 복사'),
-      ),
-    ],
-    const SizedBox(height: 16),
-    TextButton.icon(
-      onPressed: dirty || saving
-          ? null
-          : () =>
-                showAppFormSheet(
-                  context: context,
-                  builder: (_) => WorkplaceSettings(ops: ops, section: 'parts'),
-                ).then((_) {
-                  if (mounted && !dirty) {
-                    setState(() {
-                      parts = (jsonDecode(jsonEncode(storeParts(ops))) as List)
-                          .cast<Json>();
-                      days = initialDays();
-                      revision = ops.data?['revision'] ?? revision;
-                    });
-                  }
-                }),
-      icon: const Icon(Icons.groups_outlined),
-      label: const Text('파트 관리'),
-    ),
-    const Text(
-      '시간·필요 인원은 기본 슬롯에 반영돼요. 이미 배정한 근무는 유지돼요. 파트 이름과 추가·숨김은 파트 관리에서 변경해요.',
-      style: AppText.caption,
-    ),
   ];
   void changeCount(int index, String id, int delta) => update(() {
     dayBands[index]['headcounts'] ??= <String, dynamic>{};
@@ -1697,12 +1781,16 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                     style: AppText.caption.copyWith(color: AppColors.accent),
                   ),
                 FilledButton(
-                  onPressed: editable ? saveSection : null,
+                  onPressed: widget.section == 'hours' && hoursStep < 2
+                      ? (saving ? null : () => setState(() => hoursStep++))
+                      : editable
+                      ? saveSection
+                      : null,
                   child: Text(
                     saving
                         ? '저장 중…'
                         : widget.section == 'hours'
-                        ? '일주일 설정 저장'
+                        ? (hoursStep < 2 ? '다음 단계' : '일주일 설정 저장')
                         : '저장',
                   ),
                 ),
@@ -1710,39 +1798,77 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             )
           : null,
       onClose: close,
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: appEditorWidth),
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              if (ops.readOnly)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 16),
-                  child: Information('미리보기 · 편집을 살펴볼 수 있지만 저장하지 않아요.'),
-                ),
-              ...switch (widget.section) {
-                'order-system' => orderSystem(),
-                'parts' => partEditor(),
-                'hours' => hours(),
-                'permissions' => permissions(),
-                'person' => person(),
-                'invite' => invite(),
-                'verification' => verification(),
-                _ => [
-                  const Information(
-                    '문서 보관은 보안 저장소 연결 후 사용할 수 있어요. 실제 보건증을 체험 매장에 올리지 마세요.',
+      body: Column(
+        children: [
+          if (widget.section == 'hours')
+            Row(
+              children: [
+                for (var i = 0; i < 3; i++)
+                  Expanded(
+                    flex: i == 1 ? 4 : 3,
+                    child: Semantics(
+                      selected: hoursStep == i,
+                      child: TextButton(
+                        onPressed: saving
+                            ? null
+                            : () => setState(() => hoursStep = i),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          foregroundColor: hoursStep == i
+                              ? AppColors.green
+                              : AppColors.muted,
+                          shape: const RoundedRectangleBorder(),
+                          backgroundColor: hoursStep == i
+                              ? AppColors.lime
+                              : Colors.transparent,
+                          minimumSize: const Size(0, 56),
+                        ),
+                        child: Text(
+                          ['휴무일 설정', '교대 시간 분할', '인원 배치'][i],
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
                   ),
-                ],
-              },
-              if (error != null && !hasSaveFooter)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Information(error!),
+              ],
+            ),
+          Expanded(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: appEditorWidth),
+                child: ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    if (ops.readOnly)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 16),
+                        child: Information('미리보기 · 편집을 살펴볼 수 있지만 저장하지 않아요.'),
+                      ),
+                    ...switch (widget.section) {
+                      'order-system' => orderSystem(),
+                      'parts' => partEditor(),
+                      'hours' => hours(),
+                      'permissions' => permissions(),
+                      'person' => person(),
+                      'invite' => invite(),
+                      'verification' => verification(),
+                      _ => [
+                        const Information(
+                          '문서 보관은 보안 저장소 연결 후 사용할 수 있어요. 실제 보건증을 체험 매장에 올리지 마세요.',
+                        ),
+                      ],
+                    },
+                    if (error != null && !hasSaveFooter)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Information(error!),
+                      ),
+                  ],
                 ),
-            ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     ),
   );
