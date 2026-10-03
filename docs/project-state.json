@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 137,
+  "revision": 138,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -4908,7 +4908,15 @@
       "reason": "긴 스크롤과 반복 설명을 줄이고 시간·인원을 직접 조작할 수 있도록 최신 사용자 요구를 적용했다.",
       "detail": "WorkplaceSettings의 동일 revision 초안을 세 탭이 공유한다. 전체/개별 적용 범위, 읽기 전용 미리보기, 실패·충돌 시 초안, 기존 ID/파트별 예외/추가 시간대/업무 연결을 유지한다. 상세 편집은 접힌 상세 설정으로 이동. 교대 기본명은 오픈/미들/마감이며 기존 이름은 재분할 전 유지. 인원은 0–12명 셀 카운터. 단일 경계 데이터 계약을 유지하는 구현 세부로 영업일 중 가장 이른 영업 시작을 businessDayStart로 전달하며 전체 휴무는 기존 경계를 유지한다. 서버 API·실제 매장 데이터 변경 없음. 공통 UI 문구 지침과 관계표·아키텍처 갱신.",
       "verification": "flutter analyze 통과. 관련 Flutter 테스트 및 화면 캡처 49/49 통과(인원 셀 전체 적용, 30분 드래그, 휴무·ID·revision·충돌 보존, 320/390/1200px·1.5배 글자). 서버 전체 150/150, 별도 관련 서버 21/21 통과. npm run check 및 check:ui-links 통과. npm run build:app 웹 빌드 성공. .local/hours-review의 320/390px 타임라인·인원 표 이미지 검토. 네이티브 빌드·실기기·공개 배포는 미수행. 초기 semantics 및 기존 단일화면 테스트 진입 오류는 수정 후 재검증했다."
+    },
+    {
+      "at": "2026-10-03T12:18:23.462590+00:00",
+      "type": "deployment",
+      "title": "영업시간 3단계·타임라인·인원 표 배포 완료",
+      "decisionId": "D-068",
+      "detail": "사용자 배포 요청에 따라 bb24175819621379d4ae12f774b47a5a16489194를 https://tap2.work 에 게시. GitHub Pages run 37122203470 성공. 최신 origin/main 기반 별도 checkout에서 이번 변경 13개 파일만 반영. 서버 함수·DB·실제 매장 설정 변경 없음.",
+      "verification": "배포 checkout Flutter 전체 243/243, analyze, 서버 150/150 및 npm run check 통과. GitHub CI 검증·웹 빌드·Pages 게시 성공. HTTPS index.html·main.dart.js·flutter_bootstrap.js 모두 HTTP 200, Pages artifact와 바이트 단위 일치. main.dart.js SHA256 b7adf52145f2135b1a322f29bc6fd0fa2e61f7eef8187514b75f16526dbdb190. 게시 artifact에 .local/·developer/·project-state.json 없음. 배포 후 인증 사용자 설정 변경 및 네이티브 실기기 검증은 미수행."
     }
   ],
-  "updatedAt": "2026-10-03T12:11:44.360455+00:00"
+  "updatedAt": "2026-10-03T12:18:23.462590+00:00"
 }
