@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 146,
+  "revision": 147,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -5009,7 +5009,15 @@
       "decisionId": "D-070",
       "detail": "사용자가 승인한 바 아래 토글 위치를 유지하고 월~일 FilterChip 라벨을 동일한 최소 24×24 영역에서 중앙 정렬했다. 48 너비의 외부 터치 영역과 조건부 표시·휴무 선택·복원·저장을 유지한다. 토글 위치 변경과 함께 공개 배포 요청을 받았다.",
       "verification": "Flutter analyze, 관련 Flutter 위젯 및 캡처 16/16, 관련 서버 11/11, check:ui-links 30개 통과. 320/390/1200px 캡처 생성 및 1200px 월~일 동일 크기 확인. 공개 배포 검증은 후속 기록."
+    },
+    {
+      "at": "2026-10-03T14:30:43.418177+00:00",
+      "type": "deployment",
+      "title": "토글 하단 배치·요일 버튼 크기 통일 배포 완료",
+      "decisionId": "D-070",
+      "detail": "사용자 요청으로 c7dfef35ba6d3e3016b6341a080e1c572b5826c0를 https://tap2.work에 게시. Pages run 37129542307 성공. 별도 배포 checkout에서 요청 변경 5개 파일만 반영했다. 토글 하단 배치와 휴무일 7개 버튼 크기 통일을 함께 배포했다.",
+      "verification": "GitHub CI 코드 검사·서버 전체 테스트·Flutter 분석 및 전체 테스트·공개 웹 빌드·게시 통과. HTTPS index 및 해시 main/bootstrap HTTP 200, Pages artifact와 바이트 일치. main SHA256 629ff60b9d45d7b4dd1d5325c4bb6493958ed62cbae18c83f7777c8378b5f96f. 공개 artifact에 .local/developer/project-state.json 없음. 설치형 iOS 실기기 및 실제 매장 설정 변경은 수행하지 않음."
     }
   ],
-  "updatedAt": "2026-10-03T14:25:30.462027+00:00"
+  "updatedAt": "2026-10-03T14:30:43.418177+00:00"
 }
