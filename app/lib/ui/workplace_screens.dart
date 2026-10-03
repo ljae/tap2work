@@ -380,6 +380,61 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   );
   int hoursStep = 0;
   bool allHours = false;
+  late bool useClosedDays = days.values.any((rows) => (rows as List).isEmpty);
+  final Map<int, List<Json>> openDayDrafts = {};
+  final Map<int, Json> openBreakDrafts = {};
+
+  List<Json> reopenedDay(int day) =>
+      openDayDrafts.remove(day) ??
+      [
+        {'id': newBandId(), 'name': '오픈', 'start': '06:00', 'end': '22:00'},
+      ];
+
+  void setClosedDay(int day, bool closed) => update(() {
+    if (closed) {
+      openDayDrafts[day] = (jsonDecode(jsonEncode(days['$day'])) as List)
+          .cast<Json>();
+      if (breaks['$day'] != null) {
+        openBreakDrafts[day] = {...breaks['$day'] as Json};
+      }
+      days['$day'] = <Json>[];
+      breaks.remove('$day');
+      if (weekday == day) {
+        weekday =
+            [
+              for (var d = 1; d <= 7; d++)
+                if ((days['$d'] as List).isNotEmpty) d,
+            ].firstOrNull ??
+            day;
+      }
+    } else {
+      days['$day'] = reopenedDay(day);
+      final pause = openBreakDrafts.remove(day);
+      if (pause != null) breaks['$day'] = pause;
+      weekday = day;
+    }
+  });
+
+  void toggleClosedDays(bool value) {
+    if (value) {
+      setState(() => useClosedDays = true);
+      return;
+    }
+    update(() {
+      useClosedDays = false;
+      for (var day = 1; day <= 7; day++) {
+        if ((days['$day'] as List).isNotEmpty) continue;
+        days['$day'] = reopenedDay(day);
+        final pause = openBreakDrafts.remove(day);
+        if (pause != null) breaks['$day'] = pause;
+      }
+    });
+  }
+
+  bool get multipleShifts => hoursTargets.any(
+    (d) => (days['$d'] as List).where((b) => b['custom'] != true).length > 1,
+  );
+
   Json initialDays() {
     final saved =
         jsonDecode(jsonEncode(ops.data?['workplace']?['days'] ?? {})) as Json;
@@ -826,58 +881,39 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
 
   List<Widget> hours() => [
     if (hoursStep == 0) ...[
-      hoursHeading(
-        '휴무일',
-        '선택한 요일은 휴무예요. 저장하면 해당 요일의 필요 인원은 제거돼요. 기존 배정·완료 기록은 유지돼요.',
+      SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        title: const Text('휴무일'),
+        value: useClosedDays,
+        onChanged: canDraftHours ? toggleClosedDays : null,
       ),
-      const SizedBox(height: 8),
-      Wrap(
-        spacing: 0,
-        runSpacing: 8,
-        children: [
-          for (var d = 1; d <= 7; d++)
-            SizedBox(
-              width: 48,
-              child: FilterChip(
-                showCheckmark: false,
-                labelPadding: EdgeInsets.zero,
-                label: Text(
-                  dayNames[d - 1],
-                  style: TextStyle(
-                    decoration: (days['$d'] as List).isEmpty
-                        ? TextDecoration.lineThrough
-                        : null,
+      if (useClosedDays)
+        Wrap(
+          spacing: 0,
+          runSpacing: 8,
+          children: [
+            for (var d = 1; d <= 7; d++)
+              SizedBox(
+                width: 48,
+                child: FilterChip(
+                  showCheckmark: false,
+                  labelPadding: EdgeInsets.zero,
+                  label: Text(
+                    dayNames[d - 1],
+                    style: TextStyle(
+                      decoration: (days['$d'] as List).isEmpty
+                          ? TextDecoration.lineThrough
+                          : null,
+                    ),
                   ),
+                  selected: (days['$d'] as List).isEmpty,
+                  onSelected: canDraftHours
+                      ? (closed) => setClosedDay(d, closed)
+                      : null,
                 ),
-                selected: (days['$d'] as List).isEmpty,
-                onSelected: canDraftHours
-                    ? (closed) => update(() {
-                        days['$d'] = closed
-                            ? <Json>[]
-                            : <Json>[
-                                {
-                                  'id': newBandId(),
-                                  'name': '전체',
-                                  'start': '06:00',
-                                  'end': '22:00',
-                                },
-                              ];
-                        if (closed) breaks.remove('$d');
-                        if (!closed) weekday = d;
-                        if (closed && weekday == d) {
-                          weekday =
-                              [
-                                for (var n = 1; n <= 7; n++)
-                                  if ((days['$n'] as List).isNotEmpty) n,
-                              ].firstOrNull ??
-                              d;
-                        }
-                      })
-                    : null,
               ),
-            ),
-        ],
-      ),
+          ],
+        ),
     ],
     ...[
       Wrap(
@@ -916,31 +952,38 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         ),
     ],
     if (hoursStep == 0 && dayBands.isNotEmpty) ...[
-      Wrap(
-        spacing: 4,
-        runSpacing: 8,
-        children: [
-          for (final entry in {1: '1교대', 2: '2교대', 3: '3교대'}.entries)
-            ChoiceChip(
-              label: Text(entry.value),
-              selected:
-                  dayBands.where((b) => b['custom'] != true).length ==
-                  entry.key,
-              onSelected: canDraftHours ? (_) => preset(entry.key) : null,
-            ),
-          IconButton(
-            tooltip: '시간 조정 도움말',
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  '구분선이나 시간을 끌어 30분 단위로 조정해요. 시간을 누르면 숫자로 선택할 수 있어요. 전체는 모든 영업일에 적용해요.',
+      SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        title: const Text('2교대 이상'),
+        value: multipleShifts,
+        onChanged: canDraftHours ? (value) => preset(value ? 2 : 1) : null,
+      ),
+      if (multipleShifts)
+        Wrap(
+          spacing: 4,
+          runSpacing: 8,
+          children: [
+            for (final entry in {2: '2교대', 3: '3교대'}.entries)
+              ChoiceChip(
+                label: Text(entry.value),
+                selected:
+                    dayBands.where((b) => b['custom'] != true).length ==
+                    entry.key,
+                onSelected: canDraftHours ? (_) => preset(entry.key) : null,
+              ),
+            IconButton(
+              tooltip: '시간 조정 도움말',
+              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    '구분선이나 시간을 끌어 30분 단위로 조정해요. 시간을 누르면 숫자로 선택할 수 있어요. 전체는 모든 영업일에 적용해요.',
+                  ),
                 ),
               ),
+              icon: const Icon(Icons.info_outline),
             ),
-            icon: const Icon(Icons.info_outline),
-          ),
-        ],
-      ),
+          ],
+        ),
       BusinessHoursSlider(
         bands: operatingBands,
         breakTime: breaks['$weekday'] as Json?,

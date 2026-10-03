@@ -52,6 +52,8 @@ void main() {
         if (section == 'hours') {
           await tester.tap(find.text('시간설정'));
           await tester.pumpAndSettle();
+          await tester.tap(find.text('2교대 이상'));
+          await tester.pumpAndSettle();
           await tester.scrollUntilVisible(
             find.text('3교대'),
             200,
@@ -112,6 +114,8 @@ void main() {
       ),
     );
     await tester.tap(find.text('시간설정'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('2교대 이상'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('2교대'),

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 140,
+  "revision": 141,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -698,6 +698,16 @@
       "reason": "사용자가 휴무일 탭 통합, 명칭 변경, 조작 통일, 중복 시간 표시와 상세 설정 제거를 요청했다. D-068의 3탭·상세 설정 UI를 대체한다.",
       "source": "사용자 후속 수정 요청 · 2026-10-03",
       "updatedAt": "2026-10-03T12:57:14.549597+00:00"
+    },
+    {
+      "id": "D-070",
+      "category": "UI/UX·영업시간",
+      "title": "휴무일·복수 교대의 선택형 토글",
+      "status": "confirmed",
+      "decision": "시간설정의 옵션을 휴무일 → 2교대 이상 → 브레이크 타임 순서의 토글로 구성한다. ON일 때만 해당 요일·2/3교대·브레이크 선택 UI를 표시한다.",
+      "reason": "사용자가 브레이크 타임과 동일한 토글·조건부 선택 UI와 표시 순서를 요청했다.",
+      "source": "사용자 후속 요청 · 2026-10-03",
+      "updatedAt": "2026-10-03T13:21:42.318124+00:00"
     }
   ],
   "milestones": [
@@ -4945,7 +4955,18 @@
       "decisionId": "D-069",
       "detail": "사용자 요청에 따라 e8aacfb2e8fbeaa3485a179d0f0c62ce5f4a1404를 https://tap2.work 에 게시. GitHub Pages run 37124886644 성공. 최신 origin/main 기반 별도 checkout에 이번 수정 13개 파일만 반영. 서버 함수·DB·실제 매장 데이터 변경 없음.",
       "verification": "배포 checkout Flutter 전체 240/240, analyze, 서버 150/150 및 npm run check 통과. GitHub CI 검증·웹 빌드·게시 성공. HTTPS index.html·main.dart.js·flutter_bootstrap.js가 HTTP 200이며 CI Pages artifact와 바이트 단위 일치. main.dart.js SHA256 090762b6b305e272adb79cf1d4c15c945f96b47a56000a50bf847102bc7f18ba. 게시 artifact에 .local/·developer/·project-state.json 없음. 배포 후 인증 사용자 설정 변경 및 네이티브 실기기 검증은 미수행."
+    },
+    {
+      "at": "2026-10-03T13:21:42.318124+00:00",
+      "type": "implementation",
+      "title": "휴무일·2교대 이상 토글 및 조건부 선택 UI",
+      "decisionId": "D-070",
+      "previous": "휴무 요일 선택과 1/2/3교대 선택이 항상 표시되고 브레이크만 토글을 사용했다.",
+      "next": "시간설정의 옵션을 휴무일 → 2교대 이상 → 브레이크 타임 순서의 토글로 구성한다. ON일 때만 해당 요일·2/3교대·브레이크 선택 UI를 표시한다.",
+      "reason": "필요한 옵션을 켰을 때만 상세 선택을 보여주고 세 옵션의 조작을 통일한다.",
+      "detail": "기존 휴무·교대 수로 토글 초기값을 계산하고 새 저장 필드를 추가하지 않는다. 휴무 OFF는 모든 요일을 영업으로 복원하며 편집 중 휴무로 바꾼 요일의 기존 ID·시간·필요 인원·브레이크 초안을 보존해 되돌린다. 저장된 휴무처럼 이전 초안이 없으면 기존 06:00–22:00/1교대 기본값으로 연다. 2교대 이상 ON은 기본 2교대와 2/3 선택, OFF는 기존 preset(1)을 사용한다. 영업시간 막대는 1교대에서도 유지한다. 참조된 시간대 ID·추가 시간대·파트 예외, 최종 revision 저장을 유지한다.",
+      "verification": "flutter analyze 통과. 관련 위젯·시각 검증 42/42 및 캡처 변경 후 별도 1/1 통과. 토글 순서/초기 상태/선택 UI 표시/휴무 해제 데이터 복원/1교대 저장/충돌·읽기 전용·320/390/1200px·확대 글자 확인. 390px 기본 OFF·ON 화면 캡처 확인. 관련 서버 21/21, check:ui-links 30개, npm run build:app 웹 빌드 통과. 초기 lint 1건 수정 후 재검증. 공개 배포와 네이티브 빌드·실기기 검증은 미수행."
     }
   ],
-  "updatedAt": "2026-10-03T13:07:09.410384+00:00"
+  "updatedAt": "2026-10-03T13:21:42.318124+00:00"
 }

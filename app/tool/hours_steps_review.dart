@@ -76,10 +76,25 @@ void main() {
         );
         await tester.tap(find.text('열기'));
         await tester.pumpAndSettle();
+        await tester.runAsync(() async {
+          final img =
+              await (key.currentContext!.findRenderObject()
+                      as RenderRepaintBoundary)
+                  .toImage();
+          final bytes = await img.toByteData(format: ui.ImageByteFormat.png);
+          File(
+            '${out.path}/기본-${width.toInt()}.png',
+          ).writeAsBytesSync(bytes!.buffer.asUint8List());
+          img.dispose();
+        });
         for (final stage in ['시간설정', '인원 배치']) {
           await tester.tap(find.text(stage).first);
           await tester.pumpAndSettle();
           if (stage == '시간설정') {
+            await tester.tap(find.text('휴무일'));
+            await tester.pumpAndSettle();
+            await tester.tap(find.text('2교대 이상'));
+            await tester.pumpAndSettle();
             await tester.ensureVisible(find.text('3교대'));
             await tester.tap(find.text('3교대'));
             await tester.pumpAndSettle();

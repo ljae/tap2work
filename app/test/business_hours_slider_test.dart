@@ -78,6 +78,8 @@ void main() {
     await mount(tester, initialData: data, write: (v) => written = v);
     await tester.tap(find.text('시간설정'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('2교대 이상'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('3교대'));
     await tester.pumpAndSettle();
     expect(find.text('영업일 경계'), findsNothing);
@@ -109,6 +111,8 @@ void main() {
     (tester) async {
       await mount(tester);
       await tester.tap(find.text('시간설정'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('2교대 이상'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('3교대'));
       await tester.pumpAndSettle();
@@ -210,6 +214,92 @@ void main() {
       expect(pause!['end'], '05:00');
       expect(pause!['start'], '01:00');
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'optional toggles reveal controls in order and restore a reopened day',
+    (tester) async {
+      final data = fixture();
+      data['workplace']['breaks'] = {
+        '7': {'start': '15:00', 'end': '17:00'},
+      };
+      data['workplace']['days']['7'][0]['headcounts'] = {'kitchen': 4};
+      Map<String, dynamic>? written;
+      await mount(tester, initialData: data, write: (v) => written = v);
+      expect(find.widgetWithText(FilterChip, '일'), findsNothing);
+      expect(find.widgetWithText(ChoiceChip, '2교대'), findsNothing);
+      expect(find.widgetWithText(ChoiceChip, '3교대'), findsNothing);
+      final toggles = tester
+          .widgetList<SwitchListTile>(find.byType(SwitchListTile))
+          .toList();
+      expect(toggles.map((w) => (w.title! as Text).data), [
+        '휴무일',
+        '2교대 이상',
+        '브레이크 타임',
+      ]);
+      expect(toggles.map((w) => w.value), [false, false, false]);
+      await tester.tap(find.text('휴무일'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, '일'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('휴무일'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(FilterChip, '일'), findsNothing);
+      await tester.tap(find.text('인원 배치').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('일주일 설정 저장'));
+      await tester.pumpAndSettle();
+      expect(written!['days']['7'][0]['id'], 'legacy-band-7-0');
+      expect(written!['days']['7'][0]['headcounts']['kitchen'], 4);
+      expect(written!['breaks']['7'], {'start': '15:00', 'end': '17:00'});
+    },
+  );
+
+  testWidgets(
+    'saved closed days and multiple shifts initialize ON, OFF saves one shift',
+    (tester) async {
+      final data = fixture();
+      data['workplace']['days']['7'] = <Map<String, dynamic>>[];
+      data['workplace']['days']['1'] = [
+        {'id': 'open', 'name': '오픈', 'start': '09:00', 'end': '15:00'},
+        {'id': 'close', 'name': '마감', 'start': '15:00', 'end': '22:00'},
+      ];
+      Map<String, dynamic>? written;
+      await mount(tester, initialData: data, write: (v) => written = v);
+      expect(
+        tester
+            .widget<SwitchListTile>(find.widgetWithText(SwitchListTile, '휴무일'))
+            .value,
+        true,
+      );
+      expect(
+        tester
+            .widget<SwitchListTile>(
+              find.widgetWithText(SwitchListTile, '2교대 이상'),
+            )
+            .value,
+        true,
+      );
+      expect(
+        tester
+            .widget<FilterChip>(find.widgetWithText(FilterChip, '일'))
+            .selected,
+        true,
+      );
+      await tester.ensureVisible(find.text('2교대 이상'));
+      await tester.tap(find.text('2교대 이상'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(ChoiceChip, '2교대'), findsNothing);
+      await tester.tap(find.text('인원 배치').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('일주일 설정 저장'));
+      await tester.pumpAndSettle();
+      expect(written!['days']['1'].length, 1);
+      expect(written!['days']['1'][0]['id'], 'open');
+      expect(written!['days']['1'][0]['start'], '09:00');
+      expect(written!['days']['1'][0]['end'], '22:00');
+      expect(written!['days']['7'], isEmpty);
     },
   );
 

@@ -337,7 +337,8 @@ void main() {
         expect(find.text('시간설정'), findsOneWidget);
         await tester.tap(find.text('시간설정'));
         await tester.pumpAndSettle();
-        expect(find.text('3교대'), findsOneWidget);
+        expect(find.text('2교대 이상'), findsOneWidget);
+        expect(find.text('3교대'), findsNothing);
         expect(tester.takeException(), isNull);
       },
     );

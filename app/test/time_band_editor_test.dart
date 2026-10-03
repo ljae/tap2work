@@ -171,7 +171,7 @@ void main() {
       await mount(tester, initialData: data, write: (v) => written = v);
       await tester.tap(find.text('시간설정'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('1교대'));
+      await tester.tap(find.text('2교대 이상'));
       await tester.pumpAndSettle();
       expect(written, isNull);
       await tester.tap(find.text('인원 배치').first);

@@ -123,6 +123,8 @@ void main() {
       expect(find.text('시간설정'), findsOneWidget);
       await tester.tap(find.text('시간설정'));
       await tester.pumpAndSettle();
+      await tester.tap(find.text('2교대 이상'));
+      await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.text('3교대'),
         200,

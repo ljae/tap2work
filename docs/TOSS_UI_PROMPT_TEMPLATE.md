@@ -58,3 +58,5 @@ Flutter 3.41.2에서 사용 가능한 `shimmer` 3.0.0을 잠금 파일과 함께
 2026-10-01: distinguish assigned work from partially uncovered intervals. Crew pattern editing uses weekday columns and time rows, with empty-cell add and block edit/delete. Grid-focused editors may opt into a 1440px maximum width; ordinary forms retain the 688px default.
 
 2026-10-03 최신 수정: 영업시간은 `시간설정 / 인원 배치` 두 탭이다. 시간설정에 휴무일을 포함한다. 교대명은 막대 안에, 시간은 조정선에 붙인다. 브레이크도 같은 30분 드래그 방식의 주황색 선과 아래 시간 표기로 통일한다. 별도 시간 필드·중복 목록·양쪽 상세 설정은 제거한다. 숫자 휠은 시간 표기를 탭해서 접근한다. 인원 표·고정 footer·기존 데이터 보존은 유지한다.
+
+2026-10-03 토글 추가: 시간설정의 옵션 순서는 `휴무일 → 2교대 이상 → 브레이크 타임`이다. 세 옵션 모두 같은 SwitchListTile을 사용하고 ON일 때만 해당 요일/교대 수/브레이크 조정 UI를 표시한다. 휴무일 OFF는 매일 영업, 2교대 이상 OFF는 1교대다. 2교대 이상 ON은 2교대를 기본 적용하고 2/3교대를 선택한다. 영업 시작·종료 막대는 1교대에도 표시한다. 저장된 휴무·복수 교대·브레이크는 처음부터 ON으로 반영하며 변경은 최종 저장에서 반영한다.
