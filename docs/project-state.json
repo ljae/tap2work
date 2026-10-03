@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 148,
+  "revision": 149,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -5028,7 +5028,15 @@
       "reason": "User clarified that the closed-day selector belongs below its switch and must match the individual-day selector.",
       "detail": "Removed closed-day-only width and label constraints. Both selector rows use the same ChipTheme, text labels, 8px spacing and hidden checkmarks. Multiple closed-day and single editing-day actions are preserved. Capture tool now opens both rows together.",
       "verification": "Flutter analyze passed; related Flutter widgets/capture 16/16 and server 11/11 passed; check:ui-links passed. Generated 320/390/1200px captures and visually confirmed both selector rows match at 390px. Deployment verification follows."
+    },
+    {
+      "at": "2026-10-03T14:40:58.071849+00:00",
+      "type": "deployment",
+      "title": "휴무일 선택 위치 및 개별 요일 버튼 규격 정정 배포",
+      "decisionId": "D-070",
+      "detail": "Deployed 03c52d8afec016195ccad32794e4fd8f047e1607 to https://tap2.work. Pages run 37130151419 succeeded. Closed-day switch now precedes the weekday selector; both weekday selector rows share sizing and spacing.",
+      "verification": "GitHub CI checks, server tests, Flutter analyze/full tests, public build and Pages deployment passed. Public HTML and hashed main/bootstrap returned HTTP 200 and matched the artifact byte-for-byte. main SHA256 74ef316ff6514bfb51fddb4e627b7534642d5e8edfe55f2f64734bfc560ab5a7. Artifact excludes .local/developer/project-state.json. Installed iOS device and live store mutations were not tested."
     }
   ],
-  "updatedAt": "2026-10-03T14:35:21.599127+00:00"
+  "updatedAt": "2026-10-03T14:40:58.071849+00:00"
 }
