@@ -68,7 +68,11 @@
       const boot = document.getElementById('app-boot');
       const message = document.getElementById('boot-message');
       const retry = document.getElementById('boot-retry');
-      retry.addEventListener('click', () => location.reload());
+      retry.addEventListener('click', () => {
+        const url = new URL(location.href);
+        url.searchParams.set('_refresh', Date.now().toString());
+        location.replace(url.href);
+      });
       const slowTimer = setTimeout(() => {
         message.textContent = '연결이 조금 늦어지고 있어요. 잠시 기다리거나 다시 불러와 주세요.';
         retry.hidden = false;

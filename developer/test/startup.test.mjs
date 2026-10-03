@@ -10,7 +10,7 @@ function page() {
   const nodes = new Map();
   const listeners = new Map();
   const timers = new Map();
-  let sequence = 0, reloads = 0;
+  let sequence = 0, reloads = 0, replacement;
   function node(id) {
     if (!nodes.has(id)) nodes.set(id, { textContent: '', hidden: id === 'boot-retry', classes: [], removed: false,
       classList: { add(value) { node(id).classes.push(value); } },
@@ -22,12 +22,13 @@ function page() {
   const context = {
     document: { getElementById: node, querySelector: node, createElement: () => ({}), head: { appendChild() {} } },
     window: { addEventListener(event, callback) { listeners.set(event, callback); } },
-    location: { reload() { reloads++; } },
+    URL,
+    location: { href: 'https://tap2.work/app/?mode=review#hours', replace(url) { reloads++; replacement = url; } },
     setTimeout(callback, delay) { const id = ++sequence; timers.set(id, { callback, delay }); return id; },
     clearTimeout(id) { timers.delete(id); },
   };
   vm.runInNewContext(script, context);
-  return { context, node, listeners, timers, get reloads() { return reloads; } };
+  return { context, node, listeners, timers, get reloads() { return reloads; }, get replacement() { return replacement; } };
 }
 
 test('web boot stays visible until first Flutter frame and offers slow retry', () => {
@@ -38,6 +39,11 @@ test('web boot stays visible until first Flutter frame and offers slow retry', (
   assert.equal(p.node('boot-retry').hidden, false);
   p.listeners.get('boot-retry:click')();
   assert.equal(p.reloads, 1);
+  const replacement = new URL(p.replacement);
+  assert.equal(replacement.pathname, '/app/');
+  assert.equal(replacement.hash, '#hours');
+  assert.equal(replacement.searchParams.get('mode'), 'review');
+  assert.match(replacement.searchParams.get('_refresh'), /^\d+$/);
   p.listeners.get('flutter-first-frame')();
   assert.deepEqual(p.node('app-boot').classes, ['leaving']);
   assert.equal([...p.timers.values()].some(t => t.delay === 12000), false);

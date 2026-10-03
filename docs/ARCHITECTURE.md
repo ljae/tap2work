@@ -254,3 +254,7 @@ CrewWeekGrid replaces the vertical weekday list with weekday columns and time ro
 2026-10-03 후속 UI 변경: `BusinessHoursSlider` 내부 `_HoursTrack`/`_TimeHandle`을 영업시간과 브레이크가 공유한다. 24시간축·30분 스냅·드래그 시작값 기준 이동·숫자 휠 대안을 통일하고 브레이크는 영업 범위와 최소 30분을 지킨다. 시간은 조정선에만 표시하며 가까운 시간은 겹치지 않는 행에 배치한다. `shiftLabel`은 기본 교대의 표시 이름을 오픈/미들/마감으로 통일하며 저장된 이름/ID를 덮어쓰지 않는다. 원래의 시간대 추가/삭제/수정·요일별 시간표·파트 관리/연결 업무 진입은 이 영업시간 시트에서 제거했다. 독립 화면/업무 담당 설정·서버 데이터 계약은 유지한다.
 
 시간설정 옵션은 휴무일/2교대 이상/브레이크 타임 순서의 토글이다. 휴무일 펼침 상태는 기존 빈 요일 배열에서 초기화하며 새 저장 필드를 추가하지 않는다. OFF에서 휴무 요일을 다시 열 때 현재 편집 세션의 openDayDrafts/openBreakDrafts로 원래 ID·시간·인원·브레이크를 복원한다. 이미 저장된 휴무일처럼 복원 초안이 없으면 기존 새 영업일 기본 06:00–22:00/1교대를 사용한다. 복수 교대 토글은 편집 대상 요일의 기본 교대 수에서 계산한다. ON→preset(2), OFF→preset(1)이고 관련 ID·추가 시간대 보존 및 30분 최소 교대 검증을 재사용한다. `days`/`breaks`/opening revision의 일괄 저장 계약은 유지한다.
+
+## 웹 배포 캐시 · 2026-10-03
+
+`build-flutter.mjs`는 성공한 웹 빌드에 `version-web-assets.mjs`를 적용한다. main.dart.js 내용 해시를 entrypoint 파일명에 넣고, 이 경로를 포함한 bootstrap의 해시도 파일명에 넣는다. index의 preload/script는 같은 버전을 참조해 앱만 바뀌어도 HTML·loader·entrypoint 주소가 함께 갱신된다. 이전 문서와의 전환을 위해 안정된 원래 파일도 유지한다. Flutter 생성 형식이 달라지면 배포를 실패시켜 버전 처리 누락을 방지한다. 시작 실패의 다시 불러오기는 기존 경로·쿼리·fragment를 유지하고 `_refresh`를 추가해 캐시된 HTML을 우회한다. 인증 저장소·매장 데이터는 삭제하지 않는다. 이미 실행 중인 홈 화면 앱은 자동 재시작하지 않으며 사용자가 종료 후 다시 열어야 한다. GitHub Pages의 HTML 캐시 유효기간은 별도로 존재한다.
