@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 170,
+  "revision": 171,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -809,7 +809,8 @@
       "previous": "D-075: 미세 조정과 배정 삭제를 기본 배정 변경 때도 보존; 예정 시작 경과 시 새 기본 배정 생성 차단.",
       "next": "명시적 설정 저장 때 영향 요일 계획 초기화 후 즉시 재생성; 평소 조회는 미세 조정 보존.",
       "source": "사용자 요청 · 2026-10-04",
-      "updatedAt": "2026-10-04T14:11:15.614702+00:00"
+      "updatedAt": "2026-10-04T14:11:15.614702+00:00",
+      "implementation": "Implemented and deployed; affected account defaults reapplied, changed originals archived, attendance/settings/crew preserved."
     }
   ],
   "milestones": [
@@ -966,8 +967,8 @@
     {
       "id": "M-026",
       "title": "인원 배정 즉시 반영·휴무일 표시 수정",
-      "status": "in_progress",
-      "description": "Implementation and regression verification underway; targeted account reapplication dry-run preserves settings/attendance and clears fine edits."
+      "status": "completed",
+      "description": "Staffing refresh and closed-day UI deployed. Flutter analysis/274 tests, Node 182 tests, JS/36 UI links, 27 captures and public assets verified. Target account reapplication verified; native builds not performed."
     }
   ],
   "history": [
@@ -5537,7 +5538,47 @@
         "Target account defaults reapplied with revision-checked patch; workplace, crew and attendance verified unchanged. Changed fine-edit originals archived server-side.",
         "Native builds not performed. Public web deployment pending."
       ]
+    },
+    {
+      "at": "2026-10-04T14:19:36.402852+00:00",
+      "type": "deployment",
+      "summary": "Staffing saves now reset fine edits on affected weekdays; current target account reapplied with revision check and protected data preserved. Closed dates show no timeline/table.",
+      "sourceCommit": "f82d292702d517e22cb474851ff952266be9c532",
+      "workflow": "https://github.com/ljae/tap2work/actions/runs/37208520884",
+      "url": "https://tap2.work",
+      "backend": {
+        "function": "operations",
+        "version": 35,
+        "status": "ACTIVE",
+        "unauthenticatedStatus": 401
+      },
+      "verification": [
+        "Flutter analysis/274 tests, Node 182 tests, npm run check and 36 UI links passed.",
+        "27 captures at 320/390/1200; staffing warning and closed-day screen reviewed.",
+        "Target account defaults reapplied with revision CAS; archived changed originals; workplace/crew/attendance preserved.",
+        "Local web and GitHub Pages deployment succeeded; HTML/bootstrap/main HTTP 200 and artifact SHA-256 match. Native build not performed."
+      ],
+      "assets": [
+        {
+          "file": "index.html",
+          "status": 200,
+          "matches": true,
+          "sha256": "9cc429fa86c024806b92e129659a79f0d8bcb8d7febb250813768fe017059b85"
+        },
+        {
+          "file": "flutter_bootstrap.0c600f2f81256d2dd04d.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "0c600f2f81256d2dd04d944b2c0fb70067047fbfe375a843f71a7586ee4a8893"
+        },
+        {
+          "file": "main.b6242da91eeec5b004c9.dart.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "b6242da91eeec5b004c9ee33bfc3d3c67f60a9e1516032b984ced585d3232074"
+        }
+      ]
     }
   ],
-  "updatedAt": "2026-10-04T14:11:15.614702+00:00"
+  "updatedAt": "2026-10-04T14:19:36.402852+00:00"
 }
