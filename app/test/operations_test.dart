@@ -120,8 +120,8 @@ void main() {
       await tester.tap(hours);
       await tester.pumpAndSettle();
       expect(find.text('영업시간·필요 인원'), findsOneWidget);
-      expect(find.text('시간설정'), findsOneWidget);
-      await tester.tap(find.text('시간설정'));
+      expect(find.widgetWithText(TextButton, '영업시간 설정'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, '영업시간 설정'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('2교대 이상'));
       await tester.pumpAndSettle();

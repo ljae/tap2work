@@ -22,7 +22,7 @@ void main() {
       data['workplace']['days']['7'] = <Map<String, dynamic>>[];
       Map<String, dynamic>? written;
       await mount(tester, initialData: data, write: (v) => written = v);
-      await tester.tap(find.text('시간설정'));
+      await tester.tap(find.text('영업시간 설정'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.byType(BusinessHoursSlider),
@@ -44,7 +44,7 @@ void main() {
       );
       await tester.tap(find.text('개별'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('시간설정'));
+      await tester.tap(find.text('영업시간 설정'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.byType(BusinessHoursSlider),
@@ -76,7 +76,7 @@ void main() {
     data['workplace']['days']['7'] = <Map<String, dynamic>>[];
     Map<String, dynamic>? written;
     await mount(tester, initialData: data, write: (v) => written = v);
-    await tester.tap(find.text('시간설정'));
+    await tester.tap(find.text('영업시간 설정'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('2교대 이상'));
     await tester.pumpAndSettle();
@@ -110,7 +110,7 @@ void main() {
     'timeline drag snaps half hours and keeps adjacent shifts connected',
     (tester) async {
       await mount(tester);
-      await tester.tap(find.text('시간설정'));
+      await tester.tap(find.text('영업시간 설정'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('2교대 이상'));
       await tester.pumpAndSettle();
@@ -241,6 +241,20 @@ void main() {
       expect(toggles.map((w) => w.value), [false, false, false]);
       await tester.tap(find.text('휴무일'));
       await tester.pumpAndSettle();
+      expect(find.text('영업시간 설정'), findsOneWidget);
+      expect(find.text('시간설정'), findsNothing);
+      expect(
+        tester.getBottomLeft(find.byKey(const ValueKey('hours-label-0'))).dy,
+        lessThan(tester.getTopLeft(find.text('휴무일')).dy),
+      );
+      expect(
+        tester.getBottomLeft(find.text('휴무일')).dy,
+        lessThan(tester.getTopLeft(find.widgetWithText(FilterChip, '월')).dy),
+      );
+      expect(
+        tester.getBottomLeft(find.widgetWithText(FilterChip, '일')).dy,
+        lessThan(tester.getTopLeft(find.text('2교대 이상')).dy),
+      );
       await tester.tap(find.widgetWithText(FilterChip, '일'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('휴무일'));

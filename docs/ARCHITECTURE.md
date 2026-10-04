@@ -243,7 +243,7 @@ CrewWeekGrid replaces the vertical weekday list with weekday columns and time ro
 
 ## 영업시간·브레이크 편집 · 2026-10-03
 
-`BusinessHoursSlider`는 영업 시작/종료와 교대 구분선을 가로 24시간축에 표시하고 브레이크를 코랄로 표시한다. 시간설정(휴무일·교대·브레이크)/인원 배치 탭은 동일한 초안을 공유하고 상단 탭과 하단 다음/저장 버튼을 고정한다. 교대×활성 파트 Table의 셀은 0–12명 카운터를 연다. 전체 변경은 기본 교대 순서로 매칭하고 추가 시간대는 같은 ID만 매칭한다. 두 탭의 상세 설정 진입은 제거하고 저장된 추가 시간대·파트 예외·업무 연결 데이터는 유지한다. 숫자 휠은 드래그 대안으로 유지한다. 상위 `WorkplaceSettings`가 opening revision과 7일 초안을 소유하고 전체/개별 범위·교대 수·시간 경계·휴무를 반영한다. 기본 영업일은 06:00–22:00 1교대이며 저장된 기존 값은 자동 변경하지 않는다. 교대 수는 1–3, 기본 경계는 2교대 15:00 / 3교대 12:00·18:00이다. 각 교대는 최소 30분이며 짧은/야간 영업은 범위 안에서 나눈다. 커스텀 시간대와 참조된 기존 ID는 보존한다.
+`BusinessHoursSlider`는 영업 시작/종료와 교대 구분선을 가로 24시간축에 표시하고 브레이크를 코랄로 표시한다. 영업시간 설정(휴무일·교대·브레이크)/인원 배치 탭은 동일한 초안을 공유하고 상단 탭과 하단 다음/저장 버튼을 고정한다. 교대×활성 파트 Table의 셀은 0–12명 카운터를 연다. 전체 변경은 기본 교대 순서로 매칭하고 추가 시간대는 같은 ID만 매칭한다. 두 탭의 상세 설정 진입은 제거하고 저장된 추가 시간대·파트 예외·업무 연결 데이터는 유지한다. 숫자 휠은 드래그 대안으로 유지한다. 상위 `WorkplaceSettings`가 opening revision과 7일 초안을 소유하고 전체/개별 범위·교대 수·시간 경계·휴무를 반영한다. 기본 영업일은 06:00–22:00 1교대이며 저장된 기존 값은 자동 변경하지 않는다. 교대 수는 1–3, 기본 경계는 2교대 15:00 / 3교대 12:00·18:00이다. 각 교대는 최소 30분이며 짧은/야간 영업은 범위 안에서 나눈다. 커스텀 시간대와 참조된 기존 ID는 보존한다.
 
 선택적 `workplace.breaks`는 요일 키 → `{start,end}`다. 키 없음은 OFF, 체크 시 기본 15:00–17:00(영업 구간 안으로 보정). `save_workplace_hours`는 `days`, `breaks`, `businessDayStart`를 한 revision에 저장한다. 구 클라이언트가 `breaks`를 생략하면 기존 값을 보존하고, 휴무로 바꾼 요일은 제거한다. 기존 `save_workplace_day`에도 브레이크 범위 검증을 적용한다. `business_breaks.mjs`가 영업일 경계와 자정 넘김을 해석해 검증·구간 차집합을 담당하고 `parts.mjs`가 각 파트/인원의 필요 슬롯을 생성한다. 브레이크 뒤 분할 슬롯은 `-after-break` ID suffix를 갖고 `bandId`는 원본을 유지한다. 날짜별 예외·실제 배정·출퇴근은 변경하지 않는다. 업무 연결 시간대와 반복 배정 자체를 재작성하거나 실제 휴게/급여에서 공제하지 않는다.
 
@@ -253,14 +253,16 @@ CrewWeekGrid replaces the vertical weekday list with weekday columns and time ro
 
 2026-10-03 후속 UI 변경: `BusinessHoursSlider` 내부 `_HoursTrack`/`_TimeHandle`을 영업시간과 브레이크가 공유한다. 24시간축·30분 스냅·드래그 시작값 기준 이동·숫자 휠 대안을 통일하고 브레이크는 영업 범위와 최소 30분을 지킨다. 시간은 조정선에만 표시하며 가까운 시간은 겹치지 않는 행에 배치한다. `shiftLabel`은 기본 교대의 표시 이름을 오픈/미들/마감으로 통일하며 저장된 이름/ID를 덮어쓰지 않는다. 원래의 시간대 추가/삭제/수정·요일별 시간표·파트 관리/연결 업무 진입은 이 영업시간 시트에서 제거했다. 독립 화면/업무 담당 설정·서버 데이터 계약은 유지한다.
 
-시간설정 옵션은 휴무일/2교대 이상/브레이크 타임 순서의 토글이다. 휴무일 펼침 상태는 기존 빈 요일 배열에서 초기화하며 새 저장 필드를 추가하지 않는다. OFF에서 휴무 요일을 다시 열 때 현재 편집 세션의 openDayDrafts/openBreakDrafts로 원래 ID·시간·인원·브레이크를 복원한다. 이미 저장된 휴무일처럼 복원 초안이 없으면 기존 새 영업일 기본 06:00–22:00/1교대를 사용한다. 복수 교대 토글은 편집 대상 요일의 기본 교대 수에서 계산한다. ON→preset(2), OFF→preset(1)이고 관련 ID·추가 시간대 보존 및 30분 최소 교대 검증을 재사용한다. `days`/`breaks`/opening revision의 일괄 저장 계약은 유지한다.
+영업시간 설정 옵션은 휴무일/2교대 이상/브레이크 타임 순서의 토글이다. 휴무일 펼침 상태는 기존 빈 요일 배열에서 초기화하며 새 저장 필드를 추가하지 않는다. OFF에서 휴무 요일을 다시 열 때 현재 편집 세션의 openDayDrafts/openBreakDrafts로 원래 ID·시간·인원·브레이크를 복원한다. 이미 저장된 휴무일처럼 복원 초안이 없으면 기존 새 영업일 기본 06:00–22:00/1교대를 사용한다. 복수 교대 토글은 편집 대상 요일의 기본 교대 수에서 계산한다. ON→preset(2), OFF→preset(1)이고 관련 ID·추가 시간대 보존 및 30분 최소 교대 검증을 재사용한다. `days`/`breaks`/opening revision의 일괄 저장 계약은 유지한다.
 
 ## 웹 배포 캐시 · 2026-10-03
 
 `build-flutter.mjs`는 성공한 웹 빌드에 `version-web-assets.mjs`를 적용한다. main.dart.js 내용 해시를 entrypoint 파일명에 넣고, 이 경로를 포함한 bootstrap의 해시도 파일명에 넣는다. index의 preload/script는 같은 버전을 참조해 앱만 바뀌어도 HTML·loader·entrypoint 주소가 함께 갱신된다. 이전 문서와의 전환을 위해 안정된 원래 파일도 유지한다. Flutter 생성 형식이 달라지면 배포를 실패시켜 버전 처리 누락을 방지한다. 시작 실패의 다시 불러오기는 기존 경로·쿼리·fragment를 유지하고 `_refresh`를 추가해 캐시된 HTML을 우회한다. 인증 저장소·매장 데이터는 삭제하지 않는다. 이미 실행 중인 홈 화면 앱은 자동 재시작하지 않으며 사용자가 종료 후 다시 열어야 한다. GitHub Pages의 HTML 캐시 유효기간은 별도로 존재한다.
 
-시간설정 컨트롤 배치 후속: 휴무일 토글은 ON일 때 나타나는 요일 선택 줄 아래, 2교대 이상 토글·선택 칩은 영업시간 바 아래, 브레이크 토글은 ON일 때 나타나는 주황색 바·시간 아래에 둔다. `BusinessHoursSlider.shiftControls`는 영업시간 바와 브레이크 바 사이에 상위 화면의 교대 컨트롤을 배치하는 슬롯이다. 토글 순서와 조건부 표시·초안·저장 계약은 유지한다.
+영업시간 설정 컨트롤 배치 후속: 휴무일 토글은 ON일 때 나타나는 요일 선택 줄 아래, 2교대 이상 토글·선택 칩은 영업시간 바 아래, 브레이크 토글은 ON일 때 나타나는 주황색 바·시간 아래에 둔다. `BusinessHoursSlider.shiftControls`는 영업시간 바와 브레이크 바 사이에 상위 화면의 교대 컨트롤을 배치하는 슬롯이다. 토글 순서와 조건부 표시·초안·저장 계약은 유지한다.
 
 휴무일 요일 칩 크기 후속: 7개 칩의 외부 너비는 48, 라벨은 최소 24×24의 동일 영역에서 중앙 정렬한다. 글자 모양·선택 상태에 따라 버튼 크기가 달라지지 않으며 기존 줄바꿈·휴무 토글·저장 동작을 유지한다.
 
 Latest weekday-selector correction (2026-10-03): supersedes the preceding closed-day placement and sizing notes. The closed-day switch comes BEFORE its weekday selector. Closed-day FilterChip and individual-day ChoiceChip share the existing ChipTheme, plain text labels, 8px spacing and no checkmark. Remove closed-day-only 48px width / 24px label constraints. Both rows now have matching button geometry; multiple closed-day selection and single editing-day selection retain their existing actions and save consumers. Shift and break switches remain below their tracks. Capture both rows together at 320/390/1200px.
+
+2026-10-04 사용자 수정: 탭 이름은 `영업시간 설정 / 인원 배치`다. 영업시간 바 아래에 휴무일 토글과 ON일 때 나타나는 월~일 선택 버튼을 함께 배치하고, 그 아래에 2교대 이상 토글·선택을 둔다. 영업일이 없을 때도 휴무일 컨트롤을 유지해 영업일을 다시 열 수 있다. S03의 `workplace.days` → 휴무일 토글·요일 선택 → `toggleClosedDays`/`setClosedDay` → `save_workplace_hours` → 근무표·업무 담당 연결과 저장 계약을 유지한다.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 149,
+  "revision": 150,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -704,10 +704,10 @@
       "category": "UI/UX·영업시간",
       "title": "휴무일·복수 교대의 선택형 토글",
       "status": "confirmed",
-      "decision": "시간설정 옵션은 휴무일, 2교대 이상, 브레이크 타임 순서다. 휴무일은 토글 아래에 요일 선택을 표시하고 개별 편집 요일 선택과 같은 크기 및 간격을 사용한다. 교대 및 브레이크 토글은 해당 바 아래에 둔다. ON일 때만 관련 선택 UI를 표시한다.",
-      "reason": "사용자가 브레이크 타임과 동일한 토글·조건부 선택 UI와 표시 순서를 요청했다.",
-      "source": "사용자 후속 요청 · 2026-10-03",
-      "updatedAt": "2026-10-03T14:35:21.599127+00:00"
+      "decision": "영업시간 설정/인원 배치 두 탭을 사용한다. 영업시간 바 아래에 휴무일 토글과 ON일 때 표시되는 월~일 선택 버튼을 배치하고 그 아래에 2교대 이상 토글·선택을 둔다. 휴무일 요일 버튼은 개별 편집 요일 선택과 같은 크기 및 간격을 사용한다. 브레이크 토글은 해당 바 아래에 둔다. ON일 때만 관련 선택 UI를 표시한다.",
+      "reason": "사용자가 시간설정 명칭을 영업시간 설정으로 변경하고 휴무일 토글·요일 선택을 영업시간 바 아래, 2교대 이상 위로 이동하도록 요청했다.",
+      "source": "사용자 수정 요청 · 2026-10-04",
+      "updatedAt": "2026-10-04T02:04:44.869347+00:00"
     }
   ],
   "milestones": [
@@ -5036,7 +5036,18 @@
       "decisionId": "D-070",
       "detail": "Deployed 03c52d8afec016195ccad32794e4fd8f047e1607 to https://tap2.work. Pages run 37130151419 succeeded. Closed-day switch now precedes the weekday selector; both weekday selector rows share sizing and spacing.",
       "verification": "GitHub CI checks, server tests, Flutter analyze/full tests, public build and Pages deployment passed. Public HTML and hashed main/bootstrap returned HTTP 200 and matched the artifact byte-for-byte. main SHA256 74ef316ff6514bfb51fddb4e627b7534642d5e8edfe55f2f64734bfc560ab5a7. Artifact excludes .local/developer/project-state.json. Installed iOS device and live store mutations were not tested."
+    },
+    {
+      "at": "2026-10-04T02:04:44.869347+00:00",
+      "type": "implementation",
+      "title": "영업시간 설정 명칭 및 바 아래 휴무일 배치",
+      "decisionId": "D-070",
+      "previous": "시간설정 옵션은 휴무일, 2교대 이상, 브레이크 타임 순서다. 휴무일은 토글 아래에 요일 선택을 표시하고 개별 편집 요일 선택과 같은 크기 및 간격을 사용한다. 교대 및 브레이크 토글은 해당 바 아래에 둔다. ON일 때만 관련 선택 UI를 표시한다.",
+      "next": "영업시간 설정/인원 배치 두 탭을 사용한다. 영업시간 바 아래에 휴무일 토글과 ON일 때 표시되는 월~일 선택 버튼을 배치하고 그 아래에 2교대 이상 토글·선택을 둔다. 휴무일 요일 버튼은 개별 편집 요일 선택과 같은 크기 및 간격을 사용한다. 브레이크 토글은 해당 바 아래에 둔다. ON일 때만 관련 선택 UI를 표시한다.",
+      "reason": "사용자가 시간설정 명칭을 영업시간 설정으로 변경하고 휴무일 토글·요일 선택을 영업시간 바 아래, 2교대 이상 위로 이동하도록 요청했다.",
+      "detail": "휴무일 토글·요일 선택을 BusinessHoursSlider.shiftControls의 첫 컨트롤로 이동했다. 영업일이 모두 휴무인 경우에도 휴무일 컨트롤을 표시해 영업을 재개할 수 있다. 안내 문구와 관련 테스트·캡처 도구의 탭 명칭 및 아키텍처·설정 관계표·UI 지침을 갱신했다. 저장 API·요일 및 시간대 ID 계약은 유지한다.",
+      "verification": "Flutter analyze 통과. 관련 Flutter 위젯·캡처 42/42, 서버 11/11, check:ui-links 30개 및 git diff --check 통과. 320/390/1200px 캡처에서 명칭·영업시간 바 → 휴무일 토글 → 요일 선택 → 2교대 이상 배치를 확인했다. npm run build:app 웹 빌드 성공. 초기 테스트에서 동일 명칭의 배경 진입점까지 찾는 1건이 실패해 탭 버튼으로 범위를 제한하고 재실행 후 통과했다. 공개 배포·네이티브 빌드·실기기 검증은 미수행."
     }
   ],
-  "updatedAt": "2026-10-03T14:40:58.071849+00:00"
+  "updatedAt": "2026-10-04T02:04:44.869347+00:00"
 }

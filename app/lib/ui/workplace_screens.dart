@@ -879,38 +879,39 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     );
   }
 
-  List<Widget> hours() => [
-    if (hoursStep == 0) ...[
-      SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        title: const Text('휴무일'),
-        value: useClosedDays,
-        onChanged: canDraftHours ? toggleClosedDays : null,
-      ),
-      if (useClosedDays)
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (var d = 1; d <= 7; d++)
-              FilterChip(
-                showCheckmark: false,
-                label: Text(
-                  dayNames[d - 1],
-                  style: TextStyle(
-                    decoration: (days['$d'] as List).isEmpty
-                        ? TextDecoration.lineThrough
-                        : null,
-                  ),
+  List<Widget> closedDayControls() => [
+    SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      title: const Text('휴무일'),
+      value: useClosedDays,
+      onChanged: canDraftHours ? toggleClosedDays : null,
+    ),
+    if (useClosedDays)
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (var d = 1; d <= 7; d++)
+            FilterChip(
+              showCheckmark: false,
+              label: Text(
+                dayNames[d - 1],
+                style: TextStyle(
+                  decoration: (days['$d'] as List).isEmpty
+                      ? TextDecoration.lineThrough
+                      : null,
                 ),
-                selected: (days['$d'] as List).isEmpty,
-                onSelected: canDraftHours
-                    ? (closed) => setClosedDay(d, closed)
-                    : null,
               ),
-          ],
-        ),
-    ],
+              selected: (days['$d'] as List).isEmpty,
+              onSelected: canDraftHours
+                  ? (closed) => setClosedDay(d, closed)
+                  : null,
+            ),
+        ],
+      ),
+  ];
+
+  List<Widget> hours() => [
     ...[
       Wrap(
         spacing: 8,
@@ -953,6 +954,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         shiftControls: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            ...closedDayControls(),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('2교대 이상'),
@@ -1045,7 +1047,8 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       staffingMatrix(),
       const SizedBox(height: 16),
     ],
-    if (dayBands.isEmpty) const Information('휴무일이에요. 시간설정에서 휴무일을 해제해 주세요.'),
+    if (hoursStep == 0 && dayBands.isEmpty) ...closedDayControls(),
+    if (dayBands.isEmpty) const Information('휴무일이에요. 영업시간 설정에서 휴무일을 해제해 주세요.'),
   ];
   List<Widget> orderSystem() => [
     SwitchListTile.adaptive(
@@ -1495,7 +1498,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                           minimumSize: const Size(0, 56),
                         ),
                         child: Text(
-                          ['시간설정', '인원 배치'][i],
+                          ['영업시간 설정', '인원 배치'][i],
                           textAlign: TextAlign.center,
                         ),
                       ),

@@ -87,10 +87,10 @@ void main() {
           ).writeAsBytesSync(bytes!.buffer.asUint8List());
           img.dispose();
         });
-        for (final stage in ['시간설정', '인원 배치']) {
+        for (final stage in ['영업시간 설정', '인원 배치']) {
           await tester.tap(find.text(stage).first);
           await tester.pumpAndSettle();
-          if (stage == '시간설정') {
+          if (stage == '영업시간 설정') {
             await tester.tap(find.text('휴무일'));
             await tester.pumpAndSettle();
             await tester.tap(find.text('개별'));
