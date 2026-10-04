@@ -56,7 +56,16 @@ class ScheduleController extends ChangeNotifier {
                         )),
           )
           .toList();
+  bool isPast(DateTime day) {
+    final today =
+        DateTime.tryParse(operations.data?['day'] ?? '') ??
+        DateTime.now().toUtc().add(const Duration(hours: 9));
+    return rosterDate(day).compareTo(rosterDate(today)) < 0;
+  }
+
+  bool get history => isPast(selected);
   bool get editable =>
+      !history &&
       operations.isLeader &&
       operations.data?['canEditSchedule'] != false &&
       !operations.readOnly &&

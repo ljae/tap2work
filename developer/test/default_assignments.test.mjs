@@ -29,7 +29,7 @@ test('hours and crew save atomically, generate future defaults and extend withou
 test('reject invalid, duplicate, over-capacity and overnight overlapping defaults with no partial writes', async t => {
   const {store,act,days}=await setup(t);
   const before=await store.snapshot('owner');
-  for (const ids of [['missing'],['tapper-crew'],['tapper-cook','tapper-cook']]) {
+  for (const ids of [['missing'],['tapper-cook','tapper-cook']]) {
     const draft=structuredClone(days);draft[1][0].crewIds.kitchen=ids;
     await assert.rejects(act('save_workplace_hours',{days:draft,defaultAssignmentsEnabled:true}));
     assert.deepEqual((await store.snapshot('owner')).workplace,before.workplace);
@@ -73,4 +73,16 @@ test('night defaults use Korean business date and configured part times',async t
   const state=await act('save_workplace_hours',{days,businessDayStart:'06:00',defaultAssignmentsEnabled:true});
   const s=state.staffShifts.find(s=>s.defaultAssignmentKey?.startsWith('2026-10-05/'));
   assert.equal(s.date,'2026-10-06');assert.equal(s.businessDate,'2026-10-05');assert.equal(s.start,'01:00');
+});
+
+ test('staffing establishes parts without editing the legacy crew registration profile',async t=>{
+  const {store,act,days}=await setup(t);
+  const before=(await store.snapshot('owner')).tappers.find(p=>p.id==='tapper-crew').workProfile;
+  for(const rows of Object.values(days)) for(const b of rows) b.crewIds.kitchen=['tapper-crew'];
+  const state=await act('save_workplace_hours',{days,defaultAssignmentsEnabled:true});
+  const shift=state.staffShifts.find(s=>s.defaultAssignmentKey && s.date==='2026-10-05');
+  assert.equal(shift.tapperId,'tapper-crew');
+  assert.equal(shift.partId,'kitchen');
+  await act('save_staff_shift',{...shift,start:'10:00'});
+  assert.deepEqual((await store.snapshot('owner')).tappers.find(p=>p.id==='tapper-crew').workProfile,before);
 });

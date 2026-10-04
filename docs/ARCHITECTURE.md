@@ -317,3 +317,11 @@ Schedule density (2026-10-04): use 48px/hour for long assignments; if any assign
 인원 배치는 교대 행×파트 열 테이블이다. 각 셀에 배정/필요 인원수와 선택한 크루 이름을 표시하고 셀 클릭으로 인원 카운터와 자리별 크루 드롭다운을 함께 편집한다. 취소는 초안을 유지하고 적용은 선택 요일의 폼 초안에만 반영하며 최종 저장은 기존 save_workplace_hours/defaultAssignmentsEnabled 계약을 따른다.
 
 기존 내 매장/클라우드 저장/샘플 주문 녹색 상태 띠는 제거하고 그 자리에 녹색 매뉴얼 검색창 한 개를 둔다. 네 목적지에서 같은 상단 위치와 기존 검색·지우기 동작을 사용하며 중복 검색창을 두지 않는다. 근무표의 날짜/파트 머리글은 배경·테두리 없이 표시하고, 시간 영역도 투명하게 유지한다. 왼쪽 52px 시간축에만 30분 간격 시각과 짧은 눈금을 표시한다.
+
+## 출퇴근 이력·배정 진입·자동 출근 선호 · 2026-10-04
+
+`ScheduleController.isPast`는 서버의 한국 날짜 `day`와 선택 날짜를 비교한다. 지난 날짜의 주간 본문은 read-only 출퇴근 이력, 월간은 이력 건수와 주간 이력 진입이다. 오늘/미래는 기존 근무 계획과 편집을 유지한다. `attendance_history.dart`는 권한 투영된 attendance만 시각순으로 묶으며 voidedAt 원본을 제외한다. 자정 이후 퇴근/휴게는 출근한 한국 날짜에 귀속하고 다음 날 시각에는 날짜를 표시한다. 출근/퇴근 누락과 단독 이벤트도 보존한다. 계획된 종료·파트·근무시간을 실제 기록으로 추정하지 않는다. 사장 전체/그 외 본인 attendance 권한은 기존 서버 계약 그대로다. 원본 staffShifts와 attendance, 급여 산식은 유지한다.
+
+`save_tapper`는 파트·시간대 생략을 허용하고 새 크루는 빈 workProfile(제한 없음)으로 등록한다. 기존 크루 수정에서 생략한 profile은 유지한다. 크루 정보의 배정 링크는 `openWorkplaceHours(staffing:true)`로 공통 테이블에 바로 진입한다. `crewPartIds`는 기본 배정이 활성화되면 명시적 days.crewIds의 파트를 legacy profile에 합쳐 배정·근무 수정·파트 업무 분류에 사용한다. 직급 권한은 확장하지 않는다.
+
+`save_attendance_preferences`는 사장만 revision 확인 후 `workplace.attendancePreferences={method:location|wifi,status:not_connected}`를 저장한다. enabled/status 등 클라이언트 활성화 주장은 받지 않으며 출퇴근 이벤트를 생성하지 않는다. 설정은 재진입 시 복원한다. 웹 Wi-Fi 확인, 위치/GPS·네이티브 백그라운드 감지·기기 증명·알림은 미연결이며 모바일 실제 기기 검증이 필요하다. 자동 퇴근의 이탈 후보→알림→본인 확정은 제안으로만 기록한다.

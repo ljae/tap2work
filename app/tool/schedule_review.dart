@@ -9,6 +9,7 @@ import 'package:tap2work/main.dart';
 import 'package:tap2work/state/operations_controller.dart';
 import 'package:tap2work/state/work_controller.dart';
 import 'package:tap2work/ui/calendar_screen.dart';
+import 'package:tap2work/ui/team_screen.dart';
 import 'package:tap2work/ui/workplace_screens.dart';
 import '../test/calendar_test.dart' show calendarData;
 import '../test/operations_test.dart' show response;
@@ -32,6 +33,9 @@ void main() {
     for (final width in [320.0, 390.0, 1200.0]) {
       for (final scene in [
         'calendar',
+        'history',
+        'verification',
+        'registration',
         'month',
         'hours',
         'staffing',
@@ -40,6 +44,33 @@ void main() {
         tester.view.physicalSize = Size(width, 1000);
         final data = calendarData();
         data['day'] = '2026-10-05';
+        data['attendance'] = [
+          {
+            'tapperId': 'cook',
+            'type': 'clock_in',
+            'at': '2026-09-28T00:00:00Z',
+          },
+          {
+            'tapperId': 'cook',
+            'type': 'break_start',
+            'at': '2026-09-28T03:00:00Z',
+          },
+          {
+            'tapperId': 'cook',
+            'type': 'break_end',
+            'at': '2026-09-28T03:30:00Z',
+          },
+          {
+            'tapperId': 'cook',
+            'type': 'clock_out',
+            'at': '2026-09-28T06:00:00Z',
+          },
+          {
+            'tapperId': 'cook',
+            'type': 'clock_in',
+            'at': '2026-09-28T14:00:00Z',
+          },
+        ];
         data['workplace'] = <String, dynamic>{...data['workplace']};
         data['workplace']['days'] = {
           for (var d = 1; d <= 7; d++)
@@ -75,7 +106,11 @@ void main() {
         );
         await ops.refresh();
         final work = WorkController(MemoryStore()), key = GlobalKey();
-        final content = scene == 'hours' || scene.startsWith('staffing')
+        final content = scene == 'verification'
+            ? WorkplaceSettings(ops: ops, section: 'verification')
+            : scene == 'registration'
+            ? SingleChildScrollView(child: TeamScreen(operations: ops))
+            : scene == 'hours' || scene.startsWith('staffing')
             ? WorkplaceSettings(ops: ops, section: 'hours')
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -99,6 +134,14 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
+        if (scene == 'history') {
+          await tester.tap(find.byTooltip('이전'));
+          await tester.pumpAndSettle();
+        }
+        if (scene == 'registration') {
+          await tester.tap(find.text('크루 등록'));
+          await tester.pumpAndSettle();
+        }
         if (scene.startsWith('staffing') || scene == 'month') {
           await tester.tap(
             find.text(scene.startsWith('staffing') ? '인원 배치' : '월간').first,

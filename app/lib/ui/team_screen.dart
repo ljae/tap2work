@@ -46,147 +46,132 @@ class _TeamScreenState extends State<TeamScreen> {
     var rank = current?['rank'] as String? ?? 'crew';
     final period = current?['payPeriod'] as String? ?? 'monthly';
     var employment = current?['employmentType'] as String? ?? '시간알바';
-    final duties = <String>{
-      ...(current?['workProfile']?['partIds'] as List? ??
-              [storeParts(ops).first['id']])
-          .cast<String>(),
-    };
+    Future<dynamic>? sheetClosed;
     final saved = await showAppFormSheet<Json>(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, update) => AppSheetPanel(
-          title: Text(
-            widget.payOnly
-                ? '인건비 설정'
-                : current == null
-                ? '크루 등록'
-                : '크루 수정',
-          ),
-          content: SizedBox(
-            width: 430,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 20,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (!widget.payOnly)
-                    TextField(
-                      controller: nickname,
-                      onChanged: (_) => update(() {}),
-                      decoration: const InputDecoration(labelText: '별칭(이름)'),
-                    ),
-                  if (!widget.payOnly)
-                    AppPicker<String>(
-                      label: '직급',
-                      value: rank,
-                      items: _ranks.entries
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e.key,
-                              child: Text(e.value),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) => update(() => rank = v!),
-                    ),
-                  if (!widget.payOnly)
-                    AppPicker<String>(
-                      label: '고용형태',
-                      value: employment,
-                      items: ['정규직', '시간알바', '정규알바']
-                          .map(
-                            (v) => DropdownMenuItem(value: v, child: Text(v)),
-                          )
-                          .toList(),
-                      onChanged: (v) => update(() => employment = v!),
-                    ),
-                  if (!widget.payOnly)
-                    Wrap(
-                      spacing: 6,
-                      children: [
-                        for (final part in storeParts(
-                          ops,
-                        ).where((p) => p['hidden'] != true))
-                          FilterChip(
-                            chipAnimationStyle: AppMotion.chipStyle(context),
-                            label: Text(part['name']),
-                            selected: duties.contains(part['id']),
-                            onSelected: (v) => update(() {
-                              if (v) {
-                                duties.add(part['id']);
-                              } else {
-                                duties.remove(part['id']);
-                              }
-                            }),
-                          ),
-                      ],
-                    ),
-                  if (widget.payOnly)
-                    TextField(
-                      controller: rate,
-                      onChanged: (_) => update(() {}),
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: '시급 · 원'),
-                    ),
-                  if (widget.payOnly)
-                    TextButton(
-                      onPressed: () => showAppSheet(
-                        context,
-                        builder: (_) => PayrollSettingsScreen(ops: ops),
+        builder: (context, update) {
+          sheetClosed =
+              (ModalRoute.of(context) as TransitionRoute<dynamic>?)?.completed;
+          return AppSheetPanel(
+            title: Text(
+              widget.payOnly
+                  ? '인건비 설정'
+                  : current == null
+                  ? '크루 등록'
+                  : '크루 수정',
+            ),
+            content: SizedBox(
+              width: 430,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 20,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (!widget.payOnly)
+                      TextField(
+                        controller: nickname,
+                        onChanged: (_) => update(() {}),
+                        decoration: const InputDecoration(labelText: '별칭(이름)'),
                       ),
-                      child: const Text('매장 정산 설정'),
-                    ),
-                  if (!widget.payOnly)
-                    TextField(
-                      controller: kakao,
-                      decoration: const InputDecoration(
-                        labelText: '카카오톡 HTTPS 링크 · 선택',
+                    if (!widget.payOnly)
+                      AppPicker<String>(
+                        label: '직급',
+                        value: rank,
+                        items: _ranks.entries
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.key,
+                                child: Text(e.value),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) => update(() => rank = v!),
                       ),
-                    ),
-                  if (!widget.payOnly)
-                    TextField(
-                      controller: phone,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(labelText: '전화번호 · 선택'),
-                    ),
-                ],
+                    if (!widget.payOnly)
+                      AppPicker<String>(
+                        label: '고용형태',
+                        value: employment,
+                        items: ['정규직', '시간알바', '정규알바']
+                            .map(
+                              (v) => DropdownMenuItem(value: v, child: Text(v)),
+                            )
+                            .toList(),
+                        onChanged: (v) => update(() => employment = v!),
+                      ),
+                    if (!widget.payOnly)
+                      const Text(
+                        '파트·시간대는 등록 후 크루 배정에서 설정해요.',
+                        style: AppText.caption,
+                      ),
+                    if (widget.payOnly)
+                      TextField(
+                        controller: rate,
+                        onChanged: (_) => update(() {}),
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: '시급 · 원'),
+                      ),
+                    if (widget.payOnly)
+                      TextButton(
+                        onPressed: () => showAppSheet(
+                          context,
+                          builder: (_) => PayrollSettingsScreen(ops: ops),
+                        ),
+                        child: const Text('매장 정산 설정'),
+                      ),
+                    if (!widget.payOnly)
+                      TextField(
+                        controller: kakao,
+                        decoration: const InputDecoration(
+                          labelText: '카카오톡 HTTPS 링크 · 선택',
+                        ),
+                      ),
+                    if (!widget.payOnly)
+                      TextField(
+                        controller: phone,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                          labelText: '전화번호 · 선택',
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
-          actions: [
-            PressBounce(
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('취소'),
+            actions: [
+              PressBounce(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('취소'),
+                ),
               ),
-            ),
-            PressBounce(
-              child: FilledButton(
-                onPressed:
-                    nickname.text.trim().isEmpty ||
-                        duties.isEmpty ||
-                        int.tryParse(rate.text) == null
-                    ? null
-                    : () => Navigator.pop(context, {
-                        if (current != null) 'id': current['id'],
-                        'nickname': nickname.text.trim(),
-                        'rank': rank,
-                        'employmentType': employment,
-                        'partIds': duties.toList(),
-                        'hourlyWon': int.parse(rate.text),
-                        'payPeriod': period,
-                        'kakaoUrl': kakao.text.trim(),
-                        'phone': phone.text.trim(),
-                        'active': true,
-                      }),
-                child: const Text('저장'),
+              PressBounce(
+                child: FilledButton(
+                  onPressed:
+                      nickname.text.trim().isEmpty ||
+                          int.tryParse(rate.text) == null
+                      ? null
+                      : () => Navigator.pop(context, {
+                          if (current != null) 'id': current['id'],
+                          'nickname': nickname.text.trim(),
+                          'rank': rank,
+                          'employmentType': employment,
+                          'hourlyWon': int.parse(rate.text),
+                          'payPeriod': period,
+                          'kakaoUrl': kakao.text.trim(),
+                          'phone': phone.text.trim(),
+                          'active': true,
+                        }),
+                  child: const Text('저장'),
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
     );
+    await sheetClosed;
     nickname.dispose();
     rate.dispose();
     kakao.dispose();
@@ -466,16 +451,6 @@ class _TeamScreenState extends State<TeamScreen> {
             .where((e) => e['tapperId'] == id && e['voidedAt'] == null)
             .toList()
             .reversed;
-        final partNames = storeParts(ops)
-            .where(
-              (p) => (person['workProfile']?['partIds'] as List? ?? [])
-                  .contains(p['id']),
-            )
-            .map((p) => p['name'])
-            .join(' · ');
-        final bands = (person['workProfile']?['bands'] as List? ?? []).join(
-          ' · ',
-        );
         return AppEditorScaffold(
           title: '크루 정보',
           body: ListView(
@@ -508,26 +483,14 @@ class _TeamScreenState extends State<TeamScreen> {
                 child: Column(
                   children: [
                     SettingRow(
-                      title: '파트',
-                      subtitle: partNames.isEmpty ? '전체' : partNames,
+                      title: '크루 배정',
+                      subtitle: '인원 배치에서 파트·시간대를 설정해요.',
+                      icon: CupertinoIcons.slider_horizontal_3,
+                      onTap: ops.isOwner
+                          ? () =>
+                                openWorkplaceHours(context, ops, staffing: true)
+                          : null,
                     ),
-                    SettingRow(
-                      title: '시간대',
-                      subtitle: bands.isEmpty ? '전체 시간대' : bands,
-                    ),
-                    if (ops.isOwner)
-                      SettingRow(
-                        title: '파트·시간대 수정',
-                        icon: CupertinoIcons.slider_horizontal_3,
-                        onTap: () => showAppSheet(
-                          context,
-                          builder: (_) => WorkplaceSettings(
-                            ops: ops,
-                            section: 'person',
-                            person: person,
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),

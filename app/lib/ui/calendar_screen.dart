@@ -1,4 +1,5 @@
 import 'time_wheel.dart';
+import '../domain/attendance_history.dart';
 import 'package:flutter/gestures.dart';
 import 'shift_change_panel.dart';
 import '../domain/korean_holidays.dart';
@@ -673,7 +674,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   height:
                       80 * (MediaQuery.textScalerOf(context).scale(14) / 14),
                   child: InkWell(
-                    onTap: () => model.editable
+                    onTap: () => !model.isPast(day) && model.editable
                         ? editCalendarDay(day)
                         : model.selectDay(day),
                     child: Container(
@@ -691,6 +692,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   : AppColors.muted.withValues(alpha: .4),
                             ),
                           ),
+                          if (model.isPast(day))
+                            Text(
+                              '이력 ${attendanceSessions(ops.rows('attendance')).where((s) => rosterDate(s.day) == rosterDate(day)).length}',
+                              style: AppText.caption,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           if (dayNote(day).isNotEmpty)
                             Expanded(
                               child: Tooltip(
@@ -773,7 +781,77 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        LayoutBuilder(builder: (context, box) => timeline(box.maxWidth)),
+        if (model.history)
+          attendanceHistory()
+        else
+          LayoutBuilder(builder: (context, box) => timeline(box.maxWidth)),
+      ],
+    );
+  }
+
+  Widget attendanceHistory() {
+    final sessions = attendanceSessions(
+      ops.rows('attendance'),
+    ).where((s) => rosterDate(s.day) == rosterDate(model.selected)).toList();
+    const labels = {
+      'clock_in': '출근',
+      'clock_out': '퇴근',
+      'break_start': '휴게 시작',
+      'break_end': '휴게 종료',
+    };
+    return Column(
+      key: const ValueKey('attendance-history'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(rosterDate(model.selected), style: AppText.caption),
+        const SizedBox(height: 4),
+        const Text('출퇴근 이력', style: AppText.section),
+        const SizedBox(height: 12),
+        if (sessions.isEmpty) const Information('기록된 출퇴근 이력이 없어요.'),
+        for (final session in sessions) ...[
+          Surface(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  ops
+                          .rows('tappers')
+                          .where((p) => p['id'] == session.crewId)
+                          .firstOrNull?['nickname'] ??
+                      '크루',
+                  style: AppText.body,
+                ),
+                if (!session.hasClockIn)
+                  const Text('출근 미기록', style: AppText.caption),
+                if (!session.hasClockOut)
+                  const Text('퇴근 미기록', style: AppText.caption),
+                const SizedBox(height: 8),
+                for (final event in session.events)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            labels[event['type']]!,
+                            style: AppText.caption,
+                          ),
+                        ),
+                        Text(() {
+                          final at = koreanAttendanceTime(event['at']);
+                          final date = rosterDate(at) == rosterDate(session.day)
+                              ? ''
+                              : '${at.month}/${at.day} ';
+                          return '$date${rosterClock(at.hour * 60 + at.minute)}';
+                        }(), style: AppText.body),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
       ],
     );
   }
@@ -1185,7 +1263,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
           children: [
             Expanded(
               child:
-                  ops.isLeader &&
+                  !model.history &&
+                      ops.isLeader &&
                       ops.data?['canEditSchedule'] != false &&
                       !ops.readOnly
                   ? DirectEditBar(
@@ -1195,7 +1274,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         selectedSlot = null;
                       }),
                     )
-                  : const Text('대한민국 달력', style: AppText.caption),
+                  : Text(
+                      model.history ? '출퇴근 이력' : '대한민국 달력',
+                      style: AppText.caption,
+                    ),
             ),
             IconButton(
               tooltip: '공휴일 출처·상태',
@@ -1310,7 +1392,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             label: const Text('영업시간·인원'),
           ),
         ),
-        ShiftChangePanel(ops: ops),
+        if (!model.history) ShiftChangePanel(ops: ops),
       ],
     ),
   );

@@ -65,7 +65,7 @@ export function checkWorkplacePermission(state, actor, action) {
   }
 }
 export function mutateWorkplace(state, input, actor, now, activity, authenticated) {
-  const actions = ['save_calendar_day', 'save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'save_order_system', 'save_workplace_hours', 'save_workplace_parts', 'save_workplace_day', 'save_workplace_permissions', 'save_staff_profile', 'create_demo_invite', 'revoke_demo_invite'];
+  const actions = ['save_attendance_preferences', 'save_calendar_day', 'save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'save_order_system', 'save_workplace_hours', 'save_workplace_parts', 'save_workplace_day', 'save_workplace_permissions', 'save_staff_profile', 'create_demo_invite', 'revoke_demo_invite'];
   if (!actions.includes(input.action)) return false;
   if (['save_roster_slot','delete_roster_slot','reset_roster_slot'].includes(input.action)) {
     if (!['owner','manager'].includes(actor.role)) fail('매니저 이상만 슬롯을 바꿀 수 있어요.', 403);
@@ -112,6 +112,13 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
   if (actor.role !== 'owner') fail('사장님만 이 설정을 바꿀 수 있어요.', 403);
   const config = structuredClone(state.workplace ?? workplaceDefaults());
   switch (input.action) {
+    case 'save_attendance_preferences': {
+      if (!['location', 'wifi'].includes(input.method)) fail('자동 출근 방식을 선택해 주세요.');
+      // A preference is not proof of presence. Device verification is not connected.
+      config.attendancePreferences = {method: input.method, status: 'not_connected'};
+      break;
+    }
+
     case 'save_order_system': {
       if (typeof input.enabled !== 'boolean') fail('주문처리 연결 사용 여부를 선택해 주세요.');
       state.store.profile ??= {};

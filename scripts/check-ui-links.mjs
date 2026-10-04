@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S42', 'app/lib/ui/calendar_screen.dart', 'attendanceHistory()', 'app/lib/domain/attendance_history.dart', 'attendanceSessions'],
+  ['S43', 'app/lib/ui/workplace_screens.dart', "'save_attendance_preferences'", 'developer/workplace.mjs', "case 'save_attendance_preferences'"],
   ['S35', 'app/lib/ui/tap_settings_screen.dart', "'assignmentScopeVersion': 2", 'developer/task_settings.mjs', 'assertContentOnly(step)'],
   ['S40', 'app/lib/ui/tap_settings_screen.dart', "'split_tap_policy'", 'developer/operations.mjs', "case 'split_tap_policy'"],
   ['S37', 'app/lib/ui/workplace_screens.dart', "'defaultAssignmentsEnabled': true", 'developer/default_assignments.mjs', 'ensureDefaultAssignments'],

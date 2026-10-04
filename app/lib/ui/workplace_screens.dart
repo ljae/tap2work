@@ -12,10 +12,12 @@ import 'components.dart';
 /// All hours entry points use the same draft, validation and save flow.
 Future<void> openWorkplaceHours(
   BuildContext context,
-  OperationsController ops,
-) => showAppFormSheet<void>(
+  OperationsController ops, {
+  bool staffing = false,
+}) => showAppFormSheet<void>(
   context: context,
-  builder: (_) => WorkplaceSettings(ops: ops, section: 'hours'),
+  builder: (_) =>
+      WorkplaceSettings(ops: ops, section: 'hours', staffing: staffing),
 );
 
 const defaultParts = <Json>[
@@ -325,10 +327,12 @@ class WorkplaceSettings extends StatefulWidget {
     required this.ops,
     required this.section,
     this.person,
+    this.staffing = false,
   });
   final OperationsController ops;
   final String section;
   final Json? person;
+  final bool staffing;
   @override
   State<WorkplaceSettings> createState() => _WorkplaceSettingsState();
 }
@@ -342,6 +346,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     revision = widget.ops.data?['revision'] as int? ?? 0;
     actorId = widget.ops.actorId;
     if (widget.section == 'hours') {
+      hoursStep = widget.staffing ? 1 : 0;
       days = initialDays();
       weekday =
           [
@@ -1456,33 +1461,40 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         ),
       ),
   ];
+  late String attendanceMethod =
+      widget.ops.data?['workplace']?['attendancePreferences']?['method'] ??
+      'location';
   List<Widget> verification() => [
-    const Text('출퇴근을 정확하게', style: AppText.title),
+    const Text('자동 출근 방식', style: AppText.title),
     const SizedBox(height: 16),
-    const Information('현재는 서버에 출퇴근 시각을 기록해요. 위치·Wi-Fi 인증은 아직 연결되지 않았어요.'),
-    section('인증 수단'),
-    const Surface(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          SettingRow(
-            title: '위치로 출퇴근 인증',
-            subtitle: '매장 좌표·기기 권한·서버 검증 연결 필요',
-            icon: CupertinoIcons.location,
-            trailing: Icon(CupertinoIcons.lock, color: AppColors.muted),
-          ),
-          Divider(height: 1),
-          SettingRow(
-            title: '매장 Wi-Fi',
-            subtitle: '네이티브 기기 연동 필요 · 웹에서는 확인 불가',
-            icon: CupertinoIcons.wifi,
-            trailing: Icon(CupertinoIcons.lock, color: AppColors.muted),
-          ),
-        ],
-      ),
+    const Information(
+      '사용할 방식을 미리 선택해요. 현재는 직접 출퇴근 버튼으로 기록하며, 자동 감지는 기기 연동 후 사용할 수 있어요.',
+    ),
+    const SizedBox(height: 16),
+    AppPicker<String>(
+      label: '출근 감지 방식',
+      value: attendanceMethod,
+      items: const [
+        DropdownMenuItem(value: 'location', child: Text('매장 도착 위치')),
+        DropdownMenuItem(value: 'wifi', child: Text('매장 Wi-Fi 연결')),
+      ],
+      onChanged: editable
+          ? (value) => setState(() {
+              attendanceMethod = value!;
+              dirty = true;
+            })
+          : null,
+    ),
+    const SizedBox(height: 16),
+    Text(
+      attendanceMethod == 'location'
+          ? '위치 권한과 매장 위치 등록을 연결할 예정이에요.'
+          : '모바일 앱에서 매장 Wi-Fi 등록과 기기 권한을 연결할 예정이에요. 웹에서는 Wi-Fi를 확인할 수 없어요.',
+      style: AppText.caption,
     ),
   ];
   bool get hasSaveFooter => const [
+    'verification',
     'hours',
     'parts',
     'permissions',
@@ -1490,6 +1502,8 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   ].contains(widget.section);
   Future<void> saveSection() async {
     switch (widget.section) {
+      case 'verification':
+        await save('save_attendance_preferences', {'method': attendanceMethod});
       case 'hours':
         await save('save_workplace_hours', {
           'days': days,

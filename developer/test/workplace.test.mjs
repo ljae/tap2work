@@ -156,3 +156,31 @@ test('business breaks persist atomically, leave requirement seats unchanged, pre
   const restored=await act('owner','save_workplace_hours',{days,breaks:{}});
   assert.equal(restored.rosterTemplates.filter(s=>s.weekday===1).length,2);
 });
+
+test('crew registration can omit assignment; editing preserves existing work profile', async t => {
+  const {store,act}=await setup(t);
+  const values={nickname:'신규 크루',rank:'crew',employmentType:'시간알바',hourlyWon:10320,payPeriod:'monthly',kakaoUrl:'',phone:''};
+  const added=await act('owner','save_tapper',values);
+  const person=added.tappers.find(p=>p.nickname===values.nickname);
+  assert.deepEqual(person.workProfile,{partIds:[],bands:[]});
+  const before=await store.snapshot('owner');
+  const original=before.tappers.find(p=>p.id==='tapper-crew');
+  const updated=await act('owner','save_tapper',{...values,id:original.id});
+  assert.deepEqual(updated.tappers.find(p=>p.id===original.id).workProfile,original.workProfile);
+  await assert.rejects(act('crew','save_tapper',values),{status:403});
+  await assert.rejects(act('owner','save_tapper',{...values,duties:['invalid']}),{status:400});
+});
+
+test('automatic attendance preferences validate method and never activate or create clock events', async t => {
+  const {store,act}=await setup(t);
+  const before=await store.snapshot('owner');
+  for (const method of ['location','wifi']) {
+    const saved=await act('owner','save_attendance_preferences',{method,enabled:true,status:'active'});
+    assert.deepEqual(saved.workplace.attendancePreferences,{method,status:'not_connected'});
+    assert.deepEqual(saved.attendance,before.attendance);
+    assert.deepEqual(saved.staffShifts,before.staffShifts);
+  }
+  await assert.rejects(act('crew','save_attendance_preferences',{method:'wifi'}),{status:403});
+  await assert.rejects(act('owner','save_attendance_preferences',{method:'invalid'}),{status:400});
+  await assert.rejects(store.mutate('owner',{revision:before.revision,action:'save_attendance_preferences',method:'location'}),{status:409});
+});

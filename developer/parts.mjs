@@ -13,8 +13,15 @@ export function partForLegacy(state, value) {
   return partsOf(state).find(p => p.roles?.includes(value) || p.duties?.includes(value))?.id ?? null;
 }
 export function crewPartIds(state, person) {
-  if (person?.workProfile && Object.hasOwn(person.workProfile, 'partIds')) return person.workProfile.partIds.length ? person.workProfile.partIds : partsOf(state).map(p => p.id);
-  return [...new Set((person?.duties ?? []).map(d => partForLegacy(state, d)).filter(Boolean))];
+  const legacy = person?.workProfile && Object.hasOwn(person.workProfile, 'partIds')
+    ? (person.workProfile.partIds.length ? person.workProfile.partIds : partsOf(state).map(p => p.id))
+    : (person?.duties ?? []).map(d => partForLegacy(state, d)).filter(Boolean);
+  // Explicit staffing assignments also establish a crew member's working parts.
+  // Ranks still control access; retain legacy profiles without rewriting them.
+  const assigned = state.workplace?.defaultAssignmentsEnabled === true
+    ? Object.values(state.workplace.days ?? {}).flatMap(bands => bands.flatMap(b =>
+      Object.entries(b.crewIds ?? {}).filter(([,ids]) => Array.isArray(ids) && ids.includes(person?.id)).map(([id]) => id))) : [];
+  return [...new Set([...legacy, ...assigned])];
 }
 export function actorWithParts(state, actor) {
   const person = state.tappers?.find(p => p.actorId === actor.id && p.active);

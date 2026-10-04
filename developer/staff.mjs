@@ -152,7 +152,7 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       if (input.partIds !== undefined) {
         if (!Array.isArray(input.partIds) || !input.partIds.length) fail('파트를 선택해 주세요.');
         input.partIds.forEach(id => validatePart(state, id));
-      } else if (!Array.isArray(input.duties) || !input.duties.length || input.duties.some(d => !duties.includes(d))) fail('파트를 선택해 주세요.');
+      } else if (input.duties !== undefined && (!Array.isArray(input.duties) || !input.duties.length || input.duties.some(d => !duties.includes(d)))) fail('파트를 선택해 주세요.');
       const kakaoUrl = safeText(input.kakaoUrl ?? '', 250, '카카오톡 링크', false);
       if (kakaoUrl) {
         let url;
@@ -165,7 +165,7 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       const next = { rank: input.rank, nickname: safeText(input.nickname, 40, '별칭'), duties: [...new Set(input.duties ?? row?.duties ?? [])], ...(input.partIds ? {workProfile: {...row?.workProfile, partIds: [...new Set(input.partIds)], bands: row?.workProfile?.bands ?? []}} : {}), employmentType: input.employmentType ?? row?.employmentType ?? '시간알바',
         hourlyWon: nonnegative(input.hourlyWon, '시급'), payPeriod: input.payPeriod,
         kakaoUrl, phone, active: input.active !== false };
-      if (row) Object.assign(row, next); else state.tappers.push({ id: randomUUID(), ...next });
+      if (row) Object.assign(row, next); else state.tappers.push({ id: randomUUID(), ...(input.partIds === undefined && input.duties === undefined ? {workProfile: {partIds: [], bands: []}} : {}), ...next });
       activity(`${next.nickname} 크루 정보 저장`); return true;
     }
     case 'delete_staff_shift': {
