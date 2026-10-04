@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 166,
+  "revision": 167,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -765,10 +765,10 @@
       "category": "UI/UX",
       "title": "인원 배치 테이블 복원·녹색 공통 검색·30분 눈금",
       "status": "confirmed",
-      "decision": "인원 배치를 교대×파트 테이블로 복원하고 셀에 배정/필요 인원수와 크루 이름을 표시한다. 셀 클릭으로 인원수·크루를 함께 편집하며 기본 근무 자동 반영은 유지한다. 상단 녹색 매장 상태 띠는 네 메뉴 공통 녹색 매뉴얼 검색창으로 대체한다. 근무표 날짜/파트 머리글의 배경·테두리를 제거하고 왼쪽 시간축에만 30분 간격 시각과 짧은 눈금을 둔다.",
+      "decision": "인원 배치를 교대×파트 테이블로 복원하고 셀에 배정/필요 인원수와 크루 이름을 표시한다. 셀 클릭으로 인원수·크루를 함께 편집하며 기본 근무 자동 반영은 유지한다. 상단 녹색 매장 상태 띠는 네 메뉴 공통 녹색 매뉴얼 검색창으로 대체한다. 근무표 날짜/파트 머리글의 배경·테두리를 제거하고 왼쪽 시간축에만 30분 간격 시각과 짧은 눈금을 둔다. Implemented, verified and deployed to tap2.work.",
       "reason": "사용자가 기존 테이블 복원·셀 편집과 상태 띠 검색창 대체, 근무표 머리글/시간축 표시 수정을 요청했다. D-075의 세로 배정 UI와 검색 생략을 대체한다.",
       "source": "사용자 요청 · 2026-10-04",
-      "updatedAt": "2026-10-04T13:23:39.476065+00:00"
+      "updatedAt": "2026-10-04T13:31:22.608896+00:00"
     }
   ],
   "milestones": [
@@ -913,8 +913,8 @@
     {
       "id": "M-024",
       "title": "인원 배치 테이블 복원·녹색 검색·30분 눈금",
-      "status": "in_progress",
-      "description": "구현·전체 테스트·웹 빌드·시각 검증 완료. 사이트 배포 대기."
+      "status": "completed",
+      "description": "Staffing table with editable counts and crew names, green global manual search, transparent calendar headings and left-axis half-hour ticks deployed. Flutter analysis/265 tests, Node 176 tests, JS/34 UI links, 42 captures and live asset verification passed. Existing default assignments preserved; native verification not performed."
     }
   ],
   "history": [
@@ -5381,7 +5381,46 @@
         "웹 배포 대기. 네이티브 빌드/실기기 미실시"
       ],
       "at": "2026-10-04T13:23:39.476065+00:00"
+    },
+    {
+      "type": "deployment",
+      "title": "Staffing table and green manual search deployed",
+      "decisionId": "D-076",
+      "previous": "인원 배치를 교대×파트 테이블로 복원하고 셀에 배정/필요 인원수와 크루 이름을 표시한다. 셀 클릭으로 인원수·크루를 함께 편집하며 기본 근무 자동 반영은 유지한다. 상단 녹색 매장 상태 띠는 네 메뉴 공통 녹색 매뉴얼 검색창으로 대체한다. 근무표 날짜/파트 머리글의 배경·테두리를 제거하고 왼쪽 시간축에만 30분 간격 시각과 짧은 눈금을 둔다.",
+      "next": "인원 배치를 교대×파트 테이블로 복원하고 셀에 배정/필요 인원수와 크루 이름을 표시한다. 셀 클릭으로 인원수·크루를 함께 편집하며 기본 근무 자동 반영은 유지한다. 상단 녹색 매장 상태 띠는 네 메뉴 공통 녹색 매뉴얼 검색창으로 대체한다. 근무표 날짜/파트 머리글의 배경·테두리를 제거하고 왼쪽 시간축에만 30분 간격 시각과 짧은 눈금을 둔다. Implemented, verified and deployed to tap2.work.",
+      "reason": "User-requested UI follow-up. Existing default assignment data and server API preserved; no account reset in this change.",
+      "sourceCommit": "eb679d34350f961ccf0b75643f3f981a2f292653",
+      "workflow": "https://github.com/ljae/tap2work/actions/runs/37205617023",
+      "url": "https://tap2.work",
+      "verification": [
+        "Flutter analyze and all 265 tests passed; Node 176 tests, npm run check and 34 UI/settings links passed",
+        "Related 71 tests passed; capture run 16 tests passed. Reviewed 320/390/1200px captures: 15 schedule/settings/dialog images and 27 destination/keyboard images",
+        "Local app/build/web rebuilt; GitHub Pages build and deployment succeeded",
+        "Live HTML, versioned bootstrap and main script returned HTTP 200 and matched deployment artifact SHA-256",
+        "No account data mutation or backend deployment in this follow-up. Native build/device verification not performed"
+      ],
+      "assets": [
+        {
+          "file": "index.html",
+          "status": 200,
+          "matches": true,
+          "sha256": "fb40308090c24edea8b91d6701296d7a7640a889653f15792a839a07cf5f6059"
+        },
+        {
+          "file": "flutter_bootstrap.f85f44312155c6e7a7a6.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "f85f44312155c6e7a7a65c1d140d4dafdefe83bc36712bccd31c3d2a4e41152b"
+        },
+        {
+          "file": "main.dcb31e123b7ea2481bbc.dart.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "dcb31e123b7ea2481bbcfb129f72c298a32643188c661ae3ba746b036ed98630"
+        }
+      ],
+      "at": "2026-10-04T13:31:22.608896+00:00"
     }
   ],
-  "updatedAt": "2026-10-04T13:26:20.874977+00:00"
+  "updatedAt": "2026-10-04T13:31:22.608896+00:00"
 }
