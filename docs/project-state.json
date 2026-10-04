@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 153,
+  "revision": 154,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -5088,7 +5088,15 @@
       "reason": "2026-10-04 사용자 후속 요청: 단계별 설정 흐름, 독립 브레이크, 미배정 위치와 월간 용도를 명시했다.",
       "detail": "브레이크 바를 토글 아래로 이동하고 전체 영업시간 바에 amber 띠를 표시한다. 필요 슬롯에서 브레이크 차감을 제거한다. 영업시간/인원 전체 선택 시 영업일 모두 초록 선택, 휴무일은 비선택으로 표시한다. CrewAllocationScreen과 원자적 save_crew_allocations/apply_crew_allocations를 추가했다. hoursVersion과 패턴 source/applied version으로 재검토 필요를 표시한다. CalendarScreen은 배정만 표시하는 파트 시간축이며 날짜별 휠·drag·resize를 유지한다. 긴 근무는 1시간=48px, 2시간 미만 근무가 있으면 30분=48px로 표시한다. 월간 dateOverrides/save_calendar_day는 추가 영업의 참고 요일 또는 추가 휴무를 저장한다. 휴무는 미래 미시작 배정만 해제하고 서버 이력에 보관한다. 시작/승인/대타/출퇴근/대기 신청은 변경을 거절해 보존한다. 추가 영업/복원은 별도 기간 적용을 안내한다.",
       "verification": "flutter analyze 이상 없음. 전체 Flutter 251/251, 서버 158/158, npm run check, check:ui-links 32개, git diff --check 통과. 초기 이전 UI 기대 테스트·lint 및 압축 시간축의 drag/resize 충돌을 수정 후 재검증했다. 320/390/1200px·1.5배 글자, 드래그 미리보기·탭 배정·충돌 초안 유지·원자성·권한·KST 야간·승인 보호 검증. 시각 캡처 도구 1/1 통과, 12개 캡처 생성 및 대표 320/390px 확인(.local/schedule-flow-review). npm run build:app 웹 빌드 성공. 공개 사이트/Supabase 배포와 Android/iOS 네이티브 빌드·실기기 검증은 미수행."
+    },
+    {
+      "type": "deployment",
+      "title": "크루 배정 흐름·브레이크 참고 표시·월간 일정 예외 배포 완료",
+      "decisionId": "D-071",
+      "detail": "사용자 배포 요청으로 fef4a54409adb8349ff0983a8a108d9c508017f3를 https://tap2.work에 게시했다. 최신 origin/main 기반 별도 checkout에 해당 변경 27개 파일만 반영했다. GitHub Pages run 37183862371 성공. Supabase operations 함수 version 29→30, ACTIVE 상태 확인. DB 마이그레이션 및 실제 매장 데이터 쓰기는 수행하지 않았다.",
+      "verification": "배포 checkout Flutter analyze·전체 251/251, 서버 158/158, npm run check 및 설정 연결 32개 통과. GitHub CI 분석·테스트·웹 빌드·게시 성공. 공개 HTTPS HTML·해시 bootstrap/main 모두 HTTP 200 및 Pages artifact와 바이트 일치. main SHA256 2ee5e93dda7f470ff0d5daff3bc5e8357056e5cf703a8771722020c9bca042bf. Artifact에 .local/developer/project-state.json/.env 없음. operations 비인증 요청 401, 공개 도메인 CORS preflight 204 확인. 실제 매장 설정 저장·네이티브 실기기 검증은 미수행.",
+      "at": "2026-10-04T06:53:06.637756+00:00"
     }
   ],
-  "updatedAt": "2026-10-04T06:45:24.056151+00:00"
+  "updatedAt": "2026-10-04T06:53:06.637756+00:00"
 }
