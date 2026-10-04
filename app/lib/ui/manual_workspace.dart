@@ -1,3 +1,6 @@
+import 'manual_tap_editor.dart';
+import 'manual_market_screen.dart';
+import 'checklist_backup_screen.dart';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -561,6 +564,22 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               ),
             ),
           ),
+          if (editable && canEdit && kind != 'group')
+            IconButton(
+              key: ValueKey('manual-detail-$key'),
+              tooltip: kind == 'tap' ? 'TAP 상세 수정' : 'Task 상세 수정',
+              icon: const Icon(Icons.tune, size: 18),
+              onPressed: () => showAppSheet(
+                context,
+                builder: (_) => kind == 'tap'
+                    ? ManualTapEditor(ops: ops, templateId: id)
+                    : ManualTaskEditor(
+                        ops: ops,
+                        templateId: tapId!,
+                        sourceStepId: id,
+                      ),
+              ),
+            ),
           if (editingTree && editable && canEdit) ...[
             PopupMenuButton<String>(
               key: ValueKey('manual-actions-$key'),
@@ -970,6 +989,35 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                     spacing: 8,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
+                      if (ops.canEditTasks) ...[
+                        TextButton.icon(
+                          onPressed: () => showAppSheet(
+                            context,
+                            builder: (_) => ManualMarketScreen(
+                              ops: ops,
+                              folderId: scopeGroup,
+                            ),
+                          ),
+                          icon: const Icon(Icons.storefront_outlined),
+                          label: const Text('매뉴얼 마켓'),
+                        ),
+                        TextButton.icon(
+                          onPressed: () => showAppSheet(
+                            context,
+                            builder: (_) =>
+                                ManualTapEditor(ops: ops, folderId: scopeGroup),
+                          ),
+                          icon: const Icon(Icons.add),
+                          label: const Text('TAP 직접 추가'),
+                        ),
+                        TextButton(
+                          onPressed: () => showAppSheet(
+                            context,
+                            builder: (_) => ChecklistBackupScreen(ops: ops),
+                          ),
+                          child: const Text('백업·복원'),
+                        ),
+                      ],
                       if (!wide)
                         PressBounce(
                           child: TextButton.icon(

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 171,
+  "revision": 172,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -811,6 +811,19 @@
       "source": "사용자 요청 · 2026-10-04",
       "updatedAt": "2026-10-04T14:11:15.614702+00:00",
       "implementation": "Implemented and deployed; affected account defaults reapplied, changed originals archived, attendance/settings/crew preserved."
+    },
+    {
+      "id": "D-081",
+      "category": "매뉴얼·체크리스트",
+      "title": "매뉴얼 마켓 공용 자동 업데이트·개인화 백업",
+      "status": "confirmed",
+      "decision": "매뉴얼에서 TAP과 Task 상세를 편집하고 공용 TAP을 선택해 추가/기초 설정에 적용한다. 공용 연결 TAP의 내용과 매뉴얼은 자동 업데이트하고 이미 생성된 업무 기록과 매장 운영 설정은 유지한다. 직접 개인화한 TAP은 공용 업데이트에서 분리하며 기기/파일 백업으로 관리한다.",
+      "previous": "공용 콘텐츠 가져오기는 매장 복사본으로 고정. 상세 구현안의 3-way 비교·병합은 proposed. 매뉴얼 Task 편집은 save_checklists 전체 저장 경유로 일부 오늘 미시작 업무가 재생성됨.",
+      "next": "공용 source ID/불변 발행본에 연결된 양식만 자동 갱신; 직접 내용 수정은 TAP 전체 개인화 분리. 매뉴얼 상세는 단일 양식만 저장하고 모든 생성 실행 유지.",
+      "reason": "사용자가 매뉴얼 마켓·상세 수정·개인화 로컬 백업 구현을 요청하고 자동 업데이트/기존 업무 기록 유지 정책을 명시했다.",
+      "source": "사용자 구현 요청 및 자동 업데이트 선택 답변 · 2026-10-04",
+      "updatedAt": "2026-10-04T14:47:52.564716+00:00",
+      "implementation": "Implemented in isolated worktree; validation and web deployment in progress. Source publishing uses reviewed MD and backend deployment; periodic automatic research/publishing remains planned."
     }
   ],
   "milestones": [
@@ -969,6 +982,12 @@
       "title": "인원 배정 즉시 반영·휴무일 표시 수정",
       "status": "completed",
       "description": "Staffing refresh and closed-day UI deployed. Flutter analysis/274 tests, Node 182 tests, JS/36 UI links, 27 captures and public assets verified. Target account reapplication verified; native builds not performed."
+    },
+    {
+      "id": "M-027",
+      "title": "매뉴얼 마켓·TAP/Task 상세·개인화 백업",
+      "status": "in_progress",
+      "description": "64 TAP/211 Task catalog, linked auto updates preserving executions/settings, full detail editor and device/file backup/additive restore implemented. Flutter analysis/290 tests, Node 192 tests, 39 UI links, 12 captures and web build passed. Deployment in progress; advanced provider CMS/native verification not included."
     }
   ],
   "history": [
@@ -5578,7 +5597,24 @@
           "sha256": "b6242da91eeec5b004c9ee33bfc3d3c67f60a9e1516032b984ced585d3232074"
         }
       ]
+    },
+    {
+      "at": "2026-10-04T14:47:52.564716+00:00",
+      "type": "implementation",
+      "summary": "Implement manual market, public definition auto-sync, personal-copy detachment and device/file backup restore.",
+      "verification": [
+        "Flutter analysis and all 290 tests passed, including new TAP draft, pinned opening revision, workspace switch guard, backup and narrow/enlarged UI.",
+        "All 192 Node tests passed; npm run check and 39 UI/settings links passed.",
+        "12 captures at 320/390/1200 generated; market/editor/backup/directory reviewed.",
+        "Web release build passed; final public deployment pending. Native builds/native file pickers not exercised.",
+        "Regression probes initially found and fixed nonstable backup projection timestamp and lazy opening workspace/revision capture."
+      ],
+      "implementationNotes": [
+        "Prepared MD/structured content migrated to versioned 64 TAP/211 Task provider source, with review status preserved.",
+        "Automatic update means a newly deployed public release applied on the next server snapshot. No periodic automatic publishing or personal draft sync claimed.",
+        "No live account imports or unrelated staffing/account data resets performed for this change."
+      ]
     }
   ],
-  "updatedAt": "2026-10-04T14:19:36.402852+00:00"
+  "updatedAt": "2026-10-04T14:49:01.207004+00:00"
 }

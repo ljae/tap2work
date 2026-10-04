@@ -413,11 +413,12 @@ void main() {
     );
     await tester.tap(find.text('매뉴얼 저장'));
     await tester.pumpAndSettle();
-    expect(sent?['action'], 'save_checklists');
+    expect(sent?['action'], 'save_manual_tap');
+    expect(sent?['templateId'], 'a');
     expect(sent?['revision'], 2);
-    expect(sent?['templates'][0]['steps'][0]['manual'], '손을 충분히 씻어요');
-    expect(sent?['templates'][0]['steps'][1]['manual'], '소독 상세 매뉴얼');
-    expect(sent?['templates'][1]['steps'][0]['manual'], '청소 상세 매뉴얼');
+    expect(sent?['steps'][0]['manual'], '손을 충분히 씻어요');
+    expect(sent?['steps'][1]['manual'], '소독 상세 매뉴얼');
+    expect(sent?.containsKey('templates'), isFalse);
   });
 
   testWidgets(
@@ -449,14 +450,15 @@ void main() {
       );
       await tester.tap(find.text('매뉴얼 저장'));
       await tester.pumpAndSettle();
-      expect(sent?['templates'][0]['manualTitle'], '조리 가이드');
-      expect(sent?['templates'][0]['steps'][0]['manualTitle'], '완성 순서');
-      expect(sent?['templates'][0]['steps'][0]['title'], '손 씻기');
-      expect(sent?['action'], 'save_checklists');
+      expect(sent?['title'], '위생 TAP');
+      expect(sent?['steps'][0]['manualTitle'], '완성 순서');
+      expect(sent?['steps'][0]['title'], '손 씻기');
+      expect(sent?['action'], 'save_manual_tap');
+      expect(sent?['templateId'], 'a');
       expect(sent?['revision'], 2);
-      expect(sent?['templates'][0]['steps'][0]['manual'], '손을 충분히 씻어요');
-      expect(sent?['templates'][0]['steps'][1]['manual'], '소독 상세 매뉴얼');
-      expect(sent?['templates'][1]['steps'][0]['manual'], '청소 상세 매뉴얼');
+      expect(sent?['steps'][0]['manual'], '손을 충분히 씻어요');
+      expect(sent?['steps'][1]['manual'], '소독 상세 매뉴얼');
+      expect(sent?.containsKey('templates'), isFalse);
     },
   );
 

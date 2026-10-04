@@ -1,3 +1,4 @@
+import {syncManualCatalog,manualMarketReplay,reconcileCatalogLinks,catalogView,checklistBackup,mutateManualMarket} from './manual_market.mjs';
 import { ensureDefaultAssignments } from './default_assignments.mjs';
 import { tapOnly, assertContentOnly, policyReport, convertPolicy, updateContentRevisions } from './tap_policy.mjs';
 import { businessDate, boundaryOf, shiftDate } from './business_day.mjs';
@@ -243,6 +244,7 @@ function ensureDueTasks(state, now) {
   if (ensureStaff(state, now)) changed = true;
   if (ensureDefaultAssignments(state, now)) changed = true;
   if (ensureChecklists(state)) changed = true;
+  if (syncManualCatalog(state,now)) changed = true;
   if (ensureTapBoard(state)) changed = true;
   if (!state.sales) { state.sales = seedSales(now); changed = true; }
   if (ensureMenuManuals(state)) changed = true;
@@ -310,6 +312,9 @@ export class OperationsStore {
     result.hasSampleArchive = Boolean(state.sampleArchive);
     delete result.sampleArchive;
     delete result.operationEditHistory;
+    delete result.catalogHistory;
+    delete result.catalogOperations;
+    delete result.catalogLinks;
     delete result.calendarDayHistory;
     delete result.defaultAssignmentOmissions;
     delete result.tapPolicyHistory;
@@ -376,6 +381,7 @@ export class OperationsStore {
       for (const order of result.orders) { delete order.total; for (const line of order.lines) delete line.price; }
     }
     result.checklistLibrary = checklistLibrary;
+    if (result.canEditTasks) {result.manualCatalog=catalogView(state);result.catalogLinks=structuredClone(state.catalogLinks??{});result.checklistBackup=checklistBackup(state);}
     result.manualSearch = manualSearchIndex(state);
     if (['owner', 'manager'].includes(actor.role)) result.recommendedTaps = recommendedTaps(state);
     if (!['owner', 'manager'].includes(actor.role)) delete result.taskTemplates;
@@ -396,9 +402,10 @@ export class OperationsStore {
       const now = this.clock();
       if (ensureDueTasks(state, now)) { state.revision++; await this.#save(state); }
       if (input.action === 'split_tap_policy' && input.operationId && state.tapPolicyHistory?.some(h => h.operationId === input.operationId && h.actor.id === actor.id && h.template.id === input.templateId)) return this.#view(state,actor);
-      if (input.revision !== state.revision) fail('다른 동료가 먼저 업데이트했어요. 최신 내용을 확인하고 다시 눌러 주세요.', 409);
       actor = actorWithParts(state, actor);
       checkWorkplacePermission(state, actor, input.action);
+      if (manualMarketReplay(state,input,actor)) return this.#view(state,actor);
+      if (input.revision !== state.revision) fail('다른 동료가 먼저 업데이트했어요. 최신 내용을 확인하고 다시 눌러 주세요.', 409);
       const who = { id: actor.id, name: actor.name, role: actor.label };
       const activity = (message, kind) => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message, ...(kind ? { kind } : {}) });
       const itemFor = id => { const item = state.items.find(item => item.id === id && !item.archivedAt); if (!item) fail('사용 중인 재료를 찾지 못했어요.', 404); return item; };
@@ -800,7 +807,7 @@ export class OperationsStore {
           state.layout.updatedAt = iso(now); state.layout.updatedBy = who;
           activity(`${zone.name} 위치 안내 업데이트`); break;
         }
-        default: if (!mutateWorkplace(state, input, actor, now, activity, Boolean(this.trustedActor)) && !mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
+        default: if (!mutateManualMarket(state,input,actor,now) && !mutateWorkplace(state, input, actor, now, activity, Boolean(this.trustedActor)) && !mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
       }
       if (['move_tap', 'complete_task', 'complete_step', 'reopen_step'].includes(input.action)) syncOrderFromTap(state, input.taskId);
       if (['move_tap', 'complete_task', 'complete_step'].includes(input.action)) {
@@ -813,6 +820,7 @@ export class OperationsStore {
         if (tapOnly(template)) for (const step of template.steps) assertContentOnly(step);
       }
       updateContentRevisions(previousTemplates,state);
+      reconcileCatalogLinks(state,now);
       state.activity = state.activity.slice(0, 100);
       ensureDueTasks(state, now);
       state.revision++; await this.#save(state);

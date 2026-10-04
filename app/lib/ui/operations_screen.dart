@@ -1,3 +1,4 @@
+import 'manual_market_screen.dart';
 import 'payroll_settings_screen.dart';
 import 'app_loading_screen.dart';
 import 'workplace_screens.dart';
@@ -638,7 +639,17 @@ class _OperationsScreenState extends State<OperationsScreen> {
           ops: ops,
           onHours: () => openWorkplace('hours'),
           onPeople: () => openStoreDetail('people'),
-          onTasks: () => updateView(() => tab = 0),
+          onTasks: () async {
+            if (ops.canEditTasks) {
+              await showAppSheet(
+                context,
+                builder: (_) => ManualMarketScreen(ops: ops),
+              );
+              if (mounted) updateView(() => tab = 1);
+            } else {
+              updateView(() => tab = 0);
+            }
+          },
           onSchedule: () => updateView(() => tab = 2),
         ),
         gap(16),

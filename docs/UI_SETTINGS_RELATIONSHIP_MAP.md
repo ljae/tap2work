@@ -285,3 +285,13 @@ S27 주간은 `ScheduleController.selected` → 전체 폭 7일 선택 → 선�
 |---|---|---|---|
 | S03 | workplace.days + hoursTargets → 초기화 안내와 일주일 설정 저장 → save_workplace_hours(resetScheduleWeekdays) | refreshDefaultAssignments: 변경/선택 요일의 오늘부터 90일 미세 조정·개별 계획·삭제 초기화, 실제/승인/대기 보존, 같은 기본 배정 ID 재사용 | default_staffing_test.dart, default_assignments.test.mjs |
 | S27 | workplace.days/dateOverrides → 주간 날짜 선택 → isClosedDay | 휴무일은 표시만, 시간축/파트 표/편집바/변경 신청 패널 숨김, 추가 영업은 표 복원 | calendar_test.dart |
+
+## 매뉴얼 마켓·상세 편집·백업 · 2026-10-04
+
+| ID | 설정/원본 경로 | 입력 UI와 액션 | 저장 후 소비 화면·파생 값 | 검증 기준 |
+| --- | --- | --- | --- | --- |
+| S44 | `taskTemplates[]`, `catalogLinks` | 디렉토리 TAP/Task 상세 → `ManualTapEditor`/`ManualTaskEditor` → `save_manual_tap`; TAP 운영 설정은 기존 S13 | 단일 양식·매뉴얼 검색·다음 실행, 기존 생성 업무 보존; 내용 편집은 개인화 분리 | `manual_market.test.mjs`, `manual_workspace_test.dart`, `manual_market_test.dart` |
+| S45 | `docs/market/current.json`, `manualCatalog` | 매뉴얼 마켓 / 우리매장 할일 준비 → `import_market_taps`; 공용 연결을 유지한 사본은 `personalize_market_tap` | OFF 양식과 source 연결; 다음 서버 조회 자동 내용/매뉴얼 동기화, 기존 실행·운영 정책 보존 | 서버 자동 업데이트/권한/CAS/재시도, 마켓 위젯 테스트 |
+| S46 | 개인화/비연결 `taskTemplates` → `checklistBackup` | 백업·복원 → `ChecklistBackupRepository` 기기/파일 → 미리보기 → `restore_checklist_backup` | 기존 목록 유지, 새 ID·OFF 개인화 양식 추가, 크루/파트/시간·장소 재연결 | 기기 scope/파일 payload/오류 위젯, 서버 복원·불법 입력·원자성 테스트 |
+
+S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 TAP 정의만 갱신한다. S26 이름/삭제와 S14 구조 이동은 유지하며 공용 내용이 달라지면 같은 개인화 분리 검사를 적용한다. 영업/배정 등 운영 정책만 바꾸면 공용 연결을 유지한다.

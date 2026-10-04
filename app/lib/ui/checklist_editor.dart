@@ -881,6 +881,15 @@ class _GroupSheetState extends State<_GroupSheet> {
 }
 
 /// Opens one reusable Task manual from the manual directory, never the board.
+Future<Json?> editManualTaskContent(
+  BuildContext context,
+  Json step,
+  String groupTitle,
+) => showAppSheet<Json>(
+  context,
+  builder: (_) => _ActivityEditor(step: _copy(step), groupTitle: groupTitle),
+);
+
 class ManualTaskEditor extends StatefulWidget {
   const ManualTaskEditor({
     super.key,
@@ -898,12 +907,14 @@ class ManualTaskEditor extends StatefulWidget {
 class _ManualTaskEditorState extends State<ManualTaskEditor> {
   late final int openingRevision;
   late final String openingActor;
+  late final String? openingWorkspace;
 
   @override
   void initState() {
     super.initState();
     openingRevision = widget.ops.data?['revision'] ?? -1;
     openingActor = widget.ops.actorId;
+    openingWorkspace = widget.ops.data?['workspaceId'];
   }
 
   late final Json? sourceTemplate = widget.ops
@@ -917,7 +928,10 @@ class _ManualTaskEditorState extends State<ManualTaskEditor> {
 
   Future<String?> save(Json draft) async {
     final ops = widget.ops;
-    if (!ops.canEditTasks || ops.actorId != openingActor || ops.busy) {
+    if (!ops.canEditTasks ||
+        ops.actorId != openingActor ||
+        ops.data?['workspaceId'] != openingWorkspace ||
+        ops.busy) {
       return '편집 권한 또는 매장이 변경됐어요. 다시 열어 주세요.';
     }
     if (ops.data?['revision'] != openingRevision) {
@@ -952,10 +966,13 @@ class _ManualTaskEditorState extends State<ManualTaskEditor> {
     ).where((s) => s['id'] == widget.sourceStepId).firstOrNull;
     if (step == null) return '이 Task를 찾지 못했어요. 다시 열어 주세요.';
     step.addAll(draft);
-    final ok = await ops.act('save_checklists', {
+    final ok = await ops.act('save_manual_tap', {
       'revision': openingRevision,
-      'folders': snapshot['checklistFolders'],
-      'templates': templates,
+      'templateId': target['id'],
+      'title': target['title'],
+      'emoji': target['emoji'],
+      'folderId': target['folderId'],
+      'steps': target['steps'],
     });
     return ok ? null : (ops.error ?? '저장하지 못했어요. 다시 시도해 주세요.');
   }
@@ -979,6 +996,9 @@ class _ManualTaskEditorState extends State<ManualTaskEditor> {
           '${sourceTemplate!['manualTitle'] ?? sourceTemplate!['title'] ?? ''}',
       onSave: save,
       previewOnly: widget.ops.readOnly,
+      catalogLinked:
+          widget.ops.data?['catalogLinks']?[widget.templateId]?['mode'] ==
+          'linked',
     );
   }
 }
@@ -989,11 +1009,13 @@ class _ActivityEditor extends StatefulWidget {
     required this.groupTitle,
     this.onSave,
     this.previewOnly = false,
+    this.catalogLinked = false,
   });
   final Json step;
   final String groupTitle;
   final Future<String?> Function(Json draft)? onSave;
   final bool previewOnly;
+  final bool catalogLinked;
   @override
   State<_ActivityEditor> createState() => _ActivityEditorState();
 }
@@ -1095,6 +1117,13 @@ class _ActivityEditorState extends State<_ActivityEditor> {
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
               children: [
+                if (widget.catalogLinked)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 20),
+                    child: Information(
+                      '내용을 수정하면 이 TAP은 개인화 항목으로 분리돼요. 이후 공용 업데이트 대신 백업으로 관리하고, 기존 업무 기록은 유지해요.',
+                    ),
+                  ),
                 if (widget.previewOnly)
                   const Padding(
                     padding: EdgeInsets.only(bottom: 20),
@@ -1151,8 +1180,8 @@ class _ActivityEditorState extends State<_ActivityEditor> {
                 ),
                 Text(
                   widget.onSave == null
-                      ? '초안에 적용한 뒤 보드 화면에서 저장해 주세요.'
-                      : '이 Task의 매뉴얼만 바꿔요. 이미 시작한 업무의 기록은 유지돼요.',
+                      ? '초안에 적용한 뒤 이전 화면에서 저장해 주세요.'
+                      : '이 Task의 매뉴얼만 바꿔요. 이미 생성된 업무의 기록은 유지돼요.',
                   style: AppText.caption,
                 ),
               ],

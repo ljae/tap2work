@@ -331,3 +331,13 @@ Schedule density (2026-10-04): use 48px/hour for long assignments; if any assign
 `save_workplace_hours`는 변경된 요일과 `resetScheduleWeekdays`의 합집합에 `refreshDefaultAssignments`를 실행한다. 같은 설정을 다시 저장해도 선택 요일의 미세 조정/omissions를 초기화한다. 이후 조회에서는 기존 ensureDefaultAssignments의 미세 조정 보존을 유지한다. 한국 달력 기준 오늘부터 90일, old/new dateOverrides weekday를 고려한다. 해당 계획과 rosterOverrides/omissions를 정리하고 같은 defaultAssignmentKey의 ID를 재사용한다. 실제 attendance 또는 승인·대체·대기 신청이 있는 shift는 보존하며 과거를 수정하지 않는다. 실제 출근이 없는 오늘의 예정 시작 시각 경과는 명시적 재반영을 막지 않는다. 변경된 원본만 server-only operationEditHistory에 보관해 무변경 재저장으로 이력이 누적되지 않게 한다. 검증·revision 확인 이후 동일 저장 트랜잭션에서 실행한다.
 
 Flutter 저장 payload는 hoursTargets를 전달하고 최종 저장 버튼 바로 위에 초기화 범위와 보호 기록을 안내한다. CalendarScreen.isClosedDay는 dateOverrides.closed를 우선하며 없으면 해당 요일의 빈 days로 판정한다. 주간 날짜 선택은 유지하고 본문은 휴무일 표시만 한다. 과거 휴무일도 표시만 하되 실제 attendance 원본을 삭제하지 않는다. 추가 영업일은 표/이력 표시를 복원한다. 미세 편집바와 변경 신청 패널은 휴무일에 숨긴다.
+
+## 매뉴얼 마켓 연결·개인화 분리 · 2026-10-04
+
+`docs/market/SOURCE.md` → `scripts/build-manual-market.mjs` → 불변 `releases/<sha256>.json` + `current.json`이 공용 발행 계약이다. `developer/manual_catalog_schema.mjs`가 stable source/Task ID·Task 콘텐츠 전용 필드·HTTPS 링크를 검증한다. 기존 준비 자료 64 TAP/211 Task를 초기화하며 검토 상태/출처를 유지한다. 중앙 발행은 서버 배포 관리자가 수행하고 매장 API에 발행 권한을 주지 않는다.
+
+`manual_market.mjs`는 `catalogLinks[templateId]`의 mode(linked/personalized/removed), sourceId, releaseId, contentHash를 관리한다. 조회/변경 전 연결된 원본을 동기화하고 콘텐츠 변경은 Task·매뉴얼과 함께 반영한다. 폴더·배정·운영 정책은 보존하며 실행 `tasks[]`는 수정/보관/재생성하지 않는다. 이미 생성된 오늘 업무에도 소급 적용하지 않고 다음 생성분에서 새 내용을 사용한다. 수동 내용·순서 편집은 TAP 전체를 personalized로 분리한다. 공용 원본 철회 시 연결 사본을 삭제하지 않는다. 기존 비연결 양식은 자동 전환하지 않는다.
+
+`save_manual_tap`은 단일 TAP 정의만 검증·저장하며 제목/아이콘/그룹/Task 추가·삭제·순서·상세를 지원한다. 매뉴얼 Task 편집도 이 액션을 사용해 기존 업무를 보존한다. 업무 화면 직접 편집의 D-053 선택 실행 반영 계약은 유지한다. `import_market_taps`, `personalize_market_tap`, `restore_checklist_backup` 및 신규 TAP은 OFF로 추가하며 파트/시간대는 TAP 운영 설정에서 연결한다. 요청 ID별 actor/payload receipt로 성공 재시도 중복을 방지한다. 모든 액션은 기존 업무 편집 권한/CAS를 적용한다. `catalogHistory`와 `catalogOperations`는 서버 전용 섹션이다.
+
+Flutter `ManualMarketScreen`, `ManualTapEditor`, `ChecklistBackupScreen`은 공통 편집 시트를 사용한다. 매뉴얼 디렉토리에 TAP/Task 상세 버튼과 마켓/직접 추가/백업을 제공하고 우리매장 할일 준비를 마켓으로 연결한다. `ChecklistBackupRepository`는 매장·사용자 scope의 SharedPreferences와 file_picker JSON 내보내기/선택을 담당한다. 백업은 개인화/비연결 양식의 콘텐츠·운영 규칙만 포함하며 크루 배정·수행 기록·인증 정보는 제외한다. UTF-8 2MB 제한, 링크만 보관, 원자적 검증 후 새 ID의 개인화 양식으로 추가 복원한다. 기존 목록을 덮어쓰지 않으며 OFF/파트·장소·담당자 재연결로 시작한다. [관리자 발행·한계](market/README.md).
