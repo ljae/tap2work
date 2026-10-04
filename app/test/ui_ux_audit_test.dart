@@ -71,13 +71,14 @@ void main() {
           await tester.pumpAndSettle();
           await tester.tap(find.byKey(ValueKey('floating-menu-$index')));
           await tester.pumpAndSettle();
-          if (index != 2)
+          if (index != 2) {
             expect(
               tester
                   .widget<Text>(find.byKey(const ValueKey('menu-title')))
                   .data,
               ['업무', '매뉴얼', '근무표', '우리매장'][index],
             );
+          }
           Future<void> snapshot(String state) async {
             if (capture) {
               await tester.runAsync(() async {
