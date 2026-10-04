@@ -38,7 +38,7 @@ export function mutateCrewPattern(state, input, actor, now, activity, validShift
       const s = { ...e, id: randomUUID(), tapperId: input.tapperId, date: actualDate(state,dateAt(input.anchor, w * 7 + e.weekday - 1),e.start) };
       validateOverlap({ staffShifts: proposed }, s); proposed.push(s);
     }
-    const pattern = { id: old?.id ?? randomUUID(), tapperId: input.tapperId, cycleWeeks: input.cycleWeeks, anchor: input.anchor, entries, hoursVersion: state.workplace?.hoursVersion ?? 0, version: (old?.version ?? 0) + 1, appliedVersion: old?.appliedVersion, appliedHoursVersion: old?.appliedHoursVersion };
+    const pattern = { id: old?.id ?? randomUUID(), tapperId: input.tapperId, cycleWeeks: input.cycleWeeks, anchor: input.anchor, entries, ...(old ? {previous:{anchor:old.anchor,cycleWeeks:old.cycleWeeks,entries:structuredClone(old.entries)}} : {}), hoursVersion: state.workplace?.hoursVersion ?? 0, version: (old?.version ?? 0) + 1, appliedVersion: old?.appliedVersion, appliedHoursVersion: old?.appliedHoursVersion };
     state.crewPatterns = [...(state.crewPatterns ?? []).filter(p => p !== old), pattern];
     activity('크루 주간 기본 배정 저장'); return true;
   }

@@ -42,6 +42,7 @@ test('monthly exceptions close only future unprotected shifts and open using sou
  assert.deepEqual(state.workplace.days['7'],[]);
  await act('save_calendar_day',{date:'2026-10-11',mode:'reset'});
  assert.equal((await store.snapshot('owner')).workplace.dateOverrides['2026-10-11'],undefined);
+ assert.ok(!(await store.snapshot('owner')).staffShifts.some(s=>s.date==='2026-10-11'));
  await assert.rejects(act('save_calendar_day',{date:'2026-10-12',mode:'open',weekday:7}),{status:400});
  await assert.rejects(act('save_calendar_day',{date:'2026-09-27',mode:'closed'}),{status:400});
  await assert.rejects(act('save_calendar_day',{date:'2026-10-12',mode:'closed'},'crew'),{status:403});
@@ -75,4 +76,30 @@ test('night shift belongs to Korean business date when closing a calendar day',a
  let state=await store.snapshot('owner');assert.ok(state.staffShifts.some(s=>s.date==='2026-10-06' && s.businessDate==='2026-10-05'));
  state=await act('save_calendar_day',{date:'2026-10-05',mode:'closed'});
  assert.ok(!state.staffShifts.some(s=>s.date==='2026-10-06' && s.start==='01:00'));
+});
+test('duplicate calendar state is rejected without writes and reversing clears override',async t=>{
+ const {store,act}=await setup(t);
+ const before=await store.snapshot('owner');
+ await assert.rejects(act('save_calendar_day',{date:'2026-10-11',mode:'closed'}),/이미 휴무일/);
+ await assert.rejects(act('save_calendar_day',{date:'2026-10-05',mode:'open',weekday:1}),/이미 영업일/);
+ assert.deepEqual(await store.snapshot('owner'),before);
+ await act('save_calendar_day',{date:'2026-10-11',mode:'open',weekday:1});
+ const open=await store.snapshot('owner');
+ await assert.rejects(act('save_calendar_day',{date:'2026-10-11',mode:'open',weekday:1}),/이미 영업일/);
+ assert.deepEqual(await store.snapshot('owner'),open);
+ const reset=await act('save_calendar_day',{date:'2026-10-11',mode:'closed'});
+ assert.equal(reset.workplace.dateOverrides['2026-10-11'],undefined);
+});
+test('batch saves retain only one previous pattern without changing actual dated shifts',async t=>{
+ const {store,act}=await setup(t);
+ const p=pattern('tapper-cook','kitchen');
+ await act('save_crew_allocations',{patterns:[p]});
+ const before=await store.snapshot('owner');
+ const next=structuredClone(p);next.entries[0].weekday=2;
+ let state=await act('save_crew_allocations',{patterns:[next]});
+ assert.deepEqual(state.crewPatterns[0].previous.entries,p.entries);
+ assert.deepEqual(state.staffShifts,before.staffShifts);
+ state=await act('save_crew_allocations',{patterns:[p]});
+ assert.deepEqual(state.crewPatterns[0].previous.entries,next.entries);
+ assert.equal(state.crewPatterns[0].previous.previous,undefined);
 });

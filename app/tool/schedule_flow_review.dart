@@ -113,11 +113,17 @@ void main() {
       ..createSync(recursive: true);
     for (final width in [320.0, 390.0, 1200.0]) {
       tester.view.physicalSize = Size(width, 900);
-      for (final name in ['hours', 'allocation', 'calendar', 'month']) {
+      for (final name in [
+        'hours',
+        'allocation',
+        'ghost',
+        'calendar',
+        'month',
+      ]) {
         final key = GlobalKey();
         final screen = name == 'hours'
             ? WorkplaceSettings(ops: ops, section: 'hours')
-            : name == 'allocation'
+            : (name == 'allocation' || name == 'ghost')
             ? CrewAllocationScreen(ops: ops, day: DateTime(2026, 9, 28))
             : Scaffold(
                 body: SafeArea(
@@ -136,6 +142,10 @@ void main() {
         await tester.pumpAndSettle();
         if (name == 'hours') {
           await tester.tap(find.text('전체'));
+          await tester.pumpAndSettle();
+        }
+        if (name == 'ghost') {
+          await tester.tap(find.text('이전 스케줄 불러오기'));
           await tester.pumpAndSettle();
         }
         if (name == 'month') {

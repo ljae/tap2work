@@ -44,6 +44,43 @@ void main() {
     },
   );
   testWidgets(
+    'individual multi-select shares hours and headcounts without touching other days',
+    (tester) async {
+      Map<String, dynamic>? written;
+      await mount(tester, write: (v) => written = v);
+      await tester.tap(find.text('개별'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('scope-day-3')));
+      await tester.pumpAndSettle();
+      tester
+          .widget<BusinessHoursSlider>(find.byType(BusinessHoursSlider))
+          .onHours(600, 1200);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('인원 배치').first);
+      await tester.pumpAndSettle();
+      final cell = find
+          .descendant(
+            of: find.byType(Table),
+            matching: find.widgetWithText(TextButton, '1'),
+          )
+          .first;
+      await tester.tap(cell);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('인원 늘리기'));
+      await tester.tap(find.text('적용'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('일주일 설정 저장'));
+      await tester.pumpAndSettle();
+      for (final d in ['1', '3']) {
+        expect(written!['days'][d][0]['start'], '10:00');
+        expect(written!['days'][d][0]['end'], '20:00');
+        expect(written!['days'][d][0]['headcounts']['kitchen'], 2);
+      }
+      expect(written!['days']['2'][0]['start'], '09:00');
+      expect(written!['days']['2'][0]['end'], '22:00');
+    },
+  );
+  testWidgets(
     'break editor follows toggle and reference strip leaves shift boundaries unchanged',
     (tester) async {
       await mount(tester);

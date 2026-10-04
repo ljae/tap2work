@@ -14,12 +14,13 @@ Future<OperationsController> mount(
   double scale = 1,
   bool conflict = false,
   void Function(Json)? write,
+  Json? initialData,
 }) async {
   tester.view.physicalSize = Size(width, 1200);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
-  final data = calendar.calendarData();
+  final data = initialData ?? calendar.calendarData();
   final ops = OperationsController(
     client: MockClient((r) async {
       if (r.method == 'POST') {
@@ -62,7 +63,7 @@ void main() {
     (1200.0, 1.0),
     (320.0, 1.5),
   ]) {
-    testWidgets('slot matrix tap saves crew and stable band once at $size', (
+    testWidgets('touch time block saves crew and stable band once at $size', (
       tester,
     ) async {
       Json? sent;
@@ -72,10 +73,14 @@ void main() {
         scale: size.$2,
         write: (v) => sent = v,
       );
-      await tester.tap(find.widgetWithText(InputChip, '현우').first);
-      final cell = find.byKey(const ValueKey('allocation-1-day-1-kitchen'));
+
+      final cell = find.byKey(const ValueKey('empty-normal-오픈-kitchen-0'));
       await tester.ensureVisible(cell);
-      await tester.tap(find.descendant(of: cell, matching: find.text('미배정')));
+      await tester.pumpAndSettle();
+      await tester.tap(cell);
+      await tester.pumpAndSettle();
+      expect(find.text('예상 5/15h'), findsOneWidget);
+      await tester.tap(find.text('현우').last);
       await tester.pumpAndSettle();
       expect(sent, isNull);
       await tester.tap(find.text('기본 배정 저장'));
@@ -95,38 +100,79 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+  testWidgets('multiple weekdays use touch sheet and one atomic save', (
+    tester,
+  ) async {
+    Json? sent;
+    await mount(tester, write: (v) => sent = v);
+    await tester.tap(find.byKey(const ValueKey('scope-day-3')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('empty-normal-오픈-kitchen-0')));
+    await tester.pumpAndSettle();
+    expect(find.text('예상 10/15h'), findsOneWidget);
+    await tester.tap(find.text('현우').last);
+    await tester.pumpAndSettle();
+    expect(find.byType(Table), findsNothing);
+    expect(find.byType(LongPressDraggable<Json>), findsNothing);
+    expect(find.text('미배정'), findsNothing);
+    await tester.tap(find.text('기본 배정 저장'));
+    await tester.pumpAndSettle();
+    expect((sent!['patterns'][0]['entries'] as List).map((e) => e['weekday']), [
+      1,
+      3,
+    ]);
+  });
   testWidgets(
-    'long press crew drag previews target and saves only after explicit save',
+    'previous schedule is ghost until confirmed and retained on conflict',
     (tester) async {
+      final data = calendar.calendarData();
+      data['crewPatterns'] = [
+        {
+          'tapperId': 'cook',
+          'anchor': '2026-09-28',
+          'cycleWeeks': 1,
+          'hoursVersion': 0,
+          'entries': <Json>[],
+          'previous': {
+            'anchor': '2026-09-28',
+            'cycleWeeks': 1,
+            'entries': [
+              {
+                'week': 0,
+                'weekday': 1,
+                'partId': 'kitchen',
+                'timeBandId': 'day-1',
+                'start': '09:00',
+                'end': '14:00',
+              },
+            ],
+          },
+        },
+      ];
       final writes = <Json>[];
-      await mount(tester, width: 1200, write: writes.add);
-      final source = find.widgetWithText(InputChip, '현우').first;
-      final target = find.byKey(const ValueKey('allocation-1-day-1-kitchen'));
-      final gesture = await tester.startGesture(tester.getCenter(source));
-      await tester.pump(const Duration(milliseconds: 250));
-      await gesture.moveTo(tester.getCenter(target));
-      await tester.pump();
-      expect(find.text('여기에 배정'), findsOneWidget);
+      await mount(tester, initialData: data, conflict: true, write: writes.add);
+      await tester.tap(find.text('이전 스케줄 불러오기'));
+      await tester.pumpAndSettle();
       expect(writes, isEmpty);
-      await gesture.up();
+      expect(find.widgetWithText(ActionChip, '현우'), findsOneWidget);
+      await tester.tap(find.text('배정 확정'));
       await tester.pumpAndSettle();
-      expect(
-        find.descendant(of: target, matching: find.text('현우')),
-        findsOneWidget,
-      );
-      await tester.tap(find.text('기본 배정 저장'));
+      expect(writes.single['patterns'][0]['entries'], hasLength(1));
+      expect(find.text('배정 확정'), findsOneWidget);
+      await tester.tap(find.text('미리보기 취소'));
       await tester.pumpAndSettle();
-      expect(writes.single['action'], 'save_crew_allocations');
+      expect(find.widgetWithText(ActionChip, '현우'), findsNothing);
     },
   );
   testWidgets('revision conflict keeps assignment draft', (tester) async {
     await mount(tester, conflict: true);
-    await tester.tap(find.widgetWithText(InputChip, '현우').first);
-    await tester.tap(find.text('미배정').first);
+    await tester.tap(find.byKey(const ValueKey('empty-normal-오픈-kitchen-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('현우').last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('기본 배정 저장'));
     await tester.pumpAndSettle();
-    expect(find.widgetWithText(InputChip, '현우'), findsNWidgets(2));
+    expect(find.widgetWithText(ActionChip, '현우'), findsOneWidget);
     expect(
       tester
           .widget<FilledButton>(find.widgetWithText(FilledButton, '기본 배정 저장'))
@@ -135,6 +181,44 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+  for (final closed in [true, false]) {
+    testWidgets('monthly default and no-op guard for closed=$closed', (
+      tester,
+    ) async {
+      final data = calendar.calendarData();
+      if (closed) data['workplace']['days']['1'] = <Map<String, Object>>[];
+      final writes = <Json>[];
+      await calendar.mount(
+        tester,
+        data: data,
+        readOnly: false,
+        write: writes.add,
+      );
+      await tester.tap(find.widgetWithText(ChoiceChip, '월간'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('28').last);
+      await tester.pumpAndSettle();
+      final expected = closed ? '추가 영업일 지정' : '추가 휴무일 지정';
+      expect(
+        tester
+            .widget<ListTile>(find.widgetWithText(ListTile, expected))
+            .selected,
+        true,
+      );
+      await tester.tap(find.text(closed ? '추가 휴무일 지정' : '추가 영업일 지정'));
+      await tester.tap(find.text('일정 저장'));
+      await tester.pumpAndSettle();
+      expect(writes, isEmpty);
+      expect(
+        find.text(closed ? '이미 휴무일이에요. 변경하지 않았어요.' : '이미 영업일이에요. 변경하지 않았어요.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text(expected));
+      await tester.tap(find.text('일정 저장'));
+      await tester.pumpAndSettle();
+      expect(writes.single['mode'], closed ? 'open' : 'closed');
+    });
+  }
   testWidgets('employee calendar shows only own shifts', (tester) async {
     final data = calendar.calendarData();
     data['actor'] = {'id': 'cook', 'role': 'cook'};
@@ -173,15 +257,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('28').last);
     await tester.pumpAndSettle();
-    expect(find.text('추가 휴무일'), findsOneWidget);
-    await tester.tap(find.text('추가 업무일'));
-    await tester.pumpAndSettle();
+    expect(find.text('추가 휴무일 지정'), findsOneWidget);
+
     await tester.tap(find.text('일정 저장'));
     await tester.pumpAndSettle();
     expect(sent?['action'], 'save_calendar_day');
     expect(sent?['date'], '2026-09-28');
-    expect(sent?['mode'], 'open');
-    expect(sent?['weekday'], 1);
+    expect(sent?['mode'], 'closed');
     expect(sent?['revision'], 12);
   });
 }

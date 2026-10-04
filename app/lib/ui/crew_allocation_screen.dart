@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../domain/part_schedule.dart';
+import '../domain/crew_allocation.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
-import 'crew_colors.dart';
-import 'business_hours_slider.dart';
+import 'crew_allocation_components.dart';
+import 'weekday_scope_selector.dart';
 import 'workplace_screens.dart';
 
-/// Staffing requirements are read-only here. Drafts contain crew patterns only.
 class CrewAllocationScreen extends StatefulWidget {
   const CrewAllocationScreen({super.key, required this.ops, required this.day});
   final OperationsController ops;
@@ -20,21 +20,20 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
   OperationsController get ops => widget.ops;
   late final String actor = ops.actorId;
   late int revision = ops.data?['revision'] ?? 0;
-  late final Json workplace = jsonDecode(
-    jsonEncode(ops.data?['workplace'] ?? {}),
-  );
+  late final Json workplace = copyAllocation(ops.data?['workplace'] ?? {});
   late DateTime monday = widget.day.subtract(
     Duration(days: widget.day.weekday - 1),
   );
-  late int weekday = widget.day.weekday;
   late DateTime from = DateTime.parse(
     ops.data?['day'] ?? rosterDate(widget.day),
   );
   late DateTime until = from.add(const Duration(days: 27));
-  final Map<String, Json> patterns = {};
+  Map<String, Json> patterns = {}, saved = {};
   final Set<String> changed = {};
-  String? selectedCrew, error;
-  bool saving = false;
+  final Set<int> selected = {};
+  AllocationSuggestion? ghost;
+  String? error;
+  bool saving = false, all = false;
   bool get editable =>
       ops.isLeader &&
       ops.data?['canEditSchedule'] != false &&
@@ -44,150 +43,44 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
       actor == ops.actorId;
   List<Json> get people =>
       ops.rows('tappers').where((p) => p['active'] != false).toList();
-  List<Json> get parts => (workplace['parts'] as List? ?? [])
-      .cast<Json>()
-      .where((p) => p['hidden'] != true)
-      .toList();
-  List<Json> bands(int day) =>
-      (workplace['days']?['$day'] as List? ?? []).cast<Json>();
+  CrewAllocationPlanner get planner => CrewAllocationPlanner(
+    workplace: workplace,
+    people: people,
+    monday: monday,
+  );
+  Set<int> get days => all ? planner.openDays : selected;
+  Map<String, Json> get shown => ghost?.patterns ?? patterns;
   String name(String id) =>
       people.where((p) => p['id'] == id).firstOrNull?['nickname'] ?? '크루';
-  int weekOf(Json pattern) =>
-      (monday.difference(DateTime.parse(pattern['anchor'])).inDays ~/ 7) %
-      (pattern['cycleWeeks'] as int);
-  List<Json> entries(String id) =>
-      (patterns[id]!['entries'] as List).cast<Json>();
-  bool activeEntry(String id, Json e) =>
-      e['week'] == weekOf(patterns[id]!) && e['weekday'] == weekday;
-  String bandStart(Json b, String part) =>
-      b['partTimes']?[part]?['start'] ?? b['start'];
-  String bandEnd(Json b, String part) =>
-      b['partTimes']?[part]?['end'] ?? b['end'];
-  bool matches(Json e, Json b, String part) =>
-      e['partId'] == part &&
-      e['start'] == bandStart(b, part) &&
-      e['end'] == bandEnd(b, part) &&
-      (e['timeBandId'] == null || e['timeBandId'] == b['id']);
-  int count(Json b, String part) =>
-      b['headcounts']?[part] ?? (b['custom'] == true ? 0 : 1);
-  List<({String id, Json entry})> assigned(Json b, String part) => [
-    for (final id in patterns.keys)
-      for (final e in entries(id))
-        if (activeEntry(id, e) && matches(e, b, part)) (id: id, entry: e),
-  ];
+  String dayLabel(Iterable<int> values) => (values.toList()..sort())
+      .map((d) => ['월', '화', '수', '목', '금', '토', '일'][d - 1])
+      .join('·');
   @override
   void initState() {
     super.initState();
     for (final person in people) {
       final id = person['id'] as String;
-      final old = ops
-          .rows('crewPatterns')
-          .where((p) => p['tapperId'] == id)
-          .firstOrNull;
-      patterns[id] = jsonDecode(
-        jsonEncode(
-          old ??
-              {
-                'tapperId': id,
-                'cycleWeeks': 1,
-                'anchor': rosterDate(monday),
-                'entries': <Json>[],
-              },
-        ),
+      patterns[id] = copyAllocation(
+        ops
+                .rows('crewPatterns')
+                .where((p) => p['tapperId'] == id)
+                .firstOrNull ??
+            {
+              'tapperId': id,
+              'cycleWeeks': 1,
+              'anchor': rosterDate(monday),
+              'entries': <Json>[],
+            },
       );
     }
-  }
-
-  bool canAssign(String id, Json band, String part, [Json? source]) {
-    final person = people.where((p) => p['id'] == id).firstOrNull;
-    if (person == null) return false;
-    final allowed = person['workProfile']?['partIds'] as List? ?? [];
-    if (allowed.isNotEmpty && !allowed.contains(part)) return false;
-    final boundary = rosterMinute(workplace['businessDayStart'] ?? '00:00');
-    int absolute(String value) {
-      final m = rosterMinute(value);
-      return m < boundary ? m + 1440 : m;
+    saved = copyPatterns(patterns);
+    if (planner.openDays.isNotEmpty) {
+      selected.add(
+        planner.openDays.contains(widget.day.weekday)
+            ? widget.day.weekday
+            : planner.openDays.first,
+      );
     }
-
-    final start = (weekday - 1) * 1440 + absolute(bandStart(band, part));
-    var end = (weekday - 1) * 1440 + absolute(bandEnd(band, part));
-    if (end <= start) end += 1440;
-    final pattern = patterns[id]!;
-    final cycle = pattern['cycleWeeks'] as int;
-    // Include previous/next occurrence so Sunday overnight cannot overlap Monday.
-    for (var offset = -1; offset <= 1; offset++) {
-      for (final e in entries(id)) {
-        if (identical(e, source) ||
-            e['week'] != (weekOf(pattern) + offset) % cycle) {
-          continue;
-        }
-        final a =
-            (offset * 7 + (e['weekday'] as int) - 1) * 1440 +
-            absolute(e['start']);
-        var b =
-            (offset * 7 + (e['weekday'] as int) - 1) * 1440 +
-            absolute(e['end']);
-        if (b <= a) b += 1440;
-        if (a < end && start < b) return false;
-      }
-    }
-    return true;
-  }
-
-  void assign(String id, Json band, String part, [Json? source]) {
-    if (!editable || !canAssign(id, band, part, source)) return;
-    setState(() {
-      if (source != null) (patterns[id]!['entries'] as List).remove(source);
-      (patterns[id]!['entries'] as List).add({
-        'week': weekOf(patterns[id]!),
-        'weekday': weekday,
-        'partId': part,
-        if (band['id'] != null) 'timeBandId': band['id'],
-        'start': bandStart(band, part),
-        'end': bandEnd(band, part),
-      });
-      changed.add(id);
-      error = null;
-    });
-  }
-
-  void remove(String id, Json entry) {
-    if (!editable) return;
-    setState(() {
-      (patterns[id]!['entries'] as List).remove(entry);
-      changed.add(id);
-    });
-  }
-
-  Future<void> pick(Json band, String part) async {
-    if (!editable) return;
-    if (selectedCrew != null && canAssign(selectedCrew!, band, part)) {
-      assign(selectedCrew!, band, part);
-      return;
-    }
-    final id = await showAppSheet<String>(
-      context,
-      builder: (c) => ListView(
-        shrinkWrap: true,
-        padding: const EdgeInsets.all(24),
-        children: [
-          Text(
-            '${partLabel(ops, part)} · ${bandStart(band, part)}–${bandEnd(band, part)}',
-            style: AppText.title,
-          ),
-          for (final person in people)
-            ListTile(
-              title: Text(person['nickname']),
-              subtitle: canAssign(person['id'], band, part)
-                  ? null
-                  : const Text('담당 파트 또는 중복 시간 확인'),
-              enabled: canAssign(person['id'], band, part),
-              onTap: () => Navigator.pop(c, person['id'] as String),
-            ),
-        ],
-      ),
-    );
-    if (id != null && mounted) assign(id, band, part);
   }
 
   Set<String> get pendingIds => {
@@ -197,23 +90,136 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
           p['hoursVersion'] != (workplace['hoursVersion'] ?? 0))
         p['tapperId'] as String,
   };
+  void replaceDraft(Map<String, Json> next) {
+    for (final id in patterns.keys) {
+      if (jsonEncode(patterns[id]) != jsonEncode(next[id])) changed.add(id);
+    }
+    patterns = next;
+    error = null;
+  }
 
   Future<void> save() async {
-    if (!editable || pendingIds.isEmpty) return;
+    if (!editable) return;
+    final next = ghost?.patterns ?? patterns;
+    final ids = {
+      ...pendingIds,
+      for (final id in next.keys)
+        if (jsonEncode(next[id]) != jsonEncode(patterns[id])) id,
+    };
+    if (ids.isEmpty) {
+      setState(() => ghost = null);
+      return;
+    }
     setState(() => saving = true);
     final ok = await ops.act('save_crew_allocations', {
       'revision': revision,
-      'patterns': [for (final id in pendingIds) patterns[id]],
+      'patterns': [for (final id in ids) next[id]],
     });
     if (!mounted) return;
     setState(() {
       saving = false;
       error = ok ? null : ops.error;
       if (ok) {
+        patterns = copyPatterns(next);
+        for (final p in ops.rows('crewPatterns')) {
+          if (patterns.containsKey(p['tapperId'])) {
+            patterns[p['tapperId']] = copyAllocation(p);
+          }
+        }
+        saved = copyPatterns(patterns);
         revision = ops.data!['revision'];
         changed.clear();
+        ghost = null;
       }
     });
+  }
+
+  Future<void> pick(List<AllocationTarget> targets) async {
+    if (!editable || ghost != null) return;
+    final plans = <String, AllocationPlan>{};
+    for (final person in people) {
+      final id = person['id'] as String;
+      final plan = planner.assign(patterns, id, targets);
+      if (plan.valid &&
+          jsonEncode(plan.patterns[id]) != jsonEncode(patterns[id])) {
+        plans[id] = plan;
+      }
+    }
+    final id = await showAppSheet<String>(
+      context,
+      builder: (c) => ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.all(24),
+        children: [
+          Text(
+            '${partLabel(ops, targets.first.partId)} 크루 선택',
+            style: AppText.title,
+          ),
+          Text(
+            '${dayLabel(targets.map((t) => t.day).toSet())}에 함께 배정 · 예상 주간 시간',
+            style: AppText.caption,
+          ),
+          if (plans.isEmpty)
+            const Information(
+              '선택한 모든 요일에 배정할 수 있는 크루가 없어요. 담당 파트·정원·겹치는 시간을 확인하거나 요일을 나누어 선택해 주세요.',
+            ),
+          for (final entry in plans.entries)
+            ListTile(
+              title: Text(name(entry.key)),
+              subtitle: Text(
+                '예상 ${planner.summary(entry.value.patterns[entry.key]!).label}${planner.summary(entry.value.patterns[entry.key]!).hint == null ? '' : ' · ${planner.summary(entry.value.patterns[entry.key]!).hint}'}',
+              ),
+              onTap: () => Navigator.pop(c, entry.key),
+            ),
+        ],
+      ),
+    );
+    if (id != null && mounted && editable) {
+      setState(() => replaceDraft(plans[id]!.patterns));
+    }
+  }
+
+  Future<void> removeCrew(
+    String id,
+    List<AllocationTarget> targets, {
+    Json? legacy,
+  }) async {
+    if (!editable || ghost != null) return;
+    final yes = await showAppSheet<bool>(
+      context,
+      builder: (c) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('${name(id)} 배정', style: AppText.title),
+            Text(
+              '${dayLabel(legacy == null ? targets.map((t) => t.day).toSet() : [legacy['weekday'] as int])} · 선택 범위의 배정만 해제해요.',
+              style: AppText.caption,
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: const Text('배정 해제'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (yes == true && mounted && editable) {
+      setState(() {
+        final next = legacy == null
+            ? planner.remove(patterns, id, targets)
+            : copyPatterns(patterns);
+        if (legacy != null) {
+          (next[id]!['entries'] as List).removeWhere(
+            (e) => jsonEncode(e) == jsonEncode(legacy),
+          );
+        }
+        replaceDraft(next);
+      });
+    }
   }
 
   Future<void> chooseDate(bool start) async {
@@ -278,7 +284,7 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
 
   Future<void> close() async {
     if (saving) return;
-    if (changed.isNotEmpty) {
+    if (changed.isNotEmpty || ghost != null) {
       final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
@@ -298,149 +304,154 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
       if (discard != true || !mounted) return;
     }
     if (mounted) {
-      setState(changed.clear);
+      setState(() {
+        changed.clear();
+        ghost = null;
+      });
       Navigator.pop(context);
     }
   }
 
-  Widget crewChip(String id, {Json? entry}) {
-    final chip = InputChip(
-      label: Text(name(id)),
-      selected: selectedCrew == id,
-      avatar: entry == null
-          ? CircleAvatar(backgroundColor: crewColor(id), radius: 5)
-          : null,
-      onSelected: editable
-          ? (_) async {
-              if (entry == null) {
-                setState(() => selectedCrew = id);
-                return;
-              }
-              final yes = await showAppDialog<bool>(
-                context: context,
-                builder: (c) => AlertDialog(
-                  title: Text('${name(id)} 배정을 해제할까요?'),
-                  content: Text(
-                    '${entry['start']}–${entry['end']} · ${partLabel(ops, entry['partId'])}',
+  Widget partCard(AllocationGroup group, Json part, int index) {
+    final targets = group.targets.where((t) => t.partId == part['id']).toList();
+    final members = planner.members(shown, targets);
+    final vacancies = targets
+        .map((t) => t.capacity - planner.assigned(shown, t).length)
+        .fold<int>(0, (a, b) => a > b ? a : b);
+    final detail = {
+      for (final t in targets) '${t.start}–${t.end} · ${t.capacity}명',
+    };
+    return AllocationPartCard(
+      key: ValueKey('allocation-${group.id}-${part['id']}'),
+      title: part['name'],
+      index: index,
+      ghost: ghost != null,
+      children: [
+        Text(
+          detail.length == 1
+              ? detail.first
+              : targets
+                    .map(
+                      (t) =>
+                          '${dayLabel([t.day])} ${t.start}–${t.end} · ${t.capacity}명',
+                    )
+                    .join('\n'),
+          style: AppText.caption,
+        ),
+        if (members.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final member in members.entries)
+                ActionChip(
+                  label: Text(
+                    '${name(member.key)}${member.value.length == targets.map((t) => t.day).toSet().length ? '' : ' · ${dayLabel(member.value)}'}',
+                    style: const TextStyle(color: AppColors.ink),
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(c, false),
-                      child: const Text('취소'),
-                    ),
-                    FilledButton(
-                      onPressed: () => Navigator.pop(c, true),
-                      child: const Text('배정 해제'),
-                    ),
-                  ],
+                  onPressed: editable && ghost == null
+                      ? () => removeCrew(member.key, targets)
+                      : null,
                 ),
-              );
-              if (yes == true && mounted) remove(id, entry);
-            }
-          : null,
-    );
-    if (!editable) return chip;
-    return LongPressDraggable<Json>(
-      data: {'id': id, 'entry': ?entry},
-      delay: const Duration(milliseconds: 180),
-      feedback: Material(
-        color: Colors.transparent,
-        child: Chip(label: Text(name(id)), backgroundColor: AppColors.elevated),
-      ),
-      childWhenDragging: Opacity(opacity: .4, child: chip),
-      child: chip,
-    );
-  }
-
-  Widget cell(Json band, String part) {
-    final rows = assigned(band, part), required = count(band, part);
-    return DragTarget<Json>(
-      onWillAcceptWithDetails: (d) =>
-          editable &&
-          rows.length < required &&
-          canAssign(d.data['id'], band, part, d.data['entry']),
-      onAcceptWithDetails: (d) =>
-          assign(d.data['id'], band, part, d.data['entry']),
-      builder: (context, candidates, rejected) => Container(
-        key: ValueKey('allocation-$weekday-${band['id']}-$part'),
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: candidates.isEmpty
-              ? AppColors.surface
-              : AppColors.green.withValues(alpha: .2),
-          border: Border.all(
-            color: candidates.isEmpty ? AppColors.line : AppColors.green,
+            ],
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (final row in rows) crewChip(row.id, entry: row.entry),
-            for (var n = rows.length; n < required; n++)
-              TextButton(
-                onPressed: editable ? () => pick(band, part) : null,
-                style: TextButton.styleFrom(foregroundColor: AppColors.accent),
-                child: Text(candidates.isEmpty ? '미배정' : '여기에 배정'),
-              ),
-            if (required == 0 && rows.isEmpty)
-              const Center(child: Text('—', style: AppText.caption)),
-          ],
-        ),
-      ),
+        for (var n = 0; n < vacancies; n++)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: AllocationEmptySlot(
+              key: ValueKey('empty-${group.id}-${part['id']}-$n'),
+              label: '${group.name} ${part['name']} 크루 배정',
+              onTap: editable && ghost == null ? () => pick(targets) : null,
+            ),
+          ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final rows = bands(weekday);
-    final unmatched = [
-      for (final id in patterns.keys)
-        for (final e in entries(id))
-          if (activeEntry(id, e) &&
-              !rows.any((b) => parts.any((p) => matches(e, b, p['id']))))
-            (id: id, entry: e),
-    ];
+    final groups = planner.groups(days);
+    final unmatched = planner.unmatched(shown, days);
     return PopScope(
-      canPop: changed.isEmpty && !saving,
+      canPop: changed.isEmpty && ghost == null && !saving,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) close();
       },
       child: AppEditorScaffold(
         title: '크루별 근무 배정',
-        maxWidth: 1100,
         onClose: close,
         footer: AppSheetFooter(
           children: [
             FilledButton(
-              onPressed: editable && pendingIds.isNotEmpty ? save : null,
-              child: Text(saving ? '저장 중…' : '기본 배정 저장'),
+              onPressed:
+                  editable &&
+                      (ghost != null
+                          ? ghost!.proposed > 0
+                          : pendingIds.isNotEmpty)
+                  ? save
+                  : null,
+              child: Text(
+                saving
+                    ? '저장 중…'
+                    : ghost != null
+                    ? '배정 확정'
+                    : '기본 배정 저장',
+              ),
             ),
           ],
         ),
         body: ListView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(16),
           children: [
             const Text(
               '1 영업시간·인원 → 2 크루 배정 → 3 근무표 조정',
               style: AppText.caption,
             ),
-            const SizedBox(height: 8),
-            const Text('저장 후 기간을 정해 근무표에 적용해 주세요.', style: AppText.caption),
-            if (people.isEmpty) const Information('크루를 먼저 등록해 주세요.'),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: [for (final p in people) crewChip(p['id'])],
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final p in people)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: CrewHoursBadge(
+                        name: name(p['id']),
+                        hours: planner.summary(shown[p['id']]!),
+                      ),
+                    ),
+                ],
+              ),
             ),
-            const Text('크루를 끌어 놓거나 빈 슬롯을 눌러 배정해요.', style: AppText.caption),
+            if (people.isEmpty) const Information('크루를 먼저 등록해 주세요.'),
+            ExpansionTile(
+              minTileHeight: 40,
+              dense: true,
+              tilePadding: EdgeInsets.zero,
+              title: const Text(
+                '선택 주 기본 배정 시간 · 휴게 미반영',
+                style: AppText.caption,
+              ),
+              children: const [
+                Text(
+                  '15h는 주휴 조건을 확인하는 참고선이에요. 실제 주휴 여부는 4주 평균 소정근로시간·출근 등 조건을 확인해야 해요. 36h부터 주 40h 근접 표시를 해요. 실제 근로·급여 계산은 별도이며 매장 브레이크는 자동 차감하지 않아요.',
+                  style: AppText.caption,
+                ),
+                Text(
+                  '기본 배정을 저장한 뒤 기간을 정해 근무표에 적용해 주세요. 앞 설정이 바뀌면 다시 적용해야 해요.',
+                  style: AppText.caption,
+                ),
+              ],
+            ),
             Row(
               children: [
                 IconButton(
                   tooltip: '이전 주',
-                  onPressed: () => setState(
-                    () => monday = monday.subtract(const Duration(days: 7)),
-                  ),
+                  onPressed: saving || ghost != null
+                      ? null
+                      : () => setState(
+                          () =>
+                              monday = monday.subtract(const Duration(days: 7)),
+                        ),
                   icon: const Icon(Icons.chevron_left),
                 ),
                 Expanded(
@@ -452,110 +463,101 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
                 ),
                 IconButton(
                   tooltip: '다음 주',
-                  onPressed: () => setState(
-                    () => monday = monday.add(const Duration(days: 7)),
-                  ),
+                  onPressed: saving || ghost != null
+                      ? null
+                      : () => setState(
+                          () => monday = monday.add(const Duration(days: 7)),
+                        ),
                   icon: const Icon(Icons.chevron_right),
                 ),
               ],
             ),
-            Wrap(
-              spacing: 8,
-              children: [
-                for (var d = 1; d <= 7; d++)
-                  ChoiceChip(
-                    label: Text(['월', '화', '수', '목', '금', '토', '일'][d - 1]),
-                    selected: weekday == d,
-                    onSelected: (_) => setState(() => weekday = d),
-                  ),
-              ],
+            WeekdayScopeSelector(
+              all: all,
+              selected: selected,
+              openDays: planner.openDays,
+              enabled: !saving && ghost == null,
+              onMode: (v) => setState(() => all = v),
+              onDay: (d) => setState(() {
+                if (all) return;
+                if (selected.contains(d)) {
+                  if (selected.length > 1) selected.remove(d);
+                } else {
+                  selected.add(d);
+                }
+              }),
             ),
-            const SizedBox(height: 12),
-            if (rows.isEmpty)
-              const Information('정기 휴무일이에요. 추가 영업일은 월간에서 지정해 주세요.')
-            else
-              LayoutBuilder(
-                builder: (context, box) {
-                  final scale = MediaQuery.textScalerOf(context).scale(13) / 13;
-                  final width = (parts.length * 88.0 + 70) * scale;
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: SizedBox(
-                      width: width < box.maxWidth ? box.maxWidth : width,
-                      child: Table(
-                        columnWidths: {0: FixedColumnWidth(70 * scale)},
-                        defaultVerticalAlignment:
-                            TableCellVerticalAlignment.intrinsicHeight,
-                        children: [
-                          TableRow(
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.all(8),
-                                child: Text('교대', style: AppText.caption),
-                              ),
-                              for (final p in parts)
-                                Padding(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Text(
-                                    p['name'],
-                                    textAlign: TextAlign.center,
-                                    style: AppText.body,
-                                  ),
-                                ),
-                            ],
-                          ),
-                          for (var i = 0; i < rows.length; i++)
-                            TableRow(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Text(
-                                    '${rows[i]['custom'] == true ? rows[i]['name'] : shiftLabel(i, rows.length)}\n${rows[i]['start']}\n–${rows[i]['end']}',
-                                    style: AppText.caption,
-                                  ),
-                                ),
-                                for (final p in parts) cell(rows[i], p['id']),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+            OutlinedButton.icon(
+              icon: const Icon(Icons.history),
+              label: const Text('이전 스케줄 불러오기'),
+              onPressed: editable && days.isNotEmpty && ghost == null
+                  ? () => setState(() {
+                      ghost = planner.suggest(patterns, saved, days);
+                      error = null;
+                    })
+                  : null,
+            ),
+            if (ghost != null) ...[
+              Information(
+                '미리보기 ${ghost!.proposed}개 · ${dayLabel(days)}의 기존 배정을 교체해요.${ghost!.skipped > 0 ? '\n현재 파트·시간·정원에 맞지 않는 ${ghost!.skipped}개는 제외돼요.' : ''}${ghost!.proposed == 0 ? '\n불러올 수 있는 이전 배정이 없어요.' : '\n확정 후 근무표에는 별도로 적용해 주세요.'}',
               ),
-            if (unmatched.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Text('이전 설정의 배정 · 확인 필요', style: AppText.caption),
-              for (final row in unmatched)
-                Wrap(
-                  spacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    crewChip(row.id, entry: row.entry),
-                    Text(
-                      '${partLabel(ops, row.entry['partId'])} ${row.entry['start']}–${row.entry['end']}',
-                      style: AppText.caption,
-                    ),
-                  ],
-                ),
+              TextButton(
+                onPressed: saving ? null : () => setState(() => ghost = null),
+                child: const Text('미리보기 취소'),
+              ),
             ],
+            for (final group in groups) ...[
+              const SizedBox(height: 16),
+              Text('${group.name} · ${group.timeLabel}', style: AppText.title),
+              const SizedBox(height: 8),
+              for (var i = 0; i < planner.parts.length; i++)
+                if (group.targets.any(
+                  (t) => t.partId == planner.parts[i]['id'],
+                ))
+                  partCard(group, planner.parts[i], i),
+            ],
+            for (final row in unmatched)
+              AllocationPartCard(
+                title:
+                    '${row.entry['start']}–${row.entry['end']} · ${partLabel(ops, row.entry['partId'])}',
+                index: 0,
+                children: [
+                  const Text('변경 전 시간 · 현재 슬롯과 달라요', style: AppText.caption),
+                  ActionChip(
+                    label: Text(
+                      '${name(row.id)} · ${dayLabel([row.entry['weekday'] as int])}',
+                    ),
+                    onPressed: editable && ghost == null
+                        ? () => removeCrew(row.id, [], legacy: row.entry)
+                        : null,
+                  ),
+                ],
+              ),
+            if (groups.isEmpty)
+              const Information('선택한 요일의 영업시간과 필요 인원을 먼저 설정해 주세요.'),
             const SizedBox(height: 24),
             const Text('근무표에 적용', style: AppText.title),
             Wrap(
               spacing: 8,
               children: [
                 TextButton(
-                  onPressed: editable ? () => chooseDate(true) : null,
+                  onPressed: editable && ghost == null
+                      ? () => chooseDate(true)
+                      : null,
                   child: Text('시작 ${rosterDate(from)}'),
                 ),
                 TextButton(
-                  onPressed: editable ? () => chooseDate(false) : null,
+                  onPressed: editable && ghost == null
+                      ? () => chooseDate(false)
+                      : null,
                   child: Text('종료 ${rosterDate(until)}'),
                 ),
               ],
             ),
             OutlinedButton(
-              onPressed: editable && pendingIds.isEmpty ? apply : null,
+              onPressed: editable && pendingIds.isEmpty && ghost == null
+                  ? apply
+                  : null,
               child: const Text('기간 확인·근무표 적용'),
             ),
             if (error != null) Information('$error\n입력한 배정은 유지돼요.'),

@@ -526,7 +526,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     var source = openDays.contains(day.weekday)
         ? day.weekday
         : openDays.firstOrNull;
-    var mode = 'closed';
+    final exception = ops.data?['workplace']?['dateOverrides']?[date] as Map?;
+    final currentlyOpen = exception == null
+        ? openDays.contains(day.weekday)
+        : exception['closed'] == false;
+    var mode = currentlyOpen ? 'closed' : 'open';
     String? error;
     bool saving = false;
     await showAppFormSheet(
@@ -542,6 +546,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ? null
                     : () async {
                         if (actor != ops.actorId) return;
+                        if ((mode == 'closed' && !currentlyOpen) ||
+                            (mode == 'open' && currentlyOpen) ||
+                            (mode == 'reset' && exception == null)) {
+                          update(
+                            () => error = mode == 'reset'
+                                ? '이미 기본 일정이에요. 변경하지 않았어요.'
+                                : currentlyOpen
+                                ? '이미 영업일이에요. 변경하지 않았어요.'
+                                : '이미 휴무일이에요. 변경하지 않았어요.',
+                          );
+                          return;
+                        }
                         update(() => saving = true);
                         final ok = await ops.act('save_calendar_day', {
                           'revision': revision,
@@ -568,8 +584,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
             children: [
               const Text('이 날짜만 변경해요. 정기 휴무일은 유지돼요.', style: AppText.caption),
               for (final option in {
-                'closed': '추가 휴무일',
-                'open': '추가 업무일',
+                'closed': '추가 휴무일 지정',
+                'open': '추가 영업일 지정',
                 'reset': '기본 일정으로 복원',
               }.entries)
                 ListTile(
@@ -583,7 +599,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         : AppColors.muted,
                   ),
                   selected: mode == option.key,
-                  onTap: saving ? null : () => update(() => mode = option.key),
+                  onTap: saving
+                      ? null
+                      : () => update(() {
+                          mode = option.key;
+                          error = null;
+                        }),
                 ),
               if (mode == 'open') ...[
                 const Text('시간·크루 배정을 참고할 요일', style: AppText.caption),

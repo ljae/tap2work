@@ -1,3 +1,4 @@
+import 'weekday_scope_selector.dart';
 import 'business_hours_slider.dart';
 import 'dart:convert';
 import 'dart:math';
@@ -357,6 +358,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             ]),
       ];
       allHours = signatures.toSet().length <= 1;
+      selectedWeekdays.add(weekday);
     }
   }
 
@@ -380,6 +382,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   );
   int hoursStep = 0;
   bool allHours = false;
+  final selectedWeekdays = <int>{};
   late bool useClosedDays = days.values.any((rows) => (rows as List).isEmpty);
   final Map<int, List<Json>> openDayDrafts = {};
   final Map<int, Json> openBreakDrafts = {};
@@ -398,6 +401,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         openBreakDrafts[day] = {...breaks['$day'] as Json};
       }
       days['$day'] = <Json>[];
+      selectedWeekdays.remove(day);
       breaks.remove('$day');
       if (weekday == day) {
         weekday =
@@ -407,8 +411,12 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             ].firstOrNull ??
             day;
       }
+      if (selectedWeekdays.isEmpty && (days['$weekday'] as List).isNotEmpty) {
+        selectedWeekdays.add(weekday);
+      }
     } else {
       days['$day'] = reopenedDay(day);
+      selectedWeekdays.add(day);
       final pause = openBreakDrafts.remove(day);
       if (pause != null) breaks['$day'] = pause;
       weekday = day;
@@ -705,7 +713,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           for (var d = 1; d <= 7; d++)
             if ((days['$d'] as List).isNotEmpty) d,
         ]
-      : [weekday];
+      : selectedWeekdays.where((d) => (days['$d'] as List).isNotEmpty).toList();
   void changeHours(int start, int end) => update(() {
     for (final d in hoursTargets) {
       final rows = (days['$d'] as List).cast<Json>();
@@ -912,49 +920,33 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   ];
 
   List<Widget> hours() => [
-    ...[
-      Wrap(
-        spacing: 8,
-        children: [
-          for (final mode in [true, false])
-            SizedBox(
-              width: 124,
-              child: CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                title: Text(mode ? '전체' : '개별'),
-                value: allHours == mode,
-                onChanged: canDraftHours
-                    ? (_) => setState(() => allHours = mode)
-                    : null,
-              ),
-            ),
-        ],
-      ),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (var d = 1; d <= 7; d++)
-            ChoiceChip(
-              showCheckmark: false,
-              label: Text(
-                dayNames[d - 1],
-                style: TextStyle(
-                  decoration: (days['$d'] as List).isEmpty
-                      ? TextDecoration.lineThrough
-                      : null,
-                ),
-              ),
-              selected:
-                  (days['$d'] as List).isNotEmpty && (allHours || weekday == d),
-              onSelected: saving || (days['$d'] as List).isEmpty
-                  ? null
-                  : (_) => setState(() => weekday = d),
-            ),
-        ],
-      ),
-    ],
+    WeekdayScopeSelector(
+      all: allHours,
+      selected: selectedWeekdays,
+      openDays: {
+        for (var d = 1; d <= 7; d++)
+          if ((days['$d'] as List).isNotEmpty) d,
+      },
+      enabled: canDraftHours,
+      onMode: (value) => setState(() {
+        allHours = value;
+        if (selectedWeekdays.isEmpty) selectedWeekdays.add(weekday);
+      }),
+      onDay: (d) => setState(() {
+        if (allHours) {
+          weekday = d;
+          return;
+        }
+        if (selectedWeekdays.contains(d)) {
+          if (selectedWeekdays.length > 1) selectedWeekdays.remove(d);
+        } else {
+          selectedWeekdays.add(d);
+        }
+        if (!selectedWeekdays.contains(weekday)) {
+          weekday = selectedWeekdays.first;
+        }
+      }),
+    ),
     if (hoursStep == 0 && dayBands.isNotEmpty) ...[
       BusinessHoursSlider(
         shiftControls: Column(

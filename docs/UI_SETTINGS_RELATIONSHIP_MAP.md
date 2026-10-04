@@ -37,7 +37,7 @@ flowchart LR
 | --- | --- | --- | --- | --- |
 | S01 | `workplace.parts[]` | `workplace_screens.dart` 파트 관리 → `save_workplace_parts` | 업무 전체 파트/개별 파트 필터, 매뉴얼 폴더와 별개, 근무표 요일×파트 열, 크루 파트 선택 | `developer/test/workplace.test.mjs`, 근무표 테스트 |
 | S02 | `tappers[].workProfile.partIds[]`, `bands[]` | `workplace_screens.dart` 크루 프로필 → `save_staff_profile`; `team_screen.dart` 크루 편집 → `save_tapper` | 파트별 업무 수행 가능 여부, 근무표 배정 선택지, 크루 카드. 직책/권한과 분리 | `workplace.test.mjs`, `operations.test.mjs` |
-| S03 | `workplace.days[weekday][]`, `workplace.breaks[weekday]` | 우리매장 > 영업시간 설정 / 준비 목록 / 프로필 운영 / 근무표 영업시간·인원 → `openWorkplaceHours` → 영업시간 설정(휴무일→2교대 이상→브레이크 타임 토글)/인원 배치 탭·전체/개별·시간 표기가 붙은 영업/브레이크 드래그 막대·교대×파트 카운터 표 → `save_workplace_hours` (7일·브레이크 원자 저장) | `rosterTemplates[]` 생성, 브레이크 제외 근무표 요일·파트별 기본 슬롯·필요 시간 충족률. 전체 영업시간 `store.profile.hours`는 호환 기본값 | `workplace.test.mjs`, `calendar_test.dart` |
+| S03 | `workplace.days[weekday][]`, `workplace.breaks[weekday]` | 우리매장 > 영업시간 설정 / 준비 목록 / 프로필 운영 / 근무표 영업시간·인원 → `openWorkplaceHours` → 영업시간 설정(휴무일→2교대 이상→브레이크 타임 토글)/인원 배치 탭·전체/개별 복수 요일·시간 표기가 붙은 영업/브레이크 드래그 막대·교대×파트 카운터 표 → `save_workplace_hours` (7일·브레이크 원자 저장) | `rosterTemplates[]` 생성, 브레이크를 차감하지 않는 근무표 요일·파트별 기본 슬롯·필요 시간 충족률. 전체 영업시간 `store.profile.hours`는 호환 기본값 | `workplace.test.mjs`, `calendar_test.dart` |
 | S04 | `rosterOverrides[]` | 근무표 슬롯 클릭 → `save_roster_slot`, `reset_roster_slot` | 선택 날짜의 이름·시작/끝·숨김만 덮어쓰기; 고정 왼쪽 시간축에 반영 | `workplace.test.mjs`, `calendar_test.dart` |
 | S05 | `staffShifts[]`, `shiftPatterns[]` | 근무표 개별 배정 → `save_staff_shift`; 반복은 S28 | 주간/월간 근무표, 필요 슬롯 충족률, 인건비 계획. 출퇴근 기록과 구별 | `workplace.test.mjs`, `calendar_test.dart` |
 | S06 | `store.profile.orderSystem.enabled` | 우리매장 주문처리 시스템 토글 → `save_order_system` | 서버 `orderBoardEnabled`; ON일 때만 업무 주문처리 보드/주문 카드 표시. 주문 기록 유지 | `workplace.test.mjs`, 업무 화면 테스트 |
@@ -230,11 +230,12 @@ Latest weekday-selector correction (2026-10-03): supersedes the preceding closed
 
 | ID | 원본 → 컨트롤 → 액션 | 저장 후 소비 | 검증 |
 |---|---|---|---|
-| S03 | workplace.days/breaks → 전체·개별 공통 요일 칩, 브레이크 토글 아래 조정 바 → save_workplace_hours | 전체 영업시간 amber 참고 띠, 브레이크와 독립인 교대·필요 슬롯; 영업일 전체 초록 선택·휴무일 제외 | business_hours_slider_test.dart, workplace.test.mjs |
-| S37 | workplace.days/headcounts + crewPatterns → CrewAllocationScreen 교대×파트 슬롯·크루 drag/tap → save_crew_allocations / apply_crew_allocations | 기본 배정만 저장 후 명시적 기간에 staffShifts 생성; 미배정은 이 화면, 이전 설정 배정 보존·표시 | crew_allocation_test.dart, crew_allocations.test.mjs |
+| S03 | workplace.days/breaks/headcounts → WeekdayScopeSelector 전체·개별 복수 요일, 브레이크 토글 아래 조정 바 → hoursTargets 일괄 편집 → save_workplace_hours | 선택만으로 저장하지 않음; 선택 요일만 시간·인원 변경, 전체는 휴무 제외 초록 선택. 브레이크는 교대와 독립인 amber 참고 띠 | business_hours_slider_test.dart, workplace.test.mjs |
+| S37 | workplace.days/headcounts + crewPatterns/previous → 복수 요일·세로 교대/파트 카드·터치 바텀 시트·이전 배정 고스트 확정 → save_crew_allocations / apply_crew_allocations | 정원·파트·중복을 선택 요일 전체에서 검사; 기본/예상 주간 시간 표시, 실패 시 초안 유지, 날짜별 근무표는 별도 적용 | crew_allocation_domain_test.dart, crew_allocation_test.dart, crew_allocations.test.mjs |
 | S38 | workplace.hoursVersion + crewPatterns source/applied versions → 단계 안내·재적용 필요 → 기존 명시적 apply 액션 | 기존 근무표 보존, 재적용의 세부 시간 초기화와 보호 기록 안내 | crew_allocations.test.mjs, schedule_workflow_test.dart |
-| S39 | workplace.dateOverrides → 월간 날짜 클릭 → save_calendar_day(closed/open/reset) | 정기 휴무와 별도 예외, 필요 슬롯·기본 배정 적용의 참고 요일. 추가 휴무는 미래 미시작 배정 해제·원본 보관, 보호 기록 있으면 거절 | crew_allocation_test.dart, crew_allocations.test.mjs |
+| S39 | workplace.dateOverrides + 정기 요일 → 날짜 현재 상태의 반대 동작 자동 선택 → save_calendar_day(closed/open/reset) | 같은 영업/휴무 상태는 안내만 하고 무변경(서버도 거절). 기본 상태로 되돌리면 중복 예외 제거. 휴무 전환은 미시작 배정 해제·원본 보관, 보호 기록 있으면 거절 | crew_allocation_test.dart, crew_allocations.test.mjs |
 | S27 | staffShifts → 날짜 탭·파트 가로/시간 세로 블록 → save_staff_shift | 배정 크루만 표시·직원 본인만, 시간 휠/drag/resize. 별도 시간표·파트 필터 제거 | calendar_test.dart, direct_edit_test.dart, schedule_workflow_test.dart |
+
 
 ## TAP-only 첫 구현 · 2026-10-04
 
@@ -247,3 +248,6 @@ S13/S35는 v2 실제 구현을 반영한다. `assignmentScopeVersion:2` 신규 �
 | S22 | Task 이름/매뉴얼/팁/태그/자료 → save_task_step 또는 save_step_manual | 공동 contentRevision 증가, TAP 설정·형제 Task·다른 실행 보존 | tap_policy.test.mjs, task_inline_edit_test.dart |
 
 중앙 주간 발행/선택 업데이트, 로컬 초안·백업/복원은 아직 구현 전이다. [상세 구현안](CHECKLIST_PLATFORM_IMPLEMENTATION_PLAN_2026-10-04.md) 참조.
+
+
+2026-10-04 복수 요일 후속: S03의 `workplace.days/breaks/headcounts` → 공유 `WeekdayScopeSelector` 전체/개별 → 개별 복수 선택 `hoursTargets`에 시간·인원 변경 → `save_workplace_hours` → 필요 슬롯/크루 배정. 선택만으로 쓰지 않으며 1개 선택은 1요일만 변경한다. S37의 `crewPatterns.previous` → 이전 스케줄 불러오기/고스트 확정 → `save_crew_allocations` → 기본 배정 및 명시적 기간 적용. `crew_allocation_domain_test.dart`, `crew_allocation_test.dart`, `business_hours_slider_test.dart`, `crew_allocations.test.mjs`로 범위·중복·이력·무변경을 검증한다.

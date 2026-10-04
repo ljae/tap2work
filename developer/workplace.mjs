@@ -83,9 +83,18 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
     if (input.date < businessDate(state,now)) fail('오늘 이후 일정을 선택해 주세요.');
     if (!['closed','open','reset'].includes(input.mode)) fail('영업 여부를 선택해 주세요.');
     const days = workplaceBandDays(state,{includeHours:true});
+    const weekday = validRosterDate(input.date);
+    const regularOpen = Boolean(days[weekday]?.length);
+    const existing = state.workplace?.dateOverrides?.[input.date];
+    const currentlyOpen = existing ? existing.closed === false : regularOpen;
+    if (input.mode === 'closed' && !currentlyOpen) fail('이미 휴무일이에요. 변경하지 않았어요.');
+    if (input.mode === 'open' && currentlyOpen) fail('이미 영업일이에요. 변경하지 않았어요.');
+    if (input.mode === 'reset' && !existing) fail('이미 기본 일정이에요. 변경하지 않았어요.');
+
     if (input.mode === 'open' && (!Number.isInteger(input.weekday) || input.weekday < 1 || input.weekday > 7 || !days[input.weekday]?.length)) fail('참고할 영업 요일을 선택해 주세요.');
     const affected = state.staffShifts.filter(s => businessDate(state,`${s.date}T${s.start}:00+09:00`) === input.date);
-    if (input.mode === 'closed') {
+    const nextOpen = input.mode === 'reset' ? regularOpen : input.mode === 'open';
+    if (!nextOpen) {
       if (affected.some(s => s.status !== 'planned' || s.approvedRequestId || s.replacementForRequestId || Date.parse(`${s.date}T${s.start}:00+09:00`) <= now.getTime() || (state.shiftChangeRequests ?? []).some(r => r.shiftId === s.id && r.status === 'pending') || (state.attendance ?? []).some(a => a.tapperId === s.tapperId && businessDate(state,a.at) === input.date))) fail('이미 시작했거나 승인·출퇴근·신청 기록이 있는 근무는 먼저 확인해 주세요.',409);
       state.calendarDayHistory ??= [];
       state.calendarDayHistory.push({date:input.date,at:now.toISOString(),shifts:structuredClone(affected)});
@@ -93,7 +102,7 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
     }
     state.workplace ??= workplaceDefaults();
     state.workplace.dateOverrides ??= {};
-    if (input.mode === 'reset') delete state.workplace.dateOverrides[input.date];
+    if (input.mode === 'reset' || (input.mode === 'open') === regularOpen) delete state.workplace.dateOverrides[input.date];
     else state.workplace.dateOverrides[input.date] = input.mode === 'closed' ? {closed:true} : {closed:false,weekday:input.weekday};
     activity('월간 영업일 예외 설정'); return true;
   }

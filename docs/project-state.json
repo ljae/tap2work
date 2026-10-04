@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 159,
+  "revision": 160,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -717,7 +717,8 @@
       "decision": "영업시간·인원 → 크루별 기본 배정 → 날짜별 근무표 조정으로 진행한다. 크루는 교대×파트 필요 슬롯에 drag/tap으로 배정하고 미배정은 이 화면에 모은다. 근무표는 배정 크루만 파트 가로/시간 세로로 표시하며 세부 시간을 수정한다. 시간표 메뉴·파트 필터는 제거하고 직원은 본인 근무만 표시한다. 월간은 추가 휴무/업무일 지정에 사용한다. 앞 설정 변경 후 명시적 기간 적용과 근무표 조정이 필요함을 안내한다. 브레이크는 교대/인원 시간과 독립인 참고 표시다.",
       "reason": "2026-10-04 사용자 후속 요청: 단계별 설정 흐름, 독립 브레이크, 미배정 위치와 월간 용도를 명시했다.",
       "source": "User request 2026-10-04",
-      "updatedAt": "2026-10-04T06:45:24.056151+00:00"
+      "updatedAt": "2026-10-04T06:45:24.056151+00:00",
+      "supersededInPartBy": "D-074"
     },
     {
       "id": "D-072",
@@ -738,6 +739,16 @@
       "reason": "사용자가 시간대·파트 매칭과 주요 제약을 TAP에 한정하고 Task별 배분을 금지해 구조를 단순화하며, Task와 매뉴얼을 함께 중앙 개선하도록 명시했다. 수량 완료 위치 등 세부 필드·이관 방법은 상세안의 구현 제안으로 구분한다.",
       "source": "사용자 후속 요청 · 2026-10-04 · 상세안 반영 후 Sol 구현 준비",
       "updatedAt": "2026-10-04T07:59:56.438453+00:00"
+    },
+    {
+      "category": "근무 배정 UI",
+      "title": "복수 요일 일괄 설정·터치 타임블록·이전 배정 고스트",
+      "status": "confirmed",
+      "decision": "영업시간·인원·크루 배정은 전체/개별 공통 선택을 사용하며 개별에서 복수 요일에 동일 변경을 적용한다. 크루 배정의 DnD 가로 표를 교대별 세로 파트 카드와 터치 바텀 시트로 대체한다. 상단 크루 캐러셀에 선택 주 기본 배정/예상 시간을 표시하고 참고 임계치를 안내한다. 빈 슬롯은 중립 점선 +, 이전 저장본은 고스트 검토 후 한 번에 확정한다. 월간은 현재 휴무일이면 추가 영업, 영업일이면 추가 휴무를 기본 선택하며 같은 상태 지정은 안내 후 무변경이다. 날짜별 근무표 적용은 별도다. Flutter 로컬 구현 완료; 이번 후속 변경은 미배포.",
+      "reason": "사용자가 복수 요일 편집과 모바일 배정 피로도 완화를 요청하고 앞선 드래그 방식을 터치 방식으로 명시적으로 대체했다. 5분 정밀 편집·급여 연동은 확장 방향이며 이번 구현은 분 정수 계산 분리와 현재 30분 저장 유지다.",
+      "source": "사용자 후속 요청 · 2026-10-04",
+      "id": "D-074",
+      "updatedAt": "2026-10-04T08:02:27.947894+00:00"
     }
   ],
   "milestones": [
@@ -866,6 +877,12 @@
       "title": "체크리스트 공급·매장 맞춤·백업 플랫폼",
       "status": "in_progress",
       "description": "TAP-only runtime foundation implemented. Central weekly publishing/catalog updates and local drafts/backup/restore remain planned. No actual store migration or deployment."
+    },
+    {
+      "title": "복수 요일·터치 크루 배정",
+      "status": "completed",
+      "description": "Flutter 로컬 구현 및 웹 빌드/관련 위젯·도메인·서버 검증 완료. 기본 배정과 날짜별 근무표 적용을 분리하고 복수 요일·고스트 확정·월간 동일 상태 차단을 반영했다. 이번 후속 변경은 미배포이며 5분 편집·급여 연동·네이티브 검증은 후속 범위다.",
+      "id": "M-022"
     }
   ],
   "history": [
@@ -5181,6 +5198,34 @@
       "reason": "사용자가 다른 세션의 근무표 수정과 충돌하지 않도록 배포를 요청했다.",
       "detail": "Independent clone based on published main 6c451f2454c9c1400aab90dc2465a44a8bc48946. Release df0a0e5b129e1de6aeb0e59fbb7c8def5d7e64bb includes only TAP/checklist/manual policy changes, tests and documentation. Current shared-tree calendar, crew allocation, weekday scope, staff/labor and roster changes were excluded. Shared branch/index and schedule source files were not reset, committed or overwritten. developer/workplace.mjs changes only TAP migration action permissions. operations function deployed from version 30 to 31 without SQL migrations or store-data reset; previous source downloaded separately. Public Pages deployment completed at https://tap2.work/. Central publishing/local backup features remain unimplemented.",
       "verification": "Isolated npm run check, UI links 34, server suite 169/169, flutter analyze, Flutter suite 253/253 and build:site passed. GitHub Actions run 37187850717 build/deploy succeeded: https://github.com/ljae/tap2work/actions/runs/37187850717. Public index.html, versioned main and bootstrap returned HTTP 200 and SHA-256 exactly matched the CI Pages artifact. Deployed operations source re-downloaded and matched isolated TAP policy, operations and shared schedule modules; function v31 ACTIVE, unauthenticated GET 401 and CORS OPTIONS 204. Protected schedule source files remain identical to published base. Native build and real store migration not performed."
+    },
+    {
+      "type": "implementation",
+      "title": "복수 요일·터치 크루 배정·월간 동일 상태 차단 구현",
+      "changes": [
+        "공유 WeekdayScopeSelector: 개별 복수 선택/전체 휴무 제외, 영업시간·인원·크루 배정 소비 범위 통일",
+        "세로 교대/파트 tint 카드·가로 크루 시간 뱃지·점선 슬롯·적격 후보/예상 시간 바텀 시트; 크루 DnD 제거",
+        "분 정수 구간 모델: 정원/파트/주 경계 중복, A/B 주기와 선택 범위 원자 배정·해제; 15h 및 36h(40h 근접) 참고 표시, 실제 급여 판정 없음",
+        "서버 직전 패턴 스냅샷 previous + 고스트 미리보기/선택 범위 교체 확정/실패 초안 보존",
+        "월간 현재 상태 반대 기본 동작·같은 상태 무변경 메시지·중복 예외 정리·휴무 복원 시 배정 보호",
+        "관련 아키텍처·설정 관계표·UI 지침 갱신; 별도 동시 TAP 정책 작업 및 이력 보존"
+      ],
+      "verification": [
+        "flutter analyze: 최종 No issues found",
+        "전체 Flutter 최초 실행: 260 passed / 2 failed (기존 TAP 설정 테스트 기대값, ink_sparkle 자산). 두 실패 파일 별도 재실행 12 passed; 실패 재현 없음",
+        "이번 기능 관련 34 tests passed; 요일 폭 최종 조정 후 25 tests passed; 고스트 이름 스타일 후 crew_allocation_test.dart 11 passed",
+        "npm run test:console: 169 passed. 월간 휴무 복원 시 근무 해제 assertion 추가 후 crew_allocations.test.mjs 7 passed",
+        "npm run check 및 npm run check:ui-links 통과 (34 links)",
+        "tool/schedule_flow_review.dart 최종 통과: 영업시간/배정/고스트/근무표/월간, 320·390·1200px 15개 캡처. 320·390px 배정/고스트 육안 확인",
+        "npm run build:app 최종 성공 (Flutter web release). 네이티브·실기기·실제 계정 쓰기 및 이번 후속 변경 재배포는 수행하지 않음"
+      ],
+      "deployment": "not_deployed",
+      "at": "2026-10-04T08:02:27.947894+00:00",
+      "decisionId": "D-074",
+      "previous": {
+        "D-071": "영업시간·인원 → 크루별 기본 배정 → 날짜별 근무표 조정으로 진행한다. 크루는 교대×파트 필요 슬롯에 drag/tap으로 배정하고 미배정은 이 화면에 모은다. 근무표는 배정 크루만 파트 가로/시간 세로로 표시하며 세부 시간을 수정한다. 시간표 메뉴·파트 필터는 제거하고 직원은 본인 근무만 표시한다. 월간은 추가 휴무/업무일 지정에 사용한다. 앞 설정 변경 후 명시적 기간 적용과 근무표 조정이 필요함을 안내한다. 브레이크는 교대/인원 시간과 독립인 참고 표시다."
+      },
+      "next": "영업시간·인원·크루 배정은 전체/개별 공통 선택을 사용하며 개별에서 복수 요일에 동일 변경을 적용한다. 크루 배정의 DnD 가로 표를 교대별 세로 파트 카드와 터치 바텀 시트로 대체한다. 상단 크루 캐러셀에 선택 주 기본 배정/예상 시간을 표시하고 참고 임계치를 안내한다. 빈 슬롯은 중립 점선 +, 이전 저장본은 고스트 검토 후 한 번에 확정한다. 월간은 현재 휴무일이면 추가 영업, 영업일이면 추가 휴무를 기본 선택하며 같은 상태 지정은 안내 후 무변경이다. 날짜별 근무표 적용은 별도다. Flutter 로컬 구현 완료; 이번 후속 변경은 미배포."
     }
   ],
   "updatedAt": "2026-10-04T08:11:48.987932+00:00"
