@@ -1,3 +1,4 @@
+import { ensureDefaultAssignments } from './default_assignments.mjs';
 import { tapOnly, assertContentOnly, policyReport, convertPolicy, updateContentRevisions } from './tap_policy.mjs';
 import { businessDate, boundaryOf, shiftDate } from './business_day.mjs';
 import { assignmentContext, assignmentOccurrences, assignmentView, assignmentPermission, snapshotAssignments } from './work_assignments.mjs';
@@ -240,6 +241,7 @@ function stockReview(item) {
 function ensureDueTasks(state, now) {
   let changed = ensureLayout(state);
   if (ensureStaff(state, now)) changed = true;
+  if (ensureDefaultAssignments(state, now)) changed = true;
   if (ensureChecklists(state)) changed = true;
   if (ensureTapBoard(state)) changed = true;
   if (!state.sales) { state.sales = seedSales(now); changed = true; }
@@ -309,6 +311,7 @@ export class OperationsStore {
     delete result.sampleArchive;
     delete result.operationEditHistory;
     delete result.calendarDayHistory;
+    delete result.defaultAssignmentOmissions;
     delete result.tapPolicyHistory;
     Object.assign(result, staffView(state, actor, this.clock()));
     result.workplace = workplaceView(state, actor);

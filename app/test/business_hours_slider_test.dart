@@ -58,12 +58,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('인원 배치').first);
       await tester.pumpAndSettle();
-      final cell = find
-          .descendant(
-            of: find.byType(Table),
-            matching: find.widgetWithText(TextButton, '1'),
-          )
-          .first;
+      final cell = find.byKey(const ValueKey('staffing-count-0-kitchen'));
       await tester.tap(cell);
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('인원 늘리기'));
@@ -186,12 +181,7 @@ void main() {
     expect(find.text('영업일 경계'), findsNothing);
     await tester.tap(find.text('인원 배치').first);
     await tester.pumpAndSettle();
-    final cell = find
-        .descendant(
-          of: find.byType(Table),
-          matching: find.widgetWithText(TextButton, '1'),
-        )
-        .first;
+    final cell = find.byKey(const ValueKey('staffing-count-0-kitchen'));
     await tester.tap(cell);
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('인원 늘리기'));

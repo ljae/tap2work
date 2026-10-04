@@ -9,7 +9,6 @@ import 'package:tap2work/main.dart';
 import 'package:tap2work/state/operations_controller.dart';
 import 'package:tap2work/state/work_controller.dart';
 import 'package:tap2work/ui/calendar_screen.dart';
-import 'package:tap2work/ui/crew_pattern_screen.dart';
 import 'package:tap2work/ui/workplace_screens.dart';
 import '../test/calendar_test.dart' show calendarData;
 import '../test/operations_test.dart' show response;
@@ -28,10 +27,10 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
-    final output = Directory('../.local/schedule-review')
+    final output = Directory('../.local/default-staffing-review')
       ..createSync(recursive: true);
-    for (final width in [390.0, 1200.0]) {
-      for (final scene in ['calendar', 'hours', 'patterns']) {
+    for (final width in [320.0, 390.0, 1200.0]) {
+      for (final scene in ['calendar', 'month', 'hours', 'staffing']) {
         tester.view.physicalSize = Size(width, 1000);
         final data = calendarData();
         data['day'] = '2026-10-05';
@@ -67,10 +66,8 @@ void main() {
         );
         await ops.refresh();
         final work = WorkController(MemoryStore()), key = GlobalKey();
-        final content = scene == 'hours'
+        final content = scene == 'hours' || scene == 'staffing'
             ? WorkplaceSettings(ops: ops, section: 'hours')
-            : scene == 'patterns'
-            ? CrewPatternScreen(ops: ops, day: DateTime(2026, 10, 5))
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
                 child: CalendarScreen(operations: ops),
@@ -93,8 +90,10 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        if (scene == 'patterns') {
-          await tester.tap(find.text('2주 교대'));
+        if (scene == 'staffing' || scene == 'month') {
+          await tester.tap(
+            find.text(scene == 'staffing' ? '인원 배치' : '월간').first,
+          );
           await tester.pumpAndSettle();
         }
         await tester.runAsync(() async {

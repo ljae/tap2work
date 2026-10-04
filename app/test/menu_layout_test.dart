@@ -10,7 +10,7 @@ import 'work_controller_test.dart' show MemoryStore;
 void main() {
   for (final width in [320.0, 1200.0]) {
     testWidgets(
-      'all menu titles and manual searches share one layout at $width',
+      'menu headers are consistent and schedule starts with calendar at $width',
       (tester) async {
         tester.view.physicalSize = Size(width, 900);
         tester.view.devicePixelRatio = 1;
@@ -45,6 +45,13 @@ void main() {
         for (var index = 0; index < 4; index++) {
           await tester.tap(find.byKey(ValueKey('floating-menu-$index')));
           await tester.pumpAndSettle();
+          if (index == 2) {
+            expect(title, findsNothing);
+            expect(search, findsNothing);
+            expect(find.text('파트별'), findsNothing);
+            expect(find.text('크루별 근무 배정'), findsNothing);
+            continue;
+          }
           expect(
             tester.widget<Text>(title).data,
             ['업무', '매뉴얼', '근무표', '우리매장'][index],

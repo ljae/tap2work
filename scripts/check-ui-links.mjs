@@ -7,7 +7,7 @@ const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_M
 const contracts = [
   ['S35', 'app/lib/ui/tap_settings_screen.dart', "'assignmentScopeVersion': 2", 'developer/task_settings.mjs', 'assertContentOnly(step)'],
   ['S40', 'app/lib/ui/tap_settings_screen.dart', "'split_tap_policy'", 'developer/operations.mjs', "case 'split_tap_policy'"],
-  ['S37', 'app/lib/ui/crew_allocation_screen.dart', "'save_crew_allocations'", 'developer/crew_patterns.mjs', "'apply_crew_allocations'"],
+  ['S37', 'app/lib/ui/workplace_screens.dart', "'defaultAssignmentsEnabled': true", 'developer/default_assignments.mjs', 'ensureDefaultAssignments'],
   ['S39', 'app/lib/ui/calendar_screen.dart', "'save_calendar_day'", 'developer/workplace.mjs', "input.action === 'save_calendar_day'"],
   ['S28', 'app/lib/ui/crew_pattern_screen.dart', "'save_crew_pattern'", 'developer/crew_patterns.mjs', "'apply_crew_pattern'"],
   ['S29', 'app/lib/ui/shift_change_panel.dart', "'request_shift_change'", 'developer/shift_requests.mjs', "'review_shift_change'"],

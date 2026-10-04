@@ -171,6 +171,11 @@ export function mutateStaff(state, input, actor, now, who, activity) {
     case 'delete_staff_shift': {
       if (!leader) fail('매니저 이상만 근무표를 바꿀 수 있어요.', 403);
       if (!state.staffShifts.some(s => s.id === input.id)) fail('근무를 찾지 못했어요.', 404);
+      const removed = state.staffShifts.find(s => s.id === input.id);
+      if (removed.defaultAssignmentKey) {
+        state.defaultAssignmentOmissions ??= [];
+        state.defaultAssignmentOmissions.push(removed.defaultAssignmentKey);
+      }
       state.staffShifts = state.staffShifts.filter(s => s.id !== input.id);
       activity('근무 배정 해제'); return true;
     }
@@ -182,6 +187,7 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       validateOverlap(state, next, new Set(row ? [row.id] : []));
       if (row) {
         if (row.tapperId !== next.tapperId) { delete row.patternId; delete row.base; }
+        if (row.defaultAssignmentKey) row.defaultAssignmentEdited = true;
         Object.assign(row, next);
       } else state.staffShifts.push({ id: randomUUID(), ...next, status: 'planned' });
       activity(`${state.tappers.find(t => t.id === next.tapperId).nickname} 근무 배정`); return true;

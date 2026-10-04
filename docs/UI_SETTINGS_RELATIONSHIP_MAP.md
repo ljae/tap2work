@@ -251,3 +251,13 @@ S13/S35는 v2 실제 구현을 반영한다. `assignmentScopeVersion:2` 신규 �
 
 
 2026-10-04 복수 요일 후속: S03의 `workplace.days/breaks/headcounts` → 공유 `WeekdayScopeSelector` 전체/개별 → 개별 복수 선택 `hoursTargets`에 시간·인원 변경 → `save_workplace_hours` → 필요 슬롯/크루 배정. 선택만으로 쓰지 않으며 1개 선택은 1요일만 변경한다. S37의 `crewPatterns.previous` → 이전 스케줄 불러오기/고스트 확정 → `save_crew_allocations` → 기본 배정 및 명시적 기간 적용. `crew_allocation_domain_test.dart`, `crew_allocation_test.dart`, `business_hours_slider_test.dart`, `crew_allocations.test.mjs`로 범위·중복·이력·무변경을 검증한다.
+
+## 인원 배치에서 기본 크루 저장 · 2026-10-04 최신 (S03/S37/S38 대체)
+
+| ID | 원본 → 컨트롤 → 액션 | 소비 | 검증 |
+|---|---|---|---|
+| S03 | workplace.days.headcounts/crewIds → 인원수·자리별 등록 크루 dropdown, 전체/개별 요일 → save_workplace_hours + defaultAssignmentsEnabled | 영업시간과 기본 크루를 원자 저장, 미래 staffShifts 자동 생성·연장 | default_staffing_test.dart, default_assignments.test.mjs |
+| S37 | workplace.days.crewIds + dateOverrides → 서버 ensureDefaultAssignments | 오늘부터 90일의 기본 근무, 다음 조회 시 범위 연장. 수동 수정/삭제·시작·출퇴근·승인/대타·대기 신청 보존. 기존 별도 근무와 겹치면 추가하지 않음 | default_assignments.test.mjs, schedule_workflow_test.dart |
+| S38 | 근무표 달력 아래 영업시간·인원 → openWorkplaceHours → 공통 인원 배치 폼 | 별도 크루별 근무 배정/기간 적용 진입 제거; legacy pattern 원본/API 보존 | menu_layout_test.dart, check:ui-links |
+
+S27 주간은 `ScheduleController.selected` → 전체 폭 7일 선택 → 선택 날짜의 전체 폭 파트 열·시간축이며 기존 근무 편집 API를 유지한다. 근무표의 공통 제목/매뉴얼 검색과 내부 하위 탭은 숨긴다. 월간 다른 달 날짜/설명은 흐린 색으로 표시한다. 기본 배정 자동 반영이 활성화된 매장의 추가 영업/복원은 별도 기간 적용 없이 기본 크루를 생성한다.

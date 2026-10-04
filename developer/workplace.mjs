@@ -1,3 +1,4 @@
+import { validateDefaultAssignments } from './default_assignments.mjs';
 import { businessDate } from './business_day.mjs';
 import { normalizeBreaks } from './business_breaks.mjs';
 import { defaultWorkplace, workplaceBands, workplaceBandDays, validatePart, rosterTemplates, validRosterDate, validRosterTimes } from './parts.mjs';
@@ -35,7 +36,9 @@ function normalizeBands(state, bands, oldRows, day) {
       if (!Number.isInteger(n) || n<0 || n>12) fail('파트 인원은 0–12명으로 설정해 주세요.');
     }
     if ((b.custom === true || existing?.custom === true) && !Object.values(headcounts).some(n => n > 0)) fail('필요 인원이 있는 파트를 하나 이상 선택해 주세요.');
-    return { id, ...(legacyIndex === undefined ? {} : { legacyIndex }), ...(b.custom === true || existing?.custom === true ? {custom:true} : {}), name:label(b.name), start:b.start, end:b.end, headcounts:structuredClone(headcounts), ...(Object.keys(partTimes).length ? {partTimes} : {}) };
+    const crewIds = b.crewIds ?? existing?.crewIds;
+    if (crewIds != null && (typeof crewIds !== 'object' || Array.isArray(crewIds) || Object.keys(crewIds).some(id => !state.workplace.parts.some(p => p.id === id)))) fail('크루 배정 파트를 확인해 주세요.');
+    return { ...(crewIds == null ? {} : {crewIds:structuredClone(crewIds)}), id, ...(legacyIndex === undefined ? {} : { legacyIndex }), ...(b.custom === true || existing?.custom === true ? {custom:true} : {}), name:label(b.name), start:b.start, end:b.end, headcounts:structuredClone(headcounts), ...(Object.keys(partTimes).length ? {partTimes} : {}) };
   });
   if (new Set(normalized.map(b => b.id)).size !== bands.length || new Set(normalized.map(b => b.legacyIndex).filter(i => i !== undefined)).size !== normalized.filter(b => b.legacyIndex !== undefined).length) fail('중복 시간대 ID를 확인해 주세요.');
   return normalized;
@@ -144,6 +147,11 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
       config.breaks = normalizeBreaks(next, input.breaks ?? Object.fromEntries(Object.entries(config.breaks ?? {}).filter(([d]) => next[d]?.length)), config.businessDayStart);
       if (JSON.stringify(config.days) !== JSON.stringify(next) || config.businessDayStart !== state.workplace?.businessDayStart) config.hoursVersion = (config.hoursVersion ?? 0) + 1;
       config.days = next;
+      if (input.defaultAssignmentsEnabled !== undefined) {
+        if (input.defaultAssignmentsEnabled !== true) fail('기본 크루 배정 설정을 확인해 주세요.');
+        config.defaultAssignmentsEnabled = true;
+      }
+      validateDefaultAssignments({...state, workplace:config});
       break;
     }
     case 'save_workplace_day': {
@@ -154,6 +162,7 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
         config.days[day] = normalizeBands(state, input.bands, config.days[day], day);
       }
       config.breaks = normalizeBreaks(config.days, Object.fromEntries(Object.entries(config.breaks ?? {}).filter(([d]) => config.days[d]?.length)), config.businessDayStart);
+      validateDefaultAssignments({...state, workplace:config});
       break;
     }
     case 'save_workplace_permissions': {

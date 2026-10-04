@@ -354,7 +354,13 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           if ((rows as List).isNotEmpty)
             jsonEncode([
               for (final b in rows)
-                [b['name'], b['start'], b['end'], b['headcounts']],
+                [
+                  b['name'],
+                  b['start'],
+                  b['end'],
+                  b['headcounts'],
+                  b['crewIds'],
+                ],
             ]),
       ];
       allHours = signatures.toSet().length <= 1;
@@ -826,64 +832,117 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         if (target == null) continue;
         target['headcounts'] ??= <String, dynamic>{};
         target['headcounts'][part['id']] = value;
+        final assigned = (target['crewIds']?[part['id']] as List? ?? [])
+            .take(value)
+            .toList();
+        target['crewIds'] ??= <String, dynamic>{};
+        target['crewIds'][part['id']] = assigned;
+      }
+    });
+  }
+
+  List<String> crewFor(Json band, String part) =>
+      (band['crewIds']?[part] as List? ?? []).cast<String>();
+
+  void setCrew(int index, String part, int seat, String value) {
+    final source = dayBands[index];
+    final ordinal = dayBands
+        .where((b) => b['custom'] != true)
+        .toList()
+        .indexOf(source);
+    update(() {
+      for (final d in hoursTargets) {
+        final rows = (days['$d'] as List).cast<Json>();
+        final target = source['custom'] == true
+            ? rows.where((b) => b['id'] == source['id']).firstOrNull
+            : rows.where((b) => b['custom'] != true).elementAtOrNull(ordinal);
+        if (target == null) continue;
+        final count = countFor(target, part);
+        if (seat >= count) continue;
+        final ids = List<String>.generate(
+          count,
+          (i) => crewFor(target, part).elementAtOrNull(i) ?? '',
+        );
+        ids[seat] = value;
+        target['crewIds'] ??= <String, dynamic>{};
+        target['crewIds'][part] = ids;
       }
     });
   }
 
   Widget staffingMatrix() {
     final visibleParts = parts.where((p) => p['hidden'] != true).toList();
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final scale = MediaQuery.textScalerOf(context).scale(1);
-        final width = max(
-          constraints.maxWidth,
-          (visibleParts.length + 1) * 68.0 * scale,
-        );
-        Widget label(String text) => Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text(text, textAlign: TextAlign.center),
-        );
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            width: width,
-            child: Table(
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              border: TableBorder.all(
-                color: AppColors.muted.withValues(alpha: .25),
-              ),
+    final people = ops
+        .rows('tappers')
+        .where((p) => p['active'] != false)
+        .toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          '선택한 크루를 기본 배정으로 저장하고 앞으로의 근무표에 반영해요.',
+          style: AppText.caption,
+        ),
+        for (var i = 0; i < dayBands.length; i++) ...[
+          const SizedBox(height: 16),
+          Text(bandLabel(dayBands[i]), style: AppText.section),
+          for (final part in visibleParts) ...[
+            const SizedBox(height: 8),
+            Row(
               children: [
-                TableRow(
-                  decoration: const BoxDecoration(color: AppColors.elevated),
-                  children: [
-                    label('교대'),
-                    for (final p in visibleParts) label(p['name']),
-                  ],
+                Expanded(child: Text(part['name'], style: AppText.body)),
+                TextButton(
+                  key: ValueKey('staffing-count-$i-${part['id']}'),
+                  onPressed: canDraftHours ? () => editCount(i, part) : null,
+                  child: Text('${countFor(dayBands[i], part['id'])}명'),
                 ),
-                for (var i = 0; i < dayBands.length; i++)
-                  TableRow(
-                    children: [
-                      label(bandLabel(dayBands[i])),
-                      for (final p in visibleParts)
-                        Semantics(
-                          label: '${bandLabel(dayBands[i])} ${p['name']} 필요 인원',
-                          child: TextButton(
-                            onPressed: canDraftHours
-                                ? () => editCount(i, p)
-                                : null,
-                            style: TextButton.styleFrom(
-                              minimumSize: const Size(48, 56),
-                            ),
-                            child: Text('${countFor(dayBands[i], p['id'])}'),
-                          ),
-                        ),
-                    ],
-                  ),
               ],
             ),
-          ),
-        );
-      },
+            for (var seat = 0; seat < countFor(dayBands[i], part['id']); seat++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: DropdownButtonFormField<String>(
+                  key: ValueKey(
+                    'staffing-crew-$weekday-$i-${part['id']}-$seat-${crewFor(dayBands[i], part['id']).elementAtOrNull(seat)}',
+                  ),
+                  initialValue:
+                      crewFor(dayBands[i], part['id']).elementAtOrNull(seat) ??
+                      '',
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: '${part['name']} 크루 ${seat + 1}',
+                  ),
+                  items: [
+                    const DropdownMenuItem(value: '', child: Text('미배정')),
+                    for (final person in people)
+                      DropdownMenuItem<String>(
+                        value: person['id'],
+                        child: Text(
+                          person['nickname'],
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    for (final id
+                        in crewFor(dayBands[i], part['id'])
+                            .where(
+                              (id) =>
+                                  id.isNotEmpty &&
+                                  !people.any((p) => p['id'] == id),
+                            )
+                            .toSet())
+                      DropdownMenuItem(
+                        value: id,
+                        child: const Text('비활성 크루 · 다시 선택'),
+                      ),
+                  ],
+                  onChanged: canDraftHours
+                      ? (v) => setCrew(i, part['id'], seat, v ?? '')
+                      : null,
+                ),
+              ),
+          ],
+        ],
+      ],
     );
   }
 
@@ -1040,7 +1099,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     if (hoursStep == 1 && dayBands.isNotEmpty) ...[
       hoursHeading(
         '인원 배치',
-        '셀을 눌러 필요한 인원을 입력해요. 전체는 모든 영업일의 같은 교대에 적용해요. 기존 시간대와 파트별 설정은 유지돼요.',
+        '필요 인원과 기본 크루를 선택해요. 전체는 모든 영업일, 개별은 선택한 요일에 적용해요.',
       ),
       staffingMatrix(),
       const SizedBox(height: 16),
@@ -1233,7 +1292,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     ),
     const SizedBox(height: 16),
     const Text(
-      '활동 파트와 선호 시간대예요. 실제 근무는 근무표에 별도로 배정해 주세요.',
+      '활동 파트와 선호 시간대예요. 기본 근무는 영업시간·인원의 인원 배치에서 선택해 주세요.',
       style: AppText.caption,
     ),
   ];
@@ -1413,6 +1472,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           'days': days,
           'breaks': breaks,
           'businessDayStart': businessDayStart,
+          'defaultAssignmentsEnabled': true,
         });
       case 'parts':
         await save('save_workplace_parts', {'parts': parts});
@@ -1448,10 +1508,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           ? AppSheetFooter(
               children: [
                 if (widget.section == 'hours' && hoursStep == 1)
-                  const Text(
-                    '저장 후 크루 배정과 근무표를 별도로 적용해 주세요.',
-                    style: AppText.caption,
-                  ),
+                  const Text('저장하면 앞으로의 기본 근무표에 반영돼요.', style: AppText.caption),
                 if (error != null)
                   Text(
                     error!,

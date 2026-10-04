@@ -71,10 +71,13 @@ void main() {
           await tester.pumpAndSettle();
           await tester.tap(find.byKey(ValueKey('floating-menu-$index')));
           await tester.pumpAndSettle();
-          expect(
-            tester.widget<Text>(find.byKey(const ValueKey('menu-title'))).data,
-            ['업무', '매뉴얼', '근무표', '우리매장'][index],
-          );
+          if (index != 2)
+            expect(
+              tester
+                  .widget<Text>(find.byKey(const ValueKey('menu-title')))
+                  .data,
+              ['업무', '매뉴얼', '근무표', '우리매장'][index],
+            );
           Future<void> snapshot(String state) async {
             if (capture) {
               await tester.runAsync(() async {
@@ -102,6 +105,17 @@ void main() {
 
           await snapshot('initial');
           final search = find.byKey(const ValueKey('global-manual-search'));
+          if (index == 2) {
+            expect(search, findsNothing);
+            expect(find.byKey(const ValueKey('menu-title')), findsNothing);
+            expect(
+              find.byKey(const ValueKey('roster-time-axis')),
+              findsOneWidget,
+            );
+            await tester.pumpWidget(const SizedBox());
+            await tester.pumpAndSettle();
+            return;
+          }
           await tester.tap(search);
           await tester.enterText(search, '손');
           tester.view.viewInsets = const FakeViewPadding(bottom: 280);

@@ -503,7 +503,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                           ),
                         ],
                       ),
-                    if (ops.data != null) ...[
+                    if (ops.data != null && tab != 2) ...[
                       Padding(
                         padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
                         child: Center(
@@ -562,8 +562,10 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                   ),
                                   child: Center(
                                     child: ConstrainedBox(
-                                      constraints: const BoxConstraints(
-                                        maxWidth: 1240,
+                                      constraints: BoxConstraints(
+                                        maxWidth: tab == 2
+                                            ? double.infinity
+                                            : 1240,
                                       ),
                                       child: Column(
                                         crossAxisAlignment:

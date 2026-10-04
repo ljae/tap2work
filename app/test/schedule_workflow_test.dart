@@ -298,7 +298,7 @@ void main() {
     (320.0, 1.5),
   ]) {
     testWidgets(
-      'calendar settings buttons align at $size and open shared hours',
+      'calendar fills width and opens shared hours below calendar at $size',
       (tester) async {
         await calendar.mount(
           tester,
@@ -308,14 +308,18 @@ void main() {
         );
         final crew = find.byKey(const ValueKey('calendar-crew-pattern-button'));
         final hours = find.byKey(const ValueKey('calendar-hours-button'));
-        expect(tester.getSize(crew), tester.getSize(hours));
-        final a = tester.getRect(crew), b = tester.getRect(hours);
-        if (a.top == b.top) {
-          expect(a.left - b.right, 8);
-        } else {
-          expect(a.left, b.left);
-          expect(a.top - b.bottom, 8);
-        }
+        expect(crew, findsNothing);
+        expect(find.text('파트별'), findsNothing);
+        expect(tester.getSize(hours).width, size.$1);
+        final first = find.byKey(const ValueKey('roster-day-2026-09-28'));
+        final last = find.byKey(const ValueKey('roster-day-2026-10-04'));
+        expect(tester.getRect(first).left, 0);
+        expect(tester.getRect(last).right, closeTo(size.$1, 0.01));
+        expect(
+          tester.getRect(hours).top,
+          greaterThan(tester.getRect(first).bottom),
+        );
+        await tester.ensureVisible(hours);
         await tester.tap(hours);
         await tester.pumpAndSettle();
         expect(find.text('영업시간·필요 인원'), findsOneWidget);

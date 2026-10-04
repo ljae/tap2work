@@ -1,13 +1,10 @@
 import 'workplace_screens.dart';
-import 'labor_panel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import '../state/work_controller.dart';
 import 'calendar_screen.dart';
 import 'components.dart';
-import 'team_screen.dart';
-import 'workspace_screen.dart';
 
 class StaffWorkspace extends StatefulWidget {
   const StaffWorkspace({super.key, required this.ops, required this.work});
@@ -18,93 +15,8 @@ class StaffWorkspace extends StatefulWidget {
 }
 
 class _StaffWorkspaceState extends State<StaffWorkspace> {
-  String section = 'schedule';
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: AppSegmented<String>(
-          segments: const [
-            ButtonSegment(value: 'schedule', label: Text('근무표')),
-            ButtonSegment(value: 'people', label: Text('크루')),
-            ButtonSegment(value: 'pay', label: Text('인건비')),
-            ButtonSegment(value: 'learning', label: Text('교육')),
-            ButtonSegment(value: 'hiring', label: Text('채용 준비')),
-          ],
-          selected: {section},
-          onSelectionChanged: (v) => setState(() => section = v.first),
-        ),
-      ),
-      const SizedBox(height: 16),
-      AppContentTransition(
-        trigger: section,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (section == 'schedule') CalendarScreen(operations: widget.ops),
-            if (widget.ops.isOwner && section != 'pay')
-              Builder(
-                builder: (context) {
-                  final weeks =
-                      (widget.ops.data?['labor']?['weeks'] as List? ?? [])
-                          .cast<Json>();
-                  final day =
-                      DateTime.tryParse(widget.ops.data?['day'] ?? '') ??
-                      DateTime.now();
-                  final monday = laborDate(
-                    day.subtract(Duration(days: day.weekday - 1)),
-                  );
-                  final week = weeks
-                      .where((w) => w['week'] == monday)
-                      .firstOrNull;
-                  final people = (week?['people'] as List? ?? []).cast<Json>();
-                  final count = people.fold<int>(
-                    0,
-                    (n, p) => n + (p['planned']['alerts'] as List).length,
-                  );
-                  return count == 0
-                      ? const SizedBox.shrink()
-                      : Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(
-                              CupertinoIcons.bell,
-                              color: AppColors.accent,
-                            ),
-                            title: Text('이번 주 수당 확인 $count건'),
-                            trailing: const Icon(CupertinoIcons.chevron_right),
-                            onTap: () => setState(() => section = 'pay'),
-                          ),
-                        );
-                },
-              ),
-            if (section == 'people') TeamScreen(operations: widget.ops),
-            if (section == 'pay') LaborPanel(ops: widget.ops),
-            if (section == 'learning') ...[
-              const Information('첫 근무 연습과 버디 확인은 각각 기록돼요.'),
-              const SizedBox(height: 12),
-              PressBounce(
-                child: OutlinedButton.icon(
-                  icon: const Icon(CupertinoIcons.book),
-                  label: const Text('첫 근무 가이드 열기'),
-                  onPressed: () => Navigator.of(context).push(
-                    AppPageRoute<void>(
-                      reduceMotion: AppMotion.reduced(context),
-                      builder: (_) => WorkspaceScreen(controller: widget.work),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-            if (section == 'hiring') HiringDrafts(ops: widget.ops),
-          ],
-        ),
-      ),
-    ],
-  );
+  Widget build(BuildContext context) => CalendarScreen(operations: widget.ops);
 }
 
 class HiringDrafts extends StatelessWidget {

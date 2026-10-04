@@ -2,7 +2,6 @@ import 'time_wheel.dart';
 import 'package:flutter/gestures.dart';
 import 'shift_change_panel.dart';
 import '../domain/korean_holidays.dart';
-import 'crew_allocation_screen.dart';
 import 'workplace_screens.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -622,7 +621,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ],
                 ),
                 const Text(
-                  '저장 후 크루별 근무 배정에서 이 날짜를 포함해 근무표를 적용해 주세요.',
+                  '저장 후 인원 배치에 저장한 기본 크루 배정이 반영돼요.',
                   style: AppText.caption,
                 ),
               ],
@@ -632,10 +631,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   style: AppText.caption,
                 ),
               if (mode == 'reset')
-                const Text(
-                  '해제된 크루 배정은 자동 복원되지 않아요. 크루별 근무 배정에서 다시 적용해 주세요.',
-                  style: AppText.caption,
-                ),
+                const Text('인원 배치의 기본 크루 배정을 반영해요.', style: AppText.caption),
               if (error != null) Information(error!),
             ],
           ),
@@ -692,7 +688,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             style: TextStyle(
                               color: day.month == first.month
                                   ? dayColor(day)
-                                  : AppColors.muted,
+                                  : AppColors.muted.withValues(alpha: .4),
                             ),
                           ),
                           if (dayNote(day).isNotEmpty)
@@ -704,7 +700,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
                                   style: AppText.caption.copyWith(
-                                    color: dayColor(day),
+                                    color: day.month == first.month
+                                        ? dayColor(day)
+                                        : AppColors.muted.withValues(alpha: .4),
                                   ),
                                 ),
                               ),
@@ -725,13 +723,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('파트별', style: AppText.body),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (var i = 0; i < 7; i++)
-                Builder(
+        Row(
+          children: [
+            for (var i = 0; i < 7; i++)
+              Expanded(
+                child: Builder(
                   builder: (context) {
                     final day = model.monday.add(Duration(days: i));
                     final selected =
@@ -753,7 +749,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           key: ValueKey('roster-day-${rosterDate(day)}'),
                           onPressed: () => model.selectDay(day),
                           style: TextButton.styleFrom(
-                            minimumSize: const Size(40, 48),
+                            minimumSize: const Size(0, 48),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             foregroundColor: selected
                                 ? AppColors.ink
                                 : dayColor(day),
@@ -772,8 +769,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     );
                   },
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
         const SizedBox(height: 16),
         LayoutBuilder(builder: (context, box) => timeline(box.maxWidth)),
@@ -806,38 +803,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final scale = timeScale;
     final gridHeight = (until - from) * scale;
     final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
-    final columnWidth = ((availableWidth - 52) / parts.length).clamp(
-      96.0 * textScale,
-      220.0 * textScale,
-    );
-    final partWidths = <String, double>{};
-    for (final part in parts) {
-      var maximum = 1;
-      for (final day in days) {
-        final slots =
-            all
-                .where((s) => s.partId == part.id && s.date == rosterDate(day))
-                .toList()
-              ..sort((a, b) => a.startMinute.compareTo(b.startMinute));
-        final ends = <int>[];
-        for (final slot in slots) {
-          final lane = ends.indexWhere((end) => end <= slot.startMinute);
-          if (lane < 0) {
-            ends.add(slot.endMinute);
-          } else {
-            ends[lane] = slot.endMinute;
-          }
-        }
-        if (ends.length > maximum) maximum = ends.length;
-      }
-      partWidths[part.id] = columnWidth * maximum;
-    }
-    final headerHeight = 80.0 * textScale.clamp(1, 1.6);
+    final columnWidth = (availableWidth - 52) / parts.length;
+    final partWidths = {for (final part in parts) part.id: columnWidth};
+    final headerHeight =
+        (dayNote(model.selected).isEmpty ? 80.0 : 112.0) * textScale;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          height: (MediaQuery.sizeOf(context).height * .55).clamp(320.0, 640.0),
+          height: (gridHeight + headerHeight + 24).clamp(
+            0.0,
+            (MediaQuery.sizeOf(context).height * .55).clamp(320.0, 640.0),
+          ),
           child: Scrollbar(
             controller: vertical,
             thumbVisibility: true,
@@ -868,6 +845,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   right: 0,
                                   child: Text(
                                     '${m >= 1440 ? '+' : ''}${rosterClock(m)}',
+                                    textAlign: TextAlign.center,
                                     style: AppText.caption.copyWith(
                                       fontSize: 11,
                                     ),
@@ -901,7 +879,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   children: [
                                     Container(
                                       height: headerHeight / 2,
-                                      alignment: Alignment.centerLeft,
+                                      alignment: Alignment.center,
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 12,
                                       ),
@@ -913,6 +891,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       ),
                                       child: Text(
                                         '${day.month}/${day.day} ${weekdays[day.weekday - 1]}${dayNote(day).isEmpty ? '' : '\n${dayNote(day)}'}',
+                                        textAlign: TextAlign.center,
                                         style: AppText.body.copyWith(
                                           fontWeight: FontWeight.w700,
                                           color: dayColor(day),
@@ -979,13 +958,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         if (all.isEmpty)
           const Padding(
             padding: EdgeInsets.only(top: 16),
-            child: Information('배정된 근무가 없어요. 크루별 근무 배정에서 기간을 적용해 주세요.'),
+            child: Information('배정된 근무가 없어요. 영업시간·인원의 인원 배치에서 크루를 선택해 주세요.'),
           ),
-        const SizedBox(height: 12),
-        const Text(
-          '길게 눌러 편집해요. 아래 손잡이로 종료 시간을, 드래그로 위치를 30분 단위로 조정해요.',
-          style: AppText.caption,
-        ),
       ],
     );
   }
@@ -1073,12 +1047,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     key: ValueKey(
                       'roster-drop-${rosterDate(day)}-${part.id}-$m',
                     ),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(color: AppColors.line),
-                        right: BorderSide(color: AppColors.line),
-                      ),
-                    ),
                   ),
                 ),
               for (var i = 0; i < slots.length; i++)
@@ -1130,33 +1098,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               : null,
                           child: Padding(
                             padding: const EdgeInsets.all(8),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    slots[i].name,
-                                    style: AppText.body.copyWith(
-                                      fontWeight: FontWeight.w700,
+                            child: Center(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      slots[i].name,
+                                      textAlign: TextAlign.center,
+                                      style: AppText.body.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '${slots[i].start}–${slots[i].overnight ? '다음 날 ' : ''}${rosterClock(shownEnd(slots[i]))}',
-                                    style: AppText.caption,
-                                  ),
-                                  Text(
-                                    slots[i].crewId == null
-                                        ? (model.editable
-                                              ? '+ 크루 배정 · 미배정'
-                                              : '미배정')
-                                        : '${slots[i].adjusted ? '배정 · 미세조정' : '배정'}${requestLabel(slots[i])}',
-                                    style: AppText.caption.copyWith(
-                                      color: slots[i].crewId == null
-                                          ? AppColors.accent
-                                          : crewColor(slots[i].crewId!),
+                                    Text(
+                                      '${slots[i].start}–${slots[i].overnight ? '다음 날 ' : ''}${rosterClock(shownEnd(slots[i]))}',
+                                      textAlign: TextAlign.center,
+                                      style: AppText.caption,
                                     ),
-                                  ),
-                                ],
+                                    Text(
+                                      slots[i].crewId == null
+                                          ? (model.editable
+                                                ? '+ 크루 배정 · 미배정'
+                                                : '미배정')
+                                          : '${slots[i].adjusted ? '배정 · 미세조정' : '배정'}${requestLabel(slots[i])}',
+                                      style: AppText.caption.copyWith(
+                                        color: slots[i].crewId == null
+                                            ? AppColors.accent
+                                            : crewColor(slots[i].crewId!),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -1201,108 +1173,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     builder: (context, _) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (ops.isLeader) ...[
-          const Text('1 영업시간·인원 → 2 크루 배정 → 3 근무표 조정', style: AppText.caption),
-          const SizedBox(height: 8),
-          Text(
-            ops
-                    .rows('crewPatterns')
-                    .any(
-                      (p) =>
-                          p['hoursVersion'] !=
-                              (ops.data?['workplace']?['hoursVersion'] ?? 0) ||
-                          p['version'] != p['appliedVersion'] ||
-                          p['appliedHoursVersion'] !=
-                              (ops.data?['workplace']?['hoursVersion'] ?? 0),
-                    )
-                ? '설정 변경 · 크루 배정을 확인하고 근무표에 다시 적용해 주세요.'
-                : '설정을 바꾸면 근무표도 별도로 적용·조정해야 해요.',
-            style: AppText.caption.copyWith(color: AppColors.accent),
-          ),
-          const SizedBox(height: 12),
-        ],
-        Text(
-          '영업일 기준 · ${ops.data?['workplace']?['businessDayStart'] ?? '00:00'}부터 다음날 같은 시각까지',
-          style: AppText.caption,
-        ),
-        ShiftChangePanel(ops: ops),
-        if (!ops.isLeader)
-          const Padding(
-            padding: EdgeInsets.only(bottom: 16),
-            child: Text(
-              '내 근무를 눌러 휴무·단축을 신청해요. 승인 전에는 원래 근무가 유지돼요.',
-              style: AppText.caption,
-            ),
-          ),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final scale = MediaQuery.textScalerOf(context).scale(13) / 13;
-              final paired =
-                  model.editable && constraints.maxWidth >= 260 * scale;
-              final width = paired
-                  ? (constraints.maxWidth - 8) / 2
-                  : constraints.maxWidth;
-              final style = ButtonStyle(
-                minimumSize: const WidgetStatePropertyAll(Size(48, 64)),
-                padding: const WidgetStatePropertyAll(
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                ),
-                textStyle: WidgetStatePropertyAll(
-                  AppText.caption.copyWith(fontWeight: FontWeight.w700),
-                ),
-                iconSize: const WidgetStatePropertyAll(20),
-                alignment: Alignment.center,
-              );
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  SizedBox(
-                    width: width,
-                    child: PressBounce(
-                      child: OutlinedButton.icon(
-                        key: const ValueKey('calendar-hours-button'),
-                        style: style,
-                        onPressed: () => openWorkplaceHours(context, ops),
-                        icon: const Icon(Icons.schedule),
-                        label: const Text(
-                          '영업시간·인원',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (model.editable)
-                    SizedBox(
-                      width: width,
-                      child: PressBounce(
-                        child: FilledButton.icon(
-                          key: const ValueKey('calendar-crew-pattern-button'),
-                          style: style,
-                          onPressed: () => showAppFormSheet(
-                            context: context,
-                            maxWidth: 1440,
-                            builder: (_) => CrewAllocationScreen(
-                              ops: ops,
-                              day: model.selected,
-                            ),
-                          ),
-                          icon: const Icon(Icons.people_outline),
-                          label: const Text(
-                            '크루별 근무 배정',
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
@@ -1422,6 +1292,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: Text('날짜를 눌러 추가 휴무·업무일을 지정해요.', style: AppText.caption),
           ),
         if (model.month) month() else week(),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            key: const ValueKey('calendar-hours-button'),
+            onPressed: () => openWorkplaceHours(context, ops),
+            icon: const Icon(Icons.schedule),
+            label: const Text('영업시간·인원'),
+          ),
+        ),
+        ShiftChangePanel(ops: ops),
       ],
     ),
   );

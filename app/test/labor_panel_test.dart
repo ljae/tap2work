@@ -150,7 +150,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('파트별'), findsOneWidget);
+      expect(find.text('파트별'), findsNothing);
+      expect(find.byKey(const ValueKey('roster-time-axis')), findsOneWidget);
       // One cook cannot fulfill two simultaneous requirements.
       expect(find.textContaining('미배정'), findsNothing);
       expect(tester.takeException(), isNull);
