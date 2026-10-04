@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 150,
+  "revision": 151,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -5047,7 +5047,15 @@
       "reason": "사용자가 시간설정 명칭을 영업시간 설정으로 변경하고 휴무일 토글·요일 선택을 영업시간 바 아래, 2교대 이상 위로 이동하도록 요청했다.",
       "detail": "휴무일 토글·요일 선택을 BusinessHoursSlider.shiftControls의 첫 컨트롤로 이동했다. 영업일이 모두 휴무인 경우에도 휴무일 컨트롤을 표시해 영업을 재개할 수 있다. 안내 문구와 관련 테스트·캡처 도구의 탭 명칭 및 아키텍처·설정 관계표·UI 지침을 갱신했다. 저장 API·요일 및 시간대 ID 계약은 유지한다.",
       "verification": "Flutter analyze 통과. 관련 Flutter 위젯·캡처 42/42, 서버 11/11, check:ui-links 30개 및 git diff --check 통과. 320/390/1200px 캡처에서 명칭·영업시간 바 → 휴무일 토글 → 요일 선택 → 2교대 이상 배치를 확인했다. npm run build:app 웹 빌드 성공. 초기 테스트에서 동일 명칭의 배경 진입점까지 찾는 1건이 실패해 탭 버튼으로 범위를 제한하고 재실행 후 통과했다. 공개 배포·네이티브 빌드·실기기 검증은 미수행."
+    },
+    {
+      "at": "2026-10-04T02:12:55.319955+00:00",
+      "type": "deployment",
+      "title": "영업시간 설정 명칭·휴무일 바 아래 배치 배포 완료",
+      "decisionId": "D-070",
+      "detail": "사용자 요청으로 8a36ed8d2f9ecdd36b0b408bd1181ef376550f93를 https://tap2.work에 게시했다. GitHub Pages run 37170142558 성공. 최신 origin/main 기반 별도 checkout에서 이번 수정 12개 파일만 반영했다. 영업시간 설정/인원 배치 탭 명칭과 영업시간 바 → 휴무일 토글·요일 선택 → 2교대 이상 배치를 배포했다.",
+      "verification": "배포 checkout Flutter analyze·전체 테스트 242/242, 서버 153/153 및 npm run check 통과. GitHub CI 검사·테스트·웹 빌드·Pages 게시 성공. 공개 HTTPS HTML·해시 main/bootstrap HTTP 200 및 Pages artifact와 바이트 일치. main SHA256 b8b7fb517519e0093d004056ec208eef280270368d7018e886c63529d8d3da51. Artifact에 .local/developer/project-state.json 없음. 설치형 iOS 실기기와 실제 매장 설정 변경은 검증하지 않음."
     }
   ],
-  "updatedAt": "2026-10-04T02:04:44.869347+00:00"
+  "updatedAt": "2026-10-04T02:12:55.319955+00:00"
 }
