@@ -931,23 +931,29 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             ),
         ],
       ),
-      if (!allHours)
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (var d = 1; d <= 7; d++)
-              if ((days['$d'] as List).isNotEmpty)
-                ChoiceChip(
-                  showCheckmark: false,
-                  label: Text(dayNames[d - 1]),
-                  selected: weekday == d,
-                  onSelected: saving
-                      ? null
-                      : (_) => setState(() => weekday = d),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (var d = 1; d <= 7; d++)
+            ChoiceChip(
+              showCheckmark: false,
+              label: Text(
+                dayNames[d - 1],
+                style: TextStyle(
+                  decoration: (days['$d'] as List).isEmpty
+                      ? TextDecoration.lineThrough
+                      : null,
                 ),
-          ],
-        ),
+              ),
+              selected:
+                  (days['$d'] as List).isNotEmpty && (allHours || weekday == d),
+              onSelected: saving || (days['$d'] as List).isEmpty
+                  ? null
+                  : (_) => setState(() => weekday = d),
+            ),
+        ],
+      ),
     ],
     if (hoursStep == 0 && dayBands.isNotEmpty) ...[
       BusinessHoursSlider(
@@ -1449,6 +1455,11 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       footer: hasSaveFooter
           ? AppSheetFooter(
               children: [
+                if (widget.section == 'hours' && hoursStep == 1)
+                  const Text(
+                    '저장 후 크루 배정과 근무표를 별도로 적용해 주세요.',
+                    style: AppText.caption,
+                  ),
                 if (error != null)
                   Text(
                     error!,

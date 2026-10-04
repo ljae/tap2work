@@ -266,3 +266,18 @@ CrewWeekGrid replaces the vertical weekday list with weekday columns and time ro
 Latest weekday-selector correction (2026-10-03): supersedes the preceding closed-day placement and sizing notes. The closed-day switch comes BEFORE its weekday selector. Closed-day FilterChip and individual-day ChoiceChip share the existing ChipTheme, plain text labels, 8px spacing and no checkmark. Remove closed-day-only 48px width / 24px label constraints. Both rows now have matching button geometry; multiple closed-day selection and single editing-day selection retain their existing actions and save consumers. Shift and break switches remain below their tracks. Capture both rows together at 320/390/1200px.
 
 2026-10-04 사용자 수정: 탭 이름은 `영업시간 설정 / 인원 배치`다. 영업시간 바 아래에 휴무일 토글과 ON일 때 나타나는 월~일 선택 버튼을 함께 배치하고, 그 아래에 2교대 이상 토글·선택을 둔다. 영업일이 없을 때도 휴무일 컨트롤을 유지해 영업일을 다시 열 수 있다. S03의 `workplace.days` → 휴무일 토글·요일 선택 → `toggleClosedDays`/`setClosedDay` → `save_workplace_hours` → 근무표·업무 담당 연결과 저장 계약을 유지한다.
+
+
+## 근무 배정 3단계 · 2026-10-04 최신 사용자 변경
+
+이 절은 위의 날짜별 카드/별도 시간표 및 브레이크 슬롯 차감 규칙을 대체한다.
+
+- 영업시간·인원 → 크루별 기본 배정 → 날짜별 근무표 조정. 설정 변경은 기존 `staffShifts`를 자동 재생성하지 않는다. `workplace.hoursVersion`, 패턴의 `hoursVersion/version/appliedVersion/appliedHoursVersion/appliedRange`로 재검토/기간 적용 필요를 표시한다. 적용 상태는 마지막 명시적 기간에 관한 것으로 전체 미래 달력 동기화를 뜻하지 않는다.
+- 브레이크는 독립 참고 정보다. 토글 아래 별도 조정 바를 두고 전체 영업시간 바 하단에 amber 띠를 겹쳐 표시한다. `parts.mjs`의 필요 슬롯 생성은 브레이크를 빼거나 분할하지 않는다. 교대 ID·시각, 기존 배정·휴게/급여는 변경하지 않는다.
+- 영업시간/인원 배치에서 전체·개별 모두 월~일 칩을 표시한다. 전체는 영업일만 초록 선택하고 휴무일은 취소선·비선택으로 표시한다.
+- `CrewAllocationScreen`은 영업시간 원본의 교대 행 × 활성 파트 열 × 필요 인원 셀을 읽는다. 등록된 크루의 길게 누르기 드래그/탭 선택, 슬롯 이동·해제, 미배정 표시를 제공한다. 동일 크루의 파트/시간 중복은 초안과 서버에서 검사한다. 기존 A/B 패턴은 주 이동으로 편집하며 anchor/cycle을 보존한다. 이전 설정과 맞지 않는 배정도 별도 확인 목록으로 남긴다.
+- `save_crew_allocations(patterns[])`는 변경한 크루 패턴들을 원자 저장하고 `apply_crew_allocations(from,until)`는 모든 활성 크루의 저장된 패턴을 원자 적용한다. 기존 단일 크루 API 검증·revision·직책 제한·승인/출퇴근/대기 신청 보호를 재사용한다. 실패 시 초안을 유지한다.
+- 근무표의 유일한 일별 보기는 파트 가로축·시간 세로축이다. 날짜 탭은 주간 이동을 유지하며 시간표 메뉴와 파트 필터를 제거한다. 배정된 크루만 보여주고 직원은 본인 배정만 표시한다. 미배정은 기본 배정 화면에서 확인한다. 실제 배정 블록의 휠 편집/드래그/종료 손잡이는 기존 날짜별 저장을 유지한다.
+- `workplace.dateOverrides[YYYY-MM-DD]`: `{closed:true}` 또는 `{closed:false,weekday:1..7}`. `save_calendar_day(date,mode,weekday?)`는 월간 날짜 예외이며 정기 영업 요일을 바꾸지 않는다. 추가 영업은 참고 요일의 시간·기본 크루를 명시적 기간 적용 시 사용한다. 추가 휴무는 해당 영업일의 미래·미시작·보호되지 않은 배정을 해제하고 `calendarDayHistory`에 원본을 보존한다(응답에서는 제외). 시작/승인/대타/출퇴근/대기 신청이 있으면 전체 변경을 거절한다. reset은 예외만 제거하며 해제된 근무의 자동 복원은 하지 않는다. 추가 영업/복원 후 기간 적용이 필요함을 UI에서 알린다.
+
+Schedule density (2026-10-04): use 48px/hour for long assignments; if any assignment is shorter than two hours, expand to 48px/half-hour. Resize uses the same scale. Monthly cells focus on operating-day exceptions and omit duplicate crew counts.

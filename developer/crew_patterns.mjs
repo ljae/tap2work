@@ -9,8 +9,19 @@ const dateAt = (date, n) => new Date(Date.parse(`${date}T00:00:00Z`) + n * 86400
 // Base assignments stay on each generated shift. Calendar edits change only the
 // effective fields, so reapplication is explicit, bounded and atomic.
 export function mutateCrewPattern(state, input, actor, now, activity, validShift, validateOverlap, interval) {
-  if (!['save_crew_pattern', 'apply_crew_pattern'].includes(input.action)) return false;
+  if (!['save_crew_pattern', 'apply_crew_pattern', 'save_crew_allocations', 'apply_crew_allocations'].includes(input.action)) return false;
   if (!['owner', 'manager'].includes(actor.role)) fail('매니저 이상만 배정할 수 있어요.', 403);
+  if (input.action === 'save_crew_allocations' || input.action === 'apply_crew_allocations') {
+    const saving = input.action === 'save_crew_allocations';
+    const rows = saving ? input.patterns : (state.crewPatterns ?? []).filter(p => state.tappers.some(t => t.id === p.tapperId && t.active));
+    if (!Array.isArray(rows) || !rows.length || rows.length > state.tappers.length || new Set(rows.map(p => p.tapperId)).size !== rows.length) fail('배정할 크루를 확인해 주세요.');
+    // OperationsStore commits only after every member passes validation.
+    for (const row of rows) mutateCrewPattern(state, {
+      ...row, action: saving ? 'save_crew_pattern' : 'apply_crew_pattern',
+      from: input.from, until: input.until,
+    }, actor, now, activity, validShift, validateOverlap, interval);
+    return true;
+  }
   if (!state.tappers.some(t => t.id === input.tapperId && t.active)) fail('크루를 찾지 못했어요.',404);
   const old = (state.crewPatterns ?? []).find(p => p.tapperId === input.tapperId);
   if (input.action === 'save_crew_pattern') {
@@ -27,7 +38,7 @@ export function mutateCrewPattern(state, input, actor, now, activity, validShift
       const s = { ...e, id: randomUUID(), tapperId: input.tapperId, date: actualDate(state,dateAt(input.anchor, w * 7 + e.weekday - 1),e.start) };
       validateOverlap({ staffShifts: proposed }, s); proposed.push(s);
     }
-    const pattern = { id: old?.id ?? randomUUID(), tapperId: input.tapperId, cycleWeeks: input.cycleWeeks, anchor: input.anchor, entries };
+    const pattern = { id: old?.id ?? randomUUID(), tapperId: input.tapperId, cycleWeeks: input.cycleWeeks, anchor: input.anchor, entries, hoursVersion: state.workplace?.hoursVersion ?? 0, version: (old?.version ?? 0) + 1, appliedVersion: old?.appliedVersion, appliedHoursVersion: old?.appliedHoursVersion };
     state.crewPatterns = [...(state.crewPatterns ?? []).filter(p => p !== old), pattern];
     activity('크루 주간 기본 배정 저장'); return true;
   }
@@ -56,14 +67,21 @@ export function mutateCrewPattern(state, input, actor, now, activity, validShift
     if (preservedDates.has(date)) continue;
     const offset = Math.floor((Date.parse(date) - Date.parse(old.anchor)) / 604800000);
     const week = ((offset % old.cycleWeeks) + old.cycleWeeks) % old.cycleWeeks;
-    for (const e of old.entries.filter(e => e.week === week && e.weekday === weekday)) {
-      const shift = { ...validShift({ ...e, date:actualDate(state,date,e.start), tapperId: old.tapperId }, state), ...timeBandFields(state, e, weekday) };
+    const exception = state.workplace?.dateOverrides?.[date];
+    if (exception?.closed === true) continue;
+    const sourceDay = exception?.weekday ?? weekday;
+    if (!exception && state.workplace?.days?.[weekday]?.length === 0) continue;
+    for (const e of old.entries.filter(e => e.week === week && e.weekday === sourceDay)) {
+      const shift = { ...validShift({ ...e, date:actualDate(state,date,e.start), tapperId: old.tapperId }, state), ...timeBandFields(state, e, sourceDay) };
       const [start, end] = interval(shift);
       if (start <= now.getTime() || protectedIntervals.some(([a,b]) => start < b && a < end)) continue;
       validateOverlap({ staffShifts: next }, shift);
-      next.push({ ...shift, id: randomUUID(), status: 'planned', patternId: old.id, base: { ...timeBandFields(state, e, weekday), businessDate:date, date:shift.date, partId: shift.partId, start: shift.start, end: shift.end } });
+      next.push({ ...shift, id: randomUUID(), status: 'planned', patternId: old.id, base: { ...timeBandFields(state, e, sourceDay), businessDate:date, date:shift.date, partId: shift.partId, start: shift.start, end: shift.end } });
     }
   }
   state.staffShifts = next;
+  old.appliedVersion = old.version ?? 0;
+  old.appliedHoursVersion = state.workplace?.hoursVersion ?? 0;
+  old.appliedRange = {from: input.from, until: input.until};
   activity(`크루 기본 배정 적용 · ${input.from}~${input.until}`); return true;
 }

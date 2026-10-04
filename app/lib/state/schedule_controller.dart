@@ -42,7 +42,20 @@ class ScheduleController extends ChangeNotifier {
   List<WorkPart> get visibleParts =>
       parts.where((p) => partId == null || p.id == partId).toList();
   List<RosterSlot> slots(DateTime day) =>
-      slotsForDay(operations.data ?? {}, day, visibleParts);
+      slotsForDay(operations.data ?? {}, day, visibleParts)
+          .where(
+            (s) =>
+                s.crewId != null &&
+                (operations.isLeader ||
+                    operations
+                        .rows('tappers')
+                        .any(
+                          (p) =>
+                              p['id'] == s.crewId &&
+                              p['actorId'] == operations.actorId,
+                        )),
+          )
+          .toList();
   bool get editable =>
       operations.isLeader &&
       operations.data?['canEditSchedule'] != false &&

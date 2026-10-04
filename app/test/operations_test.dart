@@ -123,13 +123,11 @@ void main() {
       expect(find.widgetWithText(TextButton, '영업시간 설정'), findsOneWidget);
       await tester.tap(find.widgetWithText(TextButton, '영업시간 설정'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('2교대 이상'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('2교대 이상'));
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text('3교대'),
-        200,
-        scrollable: find.byType(Scrollable).last,
-      );
+      await tester.ensureVisible(find.text('3교대'));
       expect(find.text('3교대'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },

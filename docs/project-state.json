@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 151,
+  "revision": 153,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -653,21 +653,21 @@
       "id": "D-065",
       "category": "Schedule UI",
       "title": "Assignment results, explicit vacancies and weekly crew grid",
-      "status": "confirmed",
+      "status": "superseded",
       "decision": "Show actual crew assignments and separately mark only uncovered required intervals with an assignment action. Edit crew patterns using weekday columns and time rows, adding via empty cells and editing existing blocks.",
       "reason": "User requested the supplied schedule reference and a whole-week time-grid assignment workflow.",
       "source": "User request 2026-10-01 with schedule reference image",
-      "updatedAt": "2026-10-01T10:13:21.150966+00:00"
+      "updatedAt": "2026-10-04T06:45:24.056151+00:00"
     },
     {
       "id": "D-066",
       "category": "근무표 UI",
       "title": "날짜 탭과 파트별 근무 카드",
-      "status": "confirmed",
+      "status": "superseded",
       "decision": "사용자 제공 이미지에 맞춰 기본 주간 보기를 날짜 탭과 세로 파트 카드로 구성한다. 크루 이름·시간·배정 상태와 미배정을 구분한다. 기존 시간축은 시간표 보기에서 유지한다.",
       "reason": "사용자가 해당 이미지와 유사한 달력 근무표 UI 개선을 요청했다.",
       "source": "사용자 이미지 요청 · 2026-10-01",
-      "updatedAt": "2026-10-01T11:49:31.824390+00:00"
+      "updatedAt": "2026-10-04T06:45:24.056151+00:00"
     },
     {
       "id": "D-067",
@@ -704,10 +704,20 @@
       "category": "UI/UX·영업시간",
       "title": "휴무일·복수 교대의 선택형 토글",
       "status": "confirmed",
-      "decision": "영업시간 설정/인원 배치 두 탭을 사용한다. 영업시간 바 아래에 휴무일 토글과 ON일 때 표시되는 월~일 선택 버튼을 배치하고 그 아래에 2교대 이상 토글·선택을 둔다. 휴무일 요일 버튼은 개별 편집 요일 선택과 같은 크기 및 간격을 사용한다. 브레이크 토글은 해당 바 아래에 둔다. ON일 때만 관련 선택 UI를 표시한다.",
-      "reason": "사용자가 시간설정 명칭을 영업시간 설정으로 변경하고 휴무일 토글·요일 선택을 영업시간 바 아래, 2교대 이상 위로 이동하도록 요청했다.",
+      "decision": "영업시간 설정/인원 배치 두 탭을 유지한다. 휴무일 토글·요일 선택은 영업시간 바 아래, 2교대 이상 위에 둔다. 브레이크 조정 바는 토글 아래에 두고 전체 영업시간 바에는 주황색 참고 띠로 표시한다. 전체/개별 모두 요일을 표시하며 전체 선택은 휴무일 제외 영업일 모두 초록색이다. 인원 배치에도 같은 표시를 적용한다.",
+      "reason": "2026-10-04 사용자 후속 요청: 단계별 설정 흐름, 독립 브레이크, 미배정 위치와 월간 용도를 명시했다.",
       "source": "사용자 수정 요청 · 2026-10-04",
-      "updatedAt": "2026-10-04T02:04:44.869347+00:00"
+      "updatedAt": "2026-10-04T06:45:24.056151+00:00"
+    },
+    {
+      "id": "D-071",
+      "category": "Schedule workflow",
+      "title": "슬롯별 크루 배정·파트 시간축·월간 영업일 예외",
+      "status": "confirmed",
+      "decision": "영업시간·인원 → 크루별 기본 배정 → 날짜별 근무표 조정으로 진행한다. 크루는 교대×파트 필요 슬롯에 drag/tap으로 배정하고 미배정은 이 화면에 모은다. 근무표는 배정 크루만 파트 가로/시간 세로로 표시하며 세부 시간을 수정한다. 시간표 메뉴·파트 필터는 제거하고 직원은 본인 근무만 표시한다. 월간은 추가 휴무/업무일 지정에 사용한다. 앞 설정 변경 후 명시적 기간 적용과 근무표 조정이 필요함을 안내한다. 브레이크는 교대/인원 시간과 독립인 참고 표시다.",
+      "reason": "2026-10-04 사용자 후속 요청: 단계별 설정 흐름, 독립 브레이크, 미배정 위치와 월간 용도를 명시했다.",
+      "source": "User request 2026-10-04",
+      "updatedAt": "2026-10-04T06:45:24.056151+00:00"
     }
   ],
   "milestones": [
@@ -4957,6 +4967,14 @@
       "verification": "배포 checkout Flutter 전체 240/240, analyze, 서버 150/150 및 npm run check 통과. GitHub CI 검증·웹 빌드·게시 성공. HTTPS index.html·main.dart.js·flutter_bootstrap.js가 HTTP 200이며 CI Pages artifact와 바이트 단위 일치. main.dart.js SHA256 090762b6b305e272adb79cf1d4c15c945f96b47a56000a50bf847102bc7f18ba. 게시 artifact에 .local/·developer/·project-state.json 없음. 배포 후 인증 사용자 설정 변경 및 네이티브 실기기 검증은 미수행."
     },
     {
+      "at": "2026-10-03T13:07:59.000000+00:00",
+      "type": "research",
+      "title": "기능·업종별 오프라인 자영업 체크리스트 출처 카탈로그",
+      "decisionId": "D-025",
+      "detail": "공개 자료를 Aside CLI로 조사하고 docs/wiki/OFFLINE_BUSINESS_CHECKLIST_CATALOG.md에 기능별 체크리스트 지도, 기존 26개 업종의 업무 색인, 출처·관할·본문 확인 범위와 제한을 정리했다. 영국 FSA의 개점·폐점 및 재고 관리 PDF, 영국 HSE 청소·드라이클리닝 자료와 개인정보보호위원회의 2024.12 소상공인 핸드북 및 CCTV/고객관리 안내를 확인했다. 상세 작업 초안은 기존 체크리스트 위키와 JSON 카탈로그를 참조한다. 해외 자료와 편집 제안을 한국 법령·현장 승인으로 표시하지 않는다.",
+      "verification": "Aside CLI 1.26.916.1741 업데이트 확인 및 guide 실행. FSA 개점·폐점/재고 PDF와 HSE SR4/SR5/SR6 PDF를 Aside PDF 텍스트 추출, 개인정보 핸드북 일부 페이지, 개인정보위 CCTV·고객관리 페이지를 브라우저에서 확인. 문서 링크·출처 구분 검토와 git diff --check 수행. 앱·서버 테스트는 문서 조사 범위여서 실행하지 않음. 일부 업종별 한국 공식 점검표는 추가 조사가 필요하며 문서에 제한으로 기록함."
+    },
+    {
       "at": "2026-10-03T13:21:42.318124+00:00",
       "type": "implementation",
       "title": "휴무일·2교대 이상 토글 및 조건부 선택 UI",
@@ -5055,7 +5073,22 @@
       "decisionId": "D-070",
       "detail": "사용자 요청으로 8a36ed8d2f9ecdd36b0b408bd1181ef376550f93를 https://tap2.work에 게시했다. GitHub Pages run 37170142558 성공. 최신 origin/main 기반 별도 checkout에서 이번 수정 12개 파일만 반영했다. 영업시간 설정/인원 배치 탭 명칭과 영업시간 바 → 휴무일 토글·요일 선택 → 2교대 이상 배치를 배포했다.",
       "verification": "배포 checkout Flutter analyze·전체 테스트 242/242, 서버 153/153 및 npm run check 통과. GitHub CI 검사·테스트·웹 빌드·Pages 게시 성공. 공개 HTTPS HTML·해시 main/bootstrap HTTP 200 및 Pages artifact와 바이트 일치. main SHA256 b8b7fb517519e0093d004056ec208eef280270368d7018e886c63529d8d3da51. Artifact에 .local/developer/project-state.json 없음. 설치형 iOS 실기기와 실제 매장 설정 변경은 검증하지 않음."
+    },
+    {
+      "at": "2026-10-04T06:45:24.056151+00:00",
+      "type": "implementation",
+      "title": "슬롯별 크루 배정·파트 시간축·월간 영업일 예외",
+      "decisionId": "D-071",
+      "previous": {
+        "D-065": "Show actual crew assignments and separately mark only uncovered required intervals with an assignment action. Edit crew patterns using weekday columns and time rows, adding via empty cells and editing existing blocks.",
+        "D-066": "사용자 제공 이미지에 맞춰 기본 주간 보기를 날짜 탭과 세로 파트 카드로 구성한다. 크루 이름·시간·배정 상태와 미배정을 구분한다. 기존 시간축은 시간표 보기에서 유지한다.",
+        "D-070": "영업시간 설정/인원 배치 두 탭을 사용한다. 영업시간 바 아래에 휴무일 토글과 ON일 때 표시되는 월~일 선택 버튼을 배치하고 그 아래에 2교대 이상 토글·선택을 둔다. 휴무일 요일 버튼은 개별 편집 요일 선택과 같은 크기 및 간격을 사용한다. 브레이크 토글은 해당 바 아래에 둔다. ON일 때만 관련 선택 UI를 표시한다."
+      },
+      "next": "영업시간·인원 → 크루별 기본 배정 → 날짜별 근무표 조정으로 진행한다. 크루는 교대×파트 필요 슬롯에 drag/tap으로 배정하고 미배정은 이 화면에 모은다. 근무표는 배정 크루만 파트 가로/시간 세로로 표시하며 세부 시간을 수정한다. 시간표 메뉴·파트 필터는 제거하고 직원은 본인 근무만 표시한다. 월간은 추가 휴무/업무일 지정에 사용한다. 앞 설정 변경 후 명시적 기간 적용과 근무표 조정이 필요함을 안내한다. 브레이크는 교대/인원 시간과 독립인 참고 표시다.",
+      "reason": "2026-10-04 사용자 후속 요청: 단계별 설정 흐름, 독립 브레이크, 미배정 위치와 월간 용도를 명시했다.",
+      "detail": "브레이크 바를 토글 아래로 이동하고 전체 영업시간 바에 amber 띠를 표시한다. 필요 슬롯에서 브레이크 차감을 제거한다. 영업시간/인원 전체 선택 시 영업일 모두 초록 선택, 휴무일은 비선택으로 표시한다. CrewAllocationScreen과 원자적 save_crew_allocations/apply_crew_allocations를 추가했다. hoursVersion과 패턴 source/applied version으로 재검토 필요를 표시한다. CalendarScreen은 배정만 표시하는 파트 시간축이며 날짜별 휠·drag·resize를 유지한다. 긴 근무는 1시간=48px, 2시간 미만 근무가 있으면 30분=48px로 표시한다. 월간 dateOverrides/save_calendar_day는 추가 영업의 참고 요일 또는 추가 휴무를 저장한다. 휴무는 미래 미시작 배정만 해제하고 서버 이력에 보관한다. 시작/승인/대타/출퇴근/대기 신청은 변경을 거절해 보존한다. 추가 영업/복원은 별도 기간 적용을 안내한다.",
+      "verification": "flutter analyze 이상 없음. 전체 Flutter 251/251, 서버 158/158, npm run check, check:ui-links 32개, git diff --check 통과. 초기 이전 UI 기대 테스트·lint 및 압축 시간축의 drag/resize 충돌을 수정 후 재검증했다. 320/390/1200px·1.5배 글자, 드래그 미리보기·탭 배정·충돌 초안 유지·원자성·권한·KST 야간·승인 보호 검증. 시각 캡처 도구 1/1 통과, 12개 캡처 생성 및 대표 320/390px 확인(.local/schedule-flow-review). npm run build:app 웹 빌드 성공. 공개 사이트/Supabase 배포와 Android/iOS 네이티브 빌드·실기기 검증은 미수행."
     }
   ],
-  "updatedAt": "2026-10-04T02:12:55.319955+00:00"
+  "updatedAt": "2026-10-04T06:45:24.056151+00:00"
 }

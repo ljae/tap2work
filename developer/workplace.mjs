@@ -1,3 +1,4 @@
+import { businessDate } from './business_day.mjs';
 import { normalizeBreaks } from './business_breaks.mjs';
 import { defaultWorkplace, workplaceBands, workplaceBandDays, validatePart, rosterTemplates, validRosterDate, validRosterTimes } from './parts.mjs';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -42,7 +43,7 @@ function normalizeBands(state, bands, oldRows, day) {
 export const permissionActions = {
   tasks: ['edit_work_node', 'edit_manual_node', 'save_task_step', 'reorder_small_taps', 'reorder_big_taps', 'create_task', 'save_checklists', 'save_tap_settings', 'save_step_manual', 'move_manual_node', 'import_recommended_taps'],
   complete: ['complete_task', 'complete_step', 'reopen_step', 'move_tap', 'complete_preparation'],
-  schedule: ['save_crew_pattern', 'apply_crew_pattern', 'save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'delete_staff_shift', 'save_staffing_slots', 'assign_staffing_slot', 'save_staff_shift', 'save_shift_pattern', 'assign_cover', 'update_shift'],
+  schedule: ['save_calendar_day', 'save_crew_allocations', 'apply_crew_allocations', 'save_crew_pattern', 'apply_crew_pattern', 'save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'delete_staff_shift', 'save_staffing_slots', 'assign_staffing_slot', 'save_staff_shift', 'save_shift_pattern', 'assign_cover', 'update_shift'],
   stock: ['check_stock', 'count_prepared_item'],
   orders: ['place_order', 'receive_order'],
 };
@@ -61,7 +62,7 @@ export function checkWorkplacePermission(state, actor, action) {
   }
 }
 export function mutateWorkplace(state, input, actor, now, activity, authenticated) {
-  const actions = ['save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'save_order_system', 'save_workplace_hours', 'save_workplace_parts', 'save_workplace_day', 'save_workplace_permissions', 'save_staff_profile', 'create_demo_invite', 'revoke_demo_invite'];
+  const actions = ['save_calendar_day', 'save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'save_order_system', 'save_workplace_hours', 'save_workplace_parts', 'save_workplace_day', 'save_workplace_permissions', 'save_staff_profile', 'create_demo_invite', 'revoke_demo_invite'];
   if (!actions.includes(input.action)) return false;
   if (['save_roster_slot','delete_roster_slot','reset_roster_slot'].includes(input.action)) {
     if (!['owner','manager'].includes(actor.role)) fail('매니저 이상만 슬롯을 바꿀 수 있어요.', 403);
@@ -75,6 +76,26 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
     if (input.action === 'save_roster_slot') state.rosterOverrides.push({ date: input.date, partId: input.partId, templateId: input.templateId, name: input.name == null ? template?.name ?? existing.name : (()=>{if(typeof input.name !== 'string' || !input.name.trim() || input.name.trim().length>100)fail('이름은 1~100자로 입력해 주세요.');return input.name.trim();})(), start: input.start, end: input.end });
     if(input.action === 'delete_roster_slot') state.rosterOverrides.push({...template,...existing,date:input.date,partId:input.partId,templateId:input.templateId,hidden:true});
     activity('날짜별 파트 슬롯 시간 조정'); return true;
+  }
+  if (input.action === 'save_calendar_day') {
+    if (!['owner','manager'].includes(actor.role)) fail('매니저 이상만 일정을 바꿀 수 있어요.',403);
+    validRosterDate(input.date);
+    if (input.date < businessDate(state,now)) fail('오늘 이후 일정을 선택해 주세요.');
+    if (!['closed','open','reset'].includes(input.mode)) fail('영업 여부를 선택해 주세요.');
+    const days = workplaceBandDays(state,{includeHours:true});
+    if (input.mode === 'open' && (!Number.isInteger(input.weekday) || input.weekday < 1 || input.weekday > 7 || !days[input.weekday]?.length)) fail('참고할 영업 요일을 선택해 주세요.');
+    const affected = state.staffShifts.filter(s => businessDate(state,`${s.date}T${s.start}:00+09:00`) === input.date);
+    if (input.mode === 'closed') {
+      if (affected.some(s => s.status !== 'planned' || s.approvedRequestId || s.replacementForRequestId || Date.parse(`${s.date}T${s.start}:00+09:00`) <= now.getTime() || (state.shiftChangeRequests ?? []).some(r => r.shiftId === s.id && r.status === 'pending') || (state.attendance ?? []).some(a => a.tapperId === s.tapperId && businessDate(state,a.at) === input.date))) fail('이미 시작했거나 승인·출퇴근·신청 기록이 있는 근무는 먼저 확인해 주세요.',409);
+      state.calendarDayHistory ??= [];
+      state.calendarDayHistory.push({date:input.date,at:now.toISOString(),shifts:structuredClone(affected)});
+      state.staffShifts = state.staffShifts.filter(s => !affected.includes(s));
+    }
+    state.workplace ??= workplaceDefaults();
+    state.workplace.dateOverrides ??= {};
+    if (input.mode === 'reset') delete state.workplace.dateOverrides[input.date];
+    else state.workplace.dateOverrides[input.date] = input.mode === 'closed' ? {closed:true} : {closed:false,weekday:input.weekday};
+    activity('월간 영업일 예외 설정'); return true;
   }
   if (actor.role !== 'owner') fail('사장님만 이 설정을 바꿀 수 있어요.', 403);
   const config = structuredClone(state.workplace ?? workplaceDefaults());
@@ -112,10 +133,12 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
         next[day] = normalizeBands(state, bands, config.days?.[day], day);
       }
       config.breaks = normalizeBreaks(next, input.breaks ?? Object.fromEntries(Object.entries(config.breaks ?? {}).filter(([d]) => next[d]?.length)), config.businessDayStart);
+      if (JSON.stringify(config.days) !== JSON.stringify(next) || config.businessDayStart !== state.workplace?.businessDayStart) config.hoursVersion = (config.hoursVersion ?? 0) + 1;
       config.days = next;
       break;
     }
     case 'save_workplace_day': {
+      config.hoursVersion = (config.hoursVersion ?? 0) + 1;
       if (!Number.isInteger(input.weekday) || input.weekday < 1 || input.weekday > 7) fail('요일을 확인해 주세요.');
       config.days ??= {};
       for (const day of input.allDays === true ? [1,2,3,4,5,6,7] : [input.weekday]) {

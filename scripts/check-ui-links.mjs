@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S37', 'app/lib/ui/crew_allocation_screen.dart', "'save_crew_allocations'", 'developer/crew_patterns.mjs', "'apply_crew_allocations'"],
+  ['S39', 'app/lib/ui/calendar_screen.dart', "'save_calendar_day'", 'developer/workplace.mjs', "input.action === 'save_calendar_day'"],
   ['S28', 'app/lib/ui/crew_pattern_screen.dart', "'save_crew_pattern'", 'developer/crew_patterns.mjs', "'apply_crew_pattern'"],
   ['S29', 'app/lib/ui/shift_change_panel.dart', "'request_shift_change'", 'developer/shift_requests.mjs', "'review_shift_change'"],
   ['E07', 'app/lib/ui/cloud_workspace.dart', "'setup_shared_employee'", 'developer/supabase_backend.mjs', "query.get('view') === 'employee'"],

@@ -58,6 +58,8 @@ List<RosterSlot> slotsForDay(
   final date = rosterDate(day);
   final boundary = data['workplace']?['businessDayStart'] ?? '00:00';
   int offset(String time) => time.compareTo(boundary) < 0 ? 1 : 0;
+  final exception = data['workplace']?['dateOverrides']?[date] as Map?;
+  final sourceDay = exception?['weekday'] ?? day.weekday;
   final templates = (data['rosterTemplates'] as List? ?? []).cast<Json>();
   final overrides = (data['rosterOverrides'] as List? ?? [])
       .cast<Json>()
@@ -73,7 +75,9 @@ List<RosterSlot> slotsForDay(
   final crew = (data['tappers'] as List? ?? []).cast<Json>();
   final result = <RosterSlot>[];
   final seen = <String>{};
-  for (final template in templates.where((t) => t['weekday'] == day.weekday)) {
+  for (final template in templates.where(
+    (t) => exception?['closed'] != true && t['weekday'] == sourceDay,
+  )) {
     final override = overrides
         .where(
           (o) =>

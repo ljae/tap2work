@@ -203,3 +203,10 @@ Show actual assignments using crew names/colors and only the uncovered intervals
 2026-10-03 토글 추가: 영업시간 설정의 옵션 순서는 `휴무일 → 2교대 이상 → 브레이크 타임`이다. 세 옵션 모두 같은 SwitchListTile을 사용하고 ON일 때만 해당 요일/교대 수/브레이크 조정 UI를 표시한다. 휴무일 OFF는 매일 영업, 2교대 이상 OFF는 1교대다. 2교대 이상 ON은 2교대를 기본 적용하고 2/3교대를 선택한다. 영업 시작·종료 막대는 1교대에도 표시한다. 저장된 휴무·복수 교대·브레이크는 처음부터 ON으로 반영하며 변경은 최종 저장에서 반영한다.
 
 2026-10-04 사용자 수정: 탭 이름은 `영업시간 설정 / 인원 배치`다. 영업시간 바 아래에 휴무일 토글과 ON일 때 나타나는 월~일 선택 버튼을 함께 배치하고, 그 아래에 2교대 이상 토글·선택을 둔다. 영업일이 없을 때도 휴무일 컨트롤을 유지해 영업일을 다시 열 수 있다. S03의 `workplace.days` → 휴무일 토글·요일 선택 → `toggleClosedDays`/`setClosedDay` → `save_workplace_hours` → 근무표·업무 담당 연결과 저장 계약을 유지한다.
+
+
+2026-10-04 최신 근무 배정 흐름: 브레이크 토글 아래 조정 바를 배치하고 전체 영업시간 바에 주황색(amber) 참고 띠를 표시한다. 교대/필요 인원 시간은 브레이크로 분할·차감하지 않는다. 전체/개별 모두 월~일을 보여주며 전체는 휴무일 제외 영업일 모두 초록 선택으로 표시한다. 인원 배치에도 동일 적용한다.
+
+영업시간·인원 → 크루별 기본 배정 → 근무표 조정의 순서를 표시한다. 크루 기본 배정은 교대×파트 필요 슬롯에 크루를 드래그하거나 탭으로 지정하며 미배정을 이 화면에 모은다. 근무표는 배정된 크루만 파트 가로축/시간 세로축에 표시하고 세부 시간을 수정한다. 별도 시간표 메뉴와 파트 필터를 없애며 직원은 본인 근무만 본다. 월간은 정기 일정에 추가 휴무/업무일을 지정하는 화면이다. 앞 설정 변경 후 별도 기간 적용·시간 재조정 필요를 알린다. 짧은 설명은 중복하지 않고 실패·권한·기록 보호는 유지한다. 390px에서는 기본 3파트가 함께 보이도록 열 폭을 잡고 동시 배정/확대 글자는 내부 스크롤을 허용한다.
+
+Schedule density (2026-10-04): use 48px/hour for long assignments; if any assignment is shorter than two hours, expand to 48px/half-hour. Resize uses the same scale. Monthly cells focus on operating-day exceptions and omit duplicate crew counts.

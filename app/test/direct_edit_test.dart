@@ -118,9 +118,25 @@ void main() {
         tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
       );
       Json? sent;
-      await calendar.mount(tester, readOnly: false, write: (v) => sent = v);
+      final initial = calendar.calendarData();
+      initial['staffShifts'] = [
+        {
+          'id': 'assigned',
+          'tapperId': 'cook',
+          'partId': 'kitchen',
+          'date': '2026-09-28',
+          'start': '09:00',
+          'end': '14:00',
+        },
+      ];
+      await calendar.mount(
+        tester,
+        data: initial,
+        readOnly: false,
+        write: (v) => sent = v,
+      );
       final slot = find.byKey(
-        const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0'),
+        const ValueKey('roster-2026-09-28-kitchen-assigned'),
       );
       await tester.ensureVisible(slot);
       await tester.longPress(slot);
@@ -131,11 +147,11 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, '삭제'));
       await tester.pumpAndSettle();
-      expect(sent?['action'], 'delete_roster_slot');
+      expect(sent?['action'], 'delete_staff_shift');
       expect(sent?['date'], '2026-09-28');
       expect(sent?['revision'], 12);
       expect(tester.takeException(), isNull);
-      final data = calendar.calendarData()..['canEditSchedule'] = false;
+      final data = initial..['canEditSchedule'] = false;
       await calendar.mount(tester, readOnly: false, data: data);
       await tester.longPress(slot);
       await tester.pumpAndSettle();

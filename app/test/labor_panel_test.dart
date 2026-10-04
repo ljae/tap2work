@@ -150,9 +150,9 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('주간 배정 현황'), findsOneWidget);
+      expect(find.text('파트별'), findsOneWidget);
       // One cook cannot fulfill two simultaneous requirements.
-      expect(find.text('충족 50% · 미배정 9.0시간'), findsOneWidget);
+      expect(find.textContaining('미배정'), findsNothing);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(
         MaterialApp(

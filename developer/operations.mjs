@@ -306,6 +306,7 @@ export class OperationsStore {
     result.hasSampleArchive = Boolean(state.sampleArchive);
     delete result.sampleArchive;
     delete result.operationEditHistory;
+    delete result.calendarDayHistory;
     Object.assign(result, staffView(state, actor, this.clock()));
     result.workplace = workplaceView(state, actor);
     const ownCrew = state.tappers.find(t => t.actorId === actor.id && t.active);

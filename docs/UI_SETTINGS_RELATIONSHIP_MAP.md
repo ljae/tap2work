@@ -223,3 +223,16 @@ S03은 새 영업일 06:00–22:00/1교대, 브레이크 OFF에서 시작한다.
 Latest weekday-selector correction (2026-10-03): supersedes the preceding closed-day placement and sizing notes. The closed-day switch comes BEFORE its weekday selector. Closed-day FilterChip and individual-day ChoiceChip share the existing ChipTheme, plain text labels, 8px spacing and no checkmark. Remove closed-day-only 48px width / 24px label constraints. Both rows now have matching button geometry; multiple closed-day selection and single editing-day selection retain their existing actions and save consumers. Shift and break switches remain below their tracks. Capture both rows together at 320/390/1200px.
 
 2026-10-04 사용자 수정: 탭 이름은 `영업시간 설정 / 인원 배치`다. 영업시간 바 아래에 휴무일 토글과 ON일 때 나타나는 월~일 선택 버튼을 함께 배치하고, 그 아래에 2교대 이상 토글·선택을 둔다. 영업일이 없을 때도 휴무일 컨트롤을 유지해 영업일을 다시 열 수 있다. S03의 `workplace.days` → 휴무일 토글·요일 선택 → `toggleClosedDays`/`setClosedDay` → `save_workplace_hours` → 근무표·업무 담당 연결과 저장 계약을 유지한다.
+
+
+## 근무 배정 흐름 최신 변경 · 2026-10-04
+
+아래 행은 S03/S27/S28/S36과 이전 브레이크 차감·시간표 전환 설명을 대체한다.
+
+| ID | 원본 → 컨트롤 → 액션 | 저장 후 소비 | 검증 |
+|---|---|---|---|
+| S03 | workplace.days/breaks → 전체·개별 공통 요일 칩, 브레이크 토글 아래 조정 바 → save_workplace_hours | 전체 영업시간 amber 참고 띠, 브레이크와 독립인 교대·필요 슬롯; 영업일 전체 초록 선택·휴무일 제외 | business_hours_slider_test.dart, workplace.test.mjs |
+| S37 | workplace.days/headcounts + crewPatterns → CrewAllocationScreen 교대×파트 슬롯·크루 drag/tap → save_crew_allocations / apply_crew_allocations | 기본 배정만 저장 후 명시적 기간에 staffShifts 생성; 미배정은 이 화면, 이전 설정 배정 보존·표시 | crew_allocation_test.dart, crew_allocations.test.mjs |
+| S38 | workplace.hoursVersion + crewPatterns source/applied versions → 단계 안내·재적용 필요 → 기존 명시적 apply 액션 | 기존 근무표 보존, 재적용의 세부 시간 초기화와 보호 기록 안내 | crew_allocations.test.mjs, schedule_workflow_test.dart |
+| S39 | workplace.dateOverrides → 월간 날짜 클릭 → save_calendar_day(closed/open/reset) | 정기 휴무와 별도 예외, 필요 슬롯·기본 배정 적용의 참고 요일. 추가 휴무는 미래 미시작 배정 해제·원본 보관, 보호 기록 있으면 거절 | crew_allocation_test.dart, crew_allocations.test.mjs |
+| S27 | staffShifts → 날짜 탭·파트 가로/시간 세로 블록 → save_staff_shift | 배정 크루만 표시·직원 본인만, 시간 휠/drag/resize. 별도 시간표·파트 필터 제거 | calendar_test.dart, direct_edit_test.dart, schedule_workflow_test.dart |

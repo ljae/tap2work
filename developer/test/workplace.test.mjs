@@ -136,16 +136,16 @@ test('part task completion follows custom membership, not legacy role, and keeps
   assert.ok(done.tasks.find(t=>t.id===task.id).completedAt);
 });
 
-test('business breaks persist atomically, split requirement seats, preserve assignments and reject invalid bounds', async t => {
+test('business breaks persist atomically, leave requirement seats unchanged, preserve assignments and reject invalid bounds', async t => {
   const {store,act}=await setup(t);
   const before=await store.snapshot('owner');
   const days=Object.fromEntries(Array.from({length:7},(_,i)=>[i+1,i===6?[]:[{id:'daytime',name:'전체',start:'06:00',end:'22:00',headcounts:{kitchen:2,hall:0,management:0}}]]));
   const saved=await act('owner','save_workplace_hours',{days,breaks:{1:{start:'15:00',end:'17:00'}}});
   assert.deepEqual(saved.workplace.breaks,{1:{start:'15:00',end:'17:00'}});
   const slots=saved.rosterTemplates.filter(s=>s.weekday===1);
-  assert.equal(slots.length,4);
-  assert.deepEqual(slots.map(s=>[s.start,s.end]),[['06:00','15:00'],['17:00','22:00'],['06:00','15:00'],['17:00','22:00']]);
-  assert.equal(new Set(slots.map(s=>s.id)).size,4);
+  assert.equal(slots.length,2);
+  assert.deepEqual(slots.map(s=>[s.start,s.end]),[['06:00','22:00'],['06:00','22:00']]);
+  assert.equal(new Set(slots.map(s=>s.id)).size,2);
   assert.deepEqual(saved.staffShifts,before.staffShifts);
   for(const breaks of [{7:{start:'15:00',end:'17:00'}},{1:{start:'05:00',end:'17:00'}},{1:{start:'15:15',end:'17:00'}}]) {
     await assert.rejects(act('owner','save_workplace_hours',{days,breaks}),{status:400});

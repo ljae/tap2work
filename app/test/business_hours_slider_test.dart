@@ -16,6 +16,70 @@ void main() {
     expect(shiftBoundaries(1320, 1740, 3), [1320, 1470, 1590, 1740]);
   });
   testWidgets(
+    'all mode shows every weekday and excludes closed days in both tabs',
+    (tester) async {
+      final data = fixture();
+      data['workplace']['days']['7'] = <Map<String, dynamic>>[];
+      await mount(tester, initialData: data);
+      await tester.tap(find.text('전체'));
+      await tester.pumpAndSettle();
+      for (final tab in ['영업시간 설정', '인원 배치']) {
+        await tester.tap(find.text(tab).first);
+        await tester.pumpAndSettle();
+        for (final day in ['월', '화', '수', '목', '금', '토']) {
+          expect(
+            tester
+                .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, day))
+                .selected,
+            true,
+          );
+        }
+        expect(
+          tester
+              .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, '일'))
+              .selected,
+          false,
+        );
+      }
+    },
+  );
+  testWidgets(
+    'break editor follows toggle and reference strip leaves shift boundaries unchanged',
+    (tester) async {
+      await mount(tester);
+      final before = tester
+          .widget<BusinessHoursSlider>(find.byType(BusinessHoursSlider))
+          .bands
+          .map((b) => '${b['start']}-${b['end']}')
+          .toList();
+      await tester.ensureVisible(find.text('브레이크 타임'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('브레이크 타임'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('hours-break-reference')),
+        findsOneWidget,
+      );
+      expect(
+        tester.getTopLeft(find.byKey(const ValueKey('break-label-0'))).dy,
+        greaterThan(tester.getBottomLeft(find.text('브레이크 타임')).dy),
+      );
+      final slider = tester.widget<BusinessHoursSlider>(
+        find.byType(BusinessHoursSlider),
+      );
+      slider.onBreak({'start': '14:00', 'end': '16:00'});
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<BusinessHoursSlider>(find.byType(BusinessHoursSlider))
+            .bands
+            .map((b) => '${b['start']}-${b['end']}')
+            .toList(),
+        before,
+      );
+    },
+  );
+  testWidgets(
     'all/individual hours and breaks preserve closed days and IDs in saved payload',
     (tester) async {
       final data = fixture();

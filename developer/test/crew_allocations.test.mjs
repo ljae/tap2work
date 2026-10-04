@@ -1,0 +1,78 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {OperationsStore} from '../operations.mjs';
+async function setup(t){const dir=await mkdtemp(path.join(tmpdir(),'tap-allocation-'));t.after(()=>rm(dir,{recursive:true,force:true}));const store=new OperationsStore(path.join(dir,'state.json'),()=>new Date('2026-09-28T00:00:00Z'));const act=async(action,body={},actor='owner')=>store.mutate(actor,{revision:(await store.snapshot(actor)).revision,action,...body}); const days=Object.fromEntries([1,2,3,4,5,6,7].map(d=>[d,d===7?[]:[{id:'open',name:'오픈',start:'09:00',end:'18:00',headcounts:{kitchen:1,hall:1,management:0}}]]));await act('save_workplace_hours',{days});return {store,act,days};}
+const pattern=(id,part)=>({tapperId:id,anchor:'2026-10-05',cycleWeeks:1,entries:[{week:0,weekday:1,partId:part,timeBandId:'open',start:'09:00',end:'18:00'}]});
+test('batch save is atomic, revision and rank checked, explicit apply tracks source versions',async t=>{
+ const {store,act,days}=await setup(t);
+ const before=await store.snapshot('owner');
+ await assert.rejects(act('save_crew_allocations',{patterns:[pattern('tapper-cook','kitchen'),pattern('missing','hall')]}),{status:404});
+ assert.deepEqual((await store.snapshot('owner')).crewPatterns,before.crewPatterns);
+ await assert.rejects(act('save_crew_allocations',{patterns:[pattern('tapper-cook','kitchen')]},'crew'),{status:403});
+ let state=await act('save_crew_allocations',{patterns:[pattern('tapper-cook','kitchen'),pattern('tapper-crew','hall')]});
+ assert.deepEqual(state.staffShifts,before.staffShifts);
+ await assert.rejects(store.mutate('owner',{action:'apply_crew_allocations',revision:before.revision,from:'2026-10-05',until:'2026-10-05'}),{status:409});
+ state=await act('apply_crew_allocations',{from:'2026-10-05',until:'2026-10-05'});
+ assert.equal(state.staffShifts.filter(s=>s.patternId).length,2);
+ assert.ok(state.crewPatterns.every(p=>p.appliedVersion===p.version && p.appliedHoursVersion===state.workplace.hoursVersion));
+ const savedShifts=state.staffShifts;
+ days[1][0].end='19:00';state=await act('save_workplace_hours',{days});
+ assert.deepEqual(state.staffShifts,savedShifts);
+ assert.ok(state.crewPatterns.every(p=>p.hoursVersion!==state.workplace.hoursVersion));
+ await act('save_workplace_permissions',{role:'manager',permissions:{schedule:false}});
+ await assert.rejects(act('apply_crew_allocations',{from:'2026-10-05',until:'2026-10-05'},'manager'),{status:403});
+ await assert.rejects(act('save_calendar_day',{date:'2026-10-05',mode:'closed'},'manager'),{status:403});
+});
+test('monthly exceptions close only future unprotected shifts and open using source weekday on explicit apply',async t=>{
+ const {store,act}=await setup(t);
+ await act('save_crew_allocations',{patterns:[pattern('tapper-cook','kitchen')]});
+ await act('apply_crew_allocations',{from:'2026-10-05',until:'2026-10-11'});
+ let state=await act('save_calendar_day',{date:'2026-10-05',mode:'closed'});
+ assert.equal(state.staffShifts.filter(s=>s.date==='2026-10-05').length,0);
+ assert.equal(state.workplace.dateOverrides['2026-10-05'].closed,true);
+ assert.equal(state.calendarDayHistory,undefined);
+ state=await act('apply_crew_allocations',{from:'2026-10-05',until:'2026-10-11'});
+ assert.equal(state.staffShifts.filter(s=>s.date==='2026-10-05').length,0);
+ await act('save_calendar_day',{date:'2026-10-11',mode:'open',weekday:1});
+ state=await act('apply_crew_allocations',{from:'2026-10-05',until:'2026-10-11'});
+ assert.ok(state.staffShifts.some(s=>s.date==='2026-10-11' && s.start==='09:00'));
+ assert.deepEqual(state.workplace.days['7'],[]);
+ await act('save_calendar_day',{date:'2026-10-11',mode:'reset'});
+ assert.equal((await store.snapshot('owner')).workplace.dateOverrides['2026-10-11'],undefined);
+ await assert.rejects(act('save_calendar_day',{date:'2026-10-12',mode:'open',weekday:7}),{status:400});
+ await assert.rejects(act('save_calendar_day',{date:'2026-09-27',mode:'closed'}),{status:400});
+ await assert.rejects(act('save_calendar_day',{date:'2026-10-12',mode:'closed'},'crew'),{status:403});
+});
+test('monthly closure rejects pending and approved work without losing records',async t=>{
+ const {store,act}=await setup(t);
+ let state=await act('save_staff_shift',{tapperId:'tapper-crew',partId:'hall',date:'2026-10-05',start:'09:00',end:'18:00'});
+ const shift=state.staffShifts.find(s=>s.date==='2026-10-05');
+ state=await act('request_shift_change',{shiftId:shift.id,kind:'shorten',start:'10:00',end:'17:00',reason:'일정'},'crew');
+ await assert.rejects(act('save_calendar_day',{date:'2026-10-05',mode:'closed'}),{status:409});
+ const request=state.shiftChangeRequests.at(-1);
+ await act('review_shift_change',{id:request.id,decision:'approved'});
+ await assert.rejects(act('save_calendar_day',{date:'2026-10-05',mode:'closed'}),{status:409});
+ assert.ok((await store.snapshot('owner')).staffShifts.some(s=>s.id===shift.id));
+});
+test('a batch apply conflict rolls back every crew and break-only edits do not invalidate shifts',async t=>{
+ const {store,act,days}=await setup(t);
+ await act('save_crew_allocations',{patterns:[pattern('tapper-cook','kitchen'),pattern('tapper-crew','hall')]});
+ await act('save_staff_shift',{tapperId:'tapper-crew',partId:'hall',date:'2026-10-05',start:'10:00',end:'11:00'});
+ const before=await store.snapshot('owner');
+ await assert.rejects(act('apply_crew_allocations',{from:'2026-10-05',until:'2026-10-05'}),{status:409});
+ let after=await store.snapshot('owner');assert.deepEqual(after.staffShifts,before.staffShifts);assert.deepEqual(after.crewPatterns,before.crewPatterns);
+ after=await act('save_workplace_hours',{days,breaks:{1:{start:'15:00',end:'17:00'}}});
+ assert.equal(after.workplace.hoursVersion,before.workplace.hoursVersion);assert.deepEqual(after.rosterTemplates,before.rosterTemplates);
+});
+test('night shift belongs to Korean business date when closing a calendar day',async t=>{
+ const {store,act}=await setup(t);
+ const days=Object.fromEntries([1,2,3,4,5,6,7].map(d=>[d,[{id:'night',name:'마감',start:'22:00',end:'05:00'}]]));
+ await act('save_workplace_hours',{days,businessDayStart:'06:00'});
+ await act('save_staff_shift',{tapperId:'tapper-cook',partId:'kitchen',date:'2026-10-06',start:'01:00',end:'03:00'});
+ let state=await store.snapshot('owner');assert.ok(state.staffShifts.some(s=>s.date==='2026-10-06' && s.businessDate==='2026-10-05'));
+ state=await act('save_calendar_day',{date:'2026-10-05',mode:'closed'});
+ assert.ok(!state.staffShifts.some(s=>s.date==='2026-10-06' && s.start==='01:00'));
+});

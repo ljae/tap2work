@@ -142,25 +142,9 @@ class BusinessHoursSlider extends StatelessWidget {
           onChange: change,
           onChoose: choose,
           id: 'hours',
+          reference: pause,
         ),
         ?shiftControls,
-        if (pause != null)
-          _HoursTrack(
-            origin: origin,
-            values: pause,
-            color: AppColors.accent,
-            enabled: enabled,
-            names: const [],
-            sizingNames: [
-              for (var i = 0; i < bands.length; i++)
-                shiftLabel(i, bands.length),
-            ],
-            sizingValues: cuts,
-            onChange: changeBreak,
-            onChoose: chooseBreak,
-            id: 'break',
-            below: true,
-          ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: const Text('브레이크 타임'),
@@ -179,6 +163,23 @@ class BusinessHoursSlider extends StatelessWidget {
                 }
               : null,
         ),
+        if (pause != null)
+          _HoursTrack(
+            origin: origin,
+            values: pause,
+            color: AppColors.amber,
+            enabled: enabled,
+            names: const [],
+            sizingNames: [
+              for (var i = 0; i < bands.length; i++)
+                shiftLabel(i, bands.length),
+            ],
+            sizingValues: cuts,
+            onChange: changeBreak,
+            onChoose: chooseBreak,
+            id: 'break',
+            below: true,
+          ),
       ],
     );
   }
@@ -199,7 +200,9 @@ class _HoursTrack extends StatelessWidget {
     this.below = false,
     this.sizingNames,
     this.sizingValues,
+    this.reference,
   });
+  final List<int>? reference;
   final int origin;
   final List<int> values;
   final Color color;
@@ -319,6 +322,20 @@ class _HoursTrack extends StatelessWidget {
                             style: style.copyWith(color: AppColors.ink),
                             textAlign: TextAlign.center,
                           ),
+                  ),
+                ),
+              if (reference != null)
+                Positioned(
+                  key: const ValueKey('hours-break-reference'),
+                  left: x(reference![0]),
+                  top: barTop + barHeight - 8,
+                  width: math.max(0, x(reference![1]) - x(reference![0])),
+                  height: 8,
+                  child: const IgnorePointer(
+                    child: Tooltip(
+                      message: '브레이크 타임 · 교대와 별도',
+                      child: ColoredBox(color: AppColors.amber),
+                    ),
                   ),
                 ),
               for (var i = 0; i < values.length; i++) ...[

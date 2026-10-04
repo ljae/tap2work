@@ -75,49 +75,34 @@ void main() {
     expect(writes.last['entries'], isEmpty);
     expect(tester.takeException(), isNull);
   });
-  testWidgets('partial vacancy assigns only the uncovered time', (
-    tester,
-  ) async {
-    final data = calendar.calendarData();
-    data['staffShifts'] = [
-      {
-        'id': 'a',
-        'tapperId': 'cook',
-        'partId': 'kitchen',
-        'date': '2026-09-28',
-        'start': '09:00',
-        'end': '10:00',
-      },
-    ];
-    Json? written;
-    await calendar.mount(
-      tester,
-      data: data,
-      readOnly: false,
-      width: 1200,
-      write: (v) => written = v,
-    );
-    final gap = find.byKey(
-      const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0-10:00'),
-    );
-    await tester.tap(gap);
-    await tester.pumpAndSettle();
-    expect(
-      tester
-          .widget<FilledButton>(find.widgetWithText(FilledButton, '저장'))
-          .onPressed,
-      isNull,
-    );
-    await tester.tap(find.widgetWithText(ChoiceChip, '현우'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, '저장'));
-    await tester.pumpAndSettle();
-    expect(written?['action'], 'save_staff_shift');
-    expect(written?['start'], '10:00');
-    expect(written?['end'], '14:00');
-    expect(written?['revision'], 12);
-    expect(written?['templateId'], isNull);
-  });
+  testWidgets(
+    'calendar shows assignments without uncovered requirement blocks',
+    (tester) async {
+      final data = calendar.calendarData();
+      data['staffShifts'] = [
+        {
+          'id': 'a',
+          'tapperId': 'cook',
+          'partId': 'kitchen',
+          'date': '2026-09-28',
+          'start': '09:00',
+          'end': '10:00',
+        },
+      ];
+      await calendar.mount(tester, data: data, readOnly: false, width: 1200);
+      expect(
+        find.byKey(const ValueKey('roster-2026-09-28-kitchen-a')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0-10:00'),
+        ),
+        findsNothing,
+      );
+      expect(find.textContaining('미배정'), findsNothing);
+    },
+  );
   testWidgets(
     'drag ghost predicts saved time and resizing keeps opening revision',
     (tester) async {
@@ -326,10 +311,10 @@ void main() {
         expect(tester.getSize(crew), tester.getSize(hours));
         final a = tester.getRect(crew), b = tester.getRect(hours);
         if (a.top == b.top) {
-          expect(b.left - a.right, 8);
+          expect(a.left - b.right, 8);
         } else {
           expect(a.left, b.left);
-          expect(b.top - a.bottom, 8);
+          expect(a.top - b.bottom, 8);
         }
         await tester.tap(hours);
         await tester.pumpAndSettle();

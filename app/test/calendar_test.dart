@@ -19,6 +19,18 @@ Json calendarData() => {
       {'id': 'hall', 'name': '홀'},
       {'id': 'management', 'name': '관리'},
     ],
+    'days': {
+      for (var d = 1; d <= 7; d++)
+        '$d': [
+          {
+            'id': 'day-$d',
+            'name': '오픈',
+            'start': '09:00',
+            'end': '14:00',
+            'headcounts': {'kitchen': 1, 'hall': 0, 'management': 0},
+          },
+        ],
+    },
   },
   'rosterTemplates': [
     for (var d = 1; d <= 7; d++)
@@ -35,6 +47,7 @@ Json calendarData() => {
   'tappers': [
     {
       'id': 'cook',
+      'actorId': 'cook',
       'nickname': '현우',
       'active': true,
       'workProfile': {
@@ -84,10 +97,6 @@ Future<OperationsController> mount(
     ),
   );
   await tester.pumpAndSettle();
-  if (timeline) {
-    await tester.tap(find.widgetWithText(ChoiceChip, '시간표'));
-    await tester.pumpAndSettle();
-  }
   return ops;
 }
 
@@ -104,28 +113,13 @@ void main() {
         timeline: false,
         write: (_) => writes++,
       );
-      expect(find.byKey(const ValueKey('roster-day-parts')), findsOneWidget);
-      expect(find.byKey(const ValueKey('roster-part-kitchen')), findsOneWidget);
-      expect(
-        find.byKey(
-          const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0'),
-        ),
-        findsOneWidget,
-      );
+      expect(find.byKey(const ValueKey('roster-time-axis')), findsOneWidget);
+      expect(find.text('미배정'), findsNothing);
+      expect(find.widgetWithText(ChoiceChip, '시간표'), findsNothing);
+      expect(find.widgetWithText(ChoiceChip, '전체 파트'), findsNothing);
       await tester.tap(find.byKey(const ValueKey('roster-day-2026-09-29')));
       await tester.pumpAndSettle();
-      expect(
-        find.byKey(
-          const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0'),
-        ),
-        findsNothing,
-      );
-      expect(
-        find.byKey(
-          const ValueKey('roster-2026-09-29-kitchen-band-2-kitchen-0'),
-        ),
-        findsOneWidget,
-      );
+      expect(find.byKey(const ValueKey('roster-time-axis')), findsOneWidget);
       expect(writes, 0);
       expect(tester.takeException(), isNull);
     });
@@ -140,7 +134,7 @@ void main() {
         final axis = find.byKey(const ValueKey('roster-time-axis'));
         expect(tester.getSize(axis).width, 52);
         final origin = tester.getTopLeft(axis);
-        expect(find.text('9/28 월'), findsOneWidget);
+        expect(find.text('9/28 월'), findsWidgets);
         final scroll =
             find
                     .byType(SingleChildScrollView)
@@ -167,19 +161,29 @@ void main() {
     );
   }
   testWidgets(
-    'empty slot saves per-date time adjustment with opening revision',
+    'assigned shift saves per-date time adjustment with opening revision',
     (tester) async {
       Json? sent;
+      final data = calendarData();
+      data['staffShifts'] = [
+        {
+          'id': 'assigned',
+          'tapperId': 'cook',
+          'date': '2026-09-28',
+          'partId': 'kitchen',
+          'start': '09:00',
+          'end': '14:00',
+        },
+      ];
       final ops = await mount(
         tester,
+        data: data,
         readOnly: false,
         timeline: false,
         write: (v) => sent = v,
       );
       await tester.tap(
-        find.byKey(
-          const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0'),
-        ),
+        find.byKey(const ValueKey('roster-2026-09-28-kitchen-assigned')),
       );
       await tester.pumpAndSettle();
       ops.data!['revision'] = 99;
@@ -194,7 +198,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, '저장'));
       await tester.pumpAndSettle();
-      expect(sent!['action'], 'save_roster_slot');
+      expect(sent!['action'], 'save_staff_shift');
       expect(sent!['start'], '10:00');
       expect(sent!['partId'], 'kitchen');
       expect(sent!['date'], '2026-09-28');
@@ -202,29 +206,6 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
-  testWidgets('slot assignment uses part and crew IDs', (tester) async {
-    Json? sent;
-    await mount(
-      tester,
-      readOnly: false,
-      timeline: false,
-      write: (v) => sent = v,
-    );
-    await tester.tap(
-      find.byKey(const ValueKey('roster-2026-09-28-kitchen-band-1-kitchen-0')),
-    );
-    await tester.pumpAndSettle();
-    final person = find.widgetWithText(ChoiceChip, '현우');
-    await tester.ensureVisible(person);
-    await tester.tap(person);
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, '저장'));
-    await tester.pumpAndSettle();
-    expect(sent!['action'], 'save_staff_shift');
-    expect(sent!['tapperId'], 'cook');
-    expect(sent!['partId'], 'kitchen');
-    expect(sent!['end'], '14:00');
-  });
   test(
     'derived slots preserve overrides and overnight original dates without changing inputs',
     () {
