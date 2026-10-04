@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 168,
+  "revision": 169,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -777,7 +777,8 @@
       "status": "confirmed",
       "decision": "과거 계획 표시를 실제 출퇴근 이벤트 이력으로 변경한다. 오늘/미래 계획 유지, 과거 원본 기록 보존, 누락은 표시한다. 크루 등록의 파트 선택을 제거하고 크루 정보에서 공통 인원 배치로 연결한다. 명시적 기본 배정의 파트가 크루 업무 분류에 포함된다.",
       "source": "사용자 요청 · 2026-10-04",
-      "updatedAt": "2026-10-04T13:51:27.611534+00:00"
+      "updatedAt": "2026-10-04T13:51:27.611534+00:00",
+      "implementation": "Implemented, tested and deployed to tap2.work. Original attendance and planned records preserved."
     },
     {
       "id": "D-078",
@@ -786,7 +787,8 @@
       "status": "confirmed",
       "decision": "도착 위치 또는 매장 Wi-Fi 중 선택한다. 현재 선호 방식 저장과 미연결 안내만 구현. 실제 자동 출근은 네이티브 감지·기기 검증·권한·오프라인 중복 처리 구현과 실기기 검증이 남아 있다.",
       "source": "사용자 요청 · 2026-10-04",
-      "updatedAt": "2026-10-04T13:51:27.611534+00:00"
+      "updatedAt": "2026-10-04T13:51:27.611534+00:00",
+      "implementation": "Preference selection deployed; actual native automatic sensing remains planned and not connected."
     },
     {
       "id": "D-079",
@@ -946,8 +948,8 @@
     {
       "id": "M-025",
       "title": "출퇴근 이력·등록 후 배정·자동 출근 방식 선택 저장",
-      "status": "in_progress",
-      "description": "Implementation complete; verification and deployment underway. Native sensing and clock-out automation not implemented."
+      "status": "completed",
+      "description": "Past attendance history, registration-to-staffing route and automatic clock-in method preference deployed. Flutter analysis/271 tests, Node 179 tests, 36 UI links, 24 captures and live assets verified. Native automatic sensing/clock-out automation remain unimplemented."
     }
   ],
   "history": [
@@ -5467,7 +5469,46 @@
         "Fixed registration controller lifetime during sheet closing transition found by new save test.",
         "Native builds, device sensing and automatic clock-in/out not performed."
       ]
+    },
+    {
+      "at": "2026-10-04T13:57:59.330182+00:00",
+      "type": "deployment",
+      "summary": "Past attendance history, crew registration/staffing route and location/Wi-Fi preference deployed. No direct account reset or fabricated clock events.",
+      "sourceCommit": "c007f4aed5ffdea5507bde8720becd89967d9908",
+      "workflow": "https://github.com/ljae/tap2work/actions/runs/37207270550",
+      "url": "https://tap2.work",
+      "backend": {
+        "function": "operations",
+        "version": 34,
+        "status": "ACTIVE"
+      },
+      "verification": [
+        "Flutter analysis and 271 tests passed; 179 Node tests and npm run check/36 UI links passed.",
+        "Final targeted history, registration navigation and preference tests plus screenshot run: 7 tests passed. 24 captures at 320/390/1200; reviewed history/registration/preferences.",
+        "Local Flutter web build and GitHub Pages build/deploy succeeded; public HTML/bootstrap/main match artifact SHA-256.",
+        "Native build/device/automatic sensing verification not performed. Automatic clock-out confirmation remains a proposal."
+      ],
+      "assets": [
+        {
+          "file": "index.html",
+          "status": 200,
+          "matches": true,
+          "sha256": "50e7b1d6714d3bf0c7783e243af6e73e503cc1827d2bacaa670943df823817e3"
+        },
+        {
+          "file": "flutter_bootstrap.10f98ef8b04627109361.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "10f98ef8b04627109361c25d78cc17712552f084584e97df415ef1e5008b13ff"
+        },
+        {
+          "file": "main.03227cc5724e2270f474.dart.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "03227cc5724e2270f4742d6efb2b3c16a14a0c3307517773c9197c9b363d58e6"
+        }
+      ]
     }
   ],
-  "updatedAt": "2026-10-04T13:53:30.209201+00:00"
+  "updatedAt": "2026-10-04T13:57:59.330182+00:00"
 }
