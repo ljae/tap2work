@@ -51,14 +51,14 @@ export function validateDefaultAssignments(state) {
 
 // Persist the next 90 business days, extending on reads. Calendar edits, deletes,
 // attendance, requests and started shifts are explicit exceptions to the default.
-export function ensureDefaultAssignments(state, now) {
+export function ensureDefaultAssignments(state, now, {refreshDates = new Set(), restoredIds = new Map()} = {}) {
   if (state.workplace?.defaultAssignmentsEnabled !== true) return false;
   const before = JSON.stringify(state.staffShifts);
   const today = businessDate(state, now);
   const desired = Array.from({length: 90}, (_, n) => candidates(state, dateAt(today, n))).flat();
   const wanted = new Map(desired.map(s => [s.defaultAssignmentKey, s]));
   const protectedShift = s => s.defaultAssignmentEdited || s.status !== 'planned' || s.approvedRequestId || s.replacementForRequestId || interval(s)[0] <= now.getTime() ||
-    (state.attendance ?? []).some(a => a.tapperId === s.tapperId && businessDate(state, a.at) === businessDate(state, `${s.date}T${s.start}:00+09:00`)) ||
+    (state.attendance ?? []).some(a => !a.voidedAt && a.tapperId === s.tapperId && businessDate(state, a.at) === businessDate(state, `${s.date}T${s.start}:00+09:00`)) ||
     (state.shiftChangeRequests ?? []).some(r => r.shiftId === s.id && r.status === 'pending');
   state.staffShifts = state.staffShifts.filter(s => !s.defaultAssignmentKey || protectedShift(s) || wanted.has(s.defaultAssignmentKey));
   // Remove only unchanged generated rows that need updating; retain stable IDs.
@@ -75,12 +75,46 @@ export function ensureDefaultAssignments(state, now) {
     .map(s => `${s.tapperId}/${s.base?.businessDate ?? businessDate(state, `${s.date}T${s.start}:00+09:00`)}`));
   for (const shift of desired) {
     if (protectedDays.has(`${shift.tapperId}/${shift.defaultAssignmentKey.slice(0,10)}`)) continue;
-    if (existing.has(shift.defaultAssignmentKey) || suppressed.has(shift.defaultAssignmentKey) || interval(shift)[0] <= now.getTime()) continue;
+    if (existing.has(shift.defaultAssignmentKey) || suppressed.has(shift.defaultAssignmentKey) || (interval(shift)[0] <= now.getTime() && !refreshDates.has(shift.defaultAssignmentKey.slice(0,10)))) continue;
     if (state.staffShifts.some(s => s.tapperId === shift.tapperId && (s.status === 'leave' ? s.date === shift.date : overlaps(s, shift)))) continue;
     // An attendance record or protected occurrence for this crew/day also blocks new defaults.
-    if ((state.attendance ?? []).some(a => a.tapperId === shift.tapperId && businessDate(state, a.at) === shift.defaultAssignmentKey.slice(0,10))) continue;
-    state.staffShifts.push({...shift, id: replace.get(shift.defaultAssignmentKey) ?? randomUUID(), status: 'planned',
+    if ((state.attendance ?? []).some(a => !a.voidedAt && a.tapperId === shift.tapperId && businessDate(state, a.at) === shift.defaultAssignmentKey.slice(0,10))) continue;
+    state.staffShifts.push({...shift, id: replace.get(shift.defaultAssignmentKey) ?? restoredIds.get(shift.defaultAssignmentKey) ?? randomUUID(), status: 'planned',
       base: {businessDate: shift.defaultAssignmentKey.slice(0,10), date:shift.date, partId:shift.partId, start:shift.start, end:shift.end, timeBandId:shift.timeBandId}});
   }
   return before !== JSON.stringify(state.staffShifts);
+}
+
+// An explicit staffing save replaces fine-tuning for affected weekdays. Reads
+// still preserve edits; actual attendance and approved/pending requests survive.
+export function refreshDefaultAssignments(state, previous, now, weekdays, actor) {
+  if (state.workplace?.defaultAssignmentsEnabled !== true || !weekdays.length) return;
+  const today = new Date(new Date(now).getTime() + 9 * 3600000).toISOString().slice(0,10);
+  const dates = new Set(Array.from({length:90}, (_,n) => dateAt(today,n)).filter(date => {
+    const oldDay = previous.workplace?.dateOverrides?.[date]?.weekday ?? weekday(date);
+    const newDay = state.workplace.dateOverrides?.[date]?.weekday ?? weekday(date);
+    return weekdays.includes(oldDay) || weekdays.includes(newDay);
+  }));
+  const shiftDay = s => s.defaultAssignmentKey?.slice(0,10) ?? s.base?.businessDate ?? businessDate(previous, `${s.date}T${s.start}:00+09:00`);
+  const protectedShift = s => s.status !== 'planned' || s.approvedRequestId || s.replacementForRequestId ||
+    (state.attendance ?? []).some(a => !a.voidedAt && a.tapperId === s.tapperId && businessDate(previous,a.at) === shiftDay(s)) ||
+    (state.shiftChangeRequests ?? []).some(r => r.shiftId === s.id && r.status === 'pending');
+  const removed = state.staffShifts.filter(s => dates.has(shiftDay(s)) && !protectedShift(s));
+  const removedSet = new Set(removed);
+  const overrides = (state.rosterOverrides ?? []).filter(s => dates.has(s.date));
+  const omissions = (state.defaultAssignmentOmissions ?? []).filter(key => dates.has(key.slice(0,10)));
+  state.staffShifts = state.staffShifts.filter(s => !removedSet.has(s));
+  state.rosterOverrides = (state.rosterOverrides ?? []).filter(s => !dates.has(s.date));
+  state.defaultAssignmentOmissions = (state.defaultAssignmentOmissions ?? []).filter(key => !dates.has(key.slice(0,10)));
+  const restoredIds = new Map(removed.filter(s => s.defaultAssignmentKey).map(s => [s.defaultAssignmentKey,s.id]));
+  ensureDefaultAssignments(state,now,{refreshDates:dates,restoredIds});
+  const current = new Map(state.staffShifts.map(s => [s.id,s]));
+  const replaced = removed.filter(s => !s.defaultAssignmentKey || s.defaultAssignmentEdited ||
+    !current.has(s.id) || fields(s) !== fields(current.get(s.id)));
+  if (replaced.length || overrides.length || omissions.length) {
+    (state.operationEditHistory ??= []).push({actor:actor.id,at:new Date(now).toISOString(),value:{
+      kind:'staffing_default_refresh',weekdays,staffShifts:structuredClone(replaced),
+      rosterOverrides:structuredClone(overrides),defaultAssignmentOmissions:[...omissions],
+    }});
+  }
 }

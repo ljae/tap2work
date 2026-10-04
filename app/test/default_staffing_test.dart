@@ -72,10 +72,12 @@ void main() {
           find.descendant(of: cell, matching: find.text('1 / 1명')),
           findsOneWidget,
         );
+        expect(find.textContaining('미세 조정·개별 배정·배정 삭제는 초기화'), findsOneWidget);
         await tester.tap(find.text('일주일 설정 저장'));
         await tester.pumpAndSettle();
         expect(writes.single['action'], 'save_workplace_hours');
         expect(writes.single['defaultAssignmentsEnabled'], true);
+        expect(writes.single['resetScheduleWeekdays'], [1, 3]);
         expect(writes.single['revision'], 12);
         for (final d in ['1', '3']) {
           expect(writes.single['days'][d][0]['crewIds']['kitchen'], ['cook']);

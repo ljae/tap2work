@@ -63,6 +63,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
+  bool isClosedDay(DateTime day) {
+    final exception =
+        ops.data?['workplace']?['dateOverrides']?[rosterDate(day)];
+    if (exception?['closed'] != null) return exception['closed'] == true;
+    final configured =
+        ops.data?['workplace']?['days']?['${day.weekday}'] as List?;
+    return configured != null && configured.isEmpty;
+  }
+
   String dayNote(DateTime day) {
     final days = ops.data?['workplace']?['days'] as Map? ?? {};
     final configured = days['${day.weekday}'] as List?;
@@ -781,7 +790,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        if (model.history)
+        if (isClosedDay(model.selected))
+          const SizedBox(
+            key: ValueKey('roster-closed-day'),
+            width: double.infinity,
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Text(
+                '휴무일',
+                textAlign: TextAlign.center,
+                style: AppText.section,
+              ),
+            ),
+          )
+        else if (model.history)
           attendanceHistory()
         else
           LayoutBuilder(builder: (context, box) => timeline(box.maxWidth)),
@@ -1264,6 +1286,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             Expanded(
               child:
                   !model.history &&
+                      !isClosedDay(model.selected) &&
                       ops.isLeader &&
                       ops.data?['canEditSchedule'] != false &&
                       !ops.readOnly
@@ -1275,7 +1298,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       }),
                     )
                   : Text(
-                      model.history ? '출퇴근 이력' : '대한민국 달력',
+                      isClosedDay(model.selected)
+                          ? '휴무일'
+                          : model.history
+                          ? '출퇴근 이력'
+                          : '대한민국 달력',
                       style: AppText.caption,
                     ),
             ),
@@ -1392,7 +1419,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
             label: const Text('영업시간·인원'),
           ),
         ),
-        if (!model.history) ShiftChangePanel(ops: ops),
+        if (!model.history && !isClosedDay(model.selected))
+          ShiftChangePanel(ops: ops),
       ],
     ),
   );

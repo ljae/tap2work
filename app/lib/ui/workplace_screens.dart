@@ -1510,6 +1510,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           'breaks': breaks,
           'businessDayStart': businessDayStart,
           'defaultAssignmentsEnabled': true,
+          'resetScheduleWeekdays': hoursTargets.toList(),
         });
       case 'parts':
         await save('save_workplace_parts', {'parts': parts});
@@ -1545,7 +1546,10 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           ? AppSheetFooter(
               children: [
                 if (widget.section == 'hours' && hoursStep == 1)
-                  const Text('저장하면 앞으로의 기본 근무표에 반영돼요.', style: AppText.caption),
+                  const Text(
+                    '저장하면 선택·변경한 요일의 오늘부터 90일 근무표를 새 배정으로 반영해요. 해당 날짜의 미세 조정·개별 배정·배정 삭제는 초기화돼요. 출퇴근 이력과 승인·대기 중인 변경 신청은 유지돼요.',
+                    style: AppText.caption,
+                  ),
                 if (error != null)
                   Text(
                     error!,

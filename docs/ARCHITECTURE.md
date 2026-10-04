@@ -325,3 +325,9 @@ Schedule density (2026-10-04): use 48px/hour for long assignments; if any assign
 `save_tapper`는 파트·시간대 생략을 허용하고 새 크루는 빈 workProfile(제한 없음)으로 등록한다. 기존 크루 수정에서 생략한 profile은 유지한다. 크루 정보의 배정 링크는 `openWorkplaceHours(staffing:true)`로 공통 테이블에 바로 진입한다. `crewPartIds`는 기본 배정이 활성화되면 명시적 days.crewIds의 파트를 legacy profile에 합쳐 배정·근무 수정·파트 업무 분류에 사용한다. 직급 권한은 확장하지 않는다.
 
 `save_attendance_preferences`는 사장만 revision 확인 후 `workplace.attendancePreferences={method:location|wifi,status:not_connected}`를 저장한다. enabled/status 등 클라이언트 활성화 주장은 받지 않으며 출퇴근 이벤트를 생성하지 않는다. 설정은 재진입 시 복원한다. 웹 Wi-Fi 확인, 위치/GPS·네이티브 백그라운드 감지·기기 증명·알림은 미연결이며 모바일 실제 기기 검증이 필요하다. 자동 퇴근의 이탈 후보→알림→본인 확정은 제안으로만 기록한다.
+
+## 인원 배정 재반영·휴무일 표시 · 2026-10-04 최신
+
+`save_workplace_hours`는 변경된 요일과 `resetScheduleWeekdays`의 합집합에 `refreshDefaultAssignments`를 실행한다. 같은 설정을 다시 저장해도 선택 요일의 미세 조정/omissions를 초기화한다. 이후 조회에서는 기존 ensureDefaultAssignments의 미세 조정 보존을 유지한다. 한국 달력 기준 오늘부터 90일, old/new dateOverrides weekday를 고려한다. 해당 계획과 rosterOverrides/omissions를 정리하고 같은 defaultAssignmentKey의 ID를 재사용한다. 실제 attendance 또는 승인·대체·대기 신청이 있는 shift는 보존하며 과거를 수정하지 않는다. 실제 출근이 없는 오늘의 예정 시작 시각 경과는 명시적 재반영을 막지 않는다. 변경된 원본만 server-only operationEditHistory에 보관해 무변경 재저장으로 이력이 누적되지 않게 한다. 검증·revision 확인 이후 동일 저장 트랜잭션에서 실행한다.
+
+Flutter 저장 payload는 hoursTargets를 전달하고 최종 저장 버튼 바로 위에 초기화 범위와 보호 기록을 안내한다. CalendarScreen.isClosedDay는 dateOverrides.closed를 우선하며 없으면 해당 요일의 빈 days로 판정한다. 주간 날짜 선택은 유지하고 본문은 휴무일 표시만 한다. 과거 휴무일도 표시만 하되 실제 attendance 원본을 삭제하지 않는다. 추가 영업일은 표/이력 표시를 복원한다. 미세 편집바와 변경 신청 패널은 휴무일에 숨긴다.

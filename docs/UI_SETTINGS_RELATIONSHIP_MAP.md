@@ -278,3 +278,10 @@ S27 주간은 `ScheduleController.selected` → 전체 폭 7일 선택 → 선�
 | S03 | workplace.days.crewIds → 공통 인원 배치 → save_workplace_hours | 배정된 파트가 crewPartIds에 포함되며 기존 profile을 다시 수정할 필요 없음 | default_assignments.test.mjs |
 | S42 | attendance + 서버 한국 날짜 day → 과거 주간 이력/월간 건수 → 조회만 | voided 원본 제외, 야간 출근일 귀속, 누락 표시. 오늘/미래 계획 유지 | attendance_history_test.dart |
 | S43 | workplace.attendancePreferences.method → 출퇴근 인증 설정의 위치/Wi-Fi 선택 → save_attendance_preferences | 선택 복원, not_connected 고정. 기기 연동/자동 출퇴근은 활성화하지 않음 | attendance_history_test.dart, workplace.test.mjs |
+
+## 인원 배정 재반영·휴무일 표시 · 2026-10-04 최신
+
+| ID | source → control → action | consumer | 검증 |
+|---|---|---|---|
+| S03 | workplace.days + hoursTargets → 초기화 안내와 일주일 설정 저장 → save_workplace_hours(resetScheduleWeekdays) | refreshDefaultAssignments: 변경/선택 요일의 오늘부터 90일 미세 조정·개별 계획·삭제 초기화, 실제/승인/대기 보존, 같은 기본 배정 ID 재사용 | default_staffing_test.dart, default_assignments.test.mjs |
+| S27 | workplace.days/dateOverrides → 주간 날짜 선택 → isClosedDay | 휴무일은 표시만, 시간축/파트 표/편집바/변경 신청 패널 숨김, 추가 영업은 표 복원 | calendar_test.dart |

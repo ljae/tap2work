@@ -1,4 +1,5 @@
-import { validateDefaultAssignments } from './default_assignments.mjs';
+import { isDeepStrictEqual } from 'node:util';
+import { validateDefaultAssignments, refreshDefaultAssignments } from './default_assignments.mjs';
 import { businessDate } from './business_day.mjs';
 import { normalizeBreaks } from './business_breaks.mjs';
 import { defaultWorkplace, workplaceBands, workplaceBandDays, validatePart, rosterTemplates, validRosterDate, validRosterTimes } from './parts.mjs';
@@ -152,13 +153,21 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
         next[day] = normalizeBands(state, bands, config.days?.[day], day);
       }
       config.breaks = normalizeBreaks(next, input.breaks ?? Object.fromEntries(Object.entries(config.breaks ?? {}).filter(([d]) => next[d]?.length)), config.businessDayStart);
-      if (JSON.stringify(config.days) !== JSON.stringify(next) || config.businessDayStart !== state.workplace?.businessDayStart) config.hoursVersion = (config.hoursVersion ?? 0) + 1;
+      if (!isDeepStrictEqual(config.days, next) || config.businessDayStart !== state.workplace?.businessDayStart) config.hoursVersion = (config.hoursVersion ?? 0) + 1;
       config.days = next;
       if (input.defaultAssignmentsEnabled !== undefined) {
         if (input.defaultAssignmentsEnabled !== true) fail('기본 크루 배정 설정을 확인해 주세요.');
         config.defaultAssignmentsEnabled = true;
       }
       validateDefaultAssignments({...state, workplace:config});
+      const requested = input.resetScheduleWeekdays ?? [];
+      if (!Array.isArray(requested) || requested.some(d => !Number.isInteger(d) || d < 1 || d > 7)) fail('반영할 요일을 확인해 주세요.');
+      const changed = Array.from({length:7},(_,i)=>i+1).filter(d =>
+        !isDeepStrictEqual(state.workplace?.days?.[d] ?? [], next[d]) ||
+        config.businessDayStart !== state.workplace?.businessDayStart);
+      const previous = {workplace:state.workplace};
+      state.workplace = config;
+      refreshDefaultAssignments(state,previous,now,[...new Set([...changed,...requested])],actor);
       break;
     }
     case 'save_workplace_day': {

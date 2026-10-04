@@ -102,6 +102,39 @@ Future<OperationsController> mount(
 
 void main() {
   for (final width in [320.0, 390.0, 1200.0]) {
+    testWidgets(
+      'closed days hide timeline; exceptional opening restores it at $width',
+      (tester) async {
+        final data = calendarData();
+        data['workplace']['days']['1'] = <Map<String, Object>>[];
+        final ops = await mount(
+          tester,
+          data: data,
+          width: width,
+          readOnly: false,
+        );
+        expect(find.byKey(const ValueKey('roster-closed-day')), findsOneWidget);
+        expect(find.byKey(const ValueKey('roster-time-axis')), findsNothing);
+        data['workplace']['dateOverrides'] = {
+          '2026-09-28': {'closed': false, 'weekday': 2},
+        };
+        await ops.refresh();
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('roster-closed-day')), findsNothing);
+        expect(find.byKey(const ValueKey('roster-time-axis')), findsOneWidget);
+        data['workplace']['dateOverrides'] = {
+          '2026-09-28': {'closed': true},
+        };
+        await ops.refresh();
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('roster-closed-day')), findsOneWidget);
+        expect(find.byKey(const ValueKey('roster-time-axis')), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  for (final width in [320.0, 390.0, 1200.0]) {
     testWidgets('part cards switch selected date without writes at $width', (
       tester,
     ) async {

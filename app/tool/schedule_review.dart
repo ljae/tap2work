@@ -33,6 +33,7 @@ void main() {
     for (final width in [320.0, 390.0, 1200.0]) {
       for (final scene in [
         'calendar',
+        'closed',
         'history',
         'verification',
         'registration',
@@ -89,6 +90,9 @@ void main() {
                     {'name': '마감', 'start': '14:00', 'end': '22:00'},
                   ],
         };
+        if (scene == 'closed') {
+          data['workplace']['days']['1'] = <Map<String, Object>>[];
+        }
         data['staffShifts'] = [
           {
             'id': 'fine',
