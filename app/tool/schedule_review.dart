@@ -30,7 +30,13 @@ void main() {
     final output = Directory('../.local/default-staffing-review')
       ..createSync(recursive: true);
     for (final width in [320.0, 390.0, 1200.0]) {
-      for (final scene in ['calendar', 'month', 'hours', 'staffing']) {
+      for (final scene in [
+        'calendar',
+        'month',
+        'hours',
+        'staffing',
+        'staffing-edit',
+      ]) {
         tester.view.physicalSize = Size(width, 1000);
         final data = calendarData();
         data['day'] = '2026-10-05';
@@ -45,6 +51,9 @@ void main() {
                       'start': '09:00',
                       'end': '14:00',
                       'headcounts': {'kitchen': 2, 'hall': 1, 'management': 1},
+                      'crewIds': {
+                        'kitchen': ['cook'],
+                      },
                     },
                     {'name': '마감', 'start': '14:00', 'end': '22:00'},
                   ],
@@ -66,7 +75,7 @@ void main() {
         );
         await ops.refresh();
         final work = WorkController(MemoryStore()), key = GlobalKey();
-        final content = scene == 'hours' || scene == 'staffing'
+        final content = scene == 'hours' || scene.startsWith('staffing')
             ? WorkplaceSettings(ops: ops, section: 'hours')
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -90,9 +99,15 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        if (scene == 'staffing' || scene == 'month') {
+        if (scene.startsWith('staffing') || scene == 'month') {
           await tester.tap(
-            find.text(scene == 'staffing' ? '인원 배치' : '월간').first,
+            find.text(scene.startsWith('staffing') ? '인원 배치' : '월간').first,
+          );
+          await tester.pumpAndSettle();
+        }
+        if (scene == 'staffing-edit') {
+          await tester.tap(
+            find.byKey(const ValueKey('staffing-count-0-kitchen')),
           );
           await tester.pumpAndSettle();
         }

@@ -47,17 +47,17 @@ void main() {
           await tester.pumpAndSettle();
           if (index == 2) {
             expect(title, findsNothing);
-            expect(search, findsNothing);
+            expect(search, findsOneWidget);
             expect(find.text('파트별'), findsNothing);
             expect(find.text('크루별 근무 배정'), findsNothing);
-            continue;
+          } else {
+            expect(
+              tester.widget<Text>(title).data,
+              ['업무', '매뉴얼', '근무표', '우리매장'][index],
+            );
+            expect(tester.getRect(title).topLeft, titleRect.topLeft);
           }
-          expect(
-            tester.widget<Text>(title).data,
-            ['업무', '매뉴얼', '근무표', '우리매장'][index],
-          );
           expect(tester.getRect(search), searchRect);
-          expect(tester.getRect(title).topLeft, titleRect.topLeft);
           expect(find.text('전체 매장 매뉴얼 검색'), findsNothing);
           await tester.enterText(search, '손');
           await tester.pumpAndSettle();

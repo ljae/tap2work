@@ -310,6 +310,32 @@ void main() {
         final hours = find.byKey(const ValueKey('calendar-hours-button'));
         expect(crew, findsNothing);
         expect(find.text('파트별'), findsNothing);
+        expect(
+          tester
+              .widget<Container>(
+                find.byKey(const ValueKey('roster-date-heading')),
+              )
+              .decoration,
+          isNull,
+        );
+        expect(
+          tester
+              .widget<Container>(
+                find.byKey(const ValueKey('roster-part-heading-kitchen')),
+              )
+              .decoration,
+          isNull,
+        );
+        expect(
+          find.byKey(const ValueKey('roster-time-tick-570')),
+          findsOneWidget,
+        );
+        expect(
+          tester
+              .getRect(find.byKey(const ValueKey('roster-time-tick-570')))
+              .right,
+          lessThanOrEqualTo(52),
+        );
         expect(tester.getSize(hours).width, size.$1);
         final first = find.byKey(const ValueKey('roster-day-2026-09-28'));
         final last = find.byKey(const ValueKey('roster-day-2026-10-04'));

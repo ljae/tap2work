@@ -106,17 +106,6 @@ void main() {
 
           await snapshot('initial');
           final search = find.byKey(const ValueKey('global-manual-search'));
-          if (index == 2) {
-            expect(search, findsNothing);
-            expect(find.byKey(const ValueKey('menu-title')), findsNothing);
-            expect(
-              find.byKey(const ValueKey('roster-time-axis')),
-              findsOneWidget,
-            );
-            await tester.pumpWidget(const SizedBox());
-            await tester.pumpAndSettle();
-            return;
-          }
           await tester.tap(search);
           await tester.enterText(search, '손');
           tester.view.viewInsets = const FakeViewPadding(bottom: 280);

@@ -159,36 +159,36 @@ void main() {
     },
   );
 
-  testWidgets(
-    'public review shows its boundary and disables order submission',
-    (tester) async {
-      final ops = OperationsController(
-        readOnly: true,
-        client: MockClient((request) async => response(sample())),
-      );
-      addTearDown(ops.dispose);
-      await ops.refresh();
-      await tester.pumpWidget(
-        Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
-      );
-      expect(find.textContaining('공개 미리보기 · 샘플 데이터'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('floating-menu-3')));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('재고와 발주'));
-      await tester.tap(find.text('재고와 발주'));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('부족한 재료 담기'));
-      await tester.tap(find.text('부족한 재료 담기'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('발주함 보기 (1)'));
-      await tester.pumpAndSettle();
-      final submit = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, '미리보기 · 저장 불가'),
-      );
-      expect(submit.onPressed, isNull);
-      expect(tester.takeException(), isNull);
-    },
-  );
+  testWidgets('public review has global search and disables order submission', (
+    tester,
+  ) async {
+    final ops = OperationsController(
+      readOnly: true,
+      client: MockClient((request) async => response(sample())),
+    );
+    addTearDown(ops.dispose);
+    await ops.refresh();
+    await tester.pumpWidget(
+      Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
+    );
+    expect(find.textContaining('공개 미리보기 · 샘플 데이터'), findsNothing);
+    expect(find.byKey(const ValueKey('global-manual-search')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('floating-menu-3')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('재고와 발주'));
+    await tester.tap(find.text('재고와 발주'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('부족한 재료 담기'));
+    await tester.tap(find.text('부족한 재료 담기'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('발주함 보기 (1)'));
+    await tester.pumpAndSettle();
+    final submit = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, '미리보기 · 저장 불가'),
+    );
+    expect(submit.onPressed, isNull);
+    expect(tester.takeException(), isNull);
+  });
   test(
     'role switching fetches a new projection, and actions carry revision and token',
     () async {

@@ -186,7 +186,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
           onChanged: (value) => updateView(() => manualQuery = value),
           decoration: InputDecoration(
             hintText: '매뉴얼 검색',
-            prefixIcon: const Icon(CupertinoIcons.search),
+            prefixIcon: const Icon(
+              CupertinoIcons.search,
+              color: AppColors.green,
+            ),
+            hintStyle: const TextStyle(color: AppColors.green),
             suffixIcon: manualQuery.isEmpty
                 ? null
                 : IconButton(
@@ -199,7 +203,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   ),
             isDense: true,
             filled: true,
-            fillColor: AppColors.surface,
+            fillColor: AppColors.lime,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
           ),
         ),
@@ -443,50 +447,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
               body: SafeArea(
                 child: Column(
                   children: [
-                    Container(
-                      width: double.infinity,
-                      color: AppColors.lime,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 10,
-                      ),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 1240),
-                          child: Row(
-                            children: [
-                              const ExcludeSemantics(
-                                child: Icon(
-                                  CupertinoIcons.info_circle,
-                                  size: 17,
-                                  color: AppColors.green,
-                                ),
-                              ),
-                              const SizedBox(width: 9),
-                              Expanded(
-                                child: Text(
-                                  ops.cloud
-                                      ? (ops.data?['salesSource'] == 'sample'
-                                            ? '내 매장 · 클라우드 저장 · 샘플 주문'
-                                            : '내 매장 · 클라우드 저장 · 주문 연동 전')
-                                      : ops.readOnly
-                                      ? '공개 미리보기 · 샘플 데이터 · 저장·실제 발주 없음'
-                                      : ops.sharedApi != null
-                                      ? '공유 데모 연결 · ${ops.sharedApiHost} · 실제 발주 없음'
-                                      : '체험 매장 · 역할 전환은 로그인 아님 · 실제 발주 없음',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    height: 1.4,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.green,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    if (ops.data != null) manualSearchBar(),
                     if (ops.busy) const AppLinearProgress(minHeight: 2),
                     if (ops.error != null)
                       MaterialBanner(
@@ -524,7 +485,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
                           ),
                         ),
                       ),
-                      manualSearchBar(),
                     ],
                     Expanded(
                       child: AppContentTransition(

@@ -44,6 +44,11 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('인원 배치').first);
         await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('staffing-matrix')), findsOneWidget);
+        final cell = find.byKey(const ValueKey('staffing-count-0-kitchen'));
+        await tester.ensureVisible(cell);
+        await tester.tap(cell);
+        await tester.pumpAndSettle();
         final dropdown = find.byType(DropdownButtonFormField<String>).first;
         await tester.ensureVisible(dropdown);
         await tester.tap(dropdown);
@@ -51,6 +56,22 @@ void main() {
         await tester.tap(find.text('현우').last);
         await tester.pumpAndSettle();
         expect(writes, isEmpty);
+        await tester.tap(find.text('적용'));
+        await tester.pumpAndSettle();
+        expect(
+          find.descendant(of: cell, matching: find.text('현우')),
+          findsOneWidget,
+        );
+        await tester.tap(cell);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('인원 늘리기'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('취소'));
+        await tester.pumpAndSettle();
+        expect(
+          find.descendant(of: cell, matching: find.text('1 / 1명')),
+          findsOneWidget,
+        );
         await tester.tap(find.text('일주일 설정 저장'));
         await tester.pumpAndSettle();
         expect(writes.single['action'], 'save_workplace_hours');

@@ -838,17 +838,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           height: gridHeight + 24,
                           child: Stack(
                             children: [
-                              for (var m = from; m <= until; m += 60)
+                              for (var m = from; m <= until; m += 30)
                                 Positioned(
                                   top: (m - from) * scale,
                                   left: 0,
                                   right: 0,
-                                  child: Text(
-                                    '${m >= 1440 ? '+' : ''}${rosterClock(m)}',
-                                    textAlign: TextAlign.center,
-                                    style: AppText.caption.copyWith(
-                                      fontSize: 11,
-                                    ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          '${m >= 1440 ? '+' : ''}${rosterClock(m)}',
+                                          textAlign: TextAlign.center,
+                                          style: AppText.caption.copyWith(
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        key: ValueKey('roster-time-tick-$m'),
+                                        width: 6,
+                                        height: 1,
+                                        child: const ColoredBox(
+                                          color: AppColors.muted,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                             ],
@@ -878,16 +892,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 child: Column(
                                   children: [
                                     Container(
+                                      key: const ValueKey(
+                                        'roster-date-heading',
+                                      ),
                                       height: headerHeight / 2,
                                       alignment: Alignment.center,
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 12,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.surface,
-                                        border: Border.all(
-                                          color: AppColors.line,
-                                        ),
                                       ),
                                       child: Text(
                                         '${day.month}/${day.day} ${weekdays[day.weekday - 1]}${dayNote(day).isEmpty ? '' : '\n${dayNote(day)}'}',
@@ -906,14 +917,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                             child: Column(
                                               children: [
                                                 Container(
+                                                  key: ValueKey(
+                                                    'roster-part-heading-${part.id}',
+                                                  ),
                                                   height: headerHeight / 2,
                                                   alignment: Alignment.center,
-                                                  decoration: BoxDecoration(
-                                                    color: AppColors.surface,
-                                                    border: Border.all(
-                                                      color: AppColors.line,
-                                                    ),
-                                                  ),
                                                   child: Text(
                                                     '${part.name}${part.hidden ? ' · 숨김' : ''}',
                                                     style: AppText.caption,

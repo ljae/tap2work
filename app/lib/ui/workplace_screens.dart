@@ -781,43 +781,95 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   int countFor(Json band, String part) =>
       (band['headcounts'] as Map?)?[part] ?? (band['custom'] == true ? 0 : 1);
 
+  List<String> crewFor(Json band, String part) =>
+      (band['crewIds']?[part] as List? ?? []).cast<String>();
+
   Future<void> editCount(int index, Json part) async {
     var count = countFor(dayBands[index], part['id']);
-    final value = await showAppDialog<int>(
+    final ids = List<String>.generate(
+      12,
+      (i) => crewFor(dayBands[index], part['id']).elementAtOrNull(i) ?? '',
+    );
+    final people = ops
+        .rows('tappers')
+        .where((p) => p['active'] != false)
+        .toList();
+    final accepted = await showAppDialog<bool>(
       context: context,
       builder: (c) => StatefulBuilder(
         builder: (c, refresh) => AlertDialog(
+          scrollable: true,
           title: Text('${bandLabel(dayBands[index])} · ${part['name']}'),
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                tooltip: '인원 줄이기',
-                onPressed: count > 0 ? () => refresh(() => count--) : null,
-                icon: const Icon(Icons.remove),
-              ),
-              Text('$count명', style: AppText.title),
-              IconButton(
-                tooltip: '인원 늘리기',
-                onPressed: count < 12 ? () => refresh(() => count++) : null,
-                icon: const Icon(Icons.add),
-              ),
-            ],
+          content: SizedBox(
+            width: 360,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      tooltip: '인원 줄이기',
+                      onPressed: count > 0
+                          ? () => refresh(() => count--)
+                          : null,
+                      icon: const Icon(Icons.remove),
+                    ),
+                    Text('$count명', style: AppText.title),
+                    IconButton(
+                      tooltip: '인원 늘리기',
+                      onPressed: count < 12
+                          ? () => refresh(() => count++)
+                          : null,
+                      icon: const Icon(Icons.add),
+                    ),
+                  ],
+                ),
+                for (var seat = 0; seat < count; seat++)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: DropdownButtonFormField<String>(
+                      key: ValueKey('staffing-crew-$seat-${ids[seat]}'),
+                      initialValue: ids[seat],
+                      isExpanded: true,
+                      decoration: InputDecoration(labelText: '크루 ${seat + 1}'),
+                      items: [
+                        const DropdownMenuItem(value: '', child: Text('미배정')),
+                        for (final person in people)
+                          DropdownMenuItem<String>(
+                            value: person['id'],
+                            child: Text(
+                              person['nickname'],
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        if (ids[seat].isNotEmpty &&
+                            !people.any((p) => p['id'] == ids[seat]))
+                          DropdownMenuItem(
+                            value: ids[seat],
+                            child: const Text('비활성 크루 · 다시 선택'),
+                          ),
+                      ],
+                      onChanged: (v) => refresh(() => ids[seat] = v ?? ''),
+                    ),
+                  ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(c),
+              onPressed: () => Navigator.pop(c, false),
               child: const Text('취소'),
             ),
             FilledButton(
-              onPressed: () => Navigator.pop(c, count),
+              onPressed: () => Navigator.pop(c, true),
               child: const Text('적용'),
             ),
           ],
         ),
       ),
     );
-    if (value == null || !mounted || !canDraftHours) return;
+    if (accepted != true || !mounted || !canDraftHours) return;
     final source = dayBands[index];
     final ordinal = dayBands
         .where((b) => b['custom'] != true)
@@ -831,118 +883,89 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             : rows.where((b) => b['custom'] != true).elementAtOrNull(ordinal);
         if (target == null) continue;
         target['headcounts'] ??= <String, dynamic>{};
-        target['headcounts'][part['id']] = value;
-        final assigned = (target['crewIds']?[part['id']] as List? ?? [])
-            .take(value)
-            .toList();
+        target['headcounts'][part['id']] = count;
         target['crewIds'] ??= <String, dynamic>{};
-        target['crewIds'][part['id']] = assigned;
-      }
-    });
-  }
-
-  List<String> crewFor(Json band, String part) =>
-      (band['crewIds']?[part] as List? ?? []).cast<String>();
-
-  void setCrew(int index, String part, int seat, String value) {
-    final source = dayBands[index];
-    final ordinal = dayBands
-        .where((b) => b['custom'] != true)
-        .toList()
-        .indexOf(source);
-    update(() {
-      for (final d in hoursTargets) {
-        final rows = (days['$d'] as List).cast<Json>();
-        final target = source['custom'] == true
-            ? rows.where((b) => b['id'] == source['id']).firstOrNull
-            : rows.where((b) => b['custom'] != true).elementAtOrNull(ordinal);
-        if (target == null) continue;
-        final count = countFor(target, part);
-        if (seat >= count) continue;
-        final ids = List<String>.generate(
-          count,
-          (i) => crewFor(target, part).elementAtOrNull(i) ?? '',
-        );
-        ids[seat] = value;
-        target['crewIds'] ??= <String, dynamic>{};
-        target['crewIds'][part] = ids;
+        target['crewIds'][part['id']] = ids.take(count).toList();
       }
     });
   }
 
   Widget staffingMatrix() {
     final visibleParts = parts.where((p) => p['hidden'] != true).toList();
-    final people = ops
-        .rows('tappers')
-        .where((p) => p['active'] != false)
-        .toList();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Text(
-          '선택한 크루를 기본 배정으로 저장하고 앞으로의 근무표에 반영해요.',
-          style: AppText.caption,
-        ),
-        for (var i = 0; i < dayBands.length; i++) ...[
-          const SizedBox(height: 16),
-          Text(bandLabel(dayBands[i]), style: AppText.section),
-          for (final part in visibleParts) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(child: Text(part['name'], style: AppText.body)),
-                TextButton(
-                  key: ValueKey('staffing-count-$i-${part['id']}'),
-                  onPressed: canDraftHours ? () => editCount(i, part) : null,
-                  child: Text('${countFor(dayBands[i], part['id'])}명'),
-                ),
-              ],
-            ),
-            for (var seat = 0; seat < countFor(dayBands[i], part['id']); seat++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: DropdownButtonFormField<String>(
-                  key: ValueKey(
-                    'staffing-crew-$weekday-$i-${part['id']}-$seat-${crewFor(dayBands[i], part['id']).elementAtOrNull(seat)}',
-                  ),
-                  initialValue:
-                      crewFor(dayBands[i], part['id']).elementAtOrNull(seat) ??
-                      '',
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText: '${part['name']} 크루 ${seat + 1}',
-                  ),
-                  items: [
-                    const DropdownMenuItem(value: '', child: Text('미배정')),
-                    for (final person in people)
-                      DropdownMenuItem<String>(
-                        value: person['id'],
-                        child: Text(
-                          person['nickname'],
-                          overflow: TextOverflow.ellipsis,
+    String name(String id) =>
+        ops
+            .rows('tappers')
+            .where((p) => p['id'] == id)
+            .firstOrNull?['nickname'] ??
+        '비활성 크루';
+    Widget label(String text) => Padding(
+      padding: const EdgeInsets.all(12),
+      child: Text(text, textAlign: TextAlign.center),
+    );
+    return LayoutBuilder(
+      builder: (context, box) => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SizedBox(
+          width: max(
+            box.maxWidth,
+            (visibleParts.length + 1) *
+                68.0 *
+                MediaQuery.textScalerOf(context).scale(1),
+          ),
+          child: Table(
+            key: const ValueKey('staffing-matrix'),
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            border: TableBorder.all(color: AppColors.line),
+            children: [
+              TableRow(
+                decoration: const BoxDecoration(color: AppColors.elevated),
+                children: [
+                  label('교대'),
+                  for (final p in visibleParts) label(p['name']),
+                ],
+              ),
+              for (var i = 0; i < dayBands.length; i++)
+                TableRow(
+                  children: [
+                    label(bandLabel(dayBands[i])),
+                    for (final p in visibleParts)
+                      TextButton(
+                        key: ValueKey('staffing-count-$i-${p['id']}'),
+                        onPressed: canDraftHours ? () => editCount(i, p) : null,
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(48, 88),
+                          padding: const EdgeInsets.all(8),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${crewFor(dayBands[i], p['id']).where((id) => id.isNotEmpty).length} / ${countFor(dayBands[i], p['id'])}명',
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              crewFor(
+                                    dayBands[i],
+                                    p['id'],
+                                  ).any((id) => id.isNotEmpty)
+                                  ? crewFor(dayBands[i], p['id'])
+                                        .where((id) => id.isNotEmpty)
+                                        .map(name)
+                                        .join(' · ')
+                                  : '미배정',
+                              style: AppText.caption,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       ),
-                    for (final id
-                        in crewFor(dayBands[i], part['id'])
-                            .where(
-                              (id) =>
-                                  id.isNotEmpty &&
-                                  !people.any((p) => p['id'] == id),
-                            )
-                            .toSet())
-                      DropdownMenuItem(
-                        value: id,
-                        child: const Text('비활성 크루 · 다시 선택'),
-                      ),
                   ],
-                  onChanged: canDraftHours
-                      ? (v) => setCrew(i, part['id'], seat, v ?? '')
-                      : null,
                 ),
-              ),
-          ],
-        ],
-      ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -1099,7 +1122,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     if (hoursStep == 1 && dayBands.isNotEmpty) ...[
       hoursHeading(
         '인원 배치',
-        '필요 인원과 기본 크루를 선택해요. 전체는 모든 영업일, 개별은 선택한 요일에 적용해요.',
+        '셀의 숫자는 배정 / 필요 인원이에요. 셀을 눌러 인원수와 크루를 수정해요. 전체는 모든 영업일, 개별은 선택한 요일에 적용해요.',
       ),
       staffingMatrix(),
       const SizedBox(height: 16),
