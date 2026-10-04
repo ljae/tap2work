@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 158,
+  "revision": 159,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -5172,7 +5172,16 @@
       "decisionId": "D-073",
       "detail": "Deployment prepared in an independent clone based on published main 6c451f2. Only TAP/checklist/manual policy paths are included. Calendar, crew allocation, staff shifts, hours and roster UI/server edits in the shared working tree are excluded. developer/workplace.mjs changes only TAP migration permissions. The shared main branch/index/source files are not reset or committed.",
       "verification": "Isolated npm run check and 169/169 server tests passed; flutter analyze no issues; full Flutter suite 253/253 passed; npm run build:site passed with fresh sample data and versioned assets. Schedule source files unchanged from published base. Previous operations function v30 downloaded for rollback. Deployment not yet performed."
+    },
+    {
+      "at": "2026-10-04T08:11:48.987932+00:00",
+      "type": "deployment",
+      "title": "TAP 단일 정책 공개 배포 완료·근무표 수정 세션 격리",
+      "decisionId": "D-073",
+      "reason": "사용자가 다른 세션의 근무표 수정과 충돌하지 않도록 배포를 요청했다.",
+      "detail": "Independent clone based on published main 6c451f2454c9c1400aab90dc2465a44a8bc48946. Release df0a0e5b129e1de6aeb0e59fbb7c8def5d7e64bb includes only TAP/checklist/manual policy changes, tests and documentation. Current shared-tree calendar, crew allocation, weekday scope, staff/labor and roster changes were excluded. Shared branch/index and schedule source files were not reset, committed or overwritten. developer/workplace.mjs changes only TAP migration action permissions. operations function deployed from version 30 to 31 without SQL migrations or store-data reset; previous source downloaded separately. Public Pages deployment completed at https://tap2.work/. Central publishing/local backup features remain unimplemented.",
+      "verification": "Isolated npm run check, UI links 34, server suite 169/169, flutter analyze, Flutter suite 253/253 and build:site passed. GitHub Actions run 37187850717 build/deploy succeeded: https://github.com/ljae/tap2work/actions/runs/37187850717. Public index.html, versioned main and bootstrap returned HTTP 200 and SHA-256 exactly matched the CI Pages artifact. Deployed operations source re-downloaded and matched isolated TAP policy, operations and shared schedule modules; function v31 ACTIVE, unauthenticated GET 401 and CORS OPTIONS 204. Protected schedule source files remain identical to published base. Native build and real store migration not performed."
     }
   ],
-  "updatedAt": "2026-10-04T08:06:22.728619+00:00"
+  "updatedAt": "2026-10-04T08:11:48.987932+00:00"
 }
