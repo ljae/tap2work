@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 172,
+  "revision": 173,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -823,7 +823,7 @@
       "reason": "사용자가 매뉴얼 마켓·상세 수정·개인화 로컬 백업 구현을 요청하고 자동 업데이트/기존 업무 기록 유지 정책을 명시했다.",
       "source": "사용자 구현 요청 및 자동 업데이트 선택 답변 · 2026-10-04",
       "updatedAt": "2026-10-04T14:47:52.564716+00:00",
-      "implementation": "Implemented in isolated worktree; validation and web deployment in progress. Source publishing uses reviewed MD and backend deployment; periodic automatic research/publishing remains planned."
+      "implementation": "Implemented and deployed. Public linked definitions auto-update on the next snapshot after a catalog release; existing executions/settings preserved. Native builds, periodic research/publishing and provider CMS remain outside this release."
     }
   ],
   "milestones": [
@@ -986,8 +986,8 @@
     {
       "id": "M-027",
       "title": "매뉴얼 마켓·TAP/Task 상세·개인화 백업",
-      "status": "in_progress",
-      "description": "64 TAP/211 Task catalog, linked auto updates preserving executions/settings, full detail editor and device/file backup/additive restore implemented. Flutter analysis/290 tests, Node 192 tests, 39 UI links, 12 captures and web build passed. Deployment in progress; advanced provider CMS/native verification not included."
+      "status": "completed",
+      "description": "Manual market/detail editing/device and file backup deployed. 64 TAP/211 Task catalog; Flutter analysis/290 tests, Node 192 tests, 39 UI links, 12 captures, local web build and Pages passed. Authenticated catalog projection and live artifact hashes verified. Advanced provider CMS/native builds not included."
     }
   ],
   "history": [
@@ -5614,7 +5614,57 @@
         "Automatic update means a newly deployed public release applied on the next server snapshot. No periodic automatic publishing or personal draft sync claimed.",
         "No live account imports or unrelated staffing/account data resets performed for this change."
       ]
+    },
+    {
+      "at": "2026-10-04T14:54:38.883702+00:00",
+      "type": "deployment",
+      "summary": "Manual market, linked public auto updates, detailed TAP/Task editing and personal checklist backup/restore deployed.",
+      "sourceCommit": "a3cb94de4ed3c78b01c644cb0fc5bc30e2a4e7d5",
+      "workflow": "https://github.com/ljae/tap2work/actions/runs/37210656843",
+      "url": "https://tap2.work",
+      "backend": {
+        "function": "operations",
+        "version": 36,
+        "status": "ACTIVE",
+        "unauthenticatedStatus": 401
+      },
+      "authenticatedProbe": {
+        "authenticatedStatus": 200,
+        "canEditTasks": true,
+        "catalogTaps": 64,
+        "catalogTasks": 211,
+        "releaseId": "55f8cb09d84360027d364d97bd99732e7b55168a3c6a05ff98afd7b078be7494",
+        "backupFormat": "tap2work-checklists",
+        "serverHistoryHidden": true
+      },
+      "verification": [
+        "Flutter analysis and all 290 tests passed locally and CI; Node 192 tests, npm run check and 39 UI/settings links passed.",
+        "12 captures at 320/390/1200 reviewed for market, editor, backup and directory; enlarged text covered by widget tests.",
+        "Root local web release and Pages build/deploy succeeded. HTML/bootstrap/main HTTP 200 and artifact SHA-256 match.",
+        "Authenticated deployed operations returned 64 TAP/211 Task catalog and backup projection. No live account content imports/restores were performed.",
+        "Native builds, actual native file dialogs and automated periodic source publishing were not performed/implemented."
+      ],
+      "assets": [
+        {
+          "file": "index.html",
+          "status": 200,
+          "matches": true,
+          "sha256": "69db78b12289a4e5ee7a577b6d4af776810d56fd635d9d913ecb59fb7e2f0795"
+        },
+        {
+          "file": "flutter_bootstrap.916493d66600b2742082.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "916493d66600b27420821102dd08e0e2a6ae6fa3730e9a4c1d8b5ab305b553a5"
+        },
+        {
+          "file": "main.960e9697739681c95bf2.dart.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "960e9697739681c95bf2f60af7c81899f78bee21dbc112780735c7179aebee04"
+        }
+      ]
     }
   ],
-  "updatedAt": "2026-10-04T14:49:01.207004+00:00"
+  "updatedAt": "2026-10-04T14:54:38.883702+00:00"
 }
