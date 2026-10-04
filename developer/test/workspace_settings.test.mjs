@@ -46,9 +46,7 @@ test('settings apply from next Korean day and quantity, order and bulk policy ar
   const today = first.tasks.find(row => row.templateId === 'clean');
   const settings = { type: 'cleaning', enabled: true, recurrence: { mode: 'weekly', weekdays: [1] },
     allowBulkComplete: false, enforceSequence: true };
-  await x.act('save_tap_settings', { templateId: 'clean', settings,
-    steps: [{ id: 'wash', settings: { completionKind: 'quantity', quantitySpec: { unit: '개', decimalPlaces: 0 } } },
-      { id: 'wipe', settings: { completionKind: 'check' } }] });
+  await x.act('save_tap_settings', { templateId: 'clean', assignmentScopeVersion:2, settings:{...settings,completionPolicy:{kind:'quantity',quantitySpec:{unit:'개',decimalPlaces:0}}} });
   assert.equal(x.raw().tasks.find(row => row.id === today.id).settings, undefined);
   x.next('2026-09-27T15:05:00Z'); // Monday 00:05 Korea.
   const monday = await x.store.snapshot();
@@ -59,11 +57,12 @@ test('settings apply from next Korean day and quantity, order and bulk policy ar
   await assert.rejects(() => x.act('complete_task', { taskId: task.id }), { status: 409 });
   await assert.rejects(() => x.act('move_tap', { taskId: task.id, folderId: 'general', status: 'done' }), { status: 409 });
   await assert.rejects(() => x.act('complete_step', { taskId: task.id, stepId: 'wipe' }), { status: 409 });
-  await assert.rejects(() => x.act('complete_step', { taskId: task.id, stepId: 'wash' }), { status: 409 });
-  await x.act('complete_step', { taskId: task.id, stepId: 'wash', quantity: 4 });
-  const done = await x.act('complete_step', { taskId: task.id, stepId: 'wipe' });
+  await x.act('complete_step', { taskId: task.id, stepId: 'wash' });
+  const checked = await x.act('complete_step', { taskId: task.id, stepId: 'wipe' });
+  assert.equal(checked.tasks.find(row => row.id === task.id).completedAt,null);
+  const done = await x.act('complete_task', { taskId: task.id, quantity:4 });
   assert.equal(done.tasks.find(row => row.id === task.id).completedAt != null, true);
-  assert.equal(x.raw().tasks.find(row => row.id === task.id).steps[0].actualQuantity, 4);
+  assert.equal(x.raw().tasks.find(row => row.id === task.id).actualQuantity, 4);
   assert.equal(x.raw().items.length, 0);
   x.next('2026-09-28T15:05:00Z'); // Tuesday 00:05 Korea.
   assert.equal((await x.store.snapshot()).tasks.some(row => row.templateId === 'clean'), false);

@@ -61,7 +61,7 @@ void main() {
   });
 
   testWidgets(
-    'Task settings show only selected step without TAP-wide controls',
+    'Task link opens shared TAP policy without Task allocation controls',
     (tester) async {
       final data = settingsFixture();
       (data['taskTemplates'] as List).first['steps'].add({
@@ -77,10 +77,10 @@ void main() {
         ),
         data: data,
       );
-      expect(find.text('Task 설정'), findsOneWidget);
-      expect(find.text('재료 확인'), findsOneWidget);
+      expect(find.text('TAP 설정'), findsOneWidget);
+      expect(find.text('기존 담당 파트'), findsNothing);
       expect(find.text('형제 작업'), findsNothing);
-      expect(find.text('Task 순서대로 수행'), findsNothing);
+      expect(find.text('Task 순서대로 수행'), findsOneWidget);
       expect(find.byKey(const ValueKey('tap-settings-template')), findsNothing);
     },
   );
@@ -89,15 +89,59 @@ void main() {
     tester,
   ) async {
     await mountSettings(tester, (ops) => TapSettingsScreen(ops: ops));
-    await tester.tap(find.byKey(const ValueKey('kind-step-1')));
+    await tester.ensureVisible(find.byKey(const ValueKey('kind-tap-policy')));
+    await tester.tap(find.byKey(const ValueKey('kind-tap-policy')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('실제 수량 입력').last);
     await tester.pumpAndSettle();
-    final target = find.byKey(const ValueKey('target-step-1'));
+    final target = find.byKey(const ValueKey('target-tap-policy'));
     await tester.ensureVisible(target);
     expect(tester.widget<TextFormField>(target).initialValue, isEmpty);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('TAP duration outside presets opens without losing its value', (
+    tester,
+  ) async {
+    final data = settingsFixture();
+    data['taskTemplates'][0]['assignmentScopeVersion'] = 2;
+    data['taskTemplates'][0]['settings'] = {'estimatedMinutes': 25};
+    await mountSettings(
+      tester,
+      (ops) => TapSettingsScreen(ops: ops, initialTemplateId: 'tap-1'),
+      data: data,
+    );
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(find.text('25분'));
+    expect(find.text('25분'), findsOneWidget);
+  });
+
+  testWidgets(
+    'legacy exceptions require explicit acknowledgement before policy save',
+    (tester) async {
+      final data = settingsFixture();
+      data['taskTemplates'][0]['policyReport'] = {
+        'needsReview': true,
+        'issues': [
+          {'stepId': 'step-1', 'title': '재료 확인', 'kind': '수량 완료'},
+        ],
+      };
+      await mountSettings(
+        tester,
+        (ops) => TapSettingsScreen(ops: ops, initialTemplateId: 'tap-1'),
+        data: data,
+      );
+      await tester.ensureVisible(find.text('기존 Task 설정을 TAP 기준으로 통합'));
+      expect(find.text('기존 Task 설정을 TAP 기준으로 통합'), findsOneWidget);
+      await tester.ensureVisible(find.text('설정 저장'));
+      await tester.tap(find.text('설정 저장'));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('기존 Task 설정의 통합 내용을 확인해 주세요.'),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('blank store requires name and industry before save', (
     tester,

@@ -45,3 +45,16 @@ test('unexpected Flutter output blocks publication rather than silently caching'
   await writeFile(join(directory, 'flutter_bootstrap.js'), 'new format');
   await assert.rejects(versionWebAssets(directory), /format changed/);
 });
+
+
+test('reused Flutter HTML can be versioned repeatedly and follows changed main output', async t => {
+  const directory = await fixture(t, 'first');
+  const initial = await versionWebAssets(directory);
+  assert.deepEqual(await versionWebAssets(directory),initial);
+  await writeFile(join(directory,'main.dart.js'),'changed');
+  const next = await versionWebAssets(directory);
+  assert.notEqual(next.mainName,initial.mainName);
+  const html = await readFile(join(directory,'index.html'),'utf8');
+  assert.ok(html.includes(next.mainName) && html.includes(next.bootstrapName));
+  assert.ok(!html.includes(initial.mainName) && !html.includes(initial.bootstrapName));
+});

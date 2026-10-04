@@ -11,9 +11,11 @@ export async function versionWebAssets(directory) {
   const main = await readFile(join(directory, 'main.dart.js'));
   const bootstrap = await readFile(join(directory, 'flutter_bootstrap.js'), 'utf8');
   const html = await readFile(join(directory, 'index.html'), 'utf8');
+  const mainHref = /href="main(?:\.[a-f0-9]{20})?\.dart\.js"/g;
+  const loaderSrc = /src="flutter_bootstrap(?:\.[a-f0-9]{20})?\.js"/g;
   if (!bootstrap.includes('"mainJsPath":"main.dart.js"') ||
-      !html.includes('href="main.dart.js"') ||
-      !html.includes('src="flutter_bootstrap.js"')) {
+      !html.match(mainHref) ||
+      !html.match(loaderSrc)) {
     throw Error('Flutter web entrypoint format changed; refusing an unversioned deployment.');
   }
   const mainName = `main.${digest(main)}.dart.js`;
@@ -22,7 +24,7 @@ export async function versionWebAssets(directory) {
   await writeFile(join(directory, mainName), main);
   await writeFile(join(directory, bootstrapName), versionedBootstrap);
   await writeFile(join(directory, 'index.html'), html
-    .replaceAll('href="main.dart.js"', `href="${mainName}"`)
-    .replaceAll('src="flutter_bootstrap.js"', `src="${bootstrapName}"`));
+    .replace(mainHref, `href="${mainName}"`)
+    .replace(loaderSrc, `src="${bootstrapName}"`));
   return { mainName, bootstrapName };
 }

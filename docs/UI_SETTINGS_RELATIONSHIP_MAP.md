@@ -47,7 +47,7 @@ flowchart LR
 | S10 | `tappers[]`, `attendance[]`, `payAdjustments[]`, `payments[]` | 크루 정보/출퇴근/급여 기록 → `save_tapper`, `clock_in`, `break_start`, `break_end`, `clock_out`, `adjust_attendance`, `add_pay_adjustment`, `record_payment` | 근무표·크루·사장님 인건비 화면. 개인 급여는 역할별 투영으로 보호 | `labor.test.mjs`, `labor_panel_test.dart` |
 | S11 | `checklistFolders[]`, `taskTemplates[]` | 업무/매뉴얼 카드 길게 누르기 → `DirectEditFrame` → `edit_work_node` / `edit_manual_node` | 업무 편집은 선택한 미완료 실행과 양식, 매뉴얼 편집은 양식만 변경. 완료 기록 보존 | `checklist_test.dart`, `checklists.test.mjs` |
 | S12 | `taskTemplates[id].steps[id]` | 매뉴얼 > Task > **매뉴얼 편집** → `ManualTaskEditor(templateId, sourceStepId)` → `save_checklists` | 해당 Task의 제목·본문·팁·링크·태그만 갱신, `manualSearch` 재투영. 다른 Task와 기존 진행 기록 불변 | `manual_workspace_test.dart` 단일 Task/형제 불변/POST 검사 |
-| S13 | `taskTemplates[id].steps[id].settings.estimatedMinutes` 및 TAP 설정 | 매뉴얼 > Task > Task 설정 → `TapSettingsScreen(initialTemplateId, initialStepId)` → `save_tap_settings` | 선택 Task의 수량·파트/장소 덮어쓰기·시간만 표시. 매뉴얼 시간·TAP 합계·다음 업무 설정 반영; 오늘 실행 규칙은 보존 | `workspace_settings.test.mjs`, 매뉴얼 테스트 |
+| S13 | `taskTemplates[id].settings` | 매뉴얼 > Task > TAP 설정 → `TapSettingsScreen(initialTemplateId)` → `save_tap_settings` v2 | 부모 TAP의 시간대·파트·장소·완료 조건·소요 시간을 전체 Task에 적용; Task별 운영 컨트롤 없음 | `settings_screens_test.dart`, `tap_policy.test.mjs` |
 | S14 | 매뉴얼 폴더/TAP/Task 순서 | 왼쪽 트리 길게 누르기 → 같은 계층 행의 손잡이/⋯ 이동 → `move_manual_node` | TAP→폴더, Task→TAP. Task를 폴더에 놓으면 해당 폴더의 TAP 선택. 같은 단계는 앞 순서. 오른쪽 편집은 독립이며 본문·오늘 실행 보존 | `manual_workspace_test.dart` 양쪽 격리/계층/폴더 드롭/320px/충돌, `manual_directory.test.mjs` |
 | S15 | `tasks[].steps[]` 실행 스냅샷 | 업무 카드/단계 상세 → `complete_step`, `reopen_step`, `complete_task`, `save_step_manual` | 오늘 업무 완료 상태·기록; 정의 매뉴얼 수정과 별개. 서버가 완료 규칙 검사 | `operations_test.dart`, `checklists.test.mjs` |
 | S16 | `items[]`, `orders[]`, `preparedItems[]` | 재고/발주/입고/준비품 → `save_inventory_item`, `check_stock`, `place_order`, `receive_order`, `save_prepared_item`, `count_prepared_item` | 우리매장 재고, 부족 알림, 준비품·업무 카드. 주문만으로 재고 증가 없음 | `operations.test.mjs`, `prepared_items.test.mjs` |
@@ -166,16 +166,15 @@ Empty manual containers (2026-09-29): folder and TAP definitions remain visible 
 
 | ID | Source | Control → action | Consumer | Verification |
 |---|---|---|---|---|
-| S34 | `taskTemplates[].settings.assignment`, `steps[].settings.assignment` | TAP/Task 배정 또는 시간대에서 동일 TAP 설정 편집 → `save_tap_settings` | 오늘 미착수 실행을 밴드별 재생성; 진행·완료 설정/배정 증빙 보존. `tasks[].assignmentView`, `steps[].assignmentView`가 실제 크루·구간·내 배정 표시를 제공. legacy는 가능 배지, scheduled는 미배정 같은 파트 지원 완료 가능 | `work_assignments.test.mjs`, UI 연동은 담당 에이전트 검증 |
+| S35 | `taskTemplates[].settings.assignment`, `assignmentScopeVersion` | TAP 담당 설정 → `save_tap_settings` v2 | 오늘 미착수 배정만 재생성; 진행·완료 v1 snapshot 보존. v2 모든 Task의 담당 동일; 실제 크루·내 배정·권한 projection | `work_assignment_ui_test.dart`, `tap_policy.test.mjs` |
 
-S34의 모드는 TAP scheduled/crew/anyone/legacy, Task는 inherit 추가. scheduled는 stable timeBandIds와 필수 partId, crew는 tapper ID 배열 crewIds를 저장한다. 저장 버튼은 “설정 저장”, 설명은 “배정 변경은 오늘 미착수 업무부터 · 나머지 규칙은 다음 업무부터 · 진행/완료 기록 유지”; 배정 외 규칙만 바꾸면 기존 다음 업무 적용을 유지한다. 전체 projection 계약은 ARCHITECTURE의 Work assignment integration 절을 따른다.
+S35의 신규 모드는 TAP scheduled/crew/anyone이며 현재 legacy는 유지 선택으로만 노출한다. Task inherit/개별 배정 UI는 제거했다. scheduled는 stable timeBandIds와 필수 partId, crew는 tapper ID 배열 crewIds를 저장한다. 배정 변경은 오늘 미착수 업무부터, 나머지 규칙은 다음 업무부터 적용하고 진행·완료 기록은 보존한다.
 
 ## 시간대와 업무 담당 · 2026-09-30
 
 | ID | Source | Control → action | Consumer | Verification |
 |---|---|---|---|---|
 | S34 | workplace.days[].id/name/start/end/headcounts | 영업시간 설정 → 1–3교대·조정선 시간 드래그/휠·전체/개별 → save_workplace_hours (상세 추가/수정/삭제 진입 제거, 기존 추가 시간대 보존) | 필요 슬롯·반복 배정의 시간대 선택·업무 담당 | time_band_editor_test.dart, 시간대 서버 테스트 |
-| S35 | taskTemplates.settings.assignment / steps.settings.assignment | TAP/Task 담당 설정 → save_tap_settings (영업시간 시트의 연결 업무 진입 제거) | 시간대별 공동 실행·assignmentView·내 담당만·완료 권한 | work_assignment_ui_test.dart, work_assignments.test.mjs |
 | S36 | crewPatterns / staffShifts / shiftChangeRequests | 크루별 반복 배정·부분 OFF 신청/승인·빈 구간 대타 | 날짜별 근무표·미완료 업무 자동 인계·완료 담당 스냅샷 | schedule_exceptions.test.mjs, 관련 근무표 위젯 테스트 |
 
 담당 표시는 실제 배정, 지원 완료는 권한으로 분리한다. `누구나`는 그날 유효 근무 크루다. 기존 파트 미선택=전체 파트 가능 설정과 혼동하지 않는다. [상세 계약](SCHEDULE_WORK_ASSIGNMENTS.md).
@@ -236,3 +235,15 @@ Latest weekday-selector correction (2026-10-03): supersedes the preceding closed
 | S38 | workplace.hoursVersion + crewPatterns source/applied versions → 단계 안내·재적용 필요 → 기존 명시적 apply 액션 | 기존 근무표 보존, 재적용의 세부 시간 초기화와 보호 기록 안내 | crew_allocations.test.mjs, schedule_workflow_test.dart |
 | S39 | workplace.dateOverrides → 월간 날짜 클릭 → save_calendar_day(closed/open/reset) | 정기 휴무와 별도 예외, 필요 슬롯·기본 배정 적용의 참고 요일. 추가 휴무는 미래 미시작 배정 해제·원본 보관, 보호 기록 있으면 거절 | crew_allocation_test.dart, crew_allocations.test.mjs |
 | S27 | staffShifts → 날짜 탭·파트 가로/시간 세로 블록 → save_staff_shift | 배정 크루만 표시·직원 본인만, 시간 휠/drag/resize. 별도 시간표·파트 필터 제거 | calendar_test.dart, direct_edit_test.dart, schedule_workflow_test.dart |
+
+## TAP-only 첫 구현 · 2026-10-04
+
+S13/S35는 v2 실제 구현을 반영한다. `assignmentScopeVersion:2` 신규 양식은 Task별 운영 설정 쓰기를 서버에서 거절하고 시간대별 전체 Task 목록을 생성한다. 구 v1 실행은 호환 resolver로 읽는다. 달력 추가 휴무/영업 예외도 업무 시간대 판정에 반영한다.
+
+| ID | source → control → action | consumer | 검증 |
+| --- | --- | --- | --- |
+| S40 | 기존 Task override + policyReport → 기존 설정 확인·통합 체크/별도 TAP 분리 → save_tap_settings v2 또는 split_tap_policy | 통합 원본 보관, 분리 다음 영업일부터 생성·operationId 재시도, 진행/완료 snapshot 보존 | tap_policy.test.mjs |
+| S41 | TAP settings.completionPolicy → Task 체크 후 TAP 완성 수량 입력 → complete_task(quantity) | 실제 수량 한 번 저장·정밀도/권한 검증, 재고 자동 증가 없음 | tap_policy.test.mjs, workspace_settings.test.mjs |
+| S22 | Task 이름/매뉴얼/팁/태그/자료 → save_task_step 또는 save_step_manual | 공동 contentRevision 증가, TAP 설정·형제 Task·다른 실행 보존 | tap_policy.test.mjs, task_inline_edit_test.dart |
+
+중앙 주간 발행/선택 업데이트, 로컬 초안·백업/복원은 아직 구현 전이다. [상세 구현안](CHECKLIST_PLATFORM_IMPLEMENTATION_PLAN_2026-10-04.md) 참조.

@@ -262,6 +262,10 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       task['requiredRole'] == 'all' ||
       task['requiredRole'] == ops.actor['role'];
   String estimatedDuration(Json task) {
+    if (task['assignmentScopeVersion'] == 2) {
+      final value = task['settings']?['estimatedMinutes'];
+      return value is int && value > 0 ? '약 $value분' : '';
+    }
     final steps = (task['steps'] as List? ?? []).whereType<Json>().toList();
     final times = steps
         .map((step) => step['settings']?['estimatedMinutes'])
@@ -1085,7 +1089,22 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         celebrate(taskId: task['id']);
       }
     } else {
-      final ok = await ops.act('complete_task', {'taskId': task['id']});
+      num? quantity;
+      if (task['assignmentScopeVersion'] == 2 &&
+          task['settings']?['completionPolicy']?['kind'] == 'quantity') {
+        quantity = await _stepQuantity({
+          'title': task['title'],
+          'settings': {
+            'quantitySpec':
+                task['settings']['completionPolicy']['quantitySpec'],
+          },
+        });
+        if (quantity == null || !mounted) return;
+      }
+      final ok = await ops.act('complete_task', {
+        'taskId': task['id'],
+        'quantity': ?quantity,
+      });
       if (ok) {
         celebrate(taskId: task['id']);
       }
@@ -1137,6 +1156,18 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       'folderId': targetFolder,
       'status': targetStatus,
     };
+    if (targetStatus == 'done' &&
+        task['assignmentScopeVersion'] == 2 &&
+        task['settings']?['completionPolicy']?['kind'] == 'quantity') {
+      final quantity = await _stepQuantity({
+        'title': task['title'],
+        'settings': {
+          'quantitySpec': task['settings']['completionPolicy']['quantitySpec'],
+        },
+      });
+      if (quantity == null || !mounted) return;
+      payload['quantity'] = quantity;
+    }
     if (beforeTaskId != null) payload['beforeTaskId'] = beforeTaskId;
     final ok = await ops.act('move_tap', payload);
     if (ok && targetStatus == 'done') {
@@ -1438,6 +1469,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         list,
+        if (task['assignmentScopeVersion'] == 2 &&
+            task['settings']?['completionPolicy']?['kind'] == 'quantity' &&
+            task['completedAt'] == null &&
+            all.every((s) => s['completedAt'] != null))
+          FilledButton(
+            onPressed: ops.busy || ops.readOnly || task['canComplete'] != true
+                ? null
+                : () => _checkMenu(task),
+            child: const Text('TAP 완성 수량 입력'),
+          ),
         if (addingStep)
           TaskStepEditor(
             key: ValueKey('add-${task['id']}'),

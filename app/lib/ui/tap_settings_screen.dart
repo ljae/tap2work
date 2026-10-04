@@ -33,7 +33,10 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
           )
           .toList();
   String? selectedId;
-  bool saving = false, dirty = false, leaving = false;
+  bool saving = false,
+      dirty = false,
+      leaving = false,
+      acknowledgeLegacy = false;
   String? error;
   final Set<String> invalidTargetSteps = {};
   static const types = {
@@ -61,13 +64,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               (s) => s['id'] == widget.initialStepId,
             ))) {
       dirty = true;
-      final target = widget.initialStepId == null
-          ? settings
-          : stepSettings(
-              (template['steps'] as List).cast<Json>().firstWhere(
-                (s) => s['id'] == widget.initialStepId,
-              ),
-            );
+      final target = settings;
       final old = target['assignment'] as Json? ?? {};
       final band = assignmentBands(
         widget.ops,
@@ -98,28 +95,24 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
   }
 
   Json get template => templates.firstWhere((row) => row['id'] == selectedId);
-  Json get settings =>
-      template.putIfAbsent(
-            'settings',
-            () => <String, dynamic>{
-              'type': 'general',
-              'enabled': true,
-              'recurrence': {'mode': 'daily', 'weekdays': <int>[]},
-              'allowBulkComplete': true,
-              'enforceSequence': false,
-            },
-          )
-          as Json;
-  Json stepSettings(Json step) =>
-      step.putIfAbsent(
-            'settings',
-            () => <String, dynamic>{
-              'roleOverride': null,
-              'zoneOverride': null,
-              'completionKind': 'check',
-              'quantitySpec': null,
-              'estimatedMinutes': null,
-            },
+  Json get settings {
+    final value =
+        template.putIfAbsent('settings', () => <String, dynamic>{}) as Json;
+    value.putIfAbsent('type', () => 'general');
+    value.putIfAbsent('enabled', () => true);
+    value.putIfAbsent(
+      'recurrence',
+      () => <String, dynamic>{'mode': 'daily', 'weekdays': <int>[]},
+    );
+    value.putIfAbsent('allowBulkComplete', () => true);
+    value.putIfAbsent('enforceSequence', () => false);
+    return value;
+  }
+
+  Json get completionPolicy =>
+      settings.putIfAbsent(
+            'completionPolicy',
+            () => <String, dynamic>{'kind': 'check', 'quantitySpec': null},
           )
           as Json;
   void update(VoidCallback action) => setState(() {
@@ -157,7 +150,6 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
   Future<void> save() async {
     if (saving || openingActor != widget.ops.actorId) return;
     final task = template;
-    final steps = (task['steps'] as List).cast<Json>();
     final recurrence = settings['recurrence'] as Json;
     if (recurrence['mode'] == 'weekly' &&
         (recurrence['weekdays'] as List? ?? []).isEmpty) {
@@ -168,19 +160,20 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
       setState(() => error = '목표 수량은 숫자로 입력해 주세요.');
       return;
     }
-    for (final step in steps) {
-      final config = stepSettings(step);
-      if (config['completionKind'] == 'quantity') {
-        final spec = config['quantitySpec'] as Json?;
-        final target = spec?['target'];
-        if (spec == null ||
-            '${spec['unit'] ?? ''}'.trim().isEmpty ||
-            (target != null &&
-                (target is! num || target <= 0 || target > 100000))) {
-          setState(() => error = '${step['title']}의 수량·단위를 확인해 주세요.');
-          return;
-        }
+    if (completionPolicy['kind'] == 'quantity') {
+      final spec = completionPolicy['quantitySpec'] as Json?;
+      final target = spec?['target'];
+      if (spec == null ||
+          '${spec['unit'] ?? ''}'.trim().isEmpty ||
+          (target != null &&
+              (target is! num || target <= 0 || target > 100000))) {
+        setState(() => error = 'TAP의 수량·단위를 확인해 주세요.');
+        return;
       }
+    }
+    if (task['policyReport']?['needsReview'] == true && !acknowledgeLegacy) {
+      setState(() => error = '기존 Task 설정의 통합 내용을 확인해 주세요.');
+      return;
     }
     setState(() {
       saving = true;
@@ -190,15 +183,55 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
       'revision': revision,
       'templateId': task['id'],
       'settings': settings,
-      'steps': [
-        for (final step in steps)
-          {'id': step['id'], 'settings': stepSettings(step)},
-      ],
+      'assignmentScopeVersion': 2,
+      'acknowledgeLegacyPolicy': acknowledgeLegacy,
+      'zone': task['zone'],
     });
     if (!mounted) return;
     setState(() {
       saving = false;
       error = ok ? null : widget.ops.error ?? '저장하지 못했어요.';
+    });
+    if (ok) {
+      setState(() => leaving = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.pop(context);
+      });
+    }
+  }
+
+  Future<void> splitLegacy() async {
+    if (saving || openingActor != widget.ops.actorId) return;
+    final confirmed = await showAppDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Task별 별도 TAP으로 분리할까요?'),
+        content: const Text(
+          '기존 Task 설정을 각 TAP으로 옮겨 다음 영업일부터 사용해요. 오늘 업무와 기존 기록은 유지해요.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text('계속 수정'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('TAP으로 분리'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => saving = true);
+    final ok = await widget.ops.act('split_tap_policy', {
+      'revision': revision,
+      'templateId': template['id'],
+      'operationId': 'split-${template['id']}-$revision',
+    });
+    if (!mounted) return;
+    setState(() {
+      saving = false;
+      error = ok ? null : widget.ops.error;
     });
     if (ok) {
       setState(() => leaving = true);
@@ -216,12 +249,12 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
         onChanged: onChanged,
       );
 
-  Widget stepCard(Json step) {
-    final config = stepSettings(step);
-    final quantity = config['completionKind'] == 'quantity';
+  Widget tapConstraints() {
+    final step = <String, dynamic>{'id': 'tap-policy', 'title': 'TAP 완료 기준'};
+    final config = completionPolicy;
+    final quantity = config['kind'] == 'quantity';
     final zones = widget.ops.rows('zones');
-    final role = config['partOverride'] as String?;
-    final place = config['zoneOverride'] as String?;
+    final place = template['zone'] as String?;
     final spec =
         (config['quantitySpec'] as Json?) ??
         <String, dynamic>{'unit': '', 'target': null, 'decimalPlaces': 0};
@@ -236,22 +269,16 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
-            WorkAssignmentField(
-              ops: widget.ops,
-              value: config['assignment'] as Json?,
-              inherit: true,
-              onChanged: (v) => update(() => config['assignment'] = v),
-            ),
             AppPillField<String>(
               key: ValueKey('kind-${step['id']}'),
-              initialValue: config['completionKind'] ?? 'check',
+              initialValue: config['kind'] ?? 'check',
               decoration: const InputDecoration(labelText: '완료 방식'),
               items: const [
                 DropdownMenuItem(value: 'check', child: Text('체크')),
                 DropdownMenuItem(value: 'quantity', child: Text('실제 수량 입력')),
               ],
               onChanged: (v) => update(() {
-                config['completionKind'] = v;
+                config['kind'] = v;
                 config['quantitySpec'] = v == 'quantity' ? spec : null;
                 if (v != 'quantity') invalidTargetSteps.remove('${step['id']}');
               }),
@@ -262,7 +289,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                 key: ValueKey('unit-${step['id']}'),
                 initialValue: '${spec['unit'] ?? ''}',
                 decoration: const InputDecoration(labelText: '단위 · 필수'),
-                onChanged: (v) => spec['unit'] = v.trim(),
+                onChanged: (v) => update(() => spec['unit'] = v.trim()),
               ),
               TextFormField(
                 key: ValueKey('target-${step['id']}'),
@@ -271,7 +298,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                   decimal: true,
                 ),
                 decoration: const InputDecoration(labelText: '목표 수량 · 선택'),
-                onChanged: (v) {
+                onChanged: (v) => update(() {
                   final value = v.trim();
                   spec['target'] = value.isEmpty ? null : num.tryParse(value);
                   final id = '${step['id']}';
@@ -280,7 +307,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                   } else {
                     invalidTargetSteps.remove(id);
                   }
-                },
+                }),
               ),
               AppPillField<int>(
                 initialValue: spec['decimalPlaces'] ?? 0,
@@ -294,31 +321,6 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               ),
             ],
             const SizedBox(height: 10),
-            if ((config['assignment']?['mode'] ?? 'inherit') == 'legacy' ||
-                ((config['assignment']?['mode'] ?? 'inherit') == 'inherit' &&
-                    (settings['assignment']?['mode'] ?? 'legacy') == 'legacy'))
-              AppPillField<String>(
-                initialValue: role,
-                decoration: const InputDecoration(labelText: '기존 담당 파트'),
-                items: [
-                  const DropdownMenuItem<String>(
-                    value: null,
-                    child: Text('TAP 설정 따름'),
-                  ),
-                  for (final part in storeParts(
-                    widget.ops,
-                  ).where((p) => p['hidden'] != true))
-                    DropdownMenuItem(
-                      value: part['id'] as String,
-                      child: Text(part['name']),
-                    ),
-                ],
-                onChanged: (v) => update(() {
-                  config['partOverride'] = v;
-                  config['roleOverride'] = null;
-                }),
-              ),
-            const SizedBox(height: 10),
             AppPillField<String>(
               initialValue: zones.any((row) => row['id'] == place)
                   ? place
@@ -327,7 +329,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               items: [
                 const DropdownMenuItem<String>(
                   value: null,
-                  child: Text('TAP 설정 따름'),
+                  child: Text('장소 미설정'),
                 ),
                 for (final zone in zones)
                   DropdownMenuItem(
@@ -335,14 +337,34 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                     child: Text('${zone['name']}'),
                   ),
               ],
-              onChanged: (v) => update(() => config['zoneOverride'] = v),
+              onChanged: (v) => update(() => template['zone'] = v),
             ),
             const SizedBox(height: 10),
             AppPillField<int>(
-              initialValue: config['estimatedMinutes'],
+              initialValue: settings['estimatedMinutes'],
               decoration: const InputDecoration(labelText: '예상 소요 시간'),
-              items: const [
-                DropdownMenuItem<int>(value: null, child: Text('미설정')),
+              items: [
+                if (settings['estimatedMinutes'] != null &&
+                    ![
+                      1,
+                      2,
+                      3,
+                      5,
+                      8,
+                      10,
+                      15,
+                      20,
+                      30,
+                      45,
+                      60,
+                      90,
+                      120,
+                    ].contains(settings['estimatedMinutes']))
+                  DropdownMenuItem<int>(
+                    value: settings['estimatedMinutes'] as int,
+                    child: Text('${settings['estimatedMinutes']}분'),
+                  ),
+                const DropdownMenuItem<int>(value: null, child: Text('미설정')),
                 DropdownMenuItem(value: 1, child: Text('1분')),
                 DropdownMenuItem(value: 2, child: Text('2분')),
                 DropdownMenuItem(value: 3, child: Text('3분')),
@@ -357,7 +379,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                 DropdownMenuItem(value: 90, child: Text('90분')),
                 DropdownMenuItem(value: 120, child: Text('120분')),
               ],
-              onChanged: (v) => update(() => config['estimatedMinutes'] = v),
+              onChanged: (v) => update(() => settings['estimatedMinutes'] = v),
             ),
           ],
         ),
@@ -394,7 +416,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
       },
       child: AppEditorScaffold(
         onClose: close,
-        title: widget.initialStepId == null ? 'TAP 설정' : 'Task 설정',
+        title: 'TAP 설정',
         footer: AppSheetFooter(
           children: [
             if (error != null) Information('$error\n입력 중인 내용은 남아 있어요.'),
@@ -442,7 +464,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                       error = null;
                     }),
                   ),
-                if (widget.initialStepId == null) ...[
+                ...[
                   const SizedBox(height: 16),
                   WorkAssignmentField(
                     ops: widget.ops,
@@ -525,18 +547,32 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                   ),
                 ],
                 const SizedBox(height: 10),
-                for (final step in (task['steps'] as List).cast<Json>().where(
-                  (step) =>
-                      widget.initialStepId == null ||
-                      step['id'] == widget.initialStepId,
-                ))
-                  KeyedSubtree(
-                    key: ValueKey('settings-$selectedId-${step['id']}'),
-                    child: stepCard(step),
+                if (task['policyReport']?['needsReview'] == true) ...[
+                  Information(
+                    (task['policyReport']['issues'] as List)
+                        .map((row) => '${row['title']} · ${row['kind']}')
+                        .join('\n'),
                   ),
-                if (widget.ops.data?['revision'] != revision)
-                  const Information('다른 변경이 저장됐어요. 최신 업무를 확인한 뒤 다시 열어 주세요.'),
-                const SizedBox(height: 14),
+                  TextButton(
+                    onPressed:
+                        saving ||
+                            widget.ops.readOnly ||
+                            !widget.ops.canEditTasks
+                        ? null
+                        : splitLegacy,
+                    child: const Text('Task별 별도 TAP으로 분리'),
+                  ),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('기존 Task 설정을 TAP 기준으로 통합'),
+                    subtitle: const Text('기존 설정은 복구 이력에 보관하고 진행·완료 업무는 유지해요.'),
+                    value: acknowledgeLegacy,
+                    onChanged: (value) =>
+                        update(() => acknowledgeLegacy = value == true),
+                  ),
+                ],
+                tapConstraints(),
+                const Information('모든 Task는 이 TAP의 시간대·파트와 규칙을 함께 따라요.'),
               ],
             ),
           ),

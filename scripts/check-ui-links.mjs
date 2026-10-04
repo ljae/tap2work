@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S35', 'app/lib/ui/tap_settings_screen.dart', "'assignmentScopeVersion': 2", 'developer/task_settings.mjs', 'assertContentOnly(step)'],
+  ['S40', 'app/lib/ui/tap_settings_screen.dart', "'split_tap_policy'", 'developer/operations.mjs', "case 'split_tap_policy'"],
   ['S37', 'app/lib/ui/crew_allocation_screen.dart', "'save_crew_allocations'", 'developer/crew_patterns.mjs', "'apply_crew_allocations'"],
   ['S39', 'app/lib/ui/calendar_screen.dart', "'save_calendar_day'", 'developer/workplace.mjs', "input.action === 'save_calendar_day'"],
   ['S28', 'app/lib/ui/crew_pattern_screen.dart', "'save_crew_pattern'", 'developer/crew_patterns.mjs', "'apply_crew_pattern'"],
@@ -67,8 +69,8 @@ if (board.includes("Text('보드 편집')") || manual.includes("'구조 편집'"
   console.error('Board must not expose global TAP settings or overlapping default drag handles');
   errors++;
 }
-if (!manual.includes("initialStepId: selected['sourceStepId']")) {
-  console.error('S13: Task settings must target the selected source step');
+if (!manual.includes("Text('TAP 설정')") || manual.includes("initialStepId: selected['sourceStepId']")) {
+  console.error('S13: manual settings must target the parent TAP without Task allocation');
   errors++;
 }
 if (errors) process.exit(1);

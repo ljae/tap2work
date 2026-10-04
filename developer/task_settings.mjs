@@ -1,3 +1,4 @@
+import { tapOnly, assertContentOnly, convertPolicy, validateQuantity } from './tap_policy.mjs';
 import { validateAssignment, assignmentPermission } from './work_assignments.mjs';
 import { validatePart } from './parts.mjs';
 import { StoreError } from './store.mjs';
@@ -12,7 +13,7 @@ const integer = (value, min, max, label) => {
 const bool = (value, label) => { if (typeof value !== 'boolean') fail(`${label}을 선택해 주세요.`); return value; };
 
 export function taskSettings(template) {
-  return { ...(template.settings?.assignment ? {assignment: template.settings.assignment} : {}), type: template.settings?.type ?? 'general', enabled: template.settings?.enabled ?? true,
+  return { ...(tapOnly(template) ? {completionPolicy:template.settings?.completionPolicy ?? {kind:'check',quantitySpec:null},estimatedMinutes:template.settings?.estimatedMinutes ?? null} : {}), ...(template.settings?.assignment ? {assignment: template.settings.assignment} : {}), type: template.settings?.type ?? 'general', enabled: template.settings?.enabled ?? true,
     recurrence: template.settings?.recurrence ?? { mode: 'daily', weekdays: [] },
     allowBulkComplete: template.settings?.allowBulkComplete ?? true,
     enforceSequence: template.settings?.enforceSequence ?? false };
@@ -63,12 +64,36 @@ export function validateStepSettings(value, state) {
 export function saveTapSettings(state, input, now = new Date()) {
   const template = state.taskTemplates.find(row => row.id === input.templateId && !row.archivedAt);
   if (!template) throw new StoreError('TAP 양식을 찾지 못했어요.', 404);
+  if (input.assignmentScopeVersion === 2 || tapOnly(template)) {
+    if (!Object.hasOwn(input.settings ?? {},'assignment') && template.settings?.assignment) input = {...input,settings:{...input.settings,assignment:structuredClone(template.settings.assignment)}};
+    if (input.steps != null && !Array.isArray(input.steps)) fail('Task 목록을 확인해 주세요.');
+    if (input.steps) for (const step of input.steps) assertContentOnly(step);
+    const settings = validateTaskSettings(input.settings, state);
+    const policy = input.settings.completionPolicy ?? {kind:'check',quantitySpec:null};
+    if (!['check','quantity'].includes(policy.kind)) fail('TAP 완료 방식을 확인해 주세요.');
+    const quantity = validateStepSettings({completionKind:policy.kind,quantitySpec:policy.quantitySpec,estimatedMinutes:input.settings.estimatedMinutes},state);
+    settings.completionPolicy = {kind:policy.kind,quantitySpec:quantity.quantitySpec};
+    settings.estimatedMinutes = quantity.estimatedMinutes;
+    if (input.zone != null && !state.zones.some(z => z.id === input.zone)) fail('TAP 장소를 확인해 주세요.');
+    const next = convertPolicy(structuredClone(template), {acknowledge: input.acknowledgeLegacyPolicy === true});
+    const assignmentChanged = JSON.stringify(template.settings?.assignment ?? null) !== JSON.stringify(settings.assignment ?? null) || !tapOnly(template);
+    if (assignmentChanged) for (const task of state.tasks.filter(t => t.templateId === template.id && t.date === state.day && !t.archivedAt && !t.completedAt && t.boardStatus !== 'processing' && !t.steps?.some(s => s.completedAt))) task.archivedAt = new Date(now).toISOString();
+    next.settings = settings;
+    if (settings.assignment?.mode === 'scheduled') next.partId = settings.assignment.partId;
+    if (Object.hasOwn(input,'zone')) next.zone = input.zone;
+    next.version = (template.version ?? 1) + 1;
+    Object.assign(template,next);
+    return template;
+  }
   if (!Array.isArray(input.steps) || input.steps.length !== template.steps.length || new Set(input.steps.map(row => row?.id)).size !== template.steps.length) fail('Task 목록을 확인해 주세요.');
   const settings = validateTaskSettings(input.settings, state);
   const steps = input.steps.map(row => {
     const existing = template.steps.find(step => step.id === row?.id);
     if (!existing) fail('Task을 찾지 못했어요.');
-    return { id: existing.id, settings: validateStepSettings(row.settings, state) };
+    const validated = validateStepSettings(row.settings, state);
+    const policyKey = s => JSON.stringify([s.assignment?.mode === 'inherit' ? null : s.assignment ?? null,s.partOverride ?? null,s.roleOverride,s.zoneOverride,s.completionKind,s.quantitySpec,s.estimatedMinutes]);
+    if (policyKey(validated) !== policyKey(validateStepSettings(stepSettings(existing),state))) fail('Task별 운영 설정 변경은 TAP 통합 또는 분리로 진행해 주세요.');
+    return { id: existing.id, settings: validated };
   });
   if (!Object.hasOwn(input.settings, 'assignment') && template.settings?.assignment) settings.assignment = structuredClone(template.settings.assignment);
   for (const row of steps) {
@@ -104,7 +129,7 @@ export function repeatsOn(template, date) {
 
 export function canCompleteStep(actor, task, step, state, context) {
   if (state) { const permission = assignmentPermission(state, actor, task, step, context); if (permission !== null) return permission; }
-  const settings = stepSettings(step);
+  const settings = tapOnly(task) ? {roleOverride:null} : stepSettings(step);
   if (['owner', 'manager'].includes(actor.role)) return true;
   if (Object.hasOwn(settings, 'partOverride') || (Object.hasOwn(task, 'partId') && settings.roleOverride == null)) {
     const part = settings.partOverride ?? task.partId;
@@ -117,7 +142,7 @@ export function canCompleteStep(actor, task, step, state, context) {
 export function completeStepIssue(actor, task, step, quantity, state) {
   if (!canCompleteStep(actor, task, step, state)) return '이 Task의 담당 역할이 아니에요.';
   if (taskSettings(task).enforceSequence && task.steps.some(row => row.id !== step.id && !row.completedAt && task.steps.indexOf(row) < task.steps.indexOf(step))) return '앞 Task을 먼저 완료해 주세요.';
-  const settings = stepSettings(step);
+  const settings = tapOnly(task) ? {} : stepSettings(step);
   if (settings.completionKind === 'quantity') {
     const places = settings.quantitySpec?.decimalPlaces ?? 0;
     const scaled = quantity * 10 ** places;
@@ -126,12 +151,13 @@ export function completeStepIssue(actor, task, step, quantity, state) {
   return null;
 }
 
-export function bulkCompleteIssue(actor, task, state) {
+export function bulkCompleteIssue(actor, task, state, quantity) {
+  if (tapOnly(task) && task.settings?.completionPolicy?.kind === 'quantity' && !validateQuantity(quantity,task.settings.completionPolicy.quantitySpec)) return 'TAP의 실제 완성 수량을 입력해 주세요.';
   const pending = (task.steps ?? []).filter(step => !step.completedAt);
   if (!pending.length) return null;
   const settings = taskSettings(task);
   if (!settings.allowBulkComplete || settings.enforceSequence) return 'Task을 하나씩 완료해 주세요.';
-  if (pending.some(step => stepSettings(step).completionKind === 'quantity')) return '실제 수량을 Task에서 입력해 주세요.';
+  if (!tapOnly(task) && pending.some(step => stepSettings(step).completionKind === 'quantity')) return '실제 수량을 Task에서 입력해 주세요.';
   if (pending.some(step => !canCompleteStep(actor, task, step, state))) return '담당 역할별 Task을 각각 완료해 주세요.';
   return null;
 }

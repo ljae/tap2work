@@ -60,7 +60,7 @@ class WorkAssignmentField extends StatelessWidget {
       'scheduled': '시간대·파트 자동 배정',
       'crew': '특정 크루 지정',
       'anyone': '누구나 · 오늘 근무 크루',
-      'legacy': '기존 파트 규칙',
+      if (mode == 'legacy') 'legacy': '기존 파트 규칙',
     };
     void change(String key, dynamic v) => onChanged({...current, key: v});
     return LayoutBuilder(

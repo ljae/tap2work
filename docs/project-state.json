@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 154,
+  "revision": 158,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -634,10 +634,10 @@
       "category": "시간대·업무 담당·근무표",
       "title": "시간대별 공동 업무와 실제 근무 배정 기반 자동 담당",
       "status": "confirmed",
-      "decision": "시간대 중복을 허용하고 파트별 필요 인원을 합산한다. TAP에 시간대·파트 자동 배정, 특정 크루, 누구나 옵션을 두고 Task는 TAP을 따르거나 개별 설정한다. 시간대마다 별도 공동 업무를 수행하고 한 명의 완료가 공유된다. 같은 파트의 다른 크루도 지원 완료할 수 있다. 누구나는 그날 실제 근무가 배정된 모든 크루다. 승인된 OFF·대타는 변경된 구간의 미완료 업무에 자동 인계하며 완료 기록은 보존한다. 실제 담당 이름과 고정 색상을 표시하고 앱 전체를 UI/UX 가이드로 검토한다.",
-      "reason": "사용자가 5가지 질의의 답과 전체 UI/UX 검토를 명시했다. 중복 금지 답변은 이후 중복 허용 지시로 대체되었다.",
-      "source": "사용자 답변 · 2026-09-30",
-      "updatedAt": "2026-09-30"
+      "decision": "시간대 중복을 허용하고 파트별 필요 인원을 합산한다. TAP에 시간대·파트 자동 배정, 특정 크루, 누구나 옵션을 둔다. 2026-10-04 최신 사용자 요구로 Task 개별 배정 허용을 대체하며, 신규 구조는 TAP만 배정·주요 운영 제약을 설정하고 모든 Task가 이를 따른다. 기존 Task별 예외가 있는 실행은 이관/호환으로 기록을 보존한다. TAP-only 첫 런타임 구현을 완료했다. 시간대마다 별도 공동 업무를 수행하고 한 명의 완료가 공유된다. 같은 파트의 다른 크루도 지원 완료할 수 있다. 누구나는 그날 실제 근무가 배정된 모든 크루다. 승인된 OFF·대타는 변경된 구간의 미완료 업무에 자동 인계하며 완료 기록은 보존한다. 실제 담당 이름과 고정 색상을 표시하고 앱 전체를 UI/UX 가이드로 검토한다.",
+      "reason": "사용자가 5가지 질의의 답과 전체 UI/UX 검토를 명시했다. 중복 금지 답변은 이후 중복 허용 지시로 대체되었다. 2026-10-04 사용자가 구조 단순화를 위해 주요 제약은 TAP에 두고 Task별 배분을 금지하도록 명시했다. 시간대 매칭·지원 완료·완료 증빙 등 나머지 계약은 유지한다.",
+      "source": "사용자 답변 · 2026-09-30 및 TAP 레벨 단일 배정 상세안 개정 요청 · 2026-10-04",
+      "updatedAt": "2026-10-04T07:59:56.438453+00:00"
     },
     {
       "id": "D-064",
@@ -718,6 +718,26 @@
       "reason": "2026-10-04 사용자 후속 요청: 단계별 설정 흐름, 독립 브레이크, 미배정 위치와 월간 용도를 명시했다.",
       "source": "User request 2026-10-04",
       "updatedAt": "2026-10-04T06:45:24.056151+00:00"
+    },
+    {
+      "id": "D-072",
+      "category": "체크리스트 플랫폼·구현 설계",
+      "title": "주간 콘텐츠 공급·매장 맞춤 TAP·로컬 저장·백업 상세 구현안",
+      "status": "proposed",
+      "decision": "docs/CHECKLIST_PLATFORM_IMPLEMENTATION_PLAN_2026-10-04.md는 주간 콘텐츠 공급·공용/자체 TAP·로컬 저장·백업 상세 구현안이다. 최신 사용자 요구인 TAP 단일 시간대·파트 배정/주요 제약, Task별 배분 금지, Task·매뉴얼 공동 개선을 반영했다. 현재 Task override 지원과 날짜별 추가 휴무 미반영을 검증했고 TAP-only 정책 schema/서버 차단/실행 호환, 이관 통일·분리 계획, Task 공동 콘텐츠 버전, Sol 첫 구현 P0.5와 26개 추가 인수 테스트를 명시했다. API/필드/수량 완료 세부/이관·보존 정책은 proposed이며 기능 구현·실데이터 이관·배포 완료가 아니다.",
+      "reason": "사용자가 앞선 구조 제안을 바탕으로 단일 모델이 충분히 설계·구현할 수 있는 상세 Markdown 파일을 요청했다. 기존 D-053·D-061·D-063과 실행 기록을 보존하며 구현 연결점과 충돌·복원 검증 기준을 명시한다. 2026-10-04 후속 요청에 따라 TAP/Task 책임과 중앙 공동 콘텐츠 갱신 계약을 개정하고 Sol 구현 시작점을 구체화했다.",
+      "source": "사용자 요청 · 2026-10-04 · solo 모델용 상세 구현안 MD 작성",
+      "updatedAt": "2026-10-04T07:19:38.950292+00:00"
+    },
+    {
+      "id": "D-073",
+      "category": "TAP 구조·중앙 콘텐츠",
+      "title": "TAP 단일 배정·주요 제약과 Task/매뉴얼 공동 개선",
+      "status": "confirmed",
+      "decision": "시간대·파트 매칭과 주요 운영 한계/제약은 TAP 레벨에서 설정하고 Task별 배정·배분은 허용하지 않는다. Task는 매뉴얼과 함께 업데이트·개선되는 콘텐츠 단위로 관리하여 중앙 체크리스트와 매뉴얼을 점진적으로 고도화한다. 기존 Task 개별 배정 허용 방향을 대체하며 과거 실행·완료 기록은 이관/호환으로 보존한다. 첫 런타임을 구현했다. 중앙 발행과 로컬 백업은 후속 단계다.",
+      "reason": "사용자가 시간대·파트 매칭과 주요 제약을 TAP에 한정하고 Task별 배분을 금지해 구조를 단순화하며, Task와 매뉴얼을 함께 중앙 개선하도록 명시했다. 수량 완료 위치 등 세부 필드·이관 방법은 상세안의 구현 제안으로 구분한다.",
+      "source": "사용자 후속 요청 · 2026-10-04 · 상세안 반영 후 Sol 구현 준비",
+      "updatedAt": "2026-10-04T07:59:56.438453+00:00"
     }
   ],
   "milestones": [
@@ -840,6 +860,12 @@
       "title": "공통 시트 가독성·시작 로딩",
       "status": "completed",
       "description": "Implemented and deployed shared readable editor headings, persistent save footers, form sections, global input/sheet themes and continuous web-to-Flutter-to-store loading with retry. Flutter analysis and 133 tests, 93 Node tests, relationship checks, local/public builds and GitHub Pages pipeline passed. Live HTML/bootstrap verified and main.dart.js exactly matched the local public build. Native device profiling not performed."
+    },
+    {
+      "id": "M-021",
+      "title": "체크리스트 공급·매장 맞춤·백업 플랫폼",
+      "status": "in_progress",
+      "description": "TAP-only runtime foundation implemented. Central weekly publishing/catalog updates and local drafts/backup/restore remain planned. No actual store migration or deployment."
     }
   ],
   "history": [
@@ -5096,7 +5122,57 @@
       "detail": "사용자 배포 요청으로 fef4a54409adb8349ff0983a8a108d9c508017f3를 https://tap2.work에 게시했다. 최신 origin/main 기반 별도 checkout에 해당 변경 27개 파일만 반영했다. GitHub Pages run 37183862371 성공. Supabase operations 함수 version 29→30, ACTIVE 상태 확인. DB 마이그레이션 및 실제 매장 데이터 쓰기는 수행하지 않았다.",
       "verification": "배포 checkout Flutter analyze·전체 251/251, 서버 158/158, npm run check 및 설정 연결 32개 통과. GitHub CI 분석·테스트·웹 빌드·게시 성공. 공개 HTTPS HTML·해시 bootstrap/main 모두 HTTP 200 및 Pages artifact와 바이트 일치. main SHA256 2ee5e93dda7f470ff0d5daff3bc5e8357056e5cf703a8771722020c9bca042bf. Artifact에 .local/developer/project-state.json/.env 없음. operations 비인증 요청 401, 공개 도메인 CORS preflight 204 확인. 실제 매장 설정 저장·네이티브 실기기 검증은 미수행.",
       "at": "2026-10-04T06:53:06.637756+00:00"
+    },
+    {
+      "at": "2026-10-04T06:56:35.780974+00:00",
+      "type": "planning",
+      "title": "체크리스트 플랫폼 단일 모델용 상세 구현안 작성",
+      "decisionId": "D-072",
+      "detail": "790행 상세 구현안과 ARCHITECTURE의 proposed 연결을 추가했다. 현재 코드의 validateChecklists 필드 재구성, saveChecklists 미착수 실행 보관, 150/650 TAP 한도 불일치, 메뉴 대표 동기화와 legacy 원본 추적 문제를 명시했다. 데이터/API·주간 검수 발행·부분 업데이트·실행 적용·로컬 저장·백업/복원·P0–P4 인수 기준·테스트 매트릭스·시작 프롬프트를 포함했다. 기존 결정/이력과 작업 트리 변경은 유지하고 앱/서버 코드는 수정하지 않았다.",
+      "verification": "문서 0–20절, 3개 JSON 예제 parse, 7개 로컬 상대 링크 존재, 코드 fence 짝, 후행 공백, ARCHITECTURE 참조와 project-state JSON 형식 확인 통과. Flutter 분석/테스트, 서버 기능 테스트, 빌드, DB 이관, 배포는 문서 작성 범위 밖으로 미수행."
+    },
+    {
+      "at": "2026-10-04T07:19:38.950292+00:00",
+      "type": "planning",
+      "title": "TAP-only 배정 검증·Task/매뉴얼 공동 콘텐츠 상세안 개정",
+      "decisionId": "D-073",
+      "previous": {
+        "D-063": "시간대 중복을 허용하고 파트별 필요 인원을 합산한다. TAP에 시간대·파트 자동 배정, 특정 크루, 누구나 옵션을 두고 Task는 TAP을 따르거나 개별 설정한다. 시간대마다 별도 공동 업무를 수행하고 한 명의 완료가 공유된다. 같은 파트의 다른 크루도 지원 완료할 수 있다. 누구나는 그날 실제 근무가 배정된 모든 크루다. 승인된 OFF·대타는 변경된 구간의 미완료 업무에 자동 인계하며 완료 기록은 보존한다. 실제 담당 이름과 고정 색상을 표시하고 앱 전체를 UI/UX 가이드로 검토한다.",
+        "D-072": "사용자가 요청한 서비스 제공자의 주간 체크리스트 개선 파이프라인, 공용/자체 양식, TAP 단위 추가, 매장 커스터마이즈와 로컬 저장·백업을 위한 상세 구현안을 docs/CHECKLIST_PLATFORM_IMPLEMENTATION_PLAN_2026-10-04.md에 작성했다. 공용 원본·매장 양식·실행 분리, 필드별 3-way 비교, preview/apply, 별도 다음 생성분 경로, 로컬 초안, 검증된 백업·복원과 P0–P4 순차 구현을 제안한다. 필드/API/저장소/권한/보존·용량 기본값은 설계 제안이며 기능 구현 또는 배포 완료가 아니다."
+      },
+      "next": {
+        "D-063": "시간대 중복을 허용하고 파트별 필요 인원을 합산한다. TAP에 시간대·파트 자동 배정, 특정 크루, 누구나 옵션을 둔다. 2026-10-04 최신 사용자 요구로 Task 개별 배정 허용을 대체하며, 신규 구조는 TAP만 배정·주요 운영 제약을 설정하고 모든 Task가 이를 따른다. 기존 Task별 예외가 있는 실행은 이관/호환으로 기록을 보존한다. TAP-only 전환은 설계 반영 상태이며 런타임 구현 전이다. 시간대마다 별도 공동 업무를 수행하고 한 명의 완료가 공유된다. 같은 파트의 다른 크루도 지원 완료할 수 있다. 누구나는 그날 실제 근무가 배정된 모든 크루다. 승인된 OFF·대타는 변경된 구간의 미완료 업무에 자동 인계하며 완료 기록은 보존한다. 실제 담당 이름과 고정 색상을 표시하고 앱 전체를 UI/UX 가이드로 검토한다.",
+        "D-072": "docs/CHECKLIST_PLATFORM_IMPLEMENTATION_PLAN_2026-10-04.md는 주간 콘텐츠 공급·공용/자체 TAP·로컬 저장·백업 상세 구현안이다. 최신 사용자 요구인 TAP 단일 시간대·파트 배정/주요 제약, Task별 배분 금지, Task·매뉴얼 공동 개선을 반영했다. 현재 Task override 지원과 날짜별 추가 휴무 미반영을 검증했고 TAP-only 정책 schema/서버 차단/실행 호환, 이관 통일·분리 계획, Task 공동 콘텐츠 버전, Sol 첫 구현 P0.5와 26개 추가 인수 테스트를 명시했다. API/필드/수량 완료 세부/이관·보존 정책은 proposed이며 기능 구현·실데이터 이관·배포 완료가 아니다."
+      },
+      "reason": "최신 사용자 지시가 기존 D-063의 Task 개별 배정 허용을 대체한다. TAP에서 운영 배정/제약을 단일 설정하고 Task는 매뉴얼과 공동 개선하는 콘텐츠로 분리한다.",
+      "detail": "상세안 1.2 현재 구조 검증, 2.1–2.4 책임·TAP policy, 5.3–5.4 공동 콘텐츠, 15.1–15.2 이관/구클라이언트, P0.5 Sol 첫 구현 범위와 AT16/CT10 인수 사례를 추가했다. 기존 필드별 기준 전진은 Task 공동 콘텐츠 묶음 기준으로 개정했다. PRODUCT·ARCHITECTURE·UI 가이드·설정 관계표에 확정 목표와 현재 v1 구현 차이를 기록했다. 실제 앱/서버 코드와 매장 데이터는 변경하지 않았다.",
+      "verification": "현재 구조 기준 서버 테스트 work_assignments/workspace_settings 18/18 통과. 인메모리 순수 함수 assertion 2개로 Task별 시간대 분리와 dateOverrides closed 미반영을 재현했다(후자는 알려진 연결 누락이며 미수정). check:ui-links 기존 32개/매뉴얼 경로 통과. 상세안 1027행·JSON 예제 4개·로컬 링크 7개·0–20절·신규 인수 사례 26개·TAP-only 예제·문서 연결·git diff --check 통과. 신규 AT/CT 실행·Flutter 분석/위젯 테스트·전체 서버 회귀·빌드·실매장 이관·배포는 미수행."
+    },
+    {
+      "at": "2026-10-04T07:59:56.438453+00:00",
+      "type": "implementation",
+      "title": "TAP 단일 정책과 Task/매뉴얼 공동 콘텐츠 첫 구현",
+      "decisionId": "D-073",
+      "previous": {
+        "D-063": "시간대 중복을 허용하고 파트별 필요 인원을 합산한다. TAP에 시간대·파트 자동 배정, 특정 크루, 누구나 옵션을 둔다. 2026-10-04 최신 사용자 요구로 Task 개별 배정 허용을 대체하며, 신규 구조는 TAP만 배정·주요 운영 제약을 설정하고 모든 Task가 이를 따른다. 기존 Task별 예외가 있는 실행은 이관/호환으로 기록을 보존한다. TAP-only 전환은 설계 반영 상태이며 런타임 구현 전이다. 시간대마다 별도 공동 업무를 수행하고 한 명의 완료가 공유된다. 같은 파트의 다른 크루도 지원 완료할 수 있다. 누구나는 그날 실제 근무가 배정된 모든 크루다. 승인된 OFF·대타는 변경된 구간의 미완료 업무에 자동 인계하며 완료 기록은 보존한다. 실제 담당 이름과 고정 색상을 표시하고 앱 전체를 UI/UX 가이드로 검토한다.",
+        "D-073": "시간대·파트 매칭과 주요 운영 한계/제약은 TAP 레벨에서 설정하고 Task별 배정·배분은 허용하지 않는다. Task는 매뉴얼과 함께 업데이트·개선되는 콘텐츠 단위로 관리하여 중앙 체크리스트와 매뉴얼을 점진적으로 고도화한다. 기존 Task 개별 배정 허용 방향을 대체하며 과거 실행·완료 기록은 이관/호환으로 보존한다. 이번 작업은 현재 구조 검증과 상세안 반영이며, Sol의 후속 구현을 위한 설계 상태다."
+      },
+      "next": {
+        "D-063": "시간대 중복을 허용하고 파트별 필요 인원을 합산한다. TAP에 시간대·파트 자동 배정, 특정 크루, 누구나 옵션을 둔다. 2026-10-04 최신 사용자 요구로 Task 개별 배정 허용을 대체하며, 신규 구조는 TAP만 배정·주요 운영 제약을 설정하고 모든 Task가 이를 따른다. 기존 Task별 예외가 있는 실행은 이관/호환으로 기록을 보존한다. TAP-only 첫 런타임 구현을 완료했다. 시간대마다 별도 공동 업무를 수행하고 한 명의 완료가 공유된다. 같은 파트의 다른 크루도 지원 완료할 수 있다. 누구나는 그날 실제 근무가 배정된 모든 크루다. 승인된 OFF·대타는 변경된 구간의 미완료 업무에 자동 인계하며 완료 기록은 보존한다. 실제 담당 이름과 고정 색상을 표시하고 앱 전체를 UI/UX 가이드로 검토한다.",
+        "D-073": "시간대·파트 매칭과 주요 운영 한계/제약은 TAP 레벨에서 설정하고 Task별 배정·배분은 허용하지 않는다. Task는 매뉴얼과 함께 업데이트·개선되는 콘텐츠 단위로 관리하여 중앙 체크리스트와 매뉴얼을 점진적으로 고도화한다. 기존 Task 개별 배정 허용 방향을 대체하며 과거 실행·완료 기록은 이관/호환으로 보존한다. 첫 런타임을 구현했다. 중앙 발행과 로컬 백업은 후속 단계다."
+      },
+      "reason": "User requested implementation from the detailed plan. Implemented P0.5 runtime foundation first.",
+      "detail": "New assignmentScopeVersion=2 templates reject Task operational overrides. TAP owns assignment, completion quantity and duration. All bands contain all Tasks; v1 snapshots and assignment evidence remain compatible. Task/manual contentRevision changes together without editing sibling content or other executions. Added legacy policy report, explicit consolidation, private original history, general TAP split with next-business-day generation and revision/operationId protection. Menu/order/preparation and cross-Task sequence splits are blocked. Connected calendar closed/extra-open overrides to work generation. Updated plan, architecture, product/UI guides and settings map. Fixed repeated web build postprocessing of already-versioned HTML. P1-P4 central weekly publishing, catalog updates, local drafts and user backup/restore remain unimplemented; persistent migration plans/restore UI and full AT/CT automation remain pending.",
+      "verification": "npm run test:console 171/171; new TAP policy tests 10/10; npm run check and check:ui-links 34 links passed. Flutter full suite 260/260, additional final settings suite 7/7, relevant manual/crew suite 28/28, latest flutter analyze no issues. Final npm run build:app passed (web compilation and version postprocessing). Initial outdated expectations/crew fixture failures were corrected and retested. Initial web compilation passed but postprocessing failed; repeated-build regression tests 4/4 and final build passed after correction. git diff --check passed. Native build, physical device, actual store migration, DB migration and deployment were not performed. Full AT/CT 26 cases and complete central/local platform are not claimed."
+    },
+    {
+      "at": "2026-10-04T08:04:10.121175+00:00",
+      "type": "deployment",
+      "title": "TAP 배포 사본 격리·근무표 진행 변경 제외",
+      "decisionId": "D-073",
+      "detail": "Deployment prepared in an independent clone based on published main 6c451f2. Only TAP/checklist/manual policy paths are included. Calendar, crew allocation, staff shifts, hours and roster UI/server edits in the shared working tree are excluded. developer/workplace.mjs changes only TAP migration permissions. The shared main branch/index/source files are not reset or committed.",
+      "verification": "Isolated npm run check and 169/169 server tests passed; flutter analyze no issues; full Flutter suite 253/253 passed; npm run build:site passed with fresh sample data and versioned assets. Schedule source files unchanged from published base. Previous operations function v30 downloaded for rollback. Deployment not yet performed."
     }
   ],
-  "updatedAt": "2026-10-04T06:53:06.637756+00:00"
+  "updatedAt": "2026-10-04T08:06:22.728619+00:00"
 }

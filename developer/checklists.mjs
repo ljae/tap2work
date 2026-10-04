@@ -1,3 +1,4 @@
+import { assertContentOnly } from './tap_policy.mjs';
 import { validatePart, partForLegacy } from './parts.mjs';
 import library from '../docs/wiki/checklist-library.json' with { type: 'json' };
 import { StoreError } from './store.mjs';
@@ -43,7 +44,7 @@ export function libraryTemplates(industryId, zones, folderId = industryId) {
       id: `library-${industry.id}-${task.id}`, title: task.title, emoji: emoji(task.emoji), folderId, slot: task.slot,
       requiredRole: checklistRoles.includes(task.requiredRole) ? task.requiredRole : 'all',
       zone: zones.some(zone => zone.id === task.zone) ? task.zone : zones[0]?.id,
-      version: 1, steps: structuredClone(task.steps), sourceIds: [...task.sourceIds],
+      assignmentScopeVersion: 2, version: 1, steps: structuredClone(task.steps), sourceIds: [...task.sourceIds],
     })),
   };
 }
@@ -75,14 +76,21 @@ export function validateChecklists(input, state) {
   const templates = list(input.templates, 0, 650, '업무').map(row => {
     if (!row || !checklistSlots.includes(row.slot) || !checklistRoles.includes(row.requiredRole) || (row.zone != null && !state.zones.some(zone => zone.id === row.zone)) || !folders.some(folder => folder.id === row.folderId)) fail('업무의 시간대·직급·장소·폴더를 확인해 주세요.');
     const previous = state.taskTemplates.find(template => template.id === row.id);
-    const steps = list(row.steps, 0, 30, '행위').map(step => ({ id: text(step?.id, 100, '행위 ID'), title: text(previous?.menuManualId ? previous.steps.find(old => old.id === step.id)?.title ?? step?.title : step?.title, 100, '행위 이름'), ...((step.manualTitle ?? previous?.steps.find(old => old.id === step.id)?.manualTitle) ? {manualTitle: text(step.manualTitle ?? previous.steps.find(old => old.id === step.id).manualTitle, 100, '매뉴얼 표시 이름')} : {}), manual: text(step?.manual, 700, '간단 매뉴얼'), tip: optionalText(step?.tip, 400, '노하우'), tags: manualTags(step?.tags), videoUrl: mediaLink(step?.videoUrl), imageUrl: mediaLink(step?.imageUrl), sourceUrl: mediaLink(step?.sourceUrl), ...((previous?.steps.find(old => old.id === step.id)?.settings ?? step.settings) ? { settings: structuredClone(previous?.steps.find(old => old.id === step.id)?.settings ?? step.settings) } : {}) }));
+    const scope = previous ? previous.assignmentScopeVersion ?? 1 : 2;
+    if (Array.isArray(row.steps)) for (const step of row.steps) {
+      if (scope === 2 || !previous?.steps.some(old => old.id === step?.id)) assertContentOnly(step);
+    }
+    const steps = list(row.steps, 0, 30, '행위').map(step => ({ ...(previous?.steps.find(old => old.id === step.id)?.contentRevision != null ? {contentRevision:previous.steps.find(old => old.id === step.id).contentRevision} : {}), id: text(step?.id, 100, '행위 ID'), title: text(previous?.menuManualId ? previous.steps.find(old => old.id === step.id)?.title ?? step?.title : step?.title, 100, '행위 이름'), ...((step.manualTitle ?? previous?.steps.find(old => old.id === step.id)?.manualTitle) ? {manualTitle: text(step.manualTitle ?? previous.steps.find(old => old.id === step.id).manualTitle, 100, '매뉴얼 표시 이름')} : {}), manual: text(step?.manual, 700, '간단 매뉴얼'), tip: optionalText(step?.tip, 400, '노하우'), tags: manualTags(step?.tags), videoUrl: mediaLink(step?.videoUrl), imageUrl: mediaLink(step?.imageUrl), sourceUrl: mediaLink(step?.sourceUrl), ...((scope !== 2 && (previous?.steps.find(old => old.id === step.id)?.settings ?? step.settings)) ? { settings: structuredClone(previous?.steps.find(old => old.id === step.id)?.settings ?? step.settings) } : {}) }));
     unique(steps);
     const sourceIds = Array.isArray(row.sourceIds) ? [...new Set(row.sourceIds.filter(id => checklistLibrary.sources.some(source => source.id === id)))] : [];
-    return { id: text(row.id, 100, '업무 ID'), partId: validatePart(state, Object.hasOwn(row, 'partId') ? row.partId : previous?.partId ?? partForLegacy(state, row.requiredRole), {allowAll:true, allowHidden:true}), title: text(previous?.menuManualId ? previous.title : row.title, 100, '업무 이름'), emoji: emoji(row.emoji), folderId: row.folderId, slot: row.slot, requiredRole: row.requiredRole, zone: row.zone ?? null, steps, sourceIds,
+    return { assignmentScopeVersion:scope, id: text(row.id, 100, '업무 ID'), partId: validatePart(state, Object.hasOwn(row, 'partId') ? row.partId : previous?.partId ?? partForLegacy(state, row.requiredRole), {allowAll:true, allowHidden:true}), title: text(previous?.menuManualId ? previous.title : row.title, 100, '업무 이름'), emoji: emoji(row.emoji), folderId: row.folderId, slot: row.slot, requiredRole: row.requiredRole, zone: row.zone ?? null, steps, sourceIds,
       ...(previous?.settings ? { settings: structuredClone(previous.settings), settingsVersion: previous.settingsVersion ?? 1 } : {}),
       ...((row.manualTitle ?? previous?.manualTitle) ? {manualTitle: text(row.manualTitle ?? previous.manualTitle, 100, '매뉴얼 표시 이름')} : {}),
       ...(previous?.menuManualId ? { menuManualId: previous.menuManualId } : {}),
-      ...(previous?.recommendationId ? { recommendationId: previous.recommendationId } : {}) };
+      ...(previous?.recommendationId ? { recommendationId: previous.recommendationId } : {}),
+      ...(previous?.archivedAt ? {archivedAt: previous.archivedAt} : {}),
+      ...(previous?.generationNotBeforeBusinessDate ? {generationNotBeforeBusinessDate:previous.generationNotBeforeBusinessDate} : {}),
+      ...(previous?.policyLineage ? {policyLineage:structuredClone(previous.policyLineage)} : {}) };
   });
   unique(templates);
   return { folders, templates };
@@ -97,7 +105,7 @@ export function saveChecklists(input, state, now) {
   }
   for (const task of state.tasks.filter(row => row.kind === 'routine' && !row.orderId && !row.archivedAt)) {
     const next = templates.find(row => row.id === task.templateId);
-    const started = task.completedAt || task.steps?.some(step => step.completedAt);
+    const started = task.completedAt || task.boardStatus === 'processing' || task.steps?.some(step => step.completedAt);
     if (!started && (!next || next.version !== task.version)) task.archivedAt = new Date(now).toISOString();
   }
   state.checklistFolders = folders;

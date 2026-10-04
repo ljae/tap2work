@@ -1,3 +1,4 @@
+import { tapOnly, assertContentOnly } from './tap_policy.mjs';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
 const fail = message => { throw new StoreError(message, 400); };
@@ -37,6 +38,7 @@ export function moveManualNode(state, input) {
       if (target.steps.length >= 30) fail('한 TAP의 Task는 최대 30개예요.');
       if (target.steps.some(row => row.id === step.id)) step.id = `manual-${randomUUID()}`;
     }
+    if (tapOnly(target)) { assertContentOnly(step); delete step.settings; }
     source.steps.splice(source.steps.indexOf(step), 1);
     insertBefore(target.steps, step, input.beforeId);
     source.version = (source.version ?? 1) + 1;

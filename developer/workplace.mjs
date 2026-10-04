@@ -41,7 +41,7 @@ function normalizeBands(state, bands, oldRows, day) {
   return normalized;
 }
 export const permissionActions = {
-  tasks: ['edit_work_node', 'edit_manual_node', 'save_task_step', 'reorder_small_taps', 'reorder_big_taps', 'create_task', 'save_checklists', 'save_tap_settings', 'save_step_manual', 'move_manual_node', 'import_recommended_taps'],
+  tasks: ['split_tap_policy', 'preview_tap_policy_migration', 'edit_work_node', 'edit_manual_node', 'save_task_step', 'reorder_small_taps', 'reorder_big_taps', 'create_task', 'save_checklists', 'save_tap_settings', 'save_step_manual', 'move_manual_node', 'import_recommended_taps'],
   complete: ['complete_task', 'complete_step', 'reopen_step', 'move_tap', 'complete_preparation'],
   schedule: ['save_calendar_day', 'save_crew_allocations', 'apply_crew_allocations', 'save_crew_pattern', 'apply_crew_pattern', 'save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'delete_staff_shift', 'save_staffing_slots', 'assign_staffing_slot', 'save_staff_shift', 'save_shift_pattern', 'assign_cover', 'update_shift'],
   stock: ['check_stock', 'count_prepared_item'],

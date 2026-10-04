@@ -121,6 +121,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   }
 
   String duration(List<Json> tasks) {
+    final tapMinutes = tasks.isEmpty
+        ? null
+        : tasks.first['tapEstimatedMinutes'];
+    if (tapMinutes is int && tapMinutes > 0) return 'TAP 약 $tapMinutes분';
     final known = tasks.map(minutes).whereType<int>().toList();
     if (known.isEmpty) return '시간 미설정';
     final total = known.fold<int>(0, (sum, value) => sum + value);
@@ -808,14 +812,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 PressBounce(
                   child: TextButton.icon(
                     icon: const Icon(CupertinoIcons.clock),
-                    label: const Text('Task 설정'),
+                    label: const Text('TAP 설정'),
                     onPressed: () async {
                       await showAppSheet(
                         context,
                         builder: (_) => TapSettingsScreen(
                           ops: ops,
                           initialTemplateId: selected['templateId'],
-                          initialStepId: selected['sourceStepId'],
                         ),
                       );
                       if (mounted) setState(() => sync(force: true));

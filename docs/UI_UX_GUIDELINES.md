@@ -210,3 +210,12 @@ Show actual assignments using crew names/colors and only the uncovered intervals
 영업시간·인원 → 크루별 기본 배정 → 근무표 조정의 순서를 표시한다. 크루 기본 배정은 교대×파트 필요 슬롯에 크루를 드래그하거나 탭으로 지정하며 미배정을 이 화면에 모은다. 근무표는 배정된 크루만 파트 가로축/시간 세로축에 표시하고 세부 시간을 수정한다. 별도 시간표 메뉴와 파트 필터를 없애며 직원은 본인 근무만 본다. 월간은 정기 일정에 추가 휴무/업무일을 지정하는 화면이다. 앞 설정 변경 후 별도 기간 적용·시간 재조정 필요를 알린다. 짧은 설명은 중복하지 않고 실패·권한·기록 보호는 유지한다. 390px에서는 기본 3파트가 함께 보이도록 열 폭을 잡고 동시 배정/확대 글자는 내부 스크롤을 허용한다.
 
 Schedule density (2026-10-04): use 48px/hour for long assignments; if any assignment is shorter than two hours, expand to 48px/half-hour. Resize uses the same scale. Monthly cells focus on operating-day exceptions and omit duplicate crew counts.
+
+
+### TAP 단일 정책 첫 구현 · 2026-10-04
+
+신규 양식은 `assignmentScopeVersion:2`로 생성하며 TAP의 `settings.assignment`, `completionPolicy`, `estimatedMinutes`, 기존 파트/직급/장소·반복·순서·일괄 완료를 공유한다. Task는 행동과 매뉴얼·팁·태그·자료 및 `contentRevision`만 편집한다. 매뉴얼의 설정 링크도 부모 TAP을 연다. 시간대마다 전체 Task를 생성하며 dateOverrides의 휴무/추가 영업과 활성 파트·필요 인원 판정을 반영한다. 실제 담당은 근무 배정 projection을 따른다.
+
+기존 v1 실행/예외는 읽기 호환한다. 양식 통합은 기존 예외 확인·명시적 확인 후 원본을 비공개 tapPolicyHistory에 보관한다. 일반 TAP의 Task별 분리는 각 예외를 별도 TAP 정책으로 옮겨 다음 영업일부터 생성하고 오늘/과거 실행을 보존한다. 메뉴·주문·준비 특수 TAP과 절차 순서가 연결된 TAP의 자동 분리는 거절한다. API revision/operationId로 충돌·중복을 차단한다. TAP 수량은 모든 Task 체크 후 최종 완료 시 한 번 저장하며 재고를 증가시키지 않는다.
+
+위의 “런타임 구현 전/구조 재현 미수정” 설명은 설계 작성 시점 기록이다. 이번 첫 구현이 해당 부분을 대체한다. 중앙 콘텐츠 주간 검수·발행/선택 업데이트·3-way 비교와 로컬 초안/내보내기 백업·복원은 계속 계획 단계다. 중앙 발행 없이 매장 콘텐츠 편집의 공동 버전 기반만 구현했다.

@@ -1,4 +1,5 @@
-import { businessDate, boundaryOf } from './business_day.mjs';
+import { tapOnly, assertContentOnly, policyReport, convertPolicy, updateContentRevisions } from './tap_policy.mjs';
+import { businessDate, boundaryOf, shiftDate } from './business_day.mjs';
 import { assignmentContext, assignmentOccurrences, assignmentView, assignmentPermission, snapshotAssignments } from './work_assignments.mjs';
 import { languageContext } from './localization.mjs';
 import {editManualNode, editWorkNode} from './direct_edit.mjs';
@@ -36,7 +37,8 @@ function manualSearchIndex(state) {
         templateId: template ? task.id : null,
         sourceStepId: step.id,
         editable: template,
-        estimatedMinutes: step.settings?.estimatedMinutes ?? null,
+        estimatedMinutes: tapOnly(task) ? null : step.settings?.estimatedMinutes ?? null,
+        tapEstimatedMinutes:tapOnly(task) ? task.settings?.estimatedMinutes ?? null : null,contentRevision:step.contentRevision ?? 1,
         manual: step.manual ?? '', tip: step.tip ?? '', tags: step.tags ?? [],
         imageUrl: step.imageUrl ?? '', videoUrl: step.videoUrl ?? '', sourceUrl: step.sourceUrl ?? '',
       });
@@ -84,7 +86,7 @@ function ensureMenuManuals(state) {
       }
       continue;
     }
-    state.taskTemplates.push({ id, menuManualId: menu.id, title: menu.name, emoji: '🍽️', folderId: 'order-work', slot: '피크', requiredRole: 'cook', zone: null, version: 1, sourceIds: [], settings: { type: 'order', enabled: false, recurrence: { mode: 'daily', weekdays: [] }, allowBulkComplete: false, enforceSequence: false }, steps: [{ id: 'menu', title: menu.name, manual: menuManualText(menu), tip: '조리 시간과 상세 레시피는 매장 기준에 맞게 설정해 주세요.', settings: { estimatedMinutes: null } }] });
+    state.taskTemplates.push({ id, menuManualId: menu.id, title: menu.name, emoji: '🍽️', folderId: 'order-work', slot: '피크', requiredRole: 'cook', zone: null, assignmentScopeVersion:2, version: 1, sourceIds: [], settings: { type: 'order', enabled: false, recurrence: { mode: 'daily', weekdays: [] }, allowBulkComplete: false, enforceSequence: false }, steps: [{ id: 'menu', title: menu.name, manual: menuManualText(menu), tip: '조리 시간과 상세 레시피는 매장 기준에 맞게 설정해 주세요.', contentRevision:1 }] });
     changed = true;
   }
   return changed;
@@ -253,7 +255,7 @@ function ensureDueTasks(state, now) {
   if (ensureOrderTaps(state, now)) changed = true;
   if (ensurePreparationTaps(state, now)) changed = true;
   for (const template of state.taskTemplates) {
-    if (template.archivedAt || template.menuManualId || template.steps.length === 0 || !repeatsOn(template, date)) continue;
+    if (template.archivedAt || template.generationNotBeforeBusinessDate > date || template.menuManualId || template.steps.length === 0 || !repeatsOn(template, date)) continue;
     const existing = state.tasks.filter(task => task.templateId === template.id && task.date === date && !task.archivedAt);
     // Settings changes leave started/completed snapshots alone, including their band set.
     if (existing.some(task => task.timeBandId == null && task.version !== template.version && (task.completedAt || task.boardStatus === 'processing' || task.steps?.some(s => s.completedAt)))) continue;
@@ -307,6 +309,7 @@ export class OperationsStore {
     delete result.sampleArchive;
     delete result.operationEditHistory;
     delete result.calendarDayHistory;
+    delete result.tapPolicyHistory;
     Object.assign(result, staffView(state, actor, this.clock()));
     result.workplace = workplaceView(state, actor);
     const ownCrew = state.tappers.find(t => t.actorId === actor.id && t.active);
@@ -339,6 +342,7 @@ export class OperationsStore {
       item.reviewCompletedBy = task?.completedBy ?? null;
       item.reviewCompletedAt = task?.completedAt ?? null;
     }
+    if (result.canEditTasks) for (const template of result.taskTemplates) template.policyReport = policyReport(template);
     const completionEnabled = actor.role === 'owner' || state.workplace?.restrictions?.[actor.role]?.complete !== false;
     const assignments = assignmentContext(state);
     for (const task of result.tasks) {
@@ -346,7 +350,7 @@ export class OperationsStore {
       if (task.assignmentView.mode === 'legacy') delete task.assignmentView;
       delete task.assignmentSnapshot;
       for (const step of task.steps ?? []) { step.assignmentView = assignmentView(state, task, step, actor, assignments); if (step.assignmentView.mode === 'legacy') delete step.assignmentView; delete step.assignmentSnapshot; }
-      task.canComplete = completionEnabled && !task.completedAt && (task.steps?.length ? task.steps.some(step => !step.completedAt && canCompleteStep(actor, task, step, state, assignments)) : allowed(actor, task, state));
+      task.canComplete = completionEnabled && !task.completedAt && (task.steps?.length ? task.steps.some(step => !step.completedAt && canCompleteStep(actor, task, step, state, assignments)) || tapOnly(task) && task.settings?.completionPolicy?.kind === 'quantity' && task.steps.every(step => step.completedAt) && task.steps.every(step => canCompleteStep(actor, task, step, state, assignments)) : allowed(actor, task, state));
       if (task.steps) for (const step of task.steps) step.canComplete = completionEnabled && !step.completedAt && canCompleteStep(actor, task, step, state, assignments);
       if (task.kind === 'routine') {
         const index = state.taskTemplates.findIndex(row => row.id === task.templateId);
@@ -388,12 +392,14 @@ export class OperationsStore {
       const state = await this.#read();
       const now = this.clock();
       if (ensureDueTasks(state, now)) { state.revision++; await this.#save(state); }
+      if (input.action === 'split_tap_policy' && input.operationId && state.tapPolicyHistory?.some(h => h.operationId === input.operationId && h.actor.id === actor.id && h.template.id === input.templateId)) return this.#view(state,actor);
       if (input.revision !== state.revision) fail('다른 동료가 먼저 업데이트했어요. 최신 내용을 확인하고 다시 눌러 주세요.', 409);
       actor = actorWithParts(state, actor);
       checkWorkplacePermission(state, actor, input.action);
       const who = { id: actor.id, name: actor.name, role: actor.label };
       const activity = (message, kind) => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message, ...(kind ? { kind } : {}) });
       const itemFor = id => { const item = state.items.find(item => item.id === id && !item.archivedAt); if (!item) fail('사용 중인 재료를 찾지 못했어요.', 404); return item; };
+      const previousTemplates = structuredClone(state.taskTemplates);
       switch (input.action) {
         case 'start_blank_from_sample': {
           if (!this.trustedActor || actor.role !== 'owner') fail('클라우드 매장 사장님만 시작 방식을 바꿀 수 있어요.', 403);
@@ -523,6 +529,7 @@ export class OperationsStore {
             step.manualHistory ??= [];
             step.manualHistory.push({ title: step.title, manual: step.manual, at: iso(now), actor: who });
           }
+          assertContentOnly(input);
           Object.assign(step, { title, manual });
           if (adding) task.steps.push(step);
           if (adding && template) template.steps.push(structuredClone(step));
@@ -535,6 +542,7 @@ export class OperationsStore {
           const task = state.tasks.find(t => t.id === input.taskId && !t.archivedAt && !t.supersededAt && t.date === state.day);
           const step = task?.steps?.find(s => s.id === input.stepId);
           if (!step || step.completedAt) fail('아직 완료하지 않은 오늘 Task만 편집할 수 있어요.', 409);
+          assertContentOnly(input);
           const manual = text(input.manual, '매뉴얼', 700);
           const videoUrl = mediaLink(input.videoUrl), imageUrl = mediaLink(input.imageUrl), sourceUrl = mediaLink(input.sourceUrl ?? step.sourceUrl), tags = manualTags(input.tags ?? step.tags);
           step.manualHistory ??= [];
@@ -565,9 +573,45 @@ export class OperationsStore {
           state.bigTapOrder = [...(state.bigTapOrder ?? []).filter(id => state.checklistFolders.some(folder => folder.id === id)), ...state.checklistFolders.map(folder => folder.id).filter(id => !(state.bigTapOrder ?? []).includes(id))];
           activity('업무 폴더·카드·매뉴얼 저장'); break;
         }
+        case 'split_tap_policy': {
+          leadership(actor);
+          const template = state.taskTemplates.find(t => t.id === input.templateId && !t.archivedAt);
+          if (!template || tapOnly(template) || template.menuManualId || template.settings?.type === 'order' || template.settings?.type === 'preparation') fail('분리할 기존 일반 TAP을 확인해 주세요.',409);
+          if (template.settings?.enforceSequence) fail('순서가 연결된 TAP은 먼저 절차와 순서 규칙을 정리해 주세요.',409);
+          if (template.steps.length < 2 || state.taskTemplates.length + template.steps.length > 650) fail('분리할 Task 수와 TAP 한도를 확인해 주세요.');
+          if (typeof input.operationId !== 'string' || !input.operationId || input.operationId.length > 150) fail('분리 작업 ID를 확인해 주세요.');
+          const before = structuredClone(template), next = [];
+          for (const step of template.steps) {
+            const settings = {...taskSettings(template)};
+            const old = step.settings ?? {};
+            if (old.assignment && old.assignment.mode !== 'inherit') settings.assignment = old.assignment;
+            settings.completionPolicy = {kind:old.completionKind ?? 'check',quantitySpec:old.quantitySpec ?? null};
+            settings.estimatedMinutes = old.estimatedMinutes ?? null;
+            const copy = {...structuredClone(template),id:randomUUID(),title:`${template.title} · ${step.title}`.slice(0,100),version:1,
+              steps:[structuredClone(step)],generationNotBeforeBusinessDate:shiftDate(state.day,1),
+              policyLineage:{templateId:template.id,stepId:step.id},zone:old.zoneOverride ?? template.zone,partId:old.partOverride ?? template.partId,
+              requiredRole:old.roleOverride ?? template.requiredRole};
+            state.taskTemplates.push(copy);
+            saveTapSettings(state,{templateId:copy.id,assignmentScopeVersion:2,acknowledgeLegacyPolicy:true,settings,zone:copy.zone},now);
+            next.push(copy.id);
+          }
+          template.archivedAt=iso(now);
+          (state.tapPolicyHistory ??= []).push({at:iso(now),actor:who,operationId:input.operationId,template:before,replacements:next});
+          activity(`${template.title} · Task별 TAP 분리 · 다음 영업일부터`);break;
+        }
+        case 'preview_tap_policy_migration': {
+          leadership(actor);
+          const template = state.taskTemplates.find(t => t.id === input.templateId && !t.archivedAt);
+          if (!template) fail('TAP 양식을 찾지 못했어요.',404);
+          return {...this.#view(state,actor),tapPolicyPreview:{templateId:template.id,templateVersion:template.version,revision:state.revision,...policyReport(template)}};
+        }
         case 'save_tap_settings': {
           leadership(actor);
+          const before = state.taskTemplates.find(t => t.id === input.templateId);
           const template = saveTapSettings(state, input, now);
+          if (input.assignmentScopeVersion === 2 && before && !tapOnly(previousTemplates.find(t => t.id === input.templateId))) {
+            (state.tapPolicyHistory ??= []).push({at:iso(now),actor:who,template:previousTemplates.find(t => t.id === input.templateId)});
+          }
           activity(`${template.title} · 설정 변경 · 배정 변경은 오늘 미착수 업무부터 반영`); break;
         }
         case 'import_recommended_taps': {
@@ -586,6 +630,7 @@ export class OperationsStore {
             if (index >= 0 && task.steps.slice(index + 1).some(step => step.completedAt)) fail('뒤의 Task부터 되돌려 주세요.', 409);
           }
           reopenStep(task, input.stepId, actor, ['owner', 'manager'].includes(actor.role));
+          delete task.actualQuantity;
           delete task.steps.find(step => step.id === input.stepId)?.actualQuantity;
           delete task.steps.find(step => step.id === input.stepId)?.assignmentSnapshot; delete task.assignmentSnapshot;
           task.boardStatus = 'processing';
@@ -612,20 +657,21 @@ export class OperationsStore {
               finishPreparation(state, task, input.quantity, now, who);
             }
             snapshotAssignments(state, task, step); step.completedAt = iso(now); step.completedBy = who;
-            if (step.settings?.completionKind === 'quantity') step.actualQuantity = input.quantity;
+            if (!tapOnly(task) && step.settings?.completionKind === 'quantity') step.actualQuantity = input.quantity;
             task.boardStatus = 'processing';
             activity(`${task.title} · ${step.title} 완료`);
-            if (task.steps.every(row => row.completedAt)) { snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; }
+            if (task.steps.every(row => row.completedAt) && !(tapOnly(task) && task.settings?.completionPolicy?.kind === 'quantity')) { snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; }
             break;
           }
           if (task.kind === 'routine') {
-            const issue = bulkCompleteIssue(actor, task, state);
+            const issue = bulkCompleteIssue(actor, task, state, input.quantity);
             if (issue) fail(issue, issue.includes('담당') ? 403 : 409);
           }
           if (task.kind === 'routine') for (const step of task.steps ?? []) if (!step.completedAt) {
             snapshotAssignments(state, task, step); step.completedAt = iso(now); step.completedBy = who; step.completionSource = 'tap_bulk';
           }
           if (task.kind === 'stock') { const item = itemFor(task.itemId); item.quantity = amount(input.quantity); item.lastCheckedAt = iso(now); item.checkedBy = who; }
+          if (tapOnly(task) && task.settings?.completionPolicy?.kind === 'quantity') task.actualQuantity = input.quantity;
           snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done'; activity(`${task.title} 완료`); break;
         }
         case 'move_tap': {
@@ -640,9 +686,10 @@ export class OperationsStore {
           for (const task of moving) {
           if (!(task.steps?.length ? task.steps.some(s => canCompleteStep(actor, task, s, state)) : allowed(actor, task, state))) fail('이 Tap의 담당자가 아니에요.', 403);
           if (input.status === 'done' && !task.completedAt) {
-            const issue = bulkCompleteIssue(actor, task, state);
+            const issue = bulkCompleteIssue(actor, task, state, input.quantity);
             if (issue) fail(issue, issue.includes('담당') ? 403 : 409);
             for (const step of task.steps ?? []) if (!step.completedAt) { snapshotAssignments(state, task, step); step.completedAt = iso(now); step.completedBy = who; step.completionSource = 'tap_bulk'; }
+            if (tapOnly(task) && task.settings?.completionPolicy?.kind === 'quantity') task.actualQuantity = input.quantity;
             snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who;
           }
           if (input.status !== 'done' && input.status !== 'keep' && task.completedAt) {
@@ -650,7 +697,7 @@ export class OperationsStore {
             for (const step of task.steps ?? []) if (step.completedAt) {
               delete step.completedAt; delete step.completedBy; delete step.completionSource; delete step.assignmentSnapshot;
             }
-            task.completedAt = null; task.completedBy = null; delete task.assignmentSnapshot;
+            task.completedAt = null; task.completedBy = null; delete task.assignmentSnapshot; delete task.actualQuantity;
           }
           }
           const laneStatus = row => {
@@ -758,6 +805,11 @@ export class OperationsStore {
         const moving = task?.orderId ? state.tasks.filter(t => t.orderId === task.orderId && !t.archivedAt) : task ? [task] : [];
         for (const row of moving) consumePreparedForTask(state, row, now, who);
       }
+      for (const template of state.taskTemplates) {
+        if (!previousTemplates.some(t => t.id === template.id)) { convertPolicy(template); }
+        if (tapOnly(template)) for (const step of template.steps) assertContentOnly(step);
+      }
+      updateContentRevisions(previousTemplates,state);
       state.activity = state.activity.slice(0, 100);
       ensureDueTasks(state, now);
       state.revision++; await this.#save(state);

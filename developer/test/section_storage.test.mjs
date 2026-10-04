@@ -58,7 +58,7 @@ test('every settings domain survives section persistence and independent cloud r
   const pay=x.patches.slice(beforeCount).at(-1);
   assert.ok(!Object.hasOwn(pay.p_changes,'tasks')&&!Object.hasOwn(pay.p_changes,'attendance'));
   const t=view.taskTemplates.find(t=>!t.archivedAt&&!t.menuManualId);
-  await save('save_tap_settings',{templateId:t.id,settings:{type:'general',enabled:true,recurrence:{mode:'daily',weekdays:[]},allowBulkComplete:true,enforceSequence:false},steps:t.steps.map(s=>({id:s.id,settings:{completionKind:'check',estimatedMinutes:5}}))},v=>assert.equal(v.taskTemplates.find(row=>row.id===t.id).steps[0].settings.estimatedMinutes,5));
+  await save('save_tap_settings',{templateId:t.id,assignmentScopeVersion:2,settings:{type:'general',enabled:true,recurrence:{mode:'daily',weekdays:[]},allowBulkComplete:true,enforceSequence:false,estimatedMinutes:5}},v=>assert.equal(v.taskTemplates.find(row=>row.id===t.id).settings.estimatedMinutes,5));
   await save('save_checklists',{folders:view.checklistFolders,templates:view.taskTemplates});
   const task=view.tasks.find(t=>t.kind==='routine'&&!t.completedAt&&t.steps?.length);
   await save('save_task_step',{taskId:task.id,stepId:task.steps[0].id,title:'DB 저장 Task',manual:'저장된 방법'},v=>assert.equal(v.tasks.find(t=>t.id===task.id).steps[0].title,'DB 저장 Task'));

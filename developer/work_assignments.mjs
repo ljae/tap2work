@@ -1,3 +1,4 @@
+import { tapOnly } from './tap_policy.mjs';
 import { actualDate, bandForPart, businessWindow } from './business_day.mjs';
 import { crewPartIds, partForLegacy, validatePart, workplaceBandDays } from './parts.mjs';
 import { StoreError } from './store.mjs';
@@ -24,10 +25,15 @@ export function validateAssignment(value, state, inherit = false) {
   if (value.mode === 'crew' && (!crewIds.length || !crewIds.every(id => state.tappers?.some(p => p.id === id && p.active)))) fail();
   return { mode: value.mode, timeBandIds: [], partId: null, crewIds: value.mode === 'crew' ? crewIds : [] };
 }
-export const assignmentOf = (task, step) => step?.settings?.assignment && step.settings.assignment.mode !== 'inherit'
+export const assignmentOf = (task, step) => !tapOnly(task) && step?.settings?.assignment && step.settings.assignment.mode !== 'inherit'
   ? step.settings.assignment : task.settings?.assignment ?? { mode: 'legacy' };
 const weekday = date => new Date(`${date}T12:00:00+09:00`).getUTCDay() || 7;
-const bandsOn = (state, date) => workplaceBandDays(state,{includeHours:true})[weekday(date)] ?? [];
+export const effectiveWorkplaceBands = (state, date) => {
+  const exception = state.workplace?.dateOverrides?.[date];
+  if (exception?.closed) return [];
+  return workplaceBandDays(state,{includeHours:true})[exception?.weekday ?? weekday(date)] ?? [];
+};
+const bandsOn = effectiveWorkplaceBands;
 const interval = row => {
   const start = Date.parse(`${row.date}T${row.start}:00+09:00`);
   let end = Date.parse(`${row.date}T${row.end}:00+09:00`);
@@ -47,12 +53,12 @@ export function assignmentContext(state) {
 
 // A TAP is shared per selected band; overriding Tasks are included only in their own bands.
 export function assignmentOccurrences(state, template, date) {
-  const configs = (template.steps ?? []).map(step => assignmentOf(template, step));
+  const configs = tapOnly(template) ? [assignmentOf(template)] : (template.steps ?? []).map(step => assignmentOf(template, step));
   const ids = [...new Set(configs.filter(c => c.mode === 'scheduled').flatMap(c => c.timeBandIds))];
-  const bands = bandsOn(state,date).filter(b => ids.includes(b.id));
+  const bands = bandsOn(state,date).filter(b => ids.includes(b.id) && (!tapOnly(template) || !state.workplace.parts?.find(p => p.id === template.settings.assignment.partId)?.hidden && (b.headcounts?.[template.settings.assignment.partId] ?? (b.custom ? 0 : 1)) > 0));
   if (!ids.length) return [{ timeBandId: null, steps: template.steps }];
   return bands.map(b => ({ timeBandId: b.id, timeBandName: b.name, assignmentWindow: {id:b.id,name:b.name,date:actualDate(state,date,b.start),start:b.start,end:b.end,...(b.partTimes ? {partTimes:b.partTimes} : {})},
-    steps: template.steps.filter(step => { const c = assignmentOf(template,step); return c.mode !== 'scheduled' || c.timeBandIds.includes(b.id); }) }));
+    steps: tapOnly(template) ? template.steps : template.steps.filter(step => { const c = assignmentOf(template,step); return c.mode !== 'scheduled' || c.timeBandIds.includes(b.id); }) }));
 }
 export function assignmentView(state, task, step, actor, context = assignmentContext(state)) {
   const key = step ?? task;
@@ -77,7 +83,7 @@ function projectAssignment(state, task, step, actor, context) {
   if (mode === 'legacy') shifts = [];
   let assignees = shifts.map(s => { const p = context.people.get(s.tapperId); return { id:p.id,nickname:p.nickname, ...(p.actorId ? {actorId:p.actorId} : {}),...(() => {const [a,b] = interval(s);return clockFields(window ? Math.max(a,window[0]) : a,window ? Math.min(b,window[1]) : b);})() }; });
   if (mode === 'crew') for (const p of [...context.people.values()].filter(p => config.crewIds.includes(p.id))) if (!assignees.some(a => a.id === p.id)) assignees.push({id:p.id,nickname:p.nickname,...(p.actorId ? {actorId:p.actorId} : {}),start:null,end:null});
-  if (!step && task.steps?.length) {
+  if (!tapOnly(task) && !step && task.steps?.length) {
     const views = task.steps.map(s => assignmentView(state,task,s,actor,context));
     assignees = views.flatMap(v => v.assignees);
     if (views.some(v => v.mode !== 'legacy') && views.some(v => v.mode !== mode)) mode = 'mixed';

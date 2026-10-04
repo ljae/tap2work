@@ -12,7 +12,7 @@ import 'operations_test.dart' show response;
 
 void main() {
   testWidgets(
-    'band entry edits canonical TAP assignment and preserves Task inheritance',
+    'band entry edits canonical TAP assignment without Task allocation payload',
     (tester) async {
       tester.view.physicalSize = const Size(390, 1000);
       tester.view.devicePixelRatio = 1;
@@ -73,7 +73,9 @@ void main() {
       expect(sent?['action'], 'save_tap_settings');
       expect(sent?['settings']['assignment']['timeBandIds'], ['open']);
       expect(sent?['settings']['assignment']['partId'], 'kitchen');
-      expect(sent?['steps'][0]['settings']['assignment'], isNull);
+      expect(sent?['steps'], isNull);
+      expect(sent?['assignmentScopeVersion'], 2);
+      expect(find.text('기존 담당 파트'), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );
