@@ -172,11 +172,16 @@ void main() {
       await tester.pump();
       await gesture.up();
       await tester.pumpAndSettle();
+      expect(sent, isNull);
+      await tester.tap(find.text('오늘'));
+      await tester.pumpAndSettle();
       expect(sent?['partId'], 'kitchen');
       expect(sent?['start'], '08:00');
       expect(sent?['scheduleDate'], '2026-09-28');
       expect(sent?['dayOffset'], 0);
       await tester.tap(find.text('24시간 보기'));
+      await tester.pumpAndSettle();
+      await tester.longPress(source);
       await tester.pumpAndSettle();
       final targetColumn = find.byType(DragTarget<Json>).first;
       final payload = tester
@@ -192,6 +197,8 @@ void main() {
       tester.widget<DragTarget<Json>>(targetColumn).onAcceptWithDetails!(
         details,
       );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('오늘'));
       await tester.pumpAndSettle();
       expect(sent?['start'], '21:00');
       expect(sent?['end'], '02:00');

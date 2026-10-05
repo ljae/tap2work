@@ -143,8 +143,13 @@ void main() {
       expect(writes, isEmpty);
       await resize.up();
       await tester.pumpAndSettle();
+      expect(writes, isEmpty);
+      await tester.tap(find.text('오늘'));
+      await tester.pumpAndSettle();
       expect(writes.last['end'], '10:30');
       expect(writes.last['revision'], 12);
+      await tester.longPress(source);
+      await tester.pumpAndSettle();
       final target = find.byKey(
         const ValueKey('roster-drop-2026-09-28-kitchen-660'),
       );
@@ -157,6 +162,8 @@ void main() {
       expect(find.textContaining('11:00–12:00'), findsOneWidget);
       expect(writes.length, 1);
       await drag.up();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('오늘'));
       await tester.pumpAndSettle();
       expect(writes.last['start'], '11:00');
       expect(tester.takeException(), isNull);

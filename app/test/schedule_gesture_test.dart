@@ -32,6 +32,67 @@ void applyWrite(Json data, Json input) {
 }
 
 void main() {
+  testWidgets(
+    'only selected block edits locally and outside card tap saves once',
+    (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      final data = gestureData();
+      final writes = <Json>[];
+      await calendar.mount(
+        tester,
+        data: data,
+        readOnly: false,
+        width: 1200,
+        write: (input) {
+          writes.add(input);
+          applyWrite(data, input);
+        },
+      );
+      final source = find.byKey(
+        const ValueKey('roster-2026-09-28-kitchen-shift-0'),
+      );
+      final other = find.byKey(
+        const ValueKey('roster-2026-09-28-hall-shift-1'),
+      );
+      await tester.longPress(source);
+      await tester.pumpAndSettle();
+      expect(find.byType(Draggable<Json>), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('resize-shift-1-2026-09-28')),
+        findsNothing,
+      );
+      for (var i = 0; i < 2; i++) {
+        final handle = find.byKey(const ValueKey('resize-shift-0-2026-09-28'));
+        await tester.drag(handle, const Offset(0, 48));
+        await tester.pumpAndSettle();
+        expect(writes, isEmpty);
+      }
+      expect(find.text('09:00–16:00'), findsOneWidget);
+      expect(find.text('09:00–14:00'), findsOneWidget);
+      await tester.tap(other);
+      await tester.pumpAndSettle();
+      expect(writes, hasLength(1));
+      expect(writes.single['id'], 'shift-0');
+      expect(writes.single['end'], '16:00');
+      expect(writes.single['revision'], 12);
+      expect(find.byType(Draggable<Json>), findsNothing);
+      expect(find.text('담당 크루'), findsNothing);
+      await tester.longPress(other);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('오늘'));
+      await tester.pumpAndSettle();
+      expect(
+        writes,
+        hasLength(1),
+        reason: 'unchanged selection makes no request',
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
   for (final width in [320.0, 390.0, 1200.0]) {
     testWidgets(
       'continuous resize past closing retains gesture and prior crew adjustment at $width',
@@ -58,6 +119,13 @@ void main() {
         );
         await tester.pumpAndSettle();
         for (var i = 0; i < 2; i++) {
+          if (i > 0) {
+            await tester.longPress(
+              find.byKey(const ValueKey('roster-2026-09-28-hall-shift-1')),
+            );
+            await tester.pumpAndSettle();
+          }
+          expect(find.byType(Draggable<Json>), findsOneWidget);
           final handle = find.byKey(ValueKey('resize-shift-$i-2026-09-28'));
           await tester.ensureVisible(handle);
           await tester.pumpAndSettle();
@@ -73,6 +141,9 @@ void main() {
             );
           }
           await gesture.up();
+          await tester.pumpAndSettle();
+          expect(writes.length, i);
+          await tester.tap(find.text('오늘'));
           await tester.pumpAndSettle();
           expect(writes.last['end'], '17:00');
           expect(ops.error, isNull);
@@ -141,6 +212,9 @@ void main() {
             await gesture.up();
           }
           await tester.pumpAndSettle();
+          expect(ops.busy, isFalse);
+          await tester.tap(find.text('오늘'));
+          await tester.pumpAndSettle();
           expect(ops.busy, isTrue);
           expect(tester.element(timeline), same(timelineElement));
           final edited = resize ? '09:00–17:00' : '15:30–20:30';
@@ -155,6 +229,10 @@ void main() {
           expect(ops.busy, isFalse);
           expect(tester.element(timeline), same(timelineElement));
           if (fails) {
+            expect(find.text(edited), findsOneWidget);
+            expect(find.text('다시 저장'), findsOneWidget);
+            await tester.tap(find.text('변경 취소'));
+            await tester.pumpAndSettle();
             expect(find.text(edited), findsNothing);
             expect(ops.error, isNotNull);
             expect(ops.rows('staffShifts').first['end'], '14:00');
@@ -214,6 +292,9 @@ void main() {
       await gesture.moveBy(const Offset(0, 72));
       await tester.pump();
       await gesture.up();
+      await tester.pumpAndSettle();
+      expect(sent, isNull);
+      await tester.tap(find.text('오늘'));
       await tester.pumpAndSettle();
       expect(sent?['start'], '17:00');
       expect(sent?['end'], '22:00');

@@ -197,6 +197,9 @@ void main() {
       final start = tester.getCenter(source), end = tester.getCenter(target);
       await tester.dragFrom(start, end - start);
       await tester.pumpAndSettle();
+      expect(sent, isNull);
+      await tester.tap(find.text('오늘'));
+      await tester.pumpAndSettle();
       expect(sent?['action'], 'save_staff_shift');
       expect(sent?['id'], 'move-shift');
       expect(sent?['start'], '11:00');

@@ -40,6 +40,82 @@ class _CalendarScreenState extends State<CalendarScreen> {
   int? resizingEnd;
   double resizeOrigin = 0;
   Json? resizePayload;
+  Json? draftPayload;
+  Object? editRevision;
+  Object? arrangingWorkspace;
+  bool draftFailed = false;
+  final editRegion = Object();
+  bool savingDraft = false;
+
+  bool selected(RosterSlot slot) =>
+      selectedSlot != null &&
+      slot.shiftId == selectedSlot!.shiftId &&
+      slot.templateId == selectedSlot!.templateId;
+
+  Future<bool> finishEdit() async {
+    if (savingDraft) return false;
+    final payload = draftPayload;
+    if (payload == null) {
+      setState(() {
+        arranging = false;
+        selectedSlot = null;
+      });
+      return true;
+    }
+    if (pendingActor != ops.actorId ||
+        pendingWorkspace != ops.data?['workspaceId']) {
+      return false;
+    }
+    savingDraft = true;
+    final savingOperations = ops;
+    final savingActor = ops.actorId;
+    final savingWorkspace = ops.data?['workspaceId'];
+    final ok = await savingOperations.act(
+      payload['id'] == null ? 'save_roster_slot' : 'save_staff_shift',
+      payload,
+    );
+    if (!mounted ||
+        ops != savingOperations ||
+        ops.actorId != savingActor ||
+        ops.data?['workspaceId'] != savingWorkspace) {
+      return ok;
+    }
+    setState(() {
+      savingDraft = false;
+      draftFailed = !ok;
+      if (ok) {
+        pendingMove = null;
+        draftPayload = null;
+        arranging = false;
+        selectedSlot = null;
+      }
+    });
+    notice(ok ? '근무표에 저장했어요.' : ops.error ?? '저장하지 못했어요. 다시 시도해 주세요.');
+    return ok;
+  }
+
+  void stageSlot(RosterSlot slot, Json payload) {
+    setState(() {
+      pendingMove = slot;
+      selectedSlot = slot;
+      pendingActor = ops.actorId;
+      pendingWorkspace = ops.data?['workspaceId'];
+      draftPayload = {...payload, 'revision': editRevision};
+      draftFailed = false;
+      resizingId = null;
+      resizingEnd = null;
+    });
+  }
+
+  Widget editTapRegion(Widget child, {bool enabled = true}) => TapRegion(
+    groupId: editRegion,
+    enabled: enabled,
+    consumeOutsideTaps: true,
+    onTapOutside: (_) {
+      if (arranging && !savingDraft) finishEdit();
+    },
+    child: child,
+  );
   String slotKey(RosterSlot s) =>
       '${s.date}/${s.partId}/${s.shiftId ?? s.templateId}/${s.start}';
   int shownEnd(RosterSlot s) =>
@@ -102,12 +178,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
       : AppColors.ink;
 
   bool get editMode =>
-      arranging && arrangingActor == ops.actorId && model.editable;
-  void enterEdit(RosterSlot slot) => setState(() {
-    arranging = true;
-    arrangingActor = ops.actorId;
-    selectedSlot = slot;
-  });
+      arranging &&
+      arrangingActor == ops.actorId &&
+      arrangingWorkspace == ops.data?['workspaceId'] &&
+      model.editable;
+  void enterEdit(RosterSlot slot) {
+    if (editMode) return;
+    setState(() {
+      arranging = true;
+      arrangingActor = ops.actorId;
+      selectedSlot = slot;
+      editRevision = ops.data?['revision'];
+      arrangingWorkspace = ops.data?['workspaceId'];
+      draftFailed = false;
+    });
+  }
+
   Json slotInput(RosterSlot slot) => {
     'date': slot.date,
     if (slot.shiftId != null) 'dateIsBusinessDay': true,
@@ -206,47 +292,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
   ) async {
     if (!editMode || payload['actor'] != ops.actorId) return;
     final duration = payload['duration'] as int;
-    final original = model
-        .slots(model.selected)
-        .where((s) => s.shiftId == payload['id'])
-        .firstOrNull;
-    if (original != null) {
-      setState(() {
-        pendingMove = RosterSlot(
-          date: rosterDate(day),
-          partId: part.id,
-          start: rosterClock(minute),
-          end: rosterClock(minute + duration),
-          dayOffset: minute ~/ 1440,
-          name: original.name,
-          shiftId: original.shiftId,
-          crewId: original.crewId,
-          adjusted: true,
-        );
-        pendingActor = ops.actorId;
-        pendingWorkspace = ops.data?['workspaceId'];
-      });
-    }
-    final ok = await ops
-        .act(payload['id'] == null ? 'save_roster_slot' : 'save_staff_shift', {
-          ...payload,
-          'date': rosterDate(day),
-          if (payload['id'] != null) 'dateIsBusinessDay': true,
-          'partId': part.id,
-          'scheduleDate': rosterDate(day),
-          'dayOffset': minute ~/ 1440,
-          'start': rosterClock(minute),
-          'end': rosterClock(minute + duration),
-        });
-    if (mounted) {
-      setState(() {
-        pendingMove = null;
-        pendingActor = null;
-        pendingWorkspace = null;
-        if (ok) selectedSlot = null;
-      });
-      notice(ok ? '근무를 옮겼어요.' : ops.error ?? '이동하지 못했어요.');
-    }
+    final original = selectedSlot;
+    if (original == null) return;
+    stageSlot(
+      RosterSlot(
+        date: rosterDate(day),
+        partId: part.id,
+        start: rosterClock(minute),
+        end: rosterClock(minute + duration),
+        dayOffset: minute ~/ 1440,
+        name: original.name,
+        shiftId: original.shiftId,
+        templateId: original.templateId,
+        crewId: original.crewId,
+        adjusted: true,
+      ),
+      {
+        ...payload,
+        'date': rosterDate(day),
+        'partId': part.id,
+        'scheduleDate': rosterDate(day),
+        'dayOffset': minute ~/ 1440,
+        'start': rosterClock(minute),
+        'end': rosterClock(minute + duration),
+      },
+    );
   }
 
   bool ownSlot(RosterSlot slot) =>
@@ -285,12 +355,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget slotFrame(RosterSlot slot, Widget child) {
     if (slot.vacancy) return child;
+    final active = editMode && selected(slot);
     final frame = DirectEditFrame(
       enabled: model.editable,
-      active: editMode,
+      active: active,
       onEnter: () => enterEdit(slot),
       controls: false,
-      child: editMode
+      child: active
           ? GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => setState(() => selectedSlot = slot),
@@ -298,119 +369,123 @@ class _CalendarScreenState extends State<CalendarScreen> {
             )
           : child,
     );
-    if (!editMode) return frame;
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Draggable<Json>(
-          dragAnchorStrategy: pointerDragAnchorStrategy,
-          onDragEnd: (_) => setState(() {
-            previewColumn = null;
-            previewMinute = null;
-          }),
-          data: {
-            ...slotInput(slot),
-            'duration': slot.endMinute - slot.startMinute,
-            'revision': ops.data?['revision'],
-            'actor': ops.actorId,
-          },
-          feedback: Material(
-            color: AppColors.surface,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text(slot.name),
+    if (!active) return frame;
+    return editTapRegion(
+      Stack(
+        fit: StackFit.expand,
+        children: [
+          Draggable<Json>(
+            dragAnchorStrategy: pointerDragAnchorStrategy,
+            onDragEnd: (_) => setState(() {
+              previewColumn = null;
+              previewMinute = null;
+            }),
+            data: {
+              ...slotInput(slot),
+              'duration': slot.endMinute - slot.startMinute,
+              'revision': ops.data?['revision'],
+              'actor': ops.actorId,
+            },
+            feedback: Material(
+              color: AppColors.surface,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(slot.name),
+              ),
             ),
+            childWhenDragging: Opacity(opacity: .3, child: frame),
+            child: frame,
           ),
-          childWhenDragging: Opacity(opacity: .3, child: frame),
-          child: frame,
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: 32,
-          child: Semantics(
-            label: '종료 시간 높이 조절',
-            button: true,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.resizeUpDown,
-              child: GestureDetector(
-                dragStartBehavior: DragStartBehavior.down,
-                key: ValueKey(
-                  'resize-${slot.shiftId ?? slot.templateId}-${slot.date}',
-                ),
-                behavior: HitTestBehavior.opaque,
-                onVerticalDragStart: (d) {
-                  resizeOrigin = d.globalPosition.dy;
-                  resizePayload = {
-                    ...slotInput(slot),
-                    'actor': ops.actorId,
-                    'revision': ops.data?['revision'],
-                  };
-                  setState(() {
-                    resizingId = slotKey(slot);
-                    resizingEnd = slot.endMinute;
-                  });
-                },
-                onVerticalDragUpdate: (d) => setState(() {
-                  resizingEnd =
-                      (slot.endMinute +
-                              ((d.globalPosition.dy - resizeOrigin) /
-                                          timeScale /
-                                          30)
-                                      .round() *
-                                  30)
-                          .clamp(
-                            slot.startMinute + 30,
-                            slot.startMinute + 1410,
-                          );
-                }),
-                onVerticalDragCancel: () => setState(() {
-                  resizingId = null;
-                  resizingEnd = null;
-                }),
-                onVerticalDragEnd: (_) async {
-                  final end = resizingEnd, payload = resizePayload;
-                  if (end == null ||
-                      payload == null ||
-                      !editMode ||
-                      payload['actor'] != ops.actorId ||
-                      end == slot.endMinute) {
-                    setState(() {
-                      resizingId = null;
-                      resizingEnd = null;
-                    });
-                    return;
-                  }
-                  final ok = await ops.act(
-                    slot.shiftId == null
-                        ? 'save_roster_slot'
-                        : 'save_staff_shift',
-                    {...payload, 'end': rosterClock(end)},
-                  );
-                  if (mounted) {
-                    setState(() {
-                      resizingId = null;
-                      resizingEnd = null;
-                    });
-                    notice(ok ? '시간을 조정했어요.' : ops.error ?? '저장하지 못했어요.');
-                  }
-                },
-                child: Container(
-                  alignment: Alignment.bottomCenter,
-                  decoration: BoxDecoration(
-                    color: AppColors.green.withValues(alpha: .18),
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(12),
-                    ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 32,
+            child: Semantics(
+              label: '종료 시간 높이 조절',
+              button: true,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.resizeUpDown,
+                child: GestureDetector(
+                  dragStartBehavior: DragStartBehavior.down,
+                  key: ValueKey(
+                    'resize-${slot.shiftId ?? slot.templateId}-${slot.date}',
                   ),
-                  child: const Icon(Icons.drag_handle, size: 24),
+                  behavior: HitTestBehavior.opaque,
+                  onVerticalDragStart: (d) {
+                    resizeOrigin = d.globalPosition.dy;
+                    resizePayload = {
+                      ...slotInput(slot),
+                      'actor': ops.actorId,
+                      'revision': ops.data?['revision'],
+                    };
+                    setState(() {
+                      resizingId = slotKey(slot);
+                      resizingEnd = slot.endMinute;
+                    });
+                  },
+                  onVerticalDragUpdate: (d) => setState(() {
+                    resizingEnd =
+                        (slot.endMinute +
+                                ((d.globalPosition.dy - resizeOrigin) /
+                                            timeScale /
+                                            30)
+                                        .round() *
+                                    30)
+                            .clamp(
+                              slot.startMinute + 30,
+                              slot.startMinute + 1410,
+                            );
+                  }),
+                  onVerticalDragCancel: () => setState(() {
+                    resizingId = null;
+                    resizingEnd = null;
+                  }),
+                  onVerticalDragEnd: (_) async {
+                    final end = resizingEnd, payload = resizePayload;
+                    if (end == null ||
+                        payload == null ||
+                        !editMode ||
+                        payload['actor'] != ops.actorId ||
+                        end == slot.endMinute) {
+                      setState(() {
+                        resizingId = null;
+                        resizingEnd = null;
+                      });
+                      return;
+                    }
+                    stageSlot(
+                      RosterSlot(
+                        date: slot.date,
+                        partId: slot.partId,
+                        start: slot.start,
+                        end: rosterClock(end),
+                        dayOffset: slot.dayOffset,
+                        name: slot.name,
+                        shiftId: slot.shiftId,
+                        templateId: slot.templateId,
+                        crewId: slot.crewId,
+                        adjusted: true,
+                      ),
+                      {...payload, 'end': rosterClock(end)},
+                    );
+                  },
+                  child: Container(
+                    alignment: Alignment.bottomCenter,
+                    decoration: BoxDecoration(
+                      color: AppColors.green.withValues(alpha: .18),
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(12),
+                      ),
+                    ),
+                    child: const Icon(Icons.drag_handle, size: 24),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -432,6 +507,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
       model = ScheduleController(widget.operations);
       arranging = false;
       selectedSlot = null;
+      pendingMove = null;
+      draftPayload = null;
+      resizingId = null;
+      resizingEnd = null;
+      savingDraft = false;
+      draftFailed = false;
     }
   }
 
@@ -1607,12 +1688,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ops.isLeader &&
                       ops.data?['canEditSchedule'] != false &&
                       !ops.readOnly
-                  ? DirectEditBar(
-                      active: editMode,
-                      onDone: () => setState(() {
-                        arranging = false;
-                        selectedSlot = null;
-                      }),
+                  ? editTapRegion(
+                      DirectEditBar(active: editMode, onDone: finishEdit),
+                      enabled: arranging,
                     )
                   : Text(
                       isClosedDay(model.selected)
@@ -1646,29 +1724,68 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
         if (!holidays.keys.any((d) => d.startsWith('${model.selected.year}-')))
           const Text('이 연도의 공휴일 정보를 불러오지 못했어요.', style: AppText.caption),
+        if (savingDraft) const Text('근무표 저장 중…', style: AppText.caption),
+        if (draftFailed && editMode)
+          editTapRegion(
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    '저장하지 못했어요. 수정 내용은 유지돼요.',
+                    style: AppText.caption,
+                  ),
+                ),
+                TextButton(onPressed: finishEdit, child: const Text('다시 저장')),
+                TextButton(
+                  onPressed: () => setState(() {
+                    pendingMove = null;
+                    draftPayload = null;
+                    selectedSlot = null;
+                    arranging = false;
+                    draftFailed = false;
+                  }),
+                  child: const Text('변경 취소'),
+                ),
+              ],
+            ),
+          ),
         if (editMode && selectedSlot != null)
-          Wrap(
-            spacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(selectedSlot!.name, style: AppText.caption),
-              IconButton(
-                tooltip: '시간·크루 변경',
-                onPressed: () => edit(selectedSlot!),
-                icon: const Icon(Icons.tune),
-              ),
-              IconButton(
-                tooltip: '이름 변경',
-                onPressed: () => renameSlot(selectedSlot!),
-                icon: const Icon(Icons.edit_outlined),
-              ),
-              IconButton(
-                tooltip: '삭제',
-                onPressed: () => deleteSlot(selectedSlot!),
-                icon: const Icon(Icons.delete_outline),
-                color: AppColors.accent,
-              ),
-            ],
+          editTapRegion(
+            Wrap(
+              spacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  '${selectedSlot!.name} · 다른 곳을 누르면 저장',
+                  style: AppText.caption,
+                ),
+                IconButton(
+                  tooltip: '시간·크루 변경',
+                  onPressed: () async {
+                    final slot = selectedSlot!;
+                    if (await finishEdit() && mounted) await edit(slot);
+                  },
+                  icon: const Icon(Icons.tune),
+                ),
+                IconButton(
+                  tooltip: '이름 변경',
+                  onPressed: () async {
+                    final slot = selectedSlot!;
+                    if (await finishEdit() && mounted) await renameSlot(slot);
+                  },
+                  icon: const Icon(Icons.edit_outlined),
+                ),
+                IconButton(
+                  tooltip: '삭제',
+                  onPressed: () async {
+                    final slot = selectedSlot!;
+                    if (await finishEdit() && mounted) await deleteSlot(slot);
+                  },
+                  icon: const Icon(Icons.delete_outline),
+                  color: AppColors.accent,
+                ),
+              ],
+            ),
           ),
         Row(
           children: [
