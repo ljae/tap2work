@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 178,
+  "revision": 179,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -848,8 +848,8 @@
       "next": "선택 배정만 로컬 초안으로 조정한 뒤 바깥 클릭 또는 편집 완료 시 단일 저장.",
       "reason": "사용자가 편집 범위를 길게 누른 타임 배치로 제한하고 빠른 반응과 바깥 클릭 저장을 요청했다.",
       "source": "사용자 요청 · 2026-10-05",
-      "updatedAt": "2026-10-05T01:33:42.126171+00:00",
-      "implementation": "Flutter 구현 및 검증 완료. 배포 진행 중."
+      "updatedAt": "2026-10-05T01:39:22.474057+00:00",
+      "implementation": "Deployed to tap2.work. Selected-block local draft, outside-tap single save and failure retention verified with widget tests and successful CI; production assets match the Pages artifact."
     }
   ],
   "milestones": [
@@ -5844,7 +5844,42 @@
       "limitations": [
         "네이티브 빌드·실기기 검증은 수행하지 않음."
       ]
+    },
+    {
+      "at": "2026-10-05T01:39:22.474057+00:00",
+      "type": "deployment",
+      "decisionId": "D-083",
+      "summary": "선택한 근무 배정만 편집하고 바깥 클릭으로 저장하는 동작을 tap2.work에 배포했다.",
+      "sourceCommit": "db1d348df6daffffb1ded3a161f06a405fc9159d",
+      "workflow": "https://github.com/ljae/tap2work/actions/runs/37251919858",
+      "url": "https://tap2.work",
+      "verification": [
+        "Flutter 분석 통과, 로컬 전체 304개 및 최종 제스처 9개 테스트 통과.",
+        "배포 CI 전체 Flutter 테스트·서버 194개·JavaScript·UI 관계 39개·웹 빌드·Pages 배포 성공.",
+        "공개 root/index/bootstrap/main HTTP 200; CI 산출물 SHA-256 일치.",
+        "로컬 Flutter web release 빌드 성공. 서버 함수·실제 매장 데이터 변경 및 네이티브 빌드는 없음."
+      ],
+      "assets": [
+        {
+          "file": "index.html",
+          "status": 200,
+          "matches": true,
+          "sha256": "89ab018601a893aefdd0be7d9e1c5b77c6f4b331ecfd1b827c2db9651e4a1eff"
+        },
+        {
+          "file": "flutter_bootstrap.cfe32246a7b4e6ce55e6.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "cfe32246a7b4e6ce55e6bc974dd44fd74b971e334c89c7bdeea87d57c26eb377"
+        },
+        {
+          "file": "main.9a162b9aca983b2c65f7.dart.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "9a162b9aca983b2c65f77a2846928d676fe0c72f4c8c041f77d19035bc1d7ec3"
+        }
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T01:33:42.126171+00:00"
+  "updatedAt": "2026-10-05T01:39:22.474057+00:00"
 }
