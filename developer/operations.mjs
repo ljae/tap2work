@@ -1,3 +1,4 @@
+import {manualPrintView,saveManualPrintTranslation} from './manual_print.mjs';
 import {syncManualCatalog,manualMarketReplay,reconcileCatalogLinks,catalogView,checklistBackup,mutateManualMarket} from './manual_market.mjs';
 import { ensureDefaultAssignments } from './default_assignments.mjs';
 import { tapOnly, assertContentOnly, policyReport, convertPolicy, updateContentRevisions } from './tap_policy.mjs';
@@ -315,6 +316,7 @@ export class OperationsStore {
     delete result.sampleArchive;
     delete result.operationEditHistory;
     delete result.catalogHistory;
+    delete result.manualPrintTranslations;
     delete result.catalogOperations;
     delete result.catalogLinks;
     delete result.calendarDayHistory;
@@ -385,6 +387,7 @@ export class OperationsStore {
     result.checklistLibrary = checklistLibrary;
     if (result.canEditTasks) {result.manualCatalog=catalogView(state);result.catalogLinks=structuredClone(state.catalogLinks??{});result.checklistBackup=checklistBackup(state);}
     result.manualSearch = manualSearchIndex(state);
+    result.manualPrintTemplates = manualPrintView(state);
     if (['owner', 'manager'].includes(actor.role)) result.recommendedTaps = recommendedTaps(state);
     if (!['owner', 'manager'].includes(actor.role)) delete result.taskTemplates;
     return result;
@@ -519,6 +522,10 @@ export class OperationsStore {
           for (const step of task.steps) if (!step.completedAt) { snapshotAssignments(state, task, step); step.completedAt = iso(now); step.completedBy = who; }
           snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who; task.boardStatus = 'done';
           activity(`${task.title} · 실제 ${input.quantity} 완성`); break;
+        }
+        case 'save_manual_print_translation': {
+          saveManualPrintTranslation(state,input,actor,now);
+          activity('인쇄용 매뉴얼 번역 저장'); break;
         }
         case 'edit_manual_node': {
           leadership(actor); editManualNode(state,input,actor,now); activity('매뉴얼 항목 편집'); break;

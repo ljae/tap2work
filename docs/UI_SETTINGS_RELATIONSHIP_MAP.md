@@ -331,3 +331,10 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 | S47 | manualCatalog → ManualMarketScreen(setup) → configure_manual_business | manualBusinessProfile, 목적별 양식·업무 활성화·교체 보관 | manual_market.test.mjs, manual_market_discovery_test.dart |
 
 2026-10-05 S14/S45/E06 수정: manualSearch/taskTemplates → 항상 보이는 마켓·편집 완료 + 터치 Draggable/가장자리 스크롤 → 기존 move_manual_node/import_market_taps → revision/권한 검사 후 디렉토리 동기화 및 가져온 항목 펼침. 가져오기 성공 시 부모 검색을 onClearSearch로 해제한다. AppStartup 정상 대기에는 작은 로고/진행 카드를 표시하지 않고 매장 데이터 대기는 WorkspaceSkeleton을 사용하며 오류 재시도는 유지한다. manual_phone_fix_test.dart, manual_workspace_test.dart, startup_and_sheet_test.dart, ui_ux_audit_test.dart로 검증한다.
+
+## 매뉴얼 인쇄·PDF · 2026-10-05
+
+| ID | source → control → action | consumer | 검증 |
+| --- | --- | --- | --- |
+| S48 | 매뉴얼 현재 범위 + manualPrintTemplates 메타데이터 + taskTemplates/manualSearch → 인쇄·PDF → 양식/파트·장소·폴더/언어/용지/선택 → ManualPdfRepository.generate | 저장·인쇄·동일 PDF 미리보기; 로컬 snapshot 생성, 실제 업무 기록 변경 없음, 역할 전환 보호 | manual_print_test.dart, 생성 PDF 문자/페이지/영역 검사 |
+| S49 | 원문 sourceHash + locale 번역 초안 → 번역 등록·검토 → save_manual_print_translation(revision,templateId,sourceHash,locale,title,steps) | manualPrintTranslations 별도 section; 권한/CAS/내용 완전성 검사, stale 원문 fallback, 기존 콘텐츠·마켓 연결·업무 보존 | manual_print.test.mjs, manual_print_test.dart |

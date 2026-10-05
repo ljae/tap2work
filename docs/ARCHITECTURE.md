@@ -397,3 +397,15 @@ The HTML bootstrap splash remains the initial web loading screen. Flutter startu
 `ManualWorkspace` 전체 편집과 항목 ⋯에서 폴더·TAP·Task 전체 작성 기능에 접근한다. 폴더 추가는 항상 노출하고 편집 중 빈 폴더도 표시한다. 폴더의 TAP 추가는 `ManualTapEditor(folderId)`로, TAP의 Task 추가는 `ManualTapEditor(templateId, addTask: true)`의 콘텐츠 초안으로, 기존 Task 상세는 `ManualTaskEditor`로 연결한다. 저장은 기존 revision 계약의 `edit_manual_node` / `save_manual_tap`, 이동은 `move_manual_node`를 사용한다. 기존 실행 스냅샷을 변경하지 않는다.
 
 `TapWorkspace`에는 내용 작성 컴포넌트·규칙 편집·길게 누르기 편집 진입을 두지 않는다. 권한이 있는 크루의 독립된 터치 손잡이로 우선순위를 이동한다. TAP 드롭은 같은 상태 열에서 `move_tap(status: keep, folderId: 기존 값)`만 보낸다. 주문 묶음은 기존 묶음 순서를 따르고 Task 순서는 `reorder_small_taps`로 오늘 실행만 변경한다. 순서 강제 TAP은 드래그를 제공하지 않는다. 완료·완료취소·준비품 수량·주문 진행과 매뉴얼 조회는 유지한다. 기존 `edit_work_node` / `save_task_step` 서버 계약은 호환을 위해 남기되 업무 UI는 호출하지 않는다.
+
+## 매뉴얼 인쇄와 번역 계약 · 2026-10-05
+
+`ManualPrintScreen`은 현재 매뉴얼 범위에서 시작해 TAP 선택·파트/장소/폴더 필터·양식·용지·언어를 정하고, 대상 필터에 속한 선택 TAP만 선택 시점 snapshot으로 `ManualPdfRepository`에서 PDF를 생성한다. 서버 업무 완료 API는 호출하지 않는다. A4/A5 흰 바탕 양식, 그룹/양식별 새 페이지, 반복 머리말·페이지 번호, 체크칸과 메모, 상세 방법·주의·자료 URL을 출력한다. 사진/동영상은 외부 URL로 표시하며 원격 파일을 임의 수집하지 않는다. 인쇄·저장·미리보기는 생성된 동일 bytes를 소비한다. 계정/매장 전환 시 이전 내용과 출력 동작을 숨긴다. 공개 샘플은 PDF 생성만 가능하며 번역 저장은 비활성이다.
+
+`manualPrintTemplates[]`는 활성 정의의 ID/title/folderId/folderName/partId/zoneId/menuManualId/version/sourceHash/translations 메타데이터다. 원문 steps를 중복 전송하지 않고 편집자는 taskTemplates, 크루는 기존 manualSearch의 templateId/sourceStepId와 결합한다. 실행 occurrence/보관된 정의는 제외한다. scheduled TAP은 settings.assignment.partId, 그 외는 template.partId를 사용하고 zone은 template.zone이다. 지정이 없는 항목은 공통·미지정으로 묶고 직책·크루 이름으로 파트를 추론하지 않는다.
+
+`manualPrintTranslations[templateId][locale] = {sourceHash,title,steps:[{id,title,manual,tip}],reviewedAt}`. 지원 locale은 en/vi/zh-Hans/ja, 원문 ko는 불변이다. `save_manual_print_translation`은 매장 revision CAS, tasks 편집 권한, 활성 template, 현재 sourceHash, 정확한 Task ID 집합과 원문이 존재하는 필수 번역을 검사한다. 번역 section만 쓰며 원본 양식·완료 기록·공용 마켓 연결을 수정하지 않는다. raw 번역 map은 응답에서 제거하고 활성 정의 메타데이터에만 투영한다.
+
+sourceHash는 표준화한 표시 title과 순서 있는 steps(id/title/manual/tip/sourceUrl/imageUrl/videoUrl)의 JSON UTF-8 SHA-256이다. 콘텐츠/순서/자료 링크 변경은 번역 재확인을 요구하고 폴더·파트·장소·운영 규칙만의 변경은 번역을 무효화하지 않는다. stale/missing 번역은 PDF에서도 언어별 경고와 한국어 원문으로 대체한다. 영업 장소·파트·매장 고유명은 저장한 원래 이름을 유지한다. 기존 체크리스트 JSON 백업은 번역을 포함하지 않으며 번역은 매장 section 저장에 보존한다.
+
+PDF는 Dart pdf/printing 패키지와 번들 static TTF(Tap2workPrint: Pretendard 기반, Noto Sans SC/JP)를 사용한다. 인쇄 진입 때 글꼴을 읽고 사용 glyph만 PDF에 포함한다. 문서 내용은 번역 서비스로 전송하지 않는다. Flutter 웹 미리보기는 printing의 PDF.js renderer를 사용한다. 자동 번역·앱 전체 UI 다국어·다른 언어/RTL은 별도 범위다. 글꼴 출처와 OFL은 app/assets/fonts/print/에 보존한다.

@@ -43,6 +43,9 @@ dependencies:
   shimmer: ^3.0.0
   qr_flutter: ^4.1.0
   file_picker: ^10.3.10
+  pdf: ^3.12.0
+  printing: ^5.14.3
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:
@@ -69,7 +72,14 @@ flutter:
     - family: Pretendard
       fonts:
         - asset: assets/fonts/PretendardVariable.ttf
+    - family: NotoSansSC
+      fonts:
+        - asset: assets/fonts/print/NotoSansSC-Regular.ttf
+    - family: NotoSansJP
+      fonts:
+        - asset: assets/fonts/print/NotoSansJP-Regular.ttf
   assets:
+    - assets/fonts/print/
     - assets/calendar/kr.json
     - assets/calendar/LICENSE.txt
     - assets/fonts/PRETENDARD-OFL.txt

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 190,
+  "revision": 191,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -915,6 +915,19 @@
       "source": "사용자 요청 · 2026-10-05",
       "updatedAt": "2026-10-05T04:36:50.301444+00:00",
       "implementation": "Deployed 6c16fe1 to tap2.work. Full manual authoring via folder/TAP/Task actions, work content editors removed, touch priority reordering preserves status and definitions. CI and public asset verification passed."
+    },
+    {
+      "id": "D-089",
+      "category": "매뉴얼 인쇄·다국어",
+      "title": "장소·파트별 체크리스트/매뉴얼 PDF와 5개 인쇄 언어",
+      "status": "confirmed",
+      "decision": "매뉴얼에 장소·파트·폴더별 인쇄 양식과 PDF 저장·인쇄·미리보기를 제공한다. 사용자 선택에 따라 한국어·영어·베트남어·중국어·일본어를 지원한다.",
+      "previous": "매뉴얼은 앱에서 조회·편집만 가능하며 다국어는 선호 언어 계약과 향후 구현 계획만 존재했다.",
+      "next": "A4/A5 체크리스트/상세 매뉴얼/둘 다, 출력 범위와 TAP 선택, 5개 언어 양식 및 등록 번역/한국어 병기. 원문 변경 또는 미등록 번역은 한국어와 번역 필요 표시.",
+      "reason": "사용자가 장소·파트별 보기 좋은 인쇄 Form과 PDF 기능, 다국어를 고려한 설계를 요청하고 5개 언어를 직접 선택했다.",
+      "source": "사용자 요청 및 언어 선택 · 2026-10-05",
+      "updatedAt": "2026-10-05T05:15:10.827036+00:00",
+      "implementation": "Implemented: client PDF generation with embedded fonts, print/save/preview, scope guard, CAS-protected translation section and source-content hash. Chinese uses zh-Hans. Backend v41 ACTIVE and production read projection verified; public web deployment pending. Automatic translation provider and app-wide localization remain unimplemented."
     }
   ],
   "milestones": [
@@ -6210,7 +6223,27 @@
           "sha256": "04a506982caa8856f5327ada803fba93cee2cd3a7c85a46593ed4693a00e4335"
         }
       ]
+    },
+    {
+      "at": "2026-10-05T05:15:10.827036+00:00",
+      "type": "implementation",
+      "decisionId": "D-089",
+      "summary": "매뉴얼 인쇄·PDF와 5개 언어 번역 등록·검토를 구현하고 백엔드 v41에 배포했다. 출력 대상 필터는 실제 PDF 범위를 제한하며 기존 원문·업무 기록은 바꾸지 않는다.",
+      "verification": [
+        "Isolated full Flutter suite 340 tests and analysis passed; final print/phone target suite 17 tests and final PDF/font tests 9 passed. Final CI full suite pending.",
+        "Server 203 tests and 42 UI/settings links, JavaScript/catalog checks passed.",
+        "Actual ko/en/vi/zh-Hans/ja bilingual PDFs, stale/missing fallback and 6-page A5 long document generated; text extraction, no replacement characters, page bounds and full long-content preservation verified.",
+        "320/390px print form/export screenshots generated and 320px form plus Vietnamese/Japanese PDF visually reviewed.",
+        "Backend v41 ACTIVE; production GET returned 21 active print metadata records, hashes matched original definitions, duplicate step bodies and raw translation map were not exposed. No manual or translation content was written to the live store.",
+        "Final local Flutter web and isolated read-only review-web/site builds passed."
+      ],
+      "deploymentNote": "While inspecting an existing deployment script, unchanged backend v39 code was redeployed as v40. Git diff confirmed no developer/supabase code differences between its source and the preceding live release. No store content was edited; the intended implementation then deployed as v41.",
+      "limitations": [
+        "Automatic translation is not integrated. Registered/reviewed translations are required; missing or stale translations print Korean with a visible notice.",
+        "Physical printer output and native app builds not tested. Public web deployment pending.",
+        "Chinese currently uses Simplified Chinese; store/part/place proper names remain original; images/video are references by URL, not embedded downloads."
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T04:36:50.301444+00:00"
+  "updatedAt": "2026-10-05T05:15:10.827036+00:00"
 }

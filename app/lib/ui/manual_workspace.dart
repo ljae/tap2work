@@ -1,3 +1,4 @@
+import 'manual_print_screen.dart';
 import 'manual_tap_editor.dart';
 import 'catalog_editor.dart';
 import 'manual_market_screen.dart';
@@ -1254,6 +1255,25 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         ),
                       ),
                     ],
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      key: const ValueKey('manual-print-button'),
+                      onPressed: ops.busy
+                          ? null
+                          : () => showAppSheet(
+                              context,
+                              builder: (_) => ManualPrintScreen(
+                                ops: ops,
+                                templateId: scopeTap,
+                                folderId: scopeGroup,
+                                recipes: recipes,
+                              ),
+                            ),
+                      icon: const Icon(Icons.print_outlined, size: 18),
+                      label: const Text('인쇄·PDF'),
+                    ),
                   ),
                   if (!recipes && ops.canEditTasks)
                     Row(
