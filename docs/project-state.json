@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 191,
+  "revision": 192,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -926,8 +926,8 @@
       "next": "A4/A5 체크리스트/상세 매뉴얼/둘 다, 출력 범위와 TAP 선택, 5개 언어 양식 및 등록 번역/한국어 병기. 원문 변경 또는 미등록 번역은 한국어와 번역 필요 표시.",
       "reason": "사용자가 장소·파트별 보기 좋은 인쇄 Form과 PDF 기능, 다국어를 고려한 설계를 요청하고 5개 언어를 직접 선택했다.",
       "source": "사용자 요청 및 언어 선택 · 2026-10-05",
-      "updatedAt": "2026-10-05T05:15:10.827036+00:00",
-      "implementation": "Implemented: client PDF generation with embedded fonts, print/save/preview, scope guard, CAS-protected translation section and source-content hash. Chinese uses zh-Hans. Backend v41 ACTIVE and production read projection verified; public web deployment pending. Automatic translation provider and app-wide localization remain unimplemented."
+      "updatedAt": "2026-10-05T05:25:06.086732+00:00",
+      "implementation": "Deployed 88232a8 to tap2.work and operations v41 ACTIVE. Grouped A4/A5 PDF print/save/preview and ko/en/vi/zh-Hans/ja forms with reviewed translation registration, source-hash staleness and Korean fallback. CI Flutter 341/server 203 checks and public assets/fonts verified. Automatic translation, physical-printer and native-build verification remain outside this release."
     }
   ],
   "milestones": [
@@ -6243,7 +6243,83 @@
         "Physical printer output and native app builds not tested. Public web deployment pending.",
         "Chinese currently uses Simplified Chinese; store/part/place proper names remain original; images/video are references by URL, not embedded downloads."
       ]
+    },
+    {
+      "at": "2026-10-05T05:25:06.086732+00:00",
+      "type": "deployment",
+      "decisionId": "D-089",
+      "summary": "장소·파트·폴더별 인쇄 양식, PDF 저장·인쇄·미리보기, 5개 언어 번역 등록·검토를 공개 웹과 백엔드에 배포하고 검증했다.",
+      "commit": "88232a8007c17e8df8e8718b825f4d3590342691",
+      "workflow": "https://github.com/ljae/tap2work/actions/runs/37267160724",
+      "backend": {
+        "previousVersion": 40,
+        "version": 41,
+        "status": "ACTIVE",
+        "verifiedAt": "2026-10-05T05:09:59.541Z"
+      },
+      "apiVerification": {
+        "status": 200,
+        "printTemplates": 21,
+        "allHashesMatch": true,
+        "rawTranslationMapHidden": true,
+        "verifiedAt": "2026-10-05T05:10:55.641Z"
+      },
+      "verification": [
+        "GitHub CI Flutter analysis and all 341 tests, server 203 tests, 42 UI/settings links and public web build passed.",
+        "Final local app/build/web build passed. Isolated print/phone tests 17 and final source-revision/font tests 9 passed.",
+        "Actual PDFs in five languages, Korean bilingual content, stale/missing fallback and six-page A5 long-content pagination verified with text extraction and page bounds.",
+        "Public root/index/bootstrap/main and all three embedded-font source files returned HTTP 200 and matched the CI artifact SHA-256."
+      ],
+      "limitations": [
+        "Physical printer output and native builds not tested.",
+        "Translations are registered/reviewed by a store editor; no external automatic translation provider is connected. Chinese is Simplified Chinese.",
+        "Proper place/part/store names retain their original language; external images/video are printed as reference URLs."
+      ],
+      "assets": [
+        {
+          "file": "index.html",
+          "status": 200,
+          "matches": true,
+          "sha256": "3682928e6e081039cc914cebdacbbd82d5f6da0b155d903658394dc84cc1b057"
+        },
+        {
+          "file": "flutter_bootstrap.b26b6e9a42e89daf4ad3.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "b26b6e9a42e89daf4ad36960fd744eea841d106430f0fd0a24a3a04061cf5fdd"
+        },
+        {
+          "file": "main.f5565cff587816c62c2c.dart.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "f5565cff587816c62c2ce2359d715791151093be2873193ed755186eb8c264ec"
+        },
+        {
+          "file": "assets/assets/fonts/print/NotoSansSC-Regular.ttf",
+          "status": 200,
+          "matches": true,
+          "sha256": "8caa1313a073530c2734cac2f75c6862116f717cab6a0928532f09894ea7bc36"
+        },
+        {
+          "file": "assets/assets/fonts/print/Tap2workPrint-Regular.ttf",
+          "status": 200,
+          "matches": true,
+          "sha256": "768094a8a1961916d2e32263281d1fd9a528879fb0c1ee1fe0ad77db8ed3a2ad"
+        },
+        {
+          "file": "assets/assets/fonts/print/NotoSansJP-Regular.ttf",
+          "status": 200,
+          "matches": true,
+          "sha256": "3cff3f816232540fd6b1daee2c5ab2d0296165d4921097a721d094dfc0915af9"
+        },
+        {
+          "file": "/",
+          "status": 200,
+          "matches": true,
+          "sha256": "3682928e6e081039cc914cebdacbbd82d5f6da0b155d903658394dc84cc1b057"
+        }
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T05:15:10.827036+00:00"
+  "updatedAt": "2026-10-05T05:25:06.086732+00:00"
 }
