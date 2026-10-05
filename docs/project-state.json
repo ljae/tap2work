@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 175,
+  "revision": 176,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -5755,6 +5755,27 @@
           "matches": true,
           "sha256": "a3343bbf520d2f0231595363cfc94ddb73c75af2dd786f53c6f129363a29c862"
         }
+      ]
+    },
+    {
+      "at": "2026-10-05T01:06:49.552711+00:00",
+      "type": "implementation",
+      "summary": "영업 종료 후 연속 drag/resize를 끊는 부모 위젯 교체와 저장 대기 중 원복 표시를 수정했다.",
+      "decisionId": "D-082",
+      "rootCause": "시간축 확대 때 Stack 앞쪽 시간 칸이 늘면서 key 없는 Positioned 카드가 교체되어 활성 제스처가 해제됐다. 카드 내부 key로는 보호되지 않았다. 응답 전 resize 값을 지워 시간축도 먼저 축소됐다.",
+      "changes": [
+        "시간 칸·카드·브레이크·영업 선·미리보기의 최상위 Positioned에 stable key 부여.",
+        "resize 종료 시 서버 응답까지 수정 종료 유지. drag 이동도 actor/workspace scoped 임시 블록으로 유지하고 성공/실패 응답 후 해제.",
+        "시간표 본체도 stable key를 사용해 저장 중 추가 버튼 비활성/복원 시 스크롤 위젯을 재생성하지 않는다."
+      ],
+      "verification": [
+        "수정 전 실제 제스처 회귀 테스트에서 영업 종료 이후 첫 시간축 확대에 카드 element 교체를 재현했다.",
+        "신규 8개 제스처 테스트 통과: 320/390/1200px 3시간 연속 resize, 두 크루 순차 조정/새로고침 보존, 확대 중 Draggable identity, 지연 저장 성공/실패와 원복 오류 안내.",
+        "Flutter analyze 및 UI 관계 39개 검사 통과. 전체 Flutter 304개 테스트 통과; 시간표 본체 식별자 보강 후 신규 제스처 8개 재검증. 로컬 웹 release 빌드 통과, 공개 배포 검증 진행 중."
+      ],
+      "limitations": [
+        "이번 수정은 Flutter 화면 상태/제스처이며 서버·영업시간·기본 인원 설정과 실제 근무 데이터는 변경하지 않는다.",
+        "native build와 실제 기기 검증은 수행하지 않음."
       ]
     }
   ],

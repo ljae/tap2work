@@ -62,6 +62,7 @@ Future<OperationsController> mount(
   bool readOnly = true,
   Json? data,
   void Function(Json)? write,
+  Future<void> Function(Json)? beforeWrite,
   double width = 390,
   double scale = 1,
   bool timeline = true,
@@ -73,7 +74,11 @@ Future<OperationsController> mount(
   final ops = OperationsController(
     readOnly: readOnly,
     client: MockClient((r) async {
-      if (r.method == 'POST') write?.call(jsonDecode(r.body) as Json);
+      if (r.method == 'POST') {
+        final input = jsonDecode(r.body) as Json;
+        if (beforeWrite != null) await beforeWrite(input);
+        write?.call(input);
+      }
       return response(data ?? calendarData());
     }),
   );

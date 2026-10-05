@@ -33,6 +33,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   String? previewColumn;
   int? previewMinute, previewDuration;
   String? previewShiftId;
+  RosterSlot? pendingMove;
+  String? pendingActor;
+  Object? pendingWorkspace;
   String? resizingId;
   int? resizingEnd;
   double resizeOrigin = 0;
@@ -175,6 +178,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
+  List<RosterSlot> displayedSlots(DateTime day) {
+    final slots = model.slots(day);
+    final pending = pendingMove;
+    if (pending == null ||
+        pendingActor != ops.actorId ||
+        pendingWorkspace != ops.data?['workspaceId']) {
+      return slots;
+    }
+    return [
+      for (final slot in slots)
+        if (slot.shiftId != pending.shiftId)
+          slot
+        else if (pending.date == rosterDate(day))
+          pending,
+      if (pending.date == rosterDate(day) &&
+          !slots.any((s) => s.shiftId == pending.shiftId))
+        pending,
+    ];
+  }
+
   Future<void> dropSlot(
     Json payload,
     DateTime day,
@@ -183,6 +206,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
   ) async {
     if (!editMode || payload['actor'] != ops.actorId) return;
     final duration = payload['duration'] as int;
+    final original = model
+        .slots(model.selected)
+        .where((s) => s.shiftId == payload['id'])
+        .firstOrNull;
+    if (original != null) {
+      setState(() {
+        pendingMove = RosterSlot(
+          date: rosterDate(day),
+          partId: part.id,
+          start: rosterClock(minute),
+          end: rosterClock(minute + duration),
+          dayOffset: minute ~/ 1440,
+          name: original.name,
+          shiftId: original.shiftId,
+          crewId: original.crewId,
+          adjusted: true,
+        );
+        pendingActor = ops.actorId;
+        pendingWorkspace = ops.data?['workspaceId'];
+      });
+    }
     final ok = await ops
         .act(payload['id'] == null ? 'save_roster_slot' : 'save_staff_shift', {
           ...payload,
@@ -195,7 +239,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
           'end': rosterClock(minute + duration),
         });
     if (mounted) {
-      if (ok) setState(() => selectedSlot = null);
+      setState(() {
+        pendingMove = null;
+        pendingActor = null;
+        pendingWorkspace = null;
+        if (ok) selectedSlot = null;
+      });
       notice(ok ? '근무를 옮겼어요.' : ops.error ?? '이동하지 못했어요.');
     }
   }
@@ -322,15 +371,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 }),
                 onVerticalDragEnd: (_) async {
                   final end = resizingEnd, payload = resizePayload;
-                  setState(() {
-                    resizingId = null;
-                    resizingEnd = null;
-                  });
                   if (end == null ||
                       payload == null ||
                       !editMode ||
                       payload['actor'] != ops.actorId ||
                       end == slot.endMinute) {
+                    setState(() {
+                      resizingId = null;
+                      resizingEnd = null;
+                    });
                     return;
                   }
                   final ok = await ops.act(
@@ -340,6 +389,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     {...payload, 'end': rosterClock(end)},
                   );
                   if (mounted) {
+                    setState(() {
+                      resizingId = null;
+                      resizingEnd = null;
+                    });
                     notice(ok ? '시간을 조정했어요.' : ops.error ?? '저장하지 못했어요.');
                   }
                 },
@@ -965,7 +1018,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final parts = model.visibleParts;
     if (parts.isEmpty) return const Information('우리매장 → 파트 관리에서 파트를 추가해 주세요.');
     final days = [model.selected];
-    final all = [for (final day in days) ...model.slots(day)];
+    final all = [for (final day in days) ...displayedSlots(day)];
     final bounds = slotsForDay(
       ops.data ?? {},
       model.selected,
@@ -990,6 +1043,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
       );
     }
+    bounds.addAll(all);
     final earliest = bounds.fold<int>(
       9 * 60,
       (v, s) => s.startMinute < v ? s.startMinute : v,
@@ -1049,6 +1103,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ],
           ),
         SizedBox(
+          key: const ValueKey('roster-timeline'),
           height: (gridHeight + headerHeight + 24).clamp(
             0.0,
             (MediaQuery.sizeOf(context).height * .55).clamp(320.0, 640.0),
@@ -1343,6 +1398,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             children: [
               for (var m = from; m < until; m += 30)
                 Positioned(
+                  key: ValueKey('roster-cell-${rosterDate(day)}-${part.id}-$m'),
                   top: (m - from) * scale,
                   left: 0,
                   right: 0,
@@ -1359,6 +1415,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 ),
               for (var i = 0; i < slots.length; i++)
                 Positioned(
+                  key: ValueKey(
+                    'roster-position-${slots[i].date}-${slots[i].partId}-${slots[i].shiftId ?? slots[i].templateId}',
+                  ),
                   top: (slots[i].startMinute - from) * scale + 2,
                   left:
                       layout[slots[i].shiftId]!.lane *
@@ -1455,6 +1514,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   pause['start'] != null &&
                   pause['end'] != null)
                 Positioned(
+                  key: ValueKey('roster-break-position-${part.id}'),
                   top:
                       (bandStart(Map<String, dynamic>.from(pause)) - from) *
                       scale,
@@ -1480,6 +1540,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               for (final marker in [(opening, '영업 시작'), (closing, '영업 종료')])
                 if (marker.$1 != null)
                   Positioned(
+                    key: ValueKey('roster-marker-${part.id}-${marker.$2}'),
                     top: (marker.$1! - from) * scale,
                     left: 0,
                     right: 0,
@@ -1503,6 +1564,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               if (previewColumn == '${rosterDate(day)}/${part.id}' &&
                   previewMinute != null)
                 Positioned(
+                  key: ValueKey('roster-preview-position-${part.id}'),
                   top: (previewMinute! - from) * scale,
                   left: previewLayout!.lane * width / previewLayout.count + 3,
                   width: width / previewLayout.count - 6,

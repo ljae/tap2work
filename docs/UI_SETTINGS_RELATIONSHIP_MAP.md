@@ -304,3 +304,5 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 | S03 | `workplace.days/breaks/dateOverrides` → 영업 시작·종료 선/투명 주황 브레이크 → 읽기 전용 표시 | 근무표 참고선; 배정 시간 제한·근무 시간 차감 없음 | schedule_fine_edit_test.dart, schedule_overlap_review.dart |
 | S27 | `staffShifts`/전체 활성 크루 → 파트·시작 날짜·시간 편집/파트별 추가/빈 시간/drag·resize → `save_staff_shift(scheduleDate,dayOffset,revision)` | 프로필과 독립한 날짜별 계획; 실제 KST 날짜·표시 날짜 분리; 기본 설정 재저장 시 D-080 초기화 유지 | calendar_test.dart, schedule_fine_edit_test.dart, workplace.test.mjs, schedule_exceptions.test.mjs |
 | S05 | `staffShifts` → `scheduleLayout` 최대 3열 및 4명 이후 순환 겹침, 파트 제목 전체 목록 → 기존 개별 편집 | 목록에서 가려진 크루 접근, 미리보기와 저장 후 같은 폭 계산, 추가 인원도 저장 | 1–7명 순환/홀 2열 ghost/320·390·1200 확대/추가 POST 검증 |
+
+2026-10-05 S27 제스처 수정: `staffShifts` → 안정적인 `Positioned` key의 drag/resize → `save_staff_shift` → 성공 응답까지 resize 종료/임시 이동 위치 유지 → 응답 후 서버 상태로 전환한다. 영업 종료 후 연속 3시간 resize와 다른 크루 순차 조정·새로고침 보존, 시간 칸 추가 중 Draggable identity, 지연 저장 성공/실패는 `schedule_gesture_test.dart`에서 검증한다. 실패는 원본으로 돌아가고 오류를 표시한다.
