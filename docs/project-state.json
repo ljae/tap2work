@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 176,
+  "revision": 177,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -835,8 +835,8 @@
       "next": "프로필과 독립한 날짜별 배정 및 크루 추가; 최대 3열과 1→2→3 순환 겹침, 영업 참고선·브레이크 tint 및 분할 폭 미리보기.",
       "reason": "사용자가 영업 전후와 파트 간 지원 근무, 추가 인원, 겹침 허용을 요청하고 5·6·7명째의 열 순환을 명시했다.",
       "source": "사용자 요청 및 5·6·7명째 열 순환 후속 확인 · 2026-10-05",
-      "updatedAt": "2026-10-05T00:48:19.884459+00:00",
-      "implementation": "Flutter 웹과 operations v37에 배포 완료. CI 전체 테스트 및 공개 artifact 일치 검증 완료. 동일 크루의 실제 시간 중복·권한·revision 검증 유지."
+      "updatedAt": "2026-10-05T01:14:00.146282+00:00",
+      "implementation": "Deployed web and operations v37. After-hours gesture cancellation and pending-save rollback display fixed and deployed on 2026-10-05, with CI and public artifact verification. Same-crew overlap, permission and revision validation retained."
     }
   ],
   "milestones": [
@@ -5776,6 +5776,42 @@
       "limitations": [
         "이번 수정은 Flutter 화면 상태/제스처이며 서버·영업시간·기본 인원 설정과 실제 근무 데이터는 변경하지 않는다.",
         "native build와 실제 기기 검증은 수행하지 않음."
+      ]
+    },
+    {
+      "at": "2026-10-05T01:14:00.146282+00:00",
+      "type": "deployment",
+      "summary": "Deploy after-hours schedule gesture and pending-save display fix to tap2.work.",
+      "decisionId": "D-082",
+      "sourceCommit": "5b8a8a98be4bfe898ec70507f1cd6e9625940bc4",
+      "workflow": "https://github.com/ljae/tap2work/actions/runs/37250233225",
+      "url": "https://tap2.work",
+      "verification": [
+        "Flutter analyze and full 304 tests passed; final timeline key refinement retested with 8 gesture tests.",
+        "GitHub CI passed Flutter/server tests, JavaScript checks, 39 UI links and Pages build/deploy.",
+        "Public root/index/bootstrap/main returned HTTP 200 and matched CI Pages artifact SHA-256.",
+        "Local web release built successfully. Real pointer regressions verified stable card/timeline identity, sequential crew edits and delayed-save success/failure.",
+        "Frontend/docs-only patch. No operations API code deployment, actual store data modifications, SQL migration or native build."
+      ],
+      "assets": [
+        {
+          "file": "index.html",
+          "status": 200,
+          "matches": true,
+          "sha256": "b8a34a44207754e3f49765f653a1e8ac1105289f93972f8eb97432c21271d45d"
+        },
+        {
+          "file": "flutter_bootstrap.53dff4ebd44585e0bf5b.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "53dff4ebd44585e0bf5b64701813b8cbc61ef7bcaebaf5527a11cbee457b2cf4"
+        },
+        {
+          "file": "main.38c0b1dddfacac318f9a.dart.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "38c0b1dddfacac318f9a8234bbfefaf4c5e508eed46c6b6b3d68f6faf29ca081"
+        }
       ]
     }
   ],
