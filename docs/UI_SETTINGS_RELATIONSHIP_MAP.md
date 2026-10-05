@@ -316,3 +316,16 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 | manualCatalog schemaVersion 2 + taxonomy | 매뉴얼 마켓 검색·업종 시트·법적 기준/운영 필터 → 로컬 basket | 업종/필터 전환 선택 유지, 설치된 공용 연결 중복 방지 | manual_market_discovery_test.dart |
 | basket sourceIds + purposeId | 담은 항목 확인 → 업무별 자동 분류 / 기존 그룹 → import_market_taps | checklistsFolders와 새 TAP 원자 저장; OFF, 공용 연결 및 과거 실행 보존 | manual_market.test.mjs, manual_market_test.dart |
 | applicability/jurisdiction/references | 상세 펼침 → 공식 출처 열기 | 법적 기준 적용 대상·자료 확인일·범위 표시; 준법 판정 없음 | manual_market_discovery_test.dart, market_discovery_review.dart |
+
+## 모바일 근무표·사업장 매뉴얼 구성 · 2026-10-05
+
+| 원본 | 컨트롤 → 액션 | 소비·보존 | 검증 |
+| --- | --- | --- | --- |
+| staffShifts + workplace.parts | 36px 정각/반시간 축, 동시 열 비례 너비, 페이지 세로 스크롤 | 날짜 선택 복귀, 4개 배치 같은 화면, 3열 순환 겹침 유지 | mobile_roster_test.dart, schedule_gesture_test.dart |
+| staffShifts + 활성 크루/파트 | 하단 영업시간·인원 옆 크루 추가 → 파트·시간 선택 → save_staff_shift | 주방/홀/관리 자유 추가, 기존 revision/시간 저장 계약 유지 | schedule_fine_edit_test.dart, schedule_workflow_test.dart |
+| manualCatalog + manualBusinessProfile | 업종·필요 항목·교체·매일 사용 → configure_manual_business | 목적별 운영 정의, 법적 참고 OFF, 진행/완료·레시피 보존, server-only history | manual_market.test.mjs, manual_market_discovery_test.dart |
+| catalogMenus + menuManualId | 메뉴·레시피 → 공유 CatalogEditor(menusOnly)/ManualTapEditor → save_menu/save_manual_tap | store-recipes, 판매 이름/가격과 매뉴얼 별칭·내용 독립; 크루는 manualSearch 읽기 | manual_workspace_test.dart, manual_market.test.mjs, checklists.test.mjs |
+
+| ID | source → control → action | consumer | 검증 |
+| --- | --- | --- | --- |
+| S47 | manualCatalog → ManualMarketScreen(setup) → configure_manual_business | manualBusinessProfile, 목적별 양식·업무 활성화·교체 보관 | manual_market.test.mjs, manual_market_discovery_test.dart |

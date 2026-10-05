@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 182,
+  "revision": 184,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -863,6 +863,30 @@
       "source": "사용자 요청 · 2026-10-05",
       "updatedAt": "2026-10-05T02:19:37.605239+00:00",
       "implementation": "Deployed to tap2.work and operations v38: 86 TAPs/272 Tasks, common plus 12 industry areas, 10 scoped legal-reference cards, preserved original 64 content hashes, basket and atomic purpose grouping. CI and public artifact/backend source verification passed."
+    },
+    {
+      "id": "D-085",
+      "category": "UX",
+      "title": "모바일 근무표 한 화면 배치·스크롤·월간 표시",
+      "status": "confirmed",
+      "decision": "36px 정각/반시간 축, 동시 열 비례 너비, 페이지 세로 스크롤, 하단 통합 크루 추가, 과거 휴일/업무와 오늘 이후 휴무/영업",
+      "previous": "52px 시각 축과 파트별 최소 너비, 내부 세로 스크롤, 파트별 추가 버튼, 월간 이력 건수",
+      "next": "36px 정각/반시간 축, 동시 열 비례 너비, 페이지 세로 스크롤, 하단 통합 크루 추가, 과거 휴일/업무와 오늘 이후 휴무/영업",
+      "reason": "휴대폰에서 4개 배치를 가로 이동 없이 확인하고 날짜 선택으로 쉽게 돌아가도록 사용자 요청",
+      "source": "사용자 요청 · 2026-10-05",
+      "updatedAt": "2026-10-05T03:38:52.589514+00:00"
+    },
+    {
+      "id": "D-086",
+      "category": "매뉴얼",
+      "title": "마켓 중심 사업장 구성과 매장별 메뉴·레시피 분리",
+      "status": "confirmed",
+      "decision": "업종·특성 선택 → 필요한 공통/업종 항목 담기 → 목적별 구성, 운영 매뉴얼/메뉴·레시피 분리",
+      "previous": "초기 뼈찜 운영 그룹과 메뉴 연결 매뉴얼이 같은 디렉토리에 혼재",
+      "next": "업종·특성 선택 → 필요한 공통/업종 항목 담기 → 목적별 구성, 운영 매뉴얼/메뉴·레시피 분리",
+      "reason": "기존 매뉴얼·업무 교체를 허용하고 창업 사장님 관점 재설계를 요청. 현재 사업장은 고기집·뼈찜, 레시피는 매장 커스터마이징",
+      "source": "사용자 요청 · 2026-10-05",
+      "updatedAt": "2026-10-05T03:38:52.589514+00:00"
     }
   ],
   "milestones": [
@@ -5959,7 +5983,33 @@
           "sha256": "865aeface22876c3670e835705facfa3e0c07d2702b2fa7345c97ddd5a5b956c"
         }
       ]
+    },
+    {
+      "at": "2026-10-05T03:38:52.589514+00:00",
+      "type": "implementation",
+      "decisionIds": [
+        "D-085",
+        "D-086"
+      ],
+      "summary": "휴대폰 근무표와 사장님 사업장 매뉴얼 구성 구조 구현. 공개 배포와 현재 매장 적용은 진행 중.",
+      "changes": [
+        "4개 배치 비례 열·정각/반시간 표시·페이지 세로 스크롤·통합 추가 버튼·월간 계획/이력 구분",
+        "마켓 setup 모드, 공통 기본 운영 7개, 교체/매일 사용 선택, CAS·권한·재시도 영수증",
+        "진행 전 현재/미래 업무만 보관, 진행/완료·이전 기록 및 메뉴 레시피 보존, 이전 정의 server-only 보관",
+        "메뉴·레시피 전용 폴더·별도 탭·공유 판매 메뉴 편집, 크루는 매뉴얼 인덱스로 읽기",
+        "공개 리뷰 샘플도 동일 구성 API로 생성; 전체 기존 매장 자동 초기화 없음"
+      ],
+      "verification": [
+        "배포용 분리 작업트리 Flutter 분석·전체 318개 테스트 통과. 크루 레시피/월간 표시 및 운영 설정 보관 필터 포함.",
+        "서버 200개·JavaScript·불변 카탈로그·UI 관계 40개 검사 통과.",
+        "320/390/1200px 근무표·사업장 구성 6개 캡처 생성 및 320/390px 검토. 키보드/확대 글자 회귀 해결.",
+        "초기 UI 키보드 overflow·옛 UI 기대값 실패 수정 후 통과. 별도 검증 명령에서 없는 task_settings_test.dart 경로를 사용한 오류는 실제 settings_screens_test.dart를 포함한 전체 검증으로 해소."
+      ],
+      "limitations": [
+        "네이티브 빌드·실기기 검증 미수행.",
+        "공개 배포 및 현재 매장 구성 저장은 아직 진행 중."
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T02:19:37.605239+00:00"
+  "updatedAt": "2026-10-05T03:40:37.381946+00:00"
 }

@@ -1,4 +1,5 @@
 import 'manual_tap_editor.dart';
+import 'catalog_editor.dart';
 import 'manual_market_screen.dart';
 import 'checklist_backup_screen.dart';
 import 'dart:convert';
@@ -28,7 +29,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   String actor = '';
   String? scopeGroup, scopeTap, selectedId;
   _ManualEditPane? editPane;
-  bool showTree = true, previewDirty = false;
+  bool showTree = true, previewDirty = false, recipes = false;
   bool get editing => editPane != null;
   bool get editingTree => editPane == _ManualEditPane.directory;
   bool get editingContent => editPane == _ManualEditPane.content;
@@ -44,7 +45,19 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         (previewDirty || revision == ops.data?['revision'])) {
       return;
     }
-    rows = ops.rows('manualSearch').map(copy).toList();
+    final recipeIds = ops
+        .rows('taskTemplates')
+        .where((t) => t['menuManualId'] != null)
+        .map((t) => t['id'])
+        .toSet();
+    rows = ops
+        .rows('manualSearch')
+        .where(
+          (r) =>
+              r['menuManualId'] == null && !recipeIds.contains(r['templateId']),
+        )
+        .map(copy)
+        .toList();
     folders = ops.rows('checklistFolders').map(copy).toList();
     for (final row in rows) {
       row['folderId'] ??= 'general';
@@ -64,7 +77,12 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       )['name'];
     }
     taps = [
-      for (final t in ops.rows('taskTemplates'))
+      for (final t
+          in ops
+              .rows('taskTemplates')
+              .where(
+                (t) => t['menuManualId'] == null && t['archivedAt'] == null,
+              ))
         {
           'tapId': t['id'],
           'templateId': t['id'],
@@ -101,7 +119,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       scopeTap = null;
       selectedId = null;
       expanded.clear();
-      expanded.addAll(folders.map((f) => 'group:${f['id']}'));
+      if (ops.data?['manualBusinessProfile'] == null) {
+        expanded.addAll(folders.map((f) => 'group:${f['id']}'));
+      }
+      recipes = false;
     }
   }
 
@@ -682,6 +703,11 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       ),
     ];
     for (final folder in folders) {
+      if (folder['id'] == 'store-recipes') continue;
+      if (ops.data?['manualBusinessProfile'] != null &&
+          !taps.any((t) => t['folderId'] == folder['id'])) {
+        continue;
+      }
       final all = rows.where((r) => r['folderId'] == folder['id']).toList();
       final matching = all.where(matches).toList();
       final folderTaps = taps
@@ -970,6 +996,88 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     );
   }
 
+  Widget recipeList() {
+    final available = ops
+        .rows('taskTemplates')
+        .where((t) => t['menuManualId'] != null && t['archivedAt'] == null)
+        .toList();
+    if (!ops.canEditTasks) {
+      final grouped = <String, Json>{};
+      for (final row
+          in ops.rows('manualSearch').where((r) => r['menuManualId'] != null)) {
+        final id = row['templateId'] as String;
+        final template = grouped.putIfAbsent(
+          id,
+          () => {'id': id, 'title': row['tapTitle'], 'steps': <Json>[]},
+        );
+        (template['steps'] as List).add(row);
+      }
+      available.addAll(grouped.values);
+    }
+    final templates = available
+        .where(
+          (t) => normalize(
+            '${t['title']} ${(t['steps'] as List? ?? []).map((s) => s['manual']).join(' ')}',
+          ).contains(normalize(widget.query)),
+        )
+        .toList();
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const Text('우리 매장만의 메뉴와 레시피', style: AppText.section),
+        const SizedBox(height: 8),
+        const Text(
+          '판매 메뉴별 재료·분량·조리 순서·제공 기준을 직접 채워 주세요. 마켓의 공통 운영 매뉴얼과 따로 관리해요.',
+          style: AppText.caption,
+        ),
+        if (ops.canEditTasks)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => showAppSheet(
+                context,
+                builder: (_) => CatalogEditor(ops: ops, menusOnly: true),
+              ),
+              icon: const Icon(Icons.add),
+              label: const Text('판매 메뉴 추가·관리'),
+            ),
+          ),
+        if (templates.isEmpty)
+          const Information('판매 메뉴를 등록하면 메뉴별 레시피 공간이 생겨요.'),
+        for (final t in templates)
+          ListTile(
+            key: ValueKey('store-recipe-${t['id']}'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(t['manualTitle'] ?? t['title']),
+            subtitle: const Text('매장 전용 · 레시피 보기'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => showAppSheet(
+              context,
+              builder: (_) => ops.canEditTasks
+                  ? ManualTapEditor(ops: ops, templateId: t['id'])
+                  : AppEditorScaffold(
+                      title: t['title'],
+                      body: ListView(
+                        padding: const EdgeInsets.all(24),
+                        children: [
+                          for (final step
+                              in (t['steps'] as List).cast<Json>()) ...[
+                            Text(step['title'], style: AppText.section),
+                            const SizedBox(height: 8),
+                            Text(step['manual'] ?? '', style: AppText.body),
+                            if ((step['tip'] ?? '').isNotEmpty)
+                              Text(step['tip'], style: AppText.caption),
+                            const SizedBox(height: 24),
+                          ],
+                        ],
+                      ),
+                    ),
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     sync();
@@ -982,79 +1090,141 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 760;
+              final toolsVisible =
+                  constraints.maxHeight >= 440 && widget.query.trim().isEmpty;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Wrap(
-                    spacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+                  Row(
                     children: [
-                      if (ops.canEditTasks) ...[
-                        TextButton.icon(
-                          onPressed: () => showAppSheet(
-                            context,
-                            builder: (_) => ManualMarketScreen(
-                              ops: ops,
-                              folderId: scopeGroup,
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => setState(() => recipes = false),
+                          child: Text(
+                            '운영 매뉴얼',
+                            style: TextStyle(
+                              color: recipes ? AppColors.muted : AppColors.ink,
+                              fontWeight: recipes
+                                  ? FontWeight.normal
+                                  : FontWeight.bold,
                             ),
                           ),
-                          icon: const Icon(Icons.storefront_outlined),
-                          label: const Text('매뉴얼 마켓'),
                         ),
-                        TextButton.icon(
-                          onPressed: () => showAppSheet(
-                            context,
-                            builder: (_) =>
-                                ManualTapEditor(ops: ops, folderId: scopeGroup),
-                          ),
-                          icon: const Icon(Icons.add),
-                          label: const Text('TAP 직접 추가'),
-                        ),
-                        TextButton(
-                          onPressed: () => showAppSheet(
-                            context,
-                            builder: (_) => ChecklistBackupScreen(ops: ops),
-                          ),
-                          child: const Text('백업·복원'),
-                        ),
-                      ],
-                      if (!wide)
-                        PressBounce(
-                          child: TextButton.icon(
-                            icon: Icon(
-                              showTree
-                                  ? CupertinoIcons.doc_text
-                                  : CupertinoIcons.folder,
+                      ),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => setState(() {
+                            recipes = true;
+                            editPane = null;
+                          }),
+                          child: Text(
+                            '메뉴·레시피',
+                            style: TextStyle(
+                              color: recipes ? AppColors.ink : AppColors.muted,
+                              fontWeight: recipes
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (!recipes && ops.canEditTasks && toolsVisible)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        ops.data?['manualBusinessProfile']?['specialization'] ??
+                            '내 사업장에 맞게 시작하기',
+                        style: AppText.body,
+                      ),
+                      subtitle: const Text(
+                        '업종 선택 · 필요한 매뉴얼 담기 · 업무별 구성',
+                        style: AppText.caption,
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => showAppSheet(
+                        context,
+                        builder: (_) =>
+                            ManualMarketScreen(ops: ops, setup: true),
+                      ),
+                    ),
+                  if (!recipes)
+                    Wrap(
+                      spacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (ops.canEditTasks && toolsVisible) ...[
+                          TextButton.icon(
+                            onPressed: () => showAppSheet(
+                              context,
+                              builder: (_) => ManualMarketScreen(
+                                ops: ops,
+                                folderId: scopeGroup,
+                              ),
+                            ),
+                            icon: const Icon(Icons.storefront_outlined),
+                            label: const Text('매뉴얼 마켓'),
+                          ),
+                          TextButton.icon(
+                            onPressed: () => showAppSheet(
+                              context,
+                              builder: (_) => ManualTapEditor(
+                                ops: ops,
+                                folderId: scopeGroup,
+                              ),
+                            ),
+                            icon: const Icon(Icons.add),
+                            label: const Text('운영 매뉴얼 추가'),
+                          ),
+                          TextButton(
+                            onPressed: () => showAppSheet(
+                              context,
+                              builder: (_) => ChecklistBackupScreen(ops: ops),
+                            ),
+                            child: const Text('백업·복원'),
+                          ),
+                        ],
+                        if (!wide)
+                          PressBounce(
+                            child: TextButton.icon(
+                              icon: Icon(
+                                showTree
+                                    ? CupertinoIcons.doc_text
+                                    : CupertinoIcons.folder,
+                              ),
+                              label: Text(
+                                showTree ? '매뉴얼 ${results.length}' : '디렉토리',
+                              ),
+                              onPressed: () => setState(() {
+                                showTree = !showTree;
+                                editPane = null;
+                              }),
+                            ),
+                          ),
+                        if (scopeGroup != null || scopeTap != null)
+                          InputChip(
+                            chipAnimationStyle: AppMotion.chipStyle(context),
                             label: Text(
-                              showTree ? '매뉴얼 ${results.length}' : '디렉토리',
+                              scopeTap == null
+                                  ? '${folders.where((f) => f['id'] == scopeGroup).firstOrNull?['name'] ?? 'TAP그룹'}'
+                                  : '${taps.where((r) => r['tapId'] == scopeTap).firstOrNull?['tapTitle'] ?? 'TAP'}',
                             ),
-                            onPressed: () => setState(() {
-                              showTree = !showTree;
-                              editPane = null;
+                            onDeleted: () => setState(() {
+                              scopeGroup = null;
+                              scopeTap = null;
+                              selectedId = null;
                             }),
                           ),
-                        ),
-                      if (scopeGroup != null || scopeTap != null)
-                        InputChip(
-                          chipAnimationStyle: AppMotion.chipStyle(context),
-                          label: Text(
-                            scopeTap == null
-                                ? '${folders.where((f) => f['id'] == scopeGroup).firstOrNull?['name'] ?? 'TAP그룹'}'
-                                : '${taps.where((r) => r['tapId'] == scopeTap).firstOrNull?['tapTitle'] ?? 'TAP'}',
-                          ),
-                          onDeleted: () => setState(() {
-                            scopeGroup = null;
-                            scopeTap = null;
-                            selectedId = null;
-                          }),
-                        ),
-                      if (ops.canEditTasks)
-                        DirectEditBar(
-                          active: editing,
-                          onDone: () => setState(() => editPane = null),
-                          onAdd: () =>
-                              directEditNode(context, ops, 'edit_manual_node', {
+                        if (ops.canEditTasks && toolsVisible)
+                          DirectEditBar(
+                            active: editing,
+                            onDone: () => setState(() => editPane = null),
+                            onAdd: () => directEditNode(
+                              context,
+                              ops,
+                              'edit_manual_node',
+                              {
                                 'kind': scopeTap != null
                                     ? 'task'
                                     : scopeGroup != null
@@ -1062,30 +1232,33 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                                     : 'group',
                                 'parentId': scopeTap ?? scopeGroup,
                                 'operation': 'add',
-                              }, ''),
-                          addLabel: scopeTap != null
-                              ? 'Task 추가'
-                              : scopeGroup != null
-                              ? 'TAP 추가'
-                              : '그룹 추가',
-                        ),
-                      if (editing && ops.readOnly)
-                        const Text(
-                          '드래그 체험 · 저장 안 됨',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.muted,
+                              },
+                              '',
+                            ),
+                            addLabel: scopeTap != null
+                                ? 'Task 추가'
+                                : scopeGroup != null
+                                ? 'TAP 추가'
+                                : '그룹 추가',
                           ),
-                        ),
-                      if (previewDirty)
-                        PressBounce(
-                          child: TextButton(
-                            onPressed: () => setState(() => sync(force: true)),
-                            child: const Text('초기화'),
+                        if (editing && ops.readOnly)
+                          const Text(
+                            '드래그 체험 · 저장 안 됨',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.muted,
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
+                        if (previewDirty)
+                          PressBounce(
+                            child: TextButton(
+                              onPressed: () =>
+                                  setState(() => sync(force: true)),
+                              child: const Text('초기화'),
+                            ),
+                          ),
+                      ],
+                    ),
                   if (editing)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -1103,7 +1276,9 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         boxShadow: appCardShadow,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: wide
+                      child: recipes
+                          ? recipeList()
+                          : wide
                           ? Row(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [

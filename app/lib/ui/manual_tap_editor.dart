@@ -242,26 +242,27 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
             decoration: const InputDecoration(labelText: '아이콘'),
             onChanged: (_) => setState(() => dirty = true),
           ),
-          AppPicker<String>(
-            label: '그룹',
-            value: folder,
-            items: widget.ops
-                .rows('checklistFolders')
-                .map(
-                  (f) => DropdownMenuItem(
-                    value: f['id'] as String,
-                    child: Text(f['name']),
-                  ),
-                )
-                .toList(),
-            onChanged: saving
-                ? null
-                : (v) => setState(() {
-                    folder = v!;
-                    dirty = true;
-                  }),
-          ),
-          if (widget.templateId != null)
+          if (source['menuManualId'] == null)
+            AppPicker<String>(
+              label: '그룹',
+              value: folder,
+              items: widget.ops
+                  .rows('checklistFolders')
+                  .map(
+                    (f) => DropdownMenuItem(
+                      value: f['id'] as String,
+                      child: Text(f['name']),
+                    ),
+                  )
+                  .toList(),
+              onChanged: saving
+                  ? null
+                  : (v) => setState(() {
+                      folder = v!;
+                      dirty = true;
+                    }),
+            ),
+          if (widget.templateId != null && source['menuManualId'] == null)
             TextButton.icon(
               onPressed: dirty || saving
                   ? null
@@ -286,7 +287,15 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
           if (dirty && widget.templateId != null)
             const Text('내용을 저장한 뒤 운영 설정을 바꿀 수 있어요.', style: AppText.caption),
           const SizedBox(height: 24),
-          const Text('Task·매뉴얼', style: AppText.section),
+          Text(
+            source['menuManualId'] == null ? 'Task·매뉴얼' : '재료·분량·조리 순서·제공 기준',
+            style: AppText.section,
+          ),
+          if (source['menuManualId'] != null)
+            const Text(
+              '이 매장의 기준을 직접 기록해요. 판매 메뉴 이름과 가격은 판매 메뉴 관리에서 바꿔 주세요.',
+              style: AppText.caption,
+            ),
           for (var i = 0; i < steps.length; i++)
             Padding(
               padding: const EdgeInsets.only(top: 12),

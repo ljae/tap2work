@@ -104,9 +104,16 @@ void main() {
         expect(rects[1].left, rects[4].left);
         expect(rects[2].left, rects[5].left);
         expect(rects[0].left, rects[6].left);
-        await tester.tap(find.text('홀 크루 추가'));
+        await tester.ensureVisible(
+          find.byKey(const ValueKey('calendar-add-crew')),
+        );
+        await tester.tap(find.byKey(const ValueKey('calendar-add-crew')));
         await tester.pumpAndSettle();
         expect(find.text('크루 추가 배정'), findsOneWidget);
+        await tester.tap(find.text('담당 파트').last);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('홀').last);
+        await tester.pumpAndSettle();
         // Only registered crew belongs to kitchen, but is still offered for hall.
         await tester.tap(find.text('담당 크루').last);
         await tester.pumpAndSettle();

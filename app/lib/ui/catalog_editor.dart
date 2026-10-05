@@ -4,8 +4,9 @@ import 'components.dart';
 import 'store_profile_screen.dart';
 
 class CatalogEditor extends StatefulWidget {
-  const CatalogEditor({super.key, required this.ops});
+  const CatalogEditor({super.key, required this.ops, this.menusOnly = false});
   final OperationsController ops;
+  final bool menusOnly;
   @override
   State<CatalogEditor> createState() => _CatalogEditorState();
 }
@@ -333,70 +334,72 @@ class _CatalogEditorState extends State<CatalogEditor> {
           .toList();
       final items = ops.rows('items');
       return AppEditorScaffold(
-        title: '매장 설정',
+        title: widget.menusOnly ? '판매 메뉴 관리' : '매장 설정',
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              if (ops.cloud)
-                const Information(
-                  '이 계정의 매장에 저장됩니다. 동료가 먼저 수정한 경우 최신 내용을 확인한 뒤 다시 입력해 주세요.',
-                ),
-              if (ops.cloud &&
-                  ops.isOwner &&
-                  ops.data?['salesSource'] == 'sample' &&
-                  ops.data?['hasSampleArchive'] != true) ...[
-                const SizedBox(height: 12),
+              if (!widget.menusOnly) ...[
+                if (ops.cloud)
+                  const Information(
+                    '이 계정의 매장에 저장됩니다. 동료가 먼저 수정한 경우 최신 내용을 확인한 뒤 다시 입력해 주세요.',
+                  ),
+                if (ops.cloud &&
+                    ops.isOwner &&
+                    ops.data?['salesSource'] == 'sample' &&
+                    ops.data?['hasSampleArchive'] != true) ...[
+                  const SizedBox(height: 12),
+                  Surface(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '샘플 매장 사용 중',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const Text(
+                          '실제 매장 기록을 시작할 준비가 되었다면 샘플을 보관하고 빈 매장으로 전환하세요.',
+                        ),
+                        PressBounce(
+                          child: TextButton(
+                            onPressed: ops.busy ? null : startBlank,
+                            child: const Text('샘플 보관하고 빈 매장 시작'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 14),
                 Surface(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        '샘플 매장 사용 중',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const Text(
-                        '실제 매장 기록을 시작할 준비가 되었다면 샘플을 보관하고 빈 매장으로 전환하세요.',
-                      ),
-                      PressBounce(
-                        child: TextButton(
-                          onPressed: ops.busy ? null : startBlank,
-                          child: const Text('샘플 보관하고 빈 매장 시작'),
+                        '매장 정보',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      Text('${ops.data?['store']?['name'] ?? ''}'),
+                      if ('${ops.data?['store']?['note'] ?? ''}'.isNotEmpty)
+                        Text('${ops.data?['store']?['note']}'),
+                      if (ops.isOwner)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: PressBounce(
+                            child: TextButton(
+                              onPressed: ops.busy ? null : editStore,
+                              child: const Text('매장 정보 수정'),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
               ],
-              const SizedBox(height: 14),
-              Surface(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '매장 정보',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text('${ops.data?['store']?['name'] ?? ''}'),
-                    if ('${ops.data?['store']?['note'] ?? ''}'.isNotEmpty)
-                      Text('${ops.data?['store']?['note']}'),
-                    if (ops.isOwner)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: PressBounce(
-                          child: TextButton(
-                            onPressed: ops.busy ? null : editStore,
-                            child: const Text('매장 정보 수정'),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -441,56 +444,64 @@ class _CatalogEditorState extends State<CatalogEditor> {
                         : null,
                   ),
                 ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      '재료',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+              if (!widget.menusOnly) ...[
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        '재료',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  if (ops.isLeader)
-                    FilledButton.tonal(
-                      onPressed: ops.busy ? null : () => editItem(),
-                      child: const Text('재료 추가'),
-                    ),
-                ],
-              ),
-              const Text(
-                '실제 수량은 재고 화면의 수량 확인에서 따로 기록합니다.',
-                style: TextStyle(color: AppColors.muted),
-              ),
-              if (items.isEmpty)
-                const Information('등록된 재료가 없어요. 재료를 추가한 뒤 실물 수량을 확인해 주세요.'),
-              for (final item in items)
-                AppCard(
-                  child: ListTile(
-                    title: Text('${item['emoji']} ${item['name']}'),
-                    subtitle: Text(
-                      '${item['supplier']} · ${item['unit']} · 기준 ${item['minimum']}',
-                    ),
-                    trailing: ops.isLeader
-                        ? PopupMenuButton<String>(
-                            popUpAnimationStyle: AppMotion.dialogStyle(context),
-                            enabled: !ops.busy,
-                            onSelected: (value) => value == 'edit'
-                                ? editItem(item)
-                                : archive('archive_inventory_item', item, '재료'),
-                            itemBuilder: (_) => const [
-                              PopupMenuItem(value: 'edit', child: Text('수정')),
-                              PopupMenuItem(
-                                value: 'archive',
-                                child: Text('보관'),
-                              ),
-                            ],
-                          )
-                        : null,
-                  ),
+                    if (ops.isLeader)
+                      FilledButton.tonal(
+                        onPressed: ops.busy ? null : () => editItem(),
+                        child: const Text('재료 추가'),
+                      ),
+                  ],
                 ),
+                const Text(
+                  '실제 수량은 재고 화면의 수량 확인에서 따로 기록합니다.',
+                  style: TextStyle(color: AppColors.muted),
+                ),
+                if (items.isEmpty)
+                  const Information('등록된 재료가 없어요. 재료를 추가한 뒤 실물 수량을 확인해 주세요.'),
+                for (final item in items)
+                  AppCard(
+                    child: ListTile(
+                      title: Text('${item['emoji']} ${item['name']}'),
+                      subtitle: Text(
+                        '${item['supplier']} · ${item['unit']} · 기준 ${item['minimum']}',
+                      ),
+                      trailing: ops.isLeader
+                          ? PopupMenuButton<String>(
+                              popUpAnimationStyle: AppMotion.dialogStyle(
+                                context,
+                              ),
+                              enabled: !ops.busy,
+                              onSelected: (value) => value == 'edit'
+                                  ? editItem(item)
+                                  : archive(
+                                      'archive_inventory_item',
+                                      item,
+                                      '재료',
+                                    ),
+                              itemBuilder: (_) => const [
+                                PopupMenuItem(value: 'edit', child: Text('수정')),
+                                PopupMenuItem(
+                                  value: 'archive',
+                                  child: Text('보관'),
+                                ),
+                              ],
+                            )
+                          : null,
+                    ),
+                  ),
+              ],
             ],
           ),
         ),

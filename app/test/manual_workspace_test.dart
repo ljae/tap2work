@@ -112,6 +112,32 @@ void main() {
     ('tap', 'a', null),
     ('task', 's1', 'a'),
   ]) {
+    testWidgets(
+      'crew can read store recipes through manual index without template access',
+      (tester) async {
+        final data = directoryData();
+        data.remove('taskTemplates');
+        data['actor'] = {'id': 'crew', 'role': 'crew', 'name': '크루'};
+        data['canEditTasks'] = false;
+        for (final row in data['manualSearch'] as List) {
+          if (row['templateId'] == 'a') row['menuManualId'] = 'menu';
+        }
+        final ops = OperationsController(
+          client: MockClient((_) async => response(data)),
+        );
+        addTearDown(ops.dispose);
+        await mount(tester, ops);
+        await tester.tap(find.text('메뉴·레시피'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('store-recipe-a')));
+        await tester.pumpAndSettle();
+        expect(find.text('손 씻기 상세 매뉴얼'), findsOneWidget);
+        expect(find.text('매뉴얼 저장'), findsNothing);
+        expect(find.text('판매 메뉴 추가·관리'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
     testWidgets('tree name click renames ${entry.$1} with exact identity', (
       tester,
     ) async {
@@ -145,42 +171,39 @@ void main() {
     });
   }
 
-  for (final entry in [('tap', 'a', null), ('task', 's1', 'a')]) {
-    testWidgets(
-      'menu-linked tree name click renames ${entry.$1} with exact identity',
-      (tester) async {
-        Json? sent;
-        final ops = OperationsController(
-          client: MockClient((r) async {
-            if (r.method == 'POST') sent = jsonDecode(r.body) as Json;
-            final data = directoryData();
-            (data['taskTemplates'] as List).first['menuManualId'] = 'menu-1';
-            return response(data);
-          }),
-        );
-        addTearDown(ops.dispose);
-        await mount(tester, ops);
-        await click(tester, 'manual-node-tap:a');
-        final id =
-            '${entry.$1}:${entry.$2}${entry.$3 == null ? '' : ':${entry.$3}'}';
-        await tester.longPress(find.byKey(ValueKey('manual-rename-$id')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(ValueKey('manual-rename-$id')));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.widgetWithText(TextField, '이름'), '새 이름');
-        await tester.tap(find.text('저장'));
-        await tester.pumpAndSettle();
-        expect(sent?['action'], 'edit_manual_node');
-        expect(sent?['operation'], 'rename');
-        expect(sent?['kind'], entry.$1);
-        expect(sent?['id'], entry.$2);
-        expect(sent?['parentId'], entry.$3);
-        expect(sent?['name'], '새 이름');
-        expect(sent?['revision'], 2);
-        expect(tester.takeException(), isNull);
-      },
-    );
-  }
+  testWidgets(
+    'menu recipes are separate from operations and preserve menu identity',
+    (tester) async {
+      Json? sent;
+      final data = directoryData();
+      data['taskTemplates'][0]['menuManualId'] = 'menu-1';
+      final ops = OperationsController(
+        client: MockClient((r) async {
+          if (r.method == 'POST') sent = jsonDecode(r.body) as Json;
+          return response(data);
+        }),
+      );
+      addTearDown(ops.dispose);
+      await mount(tester, ops);
+      expect(find.byKey(const ValueKey('manual-node-tap:a')), findsNothing);
+      await tester.tap(find.text('메뉴·레시피'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('store-recipe-a')));
+      await tester.pumpAndSettle();
+      expect(find.text('파트·시간대·TAP 운영 설정'), findsNothing);
+      await tester.enterText(
+        find.byKey(const ValueKey('manual-tap-title')),
+        '우리 조리 기준',
+      );
+      await tester.tap(find.text('매뉴얼 저장'));
+      await tester.pumpAndSettle();
+      expect(sent?['action'], 'save_manual_tap');
+      expect(sent?['templateId'], 'a');
+      expect(sent?['title'], '위생 TAP');
+      expect(sent?['manualTitle'], '우리 조리 기준');
+      expect(sent?['revision'], 2);
+    },
+  );
 
   testWidgets(
     'empty folders and TAPs remain editable and accept the last Task',
@@ -440,14 +463,18 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mount(tester, ops);
-      await click(tester, 'manual-node-tap:a');
-      await click(tester, 'manual-node-task:s1:a');
-      await tester.tap(find.text('매뉴얼 편집'));
+      await tester.tap(find.text('메뉴·레시피'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('store-recipe-a')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Task 상세 수정').first);
       await tester.pumpAndSettle();
       await tester.enterText(
         find.widgetWithText(TextFormField, '간단 매뉴얼 · 방법과 완료 기준'),
         '손을 충분히 씻어요',
       );
+      await tester.tap(find.text('초안에 적용'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('매뉴얼 저장'));
       await tester.pumpAndSettle();
       expect(sent?['title'], '위생 TAP');

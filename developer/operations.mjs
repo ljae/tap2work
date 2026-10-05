@@ -37,6 +37,7 @@ function manualSearchIndex(state) {
         folderName: state.checklistFolders.find(folder => folder.id === task.folderId)?.name ?? '기본 업무',
         tapId: template ? task.id : `occurrence:${task.id}`,
         templateId: template ? task.id : null,
+        menuManualId: task.menuManualId ?? null,
         sourceStepId: step.id,
         editable: template,
         estimatedMinutes: tapOnly(task) ? null : step.settings?.estimatedMinutes ?? null,
@@ -65,9 +66,9 @@ function menuManualText(menu) {
 
 function ensureMenuManuals(state) {
   let changed = false;
-  if ((state.sales?.menus ?? []).some(menu => !menu.archivedAt) && !state.checklistFolders.some(folder => folder.id === 'order-work')) {
-    state.checklistFolders.push({ id: 'order-work', name: '주문처리' });
-    state.bigTapOrder = [...(state.bigTapOrder ?? []), 'order-work'];
+  if ((state.sales?.menus ?? []).some(menu => !menu.archivedAt) && !state.checklistFolders.some(folder => folder.id === 'store-recipes')) {
+    state.checklistFolders.push({ id: 'store-recipes', name: '메뉴·레시피' });
+    state.bigTapOrder = [...(state.bigTapOrder ?? []), 'store-recipes'];
     changed = true;
   }
   for (const menu of state.sales?.menus ?? []) {
@@ -78,6 +79,7 @@ function ensureMenuManuals(state) {
       continue;
     }
     if (template) {
+      if (template.folderId !== 'store-recipes') { template.folderId = 'store-recipes'; changed = true; }
       if (template.title !== menu.name) {
         const defaultManual = menuManualText({ ...menu, name: template.title });
         if (template.steps[0]?.manual === defaultManual) template.steps[0].manual = menuManualText(menu);
@@ -88,7 +90,7 @@ function ensureMenuManuals(state) {
       }
       continue;
     }
-    state.taskTemplates.push({ id, menuManualId: menu.id, title: menu.name, emoji: '🍽️', folderId: 'order-work', slot: '피크', requiredRole: 'cook', zone: null, assignmentScopeVersion:2, version: 1, sourceIds: [], settings: { type: 'order', enabled: false, recurrence: { mode: 'daily', weekdays: [] }, allowBulkComplete: false, enforceSequence: false }, steps: [{ id: 'menu', title: menu.name, manual: menuManualText(menu), tip: '조리 시간과 상세 레시피는 매장 기준에 맞게 설정해 주세요.', contentRevision:1 }] });
+    state.taskTemplates.push({ id, menuManualId: menu.id, title: menu.name, emoji: '🍽️', folderId: 'store-recipes', slot: '피크', requiredRole: 'cook', zone: null, assignmentScopeVersion:2, version: 1, sourceIds: [], settings: { type: 'order', enabled: false, recurrence: { mode: 'daily', weekdays: [] }, allowBulkComplete: false, enforceSequence: false }, steps: [{ id: 'menu', title: menu.name, manual: menuManualText(menu), tip: '조리 시간과 상세 레시피는 매장 기준에 맞게 설정해 주세요.', contentRevision:1 }] });
     changed = true;
   }
   return changed;

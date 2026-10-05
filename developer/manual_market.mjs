@@ -64,7 +64,7 @@ export function checklistBackup(state){
  return {format:'tap2work-checklists',schemaVersion:1,sourceRevision:state.revision,externalMedia:'links_only',folders:state.checklistFolders.filter(f=>ids.has(f.id)).map(f=>({id:f.id,name:f.name})),templates};
 }
 export function mutateManualMarket(state,input,actor,now){
- if(!['import_market_taps','personalize_market_tap','restore_checklist_backup','save_manual_tap'].includes(input.action))return false;
+ if(!['configure_manual_business','import_market_taps','personalize_market_tap','restore_checklist_backup','save_manual_tap'].includes(input.action))return false;
  if(!['owner','manager'].includes(actor.role))fail('매니저 이상만 매뉴얼을 바꿀 수 있어요.',403);
  if(input.action==='save_manual_tap'){
   if(input.templateId==null){
@@ -82,6 +82,47 @@ export function mutateManualMarket(state,input,actor,now){
   return true;
  }
  receipt(state,input,actor,()=>{
+  if(input.action==='configure_manual_business'){
+   if(input.releaseId!==release.releaseId)fail('공용 목록이 업데이트됐어요. 다시 확인해 주세요.',409);
+   if(!release.taxonomy.industries.some(i=>i.id===input.industryId))fail('업종을 선택해 주세요.');
+   if(typeof input.specialization!=='string'||input.specialization.length>100)fail('사업장 특성은 100자 이내로 입력해 주세요.');
+   if(!Array.isArray(input.sourceIds)||!input.sourceIds.length||new Set(input.sourceIds).size!==input.sourceIds.length)fail('필요한 매뉴얼을 선택해 주세요.');
+   const sources=input.sourceIds.map(id=>release.entries.find(s=>s.sourceId===id)??fail('공용 매뉴얼을 찾지 못했어요.'));
+   if(typeof input.replaceExisting!=='boolean'||typeof input.enableOperations!=='boolean')fail('적용 방식을 확인해 주세요.');
+   const at=new Date(now).toISOString();
+   if(input.replaceExisting){
+    const previous=state.taskTemplates.filter(t=>!t.archivedAt&&!t.menuManualId);
+    (state.catalogHistory??=[]).push({kind:'business-setup',at,templates:structuredClone(previous),folders:structuredClone(state.checklistFolders),profile:structuredClone(state.manualBusinessProfile??null)});
+    const ids=new Set(previous.map(t=>t.id));
+    for(const t of previous){t.archivedAt=at;t.settings={...taskSettings(t),enabled:false};if(state.catalogLinks?.[t.id])state.catalogLinks[t.id].mode='removed';}
+    for(const task of state.tasks){
+     const started=task.completedAt||task.startedAt||task.boardStatus==='processing'||task.steps?.some(s=>s.completedAt);
+     if(ids.has(task.templateId)&&!task.orderId&&!started&&!task.archivedAt&&task.date>=state.day)task.archivedAt=at;
+    }
+   }
+   const additions=sources.filter(source=>!Object.entries(state.catalogLinks??{}).some(([id,l])=>l.sourceId===source.sourceId&&l.mode==='linked'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)));
+   const destinations=new Map();
+   for(const source of additions){
+    const purpose=release.taxonomy.purposes.find(p=>p.id===source.purposeId);
+    let folder=state.checklistFolders.find(f=>f.name===purpose.name);
+    if(!folder){folder={id:uid(),name:purpose.name};state.checklistFolders.push(folder);}
+    destinations.set(source.sourceId,folder.id);
+   }
+   if(state.checklistFolders.length>30)fail('그룹이 많아요. 사용하지 않는 그룹을 정리해 주세요.');
+   const drafts=additions.map(s=>({id:uid(),title:s.title,emoji:s.emoji,folderId:destinations.get(s.sourceId),slot:s.slot,requiredRole:'all',partId:null,zone:null,steps:structuredClone(s.steps),sourceIds:[]}));
+   addTemplates(state,drafts);
+   drafts.forEach((draft,i)=>{
+    const actual=state.taskTemplates.find(t=>t.id===draft.id),source=additions[i];
+    (state.catalogLinks??={})[draft.id]={mode:'linked',sourceId:source.sourceId,releaseId:release.releaseId,contentHash:contentHash(actual),importedAt:at};
+
+   });
+   if(input.enableOperations)for(const source of sources.filter(s=>s.kind!=='legal')){
+    const template=state.taskTemplates.find(t=>!t.archivedAt&&state.catalogLinks?.[t.id]?.mode==='linked'&&state.catalogLinks[t.id].sourceId===source.sourceId);
+    if(template)saveTapSettings(state,{templateId:template.id,assignmentScopeVersion:2,settings:{...taskSettings(template),enabled:true}},now);
+   }
+   state.manualBusinessProfile={industryId:input.industryId,specialization:input.specialization.trim(),configuredAt:at,releaseId:release.releaseId};
+   return drafts.map(t=>t.id);
+  }
   if(input.action==='import_market_taps'){
    if(input.releaseId!==release.releaseId)fail('공용 목록이 업데이트됐어요. 다시 확인해 주세요.',409);
    if(!Array.isArray(input.sourceIds)||!input.sourceIds.length||new Set(input.sourceIds).size!==input.sourceIds.length)fail('가져올 TAP을 골라 주세요.');
@@ -140,7 +181,7 @@ export function mutateManualMarket(state,input,actor,now){
 // Only successful creation receipts may bypass a stale revision; authorization is
 // checked by the caller first. A changed payload or actor must never replay it.
 export function manualMarketReplay(state,input,actor){
- if(!['import_market_taps','personalize_market_tap','restore_checklist_backup','save_manual_tap'].includes(input.action))return false;
+ if(!['configure_manual_business','import_market_taps','personalize_market_tap','restore_checklist_backup','save_manual_tap'].includes(input.action))return false;
  const previous=state.catalogOperations?.[input.operationId];if(!previous)return false;
  const {revision,operationId,...body}=input;
  const hash=createHash('sha256').update(JSON.stringify(body)).digest('hex');

@@ -12,6 +12,58 @@ import 'operations_test.dart' show response;
 Json release() =>
     jsonDecode(File('../docs/market/current.json').readAsStringSync());
 void main() {
+  for (final width in [320.0, 390.0]) {
+    testWidgets(
+      'owner setup applies industry and selected operating defaults at $width',
+      (tester) async {
+        final data = market.fixture()..['manualCatalog'] = release();
+        Json? sent;
+        final ops = OperationsController(
+          client: MockClient((r) async {
+            if (r.method == 'POST') sent = jsonDecode(r.body);
+            return response(data);
+          }),
+        );
+        addTearDown(ops.dispose);
+        await market.mount(
+          tester,
+          ops,
+          ManualMarketScreen(ops: ops, setup: true),
+          width: width,
+        );
+        await tester.enterText(
+          find.widgetWithText(TextField, '우리 사업장 특성'),
+          '고기집 · 뼈찜',
+        );
+        await tester.tap(find.byKey(const ValueKey('market-industry')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('음식·음료').last);
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(
+          find.byKey(const ValueKey('market-starter')),
+        );
+        await tester.tap(find.byKey(const ValueKey('market-starter')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('담은 7개 확인'));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.widgetWithText(SwitchListTile, '기존 운영 매뉴얼을 새 구성으로 교체'),
+        );
+        await tester.tap(
+          find.widgetWithText(SwitchListTile, '선택한 운영 업무를 매일 사용'),
+        );
+        await tester.tap(find.text('선택한 7개로 구성하기'));
+        await tester.pumpAndSettle();
+        expect(sent?['action'], 'configure_manual_business');
+        expect(sent?['industryId'], 'food');
+        expect(sent?['specialization'], '고기집 · 뼈찜');
+        expect(sent?['replaceExisting'], true);
+        expect(sent?['enableOperations'], true);
+        expect(sent?['sourceIds'], hasLength(7));
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
   test(
     'all legacy collections are discoverable; industry includes common legal and operations',
     () {

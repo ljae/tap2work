@@ -28,8 +28,9 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
           .cast<Json>()
           .where(
             (row) =>
-                widget.initialTemplateId == null ||
-                row['id'] == widget.initialTemplateId,
+                row['archivedAt'] == null &&
+                (widget.initialTemplateId == null ||
+                    row['id'] == widget.initialTemplateId),
           )
           .toList();
   String? selectedId;

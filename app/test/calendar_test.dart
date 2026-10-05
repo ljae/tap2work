@@ -170,7 +170,7 @@ void main() {
         var writes = 0;
         await mount(tester, width: width, scale: 1.5, write: (_) => writes++);
         final axis = find.byKey(const ValueKey('roster-time-axis'));
-        expect(tester.getSize(axis).width, 52);
+        expect(tester.getSize(axis).width, 36);
         final origin = tester.getTopLeft(axis);
         expect(find.text('9/28 월'), findsWidgets);
         final scroll =

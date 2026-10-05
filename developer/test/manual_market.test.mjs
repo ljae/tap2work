@@ -155,3 +155,52 @@ test('auto grouping capacity and invalid selections fail atomically',async()=>{
  assert.equal(x.raw().checklistFolders.length,30);
  assert.equal(x.raw().taskTemplates[0].folderId,'general');
 });
+
+test('business setup groups public manuals and preserves started work',async()=>{
+ const x=fixture();await x.importTap();let old=imported(x);
+ await x.act('save_tap_settings',{templateId:old.id,assignmentScopeVersion:2,settings:{...old.settings,enabled:true}});
+ const raw=x.raw(),pending=raw.tasks[0];
+ raw.tasks.push({...structuredClone(pending),id:'in-progress',boardStatus:'processing'});
+ raw.tasks.push({...structuredClone(pending),id:'completed',completedAt:'2026-10-04T08:00:00Z'});
+ const historical=structuredClone(raw.tasks.slice(1));
+ const source=manualCatalog.entries.find(e=>e.sourceId==='business/opening');
+ const legal=manualCatalog.entries.find(e=>e.kind==='legal');
+ const body={operationId:'setup-owner-0001',releaseId:manualCatalog.releaseId,industryId:'food',specialization:'고기집 · 뼈찜',sourceIds:[source.sourceId,legal.sourceId],replaceExisting:true,enableOperations:true};
+ await x.act('configure_manual_business',body);
+ assert.ok(x.raw().taskTemplates.find(t=>t.id===old.id).archivedAt);
+ assert.ok(x.raw().tasks.find(t=>t.id===pending.id).archivedAt);
+ for(const saved of historical)assert.deepEqual(x.raw().tasks.find(t=>t.id===saved.id),saved);
+ assert.equal(x.raw().manualBusinessProfile.specialization,'고기집 · 뼈찜');
+ const installed=x.raw().taskTemplates.filter(t=>!t.archivedAt);
+ assert.equal(installed.length,2);
+ const law=installed.find(t=>x.raw().catalogLinks[t.id].sourceId===legal.sourceId);
+ assert.equal(law.settings.enabled,false);
+ assert.equal(installed.find(t=>t!==law).settings.enabled,true);
+ const revision=x.raw().revision;
+ await x.act('configure_manual_business',body);assert.equal(x.raw().revision,revision);
+ assert.ok(x.raw().catalogHistory.some(h=>h.kind==='business-setup'&&h.templates.some(t=>t.id===old.id)));
+});
+
+test('business setup validates atomically and respects task permission',async()=>{
+ const x=fixture();await x.importTap();const before=structuredClone(x.raw());
+ const body={operationId:'setup-invalid-01',releaseId:manualCatalog.releaseId,industryId:'food',specialization:'식당',sourceIds:['missing'],replaceExisting:true,enableOperations:false};
+ await assert.rejects(()=>x.act('configure_manual_business',body),{status:400});assert.deepEqual(x.raw(),before);
+ await assert.rejects(()=>fixture('crew').act('configure_manual_business',{...body,sourceIds:[manualCatalog.entries[0].sourceId]}),{status:403});
+ await assert.rejects(()=>x.act('configure_manual_business',{...body,revision:before.revision-1}),{status:409});
+});
+
+test('menu recipes retain custom text, sales identity and content revision through setup',async()=>{
+ const x=fixture();x.raw().sales.menus.push({id:'custom-menu',name:'우리 메뉴',price:10000,category:'메인'});
+ await x.store.snapshot(x.actor.id);
+ let recipe=x.raw().taskTemplates.find(t=>t.menuManualId==='custom-menu');
+ await x.act('save_manual_tap',save(recipe,{steps:[{...recipe.steps[0],manual:'사장님이 직접 정한 분량과 조리 기준'}]}));
+ recipe=structuredClone(x.raw().taskTemplates.find(t=>t.id===recipe.id));
+ const menu=structuredClone(x.raw().sales.menus[0]);
+ await x.act('configure_manual_business',{operationId:'recipe-setup-01',releaseId:manualCatalog.releaseId,industryId:'food',specialization:'고기집',sourceIds:['business/opening'],replaceExisting:true,enableOperations:true});
+ assert.deepEqual(x.raw().taskTemplates.find(t=>t.id===recipe.id),recipe);
+ assert.equal(recipe.folderId,'store-recipes');assert.equal(recipe.settings.enabled,false);
+ assert.deepEqual(x.raw().sales.menus[0],menu);
+ assert.equal(x.raw().catalogLinks?.[recipe.id],undefined);
+ await x.store.snapshot(x.actor.id);
+ assert.deepEqual(x.raw().taskTemplates.find(t=>t.id===recipe.id),recipe);
+});

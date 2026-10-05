@@ -343,7 +343,9 @@ void main() {
               .right,
           lessThanOrEqualTo(52),
         );
-        expect(tester.getSize(hours).width, size.$1);
+        expect(tester.getSize(hours).width, (size.$1 - 8) / 2);
+        final add = find.byKey(const ValueKey('calendar-add-crew'));
+        expect(tester.getRect(hours).center.dy, tester.getRect(add).center.dy);
         final first = find.byKey(const ValueKey('roster-day-2026-09-28'));
         final last = find.byKey(const ValueKey('roster-day-2026-10-04'));
         expect(tester.getRect(first).left, 0);

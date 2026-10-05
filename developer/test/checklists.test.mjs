@@ -26,7 +26,7 @@ test('global manual index and related words reach crew without private data or d
   assert.equal(owner.manualSearch.filter(row => row.id === pos.id).length, 1);
   const orderTap = owner.tasks.find(row => row.orderId && row.steps?.length);
   assert.ok(orderTap && !owner.manualSearch.some(row => row.tapTitle === orderTap.title));
-  const menuGuides = owner.manualSearch.filter(row => row.folderId === 'order-work');
+  const menuGuides = owner.manualSearch.filter(row => row.folderId === 'store-recipes');
   assert.equal(menuGuides.length, owner.catalogMenus.filter(menu => !menu.archivedAt).length);
   assert.ok(menuGuides.every(row => row.tapTitle === row.title && !/×\s*\d/.test(row.title)));
   const task = owner.tasks.find(row => row.templateId === PREP);

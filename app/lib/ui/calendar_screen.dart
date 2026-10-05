@@ -590,7 +590,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, update) => AppSheetPanel(
           title: Text(
-            '${slot.date} · ${model.parts.where((p) => p.id == slot.partId).first.name}',
+            '${slot.date} · ${slot.shiftId == null ? '크루 추가' : '근무 조정'}',
           ),
           content: SizedBox(
             width: 440,
@@ -918,13 +918,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   : AppColors.muted.withValues(alpha: .4),
                             ),
                           ),
-                          if (model.isPast(day))
-                            Text(
-                              '이력 ${attendanceSessions(ops.rows('attendance')).where((s) => rosterDate(s.day) == rosterDate(day)).length}',
-                              style: AppText.caption,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                          Text(
+                            isClosedDay(day)
+                                ? (model.isPast(day) ? '휴일' : '휴무')
+                                : (model.isPast(day) ? '업무' : '영업'),
+                            style: AppText.caption,
+                            maxLines: 1,
+                          ),
                           if (dayNote(day).isNotEmpty)
                             Expanded(
                               child: Tooltip(
@@ -1143,221 +1143,210 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final scale = timeScale;
     final gridHeight = (until - from) * scale;
     final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
-    final columnWidth = (availableWidth - 52) / parts.length;
+    final laneCounts = {
+      for (final part in parts)
+        part.id: scheduleLayout(
+          all.where((s) => s.partId == part.id).toList(),
+        ).values.fold<int>(1, (n, p) => p.count > n ? p.count : n),
+    };
+    final totalLanes = laneCounts.values.fold<int>(0, (a, b) => a + b);
     final partWidths = {
       for (final part in parts)
-        part.id: () {
-          final layout = scheduleLayout(
-            all.where((s) => s.partId == part.id).toList(),
-          );
-          final lanes = layout.values.fold<int>(
-            1,
-            (n, p) => p.count > n ? p.count : n,
-          );
-          final minimum = lanes > 1
-              ? lanes * 80.0 * textScale
-              : 80.0 * textScale;
-          return columnWidth < minimum ? minimum : columnWidth;
-        }(),
+        part.id: (availableWidth - 36) * laneCounts[part.id]! / totalLanes,
     };
     final headerHeight =
         (dayNote(model.selected).isEmpty ? 80.0 : 112.0) * textScale;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            onPressed: () => setState(() => fullDay = !fullDay),
-            child: Text(fullDay ? '근무 시간 중심 보기' : '24시간 보기'),
-          ),
-        ),
-        if (model.editable)
-          Wrap(
-            children: [
-              for (final part in parts.where((p) => !p.hidden))
-                TextButton.icon(
-                  onPressed: () => addShift(part, 9 * 60),
-                  icon: const Icon(Icons.add),
-                  label: Text('${part.name} 크루 추가'),
-                ),
-            ],
-          ),
-        SizedBox(
-          key: const ValueKey('roster-timeline'),
-          height: (gridHeight + headerHeight + 24).clamp(
-            0.0,
-            (MediaQuery.sizeOf(context).height * .55).clamp(320.0, 640.0),
-          ),
-          child: Scrollbar(
-            controller: vertical,
-            thumbVisibility: true,
-            child: SingleChildScrollView(
-              controller: vertical,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
+          children: [
+            Expanded(
+              child: Wrap(
+                spacing: 8,
                 children: [
-                  SizedBox(
-                    key: const ValueKey('roster-time-axis'),
-                    width: 52,
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: headerHeight,
-                          child: const Center(
-                            child: Text('시간', style: AppText.caption),
-                          ),
-                        ),
-                        SizedBox(
-                          height: gridHeight + 24,
-                          child: Stack(
-                            children: [
-                              for (var m = from; m <= until; m += 30)
-                                Positioned(
-                                  top: (m - from) * scale,
-                                  left: 0,
-                                  right: 0,
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          '${m >= 1440 ? '+' : ''}${rosterClock(m)}',
-                                          textAlign: TextAlign.center,
-                                          style: AppText.caption.copyWith(
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        key: ValueKey('roster-time-tick-$m'),
-                                        width: 6,
-                                        height: 1,
-                                        child: const ColoredBox(
-                                          color: AppColors.muted,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                  Text(
+                    '— 영업시간',
+                    style: AppText.caption.copyWith(color: AppColors.green),
                   ),
-                  Expanded(
-                    child: Scrollbar(
-                      controller: horizontal,
-                      thumbVisibility: true,
-                      notificationPredicate: (n) =>
-                          n.metrics.axis == Axis.horizontal,
-                      child: SingleChildScrollView(
-                        controller: horizontal,
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (final day in days)
-                              SizedBox(
-                                width: partWidths.values.fold<double>(
-                                  0,
-                                  (a, b) => a + b,
-                                ),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      key: const ValueKey(
-                                        'roster-date-heading',
-                                      ),
-                                      height: headerHeight / 2,
-                                      alignment: Alignment.center,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
-                                      child: Text(
-                                        '${day.month}/${day.day} ${weekdays[day.weekday - 1]}${dayNote(day).isEmpty ? '' : '\n${dayNote(day)}'}',
-                                        textAlign: TextAlign.center,
-                                        style: AppText.body.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: dayColor(day),
-                                        ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        for (final part in parts)
-                                          SizedBox(
-                                            width: partWidths[part.id]!,
-                                            child: Column(
-                                              children: [
-                                                Container(
-                                                  key: ValueKey(
-                                                    'roster-part-heading-${part.id}',
-                                                  ),
-                                                  height: headerHeight / 2,
-                                                  alignment: Alignment.center,
-                                                  child: InkWell(
-                                                    onTap: () =>
-                                                        showPartShifts(part),
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            8,
-                                                          ),
-                                                      child: Row(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        children: [
-                                                          Flexible(
-                                                            child: Text(
-                                                              '${part.name}${part.hidden ? ' · 숨김' : ''}',
-                                                              style: AppText
-                                                                  .caption,
-                                                            ),
-                                                          ),
-                                                          const Icon(
-                                                            Icons.expand_more,
-                                                            size: 16,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                _column(
-                                                  day,
-                                                  part,
-                                                  all
-                                                      .where(
-                                                        (s) =>
-                                                            s.date ==
-                                                                rosterDate(
-                                                                  day,
-                                                                ) &&
-                                                            s.partId == part.id,
-                                                      )
-                                                      .toList(),
-                                                  from,
-                                                  until,
-                                                  scale,
-                                                  partWidths[part.id]!,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
+                  if (ops.data?['workplace']?['breaks']?['$sourceDay'] != null)
+                    Text(
+                      '■ 브레이크',
+                      style: AppText.caption.copyWith(color: Colors.orange),
                     ),
-                  ),
                 ],
               ),
             ),
+            TextButton(
+              onPressed: () => setState(() => fullDay = !fullDay),
+              child: Text(fullDay ? '근무 시간 중심 보기' : '24시간 보기'),
+            ),
+          ],
+        ),
+        SizedBox(
+          key: const ValueKey('roster-timeline'),
+          height: gridHeight + headerHeight + 24,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                key: const ValueKey('roster-time-axis'),
+                width: 36,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: headerHeight,
+                      child: const Center(
+                        child: Text('시간', style: AppText.caption),
+                      ),
+                    ),
+                    SizedBox(
+                      height: gridHeight + 24,
+                      child: Stack(
+                        children: [
+                          for (var m = from; m <= until; m += 30)
+                            Positioned(
+                              top: (m - from) * scale,
+                              left: 0,
+                              right: 0,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      m % 60 == 0
+                                          ? '${m >= 1440 ? '+' : ''}${m ~/ 60 % 24}시'
+                                          : '-',
+                                      textAlign: TextAlign.center,
+                                      style: AppText.caption.copyWith(
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    key: ValueKey('roster-time-tick-$m'),
+                                    width: 6,
+                                    height: 1,
+                                    child: ColoredBox(
+                                      color: m % 60 == 0
+                                          ? AppColors.muted
+                                          : Colors.transparent,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Scrollbar(
+                  controller: horizontal,
+                  thumbVisibility: true,
+                  notificationPredicate: (n) =>
+                      n.metrics.axis == Axis.horizontal,
+                  child: SingleChildScrollView(
+                    controller: horizontal,
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final day in days)
+                          SizedBox(
+                            width: partWidths.values.fold<double>(
+                              0,
+                              (a, b) => a + b,
+                            ),
+                            child: Column(
+                              children: [
+                                Container(
+                                  key: const ValueKey('roster-date-heading'),
+                                  height: headerHeight / 2,
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Text(
+                                    '${day.month}/${day.day} ${weekdays[day.weekday - 1]}${dayNote(day).isEmpty ? '' : '\n${dayNote(day)}'}',
+                                    textAlign: TextAlign.center,
+                                    style: AppText.body.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: dayColor(day),
+                                    ),
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    for (final part in parts)
+                                      SizedBox(
+                                        width: partWidths[part.id]!,
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              key: ValueKey(
+                                                'roster-part-heading-${part.id}',
+                                              ),
+                                              height: headerHeight / 2,
+                                              alignment: Alignment.center,
+                                              child: InkWell(
+                                                onTap: () =>
+                                                    showPartShifts(part),
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(
+                                                    8,
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Flexible(
+                                                        child: Text(
+                                                          '${part.name}${part.hidden ? ' · 숨김' : ''}',
+                                                          style:
+                                                              AppText.caption,
+                                                        ),
+                                                      ),
+                                                      const Icon(
+                                                        Icons.expand_more,
+                                                        size: 16,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            _column(
+                                              day,
+                                              part,
+                                              all
+                                                  .where(
+                                                    (s) =>
+                                                        s.date ==
+                                                            rosterDate(day) &&
+                                                        s.partId == part.id,
+                                                  )
+                                                  .toList(),
+                                              from,
+                                              until,
+                                              scale,
+                                              partWidths[part.id]!,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         if (all.isEmpty)
@@ -1550,41 +1539,50 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   slots[i].shiftId!,
                                 )
                               : null,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Center(
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      slots[i].name,
-                                      textAlign: TextAlign.center,
-                                      style: AppText.body.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                          child: LayoutBuilder(
+                            builder: (context, box) {
+                              final compact = box.maxWidth < 100;
+                              return Semantics(
+                                label:
+                                    '${slots[i].name} ${slots[i].start}–${rosterClock(shownEnd(slots[i]))}',
+                                child: Padding(
+                                  padding: EdgeInsets.all(compact ? 3 : 8),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          slots[i].name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.center,
+                                          style:
+                                              (compact
+                                                      ? AppText.caption
+                                                      : AppText.body)
+                                                  .copyWith(
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                        ),
+                                        if (box.maxHeight >= 80)
+                                          Text(
+                                            '${slots[i].start}–${slots[i].overnight ? '다음 날 ' : ''}${rosterClock(shownEnd(slots[i]))}',
+                                            textAlign: TextAlign.center,
+                                            style: AppText.caption,
+                                          ),
+                                        if (!compact && box.maxHeight >= 120)
+                                          Text(
+                                            slots[i].crewId == null
+                                                ? '미배정'
+                                                : '${slots[i].adjusted ? '배정 · 미세조정' : '배정'}${requestLabel(slots[i])}',
+                                            style: AppText.caption,
+                                          ),
+                                      ],
                                     ),
-                                    Text(
-                                      '${slots[i].start}–${slots[i].overnight ? '다음 날 ' : ''}${rosterClock(shownEnd(slots[i]))}',
-                                      textAlign: TextAlign.center,
-                                      style: AppText.caption,
-                                    ),
-                                    Text(
-                                      slots[i].crewId == null
-                                          ? (model.editable
-                                                ? '+ 크루 배정 · 미배정'
-                                                : '미배정')
-                                          : '${slots[i].adjusted ? '배정 · 미세조정' : '배정'}${requestLabel(slots[i])}',
-                                      style: AppText.caption.copyWith(
-                                        color: slots[i].crewId == null
-                                            ? AppColors.accent
-                                            : crewColor(slots[i].crewId!),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
+                              );
+                            },
                           ),
                         ),
                       ),
@@ -1609,12 +1607,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     child: Container(
                       key: ValueKey('roster-break-${part.id}'),
                       color: Colors.orange.withValues(alpha: .18),
-                      child: part.id == model.visibleParts.first.id
-                          ? const Align(
-                              alignment: Alignment.topCenter,
-                              child: Text('브레이크', style: AppText.caption),
-                            )
-                          : null,
                     ),
                   ),
                 ),
@@ -1633,12 +1625,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             top: BorderSide(color: AppColors.green),
                           ),
                         ),
-                        child: part.id == model.visibleParts.first.id
-                            ? Text(
-                                '${marker.$2}\n${rosterClock(marker.$1!)}',
-                                style: AppText.caption,
-                              )
-                            : const SizedBox(height: 1),
+                        child: const SizedBox(height: 1),
                       ),
                     ),
                   ),
@@ -1844,14 +1831,42 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         if (model.month) month() else week(),
         const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            key: const ValueKey('calendar-hours-button'),
-            onPressed: () => openWorkplaceHours(context, ops),
-            icon: const Icon(Icons.schedule),
-            label: const Text('영업시간·인원'),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                key: const ValueKey('calendar-hours-button'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 56),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                onPressed: () => openWorkplaceHours(context, ops),
+                child: const Text('영업시간·인원', style: AppText.caption),
+              ),
+            ),
+            if (model.editable &&
+                !model.history &&
+                !isClosedDay(model.selected)) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  key: const ValueKey('calendar-add-crew'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 56),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                  onPressed: model.visibleParts.where((p) => !p.hidden).isEmpty
+                      ? null
+                      : () => addShift(
+                          model.visibleParts.firstWhere((p) => !p.hidden),
+                          9 * 60,
+                        ),
+                  icon: const Icon(Icons.person_add_outlined, size: 18),
+                  label: const Text('크루 추가'),
+                ),
+              ),
+            ],
+          ],
         ),
         if (!model.history && !isClosedDay(model.selected))
           ShiftChangePanel(ops: ops),

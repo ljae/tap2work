@@ -2,6 +2,7 @@ import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {manualCatalog} from '../developer/manual_market.mjs';
 import { OperationsStore, actors } from '../developer/operations.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -21,6 +22,11 @@ await writeFile(path.join(output, 'CNAME'), 'tap2.work\n');
 const temporary = await mkdtemp(path.join(tmpdir(), 'tap2work-public-seed-'));
 try {
   const store = new OperationsStore(path.join(temporary, 'sample.json'), () => new Date('2026-09-19T09:00:00Z'));
+  const initial = await store.snapshot('owner');
+  await store.mutate('owner', {action:'configure_manual_business', revision:initial.revision,
+    operationId:'public-business-setup', releaseId:manualCatalog.releaseId, industryId:'food', specialization:'고기집 · 뼈찜',
+    sourceIds:['business/opening','business/service','business/inventory','business/cleaning','business/safety','business/people','business/closing','common/prep','legal/employment','legal/privacy','legal/food-training','legal/fire-training','legal/permits'],
+    replaceExisting:true,enableOperations:true});
   const dataRoot = path.join(output, 'review-data');
   await mkdir(dataRoot, { recursive: true });
   for (const actor of actors) {

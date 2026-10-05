@@ -6,9 +6,15 @@ import 'components.dart';
 import 'manual_tap_editor.dart';
 
 class ManualMarketScreen extends StatefulWidget {
-  const ManualMarketScreen({super.key, required this.ops, this.folderId});
+  const ManualMarketScreen({
+    super.key,
+    required this.ops,
+    this.folderId,
+    this.setup = false,
+  });
   final OperationsController ops;
   final String? folderId;
+  final bool setup;
   @override
   State<ManualMarketScreen> createState() => _ManualMarketScreenState();
 }
@@ -22,6 +28,8 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
   String folderMode = 'purpose';
   final selected = <String>{};
   final search = TextEditingController();
+  final specialization = TextEditingController();
+  bool replaceExisting = false, enableOperations = false;
   String? industry, kind, error;
   bool saving = false, reviewing = false;
   final operationId = 'import-${DateTime.now().microsecondsSinceEpoch}';
@@ -33,6 +41,9 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
     actor = widget.ops.actorId;
     workspace = widget.ops.data?['workspaceId'];
     catalog = ManualMarketCatalog(widget.ops.data?['manualCatalog'] ?? {});
+    industry = widget.ops.data?['manualBusinessProfile']?['industryId'];
+    specialization.text =
+        widget.ops.data?['manualBusinessProfile']?['specialization'] ?? '';
     final folders = widget.ops.rows('checklistFolders');
     folder = folders.any((f) => f['id'] == widget.folderId)
         ? widget.folderId!
@@ -42,6 +53,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
   @override
   void dispose() {
     search.dispose();
+    specialization.dispose();
     super.dispose();
   }
 
@@ -56,21 +68,36 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
       saving = true;
       error = null;
     });
-    final ok = await widget.ops.act('import_market_taps', {
-      'revision': revision,
-      'operationId': operationId,
-      'releaseId': catalog.data['releaseId'],
-      'folderMode': folderMode,
-      if (folderMode == 'existing') 'folderId': folder,
-      'sourceIds': selected.toList(),
-    });
+    final ok = await widget.ops.act(
+      widget.setup ? 'configure_manual_business' : 'import_market_taps',
+      {
+        'revision': revision,
+        'operationId': operationId,
+        'releaseId': catalog.data['releaseId'],
+        'folderMode': folderMode,
+        if (widget.setup) ...{
+          'industryId': industry ?? 'all',
+          'specialization': specialization.text.trim(),
+          'replaceExisting': replaceExisting,
+          'enableOperations': enableOperations,
+        },
+        if (folderMode == 'existing') 'folderId': folder,
+        'sourceIds': selected.toList(),
+      },
+    );
     if (!mounted) return;
     setState(() => saving = false);
     if (ok) {
       final messenger = ScaffoldMessenger.of(context);
       Navigator.pop(context);
       messenger.showSnackBar(
-        const SnackBar(content: Text('매뉴얼에 담았어요. 실제 업무로 쓸 항목만 사용을 켜 주세요.')),
+        SnackBar(
+          content: Text(
+            widget.setup
+                ? '사업장 매뉴얼을 구성했어요. 메뉴·레시피에서 매장 기준을 채워 주세요.'
+                : '매뉴얼에 담았어요. 실제 업무로 쓸 항목만 사용을 켜 주세요.',
+          ),
+        ),
       );
     } else {
       setState(() => error = widget.ops.error ?? '가져오지 못했어요. 다시 시도해 주세요.');
@@ -103,7 +130,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
   }
 
   Widget entryCard(Json entry) {
-    final linked = catalog.linked(entry);
+    final linked = !widget.setup && catalog.linked(entry);
     final legal = entry['kind'] == 'legal';
     final steps = (entry['steps'] as List? ?? []).cast<Json>();
     final references = (entry['references'] as List? ?? []).cast<Json>();
@@ -223,13 +250,19 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
     final orderedGroups = groups.entries.toList()
       ..sort((a, b) => order.indexOf(a.key).compareTo(order.indexOf(b.key)));
     return AppEditorScaffold(
-      title: reviewing ? '담은 항목 확인' : '매뉴얼 마켓',
+      title: reviewing
+          ? '담은 항목 확인'
+          : widget.setup
+          ? '내 사업장 매뉴얼 구성'
+          : '매뉴얼 마켓',
       footer: AppSheetFooter(
         children: [
           if (error != null) Information(error!),
           if (reviewing) ...[
-            const Text(
-              '공용 내용은 자동 업데이트돼요. 가져온 항목은 사용 OFF로 보관돼요.',
+            Text(
+              widget.setup
+                  ? '메뉴·레시피와 이미 진행한 업무 기록은 유지해요.'
+                  : '공용 내용은 자동 업데이트돼요. 가져온 항목은 사용 OFF로 보관돼요.',
               style: AppText.caption,
             ),
             TextButton(
@@ -249,7 +282,9 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
               saving
                   ? '가져오는 중…'
                   : reviewing
-                  ? '선택한 ${selected.length}개 가져오기'
+                  ? widget.setup
+                        ? '선택한 ${selected.length}개로 구성하기'
+                        : '선택한 ${selected.length}개 가져오기'
                   : '담은 ${selected.length}개 확인',
             ),
           ),
@@ -260,25 +295,57 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
         padding: const EdgeInsets.all(24),
         children: reviewing
             ? [
-                const Text('그룹은 한 번만 정하세요', style: AppText.section),
+                if (widget.setup) ...[
+                  Text(
+                    '${catalog.industryName(industry ?? 'all')} · ${specialization.text.isEmpty ? '내 사업장' : specialization.text}',
+                    style: AppText.section,
+                  ),
+                  const Text(
+                    '선택한 매뉴얼을 업무별로 분류해요. 메뉴의 재료·분량·조리법은 메뉴·레시피에서 직접 정해 주세요.',
+                    style: AppText.caption,
+                  ),
+                  SwitchListTile(
+                    title: const Text('기존 운영 매뉴얼을 새 구성으로 교체'),
+                    subtitle: const Text(
+                      '진행 전인 오늘 이후 업무는 보관하고, 진행·완료 기록과 메뉴·레시피는 유지해요.',
+                    ),
+                    value: replaceExisting,
+                    onChanged: saving
+                        ? null
+                        : (v) => setState(() => replaceExisting = v),
+                  ),
+                  SwitchListTile(
+                    title: const Text('선택한 운영 업무를 매일 사용'),
+                    subtitle: const Text(
+                      '법적 기준은 참고용으로 보관해요. 업무별 시간·담당·주기는 구성 후 조정할 수 있어요.',
+                    ),
+                    value: enableOperations,
+                    onChanged: saving
+                        ? null
+                        : (v) => setState(() => enableOperations = v),
+                  ),
+                ],
+                if (!widget.setup)
+                  const Text('그룹은 한 번만 정하세요', style: AppText.section),
                 const SizedBox(height: 12),
-                AppPicker<String>(
-                  label: '분류 방식',
-                  value: folderMode,
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'purpose',
-                      child: Text('업무별 자동 분류'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'existing',
-                      child: Text('기존 그룹에 모으기'),
-                    ),
-                  ],
-                  onChanged: saving
-                      ? null
-                      : (v) => setState(() => folderMode = v!),
-                ),
+                if (!widget.setup)
+                  AppPicker<String>(
+                    label: '분류 방식',
+                    value: folderMode,
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'purpose',
+                        child: Text('업무별 자동 분류'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'existing',
+                        child: Text('기존 그룹에 모으기'),
+                      ),
+                    ],
+                    onChanged: saving
+                        ? null
+                        : (v) => setState(() => folderMode = v!),
+                  ),
                 if (folderMode == 'existing') ...[
                   const SizedBox(height: 16),
                   AppPicker<String>(
@@ -318,6 +385,22 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   const Information('담은 항목이 없어요. 더 찾아보기에서 골라 주세요.'),
               ]
             : [
+                if (widget.setup) ...[
+                  const Text(
+                    '1. 업종 선택 → 2. 필요한 항목 담기 → 3. 적용',
+                    style: AppText.caption,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: specialization,
+                    maxLength: 100,
+                    decoration: const InputDecoration(
+                      labelText: '우리 사업장 특성',
+                      hintText: '예: 고기집 · 뼈찜 전문',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 TextField(
                   controller: search,
                   decoration: InputDecoration(
@@ -372,6 +455,31 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     '업종 · ${industry == null ? '모든 업종 둘러보기' : catalog.industryName(industry!)}',
                   ),
                 ),
+                if (widget.setup)
+                  TextButton.icon(
+                    key: const ValueKey('market-starter'),
+                    onPressed: saving
+                        ? null
+                        : () => setState(
+                            () => selected.addAll(
+                              catalog.entries
+                                  .where(
+                                    (e) => const {
+                                      'business/opening',
+                                      'business/service',
+                                      'business/inventory',
+                                      'business/cleaning',
+                                      'business/safety',
+                                      'business/people',
+                                      'business/closing',
+                                    }.contains(e['sourceId']),
+                                  )
+                                  .map((e) => e['sourceId'] as String),
+                            ),
+                          ),
+                    icon: const Icon(Icons.playlist_add),
+                    label: const Text('공통 기본 운영 7개 담기'),
+                  ),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
@@ -417,14 +525,16 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     if (narrowed &&
                         results.any(
                           (e) =>
-                              !catalog.linked(e) &&
+                              (widget.setup || !catalog.linked(e)) &&
                               !selected.contains(e['sourceId']),
                         ))
                       TextButton(
                         onPressed: () => setState(
                           () => selected.addAll(
                             results
-                                .where((e) => !catalog.linked(e))
+                                .where(
+                                  (e) => widget.setup || !catalog.linked(e),
+                                )
                                 .map((e) => e['sourceId'] as String),
                           ),
                         ),
