@@ -98,7 +98,8 @@ test('custom parts control assignment and task permissions independently from ra
   view=await act('manager','save_staff_shift',shift);
   assert.equal(view.staffShifts.at(-1).partId,partId);
   await assert.rejects(act('manager','save_staff_shift',{...shift,date:'2026-10-06',start:'01:00',end:'03:00'}),{status:409});
-  await assert.rejects(act('manager','save_staff_shift',{...shift,partId:'kitchen'}),{status:400});
+  view=await act('manager','save_staff_shift',{...shift,id:view.staffShifts.at(-1).id,partId:'kitchen'});
+  assert.equal(view.staffShifts.at(-1).partId,'kitchen');
   const id=view.staffShifts.at(-1).id;
   await assert.rejects(act('crew','delete_staff_shift',{id}),{status:403});
   view=await act('manager','delete_staff_shift',{id});
@@ -183,4 +184,24 @@ test('automatic attendance preferences validate method and never activate or cre
   await assert.rejects(act('crew','save_attendance_preferences',{method:'wifi'}),{status:403});
   await assert.rejects(act('owner','save_attendance_preferences',{method:'invalid'}),{status:400});
   await assert.rejects(store.mutate('owner',{revision:before.revision,action:'save_attendance_preferences',method:'location'}),{status:409});
+});
+
+test('fine assignments allow other crews, any active part and explicit preopening or overnight dates', async t => {
+  const {store,act}=await setup(t);
+  const initial=await store.snapshot('owner');
+  const profiles=structuredClone(initial.tappers.map(p=>p.workProfile));
+  for (const [index, tapperId] of ['tapper-crew','tapper-cook','tapper-manager','tapper-sample'].entries()) {
+    await act('manager','save_staff_shift',{tapperId,partId:'kitchen',date:'2026-10-05',scheduleDate:'2026-10-05',dayOffset:0,start:'05:00',end:'08:00'});
+  }
+  let view=await store.snapshot('owner');
+  const rows=view.staffShifts.filter(s=>s.scheduleDate==='2026-10-05');
+  assert.equal(rows.length,4);
+  assert.ok(rows.every(s=>s.date==='2026-10-05'));
+  assert.deepEqual(view.tappers.map(p=>p.workProfile),profiles);
+  await act('manager','save_staff_shift',{tapperId:'tapper-crew',partId:'hall',date:'2026-10-05',scheduleDate:'2026-10-05',dayOffset:1,start:'01:00',end:'03:00'});
+  view=await store.snapshot('owner');
+  assert.equal(view.staffShifts.at(-1).date,'2026-10-06');
+  await assert.rejects(act('manager','save_staff_shift',{tapperId:'tapper-crew',partId:'hall',date:'2026-10-05',scheduleDate:'2026-10-05',dayOffset:0,start:'06:00',end:'09:00'}),{status:409});
+  await assert.rejects(act('crew','save_staff_shift',{tapperId:'tapper-crew',partId:'hall',date:'2026-10-07',start:'06:00',end:'09:00'}),{status:403});
+  await assert.rejects(store.mutate('owner',{action:'save_staff_shift',revision:initial.revision,tapperId:'tapper-crew',partId:'hall',date:'2026-10-07',start:'06:00',end:'09:00'}),{status:409});
 });

@@ -95,7 +95,7 @@ export function refreshDefaultAssignments(state, previous, now, weekdays, actor)
     const newDay = state.workplace.dateOverrides?.[date]?.weekday ?? weekday(date);
     return weekdays.includes(oldDay) || weekdays.includes(newDay);
   }));
-  const shiftDay = s => s.defaultAssignmentKey?.slice(0,10) ?? s.base?.businessDate ?? businessDate(previous, `${s.date}T${s.start}:00+09:00`);
+  const shiftDay = s => s.scheduleDate ?? s.defaultAssignmentKey?.slice(0,10) ?? s.base?.businessDate ?? businessDate(previous, `${s.date}T${s.start}:00+09:00`);
   const protectedShift = s => s.status !== 'planned' || s.approvedRequestId || s.replacementForRequestId ||
     (state.attendance ?? []).some(a => !a.voidedAt && a.tapperId === s.tapperId && businessDate(previous,a.at) === shiftDay(s)) ||
     (state.shiftChangeRequests ?? []).some(r => r.shiftId === s.id && r.status === 'pending');

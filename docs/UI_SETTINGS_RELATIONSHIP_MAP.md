@@ -295,3 +295,12 @@ S27 주간은 `ScheduleController.selected` → 전체 폭 7일 선택 → 선�
 | S46 | 개인화/비연결 `taskTemplates` → `checklistBackup` | 백업·복원 → `ChecklistBackupRepository` 기기/파일 → 미리보기 → `restore_checklist_backup` | 기존 목록 유지, 새 ID·OFF 개인화 양식 추가, 크루/파트/시간·장소 재연결 | 기기 scope/파일 payload/오류 위젯, 서버 복원·불법 입력·원자성 테스트 |
 
 S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 TAP 정의만 갱신한다. S26 이름/삭제와 S14 구조 이동은 유지하며 공용 내용이 달라지면 같은 개인화 분리 검사를 적용한다. 영업/배정 등 운영 정책만 바꾸면 공용 연결을 유지한다.
+
+## 자유 미세조정 · 2026-10-05 (S02/S03/S05/S27 최신 규칙)
+
+| ID | source → control → action | consumer | 검증 |
+| --- | --- | --- | --- |
+| S02 | `tappers.workProfile.partIds` → 기본 인원 배치·크루 프로필 | 기본 담당 분류만 제공, 날짜별 미세조정의 후보를 제한하지 않음 | workplace.test.mjs, schedule_fine_edit_test.dart |
+| S03 | `workplace.days/breaks/dateOverrides` → 영업 시작·종료 선/투명 주황 브레이크 → 읽기 전용 표시 | 근무표 참고선; 배정 시간 제한·근무 시간 차감 없음 | schedule_fine_edit_test.dart, schedule_overlap_review.dart |
+| S27 | `staffShifts`/전체 활성 크루 → 파트·시작 날짜·시간 편집/파트별 추가/빈 시간/drag·resize → `save_staff_shift(scheduleDate,dayOffset,revision)` | 프로필과 독립한 날짜별 계획; 실제 KST 날짜·표시 날짜 분리; 기본 설정 재저장 시 D-080 초기화 유지 | calendar_test.dart, schedule_fine_edit_test.dart, workplace.test.mjs, schedule_exceptions.test.mjs |
+| S05 | `staffShifts` → `scheduleLayout` 최대 3열 및 4명 이후 순환 겹침, 파트 제목 전체 목록 → 기존 개별 편집 | 목록에서 가려진 크루 접근, 미리보기와 저장 후 같은 폭 계산, 추가 인원도 저장 | 1–7명 순환/홀 2열 ghost/320·390·1200 확대/추가 POST 검증 |

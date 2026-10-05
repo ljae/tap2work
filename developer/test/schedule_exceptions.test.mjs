@@ -132,3 +132,13 @@ test('legacy pending requests without band or segment metadata can still be appr
   assert.equal(s.staffShifts[0].start,'10:00');
   assert.equal(s.shiftChangeRequests[0].vacancies.length,2);
 });
+
+test('cross-part fine shift still supports approved overnight partial OFF', () => {
+  let s=fixture();
+  s=act(s,{action:'save_staff_shift',tapperId:'a',partId:'hall',date:'2026-10-05',scheduleDate:'2026-10-05',dayOffset:0,start:'22:00',end:'06:00'});
+  s=approve(request(s,'partial_off','00:30','02:00'));
+  const rows=s.staffShifts.filter(r=>r.approvedRequestId);
+  assert.equal(rows.length,2);
+  assert.ok(rows.every(r=>r.partId==='hall' && r.scheduleDate==='2026-10-05'));
+  assert.equal(rows[1].date,'2026-10-06');
+});

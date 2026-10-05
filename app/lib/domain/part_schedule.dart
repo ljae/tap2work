@@ -69,7 +69,8 @@ List<RosterSlot> slotsForDay(
       .cast<Json>()
       .where(
         (r) =>
-            (r['businessDate'] ?? r['date']) == date && r['status'] != 'leave',
+            (r['scheduleDate'] ?? r['businessDate'] ?? r['date']) == date &&
+            r['status'] != 'leave',
       )
       .toList();
   final crew = (data['tappers'] as List? ?? []).cast<Json>();
@@ -134,7 +135,11 @@ List<RosterSlot> slotsForDay(
         date: date,
         partId: part,
         start: row['start'],
-        dayOffset: row['dayOffset'] as int? ?? offset(row['start']),
+        dayOffset: row['scheduleDate'] != null
+            ? DateTime.parse(
+                row['date'],
+              ).difference(DateTime.parse(row['scheduleDate'])).inDays
+            : row['dayOffset'] as int? ?? offset(row['start']),
         end: row['end'],
         name: (row['label'] as String? ?? '').isNotEmpty
             ? row['label']

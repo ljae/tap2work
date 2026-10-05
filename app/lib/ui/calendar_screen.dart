@@ -1,4 +1,5 @@
 import 'time_wheel.dart';
+import '../domain/schedule_layout.dart';
 import '../domain/attendance_history.dart';
 import 'package:flutter/gestures.dart';
 import 'shift_change_panel.dart';
@@ -23,6 +24,7 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   late ScheduleController model;
   bool arranging = false;
+  bool fullDay = false;
   String? arrangingActor;
   RosterSlot? selectedSlot;
   Map<String, String> holidays = {};
@@ -30,6 +32,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   final liveHolidayYears = <int>{};
   String? previewColumn;
   int? previewMinute, previewDuration;
+  String? previewShiftId;
   String? resizingId;
   int? resizingEnd;
   double resizeOrigin = 0;
@@ -109,6 +112,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     'start': slot.start,
     'end': slot.end,
     if (slot.shiftId != null) ...{
+      'scheduleDate': slot.date,
+      'dayOffset': slot.dayOffset,
       'id': slot.shiftId,
       'tapperId': slot.crewId,
     } else
@@ -184,6 +189,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
           'date': rosterDate(day),
           if (payload['id'] != null) 'dateIsBusinessDay': true,
           'partId': part.id,
+          'scheduleDate': rosterDate(day),
+          'dayOffset': minute ~/ 1440,
           'start': rosterClock(minute),
           'end': rosterClock(minute + duration),
         });
@@ -385,22 +392,64 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   OperationsController get ops => widget.operations;
 
+  Future<void> showPartShifts(WorkPart part) async {
+    final slots = model
+        .slots(model.selected)
+        .where((s) => s.partId == part.id)
+        .toList();
+    final selected = await showAppSheet<RosterSlot>(
+      context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text('${part.name} 근무', style: AppText.title),
+            ),
+            for (final slot in slots)
+              ListTile(
+                title: Text(slot.name),
+                subtitle: Text('${slot.start}–${slot.end}'),
+                onTap: () => Navigator.pop(context, slot),
+              ),
+            if (slots.isEmpty) const ListTile(title: Text('배정된 근무가 없어요.')),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('닫기'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (selected != null && mounted && model.editable) await edit(selected);
+  }
+
+  Future<void> addShift(WorkPart part, int minute) => edit(
+    RosterSlot(
+      date: rosterDate(model.selected),
+      partId: part.id,
+      start: rosterClock(minute),
+      end: rosterClock(minute + 60),
+      dayOffset: minute ~/ 1440,
+      name: '크루 추가',
+      vacancy: true,
+    ),
+  );
+
   Future<void> edit(RosterSlot slot) async {
     if (!model.editable) return;
     final revision = ops.data!['revision'];
     final actor = ops.actorId;
     var start = slot.start, end = slot.end;
+    var partId = slot.partId;
+    var dayOffset = slot.dayOffset;
     String? crewId = slot.crewId;
     var repeat = 1;
     final days = <int>{DateTime.parse(slot.date).weekday};
     final crew = ops
         .rows('tappers')
-        .where(
-          (p) =>
-              p['active'] != false &&
-              ((p['workProfile']?['partIds'] as List? ?? []).isEmpty ||
-                  (p['workProfile']['partIds'] as List).contains(slot.partId)),
-        )
+        .where((p) => p['active'] != false)
         .toList();
     final result = await showAppFormSheet<Json>(
       context: context,
@@ -417,10 +466,42 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    slot.shiftId == null
-                        ? '미배정 시간에 크루 배정'
-                        : '${slot.name} 근무 조정',
+                    slot.shiftId == null ? '크루 추가 배정' : '${slot.name} 근무 조정',
                     style: AppText.title,
+                  ),
+                  const SizedBox(height: 16),
+                  AppPicker<String>(
+                    label: '담당 파트',
+                    value: partId,
+                    items: [
+                      for (final part in model.parts.where(
+                        (p) => !p.hidden || p.id == partId,
+                      ))
+                        DropdownMenuItem(
+                          value: part.id,
+                          child: Text(part.name),
+                        ),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) update(() => partId = v);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  AppPicker<int>(
+                    label: '시작 날짜',
+                    value: dayOffset,
+                    items: [
+                      DropdownMenuItem(value: 0, child: Text(slot.date)),
+                      DropdownMenuItem(
+                        value: 1,
+                        child: Text(
+                          '${rosterDate(DateTime.parse(slot.date).add(const Duration(days: 1)))} · 다음 날',
+                        ),
+                      ),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) update(() => dayOffset = v);
+                    },
                   ),
                   const SizedBox(height: 16),
                   AppTimeField(
@@ -466,13 +547,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
           actions: [
-            if (slot.adjusted && !slot.vacancy)
+            if (slot.adjusted && !slot.vacancy && slot.shiftId == null)
               TextButton(
                 onPressed: () => Navigator.pop(context, {
                   'action': 'reset_roster_slot',
                   'templateId': slot.templateId,
                   'date': slot.date,
-                  'partId': slot.partId,
+                  'partId': partId,
                 }),
                 child: const Text('영업시간으로 되돌리기'),
               ),
@@ -494,12 +575,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           : 'save_staff_shift',
                       'date': slot.date,
                       if (crewId != null) 'dateIsBusinessDay': true,
-                      'partId': slot.partId,
+                      'partId': partId,
                       'start': start,
                       'end': end,
                       if (crewId == null) 'templateId': slot.templateId,
                       if (crewId != null) ...{
                         'tapperId': crewId,
+                        'scheduleDate': slot.date,
+                        'dayOffset': dayOffset,
                         if (slot.shiftId != null) 'id': slot.shiftId,
                         'repeatDays': repeat,
                         'weekdays': days.toList(),
@@ -889,27 +972,82 @@ class _CalendarScreenState extends State<CalendarScreen> {
       parts,
       includeCovered: true,
     );
-    final from = bounds.isEmpty
-        ? 9 * 60
-        : bounds.map((s) => s.startMinute).reduce((a, b) => a < b ? a : b) ~/
-              60 *
-              60;
-    final until = bounds.isEmpty
-        ? 22 * 60
-        : ((bounds.map(shownEnd).reduce((a, b) => a > b ? a : b) + 59) ~/
-              60 *
-              60);
+    final exception =
+        ops.data?['workplace']?['dateOverrides']?[rosterDate(model.selected)];
+    final sourceDay = exception?['weekday'] ?? model.selected.weekday;
+    final boundary = ops.data?['workplace']?['businessDayStart'] ?? '00:00';
+    for (final band
+        in (ops.data?['workplace']?['days']?['$sourceDay'] as List? ?? [])) {
+      if (band['custom'] == true) continue;
+      bounds.add(
+        RosterSlot(
+          date: rosterDate(model.selected),
+          partId: '',
+          name: '',
+          start: band['start'],
+          end: band['end'],
+          dayOffset: (band['start'] as String).compareTo(boundary) < 0 ? 1 : 0,
+        ),
+      );
+    }
+    final earliest = bounds.fold<int>(
+      9 * 60,
+      (v, s) => s.startMinute < v ? s.startMinute : v,
+    );
+    final from = fullDay ? 0 : ((earliest - 120).clamp(0, 1440) ~/ 60) * 60;
+    var until = bounds.fold<int>(
+      fullDay ? 1440 : 16 * 60,
+      (end, slot) => shownEnd(slot) + 120 > end ? shownEnd(slot) + 120 : end,
+    );
+    if (previewMinute != null &&
+        previewDuration != null &&
+        previewMinute! + previewDuration! > until) {
+      until = previewMinute! + previewDuration!;
+    }
     // Compact full shifts on phones; expand when short assignments need touch room.
     final scale = timeScale;
     final gridHeight = (until - from) * scale;
     final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
     final columnWidth = (availableWidth - 52) / parts.length;
-    final partWidths = {for (final part in parts) part.id: columnWidth};
+    final partWidths = {
+      for (final part in parts)
+        part.id: () {
+          final layout = scheduleLayout(
+            all.where((s) => s.partId == part.id).toList(),
+          );
+          final lanes = layout.values.fold<int>(
+            1,
+            (n, p) => p.count > n ? p.count : n,
+          );
+          final minimum = lanes > 1
+              ? lanes * 80.0 * textScale
+              : 80.0 * textScale;
+          return columnWidth < minimum ? minimum : columnWidth;
+        }(),
+    };
     final headerHeight =
         (dayNote(model.selected).isEmpty ? 80.0 : 112.0) * textScale;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () => setState(() => fullDay = !fullDay),
+            child: Text(fullDay ? '근무 시간 중심 보기' : '24시간 보기'),
+          ),
+        ),
+        if (model.editable)
+          Wrap(
+            children: [
+              for (final part in parts.where((p) => !p.hidden))
+                TextButton.icon(
+                  onPressed: () => addShift(part, 9 * 60),
+                  icon: const Icon(Icons.add),
+                  label: Text('${part.name} 크루 추가'),
+                ),
+            ],
+          ),
         SizedBox(
           height: (gridHeight + headerHeight + 24).clamp(
             0.0,
@@ -1022,9 +1160,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                                   ),
                                                   height: headerHeight / 2,
                                                   alignment: Alignment.center,
-                                                  child: Text(
-                                                    '${part.name}${part.hidden ? ' · 숨김' : ''}',
-                                                    style: AppText.caption,
+                                                  child: InkWell(
+                                                    onTap: () =>
+                                                        showPartShifts(part),
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            8,
+                                                          ),
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Flexible(
+                                                            child: Text(
+                                                              '${part.name}${part.hidden ? ' · 숨김' : ''}',
+                                                              style: AppText
+                                                                  .caption,
+                                                            ),
+                                                          ),
+                                                          const Icon(
+                                                            Icons.expand_more,
+                                                            size: 16,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
                                                 _column(
@@ -1066,7 +1227,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         if (all.isEmpty)
           const Padding(
             padding: EdgeInsets.only(top: 16),
-            child: Information('배정된 근무가 없어요. 영업시간·인원의 인원 배치에서 크루를 선택해 주세요.'),
+            child: Information('배정된 근무가 없어요. 크루 추가 버튼으로 배정할 수 있어요.'),
           ),
       ],
     );
@@ -1081,22 +1242,62 @@ class _CalendarScreenState extends State<CalendarScreen> {
     double scale,
     double width,
   ) {
-    // Allocate overlapping assignments side-by-side rather than covering names.
-    slots.sort((a, b) => a.startMinute.compareTo(b.startMinute));
-    final ends = <int>[];
-    final positions = <int>[];
-    for (final slot in slots) {
-      var lane = ends.indexWhere((e) => e <= slot.startMinute);
-      if (lane < 0) {
-        lane = ends.length;
-        ends.add(slot.endMinute);
-      } else {
-        ends[lane] = slot.endMinute;
-      }
-      positions.add(lane);
+    final originalOrder = {
+      for (var i = 0; i < slots.length; i++) slots[i].shiftId: i,
+    };
+    slots.sort((a, b) {
+      final time = a.startMinute.compareTo(b.startMinute);
+      return time != 0
+          ? time
+          : originalOrder[a.shiftId]!.compareTo(originalOrder[b.shiftId]!);
+    });
+    final layout = scheduleLayout(slots);
+    final preview =
+        previewColumn == '${rosterDate(day)}/${part.id}' &&
+            previewMinute != null
+        ? RosterSlot(
+            date: rosterDate(day),
+            partId: part.id,
+            start: rosterClock(previewMinute!),
+            end: rosterClock(previewMinute! + previewDuration!),
+            dayOffset: previewMinute! ~/ 1440,
+            name: '',
+            shiftId: previewShiftId ?? 'preview',
+          )
+        : null;
+    final previewLayout = preview == null
+        ? null
+        : scheduleLayout([
+            ...slots.map((s) => s.shiftId == preview.shiftId ? preview : s),
+            if (!slots.any((s) => s.shiftId == preview.shiftId)) preview,
+          ])[preview.shiftId];
+    final exception =
+        ops.data?['workplace']?['dateOverrides']?[rosterDate(day)];
+    final weekday = exception?['weekday'] ?? day.weekday;
+    final bands = (ops.data?['workplace']?['days']?['$weekday'] as List? ?? [])
+        .cast<Json>();
+    final boundary = rosterMinute(
+      ops.data?['workplace']?['businessDayStart'] ?? '00:00',
+    );
+    int bandStart(Json b) {
+      final m = rosterMinute(b['start']);
+      return m < boundary ? m + 1440 : m;
     }
-    final lanes = ends.isEmpty ? 1 : ends.length;
-    final laneWidth = width / lanes;
+
+    int bandEnd(Json b) {
+      final start = bandStart(b);
+      var end = rosterMinute(b['end']) + (start ~/ 1440) * 1440;
+      if (end <= start) end += 1440;
+      return end;
+    }
+
+    final opening = bands.isEmpty
+        ? null
+        : bands.map(bandStart).reduce((a, b) => a < b ? a : b);
+    final closing = bands.isEmpty
+        ? null
+        : bands.map(bandEnd).reduce((a, b) => a > b ? a : b);
+    final pause = ops.data?['workplace']?['breaks']?['$weekday'] as Map?;
     return Builder(
       builder: (columnContext) => DragTarget<Json>(
         onWillAcceptWithDetails: (d) =>
@@ -1111,16 +1312,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
               (from +
                       (box.globalToLocal(d.offset).dy / scale / 30).floor() *
                           30)
-                  .clamp(
-                    from,
-                    (until - (d.data['duration'] as int)).clamp(from, until),
-                  );
+                  .clamp(from, (until - 30).clamp(from, 2850));
           if (previewColumn != '${rosterDate(day)}/${part.id}' ||
               previewMinute != minute) {
             setState(() {
               previewColumn = '${rosterDate(day)}/${part.id}';
               previewMinute = minute;
               previewDuration = d.data['duration'] as int;
+              previewShiftId = d.data['id'] as String?;
             });
           }
         },
@@ -1135,10 +1334,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               (from +
                       (box.globalToLocal(d.offset).dy / scale / 30).floor() *
                           30)
-                  .clamp(
-                    from,
-                    (until - (d.data['duration'] as int)).clamp(from, until),
-                  );
+                  .clamp(from, (until - 30).clamp(from, 2850));
           dropSlot(d.data, day, part, minute);
         },
         builder: (context, candidates, rejected) => SizedBox(
@@ -1151,17 +1347,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   left: 0,
                   right: 0,
                   height: 30 * scale,
-                  child: Container(
-                    key: ValueKey(
-                      'roster-drop-${rosterDate(day)}-${part.id}-$m',
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: model.editable ? () => addShift(part, m) : null,
+                    child: Container(
+                      key: ValueKey(
+                        'roster-drop-${rosterDate(day)}-${part.id}-$m',
+                      ),
                     ),
                   ),
                 ),
               for (var i = 0; i < slots.length; i++)
                 Positioned(
                   top: (slots[i].startMinute - from) * scale + 2,
-                  left: positions[i] * laneWidth + 3,
-                  width: laneWidth - 6,
+                  left:
+                      layout[slots[i].shiftId]!.lane *
+                          width /
+                          layout[slots[i].shiftId]!.count +
+                      3,
+                  width: width / layout[slots[i].shiftId]!.count - 6,
                   height:
                       (shownEnd(slots[i]) - slots[i].startMinute) * scale - 4,
                   child: slotFrame(
@@ -1171,11 +1375,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       label:
                           '${slots[i].date} ${part.name} ${slots[i].name} ${slots[i].start} ${rosterClock(shownEnd(slots[i]))}',
                       child: Material(
-                        color: slots[i].crewId == null
-                            ? AppColors.accent.withValues(alpha: .08)
-                            : crewColor(
-                                slots[i].crewId!,
-                              ).withValues(alpha: .12),
+                        color: Color.alphaBlend(
+                          (slots[i].crewId == null
+                                  ? AppColors.accent
+                                  : crewColor(slots[i].crewId!))
+                              .withValues(alpha: .12),
+                          AppColors.paper,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
@@ -1245,12 +1451,61 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ),
                   ),
                 ),
+              if (pause != null &&
+                  pause['start'] != null &&
+                  pause['end'] != null)
+                Positioned(
+                  top:
+                      (bandStart(Map<String, dynamic>.from(pause)) - from) *
+                      scale,
+                  left: 0,
+                  right: 0,
+                  height:
+                      (bandEnd(Map<String, dynamic>.from(pause)) -
+                          bandStart(Map<String, dynamic>.from(pause))) *
+                      scale,
+                  child: IgnorePointer(
+                    child: Container(
+                      key: ValueKey('roster-break-${part.id}'),
+                      color: Colors.orange.withValues(alpha: .18),
+                      child: part.id == model.visibleParts.first.id
+                          ? const Align(
+                              alignment: Alignment.topCenter,
+                              child: Text('브레이크', style: AppText.caption),
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+              for (final marker in [(opening, '영업 시작'), (closing, '영업 종료')])
+                if (marker.$1 != null)
+                  Positioned(
+                    top: (marker.$1! - from) * scale,
+                    left: 0,
+                    right: 0,
+                    child: IgnorePointer(
+                      child: Container(
+                        key: ValueKey('roster-hours-${part.id}-${marker.$2}'),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            top: BorderSide(color: AppColors.green),
+                          ),
+                        ),
+                        child: part.id == model.visibleParts.first.id
+                            ? Text(
+                                '${marker.$2}\n${rosterClock(marker.$1!)}',
+                                style: AppText.caption,
+                              )
+                            : const SizedBox(height: 1),
+                      ),
+                    ),
+                  ),
               if (previewColumn == '${rosterDate(day)}/${part.id}' &&
                   previewMinute != null)
                 Positioned(
                   top: (previewMinute! - from) * scale,
-                  left: 3,
-                  right: 3,
+                  left: previewLayout!.lane * width / previewLayout.count + 3,
+                  width: width / previewLayout.count - 6,
                   height: previewDuration! * scale,
                   child: IgnorePointer(
                     child: Container(

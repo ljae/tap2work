@@ -61,7 +61,7 @@ export function mutateShiftRequest(state,input,actor,now,activity,validShift,val
     // Upgrade pending requests created before segment/vacancy support.
     const ranges = requestedRanges(row.before, {kind: row.kind, start: row.kind === 'partial_off' ? row.vacancies[0].start : row.after.start, end: row.kind === 'partial_off' ? row.vacancies[0].end : row.after.end}, interval);
     const segments = ranges.work.map(([a,b]) => ({ ...shift, ...rangeFields(a,b), status: 'planned', approvedRequestId: row.id }));
-    for (const segment of segments) { validShift(segment, state); validateOverlap(state, segment, new Set([shift.id])); }
+    for (const segment of segments) { validShift({...segment, scheduleDate:undefined}, state, {allowAnyPart:true}); validateOverlap(state, segment, new Set([shift.id])); }
     row.vacancies ??= ranges.vacant.map(([a,b]) => ({id: randomUUID(), ...rangeFields(a,b), partId: shift.partId, ...(shift.timeBandId ? {timeBandId: shift.timeBandId} : {})}));
     if (segments.length) {
       Object.assign(shift, segments[0]);

@@ -1,4 +1,4 @@
-import { actualDate, businessDate } from './business_day.mjs';
+import { actualDate, businessDate, shiftDate } from './business_day.mjs';
 import { mutateShiftRequest } from './shift_requests.mjs';
 import { mutateCrewPattern } from './crew_patterns.mjs';
 import { payrollSettings, savePayrollSettings, settlementPeriod, roundedWorkMinutes } from './payroll_settings.mjs';
@@ -57,18 +57,19 @@ export function ensureStaff(state, now) {
   return true;
 }
 
-function validShift(input, state) {
+function validShift(input, state, {allowAnyPart = false} = {}) {
   const tapper = state.tappers.find(row => row.id === input.tapperId && row.active);
   if (!tapper) fail('크루를 찾지 못했어요.', 404);
   const partId = Object.hasOwn(input, 'partId') ? validatePart(state, input.partId) : partForLegacy(state, input.duty);
-  if (Object.hasOwn(input, 'partId') ? !crewPartIds(state, tapper).includes(partId) : !duties.includes(input.duty) || !tapper.duties.includes(input.duty)) fail('담당 파트를 확인해 주세요.');
+  if (!allowAnyPart && (Object.hasOwn(input, 'partId') ? !crewPartIds(state, tapper).includes(partId) : !duties.includes(input.duty) || !tapper.duties.includes(input.duty))) fail('담당 파트를 확인해 주세요.');
   if (typeof input.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(input.date) || (!Number.isFinite(Date.parse(`${input.date}T00:00:00Z`)) || new Date(`${input.date}T00:00:00Z`).toISOString().slice(0, 10) !== input.date)) fail('근무 날짜를 확인해 주세요.');
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.start) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.end) || input.start === input.end) fail('근무 시작·종료 시각을 확인해 주세요.');
   if (![input.start, input.end].every(v => ['00', '30'].includes(v.slice(3)))) fail('근무 시간은 30분 단위로 입력해 주세요.');
   if (input.timeBandId != null && (typeof input.timeBandId !== 'string' || !input.timeBandId || input.timeBandId.length > 100)) fail('시간대 ID를 확인해 주세요.');
   const employmentType = input.employmentType ?? tapper.employmentType ?? '시간알바';
   if (!employmentTypes.includes(employmentType)) fail('고용형태를 확인해 주세요.');
-  return { ...(input.timeBandId ? {timeBandId: input.timeBandId} : {}), ...(Object.hasOwn(input,'label') ? {label:safeText(input.label,100,'근무 이름',false)} : {}), tapperId: tapper.id, partId, duty: input.duty ?? state.workplace?.parts.find(p => p.id === partId)?.duties?.[0] ?? partId, date: input.dateIsBusinessDay === true ? actualDate(state,input.date,input.start) : input.date, start: input.start, end: input.end, employmentType };
+  if (input.scheduleDate !== undefined && (!allowAnyPart || input.scheduleDate !== input.date || ![0,1].includes(input.dayOffset))) fail('근무표 날짜를 확인해 주세요.');
+  return { ...(input.scheduleDate !== undefined ? {scheduleDate: input.scheduleDate, dayOffset: input.dayOffset} : {}), ...(input.timeBandId ? {timeBandId: input.timeBandId} : {}), ...(Object.hasOwn(input,'label') ? {label:safeText(input.label,100,'근무 이름',false)} : {}), tapperId: tapper.id, partId, duty: input.duty ?? state.workplace?.parts.find(p => p.id === partId)?.duties?.[0] ?? partId, date: input.scheduleDate !== undefined ? shiftDate(input.scheduleDate,input.dayOffset) : input.dateIsBusinessDay === true ? actualDate(state,input.date,input.start) : input.date, start: input.start, end: input.end, employmentType };
 }
 function interval(shift) {
   const start = Date.parse(`${shift.date}T${shift.start}:00+09:00`);
@@ -181,7 +182,7 @@ export function mutateStaff(state, input, actor, now, who, activity) {
     }
     case 'save_staff_shift': {
       if (!leader) fail('매니저 이상만 근무표를 바꿀 수 있어요.', 403);
-      const next = validShift(input, state);
+      const next = validShift(input, state, {allowAnyPart:true});
       const row = input.id ? state.staffShifts.find(s => s.id === input.id) : null;
       if (input.id && !row) fail('근무를 찾지 못했어요.', 404);
       validateOverlap(state, next, new Set(row ? [row.id] : []));
