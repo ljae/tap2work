@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 189,
+  "revision": 190,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -913,8 +913,8 @@
       "next": "매뉴얼 전체 편집과 항목 메뉴로 전체 작성 기능 제공. 빈 폴더도 편집 가능. 업무 내용 편집 진입 제거, 독립 터치 손잡이로 실행 우선순위만 변경.",
       "reason": "사용자가 매뉴얼 작성 기능 미이행을 지적하고 업무 메뉴의 실행·참고 집중을 명시.",
       "source": "사용자 요청 · 2026-10-05",
-      "updatedAt": "2026-10-05T04:31:13.883015+00:00",
-      "implementation": "Implemented and verified locally; public web deployment pending. Existing server contracts retained and historical execution snapshots preserved."
+      "updatedAt": "2026-10-05T04:36:50.301444+00:00",
+      "implementation": "Deployed 6c16fe1 to tap2.work. Full manual authoring via folder/TAP/Task actions, work content editors removed, touch priority reordering preserves status and definitions. CI and public asset verification passed."
     }
   ],
   "milestones": [
@@ -6166,7 +6166,51 @@
         "Physical device and native builds not performed.",
         "Public deployment pending. Server and shared-store content unchanged."
       ]
+    },
+    {
+      "at": "2026-10-05T04:36:50.301444+00:00",
+      "type": "deployment",
+      "decisionId": "D-088",
+      "summary": "매뉴얼 전체 작성과 업무 실행·우선순위 분리를 공개 웹에 배포하고 검증했다.",
+      "commit": "6c16fe11042c635f44a129e6af7e4e177670a431",
+      "workflow": "https://github.com/ljae/tap2work/actions/runs/37263906428",
+      "verification": [
+        "Isolated Flutter analysis and 332 full tests passed; GitHub CI analysis/full Flutter tests/server 200 tests and web build passed.",
+        "40 UI/settings links, JavaScript/catalog checks and both local web/review builds passed.",
+        "Phone 320/390px authoring, full Task creation, empty-folder visibility, real touch TAP/Task priority drag and permissions verified.",
+        "Public root/index/bootstrap/main returned HTTP 200 and SHA-256 matched the deployed CI artifact."
+      ],
+      "limitations": [
+        "Physical-device testing and native builds not performed.",
+        "Backend v39 and existing shared-store content were not modified."
+      ],
+      "assets": [
+        {
+          "file": "index.html",
+          "status": 200,
+          "matches": true,
+          "sha256": "04a506982caa8856f5327ada803fba93cee2cd3a7c85a46593ed4693a00e4335"
+        },
+        {
+          "file": "flutter_bootstrap.0abd143e90370137be63.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "0abd143e90370137be636d932e592e1dab40683b50fb0d829530120c37a16133"
+        },
+        {
+          "file": "main.e9420498a88526e19aff.dart.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "e9420498a88526e19affef01f9f21e20dae789670559a3c2750047a0f5434659"
+        },
+        {
+          "file": "/",
+          "status": 200,
+          "matches": true,
+          "sha256": "04a506982caa8856f5327ada803fba93cee2cd3a7c85a46593ed4693a00e4335"
+        }
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T04:31:13.883015+00:00"
+  "updatedAt": "2026-10-05T04:36:50.301444+00:00"
 }
