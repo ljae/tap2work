@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 187,
+  "revision": 188,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -900,7 +900,8 @@
       "next": "높이에 독립한 핵심 버튼, 48px 즉시 드래그, 성공 시 선택한 신규 TAP 열기, 초기 무브랜드 대기와 매장 스켈레톤",
       "reason": "사용자가 휴대폰 실제 드래그 불가·마켓 미노출·편집 완료 부재와 중복 로딩을 지적",
       "source": "사용자 요청 · 2026-10-05",
-      "updatedAt": "2026-10-05T04:06:11.791730+00:00"
+      "updatedAt": "2026-10-05T04:12:36.742542+00:00",
+      "implementation": "Deployed 0b75b7e to tap2.work. Persistent market/edit completion, touch handle drag and edge scrolling, chosen import opened immediately, duplicate loading card removed. Full CI and public asset verification passed."
     }
   ],
   "milestones": [
@@ -6095,7 +6096,46 @@
         "네이티브 빌드·실기기 검증 미수행.",
         "서버/API/실제 저장 체크리스트 데이터는 이번 수정에서 변경하지 않음."
       ]
+    },
+    {
+      "at": "2026-10-05T04:12:36.742542+00:00",
+      "type": "deployment",
+      "decisionId": "D-087",
+      "summary": "운영 매뉴얼 편집 완료·모바일 드래그·마켓 진입/선택 가져오기·중복 로딩 수정을 공개 웹에 배포하고 검증했다.",
+      "commit": "0b75b7ecdd4214c18b8b429fa8187c4e05733da0",
+      "workflow": "https://github.com/ljae/tap2work/actions/runs/37262163455",
+      "verification": [
+        "Flutter 전체 326개 및 최종 대상 28개·분석 통과. GitHub CI 분석/전체 Flutter/서버 200개/공개 빌드 성공.",
+        "UI 설정 관계 40개·JavaScript·마켓 발행본 검사 통과. 로컬 app/build/web 및 분리 공개 review-web 빌드 성공.",
+        "320/390px 실제 터치 포인터 이동 요청, 자동 스크롤 종료, 편집 완료·낮은 화면 마켓 버튼, 선택한 체크리스트 즉시 조회 검증.",
+        "일반/편집 4개 캡처와 320px 편집 행 제목·손잡이 가독성 검토.",
+        "공개 root/index/bootstrap/main HTTP 200 및 GitHub artifact SHA-256 일치."
+      ],
+      "limitations": [
+        "실기기·네이티브 빌드는 수행하지 않음.",
+        "백엔드 v39 및 기존 매장 데이터는 변경하지 않음."
+      ],
+      "assets": [
+        {
+          "file": "index.html",
+          "status": 200,
+          "matches": true,
+          "sha256": "eb2b3b18aaaa5197ef877ad10c0a031042fe6573b3326f5aefdb6df50b8c096b"
+        },
+        {
+          "file": "flutter_bootstrap.abbafa8638cfa5f4e131.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "abbafa8638cfa5f4e131e147a31af1c717d638e89e065d376366688ab2fce1d7"
+        },
+        {
+          "file": "main.e62e574b1de9caa0cd2e.dart.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "e62e574b1de9caa0cd2e1e8639733484279ddeff4eac80975d4bca289bfa6e60"
+        }
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T04:07:32.673863+00:00"
+  "updatedAt": "2026-10-05T04:12:36.742542+00:00"
 }
