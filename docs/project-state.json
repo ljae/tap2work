@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 181,
+  "revision": 182,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -861,8 +861,8 @@
       "next": "공통+12 산업 분류와 업무 목적 분리, 법적 기준/운영 필터, 검색·담기·최종 일괄 가져오기 및 업무별 자동 그룹 분류.",
       "reason": "사용자가 기존 전체 체크리스트 반영 누락과 편향된 분류를 지적하고 전체 비즈니스 기반의 직관적 마켓을 요청했다.",
       "source": "사용자 요청 · 2026-10-05",
-      "updatedAt": "2026-10-05T02:11:21.672468+00:00",
-      "implementation": "구현·검증 진행 중. 법적 기준 확인은 적용 대상별 참고이며 전문 분야 전체 의무를 충족한다는 판정은 제공하지 않는다."
+      "updatedAt": "2026-10-05T02:19:37.605239+00:00",
+      "implementation": "Deployed to tap2.work and operations v38: 86 TAPs/272 Tasks, common plus 12 industry areas, 10 scoped legal-reference cards, preserved original 64 content hashes, basket and atomic purpose grouping. CI and public artifact/backend source verification passed."
     }
   ],
   "milestones": [
@@ -5915,7 +5915,51 @@
         "신규 제조·건설·농림어업·보건 분야는 일반 행정/인계 초안이며 위험 전문 작업 절차가 아님.",
         "네이티브 빌드·실기기 검증 미수행."
       ]
+    },
+    {
+      "at": "2026-10-05T02:19:37.605239+00:00",
+      "type": "deployment",
+      "decisionId": "D-084",
+      "summary": "업종·법적 기준별 매뉴얼 마켓 탐색, 담기, 자동 분류 가져오기를 웹과 서버에 배포했다.",
+      "sourceCommit": "c95434c672a71d2083008753c6893e0a6a29c775",
+      "workflow": "https://github.com/ljae/tap2work/actions/runs/37254573641",
+      "url": "https://tap2.work",
+      "backend": {
+        "previousVersion": 37,
+        "version": 38,
+        "status": "ACTIVE",
+        "verifiedAt": "2026-10-05T02:13:33.507Z"
+      },
+      "catalogRelease": "473ae81f07c0e1289ff6e7ed1dc97f133586b93ec71559e5833032f1129ac9c1",
+      "verification": [
+        "로컬 Flutter 분석·전체 310개 및 최종 탐색 6개 테스트 통과. 배포 CI 전체 Flutter 테스트 성공.",
+        "서버 197개·JavaScript/불변 발행본·UI 관계 39개 검사 통과, 로컬 및 공개 웹 빌드 성공.",
+        "320/390/1200px 9개 캡처 검토 및 1.5배 글자 선택 유지/충돌 보존 테스트 통과.",
+        "공개 root/index/bootstrap/main HTTP 200 및 CI artifact SHA-256 일치.",
+        "operations v37 백업 후 v38 ACTIVE 확인. 배포 함수 본문에 일치하는 카탈로그 releaseId·taxonomy·자동 그룹 코드 확인.",
+        "DB migration·실제 매장 import 테스트·네이티브 빌드는 수행하지 않음."
+      ],
+      "assets": [
+        {
+          "file": "index.html",
+          "status": 200,
+          "matches": true,
+          "sha256": "1ddbaf4a214d721c31db19df90ddd457e4cd649ca67a0a49b61465d3ef4bff1d"
+        },
+        {
+          "file": "flutter_bootstrap.74bd65788e826f201ceb.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "74bd65788e826f201ceb3d5d9cf5c5eceac6ab258c93918e4cb52fbf7b6b133e"
+        },
+        {
+          "file": "main.865aeface22876c3670e.dart.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "865aeface22876c3670e835705facfa3e0c07d2702b2fa7345c97ddd5a5b956c"
+        }
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T02:13:46.128393+00:00"
+  "updatedAt": "2026-10-05T02:19:37.605239+00:00"
 }
