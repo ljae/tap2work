@@ -1,3 +1,7 @@
+## 2026-10-05 실제 배포 진행
+
+tap2.work 웹은 ce63567 / GitHub Actions 37314183425로 배포 성공했다. Supabase account v1, operations v43, public-login v3가 ACTIVE이며 새 삭제 SQL을 적용했다. App Store Connect 앱 6819216931의 이름은 TAP Work, iOS 버전은 1.0.0이다. 서명 IPA 빌드 4는 전송 후 Apple 처리에서 미사용 사진 SDK 권한 설명 오류 90683으로 거절되어 사진/오디오 SDK를 제외한 빌드 5로 재업로드했다. 최종 처리와 스토어 정보 입력을 진행 중이다. 아래 초기 점검은 과거 기록이다.
+
 # App Store 출시·매장 구독 준비
 
 작성: 2026-10-05. 준비 상태 점검과 출시 계획이며 App Store 제출·승인 기록이 아니다.

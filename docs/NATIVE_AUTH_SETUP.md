@@ -1,6 +1,6 @@
 # TAP Work 로그인·개인정보·계정 삭제 설정
 
-2026-10-05. 운영자 **OpenEdu**, 문의 **esther.runstrict@gmail.com**. Aside CLI로 실제 콘솔을 확인하고 Google/Apple provider, Apple 키, 서버 secrets, callback 설정을 완료했다. 서버 이관/함수·웹 배포 및 실기기 로그인은 아직 완료하지 않았다. 참고 앱 runner와 같은 네이티브 SDK → ID token → Supabase 구조이며 TAP Work 전용 OAuth 값을 사용한다.
+2026-10-05. 운영자 **OpenEdu**, 문의 **esther.runstrict@gmail.com**. Aside CLI로 실제 콘솔을 확인하고 Google/Apple provider, Apple 키, 서버 secrets, callback 설정을 완료했다. 삭제 SQL과 account/operations/public-login 함수·tap2.work 웹 배포를 완료했다. iOS 서명 IPA를 업로드했으며 최종 처리 확인·실기기 로그인은 별도다. 참고 앱 runner와 같은 네이티브 SDK → ID token → Supabase 구조이며 TAP Work 전용 OAuth 값을 사용한다.
 
 ## 실제 설정 확인 결과
 
@@ -19,7 +19,7 @@
 
 Google 웹 클라이언트에 새 secret을 추가해 Supabase에 설정했다. 기존 secret은 다른 사용처를 끊지 않도록 유지했으며 실제 로그인 검증 후 정리할 수 있다. Apple provider 초안에 들어 있던 Google secret은 Apple 서명 JWT로 교체했다. Google nonce 검사 우회와 이메일 없는 가입 허용은 켜지 않았다.
 
-Google Audience는 **External / 테스트 중**, 테스트 사용자 1명이다. Branding 이름을 `TAP work`에서 **TAP Work**로 저장했다. 홈페이지·개인정보 링크와 개발자 연락처 `esther.runstrict@gmail.com`은 등록되어 있다. 사용자 지원 이메일은 현재 로그인 계정 `ljae.m10@gmail.com`만 선택 가능해 유지했다. 지정한 문의 이메일로 바꾸려면 해당 계정으로 프로젝트에 접근해 선택 가능한지 확인해야 한다. 브랜드 로고 업로드·검증 및 공개 전환은 미완료다.
+Google Audience는 **External / 프로덕션 단계**로 전환했다. 전환 전에는 테스트 사용자 1명으로 제한되어 있었다. Branding 이름을 `TAP work`에서 **TAP Work**로 저장했다. 홈페이지·개인정보 링크와 개발자 연락처 `esther.runstrict@gmail.com`은 등록되어 있다. 사용자 지원 이메일은 현재 로그인 계정 `ljae.m10@gmail.com`만 선택 가능해 유지했다. 지정한 문의 이메일로 바꾸려면 해당 계정으로 프로젝트에 접근해 선택 가능한지 확인해야 한다. Google 동의 화면의 브랜드 로고 업로드·별도 브랜드 검증은 미완료다.
 
 Apple `.p8` 다운로드 파일은 `~/Downloads/AuthKey_BY6QCTR4RP.p8`에 있다. 재다운로드할 수 없으므로 별도 안전한 보관소에 백업한다. 작업용 사본과 CLI secrets 파일은 Git 제외된 `.local/private-auth/`에 권한 600으로 보관했다. `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_SERVICE_ID`, `APPLE_PRIVATE_KEY` 네 서버 secrets 저장 및 등록 이름을 확인했다. 키 원문은 앱·문서에 포함하지 않는다.
 
@@ -100,7 +100,7 @@ Google iOS callback은 Client ID를 점 단위로 뒤집은 값(`com.googleuserc
 
 ## 4. 배포 순서와 삭제 계약
 
-1. OAuth provider, Apple 서버 secrets, URL 설정은 완료했다. Google Audience는 테스트 중이며 출시 전 공개 전환과 필요한 브랜드/도메인 검증을 진행한다. 현재 운영 웹 전환 전이므로 기존 이메일 provider는 유지했다.
+1. OAuth provider, Apple 서버 secrets, URL 설정은 완료했다. Google Audience 공개 전환은 완료했으며 필요한 브랜드/도메인 검증은 별도로 확인한다. 이전 계정 복구 경로를 임의로 끊지 않도록 이메일 provider 자체는 유지한다. 새 앱 진입과 operations는 Apple/Google identity를 요구하고 공용 로그인 발급 함수는 비활성화했다.
 2. `20261005010000_account_deletion.sql`을 기존 workspace/section migrations가 설치된 서버에 적용한다. 이번 파일은 원본 매장 데이터를 즉시 삭제하지 않고 service-only 삭제 함수를 추가한다. 기존 `backend:deploy`는 모든 과거 migration을 재실행하므로 이번 변경만 확인 없이 적용하는 용도로 쓰지 않는다.
 3. `account`, `operations`, `public-login` 세 Edge Function을 배포한다. `account`와 `operations`는 handler가 직접 bearer token을 검증한다. `operations`는 Apple/Google identity 없는 기존 공용 세션의 접근을 거절하고 `public-login`은 새 세션 발급을 중단한다. 구 공용 매장은 자동 삭제/이전하지 않는다.
 4. 웹 앱과 정적 `/privacy/`, `/delete-account/` 페이지를 함께 배포한다. `npm run build:site`가 공개 리뷰용 전체 산출물을 만들며 `.local`은 공개하지 않는다. 두 URL을 실제 열어 확인한 뒤 스토어에 등록한다.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 197,
+  "revision": 198,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -6546,7 +6546,44 @@
       "limitations": [
         "배포·업로드 완료 여부는 후속 기록으로 확인. 실제 계정 로그인·삭제 및 실기기 검증 미실시."
       ]
+    },
+    {
+      "at": "2026-10-05T13:25:16.784859+00:00",
+      "type": "deployment",
+      "decisionId": "D-093",
+      "summary": "tap2.work 웹과 개인 인증/계정 삭제 서버 배포 완료. Apple 처리 오류를 수정한 iOS 빌드 5 업로드 및 스토어 메타데이터 입력 진행.",
+      "previous": {
+        "appVersion": "1.0.0+4",
+        "googleAudience": "Testing"
+      },
+      "next": {
+        "appVersion": "1.0.0+5",
+        "googleAudience": "Production",
+        "webCommit": "ce63567",
+        "functions": {
+          "operations": 43,
+          "account": 1,
+          "public-login": 3
+        }
+      },
+      "reason": "사용자가 웹·App Store Connect 배포 및 모든 스토어 정보 입력을 요청했다. 첫 iOS 전송 후 처리 실패(90683)를 실제 쓰지 않는 media/audio SDK 제외로 수정했다.",
+      "verification": [
+        "GitHub Actions 37314183425 success: 분석·전체 Flutter 346 tests 및 Node 214 tests·웹 빌드 통과.",
+        "tap2.work, /privacy/, /delete-account/ HTTP 200; 실제 웹 업무 화면의 새 TAP Work 로고/앱 렌더 확인.",
+        "계정 삭제 migration 적용. service-only 권한 및 anon/authenticated 실행 차단 확인. 서버 함수 모두 ACTIVE.",
+        "account OPTIONS 204/비로그인 POST 401/잘못된 Origin 403, operations 비로그인 401, public-login 503 비활성 확인.",
+        "Google OAuth Audience 프로덕션 전환 후 콘솔 상태 확인.",
+        "iOS 서명 아카이브/IPA export 및 업로드 4와 5 모두 전송 성공. 빌드 4는 Apple 처리에서 90683 실패해 교정. 빌드 5 최종 처리 확인 중.",
+        "빌드 5 file_picker에서 PHPhotoLibrary/MPMediaPicker 심볼 없음, DKImagePickerController/사진 프레임워크 제거 확인. Flutter analyze 통과.",
+        "실제 Flutter 샘플 화면 iPhone/iPad 8개 렌더·RGB 규격 확인 및 한국어 스토어에 업로드 확인. 캡처 테스트 최종 통과."
+      ],
+      "limitations": [
+        "iOS 13 deployment target은 현재 허용되나 Apple 업로드가 2027-04부터 iOS 15 이상을 요구한다는 경고 90068을 반환했다.",
+        "실기기 OAuth 왕복·계정 삭제 검증, TestFlight 설치, Apple 심사 제출/승인은 아직 미실시.",
+        "첫 캡처 검사는 debug 플랫폼 전역 해제 시점 오류 후 수정해 통과. 첫 빌드 시 임시 디렉토리 경로 누락을 바로잡았다.",
+        "롤백 다운로드 CLI가 상위 프로젝트로 이동해 소스 2개를 덮어썼고, 다운로드 사본을 별도 보관한 후 검증된 배포 소스에서 정확히 복원했다."
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T13:04:09.607769+00:00"
+  "updatedAt": "2026-10-05T13:25:16.784859+00:00"
 }

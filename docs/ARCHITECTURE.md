@@ -1,16 +1,18 @@
 ## 개인 인증·삭제 경계 · 2026-10-05
 
-실제 Supabase Apple/Google provider와 callback allowlist, 계정 삭제용 Apple 서버 secrets를 설정했다. Apple Services ID `com.tap2work.tap2work.web`는 primary `com.tap2work.tap2work`에 연결되며 Xcode 팀은 실제 App ID 소유 팀 `RQZACLWJ7M`이다. Google은 TAP Work 전용 Web/iOS client를 사용한다. 두 provider의 authorize 302 목적지/client ID를 확인했다. OAuth 왕복·새 서버 함수/SQL·웹 배포·서명 빌드는 아직 검증하지 않았다. 기존 운영 이메일 provider는 웹 전환 전까지 유지한다. Apple OAuth JWT는 2027-04-03 만료 전에 갱신해야 한다. 공개 식별자와 운영 절차는 [설정 문서](NATIVE_AUTH_SETUP.md)에 기록한다.
+실제 Supabase Apple/Google provider와 callback allowlist, 계정 삭제용 Apple 서버 secrets를 설정했다. Apple Services ID `com.tap2work.tap2work.web`는 primary `com.tap2work.tap2work`에 연결되며 Xcode 팀은 실제 App ID 소유 팀 `RQZACLWJ7M`이다. Google은 TAP Work 전용 Web/iOS client를 사용한다. 두 provider의 authorize 302 목적지/client ID를 확인했다. tap2.work 웹과 account/operations/public-login 함수, 삭제 SQL 배포 및 iOS 서명 아카이브를 완료했다. OAuth 왕복·실기기 로그인/삭제는 아직 검증하지 않았다. 기존 운영 이메일 provider는 웹 전환 전까지 유지한다. Apple OAuth JWT는 2027-04-03 만료 전에 갱신해야 한다. 공개 식별자와 운영 절차는 [설정 문서](NATIVE_AUTH_SETUP.md)에 기록한다.
 
 이 절은 아래 과거 임시 공용 로그인 설명을 대체한다. UI → AuthRepository → NativeAuthService → Apple/Google SDK → Supabase `signInWithIdToken`으로 iOS 세션을 만든다. Apple nonce는 클라이언트 난수의 SHA-256을 SDK에, 원문을 Supabase에 전달한다. Android Google은 네이티브 SDK, Apple은 웹 OAuth/deep link이며 브라우저는 OAuth다. 로그인 취소는 오류로 취급하지 않는다. 공개 ID만 앱 define에 넣으며 `.p8`/OAuth secret은 서버에만 있다.
 
-CloudWorkspace는 Apple/Google identity가 있는 세션만 매장에 연결한다. production operations Edge는 `requireSocialIdentity: true`로 같은 조건을 검사한다. 공용 세션 발급 함수는 비활성화 소스로 변경했다. 실제 서버는 새 함수를 배포하기 전까지 이전 코드가 유지된다. 빈 매장/샘플 선택은 유지하며 기존 공용 매장 자동 인계와 실제 크루 초대 가입은 이 작업 범위 밖이다.
+CloudWorkspace는 Apple/Google identity가 있는 세션만 매장에 연결한다. production operations Edge는 `requireSocialIdentity: true`로 같은 조건을 검사한다. 공용 세션 발급 함수는 비활성화 소스로 변경했다. 실제 서버에 새 함수를 배포했으며 기존 공용 세션 발급은 비활성화되었다. 빈 매장/샘플 선택은 유지하며 기존 공용 매장 자동 인계와 실제 크루 초대 가입은 이 작업 범위 밖이다.
 
 AccountScreen → AccountController → SupabaseAccountRepository → `account` Edge → service-only SQL 경계다. preview는 본인/매장/members/owners/revision의 SHA-256 확인값, 파괴 범위, 매장명, 인원만 반환한다. 클라이언트가 userId를 지정하지 못하고 bearer 검증 결과만 사용한다. 최종 명시적 확인 후 최신 scope 비교 → 같은 Apple subject 확인/revoke → DB 잠금·scope 재비교 → 원자 삭제를 수행한다. 외부 Apple revoke와 DB commit 사이 장애는 재인증·재확인이 필요하며 분산 원자성을 주장하지 않는다.
 
 유일 사장님: workspace cascade로 documents/state/membership 삭제, 다른 크루 auth.users 보존. 다중 사장님: created_by를 남은 사장님으로 이관해 Auth FK cascade 방지. 크루/잔여 사장님: actorId 연결 개인정보·근무·급여와 history 개인 행 정리, 공유 완료 기록 작성자 비식별화, 기본 배정 해제, legacy recovery payload도 갱신한 뒤 본인 membership/auth.users 삭제. session/identity는 Auth FK cascade에 의존한다. orphan creator 상태는 fail closed. SQL 함수 EXECUTE는 service_role만 허용한다. SQL 테스트는 격리 PGlite의 모의 Auth FK로 검증했다. 운영 DB의 Auth identity/session 및 매장 FK cascade는 데이터 조회 없는 메타데이터 읽기로 확인했다. 실제 삭제·실기기 E2E는 배포 전 테스트 계정으로 별도 확인한다.
 
 로컬 백업은 기존 SharedPreferences 저장소의 해당 user scope만 지운다. 서버 삭제 이후 로컬 정리 오류는 삭제 실패로 되돌리지 않고 완료+기기 정리 안내를 표시한다. 개인정보 JSON을 앱과 정적 privacy/delete-account 페이지가 공유한다. [설정/배포/운영 확인](NATIVE_AUTH_SETUP.md).
+
+iOS file_picker는 JSON 문서 백업에만 사용한다. Podfile의 PICKER_MEDIA/PICKER_AUDIO를 false로 설정해 사용하지 않는 사진·오디오 API와 DKImagePickerController 의존성을 제외했다. 실제로 사용하지 않는 사진 권한 목적을 추가하지 않는다. 빌드 4의 Apple 처리 오류 90683을 이 변경으로 수정해 빌드 5를 업로드했다. 최종 처리 결과는 출시 기록에서 확인한다.
 
 ## 임시 공용 로그인·저장 최적화 · 2026-09-29
 

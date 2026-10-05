@@ -4,6 +4,10 @@
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
+# TAP Work imports/exports JSON documents only. Exclude unused photo/audio APIs.
+Pod::PICKER_MEDIA = false
+Pod::PICKER_AUDIO = false
+
 project 'Runner', {
   'Debug' => :debug,
   'Profile' => :release,
