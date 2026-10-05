@@ -506,7 +506,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                       ),
                               )
                             : tab == 1
-                            ? ManualWorkspace(ops: ops, query: manualQuery)
+                            ? ManualWorkspace(
+                                ops: ops,
+                                query: manualQuery,
+                                onClearSearch: () => updateView(() {
+                                  manualSearch.clear();
+                                  manualQuery = '';
+                                }),
+                              )
                             : manualQuery.trim().isNotEmpty
                             ? manualResultList()
                             : RefreshIndicator(

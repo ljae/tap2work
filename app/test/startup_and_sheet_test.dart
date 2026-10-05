@@ -29,8 +29,10 @@ void main() {
           },
         ),
       );
-      expect(find.text('매장을 준비하고 있어요'), findsOneWidget);
+      expect(find.text('매장을 준비하고 있어요'), findsNothing);
       expect(find.text('ready'), findsNothing);
+      expect(find.byType(BrandLogo), findsNothing);
+      expect(find.byType(AppLinearProgress), findsNothing);
       ready.completeError(StateError('offline'));
       await tester.pump();
       expect(find.text('다시 시도'), findsOneWidget);
@@ -59,9 +61,11 @@ void main() {
       final loading = ops.refresh();
       await tester.pump();
       expect(find.byType(AppLoadingScreen), findsOneWidget);
+      expect(find.byType(BrandLogo), findsNothing);
+      expect(find.byType(WorkspaceSkeleton), findsOneWidget);
       expect(find.byKey(const ValueKey('floating-menu-0')), findsNothing);
       await tester.pump(const Duration(seconds: 2));
-      expect(find.text('매장을 준비하고 있어요'), findsOneWidget);
+      expect(find.text('매장을 준비하고 있어요'), findsNothing);
       pending.complete();
       await loading;
       await tester.pumpAndSettle();
@@ -93,7 +97,7 @@ void main() {
       expect(find.text('다시 시도'), findsOneWidget);
       await tester.tap(find.text('다시 시도'));
       await tester.pump();
-      expect(find.text('매장을 준비하고 있어요'), findsOneWidget);
+      expect(find.text('매장을 준비하고 있어요'), findsNothing);
       expect(find.text('다시 시도'), findsNothing);
       retry.complete();
       await tester.pumpAndSettle();

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 185,
+  "revision": 187,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -889,6 +889,18 @@
       "source": "사용자 요청 · 2026-10-05",
       "updatedAt": "2026-10-05T03:46:08.597682+00:00",
       "implementation": "Deployed to tap2.work and operations v39; isolated Flutter 318/server 200 checks and public artifact verification passed. Current restaurant composed with 8 active operations and 5 legal references, preserving 8 menu recipes and 5 started/completed records."
+    },
+    {
+      "id": "D-087",
+      "category": "매뉴얼 UX",
+      "title": "휴대폰 매뉴얼 편집·마켓 노출과 중복 로딩 수정",
+      "status": "confirmed",
+      "decision": "운영 매뉴얼에 항상 보이는 마켓/편집 완료, 터치 드래그·가장자리 스크롤, 선택 체크리스트 즉시 열기와 중복 초기 로딩 제거",
+      "previous": "작은 높이/검색 시 마켓과 완료 버튼 숨김, 모바일 손잡이 long-press/Tooltip 충돌, 초기 작은 로고 로딩 중복",
+      "next": "높이에 독립한 핵심 버튼, 48px 즉시 드래그, 성공 시 선택한 신규 TAP 열기, 초기 무브랜드 대기와 매장 스켈레톤",
+      "reason": "사용자가 휴대폰 실제 드래그 불가·마켓 미노출·편집 완료 부재와 중복 로딩을 지적",
+      "source": "사용자 요청 · 2026-10-05",
+      "updatedAt": "2026-10-05T04:06:11.791730+00:00"
     }
   ],
   "milestones": [
@@ -6066,7 +6078,24 @@
           "sha256": "d95bc67ac88e7654104a2ce002feae28fb989556e057a1af45b21e33336dd809"
         }
       ]
+    },
+    {
+      "at": "2026-10-05T04:06:11.791730+00:00",
+      "type": "implementation",
+      "decisionId": "D-087",
+      "summary": "휴대폰 매뉴얼 핵심 제어·선택 가져오기·중복 로딩 수정. 웹 배포 진행 중.",
+      "verification": [
+        "분리 배포본 Flutter 전체 326개 및 최종 마켓/휴대폰/디렉토리 28개 검증 통과. 최종 Flutter 분석 오류 없음.",
+        "320/390px TAP/Task 실제 터치 드래그 요청·편집 완료·짧은 화면 마켓 노출·가장자리 스크롤 검증 통과.",
+        "UI 관계 40개 및 JavaScript/불변 카탈로그 검사 통과.",
+        "초기 검증의 기존 추가 버튼 부재 회귀를 복구. 편집 애니메이션 캡처 대기 오류는 동작 줄이기 모드로 수정.",
+        "320/390px 일반·편집 4개 캡처 생성, 편집 화면 제목·핵심 버튼·손잡이 가독성 검토."
+      ],
+      "limitations": [
+        "네이티브 빌드·실기기 검증 미수행.",
+        "서버/API/실제 저장 체크리스트 데이터는 이번 수정에서 변경하지 않음."
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T03:46:08.597682+00:00"
+  "updatedAt": "2026-10-05T04:07:32.673863+00:00"
 }

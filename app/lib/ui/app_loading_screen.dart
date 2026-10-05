@@ -4,7 +4,13 @@ import 'components.dart';
 
 /// Real startup/data loading, without a fabricated percentage or minimum delay.
 class AppLoadingScreen extends StatefulWidget {
-  const AppLoadingScreen({super.key, this.error, this.onRetry});
+  const AppLoadingScreen({
+    super.key,
+    this.error,
+    this.onRetry,
+    this.showSkeleton = true,
+  });
+  final bool showSkeleton;
   final String? error;
   final VoidCallback? onRetry;
   @override
@@ -47,54 +53,59 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppColors.paper,
-    body: SafeArea(
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(32),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Center(child: BrandLogo()),
-                const SizedBox(height: 40),
-                Semantics(
-                  liveRegion: true,
-                  child: Text(
-                    widget.error != null ? '연결을 확인해 주세요' : '매장을 준비하고 있어요',
-                    textAlign: TextAlign.center,
-                    style: AppText.section,
+  Widget build(BuildContext context) => widget.error == null && !slow
+      ? Scaffold(
+          backgroundColor: AppColors.paper,
+          body: widget.showSkeleton
+              ? const WorkspaceSkeleton()
+              : const SizedBox.expand(),
+        )
+      : Scaffold(
+          backgroundColor: AppColors.paper,
+          body: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(32),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 360),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          widget.error != null ? '연결을 확인해 주세요' : '매장을 준비하고 있어요',
+                          textAlign: TextAlign.center,
+                          style: AppText.section,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        widget.error ??
+                            (slow
+                                ? '연결이 조금 늦어지고 있어요. 잠시만 기다려 주세요.'
+                                : '오늘의 업무와 근무표를 불러와요.'),
+                        textAlign: TextAlign.center,
+                        style: AppText.caption,
+                      ),
+                      const SizedBox(height: 28),
+                      if (widget.error == null)
+                        const ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          child: AppLinearProgress(minHeight: 4),
+                        ),
+                      if (widget.error != null && widget.onRetry != null)
+                        FilledButton.icon(
+                          onPressed: widget.onRetry,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('다시 시도'),
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  widget.error ??
-                      (slow
-                          ? '연결이 조금 늦어지고 있어요. 잠시만 기다려 주세요.'
-                          : '오늘의 업무와 근무표를 불러와요.'),
-                  textAlign: TextAlign.center,
-                  style: AppText.caption,
-                ),
-                const SizedBox(height: 28),
-                if (widget.error == null)
-                  const ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(4)),
-                    child: AppLinearProgress(minHeight: 4),
-                  ),
-                if (widget.error != null && widget.onRetry != null)
-                  FilledButton.icon(
-                    onPressed: widget.onRetry,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('다시 시도'),
-                  ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    ),
-  );
+        );
 }

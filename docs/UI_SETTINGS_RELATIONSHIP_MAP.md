@@ -329,3 +329,5 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 | ID | source → control → action | consumer | 검증 |
 | --- | --- | --- | --- |
 | S47 | manualCatalog → ManualMarketScreen(setup) → configure_manual_business | manualBusinessProfile, 목적별 양식·업무 활성화·교체 보관 | manual_market.test.mjs, manual_market_discovery_test.dart |
+
+2026-10-05 S14/S45/E06 수정: manualSearch/taskTemplates → 항상 보이는 마켓·편집 완료 + 터치 Draggable/가장자리 스크롤 → 기존 move_manual_node/import_market_taps → revision/권한 검사 후 디렉토리 동기화 및 가져온 항목 펼침. 가져오기 성공 시 부모 검색을 onClearSearch로 해제한다. AppStartup 정상 대기에는 작은 로고/진행 카드를 표시하지 않고 매장 데이터 대기는 WorkspaceSkeleton을 사용하며 오류 재시도는 유지한다. manual_phone_fix_test.dart, manual_workspace_test.dart, startup_and_sheet_test.dart, ui_ux_audit_test.dart로 검증한다.

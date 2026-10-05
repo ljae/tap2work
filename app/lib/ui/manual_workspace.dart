@@ -3,6 +3,7 @@ import 'catalog_editor.dart';
 import 'manual_market_screen.dart';
 import 'checklist_backup_screen.dart';
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,9 +15,15 @@ import 'checklist_editor.dart';
 
 /// A manual belongs to one Task. The tree changes reusable definitions only.
 class ManualWorkspace extends StatefulWidget {
-  const ManualWorkspace({super.key, required this.ops, required this.query});
+  const ManualWorkspace({
+    super.key,
+    required this.ops,
+    required this.query,
+    this.onClearSearch,
+  });
   final OperationsController ops;
   final String query;
+  final VoidCallback? onClearSearch;
   @override
   State<ManualWorkspace> createState() => _ManualWorkspaceState();
 }
@@ -37,6 +44,92 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   OperationsController get ops => widget.ops;
   bool get canEdit => ops.canEditTasks && !ops.busy;
   Json copy(Json row) => jsonDecode(jsonEncode(row)) as Json;
+
+  final directoryScroll = ScrollController();
+  final directoryViewport = GlobalKey();
+  Timer? dragScroll;
+  double dragScrollSpeed = 0;
+
+  @override
+  void dispose() {
+    dragScroll?.cancel();
+    directoryScroll.dispose();
+    super.dispose();
+  }
+
+  void stopDragScroll() {
+    dragScroll?.cancel();
+    dragScroll = null;
+    dragScrollSpeed = 0;
+  }
+
+  void scrollDrag(DragUpdateDetails details) {
+    final box =
+        directoryViewport.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !directoryScroll.hasClients) return;
+    final y = box.globalToLocal(details.globalPosition).dy;
+    dragScrollSpeed = y < 56
+        ? -10
+        : y > box.size.height - 56
+        ? 10
+        : 0;
+    if (dragScrollSpeed == 0) {
+      stopDragScroll();
+      return;
+    }
+    dragScroll ??= Timer.periodic(const Duration(milliseconds: 32), (_) {
+      if (!mounted || !directoryScroll.hasClients) {
+        stopDragScroll();
+        return;
+      }
+      final position = directoryScroll.position;
+      directoryScroll.jumpTo(
+        (position.pixels + dragScrollSpeed).clamp(
+          position.minScrollExtent,
+          position.maxScrollExtent,
+        ),
+      );
+    });
+  }
+
+  Future<void> openMarket() async {
+    final before = ops.rows('taskTemplates').map((t) => t['id']).toSet();
+    final openingActor = ops.actorId,
+        openingWorkspace = ops.data?['workspaceId'];
+    final imported = await showAppSheet<List<String>>(
+      context,
+      builder: (_) => ManualMarketScreen(ops: ops, folderId: scopeGroup),
+    );
+    if (imported == null ||
+        !mounted ||
+        ops.actorId != openingActor ||
+        ops.data?['workspaceId'] != openingWorkspace) {
+      return;
+    }
+    final added = ops
+        .rows('taskTemplates')
+        .where(
+          (t) =>
+              !before.contains(t['id']) &&
+              imported.contains(
+                ops.data?['catalogLinks']?[t['id']]?['sourceId'],
+              ) &&
+              t['archivedAt'] == null &&
+              t['menuManualId'] == null,
+        )
+        .toList();
+    if (added.isEmpty) return;
+    widget.onClearSearch?.call();
+    setState(() {
+      sync(force: true);
+      scopeGroup = added.first['folderId'];
+      scopeTap = added.first['id'];
+      selectedId = null;
+      showTree = false;
+      expanded.addAll(folders.map((f) => 'group:${f['id']}'));
+      expanded.addAll(taps.map((t) => 'tap:${t['tapId']}'));
+    });
+  }
 
   void sync({bool force = false}) {
     final changedActor = actor != ops.actorId;
@@ -427,14 +520,15 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     int count = 0,
     String? durationText,
   }) {
+    final compactEdit = editingTree && MediaQuery.sizeOf(context).width < 700;
     final key = '$kind:$id${kind == 'task' ? ':$tapId' : ''}';
     final data = drag(kind, id, tapId: tapId);
-    final handle = Tooltip(
+    final handle = Semantics(
       key: ValueKey('manual-drag-$key'),
-      message: '순서·소속 드래그',
+      label: '순서·소속 드래그',
       child: SizedBox(
-        width: 36,
-        height: 44,
+        width: 48,
+        height: 48,
         child: Icon(Icons.drag_indicator, size: 18, color: AppColors.muted),
       ),
     );
@@ -495,7 +589,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               ),
             )
           else
-            const SizedBox(width: 48),
+            SizedBox(width: compactEdit ? 8 : 48),
           Expanded(
             child: InkWell(
               key: ValueKey('manual-node-$key'),
@@ -507,16 +601,17 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      kind == 'group'
-                          ? CupertinoIcons.folder
-                          : kind == 'tap'
-                          ? CupertinoIcons.square_list
-                          : CupertinoIcons.doc_text,
-                      size: 17,
-                      color: AppColors.green,
-                    ),
-                    const SizedBox(width: 7),
+                    if (!compactEdit)
+                      Icon(
+                        kind == 'group'
+                            ? CupertinoIcons.folder
+                            : kind == 'tap'
+                            ? CupertinoIcons.square_list
+                            : CupertinoIcons.doc_text,
+                        size: 17,
+                        color: AppColors.green,
+                      ),
+                    if (!compactEdit) const SizedBox(width: 7),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -564,6 +659,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                           if (durationText != null)
                             Text(
                               durationText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 13,
                                 color: AppColors.muted,
@@ -585,7 +682,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               ),
             ),
           ),
-          if (editable && canEdit && kind != 'group')
+          if (editable && canEdit && kind != 'group' && !compactEdit)
             IconButton(
               key: ValueKey('manual-detail-$key'),
               tooltip: kind == 'tap' ? 'TAP 상세 수정' : 'Task 상세 수정',
@@ -635,14 +732,14 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                   ),
               ],
             ),
-            if (MediaQuery.sizeOf(context).width < 700)
-              LongPressDraggable<Json>(
-                data: data,
-                feedback: feedback,
-                child: handle,
-              )
-            else
-              Draggable<Json>(data: data, feedback: feedback, child: handle),
+            Draggable<Json>(
+              data: data,
+              feedback: feedback,
+              onDragUpdate: scrollDrag,
+              onDragEnd: (_) => stopDragScroll(),
+              childWhenDragging: Opacity(opacity: .3, child: handle),
+              child: handle,
+            ),
           ],
         ],
       ),
@@ -805,11 +902,15 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         }
       }
     }
-    return ListView.builder(
-      key: const ValueKey('manual-directory'),
-      padding: const EdgeInsets.all(8),
-      itemCount: nodes.length,
-      itemBuilder: (_, index) => nodes[index],
+    return KeyedSubtree(
+      key: directoryViewport,
+      child: ListView.builder(
+        controller: directoryScroll,
+        key: const ValueKey('manual-directory'),
+        padding: const EdgeInsets.all(8),
+        itemCount: nodes.length,
+        itemBuilder: (_, index) => nodes[index],
+      ),
     );
   }
 
@@ -1130,7 +1231,46 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       ),
                     ],
                   ),
-                  if (!recipes && ops.canEditTasks && toolsVisible)
+                  if (!recipes && ops.canEditTasks)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton.icon(
+                            key: const ValueKey('manual-market-button'),
+                            onPressed: ops.busy ? null : openMarket,
+                            icon: const Icon(
+                              Icons.storefront_outlined,
+                              size: 18,
+                            ),
+                            label: const Text('매뉴얼 마켓', style: AppText.caption),
+                          ),
+                        ),
+                        Expanded(
+                          child: TextButton(
+                            key: const ValueKey('manual-edit-done'),
+                            onPressed: ops.busy
+                                ? null
+                                : () => setState(() {
+                                    stopDragScroll();
+                                    if (editing) {
+                                      editPane = null;
+                                    } else {
+                                      editPane = _ManualEditPane.directory;
+                                      showTree = true;
+                                      expanded.addAll(
+                                        folders.map((f) => 'group:${f['id']}'),
+                                      );
+                                    }
+                                  }),
+                            child: Text(
+                              editing ? '편집 완료' : '위치·순서 편집',
+                              style: AppText.caption,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  if (!recipes && ops.canEditTasks && toolsVisible && !editing)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(
@@ -1154,18 +1294,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       spacing: 8,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        if (ops.canEditTasks && toolsVisible) ...[
-                          TextButton.icon(
-                            onPressed: () => showAppSheet(
-                              context,
-                              builder: (_) => ManualMarketScreen(
-                                ops: ops,
-                                folderId: scopeGroup,
-                              ),
-                            ),
-                            icon: const Icon(Icons.storefront_outlined),
-                            label: const Text('매뉴얼 마켓'),
-                          ),
+                        if (ops.canEditTasks && toolsVisible && !editing) ...[
                           TextButton.icon(
                             onPressed: () => showAppSheet(
                               context,
@@ -1217,10 +1346,9 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                             }),
                           ),
                         if (ops.canEditTasks && toolsVisible)
-                          DirectEditBar(
-                            active: editing,
-                            onDone: () => setState(() => editPane = null),
-                            onAdd: () => directEditNode(
+                          TextButton.icon(
+                            icon: const Icon(Icons.add, size: 18),
+                            onPressed: () => directEditNode(
                               context,
                               ops,
                               'edit_manual_node',
@@ -1235,11 +1363,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                               },
                               '',
                             ),
-                            addLabel: scopeTap != null
-                                ? 'Task 추가'
-                                : scopeGroup != null
-                                ? 'TAP 추가'
-                                : '그룹 추가',
+                            label: Text(
+                              scopeTap != null
+                                  ? 'Task 추가'
+                                  : scopeGroup != null
+                                  ? 'TAP 추가'
+                                  : '그룹 추가',
+                            ),
                           ),
                         if (editing && ops.readOnly)
                           const Text(
@@ -1264,7 +1394,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
                         editingTree
-                            ? '폴더 구조 편집 · 이름을 눌러 수정해요. TAP은 폴더로, Task는 TAP으로 옮겨요.'
+                            ? '손잡이를 끌어 TAP·Task를 옮겨요. 위아래 끝에서는 자동으로 스크롤돼요.'
                             : 'Task 편집 · 카드에서 이름·위치·삭제를 선택해요.',
                         style: TextStyle(fontSize: 13, color: AppColors.muted),
                       ),

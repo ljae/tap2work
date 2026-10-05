@@ -92,7 +92,11 @@ class _AppStartupState extends State<AppStartup> {
       destination ??
       Tap2workApp(
         controller: work,
-        homeOverride: AppLoadingScreen(error: error, onRetry: start),
+        homeOverride: AppLoadingScreen(
+          error: error,
+          onRetry: start,
+          showSkeleton: false,
+        ),
       );
 }
 

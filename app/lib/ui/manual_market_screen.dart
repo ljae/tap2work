@@ -89,7 +89,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
     setState(() => saving = false);
     if (ok) {
       final messenger = ScaffoldMessenger.of(context);
-      Navigator.pop(context);
+      Navigator.pop(context, selected.toList());
       messenger.showSnackBar(
         SnackBar(
           content: Text(
