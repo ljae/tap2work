@@ -1,6 +1,20 @@
-## 2026-10-05 실제 배포 진행
+## 2026-10-05 실제 배포·스토어 등록 결과
 
-tap2.work 웹은 ce63567 / GitHub Actions 37314183425로 배포 성공했다. Supabase account v1, operations v43, public-login v3가 ACTIVE이며 새 삭제 SQL을 적용했다. App Store Connect 앱 6819216931의 이름은 TAP Work, iOS 버전은 1.0.0이다. 서명 IPA 빌드 4는 전송 후 Apple 처리에서 미사용 사진 SDK 권한 설명 오류 90683으로 거절되어 사진/오디오 SDK를 제외한 빌드 5로 재업로드했다. 최종 처리와 스토어 정보 입력을 진행 중이다. 아래 초기 점검은 과거 기록이다.
+웹은 `676b6f0` / [GitHub Actions 37316667822](https://github.com/ljae/tap2work/actions/runs/37316667822)로 배포 성공. 홈페이지·개인정보·계정 삭제 안내 모두 HTTP 200이다. Supabase account v1, operations v43, public-login v3와 삭제 SQL을 배포했다.
+
+[App Store Connect](https://appstoreconnect.apple.com/apps/6819216931/distribution/ios/version/inflight): iOS **1.0.0 빌드 5**, 처리 **VALID**, 버전 **PREPARE_FOR_SUBMISSION**. 빌드 4의 미사용 사진 SDK 오류 90683을 수정한 빌드 5가 통과했다. ITMS-90068은 오류가 아닌 경고 1건이며, [iOS 15 최소 지원 요구는 2027년 4월부터](https://developer.apple.com/app-store/submitting/) 적용된다.
+
+Aside CLI로 저장·확인한 항목:
+
+- 한국어·영어 이름/부제/설명/키워드/URL, Business/Productivity, 콘텐츠 권리, 4+·한국 전체 이용가.
+- 무료 가격, 175개 국가·지역. 사용자가 콘텐츠 배포 권리 확보를 확인했다.
+- 개인정보 10종, 앱 기능 목적·사용자 식별 연결·추적 없음으로 게시. 방침·삭제 URL 저장.
+- 실제 가상 샘플 화면 iPhone/iPad 각 4장, 업무→매뉴얼→근무표→우리매장 순서. 영어 원본을 한국어에 상속.
+- 빌드 5 연결, 비면제 암호화 없음. 제공된 Google 계정·심사 연락처·안내는 심사 전용 필드에 저장. 자격증명은 소스에 기록하지 않는다.
+
+미실시: 실기기 설치·실제 OAuth 왕복·계정 삭제 검증 및 심사 제출/승인. 기존 승인 후 자동 출시 설정은 유지했다. 기본 언어 en-US 유지: 한국어 변경은 Apple의 각 버전 스크린샷 요건으로 미완료이나 한국어 현지화와 화면 상속은 확인했다. 중국 ICP 번호는 미제공으로 미입력. 기존 DSA Trader 상태 유지, 추가 서류 요구는 발견되지 않았다. 전 지역 선택이 지역별 출시 요건 충족을 보장하지 않는다. macOS 초안은 변경하지 않았다.
+
+아래 초기 점검은 과거 기록이며 현재 상태는 이 절과 최신 project-state.json 이력을 따른다.
 
 # App Store 출시·매장 구독 준비
 

@@ -1,6 +1,6 @@
 # TAP Work 로그인·개인정보·계정 삭제 설정
 
-2026-10-05. 운영자 **OpenEdu**, 문의 **esther.runstrict@gmail.com**. Aside CLI로 실제 콘솔을 확인하고 Google/Apple provider, Apple 키, 서버 secrets, callback 설정을 완료했다. 삭제 SQL과 account/operations/public-login 함수·tap2.work 웹 배포를 완료했다. iOS 서명 IPA를 업로드했으며 최종 처리 확인·실기기 로그인은 별도다. 참고 앱 runner와 같은 네이티브 SDK → ID token → Supabase 구조이며 TAP Work 전용 OAuth 값을 사용한다.
+2026-10-05. 운영자 **OpenEdu**, 문의 **esther.runstrict@gmail.com**. Aside CLI로 실제 콘솔을 확인하고 Google/Apple provider, Apple 키, 서버 secrets, callback 설정을 완료했다. 삭제 SQL과 account/operations/public-login 함수·tap2.work 웹 배포를 완료했다. iOS 1.0.0 빌드 5 서명 IPA가 Apple 처리 VALID를 통과하고 iOS 제출 준비 버전에 연결되었다. 실기기 로그인은 별도다. 참고 앱 runner와 같은 네이티브 SDK → ID token → Supabase 구조이며 TAP Work 전용 OAuth 값을 사용한다.
 
 ## 실제 설정 확인 결과
 

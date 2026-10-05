@@ -1,6 +1,6 @@
 ## 개인 인증·삭제 경계 · 2026-10-05
 
-실제 Supabase Apple/Google provider와 callback allowlist, 계정 삭제용 Apple 서버 secrets를 설정했다. Apple Services ID `com.tap2work.tap2work.web`는 primary `com.tap2work.tap2work`에 연결되며 Xcode 팀은 실제 App ID 소유 팀 `RQZACLWJ7M`이다. Google은 TAP Work 전용 Web/iOS client를 사용한다. 두 provider의 authorize 302 목적지/client ID를 확인했다. tap2.work 웹과 account/operations/public-login 함수, 삭제 SQL 배포 및 iOS 서명 아카이브를 완료했다. OAuth 왕복·실기기 로그인/삭제는 아직 검증하지 않았다. 기존 운영 이메일 provider는 웹 전환 전까지 유지한다. Apple OAuth JWT는 2027-04-03 만료 전에 갱신해야 한다. 공개 식별자와 운영 절차는 [설정 문서](NATIVE_AUTH_SETUP.md)에 기록한다.
+실제 Supabase Apple/Google provider와 callback allowlist, 계정 삭제용 Apple 서버 secrets를 설정했다. Apple Services ID `com.tap2work.tap2work.web`는 primary `com.tap2work.tap2work`에 연결되며 Xcode 팀은 실제 App ID 소유 팀 `RQZACLWJ7M`이다. Google은 TAP Work 전용 Web/iOS client를 사용한다. 두 provider의 authorize 302 목적지/client ID를 확인했다. tap2.work 웹과 account/operations/public-login 함수, 삭제 SQL 배포 및 iOS 서명 아카이브를 완료했다. OAuth 왕복·실기기 로그인/삭제는 아직 검증하지 않았다. 기존 운영 이메일 provider는 이전 계정 복구를 위해 유지하되 앱 UI와 operations 서버는 Apple/Google identity를 요구한다. Apple OAuth JWT는 2027-04-03 만료 전에 갱신해야 한다. 공개 식별자와 운영 절차는 [설정 문서](NATIVE_AUTH_SETUP.md)에 기록한다.
 
 이 절은 아래 과거 임시 공용 로그인 설명을 대체한다. UI → AuthRepository → NativeAuthService → Apple/Google SDK → Supabase `signInWithIdToken`으로 iOS 세션을 만든다. Apple nonce는 클라이언트 난수의 SHA-256을 SDK에, 원문을 Supabase에 전달한다. Android Google은 네이티브 SDK, Apple은 웹 OAuth/deep link이며 브라우저는 OAuth다. 로그인 취소는 오류로 취급하지 않는다. 공개 ID만 앱 define에 넣으며 `.p8`/OAuth secret은 서버에만 있다.
 
@@ -12,7 +12,7 @@ AccountScreen → AccountController → SupabaseAccountRepository → `account` 
 
 로컬 백업은 기존 SharedPreferences 저장소의 해당 user scope만 지운다. 서버 삭제 이후 로컬 정리 오류는 삭제 실패로 되돌리지 않고 완료+기기 정리 안내를 표시한다. 개인정보 JSON을 앱과 정적 privacy/delete-account 페이지가 공유한다. [설정/배포/운영 확인](NATIVE_AUTH_SETUP.md).
 
-iOS file_picker는 JSON 문서 백업에만 사용한다. Podfile의 PICKER_MEDIA/PICKER_AUDIO를 false로 설정해 사용하지 않는 사진·오디오 API와 DKImagePickerController 의존성을 제외했다. 실제로 사용하지 않는 사진 권한 목적을 추가하지 않는다. 빌드 4의 Apple 처리 오류 90683을 이 변경으로 수정해 빌드 5를 업로드했다. 최종 처리 결과는 출시 기록에서 확인한다.
+iOS file_picker는 JSON 문서 백업에만 사용한다. Podfile의 PICKER_MEDIA/PICKER_AUDIO를 false로 설정해 사용하지 않는 사진·오디오 API와 DKImagePickerController 의존성을 제외했다. 실제로 사용하지 않는 사진 권한 목적을 추가하지 않는다. 빌드 4의 Apple 처리 오류 90683을 이 변경으로 수정해 빌드 5를 업로드했고 Apple 처리 VALID를 통과했다. ITMS-90068은 iOS 13 최소 지원에 대한 경고로, 현재 처리를 막지 않는다. 2027-04부터 iOS 15 이상이 요구된다.
 
 ## 임시 공용 로그인·저장 최적화 · 2026-09-29
 

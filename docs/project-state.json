@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 198,
+  "revision": 199,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -978,6 +978,18 @@
       "reason": "사용자의 네이티브 로그인/개인정보/삭제 구현 요청과 운영자·이메일·유일 사장님 삭제 범위 답변.",
       "source": "사용자 요청 및 후속 답변 2026-10-05",
       "updatedAt": "2026-10-05T10:47:16.626457+00:00"
+    },
+    {
+      "id": "D-094",
+      "category": "출시",
+      "title": "전 지원 지역 무료 출시와 콘텐츠 사용 권리 확인",
+      "status": "confirmed",
+      "decision": "첫 출시는 Apple이 지원하는 모든 국가·지역에 무료로 설정한다. 사용자가 콘텐츠 제작·배포 권리 확보를 확인했다. 제공한 Google 심사 계정은 심사 전용 필드에 저장하며 자격증명은 저장소에 기록하지 않는다.",
+      "previous": "출시 지역·콘텐츠 권리 확인 대기",
+      "next": "175개 국가·지역 무료 출시 설정 및 권리 확인",
+      "reason": "사용자의 출시 지역·권리 확인 답변과 심사용 Google 로그인 등록 요청.",
+      "source": "사용자 답변 2026-10-05",
+      "updatedAt": "2026-10-05T13:40:04.655Z"
     }
   ],
   "milestones": [
@@ -6583,7 +6595,45 @@
         "첫 캡처 검사는 debug 플랫폼 전역 해제 시점 오류 후 수정해 통과. 첫 빌드 시 임시 디렉토리 경로 누락을 바로잡았다.",
         "롤백 다운로드 CLI가 상위 프로젝트로 이동해 소스 2개를 덮어썼고, 다운로드 사본을 별도 보관한 후 검증된 배포 소스에서 정확히 복원했다."
       ]
+    },
+    {
+      "at": "2026-10-05T13:40:04.655Z",
+      "type": "deployment",
+      "decisionId": "D-094",
+      "summary": "웹 최신 배포 성공 및 App Store Connect 1.0.0 빌드 5 VALID 확인. Aside CLI로 스토어 메타데이터 저장 완료. 심사 미제출.",
+      "previous": {
+        "iosProcessing": "build 5 pending",
+        "metadata": "in progress"
+      },
+      "next": {
+        "webCommit": "676b6f0",
+        "webRun": 37316667822,
+        "iosVersion": "1.0.0",
+        "iosBuild": "5",
+        "iosProcessing": "VALID",
+        "iosVersionState": "PREPARE_FOR_SUBMISSION",
+        "price": "free",
+        "availableTerritories": 175,
+        "primaryLocale": "en-US"
+      },
+      "reason": "웹 배포·스토어 정보 입력 요청을 완료하고 ITMS-90068의 실제 처리 결과를 검증했다.",
+      "verification": [
+        "GitHub Actions 37316667822 success; 일반 홈페이지·개인정보·삭제 안내 URL HTTP 200, title TAP Work.",
+        "altool 및 ASC API 빌드 5 VALID/APP_STORE_ELIGIBLE, iOS 버전에 빌드 연결 확인.",
+        "Aside: 무료·175개 국가, Business/Productivity, 콘텐츠 권리, 4+·한국 전체 이용가 저장.",
+        "한·영 메타데이터/URL 저장. 영어 iPhone/iPad 각 4장 COMPLETE, 1→4 순서. 한국어 동일 화면 상속 UI 확인.",
+        "개인정보 10종을 앱 기능 목적·개인 식별 연결·추적 없음으로 게시.",
+        "심사 전용 계정 필드 값 존재·Google 안내·로그인 필수 확인. 자격증명·심사 연락처는 이력에 기록하지 않음.",
+        "ITMS-90068은 errors 0/warnings 1. iOS 13 빌드 VALID이며 공식 iOS 15 최소 지원 요구는 2027-04부터."
+      ],
+      "limitations": [
+        "심사 제출·승인·공개 미실시. 기존 승인 후 자동 출시 설정 유지.",
+        "실기기 설치·실제 Google/Apple OAuth 왕복·실제 계정 삭제 미검증.",
+        "기본 언어 en-US 유지. Apple 각 버전 스크린샷 요건으로 한국어 기본 언어 변경 미완료; 한국어 현지화와 화면 상속은 저장됨.",
+        "중국 ICP 번호 미제공으로 미입력. 모든 지역 선택이 지역별 출시 요건 충족을 보장하지 않음. DSA 기존 Trader 유지, 추가 서류 요구 발견되지 않음.",
+        "macOS 초안 변경하지 않음."
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T13:25:16.784859+00:00"
+  "updatedAt": "2026-10-05T13:40:04.655Z"
 }
