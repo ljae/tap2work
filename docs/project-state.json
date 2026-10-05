@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 184,
+  "revision": 185,
   "product": {
     "name": "tap2work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -874,7 +874,8 @@
       "next": "36px 정각/반시간 축, 동시 열 비례 너비, 페이지 세로 스크롤, 하단 통합 크루 추가, 과거 휴일/업무와 오늘 이후 휴무/영업",
       "reason": "휴대폰에서 4개 배치를 가로 이동 없이 확인하고 날짜 선택으로 쉽게 돌아가도록 사용자 요청",
       "source": "사용자 요청 · 2026-10-05",
-      "updatedAt": "2026-10-05T03:38:52.589514+00:00"
+      "updatedAt": "2026-10-05T03:46:08.597682+00:00",
+      "implementation": "Deployed to tap2.work and operations v39; isolated Flutter 318/server 200 checks and public artifact verification passed. Current restaurant composed with 8 active operations and 5 legal references, preserving 8 menu recipes and 5 started/completed records."
     },
     {
       "id": "D-086",
@@ -886,7 +887,8 @@
       "next": "업종·특성 선택 → 필요한 공통/업종 항목 담기 → 목적별 구성, 운영 매뉴얼/메뉴·레시피 분리",
       "reason": "기존 매뉴얼·업무 교체를 허용하고 창업 사장님 관점 재설계를 요청. 현재 사업장은 고기집·뼈찜, 레시피는 매장 커스터마이징",
       "source": "사용자 요청 · 2026-10-05",
-      "updatedAt": "2026-10-05T03:38:52.589514+00:00"
+      "updatedAt": "2026-10-05T03:46:08.597682+00:00",
+      "implementation": "Deployed to tap2.work and operations v39; isolated Flutter 318/server 200 checks and public artifact verification passed. Current restaurant composed with 8 active operations and 5 legal references, preserving 8 menu recipes and 5 started/completed records."
     }
   ],
   "milestones": [
@@ -6009,7 +6011,62 @@
         "네이티브 빌드·실기기 검증 미수행.",
         "공개 배포 및 현재 매장 구성 저장은 아직 진행 중."
       ]
+    },
+    {
+      "at": "2026-10-05T03:46:08.597682+00:00",
+      "type": "deployment",
+      "decisionIds": [
+        "D-085",
+        "D-086"
+      ],
+      "summary": "모바일 근무표와 마켓 중심 사업장 매뉴얼 구성을 tap2.work에 배포하고 현재 공유 매장에 적용·재조회 검증했다.",
+      "commit": "96e74e86e321514b55fd388c598abaf38647fb56",
+      "workflow": "https://github.com/ljae/tap2work/actions/runs/37260444543",
+      "backend": {
+        "previousVersion": 38,
+        "version": 39,
+        "status": "ACTIVE",
+        "verifiedAt": "2026-10-05T03:40:51.504Z"
+      },
+      "currentStore": {
+        "revisionBefore": 112,
+        "revisionAfter": 113,
+        "selectedManuals": 13,
+        "enabledOperations": 8,
+        "legalReferenceCount": 5,
+        "recipesPreserved": 8,
+        "startedOrCompletedPreserved": 5,
+        "salesMenusPreserved": true
+      },
+      "verification": [
+        "배포용 분리 작업트리 Flutter 분석·전체 318개, 서버 200개, JS/마켓 발행본/UI 관계 40개 통과. GitHub 배포 CI 전체 통과.",
+        "320/390/1200px 6개 화면 캡처와 작은 화면 이름/버튼/스크롤 검토. 키보드·큰 글자 회귀 검사 통과.",
+        "로컬 app/build/web 및 분리 공개 review-web 빌드 성공. 공개 root/index/bootstrap/main HTTP 200과 CI artifact SHA-256 일치.",
+        "operations v38 소스 백업 후 v39 ACTIVE, 배포 함수에 사업장 구성·레시피 분리 코드 확인.",
+        "현재 공유 매장 normal authenticated API를 통한 선택 13개 구성: 운영 8개 활성·법적 참고 5개 OFF. 메뉴·레시피 8개 및 진행·완료 기록 5건 내용 보존, 재조회 revision 113.",
+        "DB migration·다른 매장 전체 초기화·네이티브 빌드·실기기 검증은 수행하지 않음."
+      ],
+      "assets": [
+        {
+          "file": "index.html",
+          "status": 200,
+          "matches": true,
+          "sha256": "d989147259735811e8d00a2fb599b94bfc24435b5b50268ba6135b0692155d9f"
+        },
+        {
+          "file": "flutter_bootstrap.c75e806f33ca681b8375.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "c75e806f33ca681b8375794a3cccc7d95b749f7083a9a04471c526746bbe771c"
+        },
+        {
+          "file": "main.d95bc67ac88e7654104a.dart.js",
+          "status": 200,
+          "matches": true,
+          "sha256": "d95bc67ac88e7654104a2ce002feae28fb989556e057a1af45b21e33336dd809"
+        }
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T03:40:37.381946+00:00"
+  "updatedAt": "2026-10-05T03:46:08.597682+00:00"
 }
