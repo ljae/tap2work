@@ -1,6 +1,6 @@
 # 매뉴얼 마켓 공용 원본
 
-기존 CHECKLISTS.md와 checklist-library.json의 준비된 콘텐츠를 가져온 첫 원본입니다. 각 tap2work-tap 블록의 sourceId와 Task id는 발행 후 유지합니다. 내용을 수정한 뒤 npm run market:build로 새 불변 발행본을 만듭니다.
+기존 64 TAP의 콘텐츠와 ID를 보존하고 전체 업종 탐색 메타데이터 및 공통·법적 기준 확인 항목을 추가했습니다. 법적 기준 카드는 적용 대상과 출처 범위가 있는 확인용 초안이며 법 준수 판정이 아닙니다.
 
 ## 외식 공통 · 첫 매장 · 오늘의 공석과 인수인계 읽기
 
@@ -37,6 +37,23 @@
       "tip": "메모를 읽은 것과 준비를 마친 것은 달라요.",
       "tags": [],
       "sourceUrl": "https://www.gov.uk/government/publications/safer-food-better-business-for-caterers"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "people",
+  "kind": "operation",
+  "summary": "인수인계에서 바뀐 일 찾기 · 담당과 도움받을 사람 확인",
+  "applicability": "외식 공통 · 첫 매장의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.gov.uk/government/publications/safer-food-better-business-for-caterers",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -78,6 +95,23 @@
       "tags": [],
       "sourceUrl": "https://www.gov.uk/government/publications/safer-food-better-business-for-caterers"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "원물과 완성식품 구역 나누기 · 작업대 세척 후 준비",
+  "applicability": "외식 공통 · 첫 매장의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.gov.uk/government/publications/safer-food-better-business-for-caterers",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -117,6 +151,23 @@
       "tip": "젖은 바닥에 표지만 세우고 마감하지 않아요.",
       "tags": [],
       "sourceUrl": "https://www.gov.uk/government/publications/safer-food-better-business-for-caterers"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "hygiene",
+  "kind": "operation",
+  "summary": "사용 식기와 깨끗한 식기 분리 · 세척 결과와 건조 확인",
+  "applicability": "외식 공통 · 첫 매장의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.gov.uk/government/publications/safer-food-better-business-for-caterers",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -166,6 +217,23 @@
       "tip": "처음 하는 일은 시작 전에 물어보는 게 가장 빨라요.",
       "tags": [],
       "sourceUrl": "https://www.foodsafetykorea.go.kr/portal/board/boardDetail.do?menu_no=3504&menu_grp=MENU_NEW04&bbs_no=bbs1021"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "people",
+  "kind": "operation",
+  "summary": "손 씻기와 위생복·위생모 착용 · 몸 상태 말하기",
+  "applicability": "뼈찜·감자탕 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.foodsafetykorea.go.kr/portal/board/boardDetail.do?menu_no=3504&menu_grp=MENU_NEW04&bbs_no=bbs1021",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -224,6 +292,23 @@
       "tags": [],
       "sourceUrl": "https://blog.naver.com/yjh97423/224347712759"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "간판·조명·냉난방 켜고 안내문 확인 · 테이블 세팅",
+  "applicability": "뼈찜·감자탕 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://blog.naver.com/yjh97423/224347712759",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -281,6 +366,23 @@
       "tags": [],
       "sourceUrl": "https://m.kin.naver.com/qna/dirs/8020103/docs/491088119"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "입고 등뼈 확인 · 핏물 빼기",
+  "applicability": "뼈찜·감자탕 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://m.kin.naver.com/qna/dirs/8020103/docs/491088119",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -329,6 +431,23 @@
       "tip": "냄새가 괜찮다는 이유만으로 사용을 결정하지 않아요.",
       "tags": [],
       "sourceUrl": "https://blog.naver.com/yjh97423/224347712759"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "육수 솥 올리기 · 거품·기름 걷기와 불 조절",
+  "applicability": "뼈찜·감자탕 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://blog.naver.com/yjh97423/224347712759",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -387,6 +506,23 @@
       "tags": [],
       "sourceUrl": "https://blog.naver.com/yjh97423/224347712759"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "뼈찜 양념장 소분 · 특제소스 준비",
+  "applicability": "뼈찜·감자탕 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://blog.naver.com/yjh97423/224347712759",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -443,6 +579,23 @@
       "tip": "배식대에 오래 둔 냄비는 온도와 모양이 함께 떨어져요.",
       "tags": [],
       "sourceUrl": "https://blog.naver.com/yjh97423/224347712759"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "주문표 읽기 · 뼈찜 조리",
+  "applicability": "뼈찜·감자탕 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://blog.naver.com/yjh97423/224347712759",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -501,6 +654,23 @@
       "tags": [],
       "sourceUrl": "https://blog.naver.com/yjh97423/224347712759"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "자리 안내와 주문 받기 · 기본 국물과 셀프바 안내",
+  "applicability": "뼈찜·감자탕 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://blog.naver.com/yjh97423/224347712759",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -549,6 +719,23 @@
       "tip": "배달앱 예상 시간이 밀리면 홀 담당에게 바로 알려요.",
       "tags": [],
       "sourceUrl": "https://ceo.baemin.com/qna/3582"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "포장 준비 위생 · 용기 담기",
+  "applicability": "뼈찜·감자탕 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://ceo.baemin.com/qna/3582",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -607,6 +794,23 @@
       "tags": [],
       "sourceUrl": "https://blog.naver.com/yjh97423/224347712759"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "hygiene",
+  "kind": "operation",
+  "summary": "브레이크 안내 · 홀·셀프바 정리",
+  "applicability": "뼈찜·감자탕 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://blog.naver.com/yjh97423/224347712759",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -663,6 +867,23 @@
       "tip": "메모는 내일 오픈 담당이 읽는다는 생각으로 짧게 써요.",
       "tags": [],
       "sourceUrl": "https://blog.naver.com/yjh97423/224347712759"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "육수와 초벌 등뼈 처리 · 손질 재료 정리",
+  "applicability": "뼈찜·감자탕 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://blog.naver.com/yjh97423/224347712759",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -721,6 +942,23 @@
       "tags": [],
       "sourceUrl": "https://blog.naver.com/yjh97423/224347712759"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "셀프바 정리 · 테이블·의자·바닥 청소",
+  "applicability": "뼈찜·감자탕 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://blog.naver.com/yjh97423/224347712759",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -760,6 +998,23 @@
       "tip": "새 반찬을 오래된 잔량 위에 계속 덧붓지 않아요.",
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "반찬별 준비량 정하기 · 재료 용기 구분하기",
+  "applicability": "한식·백반의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -801,6 +1056,23 @@
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "판매 잔량 구분 · 승인된 냉각 진행",
+  "applicability": "한식·백반의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -840,6 +1112,23 @@
       "tip": "바쁘기 전에 많이 말아두는 양부터 조절해요.",
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "속재료 순서 배치 · 조리·비조리 도구 구분",
+  "applicability": "분식·김밥의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -881,6 +1170,23 @@
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "주문 묶음 읽기 · 포장 조합 맞추기",
+  "applicability": "분식·김밥의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -920,6 +1226,23 @@
       "tip": "테이블 회전 예상만 보고 장시간 상온에 내놓지 않아요.",
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "테이블별 집기 맞추기 · 장비 상태 확인",
+  "applicability": "고깃집·구이의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -961,6 +1284,23 @@
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "부위·중량 대조 · 조리 전후 분리",
+  "applicability": "고깃집·구이의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1000,6 +1340,23 @@
       "tip": "먼저 쓰는 제품이 뒤쪽에 가려지지 않게 놓아요.",
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "inventory",
+  "kind": "operation",
+  "summary": "거래 정보 대조 · 이상 제품 분리",
+  "applicability": "횟집·초밥의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1041,6 +1398,23 @@
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "주문 구성 대조 · 전용 작업대 준비",
+  "applicability": "횟집·초밥의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1080,6 +1454,23 @@
       "tip": "기름 처리와 장비 분해는 교육받은 담당자가 해요.",
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c53918471d520038d0f6d8/sfbb-caterer-cooking-01-cooking-safely_0.pdf"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "작업량과 기기 확인 · 생재료 도구 분리",
+  "applicability": "치킨·튀김의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c53918471d520038d0f6d8/sfbb-caterer-cooking-01-cooking-safely_0.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1121,6 +1512,23 @@
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c53918471d520038d0f6d8/sfbb-caterer-cooking-01-cooking-safely_0.pdf"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "배치 기록 맞추기 · 익힘 기준 확인",
+  "applicability": "치킨·튀김의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c53918471d520038d0f6d8/sfbb-caterer-cooking-01-cooking-safely_0.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1160,6 +1568,23 @@
       "tip": "설정 온도와 실제 준비 완료를 같은 것으로 보지 않아요.",
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c53918471d520038d0f6d8/sfbb-caterer-cooking-01-cooking-safely_0.pdf"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "레시피 양 맞추기 · 재료 칸 나누기",
+  "applicability": "피자·양식의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c53918471d520038d0f6d8/sfbb-caterer-cooking-01-cooking-safely_0.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1201,6 +1626,23 @@
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c53918471d520038d0f6d8/sfbb-caterer-cooking-01-cooking-safely_0.pdf"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "사이즈·옵션 확인 · 완성 기준 확인",
+  "applicability": "피자·양식의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c53918471d520038d0f6d8/sfbb-caterer-cooking-01-cooking-safely_0.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1240,6 +1682,23 @@
       "tip": "오래된 소스 위에 새 소스를 덧채우지 않아요.",
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "메뉴별 소분 · 전용 도구 배치",
+  "applicability": "중식·면요리의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1281,6 +1740,23 @@
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "동시 출고 묶기 · 국물·면 포장 확인",
+  "applicability": "중식·면요리의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1320,6 +1796,23 @@
       "tip": "대체 우유 사용만으로 알레르기 대응을 보장하지 않아요.",
       "tags": [],
       "sourceUrl": "https://us.jura.com/en/customer-advice/optimum-maintenance/faq"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "오늘의 기준 준비 · 테스트 음료 확인",
+  "applicability": "카페·커피의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://us.jura.com/en/customer-advice/optimum-maintenance/faq",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1361,6 +1854,23 @@
       "tags": [],
       "sourceUrl": "https://us.jura.com/en/customer-advice/optimum-maintenance/faq"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "모델별 관리 절차 열기 · 세척 프로그램 완료",
+  "applicability": "카페·커피의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://us.jura.com/en/customer-advice/optimum-maintenance/faq",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1400,6 +1910,23 @@
       "tip": "시간만 맞고 상태가 다른 배치는 책임자에게 확인해요.",
       "tags": [],
       "sourceUrl": "https://www.hse.gov.uk/coshh/industry/baking.htm"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "배치별 재료 계량 · 가루 날림 줄이기",
+  "applicability": "베이커리·제과의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.hse.gov.uk/coshh/industry/baking.htm",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1441,6 +1968,23 @@
       "tags": [],
       "sourceUrl": "https://www.hse.gov.uk/coshh/industry/baking.htm"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "오븐·트레이 대조 · 완제품 검수",
+  "applicability": "베이커리·제과의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.hse.gov.uk/coshh/industry/baking.htm",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1480,6 +2024,23 @@
       "tip": "용기 크기가 맞지 않으면 피크에 재포장하게 돼요.",
       "tags": [],
       "sourceUrl": "https://www.gov.uk/government/publications/food-safety-for-food-delivery/food-safety-for-food-delivery"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "판매 가능 메뉴 확인 · 옵션 표준 확인",
+  "applicability": "배달·포장 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.gov.uk/government/publications/food-safety-for-food-delivery/food-safety-for-food-delivery",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1521,6 +2082,23 @@
       "tags": [],
       "sourceUrl": "https://www.gov.uk/government/publications/food-safety-for-food-delivery/food-safety-for-food-delivery"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "주문 번호 대조 · 밀봉과 온도 구분",
+  "applicability": "배달·포장 전문점의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.gov.uk/government/publications/food-safety-for-food-delivery/food-safety-for-food-delivery",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1560,6 +2138,23 @@
       "tip": "스티커를 미리 많이 인쇄하면 다른 배치에 잘못 붙이기 쉬워요.",
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "수량표 만들기 · 구성표대로 담기",
+  "applicability": "반찬·도시락의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1601,6 +2196,23 @@
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "잔량과 이유 기록 · 보관 가능분 확인",
+  "applicability": "반찬·도시락의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52a4993cc6e8b87a6f744/sfbb-caterers-separating-foods_2.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1640,6 +2252,23 @@
       "tip": "박스를 임시로 놓은 자리가 계속 통로를 막지 않게 해요.",
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52c9f93cc6e8b87a6f747/sfbb-chinese-cleaning-02-cleaning-effectively.pdf"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "잔과 도구 점검 · 음료 레시피 확인",
+  "applicability": "주점·바의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52c9f93cc6e8b87a6f747/sfbb-chinese-cleaning-02-cleaning-effectively.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1681,6 +2310,23 @@
       "tags": [],
       "sourceUrl": "https://assets.publishing.service.gov.uk/media/69c52c9f93cc6e8b87a6f747/sfbb-chinese-cleaning-02-cleaning-effectively.pdf"
     }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "inventory",
+  "kind": "operation",
+  "summary": "파손 잔 분리 · 음료 잔량 확인",
+  "applicability": "주점·바의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://assets.publishing.service.gov.uk/media/69c52c9f93cc6e8b87a6f747/sfbb-chinese-cleaning-02-cleaning-effectively.pdf",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1720,6 +2366,23 @@
       "tip": "회수·반품 예정품은 정상 재고로 세지 않아요.",
       "tags": [],
       "sourceUrl": "https://www.gov.uk/government/publications/safer-food-better-business-for-retailers"
+    }
+  ],
+  "industryIds": [
+    "retail"
+  ],
+  "purposeId": "inventory",
+  "kind": "operation",
+  "summary": "입고 품목 대조 · 날짜 순서 정렬",
+  "applicability": "편의점·식품 소매의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.gov.uk/government/publications/safer-food-better-business-for-retailers",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1761,6 +2424,23 @@
       "tags": [],
       "sourceUrl": "https://www.gov.uk/government/publications/safer-food-better-business-for-retailers"
     }
+  ],
+  "industryIds": [
+    "retail"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "빈칸 확인 · 가격표 대조",
+  "applicability": "편의점·식품 소매의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.gov.uk/government/publications/safer-food-better-business-for-retailers",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1800,6 +2480,23 @@
       "tip": "촬영용 장식이 고객 동선을 막지 않게 해요.",
       "tags": [],
       "sourceUrl": "https://www.hse.gov.uk/retail/slips-and-trips.htm"
+    }
+  ],
+  "industryIds": [
+    "retail"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "신상품 수량 대조 · 상품 위치 정하기",
+  "applicability": "의류·잡화 소매의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.hse.gov.uk/retail/slips-and-trips.htm",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1841,6 +2538,23 @@
       "tags": [],
       "sourceUrl": "https://www.hse.gov.uk/retail/slips-and-trips.htm"
     }
+  ],
+  "industryIds": [
+    "retail"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "반품 상태 확인 · 피팅룸 정리",
+  "applicability": "의류·잡화 소매의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.hse.gov.uk/retail/slips-and-trips.htm",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1880,6 +2594,23 @@
       "tip": "젖은 손으로 오래 일하는 구간을 팀에서 나눠요.",
       "tags": [],
       "sourceUrl": "https://www.hse.gov.uk/coshh/industry/hairdressing.htm"
+    }
+  ],
+  "industryIds": [
+    "beauty"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "예약 범위 확인 · 제품과 도구 확인",
+  "applicability": "미용실·바버숍의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.hse.gov.uk/coshh/industry/hairdressing.htm",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -1921,6 +2652,23 @@
       "tags": [],
       "sourceUrl": "https://www.hse.gov.uk/coshh/industry/hairdressing.htm"
     }
+  ],
+  "industryIds": [
+    "beauty"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "사용 도구 수거 · 접촉면 정리",
+  "applicability": "미용실·바버숍의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.hse.gov.uk/coshh/industry/hairdressing.htm",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -1960,6 +2708,23 @@
       "tip": "외관이 깨끗해도 처리 상태를 모르면 바로 사용하지 않아요.",
       "tags": [],
       "sourceUrl": "https://www.osha.gov/nail-salons"
+    }
+  ],
+  "industryIds": [
+    "beauty"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "예약 내용 대조 · 제품·환기 확인",
+  "applicability": "네일숍의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.osha.gov/nail-salons",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -2001,6 +2766,23 @@
       "tags": [],
       "sourceUrl": "https://www.osha.gov/nail-salons"
     }
+  ],
+  "industryIds": [
+    "beauty"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "재사용 여부 구분 · 작업면 처리",
+  "applicability": "네일숍의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.osha.gov/nail-salons",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -2040,6 +2822,23 @@
       "tip": "다른 모델에서 익힌 설정을 그대로 옮기지 않아요.",
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html"
+    }
+  ],
+  "industryIds": [
+    "beauty"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "예약·관리 범위 확인 · 린넨과 제품 배치",
+  "applicability": "피부관리·스파의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -2081,6 +2880,23 @@
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html"
     }
+  ],
+  "industryIds": [
+    "beauty"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "사용 린넨 분리 · 접촉면 확인",
+  "applicability": "피부관리·스파의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -2120,6 +2936,23 @@
       "tip": "눈에 띄는 침구만 정리하고 손이 닿는 곳을 빠뜨리지 않아요.",
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html"
+    }
+  ],
+  "industryIds": [
+    "lodging"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "입실 상태 확인 · 린넨 회수·교체",
+  "applicability": "숙박·게스트하우스의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -2161,6 +2994,23 @@
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html"
     }
+  ],
+  "industryIds": [
+    "lodging"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "객실 비품 대조 · 설비 작동 확인",
+  "applicability": "숙박·게스트하우스의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -2200,6 +3050,23 @@
       "tip": "표지만 두고 사람이 계속 지나가게 하지 않아요.",
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html"
+    }
+  ],
+  "industryIds": [
+    "services"
+  ],
+  "purposeId": "hygiene",
+  "kind": "operation",
+  "summary": "구역과 순서 합의 · 재질·제품 대조",
+  "applicability": "청소·시설관리의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -2241,6 +3108,23 @@
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html"
     }
+  ],
+  "industryIds": [
+    "services"
+  ],
+  "purposeId": "hygiene",
+  "kind": "operation",
+  "summary": "구역별 결과 확인 · 도구 정리",
+  "applicability": "청소·시설관리의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -2280,6 +3164,23 @@
       "tip": "색이 같은 옷이라도 다른 고객 물품을 섞지 않아요.",
       "tags": [],
       "sourceUrl": "https://www.nfpa.org/-/media/project/storefront/catalog/files/safety-tip-sheets/dryersafetytips.pdf?rev=8af04b5662ec41ebaed95e6064888f71"
+    }
+  ],
+  "industryIds": [
+    "services"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "품목과 상태 기록 · 케어라벨 확인",
+  "applicability": "세탁소·셀프 빨래방의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.nfpa.org/-/media/project/storefront/catalog/files/safety-tip-sheets/dryersafetytips.pdf?rev=8af04b5662ec41ebaed95e6064888f71",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -2321,6 +3222,23 @@
       "tags": [],
       "sourceUrl": "https://www.nfpa.org/-/media/project/storefront/catalog/files/safety-tip-sheets/dryersafetytips.pdf?rev=8af04b5662ec41ebaed95e6064888f71"
     }
+  ],
+  "industryIds": [
+    "services"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "필터·주변 확인 · 건조 이상 기록",
+  "applicability": "세탁소·셀프 빨래방의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.nfpa.org/-/media/project/storefront/catalog/files/safety-tip-sheets/dryersafetytips.pdf?rev=8af04b5662ec41ebaed95e6064888f71",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -2360,6 +3278,23 @@
       "tip": "비슷한 축하 문구도 주문별로 다시 읽어요.",
       "tags": [],
       "sourceUrl": "https://extension.umn.edu/about/our-stories/news/yard-and-garden-news/fresh-flowers-and-blue-ribbons"
+    }
+  ],
+  "industryIds": [
+    "retail"
+  ],
+  "purposeId": "inventory",
+  "kind": "operation",
+  "summary": "주문별 품종 확인 · 꽃 상태 분류",
+  "applicability": "꽃집·플라워숍의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://extension.umn.edu/about/our-stories/news/yard-and-garden-news/fresh-flowers-and-blue-ribbons",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -2401,6 +3336,23 @@
       "tags": [],
       "sourceUrl": "https://extension.umn.edu/about/our-stories/news/yard-and-garden-news/fresh-flowers-and-blue-ribbons"
     }
+  ],
+  "industryIds": [
+    "retail"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "완성품 대조 · 직립·완충 포장",
+  "applicability": "꽃집·플라워숍의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://extension.umn.edu/about/our-stories/news/yard-and-garden-news/fresh-flowers-and-blue-ribbons",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -2440,6 +3392,23 @@
       "tip": "패드가 찢어져 제대로 닦이지 않으면 담당자에게 알려요.",
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/mrsa/prevention/coaches-athletic-directors.html"
+    }
+  ],
+  "industryIds": [
+    "education"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "기구 외관 확인 · 동선과 도구 정리",
+  "applicability": "헬스장·피트니스의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/mrsa/prevention/coaches-athletic-directors.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -2481,6 +3450,23 @@
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/mrsa/prevention/coaches-athletic-directors.html"
     }
+  ],
+  "industryIds": [
+    "education"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "공유 접촉면 청소 · 기본 상태 복귀",
+  "applicability": "헬스장·피트니스의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/mrsa/prevention/coaches-athletic-directors.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -2520,6 +3506,23 @@
       "tip": "남는 도구를 통로에 놓지 않아요.",
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/mrsa/prevention/coaches-athletic-directors.html"
+    }
+  ],
+  "industryIds": [
+    "education"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "수업 구성 확인 · 도구 상태 점검",
+  "applicability": "필라테스·요가의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/mrsa/prevention/coaches-athletic-directors.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -2561,6 +3564,23 @@
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/mrsa/prevention/coaches-athletic-directors.html"
     }
+  ],
+  "industryIds": [
+    "education"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "사용품 회수 · 접촉면 관리",
+  "applicability": "필라테스·요가의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/mrsa/prevention/coaches-athletic-directors.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -2600,6 +3620,23 @@
       "tip": "테이블이나 욕조 위 동물을 혼자 두지 않아요.",
       "tags": [],
       "sourceUrl": "https://www.akc.org/groomer-hub/education-standards/"
+    }
+  ],
+  "industryIds": [
+    "pet"
+  ],
+  "purposeId": "people",
+  "kind": "operation",
+  "summary": "보호자 요청 확인 · 상태와 행동 관찰",
+  "applicability": "반려견 미용의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.akc.org/groomer-hub/education-standards/",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
   ]
 }
@@ -2641,6 +3678,23 @@
       "tags": [],
       "sourceUrl": "https://www.akc.org/groomer-hub/education-standards/"
     }
+  ],
+  "industryIds": [
+    "pet"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "결과와 상태 확인 · 사용 도구 처리",
+  "applicability": "반려견 미용의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.akc.org/groomer-hub/education-standards/",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -2681,6 +3735,23 @@
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html"
     }
+  ],
+  "industryIds": [
+    "education"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "예약·좌석 대조 · 책상·기기 확인",
+  "applicability": "스터디카페·공유오피스의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
   ]
 }
 ```
@@ -2720,6 +3791,1179 @@
       "tip": "문제 기록에 해결 여부를 같이 남겨 중복 점검을 줄여요.",
       "tags": [],
       "sourceUrl": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html"
+    }
+  ],
+  "industryIds": [
+    "education"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "잔여 이용 확인 · 분실물 분리",
+  "applicability": "스터디카페·공유오피스의 해당 작업을 하는 사업장. 현장 절차와 장비 지침에 맞게 조정하세요.",
+  "jurisdiction": "출처별 관할 · 운영 참고",
+  "keywords": [],
+  "references": [
+    {
+      "title": "기존 체크리스트 원문 1",
+      "url": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-a-facility.html",
+      "checkedAt": "2026-09-20",
+      "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
+    }
+  ]
+}
+```
+
+## 업종 공통 · 근로계약·임금 서류 확인
+
+```tap2work-tap
+{
+  "sourceId": "legal/employment",
+  "collectionId": "legal",
+  "collectionName": "업종 공통",
+  "title": "근로계약·임금 서류 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "공식 안내를 바탕으로 편집한 확인 항목 · 적용 여부와 최신 기준 확인",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "compliance",
+  "kind": "legal",
+  "summary": "직원을 고용할 때 먼저 확인할 근로조건과 지급 기록",
+  "applicability": "근로자를 고용하는 사업장. 인원·고용형태별 적용 범위를 구분하세요.",
+  "jurisdiction": "대한민국",
+  "keywords": [
+    "노무",
+    "근로계약서",
+    "급여"
+  ],
+  "references": [
+    {
+      "title": "고용노동부 · 소규모 사업장 필수 규정",
+      "url": "https://www.moel.go.kr/news/cardinfo/view.do?bbs_seq=20220500493",
+      "checkedAt": "2026-10-05",
+      "scope": "2022년 안내 본문 확인 · 개별 고용조건 및 최신 법령 추가 확인"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "근로조건 확인·교부",
+      "manual": "계약서에 임금, 근로시간 등 필수 근로조건이 작성되고 근로자에게 교부됐는지 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://www.moel.go.kr/news/cardinfo/view.do?bbs_seq=20220500493"
+    },
+    {
+      "id": "step-2",
+      "title": "임금명세서 확인",
+      "manual": "지급 때 구성항목·계산방법·공제내역을 확인하고 임금명세서 교부 기록을 남겨요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://www.moel.go.kr/news/cardinfo/view.do?bbs_seq=20220500493"
+    },
+    {
+      "id": "step-3",
+      "title": "적용 규정 확인",
+      "manual": "상시 인원과 근무형태에 따른 휴게·휴일 등 적용 규정을 공식 안내와 대조하고 누락을 담당자에게 전달해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://www.moel.go.kr/news/cardinfo/view.do?bbs_seq=20220500493"
+    }
+  ]
+}
+```
+
+## 업종 공통 · 고객 개인정보 처리 기준 확인
+
+```tap2work-tap
+{
+  "sourceId": "legal/privacy",
+  "collectionId": "legal",
+  "collectionName": "업종 공통",
+  "title": "고객 개인정보 처리 기준 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "공식 안내를 바탕으로 편집한 확인 항목 · 적용 여부와 최신 기준 확인",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "compliance",
+  "kind": "legal",
+  "summary": "예약·회원·고객정보 수집부터 보관·파기까지",
+  "applicability": "고객 개인정보를 처리하는 사업장. 수집 근거와 처리 목적에 따라 확인하세요.",
+  "jurisdiction": "대한민국",
+  "keywords": [
+    "개인정보",
+    "예약",
+    "회원"
+  ],
+  "references": [
+    {
+      "title": "개인정보보호위원회 · 소상공인 개인정보 보호 핸드북",
+      "url": "https://pipc.go.kr/np/cop/bbs/selectBoardArticle.do?bbsId=BS217&mCode=G010030020&nttId=10897",
+      "checkedAt": "2026-10-05",
+      "scope": "현재 안내서 게시 페이지 확인 · 구체적인 동의·파기 기준은 연결된 핸드북 확인"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "처리하는 정보 파악",
+      "manual": "예약·회원·주문에서 어떤 정보를 왜 처리하는지 목록을 만들고 공식 핸드북의 해당 항목을 대조해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://pipc.go.kr/np/cop/bbs/selectBoardArticle.do?bbsId=BS217&mCode=G010030020&nttId=10897"
+    },
+    {
+      "id": "step-2",
+      "title": "수집·이용 절차 점검",
+      "manual": "수집·이용 근거와 고객에게 알릴 내용을 확인해요. 불필요한 정보는 양식에서 제외해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://pipc.go.kr/np/cop/bbs/selectBoardArticle.do?bbsId=BS217&mCode=G010030020&nttId=10897"
+    },
+    {
+      "id": "step-3",
+      "title": "보관·파기 담당 정하기",
+      "manual": "정보 접근 담당과 보유기간을 확인하고 기간 종료 후 처리 절차를 정해요. 실제 고객정보를 공개 체크리스트에 적지 않아요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://pipc.go.kr/np/cop/bbs/selectBoardArticle.do?bbsId=BS217&mCode=G010030020&nttId=10897"
+    }
+  ]
+}
+```
+
+## 음식·음료 · 음식점 위생교육 대상·이수 확인
+
+```tap2work-tap
+{
+  "sourceId": "legal/food-training",
+  "collectionId": "legal",
+  "collectionName": "음식·음료",
+  "title": "음식점 위생교육 대상·이수 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "공식 안내를 바탕으로 편집한 확인 항목 · 적용 여부와 최신 기준 확인",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "compliance",
+  "kind": "legal",
+  "summary": "영업 유형과 신규·기존 영업자에 맞는 교육 확인",
+  "applicability": "식품접객업 등 위생교육 적용 영업자. 영업 유형과 예외 여부를 관할 기관에 확인하세요.",
+  "jurisdiction": "대한민국",
+  "keywords": [
+    "식당",
+    "카페",
+    "식품위생"
+  ],
+  "references": [
+    {
+      "title": "법제처 생활법령정보 · 식품위생교육",
+      "url": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=4&cciNo=1&cnpClsNo=2&csmSeq=839&popMenu=ov",
+      "checkedAt": "2026-10-05",
+      "scope": "식품위생교육 대상·기관·예외 안내 본문 확인"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "교육 대상 구분",
+      "manual": "영업신고 유형과 신규·기존 영업 여부를 확인하고 해당 교육기관과 교육 기준을 찾아요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=4&cciNo=1&cnpClsNo=2&csmSeq=839&popMenu=ov"
+    },
+    {
+      "id": "step-2",
+      "title": "이수 기록·다음 일정 확인",
+      "manual": "교육 이수 자료를 보관하고 다음 교육 일정을 확인해요. 사전교육 예외는 관할 인정 여부를 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=4&cciNo=1&cnpClsNo=2&csmSeq=839&popMenu=ov"
+    }
+  ]
+}
+```
+
+## 업종 공통 · 소방훈련·교육 적용 여부 확인
+
+```tap2work-tap
+{
+  "sourceId": "legal/fire-training",
+  "collectionId": "legal",
+  "collectionName": "업종 공통",
+  "title": "소방훈련·교육 적용 여부 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "공식 안내를 바탕으로 편집한 확인 항목 · 적용 여부와 최신 기준 확인",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "compliance",
+  "kind": "legal",
+  "summary": "건물의 소방안전관리 대상부터 확인",
+  "applicability": "소방안전관리대상물 관계인 등 해당 대상. 모든 사업장에 같은 기준이 적용되는 것은 아니에요.",
+  "jurisdiction": "대한민국",
+  "keywords": [
+    "소방",
+    "화재",
+    "교육"
+  ],
+  "references": [
+    {
+      "title": "법제처 생활법령정보 · 소방훈련과 교육",
+      "url": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=4&cciNo=3&cnpClsNo=1&csmSeq=1574&menuType=cnpcls&popMenu=ov",
+      "checkedAt": "2026-10-05",
+      "scope": "대상 구분·실시 및 기록 요건 본문 확인"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "건물 대상 확인",
+      "manual": "건물 관리 담당자와 소방안전관리대상물 여부 및 교육 책임자를 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=4&cciNo=3&cnpClsNo=1&csmSeq=1574&menuType=cnpcls&popMenu=ov"
+    },
+    {
+      "id": "step-2",
+      "title": "훈련·교육 기록 확인",
+      "manual": "해당되는 훈련·교육의 일정, 결과 기록과 보관·제출 요건을 공식 안내에서 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=4&cciNo=3&cnpClsNo=1&csmSeq=1574&menuType=cnpcls&popMenu=ov"
+    }
+  ]
+}
+```
+
+## 미용·뷰티 · 미용업 위생·게시 기준 확인
+
+```tap2work-tap
+{
+  "sourceId": "legal/beauty",
+  "collectionId": "legal",
+  "collectionName": "미용·뷰티",
+  "title": "미용업 위생·게시 기준 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "공식 안내를 바탕으로 편집한 확인 항목 · 적용 여부와 최신 기준 확인",
+  "industryIds": [
+    "beauty"
+  ],
+  "purposeId": "compliance",
+  "kind": "legal",
+  "summary": "영업 유형에 맞는 공중위생 점검 항목",
+  "applicability": "미용업 세부 유형별 적용 확인. 서울 서대문구 자율점검표를 참고하며 관할 보건소 기준을 확인하세요.",
+  "jurisdiction": "대한민국 · 서울 서대문구 참고 양식",
+  "keywords": [],
+  "references": [
+    {
+      "title": "서대문구 보건소 · 영업주 자율점검표",
+      "url": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/3m-j.pdf",
+      "checkedAt": "2026-10-05",
+      "scope": "2026 지역 자율점검표 본문 확인 · 전국 공통 완료 인증 아님"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "기구 보관·소독 확인",
+      "manual": "소독 전후 기구의 분리 보관과 소독 장비 상태를 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/3m-j.pdf"
+    },
+    {
+      "id": "step-2",
+      "title": "신고·면허·요금 게시 확인",
+      "manual": "내 영업 유형에 필요한 신고증·면허·요금 게시 여부를 점검해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/3m-j.pdf"
+    },
+    {
+      "id": "step-3",
+      "title": "위생교육 기록 확인",
+      "manual": "영업주 교육 이수 기록과 다음 일정을 확인하고 누락을 담당자에게 알려요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/3m-j.pdf"
+    }
+  ]
+}
+```
+
+## 숙박·관광 · 숙박업 위생·시설 기준 확인
+
+```tap2work-tap
+{
+  "sourceId": "legal/lodging",
+  "collectionId": "legal",
+  "collectionName": "숙박·관광",
+  "title": "숙박업 위생·시설 기준 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "공식 안내를 바탕으로 편집한 확인 항목 · 적용 여부와 최신 기준 확인",
+  "industryIds": [
+    "lodging"
+  ],
+  "purposeId": "compliance",
+  "kind": "legal",
+  "summary": "영업 유형에 맞는 공중위생 점검 항목",
+  "applicability": "신고된 숙박업 대상. 민박 등 다른 영업 유형에 그대로 적용하지 말고 관할 기준을 확인하세요.",
+  "jurisdiction": "대한민국 · 서울 서대문구 참고 양식",
+  "keywords": [],
+  "references": [
+    {
+      "title": "서대문구 보건소 · 영업주 자율점검표",
+      "url": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/5s-j.pdf",
+      "checkedAt": "2026-10-05",
+      "scope": "2026 지역 자율점검표 본문 확인 · 전국 공통 완료 인증 아님"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "린넨·객실 위생 확인",
+      "manual": "고객 교체 시 침구와 수건 처리, 욕실 상태와 환기를 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/5s-j.pdf"
+    },
+    {
+      "id": "step-2",
+      "title": "신고·요금·안전시설 확인",
+      "manual": "신고증과 요금표 게시를 확인하고 난방 유형에 따른 안전시설 적용 여부를 점검해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/5s-j.pdf"
+    },
+    {
+      "id": "step-3",
+      "title": "교육·정기관리 확인",
+      "manual": "위생교육과 방제 등 적용 일정을 공식 점검표 및 관할 안내와 대조해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/5s-j.pdf"
+    }
+  ]
+}
+```
+
+## 생활·전문 서비스 · 세탁업 장비·약품 기준 확인
+
+```tap2work-tap
+{
+  "sourceId": "legal/laundry",
+  "collectionId": "legal",
+  "collectionName": "생활·전문 서비스",
+  "title": "세탁업 장비·약품 기준 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "공식 안내를 바탕으로 편집한 확인 항목 · 적용 여부와 최신 기준 확인",
+  "industryIds": [
+    "services"
+  ],
+  "purposeId": "compliance",
+  "kind": "legal",
+  "summary": "영업 유형에 맞는 공중위생 점검 항목",
+  "applicability": "세탁업 중 해당 장비·용제를 사용하는 사업장. 셀프 빨래방에 드라이클리닝 기준을 일괄 적용하지 않아요.",
+  "jurisdiction": "대한민국 · 서울 서대문구 참고 양식",
+  "keywords": [],
+  "references": [
+    {
+      "title": "서대문구 보건소 · 영업주 자율점검표",
+      "url": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/4s-j.pdf",
+      "checkedAt": "2026-10-05",
+      "scope": "2026 지역 자율점검표 본문 확인 · 전국 공통 완료 인증 아님"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "장비·약품 목록 확인",
+      "manual": "사용하는 장비와 약품을 정리하고 내 영업 유형에 해당하는 점검 항목을 골라요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/4s-j.pdf"
+    },
+    {
+      "id": "step-2",
+      "title": "누출·보관 상태 확인",
+      "manual": "용제 관련 설비와 보관 상태의 이상을 확인해요. 이상 시 사용을 중단하고 담당자에게 점검을 요청해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/4s-j.pdf"
+    }
+  ]
+}
+```
+
+## 교육·운동 · 학원·교습소 등록 기준 확인
+
+```tap2work-tap
+{
+  "sourceId": "legal/academy",
+  "collectionId": "legal",
+  "collectionName": "교육·운동",
+  "title": "학원·교습소 등록 기준 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "공식 안내를 바탕으로 편집한 확인 항목 · 적용 여부와 최신 기준 확인",
+  "industryIds": [
+    "education"
+  ],
+  "purposeId": "compliance",
+  "kind": "legal",
+  "summary": "교습 과정·시설·관할 기준 확인",
+  "applicability": "학원 또는 교습소 설립·변경 시. 스터디카페나 일반 사무실에 자동 적용하지 않아요.",
+  "jurisdiction": "대한민국",
+  "keywords": [
+    "학원",
+    "교습소"
+  ],
+  "references": [
+    {
+      "title": "법제처 생활법령정보 · 학원의 등록",
+      "url": "https://easylaw.go.kr/CSP/CnpClsMainBtr.laf?ccfNo=2&cciNo=2&cnpClsNo=1&csmSeq=1140&popMenu=ov",
+      "checkedAt": "2026-10-05",
+      "scope": "학원 등록 및 시설 기준 안내 본문 확인"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "영업 형태 구분",
+      "manual": "학원과 교습소 등 운영 형태를 구분하고 관할 교육청의 등록·신고 절차를 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMainBtr.laf?ccfNo=2&cciNo=2&cnpClsNo=1&csmSeq=1140&popMenu=ov"
+    },
+    {
+      "id": "step-2",
+      "title": "시설·변경 사항 확인",
+      "manual": "교습 과정과 시설 기준을 관할 조례·안내와 대조하고 변경등록이 필요한 사항을 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMainBtr.laf?ccfNo=2&cciNo=2&cnpClsNo=1&csmSeq=1140&popMenu=ov"
+    }
+  ]
+}
+```
+
+## 업종 공통 · 하루 업무 시작 준비
+
+```tap2work-tap
+{
+  "sourceId": "business/opening",
+  "collectionId": "business",
+  "collectionName": "업종 공통",
+  "title": "하루 업무 시작 준비",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "오늘 일정·공간·필요 물품을 한 번에 확인",
+  "applicability": "해당 업무가 있는 모든 업종. 사업장의 승인 절차에 맞게 사용하세요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "오늘 일정 확인",
+      "manual": "예약·납기·방문·작업 일정을 읽고 담당과 우선순위를 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "공간·도구 준비",
+      "manual": "오늘 사용할 공간과 도구 상태를 확인하고 이상이 있으면 담당자에게 알려요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "미완료 인계 확인",
+      "manual": "이전 근무의 미완료 항목과 변경사항을 읽고 오늘 처리할 담당을 정해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## 업종 공통 · 예약·고객 요청 인계
+
+```tap2work-tap
+{
+  "sourceId": "business/service",
+  "collectionId": "business",
+  "collectionName": "업종 공통",
+  "title": "예약·고객 요청 인계",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "접수부터 완료까지 요청 누락 줄이기",
+  "applicability": "해당 업무가 있는 모든 업종. 사업장의 승인 절차에 맞게 사용하세요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "요청·약속 확인",
+      "manual": "제공할 서비스, 일정과 합의한 범위를 대조해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "변경·지연 안내",
+      "manual": "변경사항을 담당자와 고객에게 전달하고 합의한 내용을 필요한 범위로 기록해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "완료·다음 조치 확인",
+      "manual": "완료한 서비스와 남은 요청을 확인하고 후속 담당에게 전달해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## 업종 공통 · 입고·재고·구매 확인
+
+```tap2work-tap
+{
+  "sourceId": "business/inventory",
+  "collectionId": "business",
+  "collectionName": "업종 공통",
+  "title": "입고·재고·구매 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "inventory",
+  "kind": "operation",
+  "summary": "필요 수량 확인부터 입고 이상 처리까지",
+  "applicability": "해당 업무가 있는 모든 업종. 사업장의 승인 절차에 맞게 사용하세요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "실물 수량 확인",
+      "manual": "보관 장소별 수량과 사용 가능한 상태를 확인한 뒤 필요한 구매량을 정해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "주문·납품 대조",
+      "manual": "품목·수량·납기와 실제 입고를 대조하고 파손이나 누락은 분리해 담당자에게 알려요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "위치·인계 기록",
+      "manual": "입고 위치와 처리 결과를 기록해 다음 담당자가 찾을 수 있게 해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## 업종 공통 · 공용 공간 청소·정리
+
+```tap2work-tap
+{
+  "sourceId": "business/cleaning",
+  "collectionId": "business",
+  "collectionName": "업종 공통",
+  "title": "공용 공간 청소·정리",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "hygiene",
+  "kind": "operation",
+  "summary": "구역·도구·완료 확인을 하나의 흐름으로",
+  "applicability": "해당 업무가 있는 모든 업종. 사업장의 승인 절차에 맞게 사용하세요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "구역과 도구 확인",
+      "manual": "청소할 구역과 출입 제한이 필요한 곳을 확인해요. 제품 표시와 현장 지침에 맞는 도구를 준비해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "청소·정리 수행",
+      "manual": "사용자 동선을 확보하고 구역별 승인된 순서로 청소해요. 서로 다른 약품을 임의로 섞지 않아요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "완료·이상 인계",
+      "manual": "젖은 바닥과 남은 물품을 확인하고 미완료나 시설 이상을 인계해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## 업종 공통 · 시설 이상 발견·조치 인계
+
+```tap2work-tap
+{
+  "sourceId": "business/safety",
+  "collectionId": "business",
+  "collectionName": "업종 공통",
+  "title": "시설 이상 발견·조치 인계",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "safety",
+  "kind": "operation",
+  "summary": "위험 발견을 체크 표시로 끝내지 않기",
+  "applicability": "해당 업무가 있는 모든 업종. 사업장의 승인 절차에 맞게 사용하세요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "통로·설비 상태 확인",
+      "manual": "출입 동선과 사용 설비의 눈에 보이는 이상을 확인해요. 장비를 임의로 분해하지 않아요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "이상 사용 중지·보고",
+      "manual": "위험한 상태는 접근과 사용을 멈추고 현장 책임자에게 위치와 상태를 알려요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "조치 담당·결과 확인",
+      "manual": "조치 담당과 미해결 사항을 기록해 다음 근무자에게 전달해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## 업종 공통 · 근무·담당·신규 크루 인계
+
+```tap2work-tap
+{
+  "sourceId": "business/people",
+  "collectionId": "business",
+  "collectionName": "업종 공통",
+  "title": "근무·담당·신규 크루 인계",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "people",
+  "kind": "operation",
+  "summary": "공석·담당·교육을 짧게 확인",
+  "applicability": "해당 업무가 있는 모든 업종. 사업장의 승인 절차에 맞게 사용하세요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "근무와 담당 확인",
+      "manual": "오늘 근무 인원과 공석, 각 업무의 담당을 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "신규 크루 도움 연결",
+      "manual": "새 크루의 버디와 교육 범위를 확인하고 혼자 하면 안 되는 작업을 안내해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "교대 인계",
+      "manual": "완료·미완료·이상 사항을 구분해 다음 담당자와 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## 업종 공통 · 하루 마감·정산 인계
+
+```tap2work-tap
+{
+  "sourceId": "business/closing",
+  "collectionId": "business",
+  "collectionName": "업종 공통",
+  "title": "하루 마감·정산 인계",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "미완료 업무와 결제 차이를 다음 날로 전달",
+  "applicability": "해당 업무가 있는 모든 업종. 사업장의 승인 절차에 맞게 사용하세요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "남은 업무 정리",
+      "manual": "진행 중 고객 요청·물품·작업을 확인하고 보관 위치와 다음 담당을 정해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "결제·기록 대조",
+      "manual": "담당 권한 안에서 결제·취소·환불 기록을 대조하고 차이는 승인 없이 임의 수정하지 않아요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "시설 종료·다음 날 인계",
+      "manual": "현장 종료 지침에 따라 설비와 잠금 상태를 확인하고 다음 날 필요한 일을 전달해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## IT·사무·창작 · 요청·납기·결과물 인계
+
+```tap2work-tap
+{
+  "sourceId": "business/office",
+  "collectionId": "business",
+  "collectionName": "IT·사무·창작",
+  "title": "요청·납기·결과물 인계",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "office"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "IT·디자인·사무 업무의 요청과 검수 정리",
+  "applicability": "해당 업종의 일반 인계·행정 업무용. 전문 작업 절차나 법정 점검을 대체하지 않아요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "작업 범위 확인",
+      "manual": "요청한 결과물과 납기, 검수 담당을 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "진행·변경 기록",
+      "manual": "변경 요청과 합의 사항을 기록하고 관련 담당에게 전달해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "전달·접근 확인",
+      "manual": "최종 결과물의 버전과 전달 대상을 대조하고 접근 권한을 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## 제조·생산 · 생산 작업 전후 인계
+
+```tap2work-tap
+{
+  "sourceId": "business/manufacturing",
+  "collectionId": "business",
+  "collectionName": "제조·생산",
+  "title": "생산 작업 전후 인계",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "manufacturing"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "작업지시·자재·이상품을 구분",
+  "applicability": "해당 업종의 일반 인계·행정 업무용. 전문 작업 절차나 법정 점검을 대체하지 않아요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "승인 작업지시 확인",
+      "manual": "작업 품목과 승인된 작업지시·담당자·필요 교육을 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "자재·이상 확인",
+      "manual": "자재와 도구의 식별을 대조하고 손상·이상품은 정상품과 구분해 책임자에게 알려요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "결과·미완료 인계",
+      "manual": "완료 수량과 미완료·이상 내용을 현장 기록 방식으로 인계해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## 건설·현장 · 현장 작업 범위·인계 확인
+
+```tap2work-tap
+{
+  "sourceId": "business/construction",
+  "collectionId": "business",
+  "collectionName": "건설·현장",
+  "title": "현장 작업 범위·인계 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "construction"
+  ],
+  "purposeId": "safety",
+  "kind": "operation",
+  "summary": "시작 전 담당 확인과 이상 시 중단",
+  "applicability": "해당 업종의 일반 인계·행정 업무용. 전문 작업 절차나 법정 점검을 대체하지 않아요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "작업 범위·담당 확인",
+      "manual": "승인된 작업 범위와 현장 책임자, 출입·작업 허가 필요 여부를 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "위험·변경 전달",
+      "manual": "현장 조건이 작업계획과 다르면 시작하지 말고 책임자에게 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "종료·미해결 인계",
+      "manual": "작업 구역 상태와 남은 조치, 다음 담당을 인계해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## 농림·어업 · 작업·출하 기록 인계
+
+```tap2work-tap
+{
+  "sourceId": "business/agriculture",
+  "collectionId": "business",
+  "collectionName": "농림·어업",
+  "title": "작업·출하 기록 인계",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "agriculture"
+  ],
+  "purposeId": "inventory",
+  "kind": "operation",
+  "summary": "작업 계획과 출하 물품 식별",
+  "applicability": "해당 업종의 일반 인계·행정 업무용. 전문 작업 절차나 법정 점검을 대체하지 않아요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "작업 계획 확인",
+      "manual": "오늘 작업·출하 일정과 담당을 확인해요. 장비·약품은 승인된 지침과 교육 범위 안에서 사용해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "물품 식별 대조",
+      "manual": "출하 품목·수량·표시와 전달처를 대조하고 이상 물품은 분리해 보고해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "미완료·보관 인계",
+      "manual": "남은 물품 위치와 미완료 작업을 다음 담당에게 전달해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## 보건·돌봄 · 접수·비진료 행정 인계
+
+```tap2work-tap
+{
+  "sourceId": "business/health",
+  "collectionId": "business",
+  "collectionName": "보건·돌봄",
+  "title": "접수·비진료 행정 인계",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "업무 운영 편집 제안 · 현장 적용 전 검토",
+  "industryIds": [
+    "health"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "진료·투약을 제외한 예약·행정 업무 정리",
+  "applicability": "해당 업종의 일반 인계·행정 업무용. 전문 작업 절차나 법정 점검을 대체하지 않아요.",
+  "jurisdiction": "매장별 운영 기준",
+  "keywords": [],
+  "references": [],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "예약·행정 담당 확인",
+      "manual": "승인된 시스템에서 예약 일정과 행정 담당을 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-2",
+      "title": "접근·공개 범위 확인",
+      "manual": "민감한 정보가 공개된 화면이나 공용 기록에 노출되지 않도록 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    },
+    {
+      "id": "step-3",
+      "title": "요청을 담당자에게 인계",
+      "manual": "진료·투약·처치 판단이 필요한 요청은 해당 전문인력에게 연결해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": ""
+    }
+  ]
+}
+```
+
+## 업종 공통 · CCTV 설치·안내·접근 기준 확인
+
+```tap2work-tap
+{
+  "sourceId": "legal/cctv",
+  "collectionId": "legal",
+  "collectionName": "업종 공통",
+  "title": "CCTV 설치·안내·접근 기준 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "공식 안내를 바탕으로 편집한 확인 항목 · 적용 여부와 최신 기준 확인",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "compliance",
+  "kind": "legal",
+  "summary": "설치 목적과 안내판·영상 접근 기준",
+  "applicability": "공개된 장소에 고정형 CCTV를 설치·운영하는 사업장. 장소와 목적에 따라 허용 여부를 확인하세요.",
+  "jurisdiction": "대한민국",
+  "keywords": [
+    "CCTV",
+    "영상정보"
+  ],
+  "references": [
+    {
+      "title": "법제처 생활법령정보 · 영상정보처리기기",
+      "url": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=2&cciNo=3&cnpClsNo=3&csmSeq=1257&popMenu=ov",
+      "checkedAt": "2026-10-05",
+      "scope": "공식 안내의 적용 대상·확인 항목 참고 · 사업 형태별 관할 기준 추가 확인"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "설치 목적·장소 확인",
+      "manual": "설치 목적과 장소가 허용 범위에 해당하는지 공식 안내를 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=2&cciNo=3&cnpClsNo=3&csmSeq=1257&popMenu=ov"
+    },
+    {
+      "id": "step-2",
+      "title": "안내판 항목 대조",
+      "manual": "설치 목적·장소, 촬영 범위·시간, 관리책임자 연락처 등 필요한 내용을 안내판과 대조해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=2&cciNo=3&cnpClsNo=3&csmSeq=1257&popMenu=ov"
+    },
+    {
+      "id": "step-3",
+      "title": "영상 접근·처리 확인",
+      "manual": "접근 권한과 보관·처리 기준을 정하고 목적 외 이용이나 제공 요청은 담당자에게 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=2&cciNo=3&cnpClsNo=3&csmSeq=1257&popMenu=ov"
+    }
+  ]
+}
+```
+
+## 업종 공통 · 영업 인허가·등록 대상 확인
+
+```tap2work-tap
+{
+  "sourceId": "legal/permits",
+  "collectionId": "legal",
+  "collectionName": "업종 공통",
+  "title": "영업 인허가·등록 대상 확인",
+  "slot": "준비",
+  "reviewedAt": "2026-10-05",
+  "basis": "공식 안내를 바탕으로 편집한 확인 항목 · 적용 여부와 최신 기준 확인",
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "compliance",
+  "kind": "legal",
+  "summary": "사업 개시 전 업종별 신고·등록·허가 확인",
+  "applicability": "신규 사업 개시 또는 영업 내용 변경 시. 사업자등록과 업종별 인허가는 구분해 확인하세요.",
+  "jurisdiction": "대한민국",
+  "keywords": [
+    "사업자등록",
+    "허가",
+    "신고"
+  ],
+  "references": [
+    {
+      "title": "법제처 생활법령정보 · 법인사업자 등록과 인허가",
+      "url": "https://m.easylaw.go.kr/MOB/CsmInfoRetrieve.laf?ccfNo=3&cciNo=2&cnpClsNo=2&csmSeq=632",
+      "checkedAt": "2026-10-05",
+      "scope": "공식 안내의 적용 대상·확인 항목 참고 · 사업 형태별 관할 기준 추가 확인"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "실제 영업과 대상 대조",
+      "manual": "제공할 서비스와 품목을 정리하고 관계 법령상 허가·등록·신고 대상인지 확인해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://m.easylaw.go.kr/MOB/CsmInfoRetrieve.laf?ccfNo=3&cciNo=2&cnpClsNo=2&csmSeq=632"
+    },
+    {
+      "id": "step-2",
+      "title": "관할 절차·증빙 확인",
+      "manual": "대상 업종의 관할 기관과 개시 전 절차를 확인하고 필요한 증빙과 변경 사항을 정리해요.",
+      "tip": "",
+      "tags": [],
+      "sourceUrl": "https://m.easylaw.go.kr/MOB/CsmInfoRetrieve.laf?ccfNo=3&cciNo=2&cnpClsNo=2&csmSeq=632"
     }
   ]
 }

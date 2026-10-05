@@ -308,3 +308,11 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 2026-10-05 S27 제스처 수정: `staffShifts` → 안정적인 `Positioned` key의 drag/resize → `save_staff_shift` → 성공 응답까지 resize 종료/임시 이동 위치 유지 → 응답 후 서버 상태로 전환한다. 영업 종료 후 연속 3시간 resize와 다른 크루 순차 조정·새로고침 보존, 시간 칸 추가 중 Draggable identity, 지연 저장 성공/실패는 `schedule_gesture_test.dart`에서 검증한다. 실패는 원본으로 돌아가고 오류를 표시한다.
 
 2026-10-05 S27 저장 시점 변경: `staffShifts[]` → 길게 누른 배정 하나의 drag/resize 로컬 초안 → 선택 카드/도구 외부 클릭 또는 편집 완료 → opening revision으로 `save_staff_shift` 1회 → 서버 근무표. 변경 없는 종료는 요청 없음. 저장 대기/실패 시 초안을 유지하고 재시도·취소 제공. 다른 크루 블록은 편집 비활성. `schedule_gesture_test.dart`는 반복 조정 후 단일 요청, 바깥 카드 클릭 시 새 폼 미진입, 선택 범위, 영업 종료 후 확대 및 실패 보존을 검증한다.
+
+## 매뉴얼 마켓 탐색·일괄 담기 · 2026-10-05
+
+| 원본 | 컨트롤 → 액션 | 소비·보존 | 검증 |
+| --- | --- | --- | --- |
+| manualCatalog schemaVersion 2 + taxonomy | 매뉴얼 마켓 검색·업종 시트·법적 기준/운영 필터 → 로컬 basket | 업종/필터 전환 선택 유지, 설치된 공용 연결 중복 방지 | manual_market_discovery_test.dart |
+| basket sourceIds + purposeId | 담은 항목 확인 → 업무별 자동 분류 / 기존 그룹 → import_market_taps | checklistsFolders와 새 TAP 원자 저장; OFF, 공용 연결 및 과거 실행 보존 | manual_market.test.mjs, manual_market_test.dart |
+| applicability/jurisdiction/references | 상세 펼침 → 공식 출처 열기 | 법적 기준 적용 대상·자료 확인일·범위 표시; 준법 판정 없음 | manual_market_discovery_test.dart, market_discovery_review.dart |

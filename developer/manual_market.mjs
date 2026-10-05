@@ -85,10 +85,22 @@ export function mutateManualMarket(state,input,actor,now){
   if(input.action==='import_market_taps'){
    if(input.releaseId!==release.releaseId)fail('공용 목록이 업데이트됐어요. 다시 확인해 주세요.',409);
    if(!Array.isArray(input.sourceIds)||!input.sourceIds.length||new Set(input.sourceIds).size!==input.sourceIds.length)fail('가져올 TAP을 골라 주세요.');
-   if(!state.checklistFolders.some(f=>f.id===input.folderId))fail('대상 그룹을 선택해 주세요.');
+   if(input.folderMode!=null && !['purpose','existing'].includes(input.folderMode))fail('그룹 분류 방식을 확인해 주세요.');
+   if(input.folderMode!=='purpose'&&!state.checklistFolders.some(f=>f.id===input.folderId))fail('대상 그룹을 선택해 주세요.');
    const sources=input.sourceIds.map(id=>release.entries.find(t=>t.sourceId===id)??fail('공용 TAP을 찾지 못했어요.'));
    if(sources.some(s=>Object.entries(state.catalogLinks??{}).some(([id,l])=>l.sourceId===s.sourceId&&l.mode==='linked'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt))))fail('이미 공용 연결로 가져온 TAP이 있어요.');
-   const drafts=sources.map(s=>({id:uid(),title:s.title,emoji:s.emoji,folderId:input.folderId,slot:s.slot,requiredRole:'all',partId:null,zone:null,steps:structuredClone(s.steps),sourceIds:[]}));
+   const folders=structuredClone(state.checklistFolders);
+   const destinations=new Map();
+   for(const source of sources){
+    if(input.folderMode!=='purpose'){destinations.set(source.sourceId,input.folderId);continue;}
+    const purpose=release.taxonomy.purposes.find(p=>p.id===source.purposeId);
+    let folder=folders.find(f=>f.name===purpose.name);
+    if(!folder){folder={id:uid(),name:purpose.name};folders.push(folder);}
+    destinations.set(source.sourceId,folder.id);
+   }
+   if(folders.length>30)fail('그룹이 많아요. 기존 그룹을 선택해 가져와 주세요.');
+   state.checklistFolders=folders;
+   const drafts=sources.map(s=>({id:uid(),title:s.title,emoji:s.emoji,folderId:destinations.get(s.sourceId),slot:s.slot,requiredRole:'all',partId:null,zone:null,steps:structuredClone(s.steps),sourceIds:[]}));
    addTemplates(state,drafts);
    drafts.forEach((t,i)=>{const actual=state.taskTemplates.find(v=>v.id===t.id);(state.catalogLinks??={})[t.id]={mode:'linked',sourceId:sources[i].sourceId,releaseId:release.releaseId,contentHash:contentHash(actual),importedAt:new Date(now).toISOString()};});
    return drafts.map(t=>t.id);

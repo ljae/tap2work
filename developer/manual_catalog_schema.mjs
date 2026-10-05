@@ -1,3 +1,4 @@
+import taxonomy from '../docs/market/taxonomy.json' with {type:'json'};
 import {createHash} from 'node:crypto';
 import {mediaLink,manualTags} from './checklists.mjs';
 const fail=message=>{throw Error(message);};
@@ -20,6 +21,13 @@ export function validateCatalog(entries){
    const sid=id(s.id);if(ids.has(sid))fail('Duplicate Task ID');ids.add(sid);
    return {id:sid,title:text(s.title,100,'Task title'),manual:text(s.manual,700,'manual'),tip:optional(s.tip,400),tags:manualTags(s.tags),imageUrl:mediaLink(s.imageUrl),videoUrl:mediaLink(s.videoUrl),sourceUrl:mediaLink(s.sourceUrl)};
   });
-  return {sourceId,collectionId:id(t.collectionId),collectionName:text(t.collectionName,80,'collection'),title:text(t.title,100,'TAP title'),emoji:optional(t.emoji,20)||'📝',slot:['오픈','준비','피크','브레이크','마감'].includes(t.slot)?t.slot:'준비',reviewedAt:text(t.reviewedAt,30,'review date'),basis:optional(t.basis,500),steps};
+  if(!Array.isArray(t.industryIds)||!t.industryIds.length||t.industryIds.some(id=>!taxonomy.industries.some(i=>i.id===id)))fail('Invalid industry');
+  if(!taxonomy.purposes.some(p=>p.id===t.purposeId))fail('Invalid purpose');
+  if(!['legal','operation'].includes(t.kind))fail('Invalid catalogue kind');
+  if(!Array.isArray(t.references)||t.references.length>12)fail('Invalid references');
+  const references=t.references.map(r=>({title:text(r.title,120,'source title'),url:mediaLink(r.url),checkedAt:text(r.checkedAt,30,'source date'),scope:text(r.scope,500,'source scope')}));
+  if(references.some(r=>!r.url))fail('Source URL required');
+  if(t.kind==='legal'&&(!references.length||references.some(r=>!new URL(r.url).hostname.endsWith('.go.kr'))))fail('Legal criteria require Korean official sources');
+  return {industryIds:[...new Set(t.industryIds)],purposeId:t.purposeId,kind:t.kind,summary:text(t.summary,200,'summary'),applicability:text(t.applicability,500,'applicability'),jurisdiction:text(t.jurisdiction,100,'jurisdiction'),keywords:manualTags(t.keywords),references,sourceId,collectionId:id(t.collectionId),collectionName:text(t.collectionName,80,'collection'),title:text(t.title,100,'TAP title'),emoji:optional(t.emoji,20)||'📝',slot:['오픈','준비','피크','브레이크','마감'].includes(t.slot)?t.slot:'준비',reviewedAt:text(t.reviewedAt,30,'review date'),basis:optional(t.basis,500),steps};
  });
 }

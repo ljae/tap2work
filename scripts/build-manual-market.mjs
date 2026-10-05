@@ -7,9 +7,10 @@ const blocks=[...source.matchAll(/```tap2work-tap\s*\n([\s\S]*?)\n```/g)];
 if(!blocks.length)throw Error('No tap2work-tap blocks in SOURCE.md');
 const entries=blocks.map(m=>JSON.parse(m[1]));
 const canonical=validateCatalog(entries);
-const content=JSON.stringify(canonical);
+const taxonomy=JSON.parse(await readFile(new URL('taxonomy.json',root),'utf8'));
+const content=JSON.stringify({taxonomy,entries:canonical});
 const releaseId=createHash('sha256').update(content).digest('hex');
-const release={schemaVersion:1,releaseId,entries:canonical};
+const release={schemaVersion:2,releaseId,taxonomy,entries:canonical};
 const output=JSON.stringify(release,null,2)+'\n';
 if(process.argv.includes('--check')){
  if(await readFile(new URL(`releases/${releaseId}.json`,root),'utf8')!==output)throw Error('Immutable release does not match source');

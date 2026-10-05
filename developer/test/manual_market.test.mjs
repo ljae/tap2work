@@ -1,4 +1,5 @@
 import {test} from 'node:test';
+import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import {OperationsStore,emptyOperations} from '../operations.mjs';
 import {manualCatalog,syncManualCatalog,checklistBackup} from '../manual_market.mjs';
@@ -105,7 +106,7 @@ test('worker and restricted manager cannot import, edit or export private templa
  }
 });
 test('catalog validates stable unique IDs and prohibits operational fields inside public Tasks',()=>{
- assert.equal(validateCatalog(manualCatalog.entries).length,64);
+ assert.equal(validateCatalog(manualCatalog.entries).length,86);
  const duplicate=structuredClone(manualCatalog.entries);duplicate[1].sourceId=duplicate[0].sourceId;assert.throws(()=>validateCatalog(duplicate),/Duplicate/);
  const policy=structuredClone(manualCatalog.entries);policy[0].steps[0].settings={enabled:true};assert.throws(()=>validateCatalog(policy),/content only/);
 });
@@ -116,4 +117,41 @@ test('menu-linked TAP detail aliases do not rename the sales menu or source Task
  await x.act('save_manual_tap',draft);
  const saved=x.raw().taskTemplates.find(v=>v.id===t.id);
  assert.equal(x.raw().sales.menus[0].name,'판매 메뉴');assert.equal(saved.title,original.title);assert.equal(saved.manualTitle,'맞춤 조리 매뉴얼');assert.equal(saved.steps[0].title,original.steps[0].title);assert.equal(saved.steps[0].manualTitle,'우리 매장 조리');
+});
+
+test('discovery retains all original public content and covers every category',()=>{
+ const old=JSON.parse(readFileSync(new URL('../../docs/market/releases/55f8cb09d84360027d364d97bd99732e7b55168a3c6a05ff98afd7b078be7494.json',import.meta.url)));
+ for(const entry of old.entries){
+  const current=manualCatalog.entries.find(e=>e.sourceId===entry.sourceId);
+  assert.ok(current);assert.equal(contentHash(current),contentHash(entry));
+ }
+ for(const industry of manualCatalog.taxonomy.industries) assert.ok(manualCatalog.entries.some(e=>e.industryIds.includes(industry.id)),industry.id);
+ assert.equal(manualCatalog.entries.filter(e=>e.kind==='legal').length,10);
+ const missing=structuredClone(manualCatalog.entries);missing[0].industryIds=['unknown'];assert.throws(()=>validateCatalog(missing),/industry/);
+ const unsafe=structuredClone(manualCatalog.entries);unsafe.find(e=>e.kind==='legal').references[0].url='https://example.com/';assert.throws(()=>validateCatalog(unsafe),/official/);
+});
+test('purpose import groups mixed industries once and retains idempotency and disabled policies',async()=>{
+ const x=fixture();
+ const sourceIds=['legal/employment','business/service','business/office'];
+ const body={operationId:'purpose-0001',releaseId:manualCatalog.releaseId,folderMode:'purpose',sourceIds};
+ await x.act('import_market_taps',body);
+ assert.equal(x.raw().checklistFolders.length,3);
+ const rows=x.raw().taskTemplates;
+ assert.equal(rows.length,3);assert.equal(rows[1].folderId,rows[2].folderId);
+ assert.notEqual(rows[0].folderId,rows[1].folderId);
+ assert.ok(rows.every(t=>t.settings.enabled===false));
+ await x.act('import_market_taps',body);assert.equal(x.raw().taskTemplates.length,3);
+ await x.act('import_market_taps',{...body,operationId:'purpose-0002',sourceIds:['legal/privacy']});
+ assert.equal(x.raw().checklistFolders.length,3);
+});
+test('auto grouping capacity and invalid selections fail atomically',async()=>{
+ const x=fixture();
+ x.raw().checklistFolders=Array.from({length:30},(_,i)=>({id:i===0?'general':'group-'+i,name:'기존 '+i}));
+ await x.store.snapshot(x.actor.id);
+ const before=structuredClone(x.raw());
+ await assert.rejects(()=>x.act('import_market_taps',{operationId:'purpose-limit',releaseId:manualCatalog.releaseId,folderMode:'purpose',sourceIds:['legal/employment']}),{status:400});
+ assert.deepEqual(x.raw(),before);
+ await x.act('import_market_taps',{operationId:'existing-limit',releaseId:manualCatalog.releaseId,folderMode:'existing',folderId:'general',sourceIds:['legal/employment']});
+ assert.equal(x.raw().checklistFolders.length,30);
+ assert.equal(x.raw().taskTemplates[0].folderId,'general');
 });

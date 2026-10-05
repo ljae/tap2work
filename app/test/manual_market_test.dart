@@ -123,8 +123,11 @@ void main() {
       );
       await tester.tap(find.byType(Checkbox).first);
       await tester.pumpAndSettle();
+      await tester.tap(find.text('담은 1개 확인'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('선택한 1개 가져오기'));
       await tester.pumpAndSettle();
+      expect(sent?['folderMode'], 'purpose');
       expect(sent?['action'], 'import_market_taps');
       expect(sent?['releaseId'], 'release-one');
       expect(sent?['revision'], 2);
