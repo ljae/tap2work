@@ -16,21 +16,26 @@ class BrandLogo extends StatelessWidget {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          'assets/branding/tap2work.png',
-          width: 44,
-          height: 44,
-          semanticLabel: 'tap2.work 로고',
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            'assets/branding/tap2work.png',
+            width: 48,
+            height: 48,
+            cacheWidth: (48 * MediaQuery.devicePixelRatioOf(context)).ceil(),
+            fit: BoxFit.contain,
+            semanticLabel: 'TAP Work 로고',
+          ),
         ),
         const SizedBox(width: 10),
         const Text(
-          'tap2work',
+          'TAP Work',
           maxLines: 1,
           style: TextStyle(
             color: AppColors.ink,
-            fontSize: 24,
+            fontSize: 22,
             fontWeight: FontWeight.w800,
-            letterSpacing: -1.35,
+            letterSpacing: 0.2,
           ),
         ),
       ],

@@ -4,7 +4,7 @@ import { ensureStaff } from './staff.mjs';
 import { StoreError } from './store.mjs';
 
 // Both Edge Functions and Node tests use this handler; demo actor headers are ignored.
-export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.work', 'https://www.tap2.work'], fetcher = fetch, clock = () => new Date(), sectionStorage = false }) {
+export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.work', 'https://www.tap2.work'], fetcher = fetch, clock = () => new Date(), sectionStorage = false, requireSocialIdentity = false }) {
   if (!url || !serviceKey) throw new Error('Supabase server configuration is missing');
   const headers = { apikey: serviceKey, ...(serviceKey.startsWith('eyJ') ? { Authorization: `Bearer ${serviceKey}` } : {}), 'Content-Type': 'application/json' };
   async function rest(path, options = {}) {
@@ -28,6 +28,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       if (!auth.ok) throw new StoreError('로그인이 만료됐어요. 다시 로그인해 주세요.', 401);
       const user = await auth.json();
       if (!/^[\da-f-]{36}$/i.test(user.id ?? '')) throw new StoreError('사용자를 확인하지 못했어요.', 401);
+      if (requireSocialIdentity && !user.identities?.some(i => ['apple','google'].includes(i.provider))) throw new StoreError('Apple 또는 Google로 다시 로그인해 주세요.', 403);
       const query = new URL(request.url).searchParams;
       const readWorkspace = () => rest('rpc/tap2work_read_workspace', {method:'POST', body:JSON.stringify({
         p_user_id:user.id,

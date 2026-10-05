@@ -1,0 +1,85 @@
+# Claude ↔ GPT/Codex 작업 인계
+
+작성: 2026-10-05. 같은 저장소를 계속 사용한다. 앱 코드 이동·중복 구현은 하지 않았다.
+현재 기준은 로컬 작업 트리이며 HEAD `c53290e`만으로 현재 코드를 복원할 수 없다. 이미 많은 수정/미추적 파일이 있었다. 전체 stage/reset/clean 또는 이전 커밋으로 덮어쓰지 않는다.
+
+## 시작 순서
+
+1. 루트 `AGENTS.md` — 공통 규칙. Claude는 `CLAUDE.md`에서 같은 파일을 import한다.
+2. 이 문서와 `BACKEND_WATCH_HANDOFF.md` — 현재 구조와 작은 후속 작업.
+3. `project-state.json`의 해당 결정과 최신 history, `../PRODUCT.md`, `ARCHITECTURE.md` — 정식 판단 근거.
+4. UI 변경이면 `UI_UX_GUIDELINES.md`, 새 화면/변경 화면은 `TOSS_UI_PROMPT_TEMPLATE.md`, 설정 연결이면 `UI_SETTINGS_RELATIONSHIP_MAP.md`.
+5. 필요한 파일만 추가로 읽고 한 작업 단위씩 구현·검증한다. `.agents/skills/`의 Flutter 스킬은 두 도구가 같은 원본을 사용할 수 있다.
+
+별도의 Claude 설정/메모리 파일은 이 저장소 검색에서 발견되지 않았다. 사용자 홈의 비공개 Claude 대화·설정은 검색하거나 복사하지 않았다. 기존 Codex 실행 보조는 `scripts/codex-tap2work.sh`에 있다. 이 인계는 특정 모델명·개인 MCP 설정을 강제로 지정하지 않는다.
+
+## 파일 구조와 수정 위치
+
+```text
+tap2work/
+├── AGENTS.md / CLAUDE.md     공통 규칙 / Claude 진입
+├── app/                     주 앱: Flutter
+│   ├── lib/main.dart        초기화·앱 진입
+│   ├── lib/ui/              화면과 공통 디자인 컴포넌트
+│   ├── lib/state/           OperationsController, ScheduleController 등
+│   ├── lib/domain/          repository 계약·순수 계산·모델
+│   ├── lib/data/            HTTP·인증·기기 백업 저장소
+│   ├── assets/              서체·브랜딩·달력
+│   ├── test/                위젯·도메인·동기화 검증
+│   ├── tool/                UI 검토/캡처 도구
+│   └── android/ ios/ web/ … 플랫폼 진입
+├── developer/               Node 콘솔·공유 운영 도메인
+│   ├── server.mjs           로컬 서버 및 API 라우팅
+│   ├── store.mjs            프로젝트 결정 저장
+│   ├── operations.mjs      운영 상태·액션·권한 투영
+│   ├── supabase_backend.mjs 인증 클라우드 HTTP 경계
+│   ├── section_storage.mjs 변경 영역 diff
+│   └── test/               Node 및 SQL 검증
+├── supabase/                SQL 이관과 Edge Functions
+├── docs/                    결정·아키텍처·가이드·계획
+│   ├── project-state.json   버전 관리되는 결정/이력 원본
+│   └── market/              공용 TAP 원본·불변 발행본
+├── scripts/                 빌드·배포·연결 검사·콘텐츠 생성
+├── .agents/skills/          저장소 공통 Flutter 스킬
+├── site/                    공개 리뷰 포털
+├── .github/workflows/       GitHub Pages 빌드·배포
+└── index.html app.js …      이전 참조 프로토타입
+```
+
+| 작업 | 먼저 볼 파일 |
+|---|---|
+| HTTP/폴링/충돌 | `app/lib/state/operations_controller.dart`, `app/lib/data/http_operations_repository.dart`, `developer/supabase_backend.mjs` |
+| 근무 배정/파트 | `developer/staff.mjs`, `parts.mjs`, `default_assignments.mjs`, `workplace.mjs`; `app/lib/domain/part_schedule.dart` |
+| 영업일/야간/예외 | `developer/business_day.mjs`, `business_breaks.mjs`, `schedule_exceptions.mjs` |
+| TAP 정책/실행 | `developer/tap_policy.mjs`, `task_settings.mjs`, `checklists.mjs`, `work_assignments.mjs` |
+| 공용 콘텐츠/백업 | `developer/manual_market.mjs`, `manual_catalog_schema.mjs`, `app/lib/data/checklist_backup_repository.dart`, `docs/market/README.md` |
+| 저장 구조/비용 | `docs/DATABASE_AND_PERFORMANCE.md`, `developer/section_storage.mjs`, `supabase/migrations/20260929010000_section_storage.sql` |
+| UI 공통 | `app/lib/ui/design_tokens.dart`, `design_system.dart`, `components.dart`, `app_motion.dart` |
+
+읽기/쓰기: Flutter UI → controller → repository → 로컬 OperationsStore 또는 인증 Supabase handler → 공통 도메인 → revision/CAS 저장. 공개 리뷰 읽기 전용 경로와 기기 첫 근무 학습 진도는 별개다.
+
+## 오래된 설명과 최신 결정 구분
+
+- D-073: 신규 TAP에서 파트·시간대·운영 정책을 설정한다. Task별 배정으로 되돌리지 않는다. v1 실행은 호환/기록 보존 대상이다.
+- D-075/076: 기본 크루 설정은 인원 배치 테이블로 통합했다. 과거 문서의 별도 크루 배정·기간 적용 동선을 재구현하지 않는다.
+- D-080: 명시적 기본 인원 저장은 영향 요일의 오늘부터 90일 계획/미세 조정을 재반영한다. 실제·과거·승인·대기 기록은 보호한다. 평소 조회는 미세 조정을 보존한다.
+- D-081: 공용 연결 TAP 자동 업데이트와 개인화/JSON 백업은 이미 구현됐다. 상세 계획 §21의 미구현 설명보다 §22와 최신 결정이 우선한다. 3-way 비교 UI는 확정 정책이 아니다.
+- D-078: 자동 출근은 선호 저장만 구현. D-079 자동 퇴근은 proposed. 실제 감지/인증/알림으로 소개하지 않는다.
+- 지난 배포 성공 기록은 현재 작업 트리 테스트 결과를 대체하지 않는다. 이번 기준 결과는 오류 인계 문서에 있다.
+
+## 로컬 명령
+
+루트: `npm run dev:console` (기본 3100), `npm run check`, `npm run test:console`, `npm run check:ui-links`.
+`app/`: `flutter analyze`, `flutter test`.
+웹 미리보기 빌드: 루트 `npm run build:app`, 콘솔 `/app/`.
+이번 확인 환경: Node v22.21.1, Flutter 3.41.2, Dart 3.11.0. 버전 강제 업그레이드는 하지 않았다.
+`backend:deploy`는 실제 외부 배포 명령이며 로컬 검증 명령이 아니다.
+
+## 파일 구조 복사본
+
+`.local/ai-handoff-2026-10-05/source.tar.gz`는 현재 소스와 이 인계 문서를 원래 상대 경로로 복사한 로컬 아카이브다. 포함 파일/해시는 같은 폴더의 `manifest.json`, 테스트 기록은 `verification/`에 있다.
+Git 추적 파일과 무시되지 않은 미추적 파일을 기준으로 복사하며 `.git`, `.env`/개인 설정, `.local`, 빌드·캐시·의존성·플랫폼 생성 파일은 제외한다. Git 이력·운영 DB·자격증명 백업은 아니다. 복원 시 빈 디렉토리에 풀고 의존성을 설치한다. 현재 작업 폴더 위에 풀지 않는다.
+
+## 후속 모델 시작 프롬프트
+
+> AGENTS.md와 docs/AI_HANDOFF.md, docs/BACKEND_WATCH_HANDOFF.md를 읽어라. 현재 작업 트리의 기존 수정은 보존하라. 먼저 B-01의 실패를 재현하고 최신 결정과 테스트의 충돌을 확인하라. 제품 권한을 임의로 바꾸거나 기대값만 400→409로 치환하지 말라. 한 작업씩 최소 수정하고 관련 검사 결과·미실시 항목을 기록하라. Watch 항목은 의미 확인 전 다른 오류로 단정하지 말라. 이번 요청에 없는 운영 데이터 변경이나 배포를 하지 말라.

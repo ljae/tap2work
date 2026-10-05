@@ -7,7 +7,7 @@ import 'work_controller_test.dart' show MemoryStore;
 
 void main() {
   testWidgets(
-    'public entry shows fixed account and automatic credential fields',
+    'personal entry shows social login and privacy without shared credentials',
     (tester) async {
       final client = (await tester.runAsync(
         () async => SupabaseClient(
@@ -18,18 +18,22 @@ void main() {
       ))!;
       addTearDown(() => tester.runAsync(client.dispose));
       await tester.pumpWidget(
-        CloudWorkspace(work: WorkController(MemoryStore()), client: client),
+        CloudWorkspace(
+          work: WorkController(MemoryStore()),
+          client: client,
+          loadProviders: () async => {
+            OAuthProvider.apple,
+            OAuthProvider.google,
+          },
+        ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('로그인'), findsOneWidget);
-      expect(find.text('ljae.m10@gmail.com'), findsOneWidget);
+      expect(find.text('Google로 계속하기'), findsOneWidget);
+      expect(find.text('Apple로 계속하기'), findsOneWidget);
+      expect(find.text('개인정보처리방침'), findsOneWidget);
       expect(find.text('근무표'), findsNothing);
-      final fields = tester
-          .widgetList<TextFormField>(find.byType(TextFormField))
-          .toList();
-      expect(fields.length, 2);
-      expect(fields.every((field) => field.initialValue!.isNotEmpty), isTrue);
-      expect(find.text('Google로 계속하기'), findsNothing);
+      expect(find.byType(TextFormField), findsNothing);
+      expect(find.textContaining('공용 계정'), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );

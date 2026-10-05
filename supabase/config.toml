@@ -1,5 +1,10 @@
 project_id = "tap2work"
 
+[functions.account]
+# Handler verifies the bearer session against Auth; user IDs never come from UI.
+verify_jwt = false
+entrypoint = "./functions/account/index.ts"
+
 [functions.operations]
 # The handler validates bearer sessions with Supabase Auth, including new signing keys.
 verify_jwt = false

@@ -1,5 +1,7 @@
 # tap2work 맞춤 UI/UX 가이드라인
 
+2026-10-05 브랜드 최신 결정: 사용자 제공 `docs/branding/TapWater_logo.png`를 TAP Work 로고로 사용한다. 가로 원본의 좌우 여백을 줄인 정사각형 도안·색상을 보존하고 공통 헤더/로그인에는 48px 이미지와 읽을 수 있는 TAP Work 워드마크를 배치한다. 이미지 모서리 12px는 화면 표시 처리이며 배포 마스터의 도안을 추가로 자르지 않는다. 기존 초록·코랄 UI와 네 주요 메뉴는 유지한다. 이전 경로/체크 로고 규칙은 이 결정으로 대체한다.
+
 버전 1.0 · 2026-09-30 · 신규 화면과 기존 UI/UX 개선 시 **가장 먼저 읽는 디자인 기준**.
 
 이 문서는 Toss 공식 문서의 복제본이나 TDS 적용 선언이 아니다. 외부 UX 원칙을 참고하되, tap2work에서 확정한 제품 흐름과 Flutter 공통 컴포넌트에 맞게 작성한 프로젝트 규칙이다. 문서 작성이 모든 기존 화면의 준수 완료를 뜻하지는 않는다.
@@ -210,6 +212,11 @@ Show actual assignments using crew names/colors and only the uncovered intervals
 영업시간·인원 → 크루별 기본 배정 → 근무표 조정의 순서를 표시한다. 크루 기본 배정은 교대×파트 필요 슬롯에 크루를 드래그하거나 탭으로 지정하며 미배정을 이 화면에 모은다. 근무표는 배정된 크루만 파트 가로축/시간 세로축에 표시하고 세부 시간을 수정한다. 별도 시간표 메뉴와 파트 필터를 없애며 직원은 본인 근무만 본다. 월간은 정기 일정에 추가 휴무/업무일을 지정하는 화면이다. 앞 설정 변경 후 별도 기간 적용·시간 재조정 필요를 알린다. 짧은 설명은 중복하지 않고 실패·권한·기록 보호는 유지한다. 390px에서는 기본 3파트가 함께 보이도록 열 폭을 잡고 동시 배정/확대 글자는 내부 스크롤을 허용한다.
 
 Schedule density (2026-10-04): use 48px/hour for long assignments; if any assignment is shorter than two hours, expand to 48px/half-hour. Resize uses the same scale. Monthly cells focus on operating-day exceptions and omit duplicate crew counts.
+
+
+### TAP 설정과 Task 콘텐츠 분리 · 2026-10-04 사용자 확정, 구현 예정
+
+시간대·파트·담당·장소·반복·주요 실행 제약은 TAP 설정에서 한 번 편집한다. Task에는 별도 배정/배분/override 컨트롤을 두지 않고 행동 이름·매뉴얼·팁·태그·자료 편집을 제공한다. Task는 TAP 담당을 자동으로 따르며 완료자/시각은 각 실행 기록으로 유지한다. 중앙 업데이트 비교는 Task와 매뉴얼을 공동 콘텐츠 묶음으로 제시하고 TAP 배정은 변경하지 않는다. 기존 Task 예외를 하나의 TAP으로 통일하거나 별도 TAP으로 나눌 때 적용 영향·과거 기록 보존을 보여준다. 이번 기록은 목표 가이드이며 현재 화면 변경 완료를 뜻하지 않는다. 상세 규칙과 이관은 [구현안](CHECKLIST_PLATFORM_IMPLEMENTATION_PLAN_2026-10-04.md)을 따른다.
 
 
 ### TAP 단일 정책 첫 구현 · 2026-10-04

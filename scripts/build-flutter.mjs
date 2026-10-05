@@ -2,6 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { versionWebAssets } from './version-web-assets.mjs';
+await import('./build-legal.mjs');
 const review = process.argv.includes('--review');
 const args = ['build','web','--release','--base-href',review ? '/' : '/app/','--pwa-strategy=none','--no-web-resources-cdn'];
 if (process.env.FLUTTER_SKIP_PUB === '1') args.push('--no-pub');

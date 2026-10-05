@@ -19,7 +19,10 @@ const contracts = [
   ['S39', 'app/lib/ui/calendar_screen.dart', "'save_calendar_day'", 'developer/workplace.mjs', "input.action === 'save_calendar_day'"],
   ['S28', 'app/lib/ui/crew_pattern_screen.dart', "'save_crew_pattern'", 'developer/crew_patterns.mjs', "'apply_crew_pattern'"],
   ['S29', 'app/lib/ui/shift_change_panel.dart', "'request_shift_change'", 'developer/shift_requests.mjs', "'review_shift_change'"],
-  ['E07', 'app/lib/ui/cloud_workspace.dart', "'setup_shared_employee'", 'developer/supabase_backend.mjs', "query.get('view') === 'employee'"],
+  ['E07', 'app/lib/ui/cloud_workspace.dart', 'SocialSignInButtons(', 'supabase/functions/operations/index.ts', 'requireSocialIdentity: true'],
+  ['S50', 'app/lib/ui/cloud_workspace.dart', 'AccountScreen(', 'app/lib/ui/account_screen.dart', 'onSignOut'],
+  ['S51', 'app/lib/ui/cloud_workspace.dart', 'openPrivacy(', 'app/lib/ui/privacy_screen.dart', 'assets/legal/privacy.json'],
+  ['S52', 'app/lib/ui/account_screen.dart', 'deleteConfirmed()', 'developer/account_backend.mjs', 'tap2work_erase_account'],
   ['S30', 'app/lib/ui/calendar_screen.dart', 'KoreanHolidays', 'app/lib/domain/korean_holidays.dart', 'https://holidays.hyunbin.page/'],
 
   ['U03', 'app/lib/ui/direct_edit.dart', 'onLongPress:', 'app/lib/ui/calendar_screen.dart', 'DirectEditFrame('],

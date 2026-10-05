@@ -1,11 +1,13 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 import '../data/auth_provider_repository.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../data/auth_repository.dart';
+import '../data/account_repository.dart';
+import '../data/native_auth_service.dart';
+import 'account_screen.dart';
+import 'privacy_screen.dart';
 import '../state/operations_controller.dart';
 import '../state/work_controller.dart';
 import 'components.dart';
@@ -16,10 +18,12 @@ class CloudWorkspace extends StatefulWidget {
     required this.work,
     required this.client,
     this.sharedApi,
+    this.loadProviders = configuredSocialProviders,
   });
   final WorkController work;
   final SupabaseClient client;
   final String? sharedApi;
+  final Future<Set<OAuthProvider>> Function() loadProviders;
   @override
   State<CloudWorkspace> createState() => _CloudWorkspaceState();
 }
@@ -29,50 +33,33 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   StreamSubscription<AuthState>? subscription;
   String? userId;
   bool preview = false;
-  bool employeeMode = false;
-  bool signingIn = false;
-  String? loginError;
-  Future<void> publicLogin() async {
-    setState(() {
-      signingIn = true;
-      loginError = null;
-    });
-    try {
-      const url = String.fromEnvironment('SUPABASE_URL');
-      const key = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
-      final response = await http
-          .post(
-            Uri.parse('$url/functions/v1/public-login'),
-            headers: {'apikey': key, 'Content-Type': 'application/json'},
-            body: '{}',
-          )
-          .timeout(const Duration(seconds: 20));
-      final body = jsonDecode(response.body) as Map;
-      if (response.statusCode != 200) {
-        throw StateError(body['error'] as String? ?? '로그인에 실패했어요.');
-      }
-      await widget.client.auth.setSession(body['refresh_token'] as String);
-    } catch (_) {
-      if (mounted) setState(() => loginError = '로그인하지 못했어요. 잠시 후 다시 시도해 주세요.');
-    } finally {
-      if (mounted) setState(() => signingIn = false);
-    }
-  }
+  late final auth = AuthRepository(widget.client);
+  bool isSocialUser(User? user) =>
+      user?.identities?.any(
+        (identity) => ['apple', 'google'].contains(identity.provider),
+      ) ==
+      true;
 
   @override
   void initState() {
     super.initState();
-    userId = widget.client.auth.currentUser?.id;
+    userId = isSocialUser(widget.client.auth.currentUser)
+        ? widget.client.auth.currentUser?.id
+        : null;
+    if (widget.client.auth.currentUser != null && userId == null) {
+      unawaited(auth.signOut().catchError((Object _) {}));
+    }
     ops = controller();
     if (userId != null) ops.start();
     subscription = widget.client.auth.onAuthStateChange.listen((state) {
-      final next = state.session?.user.id;
+      final next = isSocialUser(state.session?.user)
+          ? state.session?.user.id
+          : null;
       if (next == userId || !mounted) return;
       final previous = ops;
       setState(() {
         userId = next;
         preview = false;
-        employeeMode = false;
         ops = controller();
         if (userId != null) ops.start();
       });
@@ -85,7 +72,7 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
       : OperationsController(
           readOnly: false,
           endpoint: Uri.parse(
-            '${const String.fromEnvironment('SUPABASE_URL')}/functions/v1/operations${employeeMode ? '?view=employee' : ''}',
+            '${const String.fromEnvironment('SUPABASE_URL')}/functions/v1/operations',
           ),
           accessToken: () async {
             var session = widget.client.auth.currentSession;
@@ -95,59 +82,8 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
             return session?.accessToken;
           },
         );
-  Future<void> account(BuildContext context) async {
-    if (ops.data?['canSwitchEmployee'] != true) {
-      await openAccount(context, widget.client);
-      return;
-    }
-    final result = await showAppDialog<String>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: const Text('계정·화면 전환'),
-        content: Text(
-          '${widget.client.auth.currentUser?.email ?? ''}\n현재: ${employeeMode ? '단기 계약 크루' : '사장님'}${!employeeMode && ops.data?['sharedEmployeeId'] == null ? '\n\n처음 선택하면 별도의 단기 계약 크루를 만들어요. 기존 직원 정보는 바꾸지 않아요.' : ''}',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, 'switch'),
-            child: Text(employeeMode ? '사장님으로 보기' : '단기 계약 직원으로 보기'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(c, 'logout'),
-            child: const Text('로그아웃'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(c),
-            child: const Text('닫기'),
-          ),
-        ],
-      ),
-    );
-    if (!mounted) return;
-    if (result == 'logout') {
-      await widget.client.auth.signOut(scope: SignOutScope.local);
-      return;
-    }
-    if (result != 'switch') return;
-    if (!employeeMode && ops.data?['sharedEmployeeId'] == null) {
-      final ok = await ops.act('setup_shared_employee', {});
-      if (!ok || !mounted) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(ops.error ?? '직원 화면을 연결하지 못했어요.')),
-          );
-        }
-        return;
-      }
-    }
-    final previous = ops;
-    setState(() {
-      employeeMode = !employeeMode;
-      ops = controller();
-      ops.start();
-    });
-    previous.dispose();
-  }
+  Future<void> account(BuildContext context) =>
+      openAccount(context, widget.client);
 
   @override
   void dispose() {
@@ -160,9 +96,7 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: ops,
     builder: (context, _) => Tap2workApp(
-      key: ValueKey(
-        '${userId ?? (preview ? 'preview' : 'sign-in')}/$employeeMode',
-      ),
+      key: ValueKey(userId ?? (preview ? 'preview' : 'sign-in')),
       controller: widget.work,
       operations: ops,
       onAccountPressed: account,
@@ -197,18 +131,19 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
                             ),
                           ),
                           const SizedBox(height: 32),
-                          const PublicLoginFields(),
+                          SocialSignInButtons(
+                            onSignIn: auth.signIn,
+                            loadProviders: widget.loadProviders,
+                          ),
                           const SizedBox(height: 16),
                           const Text(
-                            '공용 계정의 기존 매장에 접속해요. 방문자가 같은 데이터를 보고 수정하며, 변경 내용은 함께 저장됩니다.',
-                            style: TextStyle(color: AppColors.muted),
+                            'Apple 또는 Google 계정으로 시작해요. 비밀번호는 TAP Work에 전달되지 않아요.',
+                            style: AppText.caption,
                           ),
-                          const SizedBox(height: 16),
-                          FilledButton(
-                            onPressed: signingIn ? null : publicLogin,
-                            child: Text(signingIn ? '로그인 중…' : '로그인'),
+                          TextButton(
+                            onPressed: () => openPrivacy(context),
+                            child: const Text('개인정보처리방침'),
                           ),
-                          if (loginError != null) Information(loginError!),
                           TextButton(
                             onPressed: () {
                               setState(() => preview = true);
@@ -304,235 +239,52 @@ class _WorkspaceSetup extends StatelessWidget {
 }
 
 Future<void> openAccount(BuildContext context, SupabaseClient client) async {
+  final auth = AuthRepository(client);
   if (client.auth.currentUser != null) {
-    final logout = await showAppDialog<bool>(
+    await showAppSheet<void>(
+      context,
+      builder: (_) => AccountScreen(
+        repository: SupabaseAccountRepository(auth),
+        email: client.auth.currentUser?.email,
+        onSignOut: auth.signOut,
+        onAppleReauthenticate:
+            !auth.native.usesNativeApple &&
+                client.auth.currentUser!.identities?.any(
+                      (i) => i.provider == 'apple',
+                    ) ==
+                    true
+            ? () => auth.signIn(OAuthProvider.apple)
+            : null,
+      ),
+    );
+  } else {
+    await showAppDialog<void>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('내 계정'),
-        content: Text(client.auth.currentUser?.email ?? ''),
+        title: const Text('내 매장 로그인'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SocialSignInButtons(onSignIn: auth.signIn),
+            TextButton(
+              onPressed: () => openPrivacy(c),
+              child: const Text('개인정보처리방침'),
+            ),
+          ],
+        ),
         actions: [
-          PressBounce(
-            child: TextButton(
-              onPressed: () => Navigator.pop(c),
-              child: const Text('닫기'),
-            ),
-          ),
-          PressBounce(
-            child: TextButton(
-              onPressed: () => Navigator.pop(c, true),
-              child: const Text('로그아웃'),
-            ),
+          TextButton(
+            onPressed: () => Navigator.pop(c),
+            child: const Text('닫기'),
           ),
         ],
       ),
     );
-    if (logout == true) await client.auth.signOut(scope: SignOutScope.local);
-  } else {
-    await showAppDialog<void>(
-      context: context,
-      builder: (_) => _SignInDialog(client: client),
-    );
   }
 }
 
-class _SignInDialog extends StatefulWidget {
-  const _SignInDialog({required this.client});
-  final SupabaseClient client;
-  @override
-  State<_SignInDialog> createState() => _SignInDialogState();
-}
-
-class _SignInDialogState extends State<_SignInDialog> {
-  final email = TextEditingController(),
-      password = TextEditingController(),
-      name = TextEditingController();
-  bool signup = false, busy = false, hidePassword = true;
-  String? message;
-  @override
-  void dispose() {
-    email.dispose();
-    password.dispose();
-    name.dispose();
-    super.dispose();
-  }
-
-  Future<void> submit() async {
-    if (busy) return;
-    if (!email.text.contains('@') ||
-        password.text.length < 8 ||
-        (signup && name.text.trim().isEmpty)) {
-      setState(
-        () => message = '이메일과 8자 이상의 비밀번호${signup ? ', 이름' : ''}를 입력해 주세요.',
-      );
-      return;
-    }
-    setState(() {
-      busy = true;
-      message = null;
-    });
-    try {
-      if (signup) {
-        final result = await widget.client.auth.signUp(
-          email: email.text.trim(),
-          password: password.text,
-          data: {'display_name': name.text.trim()},
-          emailRedirectTo: 'https://tap2.work/',
-        );
-        if (mounted && result.session == null) {
-          setState(() => message = '이메일의 확인 링크를 누른 뒤 로그인해 주세요.');
-        }
-      } else {
-        await widget.client.auth.signInWithPassword(
-          email: email.text.trim(),
-          password: password.text,
-        );
-      }
-    } on AuthException {
-      if (mounted) {
-        setState(() => message = '계정 정보를 확인해 주세요. 가입했다면 이메일 인증도 완료해 주세요.');
-      }
-    } catch (_) {
-      if (mounted) setState(() => message = '연결하지 못했어요. 잠시 후 다시 시도해 주세요.');
-    } finally {
-      if (mounted) setState(() => busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text(signup ? '내 매장 시작하기' : '다시 만나 반가워요'),
-    content: SizedBox(
-      width: 360,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '로그인하면 모든 매장 설정과 운영 기록을 저장할 수 있어요. 첫 로그인에서 빈 매장 또는 샘플 매장을 선택합니다.',
-              style: TextStyle(
-                color: AppColors.muted,
-                fontSize: 13,
-                height: 1.6,
-              ),
-            ),
-            const SizedBox(height: 20),
-            if (const bool.fromEnvironment('ENABLE_SSO'))
-              SocialSignInButtons(
-                onSignIn: (provider) =>
-                    startSocialSignIn(widget.client, provider),
-              ),
-            const SizedBox(height: 20),
-            if (signup) ...[
-              TextField(
-                controller: name,
-                enabled: !busy,
-                decoration: const InputDecoration(labelText: '이름'),
-              ),
-              const SizedBox(height: 12),
-            ],
-            TextField(
-              controller: email,
-              enabled: !busy,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              autocorrect: false,
-              autofillHints: const [AutofillHints.email],
-              decoration: const InputDecoration(labelText: '이메일'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: password,
-              enabled: !busy,
-              obscureText: hidePassword,
-              autofillHints: const [AutofillHints.password],
-              decoration: InputDecoration(
-                labelText: '비밀번호',
-                suffixIcon: IconButton(
-                  tooltip: hidePassword ? '비밀번호 보기' : '비밀번호 숨기기',
-                  onPressed: busy
-                      ? null
-                      : () => setState(() => hidePassword = !hidePassword),
-                  icon: Icon(
-                    hidePassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                  ),
-                ),
-              ),
-              onSubmitted: (_) => submit(),
-            ),
-            if (message != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Semantics(
-                  liveRegion: true,
-                  child: Information(message!),
-                ),
-              ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: PressBounce(
-                child: FilledButton(
-                  onPressed: busy ? null : submit,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (busy) ...[
-                        const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: AppCircularProgress(
-                            strokeWidth: 2,
-                            color: AppColors.surface,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      Text(
-                        busy
-                            ? '연결 중…'
-                            : signup
-                            ? '계정 만들기'
-                            : '로그인',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            PressBounce(
-              child: TextButton(
-                onPressed: busy
-                    ? null
-                    : () => setState(() {
-                        signup = !signup;
-                        message = null;
-                      }),
-                child: Text(signup ? '이미 계정이 있어요' : '처음 이용하시나요? 계정 만들기'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-Future<void> startSocialSignIn(
-  SupabaseClient client,
-  OAuthProvider provider,
-) async {
-  // Web callback is fixed; never propagate ?api, return URLs or OAuth fragments.
-  if (!kIsWeb) throw StateError('웹에서 계속해 주세요.');
-  final started = await client.auth.signInWithOAuth(
-    provider,
-    redirectTo: 'https://tap2.work/',
-  );
-  if (!started) throw StateError('로그인 페이지를 열지 못했어요.');
-}
+Future<void> startSocialSignIn(SupabaseClient client, OAuthProvider provider) =>
+    AuthRepository(client).signIn(provider);
 
 class SocialSignInButtons extends StatefulWidget {
   const SocialSignInButtons({
@@ -562,7 +314,7 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
       if (mounted) {
         setState(() {
           providers = {};
-          error = '로그인 연결 상태를 확인하지 못했어요. 이메일 로그인을 이용하거나 다시 열어 주세요.';
+          error = '로그인 연결 상태를 확인하지 못했어요. 다시 시도해 주세요.';
         });
       }
     }
@@ -578,12 +330,11 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
     });
     try {
       await widget.onSignIn(provider);
+    } on SignInCancelled {
+      // Dismissing the provider sheet leaves the user on the login screen.
     } catch (_) {
       if (mounted) {
-        setState(
-          () => error =
-              '로그인 연결을 확인해 주세요. 제공자 설정이 아직 완료되지 않았다면 이메일 로그인을 이용할 수 있어요.',
-        );
+        setState(() => error = '로그인하지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.');
       }
     } finally {
       if (mounted) setState(() => busy = false);
@@ -609,34 +360,15 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
       ],
       if (providers != null && providers!.length < 2)
         const Text(
-          '소셜 로그인 연결 준비 중 · 이메일 로그인은 이용할 수 있어요.',
+          '소셜 로그인 연결 준비 중이에요. 잠시 후 다시 시도해 주세요.',
           style: AppText.caption,
         ),
       if (error != null) Information(error!),
-    ],
-  );
-}
-
-class PublicLoginFields extends StatelessWidget {
-  const PublicLoginFields({super.key});
-  @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      TextFormField(
-        initialValue: 'ljae.m10@gmail.com',
-        readOnly: true,
-        decoration: const InputDecoration(labelText: '공용 로그인 아이디'),
-      ),
-      const SizedBox(height: 12),
-      TextFormField(
-        initialValue: 'temporary',
-        readOnly: true,
-        obscureText: true,
-        decoration: const InputDecoration(
-          labelText: '비밀번호',
-          helperText: '직접 입력 없이 서버에서 자동 로그인합니다.',
+      if (providers != null && providers!.length < 2)
+        TextButton(
+          onPressed: busy ? null : load,
+          child: const Text('연결 다시 확인'),
         ),
-      ),
     ],
   );
 }

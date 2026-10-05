@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "revision": 192,
+  "revision": 197,
   "product": {
-    "name": "tap2work",
+    "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
     "phase": "통합 매장 운영 프로토타입",
     "audience": "한국 소규모 F&B · 준비 및 설거지 업무",
@@ -337,7 +337,10 @@
       "decision": "tap2work 로고를 경로와 두 개의 확인점을 그린 새로운 2 마크로 바꾸고 앱 헤더, 파비콘, PWA, Android/iOS 런처에 같은 도형을 사용한다. 헤더는 72px로 맞추고 이미지 마크 옆에 읽기 쉬운 tap2work 글자를 표시한다. 운영 화면과 첫 근무 화면은 따뜻한 종이색 배경, 짙은 녹색 글자, 절제된 코랄 강조, 가는 동일한 카드/메뉴 테두리, 20px 휴대폰 여백과 한국어 이름이 보이는 떠 있는 하단 메뉴를 공유한다. 실제 기능·역할 경계와 tap2.work 루트 Flutter 앱은 유지한다.",
       "reason": "사용자가 Flutter 앱 전체 디자인, 로고·파비콘, 가독성·메뉴 정렬과 떠 있는 메뉴를 요청했다. Aside CLI로 Trello·Asana·7shifts 공개 UI를 조사한 뒤 적용했다.",
       "source": "사용자 요청 및 Aside CLI 공개 UI 조사 · 2026-09-25",
-      "updatedAt": "2026-09-24T22:09:34Z"
+      "updatedAt": "2026-09-24T22:09:34Z",
+      "supersededAspects": {
+        "logo": "D-092"
+      }
     },
     {
       "id": "D-034",
@@ -543,11 +546,12 @@
       "id": "D-054",
       "category": "인증·데이터·성능",
       "title": "기존 매장의 임시 공용 로그인과 SSO 후속 전환",
-      "status": "confirmed",
+      "status": "superseded",
       "decision": "지정한 기존 계정의 매장을 모든 방문자가 조회·수정하도록 공개한다. 로그인 화면에 고정 아이디와 마스킹된 자동 인증 필드를 제공하고 로그인 버튼으로 서버에서 세션을 발급한다. 실제 비밀번호는 배포하지 않는다. 이후 방문은 세션을 복원하고 로그아웃은 현재 브라우저에만 적용한다. Google/Apple SSO는 앱 등록 시 진행한다. 기존 무로그인 읽기 전용 샘플 기본 진입을 대체한다.",
       "reason": "사용자가 자동 입력·자동 로그인 및 기존 매장 공개를 각각 명시 승인했다.",
       "source": "사용자 요청 및 기존 매장 공개 질의 답변 · 2026-09-29",
-      "updatedAt": "2026-09-29T10:49:41.736Z"
+      "updatedAt": "2026-10-05T10:47:16.626457+00:00",
+      "supersededBy": "D-093"
     },
     {
       "id": "D-055",
@@ -717,7 +721,7 @@
       "decision": "영업시간·인원 → 크루별 기본 배정 → 날짜별 근무표 조정으로 진행한다. 크루는 교대×파트 필요 슬롯에 drag/tap으로 배정하고 미배정은 이 화면에 모은다. 근무표는 배정 크루만 파트 가로/시간 세로로 표시하며 세부 시간을 수정한다. 시간표 메뉴·파트 필터는 제거하고 직원은 본인 근무만 표시한다. 월간은 추가 휴무/업무일 지정에 사용한다. 앞 설정 변경 후 명시적 기간 적용과 근무표 조정이 필요함을 안내한다. 브레이크는 교대/인원 시간과 독립인 참고 표시다.",
       "reason": "2026-10-04 사용자 후속 요청: 단계별 설정 흐름, 독립 브레이크, 미배정 위치와 월간 용도를 명시했다.",
       "source": "User request 2026-10-04",
-      "updatedAt": "2026-10-04T06:45:24.056151+00:00",
+      "updatedAt": "2026-10-04T08:02:27.947894+00:00",
       "supersededInPartBy": "D-074"
     },
     {
@@ -928,6 +932,52 @@
       "source": "사용자 요청 및 언어 선택 · 2026-10-05",
       "updatedAt": "2026-10-05T05:25:06.086732+00:00",
       "implementation": "Deployed 88232a8 to tap2.work and operations v41 ACTIVE. Grouped A4/A5 PDF print/save/preview and ko/en/vi/zh-Hans/ja forms with reviewed translation registration, source-hash staleness and Korean fallback. CI Flutter 341/server 203 checks and public assets/fonts verified. Automatic translation, physical-printer and native-build verification remain outside this release."
+    },
+    {
+      "id": "D-090",
+      "category": "출시",
+      "title": "App Store 무료 다운로드와 매장 구독",
+      "status": "confirmed",
+      "decision": "iOS App Store 무료 다운로드 후 향후 추가 기능을 구독으로 제공한다. 사장님이 매장 단위로 결제하고 크루가 함께 이용한다. 사용자는 Apple Developer Program에 이미 가입했다. 가격, 기간, 유료 기능 범위와 다매장 정책은 미정이다.",
+      "reason": "사용자의 출시 요청과 개발자 가입 완료, 사장님 결제 매장 단위 구독 답변을 반영한다.",
+      "source": "사용자 요청 및 후속 답변 2026-10-05",
+      "updatedAt": "2026-10-05T06:07:57.493184+00:00"
+    },
+    {
+      "id": "D-091",
+      "category": "iOS 출시",
+      "title": "iOS Bundle ID 철자 수정",
+      "status": "confirmed",
+      "decision": "iOS Runner Bundle ID를 com.tap2work.tap2work로 변경한다. RunnerTests는 com.tap2work.tap2work.RunnerTests를 사용한다. Debug, Profile, Release에 동일하게 적용한다.",
+      "previous": "com.tab2work.tab2work / com.tab2work.tab2work.RunnerTests",
+      "next": "com.tap2work.tap2work / com.tap2work.tap2work.RunnerTests",
+      "reason": "사용자가 tap2work 철자에 맞는 Bundle ID로 변경을 요청했다.",
+      "source": "사용자 요청 2026-10-05",
+      "updatedAt": "2026-10-05T09:35:46.307231+00:00"
+    },
+    {
+      "id": "D-092",
+      "category": "브랜드",
+      "title": "TAP Work 이름과 새 수도꼭지 로고",
+      "status": "confirmed",
+      "decision": "표시 이름은 TAP Work. 사용자 Downloads/TapWater_logo.png의 수도꼭지·물방울·컵 도안을 앱/웹/스토어 아이콘으로 사용한다. 이전 로고 원본·보관본은 삭제하고 플랫폼 필수 크기만 유지한다. 앱 화면용은 256px 약 60KB, App Store용은 1024px RGB다. 기술 식별자와 도메인은 유지한다.",
+      "previous": "tap2work 경로/체크 마크; 이번 작업 중간 요청 TAPWORK 및 logofortapwork.png",
+      "next": "TAP Work / TapWater_logo.png",
+      "reason": "사용자가 새 파일·표시 이름과 이전 로고 삭제를 명시했다.",
+      "source": "사용자 요청 2026-10-05",
+      "updatedAt": "2026-10-05T10:47:16.626457+00:00"
+    },
+    {
+      "id": "D-093",
+      "category": "인증·개인정보",
+      "title": "Apple·Google 개인 로그인과 본인 계정 삭제",
+      "status": "confirmed",
+      "decision": "공용 로그인 UI를 Apple·Google 개인 로그인으로 대체한다. iOS는 두 SDK 네이티브, Android Google은 SDK/Apple은 웹 OAuth, 웹은 OAuth. 운영자 OpenEdu, 개인정보 문의 esther.runstrict@gmail.com. 로그인 전 및 내 계정에 방침을 제공하고 본인 확인·최신 삭제 범위 확인 후 계정을 삭제한다. 유일한 사장님은 최종 확인 후 매장 전체와 모든 크루의 해당 매장 접근도 함께 삭제한다. 다른 크루 로그인 계정은 유지한다. 다중 사장님은 남은 사장님에게 생성자 FK를 이관해 매장을 유지한다. Apple 연결 해제는 서버가 수행한다.",
+      "previous": "D-054 고정 공용 계정 진입; SSO·개인정보·삭제 후속 계획",
+      "next": "개인 소셜 인증, OpenEdu 개인정보처리방침, 본인 삭제 API와 명시적 매장 삭제 확인",
+      "reason": "사용자의 네이티브 로그인/개인정보/삭제 구현 요청과 운영자·이메일·유일 사장님 삭제 범위 답변.",
+      "source": "사용자 요청 및 후속 답변 2026-10-05",
+      "updatedAt": "2026-10-05T10:47:16.626457+00:00"
     }
   ],
   "milestones": [
@@ -1098,6 +1148,12 @@
       "title": "근무표 자유 미세조정·추가 배정·3열 순환 겹침",
       "status": "completed",
       "description": "tap2.work 및 operations v37 배포 완료. Flutter 296/Node 194, UI links 39, CI Pages artifact SHA-256 검증. 운영 근무 데이터 변경·native build 미수행."
+    },
+    {
+      "id": "M-029",
+      "title": "iOS App Store 출시와 매장 구독",
+      "status": "in_progress",
+      "description": "TAP Work 새 브랜딩, 개인 소셜 로그인·개인정보·계정 삭제 로컬 구현. Flutter 분석/관련 테스트, Node 214, 격리 SQL, 웹 및 iOS 시뮬레이터 빌드 검증. Google OAuth 클라이언트·Apple provider/키 설정, 서버 이관/배포, 실기기 E2E와 서명·App Store 제출은 미완료. 구독 연동·가격·유료 기능은 후속."
     }
   ],
   "history": [
@@ -2541,19 +2597,6 @@
       "verification": "최종 Flutter analyze 이슈 없음, 전체 테스트 61/61 통과, npm run build:site 성공. 새 테스트는 320/390/1200px 3단계 탐색·매뉴얼, 부모 진행률·되돌리기·공개 POST 0건, 역할 차단·빈 폴더, 실제 액션 task/step/revision 유지 검증. 초기 테스트에서 새 검색 입력으로 인한 비특정 locator·제목 변경을 보정했고 320px 헤더 overflow는 축소 표시로 수정한 뒤 재검증했다. agent-browser/Chrome에서 데스크톱과 390px 폴더 탐색·Small Tap 완료 이동을 확인하고 스크린샷을 검토했으며 브라우저 오류 없음. 네이티브 빌드·실기기 검증 미수행."
     },
     {
-      "id": "H-san-bonejjim-tap-research-2026-09-24",
-      "at": "2026-09-24T01:03:34Z",
-      "type": "research",
-      "title": "평택 산뼈찜 메뉴 조사와 Tap 구성 초안",
-      "detail": "사용자 요청에 따라 Aside CLI로 기존 방문 후기와 별도 공개 후기를 대조했다. 주문처리 BIG TAP과 뼈찜·뼈짬뽕 사전 준비 BIG TAP의 Tap/Small Tap 후보를 Markdown으로 정리하고 이전 구현 인계서에 연결했다. 우동사리 제공 방식, 기본 국물·소스, 볶음밥 구분의 자료 충돌을 명시했다. 방문 후기의 관찰을 실제 매장 조리 SOP나 CEO 승인 결정으로 확정하지 않았다. 앱·API와 기존 체크리스트 데이터는 변경하지 않았다.",
-      "files": [
-        "docs/SAN_BONEJJIM_TAP_RESEARCH_2026-09-24.md",
-        "docs/REVISION_TODO_2026-09-24.md",
-        "docs/project-state.json"
-      ],
-      "verification": "Aside CLI 1.26.916.1741 update/guide 실행, 공개 방문 후기 7건의 웹 본문/검색 결과를 조사해 출처 URL과 상충 항목을 기록했다. 문서 링크·섹션 및 git diff --check 확인. 앱 분석·테스트·네이티브 빌드는 문서 조사 범위여서 실행하지 않았다."
-    },
-    {
       "id": "H-revision-implementation-2026-09-24",
       "at": "2026-09-24T00:00:00Z",
       "type": "implementation",
@@ -2601,6 +2644,19 @@
         "docs/project-state.json"
       ],
       "verification": "로컬 flutter analyze, npm run check, npm run build:site 통과. GitHub Actions 35943439395에서 npm run check, Node 37/37, Flutter analyze, Flutter 61/61, 공개 웹 빌드, Pages 배포 모두 성공. 공개 https://tap2.work/app/ HTTP 200 확인. 네이티브 빌드·실기기 검증은 미수행."
+    },
+    {
+      "id": "H-san-bonejjim-tap-research-2026-09-24",
+      "at": "2026-09-24T01:03:34Z",
+      "type": "research",
+      "title": "평택 산뼈찜 메뉴 조사와 Tap 구성 초안",
+      "detail": "사용자 요청에 따라 Aside CLI로 기존 방문 후기와 별도 공개 후기를 대조했다. 주문처리 BIG TAP과 뼈찜·뼈짬뽕 사전 준비 BIG TAP의 Tap/Small Tap 후보를 Markdown으로 정리하고 이전 구현 인계서에 연결했다. 우동사리 제공 방식, 기본 국물·소스, 볶음밥 구분의 자료 충돌을 명시했다. 방문 후기의 관찰을 실제 매장 조리 SOP나 CEO 승인 결정으로 확정하지 않았다. 앱·API와 기존 체크리스트 데이터는 변경하지 않았다.",
+      "files": [
+        "docs/SAN_BONEJJIM_TAP_RESEARCH_2026-09-24.md",
+        "docs/REVISION_TODO_2026-09-24.md",
+        "docs/project-state.json"
+      ],
+      "verification": "Aside CLI 1.26.916.1741 update/guide 실행, 공개 방문 후기 7건의 웹 본문/검색 결과를 조사해 출처 URL과 상충 항목을 기록했다. 문서 링크·섹션 및 git diff --check 확인. 앱 분석·테스트·네이티브 빌드는 문서 조사 범위여서 실행하지 않았다."
     },
     {
       "id": "H-revision-deployment-2026-09-24",
@@ -5398,23 +5454,6 @@
       "verification": "npm run test:console 171/171; new TAP policy tests 10/10; npm run check and check:ui-links 34 links passed. Flutter full suite 260/260, additional final settings suite 7/7, relevant manual/crew suite 28/28, latest flutter analyze no issues. Final npm run build:app passed (web compilation and version postprocessing). Initial outdated expectations/crew fixture failures were corrected and retested. Initial web compilation passed but postprocessing failed; repeated-build regression tests 4/4 and final build passed after correction. git diff --check passed. Native build, physical device, actual store migration, DB migration and deployment were not performed. Full AT/CT 26 cases and complete central/local platform are not claimed."
     },
     {
-      "at": "2026-10-04T08:04:10.121175+00:00",
-      "type": "deployment",
-      "title": "TAP 배포 사본 격리·근무표 진행 변경 제외",
-      "decisionId": "D-073",
-      "detail": "Deployment prepared in an independent clone based on published main 6c451f2. Only TAP/checklist/manual policy paths are included. Calendar, crew allocation, staff shifts, hours and roster UI/server edits in the shared working tree are excluded. developer/workplace.mjs changes only TAP migration permissions. The shared main branch/index/source files are not reset or committed.",
-      "verification": "Isolated npm run check and 169/169 server tests passed; flutter analyze no issues; full Flutter suite 253/253 passed; npm run build:site passed with fresh sample data and versioned assets. Schedule source files unchanged from published base. Previous operations function v30 downloaded for rollback. Deployment not yet performed."
-    },
-    {
-      "at": "2026-10-04T08:11:48.987932+00:00",
-      "type": "deployment",
-      "title": "TAP 단일 정책 공개 배포 완료·근무표 수정 세션 격리",
-      "decisionId": "D-073",
-      "reason": "사용자가 다른 세션의 근무표 수정과 충돌하지 않도록 배포를 요청했다.",
-      "detail": "Independent clone based on published main 6c451f2454c9c1400aab90dc2465a44a8bc48946. Release df0a0e5b129e1de6aeb0e59fbb7c8def5d7e64bb includes only TAP/checklist/manual policy changes, tests and documentation. Current shared-tree calendar, crew allocation, weekday scope, staff/labor and roster changes were excluded. Shared branch/index and schedule source files were not reset, committed or overwritten. developer/workplace.mjs changes only TAP migration action permissions. operations function deployed from version 30 to 31 without SQL migrations or store-data reset; previous source downloaded separately. Public Pages deployment completed at https://tap2.work/. Central publishing/local backup features remain unimplemented.",
-      "verification": "Isolated npm run check, UI links 34, server suite 169/169, flutter analyze, Flutter suite 253/253 and build:site passed. GitHub Actions run 37187850717 build/deploy succeeded: https://github.com/ljae/tap2work/actions/runs/37187850717. Public index.html, versioned main and bootstrap returned HTTP 200 and SHA-256 exactly matched the CI Pages artifact. Deployed operations source re-downloaded and matched isolated TAP policy, operations and shared schedule modules; function v31 ACTIVE, unauthenticated GET 401 and CORS OPTIONS 204. Protected schedule source files remain identical to published base. Native build and real store migration not performed."
-    },
-    {
       "type": "implementation",
       "title": "복수 요일·터치 크루 배정·월간 동일 상태 차단 구현",
       "changes": [
@@ -5441,6 +5480,23 @@
         "D-071": "영업시간·인원 → 크루별 기본 배정 → 날짜별 근무표 조정으로 진행한다. 크루는 교대×파트 필요 슬롯에 drag/tap으로 배정하고 미배정은 이 화면에 모은다. 근무표는 배정 크루만 파트 가로/시간 세로로 표시하며 세부 시간을 수정한다. 시간표 메뉴·파트 필터는 제거하고 직원은 본인 근무만 표시한다. 월간은 추가 휴무/업무일 지정에 사용한다. 앞 설정 변경 후 명시적 기간 적용과 근무표 조정이 필요함을 안내한다. 브레이크는 교대/인원 시간과 독립인 참고 표시다."
       },
       "next": "영업시간·인원·크루 배정은 전체/개별 공통 선택을 사용하며 개별에서 복수 요일에 동일 변경을 적용한다. 크루 배정의 DnD 가로 표를 교대별 세로 파트 카드와 터치 바텀 시트로 대체한다. 상단 크루 캐러셀에 선택 주 기본 배정/예상 시간을 표시하고 참고 임계치를 안내한다. 빈 슬롯은 중립 점선 +, 이전 저장본은 고스트 검토 후 한 번에 확정한다. 월간은 현재 휴무일이면 추가 영업, 영업일이면 추가 휴무를 기본 선택하며 같은 상태 지정은 안내 후 무변경이다. 날짜별 근무표 적용은 별도다. Flutter 로컬 구현 완료; 이번 후속 변경은 미배포."
+    },
+    {
+      "at": "2026-10-04T08:04:10.121175+00:00",
+      "type": "deployment",
+      "title": "TAP 배포 사본 격리·근무표 진행 변경 제외",
+      "decisionId": "D-073",
+      "detail": "Deployment prepared in an independent clone based on published main 6c451f2. Only TAP/checklist/manual policy paths are included. Calendar, crew allocation, staff shifts, hours and roster UI/server edits in the shared working tree are excluded. developer/workplace.mjs changes only TAP migration permissions. The shared main branch/index/source files are not reset or committed.",
+      "verification": "Isolated npm run check and 169/169 server tests passed; flutter analyze no issues; full Flutter suite 253/253 passed; npm run build:site passed with fresh sample data and versioned assets. Schedule source files unchanged from published base. Previous operations function v30 downloaded for rollback. Deployment not yet performed."
+    },
+    {
+      "at": "2026-10-04T08:11:48.987932+00:00",
+      "type": "deployment",
+      "title": "TAP 단일 정책 공개 배포 완료·근무표 수정 세션 격리",
+      "decisionId": "D-073",
+      "reason": "사용자가 다른 세션의 근무표 수정과 충돌하지 않도록 배포를 요청했다.",
+      "detail": "Independent clone based on published main 6c451f2454c9c1400aab90dc2465a44a8bc48946. Release df0a0e5b129e1de6aeb0e59fbb7c8def5d7e64bb includes only TAP/checklist/manual policy changes, tests and documentation. Current shared-tree calendar, crew allocation, weekday scope, staff/labor and roster changes were excluded. Shared branch/index and schedule source files were not reset, committed or overwritten. developer/workplace.mjs changes only TAP migration action permissions. operations function deployed from version 30 to 31 without SQL migrations or store-data reset; previous source downloaded separately. Public Pages deployment completed at https://tap2.work/. Central publishing/local backup features remain unimplemented.",
+      "verification": "Isolated npm run check, UI links 34, server suite 169/169, flutter analyze, Flutter suite 253/253 and build:site passed. GitHub Actions run 37187850717 build/deploy succeeded: https://github.com/ljae/tap2work/actions/runs/37187850717. Public index.html, versioned main and bootstrap returned HTTP 200 and SHA-256 exactly matched the CI Pages artifact. Deployed operations source re-downloaded and matched isolated TAP policy, operations and shared schedule modules; function v31 ACTIVE, unauthenticated GET 401 and CORS OPTIONS 204. Protected schedule source files remain identical to published base. Native build and real store migration not performed."
     },
     {
       "type": "deployment",
@@ -5485,6 +5541,22 @@
       ],
       "previous": "영업시간·인원·크루 배정은 전체/개별 공통 선택을 사용하며 개별에서 복수 요일에 동일 변경을 적용한다. 크루 배정의 DnD 가로 표를 교대별 세로 파트 카드와 터치 바텀 시트로 대체한다. 상단 크루 캐러셀에 선택 주 기본 배정/예상 시간을 표시하고 참고 임계치를 안내한다. 빈 슬롯은 중립 점선 +, 이전 저장본은 고스트 검토 후 한 번에 확정한다. 월간은 현재 휴무일이면 추가 영업, 영업일이면 추가 휴무를 기본 선택하며 같은 상태 지정은 안내 후 무변경이다. 날짜별 근무표 적용은 별도다. Flutter 로컬 구현 완료; 이번 후속 변경은 미배포.",
       "next": "영업시간·인원·크루 배정은 전체/개별 공통 선택을 사용하며 개별에서 복수 요일에 동일 변경을 적용한다. 크루 배정의 DnD 가로 표를 교대별 세로 파트 카드와 터치 바텀 시트로 대체한다. 상단 크루 캐러셀에 선택 주 기본 배정/예상 시간을 표시하고 참고 임계치를 안내한다. 빈 슬롯은 중립 점선 +, 이전 저장본은 고스트 검토 후 한 번에 확정한다. 월간은 현재 휴무일이면 추가 영업, 영업일이면 추가 휴무를 기본 선택하며 같은 상태 지정은 안내 후 무변경이다. 날짜별 근무표 적용은 별도다. Flutter 구현 및 운영 웹·서버 배포 완료 (2026-10-04, 117a459)."
+    },
+    {
+      "type": "implementation",
+      "title": "인원 배치 기본 크루와 근무표 간소화",
+      "decisionId": "D-075",
+      "previous": "영업시간·인원·크루 배정은 전체/개별 공통 선택을 사용하며 개별에서 복수 요일에 동일 변경을 적용한다. 크루 배정의 DnD 가로 표를 교대별 세로 파트 카드와 터치 바텀 시트로 대체한다. 상단 크루 캐러셀에 선택 주 기본 배정/예상 시간을 표시하고 참고 임계치를 안내한다. 빈 슬롯은 중립 점선 +, 이전 저장본은 고스트 검토 후 한 번에 확정한다. 월간은 현재 휴무일이면 추가 영업, 영업일이면 추가 휴무를 기본 선택하며 같은 상태 지정은 안내 후 무변경이다. 날짜별 근무표 적용은 별도다. Flutter 구현 및 운영 웹·서버 배포 완료 (2026-10-04, 117a459).",
+      "next": "인원 배치에서 필요 인원과 자리별 등록 크루 드롭다운을 함께 저장하고 향후 기본 근무표에 자동 반영한다. 별도 크루별 배정 화면과 기간 적용 진입을 제거한다. 근무표는 직접 편집 안내부터 시작하며 내부 근무표·크루·인건비·교육·채용 준비 메뉴, 파트별 표기와 중복 드래그 안내를 제거한다. 주간 날짜/파트 열은 전체 가용 폭과 중앙 정렬을 사용하고 시간축은 배경/테두리 없이 표시한다. 월간 다른 달 날짜는 흐린 색, 영업시간·인원 버튼은 달력 아래에 둔다. 날짜별 수동 수정/삭제·출퇴근·승인 기록은 기본 갱신에서 보존한다.",
+      "reason": "사용자 최신 요청. 기존 기본 설정과 기록은 보존하고 날짜별 배정만 사용자 지정 클라우드 매장에서 초기화.",
+      "verification": [
+        "Flutter analyze 통과; 관련 위젯/캡처 50 tests 통과. 전체 Flutter 265 cases 중 6개는 제거된 제목/파트별 기대값으로 실패한 뒤 최신 UI 기대값으로 수정, 해당 audit/labor 및 시각 재검증 20 tests 통과",
+        "최종 시간 영역 격자선 제거 후 calendar/workflow/direct-edit/시각 캡처 27 tests 통과; 320/390/1200px 12개 캡처 확인",
+        "Node 176 tests, npm run check, UI/settings links 34개 통과",
+        "지정 계정의 날짜별 배정 6건·이전 형식 배정 4건 초기화, 서버 비공개 복구 기록 보관; 기본 설정/crewPatterns 2건·attendance 2건 유지",
+        "Flutter web release 빌드 통과. 최종 배포 파이프라인 확인 진행 중; 네이티브 빌드/실기기 미실시"
+      ],
+      "at": "2026-10-04T12:58:36.554684+00:00"
     },
     {
       "type": "implementation",
@@ -5548,6 +5620,22 @@
         }
       ],
       "at": "2026-10-04T13:10:15.197140+00:00"
+    },
+    {
+      "type": "implementation",
+      "title": "인원 배치 테이블과 공통 검색 후속",
+      "decisionId": "D-076",
+      "previous": "인원 배치에서 필요 인원과 자리별 등록 크루 드롭다운을 함께 저장하고 향후 기본 근무표에 자동 반영한다. 별도 크루별 배정 화면과 기간 적용 진입을 제거한다. 근무표는 직접 편집 안내부터 시작하며 내부 근무표·크루·인건비·교육·채용 준비 메뉴, 파트별 표기와 중복 드래그 안내를 제거한다. 주간 날짜/파트 열은 전체 가용 폭과 중앙 정렬을 사용하고 시간축은 배경/테두리 없이 표시한다. 월간 다른 달 날짜는 흐린 색, 영업시간·인원 버튼은 달력 아래에 둔다. 날짜별 수동 수정/삭제·출퇴근·승인 기록은 기본 갱신에서 보존한다. Flutter·서버 구현과 tap2.work 웹 배포 완료.",
+      "next": "인원 배치를 교대×파트 테이블로 복원하고 셀에 배정/필요 인원수와 크루 이름을 표시한다. 셀 클릭으로 인원수·크루를 함께 편집하며 기본 근무 자동 반영은 유지한다. 상단 녹색 매장 상태 띠는 네 메뉴 공통 녹색 매뉴얼 검색창으로 대체한다. 근무표 날짜/파트 머리글의 배경·테두리를 제거하고 왼쪽 시간축에만 30분 간격 시각과 짧은 눈금을 둔다.",
+      "reason": "사용자 후속 요청. 저장 API와 기존 기본 배정 데이터는 유지하며 현재 계정 데이터는 추가 초기화하지 않음.",
+      "verification": [
+        "Flutter analyze 및 전체 265 tests 통과; 관련 테스트 71개와 별도 시각 캡처 실행 16 tests 통과",
+        "Node 176 tests, npm run check, npm run check:ui-links 34개 통과",
+        "320/390/1200px의 테이블·셀 편집·주간/월간·공통 검색 및 확대 글자/키보드 캡처 확인",
+        "최신 로컬 Flutter web build 성공. 기존 기본 크루 배정 데이터/API 유지. 이번 변경은 계정 데이터 초기화 없음",
+        "웹 배포 대기. 네이티브 빌드/실기기 미실시"
+      ],
+      "at": "2026-10-04T13:23:39.470381+00:00"
     },
     {
       "type": "implementation",
@@ -6319,7 +6407,146 @@
           "sha256": "3682928e6e081039cc914cebdacbbd82d5f6da0b155d903658394dc84cc1b057"
         }
       ]
+    },
+    {
+      "at": "2026-10-05T06:07:57.493184+00:00",
+      "type": "decision",
+      "decisionId": "D-090",
+      "summary": "무료 다운로드와 사장님 결제 매장 단위 구독 방향 및 소스 기반 App Store 출시 준비 계획을 기록했다.",
+      "previous": {
+        "distribution": "미정",
+        "subscriptionPayer": "미정"
+      },
+      "next": {
+        "distribution": "App Store 무료 다운로드",
+        "subscriptionPayer": "사장님 매장 단위 결제, 크루 공동 이용",
+        "appleDeveloperMembership": "사용자 가입 완료 답변"
+      },
+      "reason": "사용자의 출시 및 수익모델 요청과 후속 답변.",
+      "verification": [
+        "iOS 설정, 의존성, 인증 소스 및 관련 기능 검색. 로컬 Xcode 26.6 확인.",
+        "Apple 공식 가입, 구독, 심사 지침과 유료 계약 문서 온라인 확인.",
+        "문서 링크, 결정 JSON 및 고유 ID 검사와 변경 파일 git diff --check 통과."
+      ],
+      "limitations": [
+        "첫 결정 기록 명령은 Python 입력 인코딩 오류로 실행되지 않아 재실행했다.",
+        "App Store Connect 접근, 서명 검증, Flutter 분석/테스트, 서버 테스트, iOS 빌드, 기기 검증, TestFlight, 결제 테스트, 제출 및 외부 배포 미실시. 앱과 API 코드는 변경하지 않았다.",
+        "가격, 기간, 유료 기능, 무료 선출시 순서는 미확정."
+      ]
+    },
+    {
+      "at": "2026-10-05T09:35:46.307231+00:00",
+      "type": "implementation",
+      "decisionId": "D-091",
+      "summary": "iOS 앱과 테스트 타깃의 6개 Bundle ID 설정을 수정하고 출시 문서 및 아키텍처에 반영했다.",
+      "previous": "com.tab2work.tab2work",
+      "next": "com.tap2work.tap2work",
+      "reason": "사용자 요청에 따른 브랜드 철자 수정.",
+      "verification": [
+        "plutil: project.pbxproj 및 Info.plist 구문 검사 통과.",
+        "파싱된 Xcode 프로젝트에서 Runner와 RunnerTests의 Debug/Profile/Release 6개 식별자 일치 확인.",
+        "flutter analyze: No issues found.",
+        "flutter test test/startup_and_sheet_test.dart: 7 tests passed.",
+        "변경 파일 git diff --check 통과. iOS 소스에서 이전 식별자 검색 결과 없음."
+      ],
+      "limitations": [
+        "iOS 네이티브 빌드 및 서명 검증 미실시.",
+        "Apple Developer 및 App Store Connect의 기존 등록/업로드 상태 미확인. 새 App ID 등록, 프로파일 발급, 업로드는 수행하지 않았다."
+      ]
+    },
+    {
+      "at": "2026-10-05T10:47:16.626457+00:00",
+      "type": "implementation",
+      "decisionIds": [
+        "D-092",
+        "D-093"
+      ],
+      "summary": "새 TAP Work 로고·이름으로 기존 로고를 교체·삭제하고 네이티브 개인 로그인, 개인정보 앱/웹 페이지, Apple revoke 및 원자 계정 삭제를 구현했다. 설정 안내를 추가했다.",
+      "previous": {
+        "productName": "tap2work",
+        "login": "임시 공용 로그인",
+        "brand": "경로/체크 마크 및 중간 TAPWORK 파일"
+      },
+      "next": {
+        "productName": "TAP Work",
+        "brand": "TapWater_logo.png",
+        "login": "Apple/Google 개인 인증; 실제 provider 설정 대기",
+        "operator": "OpenEdu",
+        "privacyContact": "esther.runstrict@gmail.com",
+        "soleOwnerDeletion": "최종 확인 후 매장·소속 삭제, 타인 로그인 계정 유지"
+      },
+      "reason": "현재 사용자 요청과 후속 답변 우선. 기존 작업 트리 변경 보존.",
+      "verification": [
+        "flutter analyze --no-pub: No issues found.",
+        "Flutter 계정/네이티브 인증/로그인/브랜딩 및 시각 캡처 10 tests passed. 앞선 cloud sync/startup 포함 관련 17 tests passed.",
+        "npm run test:console: 214 passed; npm run check 및 check:ui-links 45 links 통과.",
+        "격리 PGlite에서 workspace/section/account migrations와 account_deletion.sql 실행: CAS, confirmation, rollback, creator transfer, store/Auth cascade, other crew preservation, service grants 통과.",
+        "운영 DB FK 메타데이터만 읽어 Auth identities/sessions 및 workspace/membership cascade 확인. 실데이터 조회·변경 없음.",
+        "npm run build:site 통과. flutter build ios --simulator --debug --no-codesign --no-pub 통과. 최종 웹/iOS 산출물의 새 로고 해시 및 iOS TAP Work 표시 이름 확인.",
+        "로그인/삭제 화면 390px 캡처 확인, 계정 화면 320/390px 및 글자 1.6배 위젯 검증.",
+        "플랫폼 AppIcon 크기/RGB, 이전 로고 원본·archive 삭제, 정책 정적 페이지의 운영자/메일 확인; plist lint와 git diff --check 통과."
+      ],
+      "limitations": [
+        "Google OAuth ID 미생성. iOS/Web client 및 Android 클라이언트·서명 값 설정 필요. Apple Sign in capability/provider/서버 p8 secrets·프로파일 설정 필요.",
+        "외부 배포/DB migration 적용, 실제 계정 삭제, OAuth 실기기 왕복, Android 빌드, iOS 서명 Archive/TestFlight/App Store 제출 미실시. 시뮬레이터 빌드는 실제 로그인/서명 성공을 의미하지 않는다.",
+        "Apple revoke와 DB commit은 분산 원자 트랜잭션이 아니며 revoke 후 DB 실패 시 재확인 필요.",
+        "공급자 로그 보존 기간·국외 처리 계약 등 운영 확인 및 실제 크루 초대 가입 연결은 별도다.",
+        "sign_in_with_apple 8.2는 현재 Dart 3.11과 불일치해 설치 실패 후 호환 7.0.1 사용. 초기 화면 컴파일/스타일 오류 수정 후 분석 통과. 첫 캡처 테스트는 종료 단계 대기로 중단했고 Supabase dispose를 runAsync로 수정해 재실행 통과. 원본 크기 확인 명령 1회 경로 오류는 루트에서 재실행했다."
+      ]
+    },
+    {
+      "at": "2026-10-05T12:58:27.500355+00:00",
+      "type": "implementation",
+      "decisionId": "D-093",
+      "summary": "Aside CLI로 TAP Work Google/Apple 콘솔을 확인하고 Supabase provider·callback·Apple 서버 secrets 및 실제 iOS 팀을 연결했다.",
+      "previous": {
+        "appleTeam": "7ZSUCG54Q4",
+        "authConfiguration": "provider 설정 대기"
+      },
+      "next": {
+        "appleTeam": "RQZACLWJ7M",
+        "appleServiceId": "com.tap2work.tap2work.web",
+        "authConfiguration": "TAP Work 전용 Google Web/iOS 및 Apple provider 설정 완료; 서버·웹 배포와 실기기 검증 대기"
+      },
+      "reason": "사용자가 Aside CLI로 현재 Supabase 설정 확인·진행을 요청했다. 실제 App ID 소유 팀에 맞추고 잘못된 Apple secret 초안을 교정했다.",
+      "verification": [
+        "Google iOS Bundle/Team 및 Web callback을 Aside로 확인. 새 Google web secret을 추가하고 Supabase Google을 web-first/iOS client로 설정.",
+        "Apple primary Sign in capability 확인, Services ID 및 TAP Work 전용 키 생성·다운로드. 서명 JWT 생성 후 Supabase Apple 저장.",
+        "Supabase CLI Apple 서버 secrets 4개 저장 성공. 관리 API로 이름과 PEM SHA-256 digest 일치 확인; 원문 미출력.",
+        "Supabase 관리 API로 두 provider 활성화·공개 IDs·secret 존재·redirect 3개 확인. Google/Apple authorize가 올바른 host와 client ID로 HTTP 302.",
+        "Google Audience: External/Testing 및 등록 테스트 사용자 1명 확인. Branding 홈페이지·개인정보 링크·개발자 이메일 확인.",
+        "로컬 공개 auth defines/callback xcconfig 재생성. Xcode project 및 Info.plist plutil lint, git diff --check, 비밀 파일 Git ignore 확인 통과.",
+        "Google Branding 이름을 TAP Work로 저장하고 콘솔 저장 완료 알림 확인. 지정 문의 이메일은 developer contact에 등록, support dropdown은 현재 로그인 계정만 제공."
+      ],
+      "limitations": [
+        "DB migration·Edge Functions·웹 신규 배포 및 실제 계정 로그인/삭제 미실시. 기존 운영 이메일 provider와 Google 기존 secret 유지.",
+        "Google 테스트 공개 전환·브랜드 검증, 지원 이메일 변경이 남았다. 현재 지원 이메일 선택지는 로그인한 계정 하나뿐이다.",
+        "Apple OAuth secret 만료 2027-04-03T12:52:11Z 전 갱신 필요. p8 원본은 Downloads에 있으며 안전한 별도 백업 필요.",
+        "Android OAuth client/SHA-1, iOS 서명·프로파일 및 실기기 검증은 미실시. 이번 설정 후 네이티브 빌드는 재실행하지 않았다.",
+        "내장 디스크 부족으로 Aside 저장 오류가 반복돼 중단 후 공간 확보·REPL로 재개했다. 재생성 가능한 CocoaPods 캐시만 외장 .local로 이동했다."
+      ]
+    },
+    {
+      "at": "2026-10-05T13:04:09.607769+00:00",
+      "type": "deployment",
+      "decisionId": "D-093",
+      "summary": "사용자 요청에 따라 tap2.work 및 App Store Connect 배포 준비. 기존 원격 main을 기반으로 별도 worktree에서 현재 앱을 패키징한다.",
+      "previous": {
+        "appVersion": "0.3.0+3"
+      },
+      "next": {
+        "appVersion": "1.0.0+4"
+      },
+      "reason": "첫 App Store Connect 업로드와 웹 배포 요청. 원격에만 남아 있던 이전 history 3개도 복원·보존한다.",
+      "verification": [
+        "npm run check 및 서버 214 tests 통과.",
+        "Flutter analyze no issues; 전체 Flutter 346 tests 통과.",
+        "실제 App Store Connect 앱 6819216931의 Bundle ID 확인; 기존 빌드 없음. TAP Work 이름 변경 저장, 배포 인증서 확인 및 전용 App Store 프로파일 발급."
+      ],
+      "limitations": [
+        "배포·업로드 완료 여부는 후속 기록으로 확인. 실제 계정 로그인·삭제 및 실기기 검증 미실시."
+      ]
     }
   ],
-  "updatedAt": "2026-10-05T05:25:06.086732+00:00"
+  "updatedAt": "2026-10-05T13:04:09.607769+00:00"
 }

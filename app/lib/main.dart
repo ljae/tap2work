@@ -139,7 +139,7 @@ class Tap2workApp extends StatelessWidget {
   final Widget? homeOverride;
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'tap2work',
+    title: 'TAP Work',
     builder: (context, child) => AppMotionScope(child: child!),
     debugShowCheckedModeBanner: false,
     locale: const Locale('ko', 'KR'),

@@ -15,7 +15,7 @@ await mkdir(output, { recursive: true });
 await cp(appBuild, output, { recursive: true });
 // Keep old /app/ links useful while serving Flutter directly from the domain root.
 await mkdir(path.join(output, 'app'), { recursive: true });
-await writeFile(path.join(output, 'app/index.html'), `<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=/"><title>tap2work</title><script>location.replace('/'+location.search+location.hash)</script><a href="/">tap2work 열기</a></html>`);
+await writeFile(path.join(output, 'app/index.html'), `<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=/"><title>TAP Work</title><script>location.replace('/'+location.search+location.hash)</script><a href="/">TAP Work 열기</a></html>`);
 await writeFile(path.join(output, '.nojekyll'), '');
 await writeFile(path.join(output, 'CNAME'), 'tap2.work\n');
 // Always generate from code in a fresh temporary directory, never from .local/.

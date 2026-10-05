@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "tap2work",
-  "short_name": "tap2work",
+  "name": "TAP Work",
+  "short_name": "TAP Work",
   "description": "처음 하는 일도, 함께 한 걸음씩.",
   "lang": "ko-KR",
   "start_url": "./",
@@ -9,5 +9,5 @@
   "display": "standalone",
   "background_color": "#f6f5ef",
   "theme_color": "#203d34",
-  "icons": [{ "src": "./tap2work.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }]
+  "icons": [{ "src": "./tap2work.png", "sizes": "256x256", "type": "image/png", "purpose": "any" }]
 }

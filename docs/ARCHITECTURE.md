@@ -1,3 +1,17 @@
+## 개인 인증·삭제 경계 · 2026-10-05
+
+실제 Supabase Apple/Google provider와 callback allowlist, 계정 삭제용 Apple 서버 secrets를 설정했다. Apple Services ID `com.tap2work.tap2work.web`는 primary `com.tap2work.tap2work`에 연결되며 Xcode 팀은 실제 App ID 소유 팀 `RQZACLWJ7M`이다. Google은 TAP Work 전용 Web/iOS client를 사용한다. 두 provider의 authorize 302 목적지/client ID를 확인했다. OAuth 왕복·새 서버 함수/SQL·웹 배포·서명 빌드는 아직 검증하지 않았다. 기존 운영 이메일 provider는 웹 전환 전까지 유지한다. Apple OAuth JWT는 2027-04-03 만료 전에 갱신해야 한다. 공개 식별자와 운영 절차는 [설정 문서](NATIVE_AUTH_SETUP.md)에 기록한다.
+
+이 절은 아래 과거 임시 공용 로그인 설명을 대체한다. UI → AuthRepository → NativeAuthService → Apple/Google SDK → Supabase `signInWithIdToken`으로 iOS 세션을 만든다. Apple nonce는 클라이언트 난수의 SHA-256을 SDK에, 원문을 Supabase에 전달한다. Android Google은 네이티브 SDK, Apple은 웹 OAuth/deep link이며 브라우저는 OAuth다. 로그인 취소는 오류로 취급하지 않는다. 공개 ID만 앱 define에 넣으며 `.p8`/OAuth secret은 서버에만 있다.
+
+CloudWorkspace는 Apple/Google identity가 있는 세션만 매장에 연결한다. production operations Edge는 `requireSocialIdentity: true`로 같은 조건을 검사한다. 공용 세션 발급 함수는 비활성화 소스로 변경했다. 실제 서버는 새 함수를 배포하기 전까지 이전 코드가 유지된다. 빈 매장/샘플 선택은 유지하며 기존 공용 매장 자동 인계와 실제 크루 초대 가입은 이 작업 범위 밖이다.
+
+AccountScreen → AccountController → SupabaseAccountRepository → `account` Edge → service-only SQL 경계다. preview는 본인/매장/members/owners/revision의 SHA-256 확인값, 파괴 범위, 매장명, 인원만 반환한다. 클라이언트가 userId를 지정하지 못하고 bearer 검증 결과만 사용한다. 최종 명시적 확인 후 최신 scope 비교 → 같은 Apple subject 확인/revoke → DB 잠금·scope 재비교 → 원자 삭제를 수행한다. 외부 Apple revoke와 DB commit 사이 장애는 재인증·재확인이 필요하며 분산 원자성을 주장하지 않는다.
+
+유일 사장님: workspace cascade로 documents/state/membership 삭제, 다른 크루 auth.users 보존. 다중 사장님: created_by를 남은 사장님으로 이관해 Auth FK cascade 방지. 크루/잔여 사장님: actorId 연결 개인정보·근무·급여와 history 개인 행 정리, 공유 완료 기록 작성자 비식별화, 기본 배정 해제, legacy recovery payload도 갱신한 뒤 본인 membership/auth.users 삭제. session/identity는 Auth FK cascade에 의존한다. orphan creator 상태는 fail closed. SQL 함수 EXECUTE는 service_role만 허용한다. SQL 테스트는 격리 PGlite의 모의 Auth FK로 검증했다. 운영 DB의 Auth identity/session 및 매장 FK cascade는 데이터 조회 없는 메타데이터 읽기로 확인했다. 실제 삭제·실기기 E2E는 배포 전 테스트 계정으로 별도 확인한다.
+
+로컬 백업은 기존 SharedPreferences 저장소의 해당 user scope만 지운다. 서버 삭제 이후 로컬 정리 오류는 삭제 실패로 되돌리지 않고 완료+기기 정리 안내를 표시한다. 개인정보 JSON을 앱과 정적 privacy/delete-account 페이지가 공유한다. [설정/배포/운영 확인](NATIVE_AUTH_SETUP.md).
+
 ## 임시 공용 로그인·저장 최적화 · 2026-09-29
 
 사용자 승인으로 지정한 기존 계정의 매장을 모든 방문자가 함께 조회·수정한다. 고정 아이디와 마스킹 필드는 서버 세션 발급 진입점이며 실제 비밀번호를 배포하지 않는다. 로그인 버튼 후 Supabase 세션을 유지해 재방문 자동 로그인한다. SSO는 앱 등록 시 적용한다. 이전 D-051 무로그인 샘플 자동 진입을 대체하며 별도 샘플 둘러보기만 읽기 전용이다.
@@ -283,6 +297,26 @@ Latest weekday-selector correction (2026-10-03): supersedes the preceding closed
 Schedule density (2026-10-04): use 48px/hour for long assignments; if any assignment is shorter than two hours, expand to 48px/half-hour. Resize uses the same scale. Monthly cells focus on operating-day exceptions and omit duplicate crew counts.
 
 
+## 체크리스트 콘텐츠 공급·커스터마이즈·백업 설계안 · 2026-10-04
+
+[상세 구현안](CHECKLIST_PLATFORM_IMPLEMENTATION_PLAN_2026-10-04.md)은 서비스 제공자의 주간 아이디어·검수·버전 발행, 앱의 TAP 단위 가져오기, 매장 자체 양식, 로컬 초안과 백업·복원을 위한 **proposed 설계 문서**다. 앱·서버·DB 구현 완료를 뜻하지 않는다.
+
+제안 경계는 불변 공용 원본 → 매장 맞춤 양식 → 날짜/시간대별 실행 스냅샷이다. 기존 taskTemplates와 실행 기록을 유지하며 서버 소유 origin/lifecycle 메타데이터, 필드별 3-way 비교, preview/apply와 revision 검증, 적용 전 복구 사본을 추가한다. 기존 save_checklists의 미착수 실행 보관 동작과 새 next_generation 적용 경로는 구분한다. D-053 콘텐츠 직접 편집, D-063의 TAP 담당·실행 증빙, D-061 메뉴 표시명 계약을 보존한다. D-063의 Task 개별 배분은 아래 최신 사용자 요구로 대체한다.
+
+네 주요 목적지 안에서 공통 추가/라이브러리/업데이트/백업 화면을 연결하고, 제공자 발행 권한과 매장 적용 권한을 분리하는 안이다. 상세 데이터/API/파일명/권한·용량·보존 기본값과 P0–P4 단계는 제안이며 실제 구현 시 관련 계약·설정 관계표·검증 결과를 함께 갱신한다. 이 기록으로 현재 UI의 저장 효과나 기존 API 계약을 변경하지 않는다.
+
+
+## TAP 단일 배정·Task/매뉴얼 공동 개선 · 2026-10-04 확정 방향, 구현 전
+
+사용자가 시간대·파트 매칭과 주요 운영 한계/제약을 TAP에서 설정하고 Task별 배분을 금지하도록 확정했다. Task는 행동·매뉴얼 콘텐츠와 실행 체크 기록을 관리한다. 중앙 시스템은 Task와 매뉴얼을 같은 콘텐츠 revision으로 검수·발행·개선하고, 매장이 선택 적용할 때 TAP 배정/제약은 유지한다.
+
+**현재 코드와 목표를 구분한다.** 위 데이터 계약/Work assignment integration의 Task assignment, partOverride/roleOverride/zoneOverride와 mixed projection은 현재 v1 구현 설명이다. 새 양식/실행의 목표에서는 제거하고, 과거 진행·완료 snapshot은 v1 호환으로 보존한다. TAP scheduled/crew/anyone 선택 자체를 이번 결정으로 삭제하지 않는다. scheduled 기본은 파트 1개+복수 시간대이며 매 시간대에 전체 Task를 공유 실행한다.
+
+[상세 구현안](CHECKLIST_PLATFORM_IMPLEMENTATION_PLAN_2026-10-04.md)의 1.2절은 현재 코드 검증, 2.1–2.4절은 TAP/Task 책임·정책·UI, 5.3–5.4절은 중앙 공동 콘텐츠, 15.1–15.2절은 예외 이관, P0.5는 Sol 첫 구현 범위다. 정책 schema를 양식/실행에 고정하고 신규 쓰기의 Task 운영 필드를 차단한다. 서로 다른 Task 배정·수량을 자동 합치지 않고 TAP 통일/분리 미리보기를 제공한다. 수량/시간 등 구체 필드와 이관 기본값은 proposed다.
+
+구조 확인: 기존 배정/설정 서버 테스트 18/18 통과. 별도 인메모리 재현에서 Task별 시간대 분리 및 assignmentOccurrences의 dateOverrides 추가 휴무 미반영을 확인했다. 후자는 근무표와 업무의 유효 영업일/시간대 resolver를 통합하는 후속 수정 대상으로 기록한다. 이번 변경은 문서/결정 갱신이며 TAP-only 런타임 구현·실제 데이터 이관은 하지 않았다.
+
+
 ### TAP 단일 정책 첫 구현 · 2026-10-04
 
 신규 양식은 `assignmentScopeVersion:2`로 생성하며 TAP의 `settings.assignment`, `completionPolicy`, `estimatedMinutes`, 기존 파트/직급/장소·반복·순서·일괄 완료를 공유한다. Task는 행동과 매뉴얼·팁·태그·자료 및 `contentRevision`만 편집한다. 매뉴얼의 설정 링크도 부모 TAP을 연다. 시간대마다 전체 Task를 생성하며 dateOverrides의 휴무/추가 영업과 활성 파트·필요 인원 판정을 반영한다. 실제 담당은 근무 배정 projection을 따른다.
@@ -409,3 +443,13 @@ The HTML bootstrap splash remains the initial web loading screen. Flutter startu
 sourceHash는 표준화한 표시 title과 순서 있는 steps(id/title/manual/tip/sourceUrl/imageUrl/videoUrl)의 JSON UTF-8 SHA-256이다. 콘텐츠/순서/자료 링크 변경은 번역 재확인을 요구하고 폴더·파트·장소·운영 규칙만의 변경은 번역을 무효화하지 않는다. stale/missing 번역은 PDF에서도 언어별 경고와 한국어 원문으로 대체한다. 영업 장소·파트·매장 고유명은 저장한 원래 이름을 유지한다. 기존 체크리스트 JSON 백업은 번역을 포함하지 않으며 번역은 매장 section 저장에 보존한다.
 
 PDF는 Dart pdf/printing 패키지와 번들 static TTF(Tap2workPrint: Pretendard 기반, Noto Sans SC/JP)를 사용한다. 인쇄 진입 때 글꼴을 읽고 사용 glyph만 PDF에 포함한다. 문서 내용은 번역 서비스로 전송하지 않는다. Flutter 웹 미리보기는 printing의 PDF.js renderer를 사용한다. 자동 번역·앱 전체 UI 다국어·다른 언어/RTL은 별도 범위다. 글꼴 출처와 OFL은 app/assets/fonts/print/에 보존한다.
+## iOS 출시와 매장 이용권 · 2026-10-05
+
+사용자는 App Store 무료 다운로드와 향후 사장님이 결제하는 매장 단위 추가 기능 구독을 확정했다. 크루는 소속 매장의 이용권을 함께 사용하며 기존 직책 권한은 유지한다. 구독 결제·서버 검증·이용권 데이터 계약은 아직 구현되지 않았다. 제안 경계는 Flutter 구매/복원 → Apple 거래 → 서버 검증/갱신 이벤트 → 매장 이용권 → 기존 직책 검증과 유료 API 허용이다. 가격·기간·상품 ID·다매장·소유자 변경 정책은 미정이다. 임시 공용 로그인은 출시 전에 개인별 인증과 매장 소속 검증으로 전환해야 한다. [출시 점검과 미검증 항목](APP_STORE_RELEASE_PLAN.md)을 기준으로 준비하며 실제 제출·네이티브 빌드 완료로 보고하지 않는다.
+
+## iOS 앱 식별자 · 2026-10-05
+
+iOS Runner의 Debug/Profile/Release Bundle ID는 `com.tap2work.tap2work`, RunnerTests는 `com.tap2work.tap2work.RunnerTests`다. 사용자 요청으로 이전 `com.tab2work.tab2work` 철자를 수정했다. Info.plist는 기존 PRODUCT_BUNDLE_IDENTIFIER 변수를 소비한다. Apple Developer App ID 등록·프로파일 및 App Store Connect 연결은 별도 확인 대상이다.
+## TAP Work 사용자 제공 로고 · 2026-10-05
+
+`docs/branding/TapWater_logo.png`는 사용자 선택 원본에서 좌우 여백을 줄인 1024px 배포 마스터이며 `app/assets/branding/generate_brand.py`는 이를 크기별로 내보낸다. 이전 경로/체크 마크를 다시 생성하지 않는다. root/Flutter의 기존 `tap2work.png` 경로를 유지하고 `sync-branding.mjs`로 동기화한다. iOS/Android/PWA/favicon은 동일 원본을 사용하며 네이티브 아이콘은 alpha 없는 RGB다. 공통 BrandLogo는 48px 이미지와 TAP Work 워드마크를 헤더/로그인에 제공한다. 표시 이름은 TAP Work로 맞추고 패키지·Bundle ID·저장 계약은 유지한다. [자산 원본과 재생성](branding/README.md).

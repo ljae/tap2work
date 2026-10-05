@@ -24,3 +24,9 @@ Before making product or architecture changes, read `docs/project-state.json`, `
 - The user will share the portal with a specific CEO for direction questions, new features and improvements. GitHub issue forms collect explicitly submitted public feedback. Do not invent CEO feedback or automatically convert requests into confirmed product decisions.
 
 Routine reversible implementation work remains authorized. These instructions do not impose an extra approval process.
+
+## Claude / GPT handoff
+
+- Both tools use this file as the shared instruction source; `CLAUDE.md` imports it.
+- Start with `docs/AI_HANDOFF.md` for the source map and current decision precedence. Backend/error follow-up tasks and reproduced failures are in `docs/BACKEND_WATCH_HANDOFF.md`.
+- Handoff snapshots are local source copies, not the canonical working tree or a backup of credentials/operational data. Preserve existing uncommitted work when switching models.

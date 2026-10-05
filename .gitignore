@@ -12,3 +12,4 @@ _site/
 .codex/config.toml
 
 supabase/.temp/
+app/ios/Flutter/Auth.xcconfig
