@@ -1,12 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/testing.dart';
 import 'package:tap2work/ui/direct_edit.dart';
 import 'package:tap2work/state/operations_controller.dart';
-import 'tap_workspace_test.dart' show mountBoard;
-import 'checklist_test.dart' show fixture;
-import 'operations_test.dart' show response;
 import 'calendar_test.dart' as calendar;
 
 void main() {
@@ -68,44 +63,6 @@ void main() {
       expect(find.byTooltip('삭제'), findsNothing);
       await tester.pumpWidget(const SizedBox());
       await tester.pump();
-      expect(tester.takeException(), isNull);
-    },
-  );
-  testWidgets(
-    'work long press replaces board editor and submits rename with opening revision',
-    (tester) async {
-      tester.platformDispatcher.accessibilityFeaturesTestValue =
-          const FakeAccessibilityFeatures(disableAnimations: true);
-      addTearDown(
-        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
-      );
-      final data = fixture();
-      Json? sent;
-      final ops = OperationsController(
-        readOnly: false,
-        client: MockClient((r) async {
-          if (r.method == 'POST') sent = jsonDecode(r.body) as Json;
-          return response(data);
-        }),
-      );
-      addTearDown(ops.dispose);
-      await mountBoard(tester, ops);
-      expect(find.text('보드 편집'), findsNothing);
-      expect(find.byTooltip('삭제'), findsNothing);
-      await tester.longPress(find.byKey(const ValueKey('tap-daily-prep')));
-      await tester.pumpAndSettle();
-      expect(find.text('편집 완료'), findsOneWidget);
-      await tester.tap(find.byTooltip('이름 변경').first);
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), '새 이름');
-      await tester.tap(find.widgetWithText(FilledButton, '저장'));
-      await tester.pumpAndSettle();
-      expect(sent?['action'], 'edit_work_node');
-      expect(sent?['name'], '새 이름');
-      expect(sent?['revision'], data['revision']);
-      await tester.tap(find.text('편집 완료'));
-      await tester.pumpAndSettle();
-      expect(find.byTooltip('삭제'), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );

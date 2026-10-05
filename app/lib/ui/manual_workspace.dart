@@ -707,6 +707,22 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               onSelected: (action) {
                 if (action == 'move') {
                   chooseDestination(data);
+                } else if (action == 'detail' || action == 'add') {
+                  showAppSheet(
+                    context,
+                    builder: (_) => kind == 'task'
+                        ? ManualTaskEditor(
+                            ops: ops,
+                            templateId: tapId!,
+                            sourceStepId: id,
+                          )
+                        : ManualTapEditor(
+                            ops: ops,
+                            templateId: kind == 'tap' ? id : null,
+                            folderId: kind == 'group' ? id : folderId,
+                            addTask: action == 'add' && kind == 'tap',
+                          ),
+                  );
                 } else {
                   directEditNode(context, ops, 'edit_manual_node', {
                     'kind': kind,
@@ -717,6 +733,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 }
               },
               itemBuilder: (_) => [
+                if (kind != 'group')
+                  const PopupMenuItem(value: 'detail', child: Text('상세 수정')),
+                if (kind != 'task')
+                  PopupMenuItem(
+                    value: 'add',
+                    child: Text(kind == 'group' ? 'TAP 추가' : 'Task 추가'),
+                  ),
                 const PopupMenuItem(value: 'move', child: Text('위치 이동')),
                 const PopupMenuItem(value: 'rename', child: Text('이름 변경')),
                 if (deletable)
@@ -801,7 +824,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     ];
     for (final folder in folders) {
       if (folder['id'] == 'store-recipes') continue;
-      if (ops.data?['manualBusinessProfile'] != null &&
+      if (!editingTree &&
+          ops.data?['manualBusinessProfile'] != null &&
           !taps.any((t) => t['folderId'] == folder['id'])) {
         continue;
       }
@@ -1263,7 +1287,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                                     }
                                   }),
                             child: Text(
-                              editing ? '편집 완료' : '위치·순서 편집',
+                              editing ? '편집 완료' : '전체 편집',
                               style: AppText.caption,
                             ),
                           ),
@@ -1345,31 +1369,30 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                               selectedId = null;
                             }),
                           ),
-                        if (ops.canEditTasks && toolsVisible)
+                        if (ops.canEditTasks)
                           TextButton.icon(
-                            icon: const Icon(Icons.add, size: 18),
-                            onPressed: () => directEditNode(
-                              context,
-                              ops,
-                              'edit_manual_node',
-                              {
-                                'kind': scopeTap != null
-                                    ? 'task'
-                                    : scopeGroup != null
-                                    ? 'tap'
-                                    : 'group',
-                                'parentId': scopeTap ?? scopeGroup,
-                                'operation': 'add',
-                              },
-                              '',
+                            key: const ValueKey('manual-add-folder'),
+                            icon: const Icon(
+                              Icons.create_new_folder_outlined,
+                              size: 18,
                             ),
-                            label: Text(
-                              scopeTap != null
-                                  ? 'Task 추가'
-                                  : scopeGroup != null
-                                  ? 'TAP 추가'
-                                  : '그룹 추가',
-                            ),
+                            onPressed: ops.busy
+                                ? null
+                                : () async {
+                                    widget.onClearSearch?.call();
+                                    setState(() {
+                                      editPane = _ManualEditPane.directory;
+                                      showTree = true;
+                                    });
+                                    await directEditNode(
+                                      context,
+                                      ops,
+                                      'edit_manual_node',
+                                      {'kind': 'group', 'operation': 'add'},
+                                      '',
+                                    );
+                                  },
+                            label: const Text('폴더 추가'),
                           ),
                         if (editing && ops.readOnly)
                           const Text(
@@ -1394,7 +1417,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
                         editingTree
-                            ? '손잡이를 끌어 TAP·Task를 옮겨요. 위아래 끝에서는 자동으로 스크롤돼요.'
+                            ? '⋯에서 추가·상세 수정·이동·삭제, 손잡이로 순서를 바꿔요.'
                             : 'Task 편집 · 카드에서 이름·위치·삭제를 선택해요.',
                         style: TextStyle(fontSize: 13, color: AppColors.muted),
                       ),

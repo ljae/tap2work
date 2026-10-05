@@ -391,3 +391,9 @@ ManualWorkspace keeps market entry and the explicit edit/done control outside th
 After a successful market import adds template IDs in the same actor/workspace, the workspace refreshes its directory, clears parent search through onClearSearch, expands the installed hierarchy and opens the first imported checklist immediately. Canceling the market does not change selection. User selection remains the sourceIds sent by import_market_taps; opening the market alone does not install anything.
 
 The HTML bootstrap splash remains the initial web loading screen. Flutter startup uses an unbranded background while initializing; initial store data uses a full content skeleton. The duplicate small logo/progress card is removed from normal loading. Delayed-connection context and error/retry states remain.
+
+## 매뉴얼 작성 / 업무 우선순위 경계 · D-088 · 2026-10-05
+
+`ManualWorkspace` 전체 편집과 항목 ⋯에서 폴더·TAP·Task 전체 작성 기능에 접근한다. 폴더 추가는 항상 노출하고 편집 중 빈 폴더도 표시한다. 폴더의 TAP 추가는 `ManualTapEditor(folderId)`로, TAP의 Task 추가는 `ManualTapEditor(templateId, addTask: true)`의 콘텐츠 초안으로, 기존 Task 상세는 `ManualTaskEditor`로 연결한다. 저장은 기존 revision 계약의 `edit_manual_node` / `save_manual_tap`, 이동은 `move_manual_node`를 사용한다. 기존 실행 스냅샷을 변경하지 않는다.
+
+`TapWorkspace`에는 내용 작성 컴포넌트·규칙 편집·길게 누르기 편집 진입을 두지 않는다. 권한이 있는 크루의 독립된 터치 손잡이로 우선순위를 이동한다. TAP 드롭은 같은 상태 열에서 `move_tap(status: keep, folderId: 기존 값)`만 보낸다. 주문 묶음은 기존 묶음 순서를 따르고 Task 순서는 `reorder_small_taps`로 오늘 실행만 변경한다. 순서 강제 TAP은 드래그를 제공하지 않는다. 완료·완료취소·준비품 수량·주문 진행과 매뉴얼 조회는 유지한다. 기존 `edit_work_node` / `save_task_step` 서버 계약은 호환을 위해 남기되 업무 UI는 호출하지 않는다.

@@ -45,7 +45,7 @@ flowchart LR
 | S08 | `store.profile` 기본/영업/POS/배달/인력 섹션 | 매장 프로필 → `save_store_profile`; 운영 탭은 S03 공통 설정으로 이동 | 우리매장 카드, 근무표 기본 시간, 주문·배달 정보. POS 연결 상태는 별도 실제 연동 아님 | `workspace_settings.test.mjs` |
 | S09 | `payrollSettings` 및 이력 | 급여·정산 설정 → `save_payroll_settings` | 사장님 전용 인건비 계산·지급 주기/시작일/반올림/규모/주휴. 기존 근무/지급 기록을 역수정하지 않음 | `cloud.test.mjs`, `payroll_settings_test.dart` |
 | S10 | `tappers[]`, `attendance[]`, `payAdjustments[]`, `payments[]` | 크루 정보/출퇴근/급여 기록 → `save_tapper`, `clock_in`, `break_start`, `break_end`, `clock_out`, `adjust_attendance`, `add_pay_adjustment`, `record_payment` | 근무표·크루·사장님 인건비 화면. 개인 급여는 역할별 투영으로 보호 | `labor.test.mjs`, `labor_panel_test.dart` |
-| S11 | `checklistFolders[]`, `taskTemplates[]` | 업무/매뉴얼 카드 길게 누르기 → `DirectEditFrame` → `edit_work_node` / `edit_manual_node` | 업무 편집은 선택한 미완료 실행과 양식, 매뉴얼 편집은 양식만 변경. 완료 기록 보존 | `checklist_test.dart`, `checklists.test.mjs` |
+| S11 | `checklistFolders[]`, `taskTemplates[]` | 매뉴얼 전체 편집 → 폴더 추가 / 항목 ⋯ → 추가·이름·상세·이동·삭제 | 정의 편집은 매뉴얼에 집중. 업무의 내용 편집 진입 제거 | `manual_authoring_test.dart`, `task_inline_edit_test.dart` |
 | S12 | `taskTemplates[id].steps[id]` | 매뉴얼 > Task > **매뉴얼 편집** → `ManualTaskEditor(templateId, sourceStepId)` → `save_checklists` | 해당 Task의 제목·본문·팁·링크·태그만 갱신, `manualSearch` 재투영. 다른 Task와 기존 진행 기록 불변 | `manual_workspace_test.dart` 단일 Task/형제 불변/POST 검사 |
 | S13 | `taskTemplates[id].settings` | 매뉴얼 > Task > TAP 설정 → `TapSettingsScreen(initialTemplateId)` → `save_tap_settings` v2 | 부모 TAP의 시간대·파트·장소·완료 조건·소요 시간을 전체 Task에 적용; Task별 운영 컨트롤 없음 | `settings_screens_test.dart`, `tap_policy.test.mjs` |
 | S14 | 매뉴얼 폴더/TAP/Task 순서 | 왼쪽 트리 길게 누르기 → 같은 계층 행의 손잡이/⋯ 이동 → `move_manual_node` | TAP→폴더, Task→TAP. Task를 폴더에 놓으면 해당 폴더의 TAP 선택. 같은 단계는 앞 순서. 오른쪽 편집은 독립이며 본문·오늘 실행 보존 | `manual_workspace_test.dart` 양쪽 격리/계층/폴더 드롭/320px/충돌, `manual_directory.test.mjs` |
@@ -72,8 +72,8 @@ flowchart LR
 
 | ID | 설정/원본 경로 | 입력 UI와 액션 | 저장 후 소비 화면·파생 값 | 검증 기준 |
 | --- | --- | --- | --- | --- |
-| S22 | `tasks[id].steps[id].title/manual`, 연결된 `taskTemplates[].steps[]` | 편집 모드에서 Task 제목 클릭 → `TaskStepEditor` → `save_task_step` | 선택한 오늘 미완료 Task와 원본 양식/매뉴얼 검색 갱신. 완료된 형제·다른 실행·과거 기록 보존. 원본 없는 주문 Task는 해당 실행만 수정 | `task_inline_edit_test.dart`, `checklists.test.mjs` |
-| S23 | 동일 TAP의 `steps[]` 끝 | 마지막 Task 아래 Task 추가 → 제목/매뉴얼 입력 → `save_task_step(stepId: null)` | 서버가 ID 생성, 오늘 실행과 원본 양식 끝에 추가. 완료된 TAP/입고 반영 준비 TAP 금지, 최대 30개 | 동일 테스트, 공개 체험 POST 0건 |
+| S22 | `taskTemplates[].steps[]` | 매뉴얼 Task ⋯ 상세 수정 → `ManualTaskEditor` → `save_manual_tap` | 선택 Task 콘텐츠와 양식 저장. 기존 실행·완료 기록 보존. `save_task_step`은 기존 API 호환용이며 업무 화면 진입 없음 | `manual_workspace_test.dart`, `tap_policy.test.mjs` |
+| S23 | 선택한 TAP의 `steps[]` | 매뉴얼 TAP ⋯ Task 추가 → 내용 초안 → 매뉴얼 저장 | `ManualTapEditor(addTask: true)`에서 제목·방법 함께 추가, opening revision으로 양식만 저장 | `manual_authoring_test.dart` |
 | S24 | 서버 `canEditTasks` | 보드/TAP/Task/매뉴얼 편집과 순서 UI 표시 | 사장 또는 업무 권한이 활성화된 매니저만 편집. 서버도 `tasks` 제한으로 저장·순서변경 검증 | 매니저 제한·크루 거절·완료 보호 서버/위젯 테스트 |
 
 ## 설정 항목별 상속·적용 시점
@@ -124,8 +124,8 @@ flowchart LR
 | ID | 원본 → 컨트롤 → 액션 | 저장 후 소비 | 검증 |
 | --- | --- | --- | --- |
 | U03 | 업무·매뉴얼·근무표 → `DirectEditFrame` 길게 누르기/우클릭/접근성 동작 → 흔들림·초록 테두리·편집 완료 | 수정 권한이 있을 때만 진입. 동작 줄이기와 TickerMode에서는 흔들림 중지 | `direct_edit_test.dart` |
-| S25 | 오늘 TAP/Task → 이름·휴지통 → `edit_work_node` | 오늘 미완료 실행과 연결된 양식을 함께 변경. 완료 기록/재고 반영/실행 주문 보호 | `direct_edit.test.mjs` |
-| S26 | 매뉴얼 그룹/TAP/Task → 이름·휴지통·추가 → `edit_manual_node` | 기본 양식만 변경. 진행 기록은 유지되어 ‘오늘 업무’ 매뉴얼로 보일 수 있음. 기본/사용중 그룹 삭제 금지. 빈 TAP과 마지막 Task 이동·삭제 허용 | `direct_edit.test.mjs` |
+| S25 | 오늘 TAP/Task 우선순위 | 업무 손잡이 드래그 → `move_tap(status: keep)` / `reorder_small_taps` | 현재 실행 순서만 변경. 폴더·내용·완료 상태 유지, 순서 강제 TAP 재정렬 금지 | `task_inline_edit_test.dart`, `direct_edit.test.mjs` |
+| S26 | 매뉴얼 폴더/TAP/Task | 폴더 추가 및 항목 ⋯의 이름·삭제 → `edit_manual_node`, 상세·추가 → `save_manual_tap`, 이동 → `move_manual_node` | 기본 양식 편집. 휴대폰 동일 기능, 편집 중 빈 폴더도 표시. 사용중/기본 폴더 삭제 보호 | `manual_authoring_test.dart`, `manual_workspace_test.dart`, `direct_edit.test.mjs` |
 | S27 | 근무표 카드 → 날짜·시간 드래그/이름/휴지통 → `save_staff_shift`, `save_roster_slot`, `delete_roster_slot` | 배정 근무의 label 또는 날짜별 슬롯 name/hidden; 사람 이름·출퇴근 원본 불변. 날짜별 삭제는 영업 기본시간을 변경하지 않음 | `direct_edit.test.mjs`, `direct_edit_test.dart`, `calendar_test.dart` |
 
 업무의 보드 편집 버튼과 매뉴얼 구조 편집 버튼을 제거했다. TAP 규칙·시간/크루 배정·매뉴얼 본문 편집은 카드에서 필요한 세부 입력으로 유지한다. 카드의 위치 이동 메뉴는 드래그 대안이다. 편집 중 휴지통은 확인 후 실행하며 서버 revision/직책 검증을 거친다. 공개 읽기 전용 샘플의 구조 추가·삭제·이름 변경은 저장하지 않고 로그인 안내를 표시한다. 기존 샘플의 Task 직접 입력/드래그 체험은 메모리에만 유지한다.
@@ -245,7 +245,7 @@ S13/S35는 v2 실제 구현을 반영한다. `assignmentScopeVersion:2` 신규 �
 | --- | --- | --- | --- |
 | S40 | 기존 Task override + policyReport → 기존 설정 확인·통합 체크/별도 TAP 분리 → save_tap_settings v2 또는 split_tap_policy | 통합 원본 보관, 분리 다음 영업일부터 생성·operationId 재시도, 진행/완료 snapshot 보존 | tap_policy.test.mjs |
 | S41 | TAP settings.completionPolicy → Task 체크 후 TAP 완성 수량 입력 → complete_task(quantity) | 실제 수량 한 번 저장·정밀도/권한 검증, 재고 자동 증가 없음 | tap_policy.test.mjs, workspace_settings.test.mjs |
-| S22 | Task 이름/매뉴얼/팁/태그/자료 → save_task_step 또는 save_step_manual | 공동 contentRevision 증가, TAP 설정·형제 Task·다른 실행 보존 | tap_policy.test.mjs, task_inline_edit_test.dart |
+| S22 | `taskTemplates[].steps[]` | 매뉴얼 Task ⋯ 상세 수정 → `ManualTaskEditor` → `save_manual_tap` | 선택 Task 콘텐츠와 양식 저장. 기존 실행·완료 기록 보존. `save_task_step`은 기존 API 호환용이며 업무 화면 진입 없음 | `manual_workspace_test.dart`, `tap_policy.test.mjs` |
 
 중앙 주간 발행/선택 업데이트, 로컬 초안·백업/복원은 아직 구현 전이다. [상세 구현안](CHECKLIST_PLATFORM_IMPLEMENTATION_PLAN_2026-10-04.md) 참조.
 

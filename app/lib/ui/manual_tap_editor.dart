@@ -11,9 +11,11 @@ class ManualTapEditor extends StatefulWidget {
     required this.ops,
     this.templateId,
     this.folderId,
+    this.addTask = false,
   });
   final OperationsController ops;
   final String? templateId, folderId;
+  final bool addTask;
   @override
   State<ManualTapEditor> createState() => _ManualTapEditorState();
 }
@@ -48,6 +50,11 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
     revision = widget.ops.data?['revision'] ?? 0;
     actor = widget.ops.actorId;
     workspace = widget.ops.data?['workspaceId'];
+    if (widget.addTask) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) edit();
+      });
+    }
   }
 
   final operationId = 'create-${DateTime.now().microsecondsSinceEpoch}';

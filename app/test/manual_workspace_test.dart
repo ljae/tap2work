@@ -229,9 +229,10 @@ void main() {
       expect(find.byKey(const ValueKey('manual-node-tap:c')), findsOneWidget);
       await tester.longPress(find.byKey(const ValueKey('manual-node-tap:c')));
       await tester.pumpAndSettle();
-      expect(find.text('Task 추가'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('manual-actions-tap:c')));
       await tester.pumpAndSettle();
+      expect(find.text('Task 추가'), findsOneWidget);
+      expect(find.text('상세 수정'), findsOneWidget);
       expect(find.text('이름 변경'), findsOneWidget);
       expect(find.text('삭제'), findsOneWidget);
       await tester.tapAt(const Offset(1100, 20));
@@ -255,6 +256,7 @@ void main() {
         find.byKey(const ValueKey('manual-node-group:empty')),
       );
       await tester.pumpAndSettle();
+      await click(tester, 'manual-actions-group:empty');
       expect(find.text('TAP 추가'), findsOneWidget);
       expect(posts, 0);
       expect(tester.takeException(), isNull);

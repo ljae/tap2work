@@ -21,11 +21,11 @@ const contracts = [
   ['S30', 'app/lib/ui/calendar_screen.dart', 'KoreanHolidays', 'app/lib/domain/korean_holidays.dart', 'https://holidays.hyunbin.page/'],
 
   ['U03', 'app/lib/ui/direct_edit.dart', 'onLongPress:', 'app/lib/ui/calendar_screen.dart', 'DirectEditFrame('],
-  ['S25', 'app/lib/ui/tap_workspace.dart', "'edit_work_node'", 'developer/operations.mjs', "case 'edit_work_node'"],
+  ['S25', 'app/lib/ui/tap_workspace.dart', "'move_tap'", 'developer/operations.mjs', "case 'move_tap'"],
   ['S26', 'app/lib/ui/manual_workspace.dart', "'edit_manual_node'", 'developer/operations.mjs', "case 'edit_manual_node'"],
   ['S27', 'app/lib/ui/calendar_screen.dart', "'delete_roster_slot'", 'developer/workplace.mjs', "'delete_roster_slot'"],
-  ['S22', 'app/lib/ui/task_step_editor.dart', "'save_task_step'", 'developer/operations.mjs', "case 'save_task_step'"],
-  ['S23', 'app/lib/ui/tap_workspace.dart', "Text('Task 추가')", 'app/lib/ui/task_step_editor.dart', 'class TaskStepEditor'],
+  ['S22', 'app/lib/ui/checklist_editor.dart', "'save_manual_tap'", 'developer/manual_market.mjs', "input.action==='save_manual_tap'"],
+  ['S23', 'app/lib/ui/manual_workspace.dart', "'Task 추가'", 'app/lib/ui/manual_tap_editor.dart', 'widget.addTask'],
   ['S24', 'app/lib/state/operations_controller.dart', 'get canEditTasks', 'developer/operations.mjs', 'result.canEditTasks'],
   ['E06', 'app/lib/main.dart', 'AppStartup', 'app/web/index.html', 'flutter-first-frame'],
   ['U01', 'app/lib/ui/design_system.dart', 'class AppEditorScaffold', 'app/lib/ui/checklist_editor.dart', 'AppSheetFooter('],
@@ -40,7 +40,7 @@ const contracts = [
   ['S07', 'app/lib/ui/workplace_screens.dart', "'save_workplace_permissions'", 'developer/workplace.mjs', "case 'save_workplace_permissions'"],
   ['S08', 'app/lib/ui/store_profile_screen.dart', "'save_store_profile'", 'developer/operations.mjs', "case 'save_store_profile'"],
   ['S09', 'app/lib/ui/payroll_settings_screen.dart', "'save_payroll_settings'", 'developer/staff.mjs', "case 'save_payroll_settings'"],
-  ['S11', 'app/lib/ui/tap_workspace.dart', 'DirectEditFrame(', 'developer/operations.mjs', "case 'edit_work_node'"],
+  ['S11', 'app/lib/ui/manual_workspace.dart', 'DirectEditFrame(', 'developer/operations.mjs', "case 'edit_manual_node'"],
   ['S12', 'app/lib/ui/manual_workspace.dart', 'ManualTaskEditor(', 'app/lib/ui/checklist_editor.dart', 'class ManualTaskEditor'],
   ['S13', 'app/lib/ui/manual_workspace.dart', 'initialTemplateId:', 'app/lib/ui/tap_settings_screen.dart', "'save_tap_settings'"],
   ['S14', 'app/lib/ui/manual_workspace.dart', "'move_manual_node'", 'developer/operations.mjs', "case 'move_manual_node'"],
@@ -71,7 +71,7 @@ if (!editButton || !editButton[0].includes('ManualTaskEditor(') || editButton[0]
   errors++;
 }
 const board = await readFile(path.join(root, 'app/lib/ui/tap_workspace.dart'), 'utf8');
-if (board.includes("Text('보드 편집')") || manual.includes("'구조 편집'") || board.includes("Text('TAP 설정')") || !board.includes('buildDefaultDragHandles: false')) {
+if (['DirectEditFrame(', 'TaskStepEditor(', 'TapSettingsScreen(', "'edit_work_node'", "Text('Task 추가')", "'edit_manual_node'"].some(token => board.includes(token)) || board.includes("Text('보드 편집')") || manual.includes("'구조 편집'") || board.includes("Text('TAP 설정')") || !board.includes('buildDefaultDragHandles: false')) {
   console.error('Board must not expose global TAP settings or overlapping default drag handles');
   errors++;
 }
