@@ -138,3 +138,52 @@ test('voided attendance does not suppress regenerated plans and unchanged reappl
   assert.equal(state.operationEditHistory.length,0);
   assert.deepEqual(state.attendance,before.attendance);
 });
+
+test('staffing save without weekday scope resets unchanged defaults for older clients',async t=>{
+  const {act,days}=await setup(t);
+  let state=await act('save_workplace_hours',{days,defaultAssignmentsEnabled:true});
+  const original=state.staffShifts.find(s=>s.defaultAssignmentKey&&s.date==='2026-10-05');
+  await act('save_staff_shift',{...original,start:'11:00'});
+  state=await act('save_workplace_hours',{days,defaultAssignmentsEnabled:true});
+  assert.equal(state.staffShifts.find(s=>s.id===original.id).start,'09:00');
+});
+
+test('night staffing refresh includes the current business date after midnight',async t=>{
+  const {act,days,advance}=await setup(t);
+  for(const rows of Object.values(days)) for(const b of rows){b.start='22:00';b.end='05:00';}
+  let state=await act('save_workplace_hours',{days,businessDayStart:'22:00',defaultAssignmentsEnabled:true});
+  const original=state.staffShifts.find(s=>s.defaultAssignmentKey?.startsWith('2026-10-05/'));
+  await act('save_staff_shift',{...original,end:'04:00'});
+  advance('2026-10-05T16:00:00Z'); // Tuesday 01:00 KST, still Monday's business day.
+  state=await act('save_workplace_hours',{days,businessDayStart:'22:00',defaultAssignmentsEnabled:true,resetScheduleWeekdays:[1]});
+  assert.equal(state.day,'2026-10-05');
+  assert.equal(state.staffShifts.find(s=>s.id===original.id).end,'05:00');
+});
+
+test('recurring defaults have no expiry; distant reads and saves reset all future exceptions',async t=>{
+  const {store,act,days}=await setup(t);
+  await act('save_workplace_hours',{days,defaultAssignmentsEnabled:true});
+  const range={scheduleFrom:'2028-10-02',scheduleTo:'2028-10-08'};
+  let state=await store.snapshot('owner',range);
+  const far=state.staffShifts.find(s=>s.defaultAssignmentKey?.startsWith('2028-10-02/'));
+  const deleted=state.staffShifts.find(s=>s.defaultAssignmentKey?.startsWith('2028-10-03/'));
+  assert.equal(far.start,'09:00');
+  await act('save_staff_shift',{...far,start:'11:00'});
+  await act('delete_staff_shift',{id:deleted.id});
+  state=await store.snapshot('owner',range);
+  assert.equal(state.staffShifts.find(s=>s.id===far.id).start,'11:00');
+  assert.ok(!state.staffShifts.some(s=>s.defaultAssignmentKey===deleted.defaultAssignmentKey));
+  const stable=await store.snapshot('owner',range);
+  assert.equal(stable.revision,state.revision);
+  assert.deepEqual(stable.staffShifts,state.staffShifts);
+  state=await act('save_workplace_hours',{days,defaultAssignmentsEnabled:true,resetScheduleWeekdays:[1,2]});
+  assert.equal(state.staffShifts.find(s=>s.id===far.id).start,'09:00');
+  assert.ok(state.staffShifts.some(s=>s.defaultAssignmentKey===deleted.defaultAssignmentKey));
+  // Subsequent normal reads must retain distant generated rows and their IDs.
+  assert.deepEqual((await store.snapshot('owner')).staffShifts,state.staffShifts);
+  const latest=structuredClone(days);latest[1][0].end='20:00';
+  state=await act('save_workplace_hours',{days:latest,defaultAssignmentsEnabled:true});
+  assert.equal(state.staffShifts.find(s=>s.id===far.id).end,'20:00');
+  assert.throws(()=>store.snapshot('owner',{scheduleFrom:'2028-02-30',scheduleTo:'2028-03-01'}),{status:400});
+  assert.throws(()=>store.snapshot('owner',{scheduleFrom:'2028-01-01',scheduleTo:'2028-12-31'}),{status:400});
+});

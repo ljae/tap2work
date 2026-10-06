@@ -48,10 +48,21 @@ class HttpOperationsRepository implements OperationsRepository {
   Future<OperationsResult> read({
     required String actorId,
     String? demoToken,
+    String? scheduleFrom,
+    String? scheduleTo,
   }) async {
     var uri = readOnly
         ? Uri.base.resolve('review-data/$actorId.json')
         : endpoint;
+    if (!readOnly && scheduleFrom != null && scheduleTo != null) {
+      uri = uri.replace(
+        queryParameters: {
+          ...uri.queryParameters,
+          'scheduleFrom': scheduleFrom,
+          'scheduleTo': scheduleTo,
+        },
+      );
+    }
     if (!readOnly &&
         accessToken != null &&
         _syncActor == actorId &&

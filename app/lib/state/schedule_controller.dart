@@ -80,17 +80,28 @@ class ScheduleController extends ChangeNotifier {
         ? DateTime(selected.year, selected.month + amount, 1)
         : selected.add(Duration(days: amount * 7));
     notifyListeners();
+    _loadRange();
   }
 
   void selectDay(DateTime day) {
     selected = day;
     month = false;
     notifyListeners();
+    _loadRange();
   }
 
   void setMonth(bool value) {
     month = value;
     notifyListeners();
+    _loadRange();
+  }
+
+  void _loadRange() {
+    final first = month ? DateTime(selected.year, selected.month, 1) : monday;
+    final last = month
+        ? DateTime(selected.year, selected.month + 1, 0)
+        : first.add(const Duration(days: 6));
+    operations.showScheduleRange(rosterDate(first), rosterDate(last));
   }
 
   void _changed() => notifyListeners();

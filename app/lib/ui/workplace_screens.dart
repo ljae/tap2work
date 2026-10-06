@@ -583,9 +583,15 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       }
     });
     if (ok) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('저장했어요.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            action == 'save_workplace_hours'
+                ? '기존 미세 조정을 초기화하고 새 영업시간·인원 배치를 근무표에 반영했어요. 출퇴근·승인·대기 기록은 유지돼요.'
+                : '저장했어요.',
+          ),
+        ),
+      );
     }
   }
 
@@ -696,6 +702,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
               'name': names[i],
               'start': _time(cuts[i]),
               'end': _time(cuts[i + 1]),
+              'partTimes': null,
             },
           for (final row in base.skip(count))
             if (linkedIds.contains(row['id']) || linkedPatternBand(row['id']))
@@ -736,6 +743,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       for (var i = 0; i < bands.length; i++) {
         bands[i]['start'] = _time(cuts[i]);
         bands[i]['end'] = _time(cuts[i + 1]);
+        bands[i].remove('partTimes');
       }
       final pause = breaks['$d'];
       if (pause != null) {
@@ -1120,6 +1128,8 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             if (minute < left + 30 || minute > right - 30) continue;
             rows[i]['end'] = _time(minute);
             rows[i + 1]['start'] = _time(minute);
+            rows[i].remove('partTimes');
+            rows[i + 1].remove('partTimes');
           }
         }),
       ),
@@ -1547,7 +1557,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
               children: [
                 if (widget.section == 'hours' && hoursStep == 1)
                   const Text(
-                    '저장하면 선택·변경한 요일의 오늘부터 90일 근무표를 새 배정으로 반영해요. 해당 날짜의 미세 조정·개별 배정·배정 삭제는 초기화돼요. 출퇴근 이력과 승인·대기 중인 변경 신청은 유지돼요.',
+                    '저장하면 선택·변경한 요일의 오늘 이후 근무표에 기간 제한 없이 적용해요. 기존 미세 조정·개별 배정·배정 삭제는 초기화돼요. 이후 날짜별로 별도 설정하면 해당 날짜에 우선 적용돼요. 출퇴근 이력과 승인·대기 중인 변경 신청은 유지돼요.',
                     style: AppText.caption,
                   ),
                 if (error != null)

@@ -8,6 +8,37 @@ import 'package:tap2work/ui/business_hours_slider.dart';
 import 'time_band_editor_test.dart' show fixture, mount;
 
 void main() {
+  testWidgets('new hours replace legacy part times and report roster refresh', (
+    tester,
+  ) async {
+    final data = fixture();
+    for (final rows in data['workplace']['days'].values) {
+      rows[0]['partTimes'] = {
+        'kitchen': {'start': '11:00', 'end': '18:00'},
+      };
+    }
+    Map<String, dynamic>? written;
+    await mount(tester, initialData: data, write: (v) => written = v);
+    await tester.tap(find.text('개별'));
+    await tester.pumpAndSettle();
+    tester
+        .widget<BusinessHoursSlider>(find.byType(BusinessHoursSlider))
+        .onHours(600, 1200);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('인원 배치').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('일주일 설정 저장'));
+    await tester.pumpAndSettle();
+    expect(written!['days']['1'][0]['start'], '10:00');
+    expect(written!['days']['1'][0]['end'], '20:00');
+    expect(written!['days']['1'][0]['partTimes'], isNull);
+    expect(written!['days']['2'][0]['partTimes']['kitchen']['start'], '11:00');
+    expect(
+      find.textContaining('기존 미세 조정을 초기화하고 새 영업시간·인원 배치를 근무표에 반영했어요.'),
+      findsOneWidget,
+    );
+  });
+
   test('day periods adapt to short and overnight opening windows', () {
     expect(shiftBoundaries(360, 1320, 1), [360, 1320]);
     expect(shiftBoundaries(360, 1320, 2), [360, 900, 1320]);

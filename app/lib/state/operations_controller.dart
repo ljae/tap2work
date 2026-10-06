@@ -53,6 +53,15 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   bool _observing = false;
   bool _foreground = true;
   String? _token;
+  String? _scheduleFrom, _scheduleTo;
+
+  void showScheduleRange(String from, String to) {
+    if (_scheduleFrom == from && _scheduleTo == to) return;
+    _scheduleFrom = from;
+    _scheduleTo = to;
+    _generation++;
+    refresh(force: true);
+  }
 
   List<Json> rows(String key) => (data?[key] as List? ?? []).cast<Json>();
   Json get actor =>
@@ -98,6 +107,8 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
     data = null;
     error = null;
     _token = null;
+    _scheduleFrom = null;
+    _scheduleTo = null;
     _emit();
     await refresh(force: true);
   }
@@ -114,6 +125,8 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
       final response = await _repository.read(
         actorId: actorId,
         demoToken: _token,
+        scheduleFrom: _scheduleFrom,
+        scheduleTo: _scheduleTo,
       );
       if (_disposed || generation != _generation) return;
       if (response.statusCode == 304) {
@@ -121,7 +134,13 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
         return;
       }
       final body = response.data;
-      if (response.statusCode != 200) throw Exception(body['error']);
+      if (response.statusCode != 200) {
+        final message = body['error'];
+        error = message is String && message.trim().isNotEmpty
+            ? message
+            : '매장 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
+        return;
+      }
       _previewTickets.clear();
       data = body;
       if (cloud && body['actor'] is Json) actorId = body['actor']['id'];
@@ -161,6 +180,8 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
         values: {
           ...values,
           'action': action,
+          if (_scheduleFrom != null) 'scheduleFrom': _scheduleFrom,
+          if (_scheduleTo != null) 'scheduleTo': _scheduleTo,
           'revision': values['revision'] ?? data!['revision'],
         },
       );

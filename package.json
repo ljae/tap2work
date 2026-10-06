@@ -18,6 +18,7 @@
     "build:wiki": "node scripts/build-checklist-wiki.mjs",
     "test:checklist-draft": "cd app && dart tool/check_checklist_draft.dart",
     "backend:deploy": "node --env-file=.env scripts/configure-supabase.mjs",
+    "deploy:operations": "node --env-file-if-exists=.env scripts/deploy-operations.mjs",
     "market:build": "node scripts/build-manual-market.mjs",
     "market:check": "node scripts/build-manual-market.mjs --check"
   }

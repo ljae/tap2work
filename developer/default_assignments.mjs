@@ -13,6 +13,16 @@ const interval = s => {
 };
 const overlaps = (a, b) => { const [x,y] = interval(a), [z,w] = interval(b); return x < w && z < y; };
 const fields = s => JSON.stringify([s.tapperId, s.partId, s.date, s.start, s.end, s.timeBandId]);
+export function scheduleRange(input = {}) {
+  const {scheduleFrom, scheduleTo} = input;
+  if (scheduleFrom == null && scheduleTo == null) return [];
+  const valid = date => typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+    Number.isFinite(Date.parse(`${date}T00:00:00Z`)) && dateAt(date,0) === date;
+  if (!valid(scheduleFrom) || !valid(scheduleTo)) throw new StoreError('근무표 조회 날짜를 확인해 주세요.',400);
+  const count = (Date.parse(scheduleTo)-Date.parse(scheduleFrom))/86400000+1;
+  if (count < 1 || count > 62) throw new StoreError('근무표는 한 번에 두 달 이내로 조회해 주세요.',400);
+  return Array.from({length:count},(_,n)=>dateAt(scheduleFrom,n));
+}
 function candidates(state, date) {
   const exception = state.workplace.dateOverrides?.[date];
   if (exception?.closed) return [];
@@ -51,11 +61,16 @@ export function validateDefaultAssignments(state) {
 
 // Persist the next 90 business days, extending on reads. Calendar edits, deletes,
 // attendance, requests and started shifts are explicit exceptions to the default.
-export function ensureDefaultAssignments(state, now, {refreshDates = new Set(), restoredIds = new Map()} = {}) {
+export function ensureDefaultAssignments(state, now, {refreshDates = new Set(), restoredIds = new Map(), dates = []} = {}) {
   if (state.workplace?.defaultAssignmentsEnabled !== true) return false;
   const before = JSON.stringify(state.staffShifts);
   const today = businessDate(state, now);
-  const desired = Array.from({length: 90}, (_, n) => candidates(state, dateAt(today, n))).flat();
+  // 90 days is a working cache, never an expiry of the recurring setting.
+  const generatedDates = new Set([
+    ...Array.from({length:90},(_,n)=>dateAt(today,n)), ...dates, ...refreshDates,
+    ...state.staffShifts.filter(s=>s.defaultAssignmentKey).map(s=>s.defaultAssignmentKey.slice(0,10)),
+  ].filter(date=>date >= today));
+  const desired = [...generatedDates].sort().flatMap(date => candidates(state,date));
   const wanted = new Map(desired.map(s => [s.defaultAssignmentKey, s]));
   const protectedShift = s => s.defaultAssignmentEdited || s.status !== 'planned' || s.approvedRequestId || s.replacementForRequestId || interval(s)[0] <= now.getTime() ||
     (state.attendance ?? []).some(a => !a.voidedAt && a.tapperId === s.tapperId && businessDate(state, a.at) === businessDate(state, `${s.date}T${s.start}:00+09:00`)) ||
@@ -89,13 +104,19 @@ export function ensureDefaultAssignments(state, now, {refreshDates = new Set(), 
 // still preserve edits; actual attendance and approved/pending requests survive.
 export function refreshDefaultAssignments(state, previous, now, weekdays, actor) {
   if (state.workplace?.defaultAssignmentsEnabled !== true || !weekdays.length) return;
-  const today = new Date(new Date(now).getTime() + 9 * 3600000).toISOString().slice(0,10);
-  const dates = new Set(Array.from({length:90}, (_,n) => dateAt(today,n)).filter(date => {
+  const today = businessDate(state, now);
+  const affected = date => {
+    if (date < today) return false;
     const oldDay = previous.workplace?.dateOverrides?.[date]?.weekday ?? weekday(date);
     const newDay = state.workplace.dateOverrides?.[date]?.weekday ?? weekday(date);
     return weekdays.includes(oldDay) || weekdays.includes(newDay);
-  }));
+  };
   const shiftDay = s => s.scheduleDate ?? s.defaultAssignmentKey?.slice(0,10) ?? s.base?.businessDate ?? businessDate(previous, `${s.date}T${s.start}:00+09:00`);
+  const dates = new Set([
+    ...Array.from({length:90},(_,n)=>dateAt(today,n)),
+    ...state.staffShifts.map(shiftDay), ...(state.rosterOverrides??[]).map(s=>s.date),
+    ...(state.defaultAssignmentOmissions??[]).map(key=>key.slice(0,10)),
+  ].filter(affected));
   const protectedShift = s => s.status !== 'planned' || s.approvedRequestId || s.replacementForRequestId ||
     (state.attendance ?? []).some(a => !a.voidedAt && a.tapperId === s.tapperId && businessDate(previous,a.at) === shiftDay(s)) ||
     (state.shiftChangeRequests ?? []).some(r => r.shiftId === s.id && r.status === 'pending');

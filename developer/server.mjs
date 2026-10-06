@@ -53,7 +53,7 @@ export function createConsoleServer({ stateFile = path.join(root, 'docs/project-
       if (!local && !(route === '/api/operations' && publicOrigins.length)) throw new StoreError('로컬 주소로 접속해 주세요.', 403);
       if (route.startsWith('/api/')) {
         if (route === '/api/operations' && req.method === 'GET') {
-          return json(res, 200, { ...await operations.snapshot(req.headers['x-demo-actor'] || 'owner'), demoToken: token });
+          return json(res, 200, { ...await operations.snapshot(req.headers['x-demo-actor'] || 'owner', Object.fromEntries(url.searchParams)), demoToken: token });
         }
         if (route === '/api/operations' && req.method === 'POST') {
           if ((origin && origin !== `http://${host}` && !sharedOrigin) || req.headers['x-demo-token'] !== token) throw new StoreError('매장 화면을 새로고침해 주세요.', 403);

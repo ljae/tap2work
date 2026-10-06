@@ -160,7 +160,8 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
         config.defaultAssignmentsEnabled = true;
       }
       validateDefaultAssignments({...state, workplace:config});
-      const requested = input.resetScheduleWeekdays ?? [];
+      // Older clients also explicitly save staffing, without a weekday scope.
+      const requested = input.resetScheduleWeekdays ?? (input.defaultAssignmentsEnabled === true ? [1,2,3,4,5,6,7] : []);
       if (!Array.isArray(requested) || requested.some(d => !Number.isInteger(d) || d < 1 || d > 7)) fail('반영할 요일을 확인해 주세요.');
       const changed = Array.from({length:7},(_,i)=>i+1).filter(d =>
         !isDeepStrictEqual(state.workplace?.days?.[d] ?? [], next[d]) ||

@@ -74,6 +74,23 @@ test('settings survive independent cloud reads and reject stale writes',async()=
  assert.equal((await request({action:'save_order_system',enabled:false,revision:state.revision-1})).status,409);
  assert.equal((await (await request()).json()).orderBoardEnabled,true);
 });
+
+test('cloud schedule range generates defaults years ahead and persists later fine edits',async()=>{
+ const {request,handler}=setup();
+ let state=await (await request()).json();
+ const days=Object.fromEntries([1,2,3,4,5,6,7].map(day=>[day,[{id:'open',name:'오픈',start:'09:00',end:'18:00',headcounts:{kitchen:1,hall:0,management:0},crewIds:{kitchen:['tapper-cook']}}]]));
+ let response=await request({action:'save_workplace_hours',revision:state.revision,days,defaultAssignmentsEnabled:true});
+ assert.equal(response.status,200);
+ const endpoint='https://example.supabase.co/functions/v1/operations?scheduleFrom=2028-10-02&scheduleTo=2028-10-08';
+ response=await handler(new Request(endpoint,{headers:{Authorization:'Bearer session'}}));
+ assert.equal(response.status,200);state=await response.json();
+ const far=state.staffShifts.find(s=>s.defaultAssignmentKey?.startsWith('2028-10-02/'));
+ assert.equal(far.start,'09:00');
+ response=await request({...far,action:'save_staff_shift',revision:state.revision,start:'10:00',scheduleFrom:'2028-10-02',scheduleTo:'2028-10-08'});
+ assert.equal(response.status,200);
+ state=await (await request()).json();
+ assert.equal(state.staffShifts.find(s=>s.id===far.id).start,'10:00');
+});
 test('shared owner can enter fixed employee projection, employee mode denies owner writes and real crew cannot escalate',async()=>{
  const {request,handler}=setup();
  let state=await (await request()).json();

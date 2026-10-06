@@ -346,3 +346,20 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 | S50 | Supabase 개인 세션 → 헤더 내 계정 → AccountScreen/로그아웃 | 본인 세션 종료, 로그인 화면 복귀 | cloud_workspace_test.dart, account_test.dart |
 | S51 | assets/legal/privacy.json → 로그인/내 계정 개인정보처리방침 → PrivacyScreen | OpenEdu·문의 이메일·처리 항목/기간/삭제 안내, 동일 JSON 정적 웹 페이지 | account_test.dart, build-legal.mjs |
 | S52 | 검증된 본인 계정·매장 소속·revision → 삭제 범위 확인/명시적 체크 → account preview/delete | Apple revoke 후 DB 원자 삭제; 유일 사장님 매장·접근 삭제, 다른 크루 계정 보존; 기기 백업·세션 정리 | account_test.dart, account.test.mjs, account_deletion.sql |
+
+## 영업시간·인원 저장 재반영 보정 · 2026-10-06
+
+| ID | source → control → action | consumer | 검증 |
+| --- | --- | --- | --- |
+| S03 | workplace.days/partTimes → 영업시간·교대 경계/교대 수 편집 → 수정 일반 교대의 이전 partTimes 제거 → save_workplace_hours(resetScheduleWeekdays) → 초기화·반영 성공 메시지 | 새 교대 시간의 기본 크루 근무표, 현재 영업일부터 90일 선택·변경 요일 계획 재생성; 실제·승인·대기 보존. 구 클라이언트의 범위 생략은 전체 요일 재반영 | business_hours_slider_test.dart, default_staffing_test.dart, default_assignments.test.mjs |
+
+## 기본 근무표 지속 적용 · 2026-10-06 최신
+
+| ID | source → control → action | consumer | 검증 |
+| --- | --- | --- | --- |
+| S03 | workplace.days/crewIds → 영업시간·인원 배치의 기간 제한 없음/미세 조정 초기화 사전 안내 → save_workplace_hours(resetScheduleWeekdays, scheduleFrom, scheduleTo) → 성공 메시지 | 영향 요일의 오늘 이후 모든 기존 미래 계획·삭제 초기화 후 지속 반복; 실제/승인/대기 보존; 재저장 뒤 별도 날짜 편집 우선 | default_assignments.test.mjs, default_staffing_test.dart |
+| S27 | ScheduleController.selected/month → 주간·월간 이동 → showScheduleRange → GET scheduleFrom/scheduleTo → OperationsStore.snapshot/ensureDefaultAssignments | 90일 이후에도 기본 크루 표시·편집·다시 읽기; 기간 조건 GET은 revision-only 응답 우회, CAS 저장; 기존 예외 유지 | schedule_continuity_test.dart, cloud.test.mjs, section_storage.test.mjs |
+
+| ID | source → control → action | consumer | 검증 |
+| --- | --- | --- | --- |
+| E07 | operations HTTP error → OperationsController.refresh → 서버 로그인/권한 안내 보존; 전송 예외는 접속 실패 안내 | CloudWorkspace의 오류 안내/재시도, 정상 재조회 뒤 오류 해제 | operations_repository_test.dart, cloud_sync_test.dart, cloud_workspace_test.dart |

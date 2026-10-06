@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:tap2work/data/http_operations_repository.dart';
 import 'package:tap2work/domain/operations_repository.dart';
 import 'package:tap2work/state/operations_controller.dart';
@@ -11,6 +13,8 @@ class MemoryOperations implements OperationsRepository {
   Future<OperationsResult> read({
     required String actorId,
     String? demoToken,
+    String? scheduleFrom,
+    String? scheduleTo,
   }) async => const OperationsResult(200, {'revision': 8, 'tasks': <Json>[]});
   @override
   Future<OperationsResult> write({
@@ -27,6 +31,44 @@ class MemoryOperations implements OperationsRepository {
 }
 
 void main() {
+  test(
+    'HTTP authentication errors stay distinct from transport failures and recover',
+    () async {
+      var status = 401;
+      var message = '로그인이 만료됐어요. 다시 로그인해 주세요.';
+      var disconnected = false;
+      final controller = OperationsController(
+        client: MockClient((_) async {
+          if (disconnected) throw http.ClientException('DNS lookup failed');
+          return http.Response(
+            jsonEncode(
+              status == 200
+                  ? {'revision': 10, 'tasks': <Json>[]}
+                  : {'error': message},
+            ),
+            status,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }),
+      );
+      addTearDown(controller.dispose);
+      await controller.refresh();
+      expect(controller.error, message);
+      status = 403;
+      message = 'Apple 또는 Google로 다시 로그인해 주세요.';
+      await controller.refresh();
+      expect(controller.error, message);
+      disconnected = true;
+      await controller.refresh();
+      expect(controller.error, '매장 서버에 연결하지 못했어요. 연결을 확인하고 다시 시도해 주세요.');
+      disconnected = false;
+      status = 200;
+      await controller.refresh();
+      expect(controller.error, isNull);
+      expect(controller.data!['revision'], 10);
+    },
+  );
+
   test(
     'controller works with a repository without HTTP and preserves draft revision',
     () async {

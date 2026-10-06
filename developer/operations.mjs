@@ -1,6 +1,6 @@
 import {manualPrintView,saveManualPrintTranslation} from './manual_print.mjs';
 import {syncManualCatalog,manualMarketReplay,reconcileCatalogLinks,catalogView,checklistBackup,mutateManualMarket} from './manual_market.mjs';
-import { ensureDefaultAssignments } from './default_assignments.mjs';
+import { ensureDefaultAssignments, scheduleRange } from './default_assignments.mjs';
 import { tapOnly, assertContentOnly, policyReport, convertPolicy, updateContentRevisions } from './tap_policy.mjs';
 import { businessDate, boundaryOf, shiftDate } from './business_day.mjs';
 import { assignmentContext, assignmentOccurrences, assignmentView, assignmentPermission, snapshotAssignments } from './work_assignments.mjs';
@@ -392,11 +392,14 @@ export class OperationsStore {
     if (!['owner', 'manager'].includes(actor.role)) delete result.taskTemplates;
     return result;
   }
-  snapshot(actorId) {
+  snapshot(actorId, options = {}) {
     const actor = this.#actor(actorId);
+    const dates = scheduleRange(options);
     return this.#serial(async () => {
       const state = await this.#read();
-      if (ensureDueTasks(state, this.clock())) { state.revision++; await this.#save(state); }
+      const now = this.clock();
+      const changed = ensureDueTasks(state, now);
+      if (ensureDefaultAssignments(state,now,{dates}) || changed) { state.revision++; await this.#save(state); }
       return this.#view(state, actor);
     });
   }
@@ -411,6 +414,7 @@ export class OperationsStore {
       checkWorkplacePermission(state, actor, input.action);
       if (manualMarketReplay(state,input,actor)) return this.#view(state,actor);
       if (input.revision !== state.revision) fail('다른 동료가 먼저 업데이트했어요. 최신 내용을 확인하고 다시 눌러 주세요.', 409);
+      const scheduleDates = scheduleRange(input);
       const who = { id: actor.id, name: actor.name, role: actor.label };
       const activity = (message, kind) => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message, ...(kind ? { kind } : {}) });
       const itemFor = id => { const item = state.items.find(item => item.id === id && !item.archivedAt); if (!item) fail('사용 중인 재료를 찾지 못했어요.', 404); return item; };
@@ -832,6 +836,7 @@ export class OperationsStore {
       reconcileCatalogLinks(state,now);
       state.activity = state.activity.slice(0, 100);
       ensureDueTasks(state, now);
+      ensureDefaultAssignments(state,now,{dates:scheduleDates});
       state.revision++; await this.#save(state);
       return this.#view(state, actor);
     });

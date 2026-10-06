@@ -455,3 +455,17 @@ iOS Runner의 Debug/Profile/Release Bundle ID는 `com.tap2work.tap2work`, Runner
 ## TAP Work 사용자 제공 로고 · 2026-10-05
 
 `docs/branding/TapWater_logo.png`는 사용자 선택 원본에서 좌우 여백을 줄인 1024px 배포 마스터이며 `app/assets/branding/generate_brand.py`는 이를 크기별로 내보낸다. 이전 경로/체크 마크를 다시 생성하지 않는다. root/Flutter의 기존 `tap2work.png` 경로를 유지하고 `sync-branding.mjs`로 동기화한다. iOS/Android/PWA/favicon은 동일 원본을 사용하며 네이티브 아이콘은 alpha 없는 RGB다. 공통 BrandLogo는 48px 이미지와 TAP Work 워드마크를 헤더/로그인에 제공한다. 표시 이름은 TAP Work로 맞추고 패키지·Bundle ID·저장 계약은 유지한다. [자산 원본과 재생성](branding/README.md).
+
+## 영업시간·인원 저장 재반영 보정 · 2026-10-06
+
+D-080의 명시적 저장 재반영을 유지한다. Flutter에서 영업시간·교대 수·교대 경계를 바꾸면 수정한 일반 교대의 이전 `partTimes`를 제거해 새 교대 시간을 기본 크루 생성에 사용한다. 추가 시간대와 변경하지 않은 요일의 파트별 시간은 보존한다. `save_workplace_hours`에서 `defaultAssignmentsEnabled:true`이고 `resetScheduleWeekdays`를 생략한 구 클라이언트는 전체 요일을 재반영하며, 명시한 요일 범위는 그대로 따른다. 재반영과 자동 생성은 동일한 영업일 기준 오늘부터 90일을 사용해 자정 이후 야간 근무도 현재 영업일에 포함한다. 저장 전 초기화 범위 안내와 성공 후 미세 조정 초기화·근무표 반영 메시지를 제공하며 실제 출퇴근·승인·대기 기록은 보존한다.
+
+## 기본 근무표 지속 적용 · 2026-10-06 최신
+
+영업시간·인원 배치는 만료일 없는 반복 기본 설정이다. 명시적 저장은 선택·변경 요일의 오늘 이후 모든 기존 계획·미세 조정·삭제 예외를 초기화한다. 실제 출퇴근·과거·승인·대기 기록은 보존한다. 저장 이후 만든 날짜별 예외는 해당 날짜에 우선하며 일반 조회가 이를 초기화하지 않는다.
+
+서버의 90일 생성은 업무 담당 계산을 위한 작업 캐시이며 적용 기간이 아니다. 근무표 이동 시 scheduleFrom/scheduleTo(유효 날짜, 순서 검증, 요청당 최대 62일)를 GET으로 보낸다. OperationsStore.snapshot은 현재 캐시+조회 기간+기존 미래 기본 배정 날짜를 생성/유지하며 CAS로 저장한다. 조회 날짜의 미래 연도 제한은 없고 과거 빈 근무는 생성하지 않는다. 저장 POST도 현재 조회 범위를 포함해 저장 응답이 보고 있는 먼 미래 근무표를 유지한다. 기간이 포함된 클라우드 조회는 revision-only 빠른 응답을 우회한다. 미래 미세 조정/삭제는 기본 설정 재저장 때 기간 제한 없이 아카이브 후 초기화한다.
+
+## Supabase 오류 구분 및 배포 진입 · 2026-10-06
+
+OperationsController.refresh는 HTTP 오류 응답의 검증된 API error 문구를 보존한다. 401/403 로그인·권한 오류를 DNS/전송 실패로 바꾸지 않으며, 요청 자체가 실패한 경우에만 접속 실패 안내를 사용한다. 이후 성공 응답은 이전 오류를 해제한다. deploy:operations는 .env를 읽어 operations 함수만 배포하며 DB migration을 실행하지 않는다. 기존 backend:deploy는 전체 migration 재실행을 포함하므로 단순 앱 수정 배포에 사용하지 않는다.

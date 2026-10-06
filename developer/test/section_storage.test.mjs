@@ -74,6 +74,21 @@ test('conditional cloud reads validate identity each time and return no payload'
   const body=await response.json();assert.equal(body.unchanged,true);assert.equal(body.payload,undefined);
   assert.equal(x.calls.length,2);assert.ok(x.calls[0].endsWith('/auth/v1/user'));
 });
+
+test('distant schedule query bypasses unchanged cache and persists generated defaults',async()=>{
+  const x=fixture();let view=await(await x.request()).json();
+  const days=Object.fromEntries([1,2,3,4,5,6,7].map(day=>[day,[{id:'open',name:'오픈',start:'09:00',end:'18:00',headcounts:{kitchen:1,hall:0,management:0},crewIds:{kitchen:['tapper-cook']}}]]));
+  let response=await x.request({action:'save_workplace_hours',revision:view.revision,days,defaultAssignmentsEnabled:true});
+  assert.equal(response.status,200);view=await response.json();
+  const query=`?revision=${view.revision}&window=${view.syncWindow}&role=owner&workspace=workspace-a&scheduleFrom=2028-10-02&scheduleTo=2028-10-08`;
+  response=await x.request(null,query);assert.equal(response.status,200);view=await response.json();
+  assert.equal(view.unchanged,undefined);
+  const far=view.staffShifts.find(s=>s.defaultAssignmentKey?.startsWith('2028-10-02/'));
+  assert.equal(far.start,'09:00');
+  assert.ok(x.patches.at(-1).p_changes.staffShifts.some(s=>s.id===far.id));
+  view=await(await x.request()).json();
+  assert.equal(view.staffShifts.find(s=>s.id===far.id).start,'09:00');
+});
 test('section storage retains server role projection and write permissions',async()=>{
   const x=fixture('crew');const view=await(await x.request()).json();
   assert.equal(view.payrollSettings,undefined);assert.equal(view.taskTemplates,undefined);

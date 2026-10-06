@@ -32,7 +32,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       const query = new URL(request.url).searchParams;
       const readWorkspace = () => rest('rpc/tap2work_read_workspace', {method:'POST', body:JSON.stringify({
         p_user_id:user.id,
-        p_revision:request.method === 'GET' && query.get('view') !== 'employee' && /^\d+$/.test(query.get('revision') ?? '') ? Number(query.get('revision')) : null,
+        p_revision:request.method === 'GET' && !query.has('scheduleFrom') && !query.has('scheduleTo') && query.get('view') !== 'employee' && /^\d+$/.test(query.get('revision') ?? '') ? Number(query.get('revision')) : null,
         p_window:request.method === 'GET' && /^\d+$/.test(query.get('window') ?? '') ? Number(query.get('window')) : null,
         p_role:request.method === 'GET' ? query.get('role') : null,
         p_workspace_id: request.method === 'GET' ? query.get('workspace') : null,
@@ -91,7 +91,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       };
       const store = new OperationsStore(null, clock, { persistence, actor });
       let result;
-      if (request.method === 'GET' || createdWorkspace) result = await store.snapshot(user.id);
+      if (request.method === 'GET' || createdWorkspace) result = await store.snapshot(user.id, Object.fromEntries(query));
       else {
         if (!request.headers.get('content-type')?.startsWith('application/json')) throw new StoreError('JSON 요청이 필요해요.', 415);
         const text = await request.text();

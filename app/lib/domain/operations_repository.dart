@@ -9,7 +9,12 @@ class OperationsResult {
 }
 
 abstract interface class OperationsRepository {
-  Future<OperationsResult> read({required String actorId, String? demoToken});
+  Future<OperationsResult> read({
+    required String actorId,
+    String? demoToken,
+    String? scheduleFrom,
+    String? scheduleTo,
+  });
   Future<OperationsResult> write({
     required String actorId,
     String? demoToken,

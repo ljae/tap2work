@@ -115,3 +115,7 @@ Google iOS callback은 Client ID를 점 단위로 뒤집은 값(`com.googleuserc
 개인정보처리방침은 현재 코드·확인된 DB 리전과 사용자 답변을 반영했다. 공급자 보안 로그의 정확한 보존 기간, 국외 처리·하위 처리자 계약, 개인정보 담당자의 운영 절차는 OpenEdu가 확인하고 공개 전에 문서를 보완해야 한다. 자동 법률 적합성 판정을 제공하지 않는다. 향후 결제/위치/파일 업로드/백업을 켜면 처리 항목과 기간도 갱신한다.
 
 App Store 개인정보 응답 및 Google Play Data safety는 실제 활성화한 기능·SDK·운영 설정을 기준으로 작성한다. 계정 삭제 웹 URL은 `/delete-account/`이며 앱 내부 경로와 본인 확인 후 이메일 요청 방법을 제공한다. 이메일은 사용자가 직접 보내며 앱이 자동 발송하지 않는다.
+
+## operations 함수만 배포 · 2026-10-06
+
+영업시간·근무표 등 API 코드 변경은 `npm run deploy:operations`를 사용한다. .env의 SUPABASE_PROJECT_REF/SUPABASE_ACCESS_TOKEN을 환경 변수로 전달하며 CLI 인자나 로그에 토큰을 넣지 않는다. DB migration은 별도이며 이 명령으로 재실행하지 않는다. 브라우저에서 프로젝트가 Healthy이고 API가 응답하더라도 제한된 코딩 실행 환경의 Node/CLI DNS 실패는 따로 발생할 수 있다. `lookup api.supabase.com: no such host` 단계에서 중단되면 배포 완료로 기록하지 않는다.
