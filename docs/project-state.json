@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 220,
+  "revision": 224,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7064,6 +7064,58 @@
       ],
       "limitations": [
         "신규 PNG 웹 배포와 스토어 테스트 업로드 진행 중; 실기기 로그인·설치 미검증."
+      ]
+    },
+    {
+      "at": "2026-10-06T13:30:34.713396+00:00",
+      "type": "deployment",
+      "summary": "사용자 제공 녹색 도안과 매뉴얼 전체 높이 운영 웹 배포 완료. 네이티브 빌드 6 업로드 진행.",
+      "verification": [
+        "4141e64cf0f2da1649b0e92e2ea75359a6922239 / GitHub Actions 37470512444 전체 검사·빌드·배포 success.",
+        "tap2.work index/bootstrap/main 및 tap_water_green.png SHA-256가 CI artifact와 모두 일치.",
+        "iOS signed archive/export와 Android signed AAB 성공. 두 빌드 내부 새 PNG SHA-256 일치. iOS altool upload success (Delivery 04527d8d-1cb2-4b26-b27b-e5ac374f34ab). Android Play 전송 완료 후 처리 중."
+      ],
+      "limitations": [
+        "Apple processing과 두 스토어 내부 테스트 배포 확인 진행 중. 실기기 설치·로그인 미검증.",
+        "Apple은 iOS 13 최소 타깃에 대해 2027년 4월 이후 15 이상 필요 경고를 반환했으나 현재 업로드 성공."
+      ]
+    },
+    {
+      "at": "2026-10-06T13:33:07.695453+00:00",
+      "type": "deployment",
+      "summary": "Android TAP Work 1.0.0 (6) 내부 테스트 게시 완료.",
+      "verification": [
+        "Play app 4974799289771755758, package com.tab2work.tab2work, internal track 4701597674886311593: Active / Available to internal testers 확인.",
+        "사용자 지정 테스트 계정 1명 목록만 연결. 한국어 릴리스 노트 저장. 공개 운영 릴리스 미실시."
+      ],
+      "limitations": [
+        "심사 전 최초 앱은 com.tab2work.tab2work (unreviewed) 임시 이름으로 표시될 수 있음.",
+        "실기기 설치·로그인 미검증. Android Google OAuth 서명 연결 확인 진행 중. iOS 빌드 6 처리 대기."
+      ]
+    },
+    {
+      "at": "2026-10-06T13:36:51.123236+00:00",
+      "type": "deployment",
+      "summary": "iOS TAP Work 1.0.0 (6) TestFlight 내부 테스트 활성화 완료.",
+      "verification": [
+        "App Store Connect build 04527d8d-1cb2-4b26-b27b-e5ac374f34ab processing VALID / internalBuildState IN_BETA_TESTING.",
+        "TAP Work Internal 그룹에 빌드 6과 사용자 지정 계정 연결; 테스터 상태 INVITED 확인. 한국어 테스트 안내 저장. 기존 HTTPS/OS 암호화에 맞춰 비면제 암호화 false 저장."
+      ],
+      "limitations": [
+        "외부 TestFlight 심사·App Store 운영 제출 미실시. 실기기 설치·로그인·삭제 미검증."
+      ]
+    },
+    {
+      "at": "2026-10-06T13:40:21.133862+00:00",
+      "type": "deployment",
+      "summary": "사용자 요청으로 iOS 빌드 6 App Store 심사 제출 완료; Android Play 로그인 인증서 연결 완료.",
+      "verification": [
+        "기존 iOS 빌드 5의 심사 대기 요청을 취소하고 새 빌드 6으로 교체. 제출 4e8d6c7b-fdb4-410a-8ed4-64ba46d6c9b7, 2026-10-06T13:39:46.469Z WAITING_FOR_REVIEW 확인.",
+        "기존 한국어·영어 소개/심사 연락처·계정 정보 및 처리 완료 iPhone/iPad 스크린샷 유지. 승인 후 자동 출시 설정 유지.",
+        "Android Play 서명 SHA-1과 com.tab2work.tab2work에 해당하는 OAuth client 생성·목록 확인. 기존 Web/server client audience 유지."
+      ],
+      "limitations": [
+        "Apple 심사 결과 대기. Google OAuth 설정 전파 가능. 사용자 실기기 설치·로그인·삭제 및 심사 계정 로그인 미검증."
       ]
     }
   ],

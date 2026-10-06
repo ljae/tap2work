@@ -94,3 +94,17 @@ Apple 공식 문서 확인: 2026-10-05. 제출 시점에 다시 확인한다.
 [Apple Bundle ID 변경 안내](https://developer.apple.com/documentation/xcode/changing-the-bundle-identifier)
 
 Bundle ID 변경 검증: Xcode/Info.plist 구문 검사와 6개 구성 식별자 검사, Flutter 분석, 시작/시트 관련 테스트 7개 통과. 네이티브 빌드·서명·Apple 계정 등록은 미실시.
+
+## 2026-10-06 테스트 빌드 준비
+
+사용자가 기존 TAP Work에 새 테스트 빌드와 두 스토어 동일 테스트 계정을 확인했다. iOS는 기존 App Store Connect 앱을 유지하며, Play 계정에는 TAP Work가 없어 같은 이름의 Android 앱을 처음 생성했다. 운영 심사 제출은 이번 작업 범위가 아니다. 최종 업로드 상태는 project-state history를 따른다.
+
+Android는 기존 applicationId `com.tab2work.tab2work`를 유지한다. release에서 debug signing을 제거하고 `TAP_ANDROID_SIGNING_PROPERTIES`가 가리키는 저장소 외부 properties의 storeFile/storePassword/keyAlias/keyPassword로 upload 서명을 구성한다. 키와 properties는 저장소 밖에 보관하며 업데이트마다 동일 키를 재사용한다. properties 경로를 주지 않은 release는 서명되지 않으므로 Play에 업로드하지 않는다. iOS 식별자는 `com.tap2work.tap2work`다. 네이티브 빌드에는 allowlist 기반 공개 인증 설정과 `--build-number=6`을 사용했다. Android OAuth는 Play App Signing 인증서 등록과 실제 로그인 검증이 추가로 필요하다.
+
+Android 내부 테스트: Play 앱 4974799289771755758, 트랙 4701597674886311593에 1.0.0 (6)을 게시했고 Active / Available to internal testers를 확인했다. 최초 심사 전에는 패키지명 (unreviewed)이 임시 표시된다. 참여 URL은 https://play.google.com/apps/internaltest/4701597674886311593 이며 지정된 테스터 계정만 참여할 수 있다.
+
+iOS TestFlight: 기존 앱 6819216931의 1.0.0 (6), build 04527d8d-1cb2-4b26-b27b-e5ac374f34ab는 VALID 및 IN_BETA_TESTING이다. TAP Work Internal 그룹에 사용자 지정 계정 1명을 연결했고 INVITED를 확인했다. 외부 테스트 심사나 App Store 운영 심사는 제출하지 않았다. 사용자 기기의 TestFlight 초대 수락·설치와 네이티브 로그인/삭제 확인은 남아 있다. 업로드 시 최소 iOS 13 타깃에 대해 2027년 4월 이후 iOS 15 이상 필요 경고가 있었으며 현재 업로드에는 영향이 없었다.
+
+### 최신 사용자 지시: iOS 운영 심사 제출
+
+2026-10-06 사용자가 iOS는 그대로 배포 검토 요청하도록 지시했다. 기존 빌드 5 심사 요청을 취소하고 1.0.0에 빌드 6을 연결해 다시 제출했다. 제출 `4e8d6c7b-fdb4-410a-8ed4-64ba46d6c9b7`, 제출 시각 `2026-10-06T13:39:46.469Z`, 상태 `WAITING_FOR_REVIEW`. 이전 테스트 전용 범위에서 iOS만 심사 제출로 확장했다. 기존 AFTER_APPROVAL 자동 출시 설정을 유지했다. 기존 연락처·심사 계정·소개·완료된 스크린샷을 보존했다. Apple 심사 승인이나 실기기 로그인 검증 완료를 뜻하지 않는다.

@@ -501,3 +501,7 @@ StaffWorkspace는 bounded CalendarScreen을 사용한다. 주간/월간 행은 �
 공통 WaterSearch는 로고를 반복하지 않는 사용자 제공 TapWater_green의 배경 제거 PNG, 어두운 표면과 초록 물결선을 사용한다. 포커스 변경 때만 360ms 물결선/테두리 전환을 재생한다. 공통 InkRipple 및 하단 메뉴의 초록 선택 표면을 사용하며 기존 버튼·시트·화면 전환을 재사용한다. disableAnimations에서는 물결 상태를 즉시 바꾸고 ripple을 끈다. 검색·저장·완료 동작은 모션과 독립적이다.
 
 2026-10-06 매뉴얼 본문 높이: ManualWorkspace 외부 하단 24px 여백을 제거하고 남은 본문 높이를 하단 내비게이션 경계까지 사용한다. 디렉토리/Task/레시피는 내부 스크롤과 콘텐츠 여백을 유지한다.
+
+## 2026-10-06 네이티브 테스트 배포
+
+iOS는 com.tap2work.tap2work, Android는 기존 com.tab2work.tab2work 식별자를 유지한다. 동일 Flutter 소스·공개 인증 defines로 1.0.0 빌드 6을 생성했다. Android release signing은 저장소 외부 TAP_ANDROID_SIGNING_PROPERTIES로 전달하고 debug signing을 재사용하지 않는다. Play 설치본의 서명 SHA-1에 해당하는 Android OAuth client를 같은 Google 프로젝트에 등록했으며 Web/server client를 ID token audience로 사용하는 기존 로그인 계약은 유지한다. 실제 크루 데이터·서명 키·심사 로그인 자격증명은 버전 이력에 기록하지 않는다. 스토어별 배포·심사 상태는 project-state history를 따른다.
