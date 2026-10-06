@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 207,
+  "revision": 208,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -6800,6 +6800,22 @@
       "limitations": [
         "웹 배포 진행 중. 운영 화면에서 실제 설정 저장은 수행하지 않음.",
         "네이티브 빌드/배포 미실시."
+      ]
+    },
+    {
+      "at": "2026-10-06T10:37:46.678Z",
+      "type": "deployment",
+      "summary": "매뉴얼 헤더/길게 눌러 편집 및 야간 영업시간 입력 순서 오류 수정 운영 웹 배포 완료.",
+      "verification": [
+        "release 12b32a52725948e2fe5ad9cce60e062d763dc829; GitHub Actions 37450304705 모든 build/deploy 단계 success.",
+        "https://github.com/ljae/tap2work/actions/runs/37450304705",
+        "로컬 check/UI links, Node 220 tests, Flutter analyze 및 352 tests, build:site 통과.",
+        "tap2.work 홈페이지·privacy·delete-account HTTP 200. CI artifact의 index/bootstrap/main JS와 실제 도메인 SHA-256 일치.",
+        "flutter_bootstrap.bb71f1591a01e6869899.js / main.33db70dffdca3501adb1.dart.js 확인."
+      ],
+      "limitations": [
+        "운영 영업시간 값은 직접 변경하지 않음. 이전에 무시된 시작 시각은 새 버전에서 사용자가 다시 선택·저장해야 함.",
+        "서버 구현 변경 없어 Edge 재배포/DB migration 미실시. iOS 빌드/배포 미실시."
       ]
     }
   ],
