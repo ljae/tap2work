@@ -6,6 +6,7 @@ import 'package:http/testing.dart';
 import 'package:tap2work/domain/part_schedule.dart';
 import 'package:tap2work/state/operations_controller.dart';
 import 'package:tap2work/ui/calendar_screen.dart';
+import 'package:tap2work/ui/business_hours_slider.dart';
 import 'operations_test.dart' show sample, response;
 
 Json calendarData() => {
@@ -106,6 +107,58 @@ Future<OperationsController> mount(
 }
 
 void main() {
+  testWidgets(
+    'saved opening and closing immediately update the mounted calendar',
+    (tester) async {
+      final data = calendarData();
+      final ops = await mount(
+        tester,
+        readOnly: false,
+        data: data,
+        write: (input) {
+          if (input['action'] != 'save_workplace_hours') return;
+          data['revision'] = 13;
+          data['workplace']['days'] = input['days'];
+          data['workplace']['businessDayStart'] = input['businessDayStart'];
+          for (final row in data['rosterTemplates']) {
+            final band = input['days']['${row['weekday']}'][0];
+            row['start'] = band['start'];
+            row['end'] = band['end'];
+          }
+        },
+      );
+      double marker(String name) => tester
+          .widget<Positioned>(
+            find.byKey(ValueKey('roster-marker-kitchen-$name')),
+          )
+          .top!;
+      final oldStart = marker('영업 시작'), oldEnd = marker('영업 종료');
+      final settings = find.byKey(const ValueKey('calendar-hours-button'));
+      await tester.ensureVisible(settings);
+      await tester.tap(settings);
+      await tester.pumpAndSettle();
+      tester
+          .widget<BusinessHoursSlider>(find.byType(BusinessHoursSlider))
+          .onHours(1140, 2040);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('인원 배치').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('일주일 설정 저장'));
+      await tester.pumpAndSettle();
+      expect(ops.data!['workplace']['days']['1'][0]['start'], '19:00');
+      expect(ops.data!['workplace']['days']['1'][0]['end'], '10:00');
+      await tester.tap(find.byType(CloseButton));
+      await tester.pumpAndSettle();
+      expect(marker('영업 시작'), greaterThan(oldStart));
+      expect(marker('영업 종료'), greaterThan(oldEnd));
+      await ops.refresh();
+      await tester.pumpAndSettle();
+      expect(marker('영업 시작'), greaterThan(oldStart));
+      expect(marker('영업 종료'), greaterThan(oldEnd));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   for (final width in [320.0, 390.0, 1200.0]) {
     testWidgets(
       'closed days hide timeline; exceptional opening restores it at $width',

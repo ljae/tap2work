@@ -465,7 +465,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                           ),
                         ],
                       ),
-                    if (ops.data != null && tab != 2) ...[
+                    if (ops.data != null && tab != 1 && tab != 2) ...[
                       Padding(
                         padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
                         child: Center(

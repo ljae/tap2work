@@ -20,7 +20,10 @@ void main() {
         );
         addTearDown(ops.dispose);
         await mount(tester, ops, width: width);
-        await click(tester, 'manual-edit-done');
+        await tester.longPress(
+          find.byKey(const ValueKey('manual-node-group:general')),
+        );
+        await tester.pumpAndSettle();
         if (kind == 'task') await click(tester, 'manual-node-tap:a');
         final key = kind == 'group'
             ? 'group:general'
@@ -65,7 +68,10 @@ void main() {
     addTearDown(ops.dispose);
     await mount(tester, ops, width: 320);
     expect(find.byKey(const ValueKey('manual-node-group:empty')), findsNothing);
-    await click(tester, 'manual-edit-done');
+    await tester.longPress(
+      find.byKey(const ValueKey('manual-node-group:general')),
+    );
+    await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('manual-node-group:empty')),
       findsOneWidget,
@@ -88,7 +94,10 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mount(tester, ops, width: 320);
-      await click(tester, 'manual-edit-done');
+      await tester.longPress(
+        find.byKey(const ValueKey('manual-node-group:general')),
+      );
+      await tester.pumpAndSettle();
       await click(tester, 'manual-actions-tap:a');
       await tester.tap(find.text('Task 추가'));
       await tester.pumpAndSettle();

@@ -1204,6 +1204,60 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     );
   }
 
+  Widget header() => Row(
+    key: const ValueKey('manual-header'),
+    children: [
+      const Text('매뉴얼', key: ValueKey('menu-title'), style: AppText.title),
+      const SizedBox(width: 8),
+      Expanded(
+        child: SingleChildScrollView(
+          key: const ValueKey('manual-header-actions'),
+          scrollDirection: Axis.horizontal,
+          reverse: true,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!recipes && ops.canEditTasks)
+                TextButton.icon(
+                  key: const ValueKey('manual-market-button'),
+                  onPressed: ops.busy ? null : openMarket,
+                  icon: const Icon(Icons.storefront_outlined, size: 18),
+                  label: const Text('매뉴얼 마켓', style: AppText.caption),
+                ),
+              TextButton.icon(
+                key: const ValueKey('manual-print-button'),
+                onPressed: ops.busy
+                    ? null
+                    : () => showAppSheet(
+                        context,
+                        builder: (_) => ManualPrintScreen(
+                          ops: ops,
+                          templateId: scopeTap,
+                          folderId: scopeGroup,
+                          recipes: recipes,
+                        ),
+                      ),
+                icon: const Icon(Icons.print_outlined, size: 18),
+                label: const Text('인쇄·PDF'),
+              ),
+              if (!recipes && ops.canEditTasks && editing)
+                TextButton(
+                  key: const ValueKey('manual-edit-done'),
+                  onPressed: ops.busy
+                      ? null
+                      : () => setState(() {
+                          stopDragScroll();
+                          editPane = null;
+                        }),
+                  child: const Text('편집 완료', style: AppText.caption),
+                ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
     sync();
@@ -1212,7 +1266,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1240),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 760;
@@ -1221,6 +1275,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  header(),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Expanded(
@@ -1256,64 +1312,6 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       ),
                     ],
                   ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      key: const ValueKey('manual-print-button'),
-                      onPressed: ops.busy
-                          ? null
-                          : () => showAppSheet(
-                              context,
-                              builder: (_) => ManualPrintScreen(
-                                ops: ops,
-                                templateId: scopeTap,
-                                folderId: scopeGroup,
-                                recipes: recipes,
-                              ),
-                            ),
-                      icon: const Icon(Icons.print_outlined, size: 18),
-                      label: const Text('인쇄·PDF'),
-                    ),
-                  ),
-                  if (!recipes && ops.canEditTasks)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextButton.icon(
-                            key: const ValueKey('manual-market-button'),
-                            onPressed: ops.busy ? null : openMarket,
-                            icon: const Icon(
-                              Icons.storefront_outlined,
-                              size: 18,
-                            ),
-                            label: const Text('매뉴얼 마켓', style: AppText.caption),
-                          ),
-                        ),
-                        Expanded(
-                          child: TextButton(
-                            key: const ValueKey('manual-edit-done'),
-                            onPressed: ops.busy
-                                ? null
-                                : () => setState(() {
-                                    stopDragScroll();
-                                    if (editing) {
-                                      editPane = null;
-                                    } else {
-                                      editPane = _ManualEditPane.directory;
-                                      showTree = true;
-                                      expanded.addAll(
-                                        folders.map((f) => 'group:${f['id']}'),
-                                      );
-                                    }
-                                  }),
-                            child: Text(
-                              editing ? '편집 완료' : '전체 편집',
-                              style: AppText.caption,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   if (!recipes && ops.canEditTasks && toolsVisible && !editing)
                     ListTile(
                       contentPadding: EdgeInsets.zero,

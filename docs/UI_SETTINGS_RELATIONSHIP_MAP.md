@@ -45,7 +45,7 @@ flowchart LR
 | S08 | `store.profile` 기본/영업/POS/배달/인력 섹션 | 매장 프로필 → `save_store_profile`; 운영 탭은 S03 공통 설정으로 이동 | 우리매장 카드, 근무표 기본 시간, 주문·배달 정보. POS 연결 상태는 별도 실제 연동 아님 | `workspace_settings.test.mjs` |
 | S09 | `payrollSettings` 및 이력 | 급여·정산 설정 → `save_payroll_settings` | 사장님 전용 인건비 계산·지급 주기/시작일/반올림/규모/주휴. 기존 근무/지급 기록을 역수정하지 않음 | `cloud.test.mjs`, `payroll_settings_test.dart` |
 | S10 | `tappers[]`, `attendance[]`, `payAdjustments[]`, `payments[]` | 크루 정보/출퇴근/급여 기록 → `save_tapper`, `clock_in`, `break_start`, `break_end`, `clock_out`, `adjust_attendance`, `add_pay_adjustment`, `record_payment` | 근무표·크루·사장님 인건비 화면. 개인 급여는 역할별 투영으로 보호 | `labor.test.mjs`, `labor_panel_test.dart` |
-| S11 | `checklistFolders[]`, `taskTemplates[]` | 매뉴얼 전체 편집 → 폴더 추가 / 항목 ⋯ → 추가·이름·상세·이동·삭제 | 정의 편집은 매뉴얼에 집중. 업무의 내용 편집 진입 제거 | `manual_authoring_test.dart`, `task_inline_edit_test.dart` |
+| S11 | `checklistFolders[]`, `taskTemplates[]` | 매뉴얼 항목 길게 누르기 → 폴더 추가 / 항목 ⋯ → 추가·이름·상세·이동·삭제 | 정의 편집은 매뉴얼에 집중. 업무의 내용 편집 진입 제거 | `manual_authoring_test.dart`, `task_inline_edit_test.dart` |
 | S12 | `taskTemplates[id].steps[id]` | 매뉴얼 > Task > **매뉴얼 편집** → `ManualTaskEditor(templateId, sourceStepId)` → `save_checklists` | 해당 Task의 제목·본문·팁·링크·태그만 갱신, `manualSearch` 재투영. 다른 Task와 기존 진행 기록 불변 | `manual_workspace_test.dart` 단일 Task/형제 불변/POST 검사 |
 | S13 | `taskTemplates[id].settings` | 매뉴얼 > Task > TAP 설정 → `TapSettingsScreen(initialTemplateId)` → `save_tap_settings` v2 | 부모 TAP의 시간대·파트·장소·완료 조건·소요 시간을 전체 Task에 적용; Task별 운영 컨트롤 없음 | `settings_screens_test.dart`, `tap_policy.test.mjs` |
 | S14 | 매뉴얼 폴더/TAP/Task 순서 | 왼쪽 트리 길게 누르기 → 같은 계층 행의 손잡이/⋯ 이동 → `move_manual_node` | TAP→폴더, Task→TAP. Task를 폴더에 놓으면 해당 폴더의 TAP 선택. 같은 단계는 앞 순서. 오른쪽 편집은 독립이며 본문·오늘 실행 보존 | `manual_workspace_test.dart` 양쪽 격리/계층/폴더 드롭/320px/충돌, `manual_directory.test.mjs` |
@@ -330,7 +330,7 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 | --- | --- | --- | --- |
 | S47 | manualCatalog → ManualMarketScreen(setup) → configure_manual_business | manualBusinessProfile, 목적별 양식·업무 활성화·교체 보관 | manual_market.test.mjs, manual_market_discovery_test.dart |
 
-2026-10-05 S14/S45/E06 수정: manualSearch/taskTemplates → 항상 보이는 마켓·편집 완료 + 터치 Draggable/가장자리 스크롤 → 기존 move_manual_node/import_market_taps → revision/권한 검사 후 디렉토리 동기화 및 가져온 항목 펼침. 가져오기 성공 시 부모 검색을 onClearSearch로 해제한다. AppStartup 정상 대기에는 작은 로고/진행 카드를 표시하지 않고 매장 데이터 대기는 WorkspaceSkeleton을 사용하며 오류 재시도는 유지한다. manual_phone_fix_test.dart, manual_workspace_test.dart, startup_and_sheet_test.dart, ui_ux_audit_test.dart로 검증한다.
+2026-10-05 S14/S45/E06 수정: manualSearch/taskTemplates → 제목 오른쪽 마켓·인쇄 및 길게 눌러 편집 진입/편집 중에만 완료 + 터치 Draggable/가장자리 스크롤 → 기존 move_manual_node/import_market_taps → revision/권한 검사 후 디렉토리 동기화 및 가져온 항목 펼침. 가져오기 성공 시 부모 검색을 onClearSearch로 해제한다. AppStartup 정상 대기에는 작은 로고/진행 카드를 표시하지 않고 매장 데이터 대기는 WorkspaceSkeleton을 사용하며 오류 재시도는 유지한다. manual_phone_fix_test.dart, manual_workspace_test.dart, startup_and_sheet_test.dart, ui_ux_audit_test.dart로 검증한다.
 
 ## 매뉴얼 인쇄·PDF · 2026-10-05
 
@@ -363,3 +363,7 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 | ID | source → control → action | consumer | 검증 |
 | --- | --- | --- | --- |
 | E07 | operations HTTP error → OperationsController.refresh → 서버 로그인/권한 안내 보존; 전송 예외는 접속 실패 안내 | CloudWorkspace의 오류 안내/재시도, 정상 재조회 뒤 오류 해제 | operations_repository_test.dart, cloud_sync_test.dart, cloud_workspace_test.dart |
+
+2026-10-06 S11/S14/S45/S48: ManualWorkspace 제목 오른쪽 한 행에 기존 크기의 마켓·인쇄·편집 완료를 배치한다. 좁은 폭은 동작 영역 가로 스크롤로 수용하며 편집 완료는 편집 중에만 표시한다. 폴더/TAP/Task 길게 누르기 → 해당 영역 편집 → 완료 시 editPane 해제. 마켓/인쇄의 현재 범위·권한·저장 계약은 유지한다. operations_screen은 매뉴얼 제목을 중복 표시하지 않는다.
+
+2026-10-06 야간 영업 입력 보정: 숫자 휠에서 시작 시각을 선택하면 종료 시각을 새 시작 기준의 같은 날/다음 날로 다시 계산한다. 종료 10:00 → 시작 19:00 순서에서도 월~토 19:00–다음 날 10:00를 저장하며 교대 분할·businessDayStart·근무표에 연결한다. 드래그의 연속 시간축 제약과 서버 저장/권한/CAS 계약은 유지한다. business_hours_slider_test의 양방향 입력 순서, calendar_test의 저장 후 표시/재조회, default_assignments.test의 야간 배정 회귀로 검증한다.

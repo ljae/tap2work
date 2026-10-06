@@ -26,7 +26,9 @@ void main() {
     );
     addTearDown(ops.dispose);
     await manual.mount(tester, ops, width: 390);
-    await tester.tap(find.byKey(const ValueKey('manual-edit-done')));
+    await tester.longPress(
+      find.byKey(const ValueKey('manual-node-group:general')),
+    );
     await tester.pumpAndSettle();
     final source = find.byKey(const ValueKey('manual-drag-tap:a'));
     final scroll = tester.state<ScrollableState>(
@@ -62,7 +64,9 @@ void main() {
         );
         addTearDown(ops.dispose);
         await manual.mount(tester, ops, width: width);
-        await tester.tap(find.byKey(const ValueKey('manual-edit-done')));
+        await tester.longPress(
+          find.byKey(const ValueKey('manual-node-group:general')),
+        );
         await tester.pumpAndSettle();
         if (kind == 'task') await manual.click(tester, 'manual-node-tap:a');
         final source = find.byKey(
@@ -86,6 +90,7 @@ void main() {
         await tester.tap(find.text('편집 완료'));
         await tester.pumpAndSettle();
         expect(find.byType(Draggable<Json>), findsNothing);
+        expect(find.byKey(const ValueKey('manual-edit-done')), findsNothing);
         expect(tester.takeException(), isNull);
       });
     }
@@ -97,11 +102,32 @@ void main() {
         );
         addTearDown(ops.dispose);
         await manual.mount(tester, ops, width: width);
+        expect(find.byKey(const ValueKey('manual-edit-done')), findsNothing);
+        expect(find.text('전체 편집'), findsNothing);
         tester.view.physicalSize = Size(width, 360);
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('manual-edit-done')));
+        await tester.longPress(
+          find.byKey(const ValueKey('manual-node-group:general')),
+        );
         await tester.pumpAndSettle();
         expect(find.text('편집 완료').hitTestable(), findsOneWidget);
+        final titleY = tester
+            .getCenter(find.byKey(const ValueKey('menu-title')))
+            .dy;
+        for (final key in [
+          'manual-market-button',
+          'manual-print-button',
+          'manual-edit-done',
+        ]) {
+          expect(
+            tester.getCenter(find.byKey(ValueKey(key))).dy,
+            closeTo(titleY, 1),
+          );
+        }
+        await tester.ensureVisible(
+          find.byKey(const ValueKey('manual-market-button')),
+        );
+        await tester.pumpAndSettle();
         expect(find.text('매뉴얼 마켓').hitTestable(), findsOneWidget);
         await tester.tap(find.byKey(const ValueKey('manual-market-button')));
         await tester.pumpAndSettle();
@@ -148,6 +174,9 @@ void main() {
       );
       addTearDown(ops.dispose);
       await manual.mount(tester, ops, width: 390);
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('manual-market-button')),
+      );
       await tester.tap(find.byKey(const ValueKey('manual-market-button')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), '공용 TAP 0');

@@ -187,3 +187,27 @@ test('recurring defaults have no expiry; distant reads and saves reset all futur
   assert.throws(()=>store.snapshot('owner',{scheduleFrom:'2028-02-30',scheduleTo:'2028-03-01'}),{status:400});
   assert.throws(()=>store.snapshot('owner',{scheduleFrom:'2028-01-01',scheduleTo:'2028-12-31'}),{status:400});
 });
+
+
+test('Mon-Sat 19:00 to next-day 10:00 persists hours and overnight crew on reopen',async t=>{
+  const {store,act,days}=await setup(t);
+  for(const rows of Object.values(days)) if(rows.length) {
+    const base=structuredClone(rows[0]);
+    rows.splice(0,rows.length,
+      {...base,id:'evening',start:'19:00',end:'02:30'},
+      {...base,id:'night',start:'02:30',end:'10:00'});
+  }
+  const state=await act('save_workplace_hours',{days,businessDayStart:'19:00',defaultAssignmentsEnabled:true,resetScheduleWeekdays:[1,2,3,4,5,6]});
+  for(const date of ['2026-10-05','2026-10-06','2026-10-07','2026-10-08','2026-10-09','2026-10-10']) {
+    const shifts=state.staffShifts.filter(s=>s.defaultAssignmentKey?.startsWith(date+'/'));
+    assert.equal(shifts.length,2);
+    assert.deepEqual(shifts.map(s=>[s.start,s.end]),[['19:00','02:30'],['02:30','10:00']]);
+    assert.equal(shifts[0].date,date);
+    assert.ok(shifts[1].date>date);
+    assert.ok(shifts.every(s=>s.businessDate===date));
+  }
+  assert.deepEqual(state.workplace.days[7],[]);
+  const reopened=await store.snapshot('owner');
+  assert.deepEqual(reopened.workplace.days,state.workplace.days);
+  assert.deepEqual(reopened.staffShifts,state.staffShifts);
+});

@@ -72,14 +72,21 @@ class BusinessHoursSlider extends StatelessWidget {
       for (final b in bands.take(bands.length - 1)) absolute(b['end']),
       end,
     ];
-    void change(int i, int minute) {
+    void change(int i, int minute, {bool clockSelection = false}) {
       if (!enabled) return;
       if (i == 0) {
+        // A clock selection changes the opening wall time. Resolve the saved
+        // closing clock against it, so closing-first edits can cross midnight.
+        // Dragging retains its current continuous timeline constraints.
+        final closingClock = hoursMinute(bands.last['end']);
+        final nextEnd = clockSelection
+            ? closingClock + (closingClock <= minute ? 1440 : 0)
+            : end;
         if (minute >= 0 &&
             minute < 1440 &&
-            end - minute < 1440 &&
-            end - minute >= bands.length * 30) {
-          onHours(minute, end);
+            nextEnd - minute < 1440 &&
+            nextEnd - minute >= bands.length * 30) {
+          onHours(minute, nextEnd);
         }
       } else if (i == cuts.length - 1) {
         if (minute - start < 1440 && minute - start >= bands.length * 30) {
@@ -103,7 +110,7 @@ class BusinessHoursSlider extends StatelessWidget {
       if (value == null) return;
       var minute = hoursMinute(value);
       if (i > 0 && minute <= start) minute += 1440;
-      change(i, minute);
+      change(i, minute, clockSelection: true);
     }
 
     final pause = breakTime == null

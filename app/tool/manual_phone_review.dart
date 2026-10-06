@@ -73,7 +73,9 @@ void main() {
         await tester.tap(find.text('열기'));
         await tester.pumpAndSettle();
         if (name == 'editing') {
-          await tester.tap(find.byKey(const ValueKey('manual-edit-done')));
+          await tester.longPress(
+            find.byKey(const ValueKey('manual-node-group:general')),
+          );
           await tester.pumpAndSettle();
         }
         await tester.runAsync(() async {

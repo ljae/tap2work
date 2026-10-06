@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +9,63 @@ import 'package:tap2work/ui/business_hours_slider.dart';
 import 'time_band_editor_test.dart' show fixture, mount;
 
 void main() {
+  for (final closingFirst in [false, true]) {
+    testWidgets(
+      'Mon-Sat 19:00 to next-day 10:00 saves with closingFirst=$closingFirst',
+      (tester) async {
+        final data = fixture();
+        data['workplace']['days']['7'] = <Map<String, dynamic>>[];
+        for (final day in ['1', '2', '3', '4', '5', '6']) {
+          data['workplace']['days'][day] = [
+            {'id': 'open-$day', 'name': '오픈', 'start': '09:00', 'end': '15:00'},
+            {
+              'id': 'close-$day',
+              'name': '마감',
+              'start': '15:00',
+              'end': '22:00',
+            },
+          ];
+        }
+        Map<String, dynamic>? written;
+        await mount(tester, initialData: data, write: (v) => written = v);
+        await tester.tap(find.text('전체'));
+        await tester.pumpAndSettle();
+        Future<void> choose(int index, int hour) async {
+          final label = find.byKey(ValueKey('hours-label-$index'));
+          await tester.ensureVisible(label);
+          await tester.tap(label);
+          await tester.pumpAndSettle();
+          tester
+              .widget<CupertinoPicker>(find.byType(CupertinoPicker).first)
+              .scrollController!
+              .jumpToItem(hour);
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('적용'));
+          await tester.pumpAndSettle();
+        }
+
+        if (closingFirst) {
+          await choose(2, 10);
+          await choose(0, 19);
+        } else {
+          await choose(0, 19);
+          await choose(2, 10);
+        }
+        await tester.tap(find.text('인원 배치').first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('일주일 설정 저장'));
+        await tester.pumpAndSettle();
+        for (final day in ['1', '2', '3', '4', '5', '6']) {
+          expect(written!['days'][day].first['start'], '19:00');
+          expect(written!['days'][day].last['end'], '10:00');
+        }
+        expect(written!['businessDayStart'], '19:00');
+        expect(written!['days']['7'], isEmpty);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
   testWidgets('new hours replace legacy part times and report roster refresh', (
     tester,
   ) async {

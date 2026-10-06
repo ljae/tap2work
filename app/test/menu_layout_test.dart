@@ -55,7 +55,15 @@ void main() {
               tester.widget<Text>(title).data,
               ['업무', '매뉴얼', '근무표', '우리매장'][index],
             );
-            expect(tester.getRect(title).topLeft, titleRect.topLeft);
+            if (index == 1) {
+              final header = tester.getRect(
+                find.byKey(const ValueKey('manual-header')),
+              );
+              expect(header.topLeft, titleRect.topLeft);
+              expect(tester.getCenter(title).dy, header.center.dy);
+            } else {
+              expect(tester.getRect(title).topLeft, titleRect.topLeft);
+            }
           }
           expect(tester.getRect(search), searchRect);
           expect(find.text('전체 매장 매뉴얼 검색'), findsNothing);
