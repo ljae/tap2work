@@ -5,6 +5,7 @@ import '../main.dart';
 import '../data/auth_provider_repository.dart';
 import '../data/auth_repository.dart';
 import '../data/account_repository.dart';
+import '../data/workspace_selection_repository.dart';
 import '../data/native_auth_service.dart';
 import 'account_screen.dart';
 import 'privacy_screen.dart';
@@ -71,6 +72,8 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
       ? OperationsController(readOnly: true)
       : OperationsController(
           readOnly: false,
+          loadWorkspace: WorkspaceSelectionRepository(userId!).read,
+          saveWorkspace: WorkspaceSelectionRepository(userId!).save,
           endpoint: Uri.parse(
             '${const String.fromEnvironment('SUPABASE_URL')}/functions/v1/operations',
           ),
@@ -96,7 +99,11 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: ops,
     builder: (context, _) => Tap2workApp(
-      key: ValueKey(userId ?? (preview ? 'preview' : 'sign-in')),
+      key: ValueKey(
+        userId == null
+            ? (preview ? 'preview' : 'sign-in')
+            : '$userId/${ops.workspaceId ?? ''}',
+      ),
       controller: widget.work,
       operations: ops,
       onAccountPressed: account,

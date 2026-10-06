@@ -14,6 +14,7 @@ abstract interface class OperationsRepository {
     String? demoToken,
     String? scheduleFrom,
     String? scheduleTo,
+    String? workspaceId,
   });
   Future<OperationsResult> write({
     required String actorId,

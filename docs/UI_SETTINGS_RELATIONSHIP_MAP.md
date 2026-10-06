@@ -369,3 +369,12 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 2026-10-06 야간 영업 입력 보정: 숫자 휠에서 시작 시각을 선택하면 종료 시각을 새 시작 기준의 같은 날/다음 날로 다시 계산한다. 종료 10:00 → 시작 19:00 순서에서도 월~토 19:00–다음 날 10:00를 저장하며 교대 분할·businessDayStart·근무표에 연결한다. 드래그의 연속 시간축 제약과 서버 저장/권한/CAS 계약은 유지한다. business_hours_slider_test의 양방향 입력 순서, calendar_test의 저장 후 표시/재조회, default_assignments.test의 야간 배정 회귀로 검증한다.
 
 2026-10-06 전체 영업시간 저장 보정: 영업시간 탭에서 전체를 명시적으로 선택하면 현재 표시된 시작·종료와 같은 교대 수의 경계를 모든 영업일 초안에 복사한다. 시간이 같아 보이더라도 조작 없이 저장한 다른 요일의 예전 값이 남지 않는다. 다른 교대 수는 수를 유지해 해당 영업 구간으로 재분할한다. 요일별 시간대 ID·필요 인원·크루·추가 시간대 및 휴무일을 유지하며 실제 저장은 기존 일주일 설정 저장/CAS를 따른다. 인원 배치 탭의 범위 선택은 영업시간을 변경하지 않는다. S03 source: workplace.days → 전체 선택/selectHoursScope → changeHours → save_workplace_hours → 근무표. business_hours_slider_test 회귀로 검증한다.
+
+## 복수 매장 선택·생성 · 2026-10-06
+
+| ID | 원본 → 조작 → 액션 | 소비·보호 경계 | 검증 |
+| --- | --- | --- | --- |
+| S53 | 본인 membership 목록 → 내 계정 왼쪽 WorkspaceMenu → selectWorkspace / GET workspace / POST workspaceId | 업무·매뉴얼·근무표·우리매장 전부 선택 매장 기준. 직책 재검증·이전 응답 무시·계정별 마지막 선택·매장 캐시 분리 | workspace_test.dart, multiple_workspaces.test.mjs, multiple_workspaces.sql |
+| S54 | WorkspaceMenu 신규 추가 → 매장 이름 시트 → create_workspace(name, requestId, blank) → tap2work_create_workspace | 새 매장 owner 소속·빈 독립 데이터·중복 요청 재사용·성공 후 전환. 기존 매장 변경 없음 | workspace_test.dart, multiple_workspaces.test.mjs, multiple_workspaces.sql |
+
+S52 삭제 범위는 모든 소속 매장의 목록으로 확장한다. 유일 사장님 매장 삭제와 공유 매장 유지/개인정보 정리를 구분하고, 전체 scope가 변경되면 재확인한다. 현재 선택 매장만 삭제하는 기능이 아니다.

@@ -16,6 +16,8 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
     bool readOnly = const bool.fromEnvironment('PUBLIC_REVIEW'),
     this.sharedApi,
     this.accessToken,
+    this.loadWorkspace,
+    this.saveWorkspace,
   }) : // A shared demo server turns the read-only public build into a live shared client.
        readOnly = sharedApi == null && readOnly,
        endpoint =
@@ -36,6 +38,10 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   final Uri endpoint;
   final bool readOnly;
   final Future<String?> Function()? accessToken;
+  final Future<String?> Function()? loadWorkspace;
+  final Future<void> Function(String)? saveWorkspace;
+  String? workspaceId;
+  List<Json> workspaces = [];
   bool get cloud => accessToken != null;
 
   /// Base URL of a shared demo server reached through a tunnel, or null.
@@ -76,6 +82,14 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
       WidgetsBinding.instance.addObserver(this);
       _observing = true;
     }
+    if (cloud && workspaceId == null && loadWorkspace != null) {
+      try {
+        workspaceId = await loadWorkspace!();
+      } catch (_) {
+        /* A local preference must not block login. */
+      }
+    }
+    if (_disposed) return;
     await refresh();
     scheduleRefresh();
   }
@@ -97,6 +111,34 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
       scheduleRefresh();
     } else {
       _timer?.cancel();
+    }
+  }
+
+  Future<void> selectWorkspace(String id) async {
+    if (!cloud || busy || _disposed || (id == workspaceId && data != null)) {
+      return;
+    }
+    if (!workspaces.any((w) => w['id'] == id)) return;
+    workspaceId = id;
+    _generation++;
+    data = null;
+    error = null;
+    _scheduleFrom = null;
+    _scheduleTo = null;
+    _previewTickets.clear();
+    _emit();
+    await refresh(force: true);
+  }
+
+  void _rememberWorkspace(Json body) {
+    if (body['workspaces'] is List) {
+      workspaces = (body['workspaces'] as List).cast<Json>();
+    }
+    if (body['workspaceId'] is String) {
+      workspaceId = body['workspaceId'] as String;
+      if (saveWorkspace != null) {
+        unawaited(saveWorkspace!(workspaceId!).catchError((Object _) {}));
+      }
     }
   }
 
@@ -127,14 +169,19 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
         demoToken: _token,
         scheduleFrom: _scheduleFrom,
         scheduleTo: _scheduleTo,
+        workspaceId: workspaceId,
       );
       if (_disposed || generation != _generation) return;
+      _rememberWorkspace(response.data);
       if (response.statusCode == 304) {
         error = null;
         return;
       }
       final body = response.data;
       if (response.statusCode != 200) {
+        if (cloud && response.statusCode == 403 && body['workspaces'] is List) {
+          data = null;
+        }
         final message = body['error'];
         error = message is String && message.trim().isNotEmpty
             ? message
@@ -164,7 +211,9 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
       _emit();
       return false;
     }
-    if (busy || data == null || _disposed) return false;
+    if (busy || (data == null && action != 'create_workspace') || _disposed) {
+      return false;
+    }
     busy = true;
     error = null;
     _generation++;
@@ -180,14 +229,22 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
         values: {
           ...values,
           'action': action,
+          if (cloud && workspaceId != null) 'workspaceId': workspaceId,
           if (_scheduleFrom != null) 'scheduleFrom': _scheduleFrom,
           if (_scheduleTo != null) 'scheduleTo': _scheduleTo,
-          'revision': values['revision'] ?? data!['revision'],
+          'revision': values['revision'] ?? data?['revision'] ?? 0,
         },
       );
+      if (_disposed) return false;
       final body = response.data;
       if (response.statusCode == 200) {
+        if (action == 'create_workspace') {
+          _scheduleFrom = null;
+          _scheduleTo = null;
+        }
+        _rememberWorkspace(body);
         data = body;
+        if (cloud && body['actor'] is Json) actorId = body['actor']['id'];
         _token = body['demoToken'] as String?;
         success = true;
       } else {

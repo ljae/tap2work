@@ -50,10 +50,16 @@ class HttpOperationsRepository implements OperationsRepository {
     String? demoToken,
     String? scheduleFrom,
     String? scheduleTo,
+    String? workspaceId,
   }) async {
     var uri = readOnly
         ? Uri.base.resolve('review-data/$actorId.json')
         : endpoint;
+    if (!readOnly && workspaceId != null) {
+      uri = uri.replace(
+        queryParameters: {...uri.queryParameters, 'workspace': workspaceId},
+      );
+    }
     if (!readOnly && scheduleFrom != null && scheduleTo != null) {
       uri = uri.replace(
         queryParameters: {
@@ -66,7 +72,8 @@ class HttpOperationsRepository implements OperationsRepository {
     if (!readOnly &&
         accessToken != null &&
         _syncActor == actorId &&
-        _sync != null) {
+        _sync != null &&
+        (workspaceId == null || _sync!['workspaceId'] == workspaceId)) {
       uri = uri.replace(
         queryParameters: {
           ...uri.queryParameters,
@@ -83,7 +90,7 @@ class HttpOperationsRepository implements OperationsRepository {
           .timeout(const Duration(seconds: 10)),
     );
     if (result.statusCode == 200 && result.data['unchanged'] == true) {
-      return const OperationsResult(304, {});
+      return OperationsResult(304, result.data);
     }
     remember(result, actorId);
     return result;

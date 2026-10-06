@@ -15,6 +15,7 @@ class MemoryOperations implements OperationsRepository {
     String? demoToken,
     String? scheduleFrom,
     String? scheduleTo,
+    String? workspaceId,
   }) async => const OperationsResult(200, {'revision': 8, 'tasks': <Json>[]});
   @override
   Future<OperationsResult> write({

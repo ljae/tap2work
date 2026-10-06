@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S53', 'app/lib/ui/workspace_menu.dart', 'ops.selectWorkspace(id)', 'app/lib/state/operations_controller.dart', 'workspaceId: workspaceId'],
+  ['S54', 'app/lib/ui/workspace_menu.dart', "'create_workspace'", 'developer/supabase_backend.mjs', 'rpc/tap2work_create_workspace'],
   ['S48', 'app/lib/ui/manual_workspace.dart', 'ManualPrintScreen(', 'app/lib/data/manual_pdf_repository.dart', 'Printing.layoutPdf('],
   ['S49', 'app/lib/ui/manual_print_screen.dart', "'save_manual_print_translation'", 'developer/operations.mjs', "case 'save_manual_print_translation'"],
   ['S47', 'app/lib/ui/manual_market_screen.dart', "'configure_manual_business'", 'developer/manual_market.mjs', "input.action==='configure_manual_business'"],

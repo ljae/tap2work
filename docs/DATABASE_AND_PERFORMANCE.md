@@ -1,5 +1,9 @@
 # 설정 저장과 웹 성능 · 2026-09-29
 
+## 복수 매장 · 2026-10-06
+
+선택한 workspace_id는 읽기·쓰기·캐시·권한의 필수 경계다. user_id 단독 unique를 제거하되 membership 복합 PK는 유지한다. `tap2work_workspace_requests(user_id,request_id,workspace_id)`는 빈 매장 생성 재시도를 같은 ID에 연결하는 서비스 전용 테이블이다. 조건부 읽기도 본인의 매장 목록을 반환해 이름/소속 변경을 갱신한다. 매장 생성은 빈 상태만 저장하며 기존 매장 데이터는 복제하지 않는다. 계정 삭제는 모든 소속 매장에 대한 잠금/전체 scope 비교/원자 처리를 수행한다.
+
 ## 저장 모델
 
 작은 매장 운영의 현재 규모에서는 매장 단위 CAS를 유지하고 **변경된 도메인 문서만 저장**한다. 매번 전체 JSON을 다시 쓰거나 아직 쓰지 않는 검색 인덱스/별도 서버를 늘리지 않는다.
@@ -7,7 +11,7 @@
 | 테이블 | 키·내용 | 조회/보안 |
 | --- | --- | --- |
 | `tap2work_workspaces` | 매장 ID, 이름, 만든 계정 | 소속 사용자만 기본정보 조회 |
-| `tap2work_members` | workspace_id + user_id, 직책, 표시 이름 | user_id unique 인덱스로 소속 조회; 클라이언트 변경 금지 |
+| `tap2work_members` | workspace_id + user_id, 직책, 표시 이름 | user_id 비고유 인덱스로 복수 소속 조회; 클라이언트 변경 금지 |
 | `tap2work_state` | workspace_id, revision, updated_at, 이전 payload | 현재 revision의 잠금 행. payload는 이관 시점의 복구 사본이며 **현재값 조회에 사용하지 않음** |
 | `tap2work_documents` | workspace_id + section, value JSONB, size_bytes, updated_at | 현재값의 원본. 복합 PK로 매장/영역 조회; 서비스 역할만 접근, 원문 RLS 차단 |
 

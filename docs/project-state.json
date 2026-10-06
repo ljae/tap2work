@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 210,
+  "revision": 211,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -990,6 +990,18 @@
       "reason": "사용자의 출시 지역·권리 확인 답변과 심사용 Google 로그인 등록 요청.",
       "source": "사용자 답변 2026-10-05",
       "updatedAt": "2026-10-05T13:40:04.655Z"
+    },
+    {
+      "id": "D-095",
+      "category": "계정·매장",
+      "title": "한 계정의 복수 매장 선택·신규 추가",
+      "status": "confirmed",
+      "decision": "내 계정 아이콘 왼쪽의 매장 이름 드롭다운에서 소속 매장을 선택하고 이름을 입력해 새 빈 매장을 추가한다. 모든 운영 데이터와 직책은 선택한 매장별로 분리하며 계정 삭제는 모든 소속 매장의 결과를 확인한다.",
+      "previous": "계정당 하나의 매장 소속(user_id unique), 첫 매장 자동 선택.",
+      "next": "계정당 복수 membership; 선택 매장을 읽기·쓰기·캐시·권한의 명시적 경계로 사용. 새 매장 생성 요청은 중복 방지한다.",
+      "reason": "사용자가 여러 매장을 하나의 계정에서 관리하고 전체 설계에 반영하도록 요청했다.",
+      "source": "사용자 요청 · 2026-10-06",
+      "updatedAt": "2026-10-06"
     }
   ],
   "milestones": [
@@ -6851,6 +6863,21 @@
       "limitations": [
         "실제 저장은 사용자가 지정한 영업시간 설정을 기존 API로 수행. DB 직접 수정·migration·Edge 재배포 없음.",
         "네이티브 빌드/배포 미실시."
+      ]
+    },
+    {
+      "at": "2026-10-06T11:53:31.515Z",
+      "type": "implementation",
+      "summary": "복수 매장 선택·신규 추가와 매장별 데이터/권한/캐시·계정 삭제 계약 구현.",
+      "verification": [
+        "Flutter analyze 오류 없음. Flutter 전체 358 tests 통과; 320/800px 매장 메뉴·전환·이름 입력 생성, 이전 응답 무시·매장별 cache/write·권한 회수 검증.",
+        "Node 서버 전체 223 tests 통과. 매장별 읽기/쓰기/직책·복수 소속의 미지정 쓰기 거절·새 매장 생성 재시도·다중 매장 계정 삭제 검증.",
+        "npm run check: UI/settings 47 links와 콘텐츠 검사 통과.",
+        "격리 PGlite에서 기존 계정 삭제 SQL와 새 복수 매장 SQL 통과: 다중 membership, 요청 idempotency, 선택 매장/타 매장 차단, CAS, 전체 삭제 scope 충돌/공유 매장 보존."
+      ],
+      "limitations": [
+        "정적 분석의 초기 brace lint/불필요 null assertion을 수정하고 재검사 통과.",
+        "운영 SQL·Edge·웹 배포 진행 중. 네이티브 빌드 및 실제 다중 매장 계정 삭제는 미실시."
       ]
     }
   ],

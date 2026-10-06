@@ -106,9 +106,18 @@ class _AccountScreenState extends State<AccountScreen> {
                         child: Text(busy ? '삭제 범위 확인 중…' : '삭제 범위 확인'),
                       ),
                     if (preview != null) ...[
+                      if (preview.workspaces.length > 1)
+                        Information(
+                          preview.workspaces
+                              .map(
+                                (store) =>
+                                    '${store['name']}: ${store['destroysWorkspace'] == true ? '매장 데이터와 전체 크루의 매장 접근 삭제' : '매장 유지 · 내 개인정보와 근무·급여 기록 삭제'}',
+                              )
+                              .join('\n'),
+                        ),
                       Information(
                         preview.destroysWorkspace
-                            ? '이 매장의 유일한 사장님이에요. ${preview.workspaceName ?? '내 매장'}의 업무·매뉴얼·근무표·재고 등 모든 매장 데이터와 ${preview.memberCount}명 계정의 해당 매장 접근이 함께 삭제돼요.'
+                            ? '유일한 사장님으로 등록된 ${preview.workspaceName ?? '내 매장'}의 업무·매뉴얼·근무표·재고 등 모든 매장 데이터와 ${preview.memberCount}명 계정의 해당 매장 접근이 함께 삭제돼요.'
                             : '내 계정과 연결된 크루 정보·근무 및 급여 기록을 삭제해요. 공유 업무의 완료 기록은 개인 식별 정보를 지운 뒤 남겨요.',
                       ),
                       const SizedBox(height: 12),

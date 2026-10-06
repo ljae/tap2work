@@ -7,7 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class BrandLogo extends StatelessWidget {
-  const BrandLogo({super.key});
+  const BrandLogo({super.key, this.compact = false});
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => FittedBox(
@@ -27,24 +28,27 @@ class BrandLogo extends StatelessWidget {
             semanticLabel: 'TAP Work 로고',
           ),
         ),
-        const SizedBox(width: 10),
-        const Text(
-          'TAP Work',
-          maxLines: 1,
-          style: TextStyle(
-            color: AppColors.ink,
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.2,
+        if (!compact) ...[
+          const SizedBox(width: 10),
+          const Text(
+            'TAP Work',
+            maxLines: 1,
+            style: TextStyle(
+              color: AppColors.ink,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.2,
+            ),
           ),
-        ),
+        ],
       ],
     ),
   );
 }
 
 class BrandHeader extends StatelessWidget implements PreferredSizeWidget {
-  const BrandHeader({super.key, required this.action});
+  const BrandHeader({super.key, required this.action, this.compact = false});
+  final bool compact;
   final Widget action;
 
   @override
@@ -59,7 +63,7 @@ class BrandHeader extends StatelessWidget implements PreferredSizeWidget {
     scrolledUnderElevation: 0,
 
     titleSpacing: 24,
-    title: const BrandLogo(),
+    title: BrandLogo(compact: compact),
     actions: [
       Padding(padding: const EdgeInsets.only(right: 24), child: action),
     ],

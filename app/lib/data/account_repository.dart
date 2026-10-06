@@ -9,10 +9,13 @@ class DeletionPreview {
     required this.hasApple,
     this.workspaceName,
     this.memberCount = 0,
+    this.workspaces = const [],
   });
   factory DeletionPreview.fromJson(Map<String, dynamic> json) =>
       DeletionPreview(
         token: json['confirmationToken'] as String,
+        workspaces: (json['workspaces'] as List? ?? [])
+            .cast<Map<String, dynamic>>(),
         destroysWorkspace: json['destroysWorkspace'] == true,
         hasApple: json['hasApple'] == true,
         workspaceName: json['workspaceName'] as String?,
@@ -22,6 +25,7 @@ class DeletionPreview {
   final bool destroysWorkspace, hasApple;
   final String? workspaceName;
   final int memberCount;
+  final List<Map<String, dynamic>> workspaces;
 }
 
 abstract interface class AccountRepository {
@@ -90,7 +94,8 @@ class SupabaseAccountRepository implements AccountRepository {
       final preferences = await SharedPreferences.getInstance();
       await preferences.reload();
       for (final key in preferences.getKeys()) {
-        if (key.startsWith('checklist-backup:') && key.endsWith('/$userId')) {
+        if ((key.startsWith('checklist-backup:') && key.endsWith('/$userId')) ||
+            key == 'selected-workspace/$userId') {
           if (!await preferences.remove(key)) {
             throw StateError('Local backup cleanup failed');
           }

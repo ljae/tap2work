@@ -1,4 +1,5 @@
 import 'manual_market_screen.dart';
+import 'workspace_menu.dart';
 import 'payroll_settings_screen.dart';
 import 'app_loading_screen.dart';
 import 'workplace_screens.dart';
@@ -362,205 +363,224 @@ class _OperationsScreenState extends State<OperationsScreen> {
     listenable: ops,
     builder: (context, _) => AppContentTransition(
       trigger: ops.data != null,
-      child: ops.data == null
+      child: ops.data == null && !ops.cloud
           ? AppLoadingScreen(error: ops.error, onRetry: () => ops.refresh())
           : Scaffold(
               appBar: BrandHeader(
-                action: PopupMenuButton<String>(
-                  popUpAnimationStyle: AppMotion.dialogStyle(context),
-                  key: const ValueKey('header-account-menu'),
-                  enabled: !ops.busy,
-                  constraints: BoxConstraints(
-                    minWidth: 200,
-                    maxWidth: (MediaQuery.sizeOf(context).width - 32).clamp(
-                      200.0,
-                      320.0,
-                    ),
-                  ),
-                  tooltip: ops.cloud ? '내 계정' : '계정과 체험 역할',
-                  onSelected: (id) async {
-                    if (id == 'account') {
-                      await widget.onAccountPressed?.call(context);
-                    } else if (id == 'catalog') {
-                      if (mounted) {
-                        showAppSheet(
-                          context,
-                          builder: (_) => CatalogEditor(ops: ops),
-                        );
-                      }
-                    } else {
-                      cart.clear();
-                      ops.selectActor(id);
-                    }
-                  },
-                  itemBuilder: (_) => [
-                    if (ops.isLeader && !ops.readOnly)
-                      const PopupMenuItem<String>(
-                        value: 'catalog',
-                        child: Text('매장·메뉴·재료 편집'),
-                      ),
-                    if (ops.cloud)
-                      PopupMenuItem<String>(
-                        enabled: false,
-                        child: Text(
-                          '내 매장 · ${ops.actor['label'] ?? ops.actor['role'] ?? ''}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    if (widget.onAccountPressed != null)
-                      PopupMenuItem<String>(
-                        value: 'account',
-                        child: Text(
-                          widget.accountEmail == null
-                              ? '내 매장 로그인'
-                              : '계정 · ${widget.accountEmail}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    if (!ops.cloud) ...[
-                      const PopupMenuItem<String>(
-                        enabled: false,
-                        child: Text('체험 역할 · 실제 로그인 아님'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'owner',
-                        child: Text('서연 · 사장님'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'manager',
-                        child: Text('민지 · 매니저'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'cook',
-                        child: Text('현우 · 조리 담당'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'crew',
-                        child: Text('지우 · 크루'),
-                      ),
-                    ],
-                  ],
-                  child: const HeaderAccountButton(),
-                ),
-              ),
-              body: SafeArea(
-                child: Column(
+                compact: ops.cloud && MediaQuery.sizeOf(context).width < 480,
+                action: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (ops.data != null) manualSearchBar(),
-                    if (ops.busy) const AppLinearProgress(minHeight: 2),
-                    if (ops.error != null)
-                      MaterialBanner(
-                        content: Text(
-                          ops.error!,
-                          style: const TextStyle(fontSize: 13),
+                    if (ops.cloud) ...[
+                      WorkspaceMenu(ops: ops),
+                      const SizedBox(width: 8),
+                    ],
+                    PopupMenuButton<String>(
+                      popUpAnimationStyle: AppMotion.dialogStyle(context),
+                      key: const ValueKey('header-account-menu'),
+                      enabled: !ops.busy,
+                      constraints: BoxConstraints(
+                        minWidth: 200,
+                        maxWidth: (MediaQuery.sizeOf(context).width - 32).clamp(
+                          200.0,
+                          320.0,
                         ),
-                        actions: [
-                          PressBounce(
-                            child: TextButton(
-                              onPressed: ops.busy ? null : () => ops.refresh(),
-                              child: const Text('새로고침'),
+                      ),
+                      tooltip: ops.cloud ? '내 계정' : '계정과 체험 역할',
+                      onSelected: (id) async {
+                        if (id == 'account') {
+                          await widget.onAccountPressed?.call(context);
+                        } else if (id == 'catalog') {
+                          if (mounted) {
+                            showAppSheet(
+                              context,
+                              builder: (_) => CatalogEditor(ops: ops),
+                            );
+                          }
+                        } else {
+                          cart.clear();
+                          ops.selectActor(id);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        if (ops.data != null && ops.isLeader && !ops.readOnly)
+                          const PopupMenuItem<String>(
+                            value: 'catalog',
+                            child: Text('매장·메뉴·재료 편집'),
+                          ),
+                        if (ops.cloud)
+                          PopupMenuItem<String>(
+                            enabled: false,
+                            child: Text(
+                              '내 매장 · ${ops.actor['label'] ?? ops.actor['role'] ?? ''}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
+                          ),
+                        if (widget.onAccountPressed != null)
+                          PopupMenuItem<String>(
+                            value: 'account',
+                            child: Text(
+                              widget.accountEmail == null
+                                  ? '내 매장 로그인'
+                                  : '계정 · ${widget.accountEmail}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        if (!ops.cloud) ...[
+                          const PopupMenuItem<String>(
+                            enabled: false,
+                            child: Text('체험 역할 · 실제 로그인 아님'),
+                          ),
+                          const PopupMenuItem(
+                            value: 'owner',
+                            child: Text('서연 · 사장님'),
+                          ),
+                          const PopupMenuItem(
+                            value: 'manager',
+                            child: Text('민지 · 매니저'),
+                          ),
+                          const PopupMenuItem(
+                            value: 'cook',
+                            child: Text('현우 · 조리 담당'),
+                          ),
+                          const PopupMenuItem(
+                            value: 'crew',
+                            child: Text('지우 · 크루'),
                           ),
                         ],
-                      ),
-                    if (ops.data != null && tab != 1 && tab != 2) ...[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 1240),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: Text(
-                                const ['업무', '매뉴얼', '근무표', '우리매장'][tab],
-                                key: const ValueKey('menu-title'),
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  height: 1.2,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                      ],
+                      child: const HeaderAccountButton(),
+                    ),
+                  ],
+                ),
+              ),
+              body: ops.data == null
+                  ? AppLoadingScreen(
+                      error: ops.error,
+                      onRetry: () => ops.refresh(),
+                    )
+                  : SafeArea(
+                      child: Column(
+                        children: [
+                          if (ops.data != null) manualSearchBar(),
+                          if (ops.busy) const AppLinearProgress(minHeight: 2),
+                          if (ops.error != null)
+                            MaterialBanner(
+                              content: Text(
+                                ops.error!,
+                                style: const TextStyle(fontSize: 13),
                               ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                    Expanded(
-                      child: AppContentTransition(
-                        trigger: (
-                          tab,
-                          manualQuery.trim().isNotEmpty,
-                          ops.data == null,
-                        ),
-                        child: ops.data == null
-                            ? Center(
-                                child: ops.error == null
-                                    ? const WorkspaceSkeleton()
-                                    : PressBounce(
-                                        child: OutlinedButton(
-                                          onPressed: () => ops.refresh(),
-                                          child: const Text('매장 다시 연결'),
-                                        ),
-                                      ),
-                              )
-                            : tab == 1
-                            ? ManualWorkspace(
-                                ops: ops,
-                                query: manualQuery,
-                                onClearSearch: () => updateView(() {
-                                  manualSearch.clear();
-                                  manualQuery = '';
-                                }),
-                              )
-                            : manualQuery.trim().isNotEmpty
-                            ? manualResultList()
-                            : RefreshIndicator(
-                                onRefresh: () => ops.refresh(),
-                                child: SingleChildScrollView(
-                                  key: ValueKey(tab),
-                                  physics:
-                                      const AlwaysScrollableScrollPhysics(),
-                                  padding: const EdgeInsets.fromLTRB(
-                                    24,
-                                    12,
-                                    24,
-                                    24,
+                              actions: [
+                                PressBounce(
+                                  child: TextButton(
+                                    onPressed: ops.busy
+                                        ? null
+                                        : () => ops.refresh(),
+                                    child: const Text('새로고침'),
                                   ),
-                                  child: Center(
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        maxWidth: tab == 2
-                                            ? double.infinity
-                                            : 1240,
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          ...switch (tab) {
-                                            0 => tasks(),
-                                            1 => const <Widget>[],
-                                            2 => [
-                                              StaffWorkspace(
-                                                ops: ops,
-                                                work: widget.work,
-                                              ),
-                                            ],
-                                            _ => storeHome(),
-                                          },
-                                        ],
+                                ),
+                              ],
+                            ),
+                          if (ops.data != null && tab != 1 && tab != 2) ...[
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 1240,
+                                  ),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    child: Text(
+                                      const ['업무', '매뉴얼', '근무표', '우리매장'][tab],
+                                      key: const ValueKey('menu-title'),
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        height: 1.2,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
+                            ),
+                          ],
+                          Expanded(
+                            child: AppContentTransition(
+                              trigger: (
+                                tab,
+                                manualQuery.trim().isNotEmpty,
+                                ops.data == null,
+                              ),
+                              child: ops.data == null
+                                  ? Center(
+                                      child: ops.error == null
+                                          ? const WorkspaceSkeleton()
+                                          : PressBounce(
+                                              child: OutlinedButton(
+                                                onPressed: () => ops.refresh(),
+                                                child: const Text('매장 다시 연결'),
+                                              ),
+                                            ),
+                                    )
+                                  : tab == 1
+                                  ? ManualWorkspace(
+                                      ops: ops,
+                                      query: manualQuery,
+                                      onClearSearch: () => updateView(() {
+                                        manualSearch.clear();
+                                        manualQuery = '';
+                                      }),
+                                    )
+                                  : manualQuery.trim().isNotEmpty
+                                  ? manualResultList()
+                                  : RefreshIndicator(
+                                      onRefresh: () => ops.refresh(),
+                                      child: SingleChildScrollView(
+                                        key: ValueKey(tab),
+                                        physics:
+                                            const AlwaysScrollableScrollPhysics(),
+                                        padding: const EdgeInsets.fromLTRB(
+                                          24,
+                                          12,
+                                          24,
+                                          24,
+                                        ),
+                                        child: Center(
+                                          child: ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              maxWidth: tab == 2
+                                                  ? double.infinity
+                                                  : 1240,
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                ...switch (tab) {
+                                                  0 => tasks(),
+                                                  1 => const <Widget>[],
+                                                  2 => [
+                                                    StaffWorkspace(
+                                                      ops: ops,
+                                                      work: widget.work,
+                                                    ),
+                                                  ],
+                                                  _ => storeHome(),
+                                                },
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
               bottomNavigationBar: FloatingMenu(
                 selectedIndex: tab,
                 onSelected: (value) => updateView(() {

@@ -39,12 +39,17 @@ export function createAccountHandler({url, serviceKey, apple, fetcher=fetch, app
       const context=await rpc('tap2work_account_context',{p_user_id:user.id});
       if(!context?.scope)throw new StoreError('계정 정보를 확인하지 못했어요.',409);
       const scope=context.scope, token=await fingerprint(scope);
-      const destroysWorkspace=scope.role==='owner'&&scope.ownerCount===1;
-      if(input.action==='preview_delete')return reply(200,{confirmationToken:token,destroysWorkspace,workspaceName:scope.workspaceName,memberCount:scope.memberCount,hasApple:user.identities?.some(i=>i.provider==='apple')===true});
+      const scopes=scope.workspaces ?? (scope.workspaceId ? [scope] : []);
+      const destroys=s=>s.role==='owner'&&s.ownerCount===1;
+      const destroysWorkspace=scopes.some(destroys);
+      const workspaces=scopes.map(s=>({name:s.workspaceName,destroysWorkspace:destroys(s),memberCount:s.memberCount}));
+      if(input.action==='preview_delete')return reply(200,{confirmationToken:token,destroysWorkspace,workspaceName:scopes.filter(destroys).map(s=>s.workspaceName).join(' · ') || scope.workspaceName,memberCount:scopes.filter(destroys).reduce((n,s)=>n+s.memberCount,0) || scope.memberCount,workspaces,hasApple:user.identities?.some(i=>i.provider==='apple')===true});
       if(input.confirmationToken!==token)throw new StoreError('매장 정보가 변경됐어요. 삭제 범위를 다시 확인해 주세요.',409);
       if(destroysWorkspace&&input.confirmWorkspaceDeletion!==true)throw new StoreError('매장과 소속 크루의 접근 삭제를 확인해 주세요.',400);
       await appleRevoker(user,input,{config:apple,fetcher});
-      const sanitized=scope.workspaceId&&!destroysWorkspace?eraseMemberData(context.payload,{...user,displayName:scope.displayName}):null;
+      const sanitized=scope.workspaces
+        ? Object.fromEntries(scopes.filter(s=>!destroys(s)).map(s=>[s.workspaceId,eraseMemberData(context.payloads[s.workspaceId],{...user,displayName:s.displayName})]))
+        : scope.workspaceId&&!destroysWorkspace?eraseMemberData(context.payload,{...user,displayName:scope.displayName}):null;
       const result=await rpc('tap2work_erase_account',{p_user_id:user.id,p_expected_scope:scope,p_sanitized_payload:sanitized,p_delete_workspace:destroysWorkspace});
       if(result?.conflict)throw new StoreError('동료가 먼저 수정했어요. 삭제 범위를 다시 확인해 주세요.',409);
       if(result?.deleted!==true)throw new StoreError('계정 삭제를 완료하지 못했어요.',503);

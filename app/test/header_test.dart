@@ -24,7 +24,11 @@ void expectOneCompactAction(WidgetTester tester) {
   );
   expect(
     find.descendant(of: header, matching: find.byType(PopupMenuButton<String>)),
-    findsOneWidget,
+    findsNWidgets(
+      find.byKey(const ValueKey('header-workspace-menu')).evaluate().isEmpty
+          ? 1
+          : 2,
+    ),
   );
   expect(
     tester.getRect(find.byType(BrandLogo)).right,

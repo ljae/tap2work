@@ -78,3 +78,13 @@ test('names cannot rewrite schema keys, role values or opaque crew IDs',()=>{
  const result=eraseMemberData({revision:1,tappers:[{id:'crew-1',actorId:uid,nickname:'crew'},{id:'crew-other',rank:'crew',nickname:'Alex'}],staffShifts:[{id:'crew-shift',tapperId:'crew-other',status:'planned'}]},user);
  assert.equal(result.tappers[1].id,'crew-other');assert.equal(result.tappers[1].rank,'crew');assert.equal(result.staffShifts[0].tapperId,'crew-other');assert.equal(result.staffShifts[0].id,'crew-shift');
 });
+
+test('multi-store deletion previews every store and scrubs only surviving stores',async()=>{
+ const f=fixture({role:'owner'});const first=f.context.scope;
+ f.context.scope={userId:uid,workspaces:[first,{...first,workspaceId:'shared',workspaceName:'Shared',ownerCount:2}]};
+ f.context.payloads={shared:f.context.payload};delete f.context.payload;
+ const preview=await(await f.request({action:'preview_delete'})).json();
+ assert.equal(preview.workspaces.length,2);assert.equal(preview.workspaces[0].destroysWorkspace,true);assert.equal(preview.workspaces[1].destroysWorkspace,false);
+ assert.equal((await f.request({action:'delete_account',confirmationToken:preview.confirmationToken,confirmWorkspaceDeletion:true})).status,200);
+ const sent=JSON.parse(f.calls.at(-1).options.body);assert.deepEqual(Object.keys(sent.p_sanitized_payload),['shared']);assert.deepEqual(sent.p_sanitized_payload.shared.attendance,[]);
+});
