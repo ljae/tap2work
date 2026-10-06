@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 209,
+  "revision": 210,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -6834,6 +6834,23 @@
       "limitations": [
         "운영 웹 배포 및 사용자가 확인한 월~토 09:00–22:00 실제 저장·재조회 검증 진행 중.",
         "첫 분석에서 테스트 for문 brace lint 1건 발견 후 수정. 네이티브 빌드 미실시."
+      ]
+    },
+    {
+      "at": "2026-10-06T11:14:42.314Z",
+      "type": "deployment",
+      "summary": "전체 영업시간 반영 수정 운영 배포 및 실제 저장·설정 재진입·근무표 검증 완료.",
+      "verification": [
+        "GitHub Pages 32bae7b195351b8dff46b4822c273240dc5b2d6a / Actions 37454282851 success. CI 서버·Flutter 검사와 빌드·배포 성공.",
+        "https://github.com/ljae/tap2work/actions/runs/37454282851",
+        "실제 도메인 index/bootstrap/main JS와 CI artifact SHA-256 일치. bootstrap e7eece42b926dd6b23e1, main cb797add574869d8e2e0. 브라우저가 새 asset을 로드한 것 확인.",
+        "사용자가 확인한 월~토 09:00–22:00를 운영 UI에서 전체 선택→일주일 설정 저장으로 적용, 성공 안내와 설정 재진입 확인. 일요일 휴무 유지.",
+        "운영 저장값 읽기 전용 검증으로 모든 영업일 동일 시작·종료 확인. 기존 불일치 요일의 근무표 및 계획 배정에 09:00–15:00/15:00–22:00 반영 확인.",
+        "로컬 flutter analyze 및 353 tests, npm check/UI links, build:site 통과."
+      ],
+      "limitations": [
+        "실제 저장은 사용자가 지정한 영업시간 설정을 기존 API로 수행. DB 직접 수정·migration·Edge 재배포 없음.",
+        "네이티브 빌드/배포 미실시."
       ]
     }
   ],
