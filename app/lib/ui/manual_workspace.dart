@@ -1346,7 +1346,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1240),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 760;
