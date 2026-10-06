@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 211,
+  "revision": 212,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -6878,6 +6878,20 @@
       "limitations": [
         "정적 분석의 초기 brace lint/불필요 null assertion을 수정하고 재검사 통과.",
         "운영 SQL·Edge·웹 배포 진행 중. 네이티브 빌드 및 실제 다중 매장 계정 삭제는 미실시."
+      ]
+    },
+    {
+      "at": "2026-10-06T11:56:01.974Z",
+      "type": "verification",
+      "summary": "복수 매장 운영 SQL·Edge 적용 및 왕복 전환 캐시 경계 보완.",
+      "verification": [
+        "운영 migration 적용 후 복수 membership·create RPC·service-only grant·request RLS 확인. operations v45 ACTIVE, account v2 ACTIVE. 기존 운영 데이터 변경 없음.",
+        "매장 전환으로 snapshot이 비었을 때 조건부 캐시를 사용하지 않음. 늦은 이전 매장 응답 뒤 왕복 전환 회귀 검증 포함 Flutter focused 19 tests, analyze 통과.",
+        "최초 웹 CI 37459575572는 후속 캐시 보완 커밋으로 대체 예정. 최종 웹 운영 확인 진행 중."
+      ],
+      "limitations": [
+        "신규 운영 매장 생성·실제 계정 삭제는 테스트를 위해 수행하지 않음. SQL·서버·위젯의 격리 fixture로 검증.",
+        "네이티브 빌드 미실시."
       ]
     }
   ],

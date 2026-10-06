@@ -51,6 +51,7 @@ class HttpOperationsRepository implements OperationsRepository {
     String? scheduleFrom,
     String? scheduleTo,
     String? workspaceId,
+    bool useCache = true,
   }) async {
     var uri = readOnly
         ? Uri.base.resolve('review-data/$actorId.json')
@@ -69,7 +70,8 @@ class HttpOperationsRepository implements OperationsRepository {
         },
       );
     }
-    if (!readOnly &&
+    if (useCache &&
+        !readOnly &&
         accessToken != null &&
         _syncActor == actorId &&
         _sync != null &&

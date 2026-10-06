@@ -170,6 +170,7 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
         scheduleFrom: _scheduleFrom,
         scheduleTo: _scheduleTo,
         workspaceId: workspaceId,
+        useCache: data != null,
       );
       if (_disposed || generation != _generation) return;
       _rememberWorkspace(response.data);

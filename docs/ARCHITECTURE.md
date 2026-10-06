@@ -2,7 +2,7 @@
 
 `WorkspaceMenu` → `OperationsController.selectWorkspace` → `OperationsRepository.read(workspaceId)` → HTTP `?workspace=` → `tap2work_read_workspace`의 본인+매장 membership 검증. 모든 POST는 `workspaceId`를 포함한다. 서버는 클라이언트의 role/userId를 신뢰하지 않고 선택 매장의 소속으로 actor와 권한 투영을 다시 구성한다. 여러 소속이 있는데 매장 지정 없는 이전 클라이언트의 쓰기는 409로 거절한다. 지정 매장의 권한이 없으면 403과 본인 소속 목록만 반환하며 다른 매장에 조용히 저장하지 않는다.
 
-`CloudWorkspace`는 account/workspace 키로 전체 탐색 트리를 재생성한다. 전환은 이전 snapshot·검색·편집 상태·날짜 조회 범위를 비우고 읽기 generation을 증가시켜 이전 응답을 무시한다. 저장 중 전환을 차단한다. 오류 중에도 헤더를 남겨 다른 허용 매장을 선택할 수 있다. `WorkspaceSelectionRepository`의 SharedPreferences `selected-workspace/<userId>`는 이 기기의 마지막 선택이며 인증/권한 근거가 아니다. 데이터 캐시와 로컬 체크리스트 백업은 매장+계정으로 분리한다. 첫 근무 학습 진도는 기존 기기 로컬 경계를 유지한다.
+`CloudWorkspace`는 account/workspace 키로 전체 탐색 트리를 재생성한다. 전환은 이전 snapshot·검색·편집 상태·날짜 조회 범위를 비우고 읽기 generation을 증가시켜 이전 응답을 무시한다. 저장 중 전환을 차단한다. 전환·권한 회수 후 snapshot이 없는 읽기는 조건부 캐시를 사용하지 않아, 늦은 이전 응답의 캐시가 재전환 시 304/빈 화면을 만들지 못하게 한다. 오류 중에도 헤더를 남겨 다른 허용 매장을 선택할 수 있다. `WorkspaceSelectionRepository`의 SharedPreferences `selected-workspace/<userId>`는 이 기기의 마지막 선택이며 인증/권한 근거가 아니다. 데이터 캐시와 로컬 체크리스트 백업은 매장+계정으로 분리한다. 첫 근무 학습 진도는 기존 기기 로컬 경계를 유지한다.
 
 상단 순서는 로고 → 매장 이름 드롭다운 → 내 계정이다. 480px 미만에서는 48px 로고 도안만 표시해 매장 선택과 계정의 48px 터치 영역을 확보하고, 넓은 화면에서는 TAP Work 워드마크도 유지한다. 긴 이름은 생략하되 메뉴와 tooltip에서 확인한다. 새 매장 추가는 공통 입력 시트에서 이름(1~80자)을 받고 빈 운영 상태를 생성한다. 생성 시트의 UUID requestId는 재시도에서도 유지한다. 서버 `tap2work_create_workspace`는 user/request ID를 잠그고 이미 생성된 매장 ID를 반환하여 중복 생성하지 않는다. 매장명 변경 결과는 헤더/선택 목록에도 반영한다.
 

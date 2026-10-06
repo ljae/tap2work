@@ -15,6 +15,7 @@ abstract interface class OperationsRepository {
     String? scheduleFrom,
     String? scheduleTo,
     String? workspaceId,
+    bool useCache = true,
   });
   Future<OperationsResult> write({
     required String actorId,

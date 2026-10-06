@@ -73,6 +73,11 @@ void main() {
       await pending;
       expect(ops.workspaceId, 'b');
       expect(ops.data!['workspaceId'], 'b');
+      late = null;
+      await ops.selectWorkspace('a');
+      expect(requests.last.url.queryParameters['revision'], isNull);
+      expect(ops.data!['workspaceId'], 'a');
+      await ops.selectWorkspace('b');
       await ops.act('example', {});
       expect(jsonDecode(requests.last.body)['workspaceId'], 'b');
     },
