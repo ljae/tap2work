@@ -9,6 +9,64 @@ import 'package:tap2work/ui/business_hours_slider.dart';
 import 'time_band_editor_test.dart' show fixture, mount;
 
 void main() {
+  testWidgets(
+    'selecting all applies the displayed hours to every open day without moving a handle',
+    (tester) async {
+      final data = fixture();
+      for (final day in ['1', '2', '3', '4', '5', '6']) {
+        final first = data['workplace']['days'][day][0];
+        first['end'] = '14:00';
+        first['headcounts'] = {'kitchen': 2};
+        first['crewIds'] = {
+          'kitchen': ['crew-$day'],
+        };
+        data['workplace']['days'][day].add({
+          'id': 'closing-$day',
+          'name': '마감',
+          'start': '14:00',
+          'end': '22:00',
+          'headcounts': {'kitchen': 1},
+          'crewIds': {
+            'kitchen': ['closing-crew-$day'],
+          },
+        });
+      }
+      data['workplace']['days']['3'][0]['start'] = '10:00';
+      for (final day in ['5', '6']) {
+        data['workplace']['days'][day][0]['start'] = '06:00';
+      }
+      data['workplace']['days']['7'] = <Map<String, dynamic>>[];
+      Map<String, dynamic>? written;
+      await mount(tester, initialData: data, write: (v) => written = v);
+      expect(
+        tester
+            .widget<BusinessHoursSlider>(find.byType(BusinessHoursSlider))
+            .bands
+            .first['start'],
+        '09:00',
+      );
+      await tester.tap(find.text('전체'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('인원 배치').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('일주일 설정 저장'));
+      await tester.pumpAndSettle();
+      for (final day in ['1', '2', '3', '4', '5', '6']) {
+        expect(written!['days'][day].first['start'], '09:00');
+        expect(written!['days'][day].last['end'], '22:00');
+        expect(written!['days'][day].first['end'], '14:00');
+        expect(written!['days'][day].last['start'], '14:00');
+        expect(written!['days'][day].first['id'], 'legacy-band-$day-0');
+        expect(written!['days'][day].first['headcounts'], {'kitchen': 2});
+        expect(written!['days'][day].first['crewIds'], {
+          'kitchen': ['crew-$day'],
+        });
+      }
+      expect(written!['days']['7'], isEmpty);
+      expect(written!['businessDayStart'], '09:00');
+    },
+  );
+
   for (final closingFirst in [false, true]) {
     testWidgets(
       'Mon-Sat 19:00 to next-day 10:00 saves with closingFirst=$closingFirst',

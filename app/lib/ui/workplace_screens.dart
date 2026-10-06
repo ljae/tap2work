@@ -732,13 +732,44 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             if ((days['$d'] as List).isNotEmpty) d,
         ]
       : selectedWeekdays.where((d) => (days['$d'] as List).isNotEmpty).toList();
-  void changeHours(int start, int end) => update(() {
+  void selectHoursScope(bool all) {
+    if (!all || hoursStep != 0 || operatingBands.isEmpty) {
+      setState(() {
+        allHours = all;
+        if (selectedWeekdays.isEmpty) selectedWeekdays.add(weekday);
+      });
+      return;
+    }
+    final source = operatingBands;
+    final start = _minute(source.first['start']);
+    final boundaries = [start];
+    for (final band in source) {
+      var end = _minute(band['end']);
+      if (end <= boundaries.last) end += 1440;
+      boundaries.add(end);
+    }
+    final openDays = days.values.where((rows) => (rows as List).isNotEmpty);
+    if (openDays.any((rows) {
+      final regular = (rows as List).where((b) => b['custom'] != true);
+      final count = regular.isEmpty ? rows.length : regular.length;
+      return count > 3 || boundaries.last - start < count * 30;
+    })) {
+      setState(() => error = '각 요일의 교대가 30분 이상이 되도록 영업시간을 먼저 조정해 주세요.');
+      return;
+    }
+    allHours = true;
+    changeHours(start, boundaries.last, boundaries: boundaries);
+  }
+
+  void changeHours(int start, int end, {List<int>? boundaries}) => update(() {
     for (final d in hoursTargets) {
       final rows = (days['$d'] as List).cast<Json>();
       final base = rows.where((b) => b['custom'] != true).toList();
       final bands = base.isEmpty ? rows : base;
       if (end - start < bands.length * 30) continue;
-      final cuts = shiftBoundaries(start, end, bands.length.clamp(1, 3));
+      final cuts = boundaries?.length == bands.length + 1
+          ? boundaries!
+          : shiftBoundaries(start, end, bands.length.clamp(1, 3));
       if (bands.length > 3) continue;
       for (var i = 0; i < bands.length; i++) {
         bands[i]['start'] = _time(cuts[i]);
@@ -1023,10 +1054,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           if ((days['$d'] as List).isNotEmpty) d,
       },
       enabled: canDraftHours,
-      onMode: (value) => setState(() {
-        allHours = value;
-        if (selectedWeekdays.isEmpty) selectedWeekdays.add(weekday);
-      }),
+      onMode: selectHoursScope,
       onDay: (d) => setState(() {
         if (allHours) {
           weekday = d;
