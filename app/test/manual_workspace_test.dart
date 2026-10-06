@@ -263,7 +263,7 @@ void main() {
     },
   );
 
-  testWidgets('editing keeps tree rows compact and isolates the two panes', (
+  testWidgets('editing keeps tree rows compact and activates both panes', (
     tester,
   ) async {
     final ops = OperationsController(
@@ -282,7 +282,7 @@ void main() {
     expect(frame('manual-tree-frame-task:s1:a').active, isTrue);
     expect(frame('manual-tree-frame-task:s1:a').controls, isFalse);
     expect(frame('manual-tree-frame-task:s1:a').outline, isFalse);
-    expect(frame('manual-content-frame-a/s1').active, isFalse);
+    expect(frame('manual-content-frame-a/s1').active, isTrue);
     expect(tester.getSize(task).height, height);
     expect(
       tester.getTopLeft(task).dx,
@@ -306,11 +306,11 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(frame('manual-tree-frame-task:s1:a').active, isFalse);
+    expect(frame('manual-tree-frame-task:s1:a').active, isTrue);
     expect(frame('manual-content-frame-a/s1').active, isTrue);
     expect(
       find.byKey(const ValueKey('manual-actions-task:s1:a')),
-      findsNothing,
+      findsOneWidget,
     );
     expect(find.byTooltip('이름 변경'), findsWidgets);
     expect(tester.takeException(), isNull);
@@ -355,7 +355,7 @@ void main() {
     },
   );
 
-  testWidgets('phone tree edit menu fits and pane switch ends editing', (
+  testWidgets('phone tree edit menu fits and pane switch preserves editing', (
     tester,
   ) async {
     final ops = OperationsController(
@@ -376,9 +376,9 @@ void main() {
             find.byKey(const ValueKey('manual-content-frame-a/s1')),
           )
           .active,
-      isFalse,
+      isTrue,
     );
-    expect(find.text('편집 완료'), findsNothing);
+    expect(find.text('편집 완료'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

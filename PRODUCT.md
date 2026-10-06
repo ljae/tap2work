@@ -1,3 +1,7 @@
+## 매뉴얼 편집 일관성 · 2026-10-06
+
+길게 누르기로 시작하는 편집 모드는 디렉토리와 Task 목록에 공통 적용하고 휴대폰 화면 전환 중에도 유지한다. 이동 아이콘을 누르거나 끌어서 위치를 바꾸고, 완료 버튼으로 편집을 종료한다. 일부 영역만 편집되거나 일반 설정 버튼만 남는 이전 동작을 대체한다.
+
 ## 복수 매장 관리 · 2026-10-06
 
 하나의 개인 계정으로 여러 매장에 소속될 수 있다. 내 계정 아이콘 왼쪽의 매장 이름 드롭다운에서 매장을 선택하고 이름을 입력해 새 빈 매장을 추가한다. 추가한 계정은 새 매장의 사장님이며 기존 매장의 크루·업무·매뉴얼·근무표·재고를 복제하지 않는다. 마지막 선택은 계정별로 이 기기에 기억한다.
@@ -298,7 +302,7 @@ The public app supports email signup/login through Supabase Auth. Signed-in acco
 
 Active synthetic Home tickets now create order-linked Taps with the same number, channel, table and menu quantities. Completing an order Tap completes all its Task and removes the ticket from Home's active queue; reopening returns it to that queue. Preparation groups remain reusable templates. Public preview changes are shared across Home and Todo in memory.
 
-Current cloud scope is one workspace per account and self-owned signup. Team registration stores a roster; invitations connecting other Auth users to that store and multiple-workspace switching remain unimplemented. Attendance and wage estimates are persisted, but legal pay rules remain proposed and no actual payments/orders are sent.
+Updated 2026-10-06: cloud accounts can belong to multiple independent workspaces and create additional blank stores. The header selector scopes all operations and permissions to the chosen membership. Team registration stores a roster; invitations connecting other Auth users to an existing store remain unimplemented. Attendance and wage estimates are persisted, but legal pay rules remain proposed and no actual payments/orders are sent.
 
 ### Owner setup and real store catalogs (2026-09-26 implementation)
 

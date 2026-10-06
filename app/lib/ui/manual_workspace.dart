@@ -29,18 +29,13 @@ class ManualWorkspace extends StatefulWidget {
   State<ManualWorkspace> createState() => _ManualWorkspaceState();
 }
 
-enum _ManualEditPane { directory, content }
-
 class _ManualWorkspaceState extends State<ManualWorkspace> {
   List<Json> rows = [], folders = [], taps = [];
   int revision = -1;
   String actor = '';
   String? scopeGroup, scopeTap, selectedId;
-  _ManualEditPane? editPane;
+  bool editing = false;
   bool showTree = true, previewDirty = false, recipes = false;
-  bool get editing => editPane != null;
-  bool get editingTree => editPane == _ManualEditPane.directory;
-  bool get editingContent => editPane == _ManualEditPane.content;
   final expanded = <String>{};
   OperationsController get ops => widget.ops;
   bool get canEdit => ops.canEditTasks && !ops.busy;
@@ -208,7 +203,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     actor = ops.actorId;
     previewDirty = false;
     if (changedActor) {
-      editPane = null;
+      editing = false;
       scopeGroup = null;
       scopeTap = null;
       selectedId = null;
@@ -521,16 +516,17 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     int count = 0,
     String? durationText,
   }) {
-    final compactEdit = editingTree && MediaQuery.sizeOf(context).width < 700;
+    final compactEdit = editing && MediaQuery.sizeOf(context).width < 700;
     final key = '$kind:$id${kind == 'task' ? ':$tapId' : ''}';
     final data = drag(kind, id, tapId: tapId);
     final handle = Semantics(
       key: ValueKey('manual-drag-$key'),
-      label: '순서·소속 드래그',
-      child: SizedBox(
-        width: 48,
-        height: 48,
-        child: Icon(Icons.drag_indicator, size: 18, color: AppColors.muted),
+      label: '드래그하여 순서 변경',
+      child: IconButton(
+        tooltip: '위치 이동',
+        constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+        onPressed: () => chooseDestination(data),
+        icon: const Icon(Icons.open_with, size: 18, color: AppColors.muted),
       ),
     );
     final feedback = Material(
@@ -619,15 +615,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         children: [
                           Tooltip(
                             triggerMode: TooltipTriggerMode.manual,
-                            message: editingTree && editable
-                                ? '이름을 눌러 변경'
-                                : label,
+                            message: editing && editable ? '이름을 눌러 변경' : label,
                             child: InkWell(
                               key: ValueKey('manual-rename-$key'),
-                              mouseCursor: editingTree && editable
+                              mouseCursor: editing && editable
                                   ? SystemMouseCursors.text
                                   : SystemMouseCursors.click,
-                              onTap: editingTree && editable && canEdit
+                              onTap: editing && editable && canEdit
                                   ? () {
                                       onTap();
                                       directEditNode(
@@ -683,7 +677,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               ),
             ),
           ),
-          if (editable && canEdit && kind != 'group' && !compactEdit)
+          if (!editing && editable && canEdit && kind != 'group')
             IconButton(
               key: ValueKey('manual-detail-$key'),
               tooltip: kind == 'tap' ? 'TAP 상세 수정' : 'Task 상세 수정',
@@ -699,7 +693,19 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       ),
               ),
             ),
-          if (editingTree && editable && canEdit) ...[
+          if (editing && !editable)
+            const Tooltip(
+              message: '오늘 업무는 조회 전용이에요. 기본 매뉴얼 항목을 선택해 수정해 주세요.',
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Icon(
+                  Icons.lock_outline,
+                  size: 18,
+                  color: AppColors.muted,
+                ),
+              ),
+            ),
+          if (editing && editable && canEdit) ...[
             PopupMenuButton<String>(
               key: ValueKey('manual-actions-$key'),
               tooltip: '$label 편집',
@@ -772,12 +778,12 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       padding: EdgeInsets.only(left: depth * 12.0),
       child: DirectEditFrame(
         key: ValueKey('manual-tree-frame-$key'),
-        enabled: editable && canEdit,
-        active: editingTree,
+        enabled: canEdit,
+        active: editing && editable,
         controls: false,
         outline: false,
         onEnter: () => setState(() {
-          editPane = _ManualEditPane.directory;
+          editing = true;
           scopeGroup = kind == 'group' ? id : folderId;
           scopeTap = kind == 'group'
               ? null
@@ -789,7 +795,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         child: row(hovering),
       ),
     );
-    if (!editingTree || !editable || !canEdit) return surface(false);
+    if (!editing || !editable || !canEdit) return surface(false);
     return DragTarget<Json>(
       key: ValueKey('manual-drop-$key'),
       onWillAcceptWithDetails: (d) =>
@@ -825,7 +831,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     ];
     for (final folder in folders) {
       if (folder['id'] == 'store-recipes') continue;
-      if (!editingTree &&
+      if (!editing &&
           ops.data?['manualBusinessProfile'] != null &&
           !taps.any((t) => t['folderId'] == folder['id'])) {
         continue;
@@ -920,7 +926,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                   scopeTap = tap['tapId'];
                   selectedId = task['id'];
                 });
-                if (!editingTree) openManual(task);
+                if (!editing) openManual(task);
               },
             ),
           );
@@ -1076,10 +1082,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             .firstOrNull;
         final linked = source?['menuManualId'] != null;
         return DirectEditFrame(
-          enabled: canEdit && row['editable'] == true,
+          enabled: canEdit,
           key: ValueKey('manual-content-frame-${row['id']}'),
-          active: editingContent,
-          onEnter: () => setState(() => editPane = _ManualEditPane.content),
+          active: editing && row['editable'] == true,
+          onEnter: () => setState(() => editing = true),
           onRename: () => directEditNode(context, ops, 'edit_manual_node', {
             'kind': 'task',
             'id': row['sourceStepId'],
@@ -1097,6 +1103,14 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           onMove: () => chooseDestination(
             drag('task', row['sourceStepId'], tapId: row['templateId']),
           ),
+          onSettings: () => showAppSheet(
+            context,
+            builder: (_) => ManualTaskEditor(
+              ops: ops,
+              templateId: row['templateId'],
+              sourceStepId: row['sourceStepId'],
+            ),
+          ),
           child: AppCard(
             margin: const EdgeInsets.only(bottom: 8),
             child: ListTile(
@@ -1104,9 +1118,30 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 row['title'],
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              subtitle: Text(duration([row]), maxLines: 1),
-              trailing: const Icon(CupertinoIcons.chevron_right, size: 16),
+              subtitle: Text(
+                row['editable'] == true
+                    ? duration([row])
+                    : '${duration([row])} · 오늘 업무 · 조회 전용',
+                maxLines: 2,
+              ),
+              trailing: Icon(
+                editing && row['editable'] == true
+                    ? CupertinoIcons.pencil
+                    : CupertinoIcons.chevron_right,
+                size: 16,
+              ),
               onTap: () {
+                if (editing && canEdit && row['editable'] == true) {
+                  showAppSheet(
+                    context,
+                    builder: (_) => ManualTaskEditor(
+                      ops: ops,
+                      templateId: row['templateId'],
+                      sourceStepId: row['sourceStepId'],
+                    ),
+                  );
+                  return;
+                }
                 setState(() {
                   selectedId = row['id'];
                   expanded.add('group:${row['folderId']}');
@@ -1247,7 +1282,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       ? null
                       : () => setState(() {
                           stopDragScroll();
-                          editPane = null;
+                          editing = false;
                         }),
                   child: const Text('편집 완료', style: AppText.caption),
                 ),
@@ -1261,7 +1296,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   @override
   Widget build(BuildContext context) {
     sync();
-    if (!ops.canEditTasks) editPane = null;
+    if (!ops.canEditTasks) editing = false;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1240),
@@ -1297,7 +1332,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         child: TextButton(
                           onPressed: () => setState(() {
                             recipes = true;
-                            editPane = null;
+                            editing = false;
                           }),
                           child: Text(
                             '메뉴·레시피',
@@ -1369,7 +1404,6 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                               ),
                               onPressed: () => setState(() {
                                 showTree = !showTree;
-                                editPane = null;
                               }),
                             ),
                           ),
@@ -1399,7 +1433,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                                 : () async {
                                     widget.onClearSearch?.call();
                                     setState(() {
-                                      editPane = _ManualEditPane.directory;
+                                      editing = true;
                                       showTree = true;
                                     });
                                     await directEditNode(
@@ -1434,9 +1468,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
-                        editingTree
-                            ? '⋯에서 추가·상세 수정·이동·삭제, 손잡이로 순서를 바꿔요.'
-                            : 'Task 편집 · 카드에서 이름·위치·삭제를 선택해요.',
+                        '이동 아이콘을 누르거나 드래그해 위치를 바꿔요. ⋯에서 추가·수정·삭제할 수 있어요.',
                         style: TextStyle(fontSize: 13, color: AppColors.muted),
                       ),
                     ),
