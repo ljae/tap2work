@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 205,
+  "revision": 206,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -6755,6 +6755,24 @@
       "limitations": [
         "GitHub Pages workflow 및 실제 도메인 새 asset 검증은 진행 중.",
         "DB migration 및 실제 매장 데이터 수정 없음. 실제 사용자 OAuth/근무표 저장 E2E와 iOS 배포는 이번 검증에 포함하지 않음."
+      ]
+    },
+    {
+      "at": "2026-10-06T10:19:27.549Z",
+      "type": "deployment",
+      "decisionId": "D-080",
+      "summary": "기존 수정 사항 운영 배포 완료: Supabase operations v44 및 GitHub Pages bba8e1f. 실제 tap2.work 산출물 일치 확인.",
+      "verification": [
+        "Supabase operations v44 ACTIVE, OPTIONS 204/CORS 및 비인증 401 확인.",
+        "GitHub Actions 37448314932 success: check, 서버 219 tests, Flutter analyze/test, build:site, Pages deploy 모두 성공.",
+        "https://github.com/ljae/tap2work/actions/runs/37448314932",
+        "tap2.work 홈페이지·개인정보·계정 삭제 안내 HTTP 200. CI artifact와 index.html/bootstrap/main JS/privacy/delete-account 5개 SHA-256 일치.",
+        "새 bootstrap flutter_bootstrap.81beb5c2d40d866f7ff9.js, entry main.c153c688f926a1f32b75.dart.js 확인.",
+        "기존 로컬 작업 트리를 보존하고 원격 main 기반 별도 release checkout에서 25개 변경 파일만 반영."
+      ],
+      "limitations": [
+        "실제 로그인 후 운영 매장 저장 E2E와 iOS 배포 미실시. DB migration 및 운영 매장 데이터 수동 변경 없음.",
+        "CI 비차단 경고: 일부 actions의 Node 20→24 강제 실행 및 ubuntu-latest 이미지 전환 안내."
       ]
     }
   ],
