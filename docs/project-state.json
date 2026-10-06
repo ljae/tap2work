@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 213,
+  "revision": 214,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -6930,6 +6930,23 @@
       ],
       "limitations": [
         "전체 Flutter 회귀와 운영 웹 후속 배포 진행 중. 네이티브 빌드 미실시."
+      ]
+    },
+    {
+      "at": "2026-10-06T12:16:14.000Z",
+      "type": "deployment",
+      "summary": "매뉴얼 공통 편집 모드 운영 배포 및 실제 길게 누르기·이동 창·완료 확인.",
+      "verification": [
+        "GitHub Pages 754b25cbcdfe98ff7c9fb688699caeb14080e9a5 / Actions 37460780882 success. 서버 223 tests, Flutter analyze·361 tests, UI links 47개 및 웹 빌드/배포 통과.",
+        "https://github.com/ljae/tap2work/actions/runs/37460780882",
+        "tap2.work index/bootstrap/main JS SHA-256가 해당 CI artifact와 모두 일치: bootstrap eb57361cab5b49fbe0af, main f376fc78123faea715e6.",
+        "인증된 운영 화면에서 실제 포인터 800ms 누르기로 Task 목록 편집 진입. 디렉토리 폴더에도 편집·위치 이동 버튼이 동시에 나타나고 Task 카드에는 이동·이름·상세·삭제 표시 확인.",
+        "위치 이동 아이콘으로 이동 위치 선택 창 확인 후 취소. 편집 완료 클릭 후 양쪽 편집 동작/완료 버튼이 사라지는 정상 보기 확인. 운영 항목의 실제 위치·내용·삭제는 변경하지 않았다.",
+        "복수 매장 버튼이 계정 왼쪽 8px 간격·동일 y=12/높이48px임을 운영 DOM 좌표로 확인. 매장 목록/새 매장 추가 창 검증도 완료."
+      ],
+      "limitations": [
+        "브라우저 자동화의 click delay는 일반 클릭으로 처리되어 포인터 down/800ms/up으로 실제 길게 누르기를 재검증했다. 창 닫기 애니메이션 중 조회 실패는 안정화 후 확인했다.",
+        "실제 새 매장 생성·계정 삭제는 격리 테스트로 검증했으며 운영에 테스트 데이터를 만들지 않았다. 네이티브 빌드/배포 미실시."
       ]
     }
   ],
