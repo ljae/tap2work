@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 216,
+  "revision": 217,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -6987,6 +6987,23 @@
       "limitations": [
         "동시 Flutter 실행 중 테스트 공용 asset의 ink_sparkle shader 찾기 실패가 1회 발생했다. 동시 실행을 끝내고 전체 365개를 단독 재실행하여 모두 통과했다.",
         "운영 배포 확인 진행 중. 네이티브 빌드 미실시."
+      ]
+    },
+    {
+      "at": "2026-10-06T12:56:20.524196+00:00",
+      "type": "deployment",
+      "summary": "D-097 TAP Water UI deployed to production.",
+      "verification": [
+        "GitHub Pages commit 6662c075ac867c1477c139cbc145c321c79f216d / Actions 37465717108 success; analysis, all tests, web build and deploy passed.",
+        "https://github.com/ljae/tap2work/actions/runs/37465717108",
+        "Live index/bootstrap/main SHA-256 match CI artifact. index b02aba4b244b590d871a43d45ca38566ef3803850f8422b7a473fe4f78eb4a78; bootstrap 5e259cc9fc7c2231695d; main 34ddeddedf6f5aa131d1.",
+        "Authenticated production UI confirmed fixed work part filters and removal of work title, drag guidance, preparation quantity and stock blocks.",
+        "Manual title and industry banner removed. Market, print, folder, TAP and backup controls share y=160 and height=32 in the observed desktop viewport.",
+        "Production schedule displayed the fixed weekly/monthly row and date/part headings without the old guidance, view label or info icon. Sticky coordinates and moving body passed widget tests at widths 320/1200 and text scale 1.5."
+      ],
+      "limitations": [
+        "Production browser changed to manual editing during verification; further interaction stopped. Live before/after scroll coordinates were not verified. Widget regression covers scrolling. No operational data changed.",
+        "Native build/deployment not performed."
       ]
     }
   ],
