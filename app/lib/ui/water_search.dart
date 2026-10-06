@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'components.dart';
 
-/// A quiet waterline follows focus; the logo remains the brand anchor.
+/// A quiet waterline follows focus beside a small, friendly water cup.
 class WaterSearch extends StatefulWidget {
   const WaterSearch({
     super.key,
@@ -66,13 +66,10 @@ class _WaterSearchState extends State<WaterSearch> {
         prefixIcon: Padding(
           padding: const EdgeInsets.all(10),
           child: ExcludeSemantics(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/branding/tap2work.png',
-                width: 32,
-                height: 32,
-              ),
+            child: SizedBox(
+              width: 32,
+              height: 32,
+              child: CustomPaint(painter: _WaterCup()),
             ),
           ),
         ),
@@ -122,4 +119,73 @@ class _Waterline extends CustomPainter {
 
   @override
   bool shouldRepaint(_Waterline oldDelegate) => focus != oldDelegate.focus;
+}
+
+/// Decorative vector artwork: no logo tile or light background.
+class _WaterCup extends CustomPainter {
+  const _WaterCup();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.scale(size.width / 32, size.height / 32);
+    final cup = Path()
+      ..moveTo(6, 5)
+      ..lineTo(26, 5)
+      ..lineTo(23.8, 25)
+      ..quadraticBezierTo(23.4, 29, 19.5, 29)
+      ..lineTo(12.5, 29)
+      ..quadraticBezierTo(8.6, 29, 8.2, 25)
+      ..close();
+    canvas.save();
+    canvas.clipPath(cup);
+    canvas.drawPath(
+      cup,
+      Paint()..color = AppColors.green.withValues(alpha: .06),
+    );
+    final water = Path()
+      ..moveTo(5, 14)
+      ..cubicTo(11, 10, 18, 17, 27, 12)
+      ..lineTo(27, 31)
+      ..lineTo(5, 31)
+      ..close();
+    canvas.drawPath(
+      water,
+      Paint()..color = AppColors.green.withValues(alpha: .26),
+    );
+    canvas.restore();
+    canvas.drawPath(
+      cup,
+      Paint()
+        ..color = const Color(0xFFB6E5D6)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8
+        ..strokeJoin = StrokeJoin.round,
+    );
+    final face = Paint()
+      ..color = const Color(0xFFB6E5D6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(const Offset(12.5, 19), const Offset(12.5, 20), face);
+    canvas.drawLine(const Offset(19.5, 19), const Offset(19.5, 20), face);
+    canvas.drawPath(
+      Path()
+        ..moveTo(14, 23)
+        ..quadraticBezierTo(16, 25, 18, 23),
+      face,
+    );
+    final cheek = Paint()..color = AppColors.accent.withValues(alpha: .65);
+    canvas.drawOval(const Rect.fromLTWH(9.5, 21, 3, 1.6), cheek);
+    canvas.drawOval(const Rect.fromLTWH(19.5, 21, 3, 1.6), cheek);
+    canvas.drawLine(
+      const Offset(9.5, 8),
+      const Offset(10, 12),
+      face..color = AppColors.white.withValues(alpha: .4),
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_WaterCup oldDelegate) => false;
 }

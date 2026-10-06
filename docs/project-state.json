@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 217,
+  "revision": 218,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1024,6 +1024,18 @@
       "previous": "업무/매뉴얼 제목과 분리된 도구·파트 행, 업무 준비수량/재고 블록, 매뉴얼 업종 배너, 근무표 안내/보기/정보 아이콘과 함께 스크롤하는 날짜·파트.",
       "next": "요청된 설명/블록을 표시에서 제거, 주요 동작을 상단에 정렬, 시간표 열 제목 pinned. 공통 ripple·선택 표면·검색 물결에 동작 줄이기 적용.",
       "reason": "사용자가 작업 공간 간소화·고정 헤더·TAP water 브랜드 표현을 구체적으로 요청했다.",
+      "source": "사용자 요청 · 2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "D-098",
+      "category": "UI·브랜드",
+      "title": "검색창은 어두운 배경에 귀여운 물컵만 표시",
+      "status": "confirmed",
+      "decision": "공통 매뉴얼 검색 앞의 흰 브랜드 이미지 대신 작은 웃는 물컵 벡터 아이콘을 사용한다.",
+      "previous": "상단 헤더와 검색창에서 동일한 수도꼭지·물컵 로고를 반복 표시.",
+      "next": "상단 브랜드 로고 유지, 검색창은 별도 배경 타일 없는 민트 윤곽·초록 물·미소·코랄 볼의 32px 컵만 표시.",
+      "reason": "사용자가 위아래 로고의 중복을 지적하고 어두운 배경과 귀여운 컵 모양을 요청했다.",
       "source": "사용자 요청 · 2026-10-06",
       "updatedAt": "2026-10-06"
     }
@@ -7004,6 +7016,18 @@
       "limitations": [
         "Production browser changed to manual editing during verification; further interaction stopped. Live before/after scroll coordinates were not verified. Widget regression covers scrolling. No operational data changed.",
         "Native build/deployment not performed."
+      ]
+    },
+    {
+      "at": "2026-10-06T12:59:44.429912+00:00",
+      "type": "implementation",
+      "summary": "검색창 중복 로고를 웃는 물컵 벡터로 교체.",
+      "verification": [
+        "Flutter analyze 통과; 기존 water_layout/menu_layout 6 tests 통과; UI links 47 통과.",
+        "390px 확대 글꼴·키보드·동작 줄이기 실제 폰트 캡처 테스트 통과. 어두운 검색창 위 컵만 표시되는 렌더링 확인."
+      ],
+      "limitations": [
+        "운영 웹 배포 진행 중. 네이티브 빌드 미실시."
       ]
     }
   ],
