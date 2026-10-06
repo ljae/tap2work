@@ -378,3 +378,12 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 | S54 | WorkspaceMenu 신규 추가 → 매장 이름 시트 → create_workspace(name, requestId, blank) → tap2work_create_workspace | 새 매장 owner 소속·빈 독립 데이터·중복 요청 재사용·성공 후 전환. 기존 매장 변경 없음 | workspace_test.dart, multiple_workspaces.test.mjs, multiple_workspaces.sql |
 
 S52 삭제 범위는 모든 소속 매장의 목록으로 확장한다. 유일 사장님 매장 삭제와 공유 매장 유지/개인정보 정리를 구분하고, 전체 scope가 변경되면 재확인한다. 현재 선택 매장만 삭제하는 기능이 아니다.
+
+## 2026-10-06 고정 상단 행·검색·근무표 (D-097 최신)
+
+| 연결 | source → control → action → consumer | 계약 | 검증 |
+| --- | --- | --- | --- |
+| 업무 파트 | workplace.parts → 업무 제목 대신 고정 전체파트/파트 chip → taskPart notifier → TapWorkspace.matchesPart | 화면 필터만 변경, 권한·데이터 변경 없음. 준비수량/하단 재고 확인은 업무에서 제거하고 우리매장 재고와 발주 유지 | menu_layout_test, tap_workspace_test, operations_test |
+| S11/S14/S45/S48 | 매뉴얼 현재 범위/권한 → 제목 없는 오른쪽 동작 행 → 폴더 추가/edit_manual_node, TAP 추가/save_manual_tap, 백업 복원, 마켓/인쇄 → 기존 저장 및 조회 | 18px/13px, 작은 폭 가로 스크롤. 업종 배너 제거. 길게 누르기 공통 편집/완료 유지 | manual_authoring_test, manual_phone_fix_test, manual_edit_mode_test |
+| S05/S27 | ScheduleController/날짜/visibleParts → 고정 주간·월간 선택 + pinned 날짜/파트 → setMonth/selectDay 및 기존 배정 편집 → 시간표 | SliverPersistentHeader와 본문 같은 열 너비. 안내·보기·정보 아이콘 제거. 영업시간·인원은 기존 저장 편집기로 연결 | water_layout_test, calendar_test, schedule_workflow_test, schedule_gesture_test |
+| 검색 | manualSearch projection → WaterSearch → manualQuery → 각 화면의 검색 결과 | 브랜드 로고/물결 표현만 변경, 입력·지우기·접근성 유지 | water_layout_test, menu_layout_test, ui_ux_audit_test |

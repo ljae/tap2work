@@ -1,3 +1,4 @@
+import 'water_search.dart';
 import 'manual_market_screen.dart';
 import 'workspace_menu.dart';
 import 'payroll_settings_screen.dart';
@@ -44,11 +45,13 @@ class _OperationsScreenState extends State<OperationsScreen> {
     detailRevision.value++;
   }
 
+  final taskPart = ValueNotifier<String?>(null);
   int tab = 0;
   final manualSearch = TextEditingController();
   String manualQuery = '';
   @override
   void dispose() {
+    taskPart.dispose();
     manualSearch.dispose();
     detailRevision.dispose();
     super.dispose();
@@ -182,32 +185,13 @@ class _OperationsScreenState extends State<OperationsScreen> {
     child: Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1240),
-        child: TextField(
-          key: const ValueKey('global-manual-search'),
+        child: WaterSearch(
           controller: manualSearch,
           onChanged: (value) => updateView(() => manualQuery = value),
-          decoration: InputDecoration(
-            hintText: '매뉴얼 검색',
-            prefixIcon: const Icon(
-              CupertinoIcons.search,
-              color: AppColors.green,
-            ),
-            hintStyle: const TextStyle(color: AppColors.green),
-            suffixIcon: manualQuery.isEmpty
-                ? null
-                : IconButton(
-                    tooltip: '검색 지우기',
-                    icon: const Icon(Icons.close),
-                    onPressed: () => updateView(() {
-                      manualSearch.clear();
-                      manualQuery = '';
-                    }),
-                  ),
-            isDense: true,
-            filled: true,
-            fillColor: AppColors.lime,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-          ),
+          onClear: () => updateView(() {
+            manualSearch.clear();
+            manualQuery = '';
+          }),
         ),
       ),
     ),
@@ -483,7 +467,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                 ),
                               ],
                             ),
-                          if (ops.data != null && tab != 1 && tab != 2) ...[
+                          if (ops.data != null && tab == 3) ...[
                             Padding(
                               padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
                               child: Center(
@@ -507,6 +491,60 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               ),
                             ),
                           ],
+                          if (tab == 0 && manualQuery.trim().isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 1240,
+                                  ),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    height: 48,
+                                    child: ValueListenableBuilder<String?>(
+                                      valueListenable: taskPart,
+                                      builder: (context, selected, _) =>
+                                          SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Row(
+                                              spacing: 8,
+                                              children: [
+                                                ChoiceChip(
+                                                  label: const Text('전체파트'),
+                                                  selected: selected == null,
+                                                  chipAnimationStyle:
+                                                      AppMotion.chipStyle(
+                                                        context,
+                                                      ),
+                                                  onSelected: (_) =>
+                                                      taskPart.value = null,
+                                                ),
+                                                for (final part
+                                                    in storeParts(ops).where(
+                                                      (p) =>
+                                                          p['hidden'] != true,
+                                                    ))
+                                                  ChoiceChip(
+                                                    label: Text(part['name']),
+                                                    selected:
+                                                        selected == part['id'],
+                                                    chipAnimationStyle:
+                                                        AppMotion.chipStyle(
+                                                          context,
+                                                        ),
+                                                    onSelected: (_) =>
+                                                        taskPart.value =
+                                                            part['id'],
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           Expanded(
                             child: AppContentTransition(
                               trigger: (
@@ -536,6 +574,19 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                     )
                                   : manualQuery.trim().isNotEmpty
                                   ? manualResultList()
+                                  : tab == 2
+                                  ? Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        24,
+                                        16,
+                                        24,
+                                        0,
+                                      ),
+                                      child: StaffWorkspace(
+                                        ops: ops,
+                                        work: widget.work,
+                                      ),
+                                    )
                                   : RefreshIndicator(
                                       onRefresh: () => ops.refresh(),
                                       child: SingleChildScrollView(
@@ -916,6 +967,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     TapWorkspace(
       key: ValueKey(ops.actorId),
       ops: ops,
+      partFilter: taskPart,
       onStock: (task) async {
         final stock = item(task['itemId']);
         if (stock != null) await checkStock(stock, taskId: task['id']);

@@ -489,3 +489,13 @@ OperationsController.refresh는 HTTP 오류 응답의 검증된 API error 문구
 2026-10-06 야간 영업 입력 보정: 숫자 휠에서 시작 시각을 선택하면 종료 시각을 새 시작 기준의 같은 날/다음 날로 다시 계산한다. 종료 10:00 → 시작 19:00 순서에서도 월~토 19:00–다음 날 10:00를 저장하며 교대 분할·businessDayStart·근무표에 연결한다. 드래그의 연속 시간축 제약과 서버 저장/권한/CAS 계약은 유지한다. business_hours_slider_test의 양방향 입력 순서, calendar_test의 저장 후 표시/재조회, default_assignments.test의 야간 배정 회귀로 검증한다.
 
 2026-10-06 전체 영업시간 저장 보정: 영업시간 탭에서 전체를 명시적으로 선택하면 현재 표시된 시작·종료와 같은 교대 수의 경계를 모든 영업일 초안에 복사한다. 시간이 같아 보이더라도 조작 없이 저장한 다른 요일의 예전 값이 남지 않는다. 다른 교대 수는 수를 유지해 해당 영업 구간으로 재분할한다. 요일별 시간대 ID·필요 인원·크루·추가 시간대 및 휴무일을 유지하며 실제 저장은 기존 일주일 설정 저장/CAS를 따른다. 인원 배치 탭의 범위 선택은 영업시간을 변경하지 않는다. S03 source: workplace.days → 전체 선택/selectHoursScope → changeHours → save_workplace_hours → 근무표. business_hours_slider_test 회귀로 검증한다.
+
+## 2026-10-06 상단 동작 행과 TAP Water 표현
+
+D-097: 업무 제목을 제거하고 OperationsScreen의 고정 48px 행에 매장 파트 필터를 배치한다. 선택값은 화면 소유 ValueNotifier로 TapWorkspace에 전달하며 기존 파트 분류·권한은 유지한다. 업무의 준비수량/발주 후 재고 확인 블록은 표시하지 않는다. 해당 데이터·수량 기록 API·우리매장의 재고와 발주 화면은 유지한다.
+
+매뉴얼은 제목과 업종 시작 배너를 제거한다. 마켓·인쇄·폴더 추가·TAP 추가·백업 복원·편집 중 완료를 같은 상단 행 오른쪽에 배치하고 18px 아이콘/13px 글자를 공유한다. 좁은 폭에서는 동작 행만 가로 스크롤한다. 폴더/TAP 추가와 백업의 기존 저장 경계, 공통 편집 모드(D-096)는 유지한다.
+
+StaffWorkspace는 bounded CalendarScreen을 사용한다. 주간/월간 행은 스크롤 밖에 고정하고 나머지는 CustomScrollView로 구성한다. 주간 시간표는 SliverMainAxisGroup 안의 SliverPersistentHeader(pinned)로 날짜/파트 두 행을 고정한다. 머리글과 시간표는 동일한 partWidths를 사용해 열을 맞추며 시간축 36px도 유지한다. 월간·출퇴근 이력·휴무일은 동일 뷰포트의 일반 sliver다. 단독 상세/기존 테스트의 비제한 높이 사용은 scrollable=false로 지원한다. 안내/보기/공휴일 정보 아이콘만 제거하며 공휴일 로딩과 날짜 표시는 유지한다.
+
+공통 WaterSearch는 실제 수도꼭지·물컵 브랜드 이미지, 어두운 표면과 초록 물결선을 사용한다. 포커스 변경 때만 360ms 물결선/테두리 전환을 재생한다. 공통 InkRipple 및 하단 메뉴의 초록 선택 표면을 사용하며 기존 버튼·시트·화면 전환을 재사용한다. disableAnimations에서는 물결 상태를 즉시 바꾸고 ripple을 끈다. 검색·저장·완료 동작은 모션과 독립적이다.

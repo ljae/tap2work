@@ -43,3 +43,7 @@
 ## 길게 눌러 편집
 
 업무·매뉴얼·근무표의 DirectEditFrame은 편집 권한이 있을 때만 180ms 역방향 반복의 작은 회전을 보여준다. 표시는 테두리와 실제 이름/휴지통/이동 동작을 동반한다. 동작 줄이기에서는 정지 표시, 편집 완료·권한 회수·TickerMode 비활성·dispose 시 중지한다. 화면 전체를 매 프레임 다시 구성하지 않고 AnimatedBuilder child를 재사용한다. `flutter-animations`의 lifecycle/reduced-motion 지침과 `flutter-add-widget-test`의 제스처 검증을 적용했다.
+
+## 2026-10-06 TAP Water
+
+`WaterSearch`는 실제 물컵 로고 옆 검색 입력에 포커스가 생기거나 사라질 때 물결선 위상·진폭과 테두리/표면을 360ms easeOutCubic으로 전환한다. 입력 글자별 반복 재생이나 상시 ticker는 없다. 공통 `AppMotionScope`는 InkRipple을 사용하고 하단 메뉴는 160ms 초록 선택 표면으로 반응한다. 기존 눌림·시트·화면 전환을 함께 유지한다. 동작 줄이기에서는 물결 duration=0, NoSplash로 바뀐다. `water_layout_test.dart`에서 검색 입력/지우기와 reduced motion을 검증한다.

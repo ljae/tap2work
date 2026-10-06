@@ -81,7 +81,8 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('공유 체크리스트'));
         await tester.pumpAndSettle();
-        expect(find.text('재고 수량 확인하기'), findsOneWidget);
+        expect(find.text('재고 수량 확인하기'), findsNothing);
+        expect(find.textContaining('TAP ·'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );

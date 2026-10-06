@@ -35,7 +35,7 @@ void main() {
         expect(find.text('위치 이동'), findsOneWidget);
         if (kind != 'group') expect(find.text('삭제'), findsOneWidget);
         if (kind == 'group') {
-          await tester.tap(find.text('TAP 추가'));
+          await tester.tap(find.text('TAP 추가').last);
           await tester.pumpAndSettle();
           expect(find.byType(ManualTapEditor), findsOneWidget);
           expect(
@@ -77,7 +77,7 @@ void main() {
       findsOneWidget,
     );
     await click(tester, 'manual-actions-group:empty');
-    expect(find.text('TAP 추가'), findsOneWidget);
+    expect(find.text('TAP 추가').last, findsOneWidget);
     expect(find.text('삭제'), findsOneWidget);
   });
   testWidgets(

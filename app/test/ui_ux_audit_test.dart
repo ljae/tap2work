@@ -71,7 +71,7 @@ void main() {
           await tester.pumpAndSettle();
           await tester.tap(find.byKey(ValueKey('floating-menu-$index')));
           await tester.pumpAndSettle();
-          if (index != 2) {
+          if (index == 3) {
             expect(
               tester
                   .widget<Text>(find.byKey(const ValueKey('menu-title')))

@@ -9,13 +9,18 @@ import '../state/operations_controller.dart';
 import 'checklist_board.dart' show rowsOf, stampOf;
 import 'components.dart';
 import 'tap_card.dart';
-import 'prepared_inventory.dart';
 
 /// TAP그룹 folders filter the TAP board; each TAP opens its Task.
 /// Existing IDs, role checks and completion APIs remain the source of truth.
 class TapWorkspace extends StatefulWidget {
-  const TapWorkspace({super.key, required this.ops, required this.onStock});
+  const TapWorkspace({
+    super.key,
+    required this.ops,
+    required this.onStock,
+    this.partFilter,
+  });
   final OperationsController ops;
+  final ValueNotifier<String?>? partFilter;
   final Future<void> Function(Json) onStock;
   @override
   State<TapWorkspace> createState() => _TapWorkspaceState();
@@ -23,7 +28,19 @@ class TapWorkspace extends StatefulWidget {
 
 class _TapWorkspaceState extends State<TapWorkspace> {
   String? folderId, taskId;
-  String? selectedPart;
+  String? localPart;
+  String? get selectedPart => widget.partFilter?.value ?? localPart;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.partFilter?.addListener(partChanged);
+  }
+
+  void partChanged() {
+    if (mounted) setState(() {});
+  }
+
   String? selectedStepId;
   String? celebratedStepId, celebratedTaskId;
   int completionTick = 0;
@@ -72,6 +89,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   @override
   void dispose() {
     celebrationTimer?.cancel();
+    widget.partFilter?.removeListener(partChanged);
     super.dispose();
   }
 
@@ -434,14 +452,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               padding: const EdgeInsets.only(top: 8),
               child: Information('요청사항 · ${task['customer_memo']}'),
             ),
-          if (ops.canEditTasks)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                '손잡이를 끌어 우선순위를 바꿔요. 내용은 매뉴얼에서 수정해요.',
-                style: AppText.caption,
-              ),
-            ),
           if (task == null && !ops.canEditTasks)
             FilterChip(
               label: const Text('내 담당만'),
@@ -449,9 +459,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               onSelected: (v) => setState(() => mineOnly = v),
             ),
           if (task == null) const SizedBox(height: 12),
-          if (folder == null && task == null) PreparedInventory(ops: ops),
+
           ...[
-            if (task == null) ...[_folderBar(), const SizedBox(height: 16)],
+            if (task == null && widget.partFilter == null) ...[
+              _folderBar(),
+              const SizedBox(height: 16),
+            ],
             const SizedBox(height: 8),
             Wrap(
               spacing: 12,
@@ -500,7 +513,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               ),
             ),
           ],
-          if (folder == null && task == null) _stock(),
         ],
       );
     },
@@ -1150,7 +1162,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               chipAnimationStyle: AppMotion.chipStyle(context),
               label: const Text('전체 파트'),
               selected: selectedPart == null,
-              onSelected: (_) => setState(() => selectedPart = null),
+              onSelected: (_) => setState(() => localPart = null),
             ),
             for (final part in storeParts(
               ops,
@@ -1159,7 +1171,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 chipAnimationStyle: AppMotion.chipStyle(context),
                 label: Text(part['name']),
                 selected: selectedPart == part['id'],
-                onSelected: (_) => setState(() => selectedPart = part['id']),
+                onSelected: (_) => setState(() => localPart = part['id']),
               ),
           ],
         ),
@@ -1489,45 +1501,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           ),
     ],
   );
-
-  Widget _stock() {
-    final stock = ops
-        .rows('tasks')
-        .where((t) => t['kind'] == 'stock' && t['completedAt'] == null);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final task in stock)
-          Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: Surface(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    task['title'],
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    '발주 후 재고 확인',
-                    style: TextStyle(fontSize: 13, color: AppColors.muted),
-                  ),
-                  PressBounce(
-                    child: TextButton(
-                      onPressed: ops.busy ? null : () => widget.onStock(task),
-                      child: const Text('재고 수량 확인하기'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
   Future<void> _toggle(Json task, Json step) async {
     if (ops.busy) return;
     final currentTask = groups.where((t) => t['id'] == task['id']).firstOrNull;

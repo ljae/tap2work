@@ -226,20 +226,13 @@ void main() {
         expect(tester.getSize(axis).width, 36);
         final origin = tester.getTopLeft(axis);
         expect(find.text('9/28 월'), findsWidgets);
-        final scroll =
-            find
-                    .byType(SingleChildScrollView)
-                    .evaluate()
-                    .where(
-                      (e) =>
-                          (e.widget as SingleChildScrollView).scrollDirection ==
-                          Axis.horizontal,
-                    )
-                    .last
-                    .widget
-                as SingleChildScrollView;
-        scroll.controller!.jumpTo(500);
-        await tester.pumpAndSettle();
+        final kitchen = tester.getRect(
+          find.byKey(const ValueKey('roster-part-heading-kitchen')),
+        );
+        final hall = tester.getRect(
+          find.byKey(const ValueKey('roster-part-heading-hall')),
+        );
+        expect(kitchen.right, closeTo(hall.left, .1));
         expect(tester.getTopLeft(axis), origin);
         expect(find.text('주방'), findsWidgets);
         expect(find.text('홀'), findsWidgets);

@@ -86,6 +86,10 @@ class AppMotionScope extends StatelessWidget {
     return _MotionMarker(
       child: Theme(
         data: theme.copyWith(
+          splashFactory: AppMotion.reduced(context)
+              ? NoSplash.splashFactory
+              : InkRipple.splashFactory,
+          splashColor: const Color(0x2446C69B),
           expansionTileTheme: theme.expansionTileTheme.copyWith(
             expansionAnimationStyle: AppMotion.dialogStyle(context),
           ),

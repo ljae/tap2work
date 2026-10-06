@@ -346,8 +346,13 @@ void main() {
     await tester.pumpWidget(
       Tap2workApp(controller: WorkController(MemoryStore()), operations: ops),
     );
-    await tester.ensureVisible(find.text('재고 수량 확인하기'));
-    await tester.tap(find.text('재고 수량 확인하기'));
+    await tester.tap(find.byKey(const ValueKey('floating-menu-3')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('재고와 발주'));
+    await tester.tap(find.text('재고와 발주'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('수량 확인').first);
+    await tester.tap(find.text('수량 확인').first);
     await tester.pumpAndSettle();
     await tester.enterText(
       find.descendant(
@@ -359,7 +364,7 @@ void main() {
     await tester.tap(find.text('확인하고 저장'));
     await tester.pumpAndSettle();
     expect(submitted!['quantity'], 3.5);
-    expect(submitted!['taskId'], 'stock-rice');
+    expect(submitted!['action'], 'check_stock');
     expect(tester.takeException(), isNull);
   });
 }

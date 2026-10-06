@@ -269,7 +269,7 @@ class FloatingMenu extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: i == selectedIndex
-                                      ? AppColors.elevated
+                                      ? AppColors.lime
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(17),
                                 ),

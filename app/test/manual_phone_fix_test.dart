@@ -112,7 +112,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('편집 완료').hitTestable(), findsOneWidget);
         final titleY = tester
-            .getCenter(find.byKey(const ValueKey('menu-title')))
+            .getCenter(find.byKey(const ValueKey('manual-header')))
             .dy;
         for (final key in [
           'manual-market-button',

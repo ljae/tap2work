@@ -16,7 +16,8 @@ class StaffWorkspace extends StatefulWidget {
 
 class _StaffWorkspaceState extends State<StaffWorkspace> {
   @override
-  Widget build(BuildContext context) => CalendarScreen(operations: widget.ops);
+  Widget build(BuildContext context) =>
+      CalendarScreen(operations: widget.ops, scrollable: true);
 }
 
 class HiringDrafts extends StatelessWidget {

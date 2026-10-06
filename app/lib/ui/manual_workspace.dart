@@ -1242,8 +1242,6 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   Widget header() => Row(
     key: const ValueKey('manual-header'),
     children: [
-      const Text('매뉴얼', key: ValueKey('menu-title'), style: AppText.title),
-      const SizedBox(width: 8),
       Expanded(
         child: SingleChildScrollView(
           key: const ValueKey('manual-header-actions'),
@@ -1273,8 +1271,55 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         ),
                       ),
                 icon: const Icon(Icons.print_outlined, size: 18),
-                label: const Text('인쇄·PDF'),
+                label: const Text('인쇄·PDF', style: AppText.caption),
               ),
+              if (!recipes && ops.canEditTasks)
+                TextButton.icon(
+                  key: const ValueKey('manual-add-folder'),
+                  icon: const Icon(Icons.create_new_folder_outlined, size: 18),
+                  onPressed: ops.busy
+                      ? null
+                      : () async {
+                          widget.onClearSearch?.call();
+                          setState(() {
+                            editing = true;
+                            showTree = true;
+                          });
+                          await directEditNode(
+                            context,
+                            ops,
+                            'edit_manual_node',
+                            {'kind': 'group', 'operation': 'add'},
+                            '',
+                          );
+                        },
+                  label: const Text('폴더 추가', style: AppText.caption),
+                ),
+              if (!recipes && ops.canEditTasks) ...[
+                TextButton.icon(
+                  key: const ValueKey('manual-add-tap'),
+                  onPressed: ops.busy
+                      ? null
+                      : () => showAppSheet(
+                          context,
+                          builder: (_) =>
+                              ManualTapEditor(ops: ops, folderId: scopeGroup),
+                        ),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('TAP 추가', style: AppText.caption),
+                ),
+                TextButton.icon(
+                  key: const ValueKey('manual-backup'),
+                  onPressed: ops.busy
+                      ? null
+                      : () => showAppSheet(
+                          context,
+                          builder: (_) => ChecklistBackupScreen(ops: ops),
+                        ),
+                  icon: const Icon(Icons.restore, size: 18),
+                  label: const Text('백업 복원', style: AppText.caption),
+                ),
+              ],
               if (!recipes && ops.canEditTasks && editing)
                 TextButton(
                   key: const ValueKey('manual-edit-done'),
@@ -1305,8 +1350,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 760;
-              final toolsVisible =
-                  constraints.maxHeight >= 440 && widget.query.trim().isEmpty;
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -1347,50 +1391,11 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       ),
                     ],
                   ),
-                  if (!recipes && ops.canEditTasks && toolsVisible && !editing)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        ops.data?['manualBusinessProfile']?['specialization'] ??
-                            '내 사업장에 맞게 시작하기',
-                        style: AppText.body,
-                      ),
-                      subtitle: const Text(
-                        '업종 선택 · 필요한 매뉴얼 담기 · 업무별 구성',
-                        style: AppText.caption,
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => showAppSheet(
-                        context,
-                        builder: (_) =>
-                            ManualMarketScreen(ops: ops, setup: true),
-                      ),
-                    ),
                   if (!recipes)
                     Wrap(
                       spacing: 8,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        if (ops.canEditTasks && toolsVisible && !editing) ...[
-                          TextButton.icon(
-                            onPressed: () => showAppSheet(
-                              context,
-                              builder: (_) => ManualTapEditor(
-                                ops: ops,
-                                folderId: scopeGroup,
-                              ),
-                            ),
-                            icon: const Icon(Icons.add),
-                            label: const Text('운영 매뉴얼 추가'),
-                          ),
-                          TextButton(
-                            onPressed: () => showAppSheet(
-                              context,
-                              builder: (_) => ChecklistBackupScreen(ops: ops),
-                            ),
-                            child: const Text('백업·복원'),
-                          ),
-                        ],
                         if (!wide)
                           PressBounce(
                             child: TextButton.icon(
@@ -1420,31 +1425,6 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                               scopeTap = null;
                               selectedId = null;
                             }),
-                          ),
-                        if (ops.canEditTasks)
-                          TextButton.icon(
-                            key: const ValueKey('manual-add-folder'),
-                            icon: const Icon(
-                              Icons.create_new_folder_outlined,
-                              size: 18,
-                            ),
-                            onPressed: ops.busy
-                                ? null
-                                : () async {
-                                    widget.onClearSearch?.call();
-                                    setState(() {
-                                      editing = true;
-                                      showTree = true;
-                                    });
-                                    await directEditNode(
-                                      context,
-                                      ops,
-                                      'edit_manual_node',
-                                      {'kind': 'group', 'operation': 'add'},
-                                      '',
-                                    );
-                                  },
-                            label: const Text('폴더 추가'),
                           ),
                         if (editing && ops.readOnly)
                           const Text(

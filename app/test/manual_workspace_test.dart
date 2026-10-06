@@ -257,7 +257,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await click(tester, 'manual-actions-group:empty');
-      expect(find.text('TAP 추가'), findsOneWidget);
+      expect(find.text('TAP 추가').last, findsOneWidget);
       expect(posts, 0);
       expect(tester.takeException(), isNull);
     },
