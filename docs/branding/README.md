@@ -7,3 +7,7 @@
 `python3 app/assets/branding/generate_brand.py`는 이 마스터에서 256px 루트/Flutter 로고, 웹 favicon/PWA, Android launcher, iOS AppIcon 크기를 생성한다. 모두 최적화된 PNG이며 iOS에는 alpha가 없다. PWA maskable은 safe circle에 전체 구도가 들어가도록 여백을 둔다. `scripts/sync-branding.mjs`는 루트와 Flutter 로고를 동기화한다. 플랫폼 필수 크기는 유지하고 이전 디자인 파일은 배포하지 않는다.
 
 공통 헤더/로그인은 48px 이미지와 `TAP Work` 워드마크를 사용한다. iOS/Android 표시 이름과 웹/PWA/개인정보 페이지도 동일하다. Bundle ID는 `com.tap2work.tap2work`이며 내부 저장 키·패키지 이름·도메인과 별개다. App Store용은 `app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png`이다.
+
+## 검색창 녹색 컵 · 2026-10-06
+
+사용자 제공 `TapWater_green.png`에서 사용자 승인으로 체크무늬 배경을 제거했다. 내장 image_gen의 background-extraction 편집으로 수도꼭지·녹색 물방울·컵·새싹·기포·바닥선을 보존하고 투명 alpha를 적용했다. 최종 자산: `app/assets/branding/tap_water_green.png`. 검색창에 32px contain으로 사용하며 앱 아이콘/상단 로고는 별개다. 편집 프롬프트: “Remove baked-in checkerboard and white haze; preserve faucet, green droplet, glass, sprout, bubbles and base; transparent alpha; center mark with small padding; no redesign or text.”

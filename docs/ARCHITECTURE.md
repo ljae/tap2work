@@ -498,6 +498,6 @@ D-097: 업무 제목을 제거하고 OperationsScreen의 고정 48px 행에 매�
 
 StaffWorkspace는 bounded CalendarScreen을 사용한다. 주간/월간 행은 스크롤 밖에 고정하고 나머지는 CustomScrollView로 구성한다. 주간 시간표는 SliverMainAxisGroup 안의 SliverPersistentHeader(pinned)로 날짜/파트 두 행을 고정한다. 머리글과 시간표는 동일한 partWidths를 사용해 열을 맞추며 시간축 36px도 유지한다. 월간·출퇴근 이력·휴무일은 동일 뷰포트의 일반 sliver다. 단독 상세/기존 테스트의 비제한 높이 사용은 scrollable=false로 지원한다. 안내/보기/공휴일 정보 아이콘만 제거하며 공휴일 로딩과 날짜 표시는 유지한다.
 
-공통 WaterSearch는 로고를 반복하지 않는 웃는 물컵 벡터 아이콘, 어두운 표면과 초록 물결선을 사용한다. 포커스 변경 때만 360ms 물결선/테두리 전환을 재생한다. 공통 InkRipple 및 하단 메뉴의 초록 선택 표면을 사용하며 기존 버튼·시트·화면 전환을 재사용한다. disableAnimations에서는 물결 상태를 즉시 바꾸고 ripple을 끈다. 검색·저장·완료 동작은 모션과 독립적이다.
+공통 WaterSearch는 로고를 반복하지 않는 사용자 제공 TapWater_green의 배경 제거 PNG, 어두운 표면과 초록 물결선을 사용한다. 포커스 변경 때만 360ms 물결선/테두리 전환을 재생한다. 공통 InkRipple 및 하단 메뉴의 초록 선택 표면을 사용하며 기존 버튼·시트·화면 전환을 재사용한다. disableAnimations에서는 물결 상태를 즉시 바꾸고 ripple을 끈다. 검색·저장·완료 동작은 모션과 독립적이다.
 
 2026-10-06 매뉴얼 본문 높이: ManualWorkspace 외부 하단 24px 여백을 제거하고 남은 본문 높이를 하단 내비게이션 경계까지 사용한다. 디렉토리/Task/레시피는 내부 스크롤과 콘텐츠 여백을 유지한다.

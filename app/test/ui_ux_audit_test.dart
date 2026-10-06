@@ -68,6 +68,12 @@ void main() {
               key.currentContext!,
             ),
           );
+          await tester.runAsync(
+            () => precacheImage(
+              const AssetImage('assets/branding/tap_water_green.png'),
+              key.currentContext!,
+            ),
+          );
           await tester.pumpAndSettle();
           await tester.tap(find.byKey(ValueKey('floating-menu-$index')));
           await tester.pumpAndSettle();

@@ -1,8 +1,17 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Credentials live outside the repository and are provided only to release builds.
+val uploadSigning = Properties()
+val uploadSigningPath = System.getenv("TAP_ANDROID_SIGNING_PROPERTIES")
+if (!uploadSigningPath.isNullOrBlank()) {
+    file(uploadSigningPath).inputStream().use { uploadSigning.load(it) }
 }
 
 android {
@@ -30,13 +39,23 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+    signingConfigs {
+        if (!uploadSigningPath.isNullOrBlank()) {
+            create("upload") {
+                storeFile = file(requireNotNull(uploadSigning.getProperty("storeFile")))
+                storePassword = requireNotNull(uploadSigning.getProperty("storePassword"))
+                keyAlias = requireNotNull(uploadSigning.getProperty("keyAlias"))
+                keyPassword = requireNotNull(uploadSigning.getProperty("keyPassword"))
+            }
         }
     }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.findByName("upload")
+        }
+    }
+
 }
 
 flutter {
