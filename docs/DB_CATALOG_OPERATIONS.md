@@ -33,7 +33,7 @@ npm run catalog:grant-role -- --user OTHER_AUTH_UUID --role reviewer --execute
 npm run catalog:grant-role -- --user PUBLISHER_AUTH_UUID --role publisher --execute
 ```
 
-공급자 등록은 관리자의 `SUPABASE_ACCESS_TOKEN` 경계다. 조사 에이전트에는 이 토큰/서버 키를 전달하지 않는다. 운영 계정의 구체 UUID는 버전 관리 문서에 기록하지 않는다. 이번 초기화에서는 공급자 계정을 임의 지정하지 않았다.
+공급자 등록은 관리자의 `SUPABASE_ACCESS_TOKEN` 경계다. 조사 에이전트에는 이 토큰/서버 키를 전달하지 않는다. 운영 계정의 구체 UUID는 버전 관리 문서에 기록하지 않는다. 사용자가 지정한 기존 계정에 editor/reviewer/publisher 역할을 등록했다. 같은 계정이 작성한 초안을 승인할 수 없으므로 해당 초안의 독립 검토에는 다른 등록 계정이 필요하다.
 
 ## 콘텐츠 발행
 
@@ -78,4 +78,4 @@ npm run test:console
 npm run check
 ```
 
-공급자 계정 등록과 실제 콘텐츠 검토/발행은 다음 운영 단계다. 이번 운영 초기화는 기존 발행본 보존이며 시험 콘텐츠를 stable에 발행하지 않았다. 별도 source 자료 관리/철회 표시/현장 피드백 UI 및 정기 에이전트 스케줄은 후속 구현이다.
+지정된 공급자 계정 등록은 완료했다. 별도 독립 검토 계정 지정과 실제 콘텐츠 검토/발행은 다음 운영 단계다. 이번 운영 초기화는 기존 발행본 보존이며 시험 콘텐츠를 stable에 발행하지 않았다. 별도 source 자료 관리/철회 표시/현장 피드백 UI 및 정기 에이전트 스케줄은 후속 구현이다.
