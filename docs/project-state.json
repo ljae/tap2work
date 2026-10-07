@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 228,
+  "revision": 229,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7179,7 +7179,22 @@
       "limitations": [
         "웹 운영 후속 배포 진행 중. 네이티브 배포 미실시."
       ]
+    },
+    {
+      "at": "2026-10-07T10:29:59.033602+00:00",
+      "type": "deployment",
+      "summary": "우리매장 제목 제거·매뉴얼 기준 도구 행/그룹·녹색 Cupertino 검색 아이콘 웹 배포 완료.",
+      "verification": [
+        "GitHub Pages 9a30847b577de47d96ac205ab83689b35981166f / Actions 37607215379 success. 전체 CI 검사·웹 빌드·배포 통과.",
+        "https://github.com/ljae/tap2work/actions/runs/37607215379",
+        "tap2.work index/bootstrap/main SHA-256가 해당 CI artifact와 일치. bootstrap 5dad64f3c021ef631a85, main c3f5d55355af72680c01.",
+        "로컬 Flutter analyze, 전체 365 tests, 서버 223 tests, check/UI links 47개 및 관련 캡처/위젯 82 tests 통과."
+      ],
+      "limitations": [
+        "웹만 배포; iOS/Android 스토어·Edge/DB 변경 없음.",
+        "운영 인증 UI 직접 클릭 검증 미실시. 동작은 위젯 회귀, 시각은 로컬 캡처로 검증."
+      ]
     }
   ],
-  "updatedAt": "2026-10-07T10:23:31.328766+00:00"
+  "updatedAt": "2026-10-07T10:29:59.033602+00:00"
 }
