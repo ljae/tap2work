@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 226,
+  "revision": 227,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7148,7 +7148,22 @@
       "limitations": [
         "GitHub Pages 배포·운영 asset 일치 확인 진행 중. 네이티브 스토어 빌드/배포는 이번 웹 배포 범위 밖."
       ]
+    },
+    {
+      "at": "2026-10-07T10:17:19.610785+00:00",
+      "type": "deployment",
+      "summary": "근무표 고정 행·공통 아이콘+문자 버튼·검색 컵 확대 운영 웹 배포 완료.",
+      "verification": [
+        "GitHub Pages commit 0054859405bb6da64a884971e5884bd5aa04c05c / Actions 37605657370 success. CI 서버·Flutter 분석·전체 테스트·웹 빌드·배포 통과.",
+        "https://github.com/ljae/tap2work/actions/runs/37605657370",
+        "tap2.work index.html, flutter_bootstrap.abb9bdda5be8c064a16e.js, main.5911f07bf6f0002d30ca.dart.js 및 녹색 PNG의 SHA-256가 CI artifact와 모두 일치.",
+        "로컬 전체 Flutter 365 tests, 서버 223 tests, check/UI links 47개, 웹 빌드 통과."
+      ],
+      "limitations": [
+        "사용자 지시에 따라 웹만 배포. iOS/Android 빌드·스토어 업로드, 서버 Edge/DB 변경 없음.",
+        "운영 인증 화면의 직접 클릭 검증은 미실시. 고정 행·검색·설정 진입/저장은 위젯 회귀와 로컬 캡처로 검증."
+      ]
     }
   ],
-  "updatedAt": "2026-10-07T10:10:30.632429+00:00"
+  "updatedAt": "2026-10-07T10:17:19.610785+00:00"
 }
