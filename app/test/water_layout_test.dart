@@ -98,6 +98,8 @@ void main() {
         ),
       ),
     );
+    expect(find.byKey(const ValueKey('manual-search-icon')), findsOneWidget);
+    expect(find.byType(Image), findsNothing);
     await tester.enterText(find.byType(TextField), '청소');
     await tester.pumpAndSettle();
     expect(query, '청소');

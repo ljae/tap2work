@@ -68,23 +68,10 @@ void main() {
               key.currentContext!,
             ),
           );
-          await tester.runAsync(
-            () => precacheImage(
-              const AssetImage('assets/branding/tap_water_green.png'),
-              key.currentContext!,
-            ),
-          );
           await tester.pumpAndSettle();
           await tester.tap(find.byKey(ValueKey('floating-menu-$index')));
           await tester.pumpAndSettle();
-          if (index == 3) {
-            expect(
-              tester
-                  .widget<Text>(find.byKey(const ValueKey('menu-title')))
-                  .data,
-              ['업무', '매뉴얼', '근무표', '우리매장'][index],
-            );
-          }
+          expect(find.byKey(const ValueKey('menu-title')), findsNothing);
           Future<void> snapshot(String state) async {
             if (capture) {
               await tester.runAsync(() async {

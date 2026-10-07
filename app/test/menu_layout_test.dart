@@ -29,15 +29,15 @@ void main() {
       final hall = find.byKey(const ValueKey('tap-daily-broth'));
       expect(kitchen, findsOneWidget);
       expect(hall, findsOneWidget);
-      await tester.tap(find.widgetWithText(ChoiceChip, '주방'));
+      await tester.tap(find.widgetWithText(TextButton, '주방'));
       await tester.pumpAndSettle();
       expect(kitchen, findsOneWidget);
       expect(hall, findsNothing);
-      await tester.tap(find.widgetWithText(ChoiceChip, '홀'));
+      await tester.tap(find.widgetWithText(TextButton, '홀'));
       await tester.pumpAndSettle();
       expect(kitchen, findsNothing);
       expect(hall, findsOneWidget);
-      await tester.tap(find.widgetWithText(ChoiceChip, '전체파트'));
+      await tester.tap(find.widgetWithText(TextButton, '전체파트'));
       await tester.pumpAndSettle();
       expect(kitchen, findsOneWidget);
       expect(hall, findsOneWidget);
@@ -81,12 +81,10 @@ void main() {
         for (var index = 0; index < 4; index++) {
           await tester.tap(find.byKey(ValueKey('floating-menu-$index')));
           await tester.pumpAndSettle();
-          if (index == 3) {
-            expect(tester.widget<Text>(title).data, '우리매장');
-          } else {
+          {
             expect(title, findsNothing);
             if (index == 0) {
-              expect(find.widgetWithText(ChoiceChip, '전체파트'), findsOneWidget);
+              expect(find.widgetWithText(TextButton, '전체파트'), findsOneWidget);
               expect(find.textContaining('손잡이를 끌어'), findsNothing);
               expect(find.text('재고 수량 확인하기'), findsNothing);
             }

@@ -1653,24 +1653,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 loadHolidays();
               },
             ),
-            const SizedBox(width: 8),
-            AppSegmented<bool>(
-              segments: const [
-                ButtonSegment(
-                  value: false,
-                  icon: Icon(Icons.view_week_outlined, size: 18),
-                  label: Text('주간', style: TextStyle(fontSize: 13)),
-                ),
-                ButtonSegment(
-                  value: true,
-                  icon: Icon(Icons.calendar_month_outlined, size: 18),
-                  label: Text('월간', style: TextStyle(fontSize: 13)),
-                ),
-              ],
-              selected: {model.month},
-              onSelectionChanged: (v) => model.setMonth(v.first),
+            AppToolbarButton(
+              icon: Icons.today_outlined,
+              label: '오늘',
+              onPressed: () => model.selectDay(
+                DateTime.tryParse(ops.data?['day'] ?? '') ?? DateTime.now(),
+              ),
             ),
-            const SizedBox(width: 16),
+            const AppToolbarDivider(),
+            AppToolbarButton(
+              icon: Icons.view_week_outlined,
+              label: '주간',
+              selected: !model.month,
+              onPressed: () => model.setMonth(false),
+            ),
+            AppToolbarButton(
+              icon: Icons.calendar_month_outlined,
+              label: '월간',
+              selected: model.month,
+              onPressed: () => model.setMonth(true),
+            ),
+            const AppToolbarDivider(),
             const Icon(Icons.horizontal_rule, size: 18, color: AppColors.green),
             Text(
               '영업시간',
@@ -1687,15 +1690,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
             AppToolbarButton(
               icon: Icons.schedule,
               label: fullDay ? '근무 시간 중심 보기' : '24시간 보기',
+              selected: fullDay,
               onPressed: () => setState(() => fullDay = !fullDay),
             ),
-            AppToolbarButton(
-              icon: Icons.today_outlined,
-              label: '오늘',
-              onPressed: () => model.selectDay(
-                DateTime.tryParse(ops.data?['day'] ?? '') ?? DateTime.now(),
-              ),
-            ),
+            const AppToolbarDivider(),
             AppToolbarButton(
               key: const ValueKey('calendar-hours-button'),
               icon: Icons.tune,

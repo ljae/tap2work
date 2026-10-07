@@ -467,30 +467,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                 ),
                               ],
                             ),
-                          if (ops.data != null && tab == 3) ...[
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
-                              child: Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 1240,
-                                  ),
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    child: Text(
-                                      const ['업무', '매뉴얼', '근무표', '우리매장'][tab],
-                                      key: const ValueKey('menu-title'),
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        height: 1.2,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
                           if (tab == 0 && manualQuery.trim().isEmpty)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
@@ -501,7 +477,12 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                   ),
                                   child: SizedBox(
                                     width: double.infinity,
-                                    height: 48,
+                                    height:
+                                        48 *
+                                        (MediaQuery.textScalerOf(
+                                              context,
+                                            ).scale(13) /
+                                            13),
                                     child: ValueListenableBuilder<String?>(
                                       valueListenable: taskPart,
                                       builder: (context, selected, _) =>
@@ -510,48 +491,25 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                             child: Row(
                                               spacing: 8,
                                               children: [
-                                                ChoiceChip(
-                                                  avatar: const Icon(
-                                                    Icons.groups_outlined,
-                                                    size: 18,
-                                                  ),
-                                                  label: const Text(
-                                                    '전체파트',
-                                                    style: TextStyle(
-                                                      fontSize: 13,
-                                                    ),
-                                                  ),
+                                                AppToolbarButton(
+                                                  icon: Icons.groups_outlined,
+                                                  label: '전체파트',
                                                   selected: selected == null,
-                                                  chipAnimationStyle:
-                                                      AppMotion.chipStyle(
-                                                        context,
-                                                      ),
-                                                  onSelected: (_) =>
+                                                  onPressed: () =>
                                                       taskPart.value = null,
                                                 ),
+                                                const AppToolbarDivider(),
                                                 for (final part
                                                     in storeParts(ops).where(
                                                       (p) =>
                                                           p['hidden'] != true,
                                                     ))
-                                                  ChoiceChip(
-                                                    avatar: const Icon(
-                                                      Icons.work_outline,
-                                                      size: 18,
-                                                    ),
-                                                    label: Text(
-                                                      part['name'],
-                                                      style: const TextStyle(
-                                                        fontSize: 13,
-                                                      ),
-                                                    ),
+                                                  AppToolbarButton(
+                                                    icon: Icons.work_outline,
+                                                    label: part['name'],
                                                     selected:
                                                         selected == part['id'],
-                                                    chipAnimationStyle:
-                                                        AppMotion.chipStyle(
-                                                          context,
-                                                        ),
-                                                    onSelected: (_) =>
+                                                    onPressed: () =>
                                                         taskPart.value =
                                                             part['id'],
                                                   ),

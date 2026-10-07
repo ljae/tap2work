@@ -15,7 +15,7 @@ import '../test/calendar_test.dart' show calendarData;
 import '../test/operations_test.dart' show response;
 
 void main() {
-  testWidgets('capture fixed toolbar and cup', (tester) async {
+  testWidgets('capture fixed toolbar and search icon', (tester) async {
     await (FontLoader(
       'Pretendard',
     )..addFont(rootBundle.load('assets/fonts/PretendardVariable.ttf'))).load();

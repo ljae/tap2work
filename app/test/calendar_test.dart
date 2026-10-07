@@ -236,9 +236,9 @@ void main() {
         expect(tester.getTopLeft(axis), origin);
         expect(find.text('주방'), findsWidgets);
         expect(find.text('홀'), findsWidgets);
-        await tester.ensureVisible(find.widgetWithText(ChoiceChip, '월간'));
+        await tester.ensureVisible(find.widgetWithText(TextButton, '월간'));
         await tester.pumpAndSettle();
-        await tester.tap(find.widgetWithText(ChoiceChip, '월간'));
+        await tester.tap(find.widgetWithText(TextButton, '월간'));
         await tester.pumpAndSettle();
         expect(find.text('2026년 9월'), findsOneWidget);
         expect(tester.takeException(), isNull);

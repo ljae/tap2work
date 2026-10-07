@@ -1,8 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'components.dart';
 
-/// A quiet waterline follows focus beside a small, friendly water cup.
+/// A quiet waterline follows focus beside a simple green search icon.
 class WaterSearch extends StatefulWidget {
   const WaterSearch({
     super.key,
@@ -63,33 +64,14 @@ class _WaterSearchState extends State<WaterSearch> {
       decoration: InputDecoration(
         hintText: '매뉴얼 검색',
         hintStyle: AppText.body.copyWith(color: AppColors.muted),
-        prefixIcon: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: ExcludeSemantics(
-            child: SizedBox(
-              width: 40,
-              height: 48,
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: ClipRect(
-                  child: Align(
-                    alignment: const Alignment(-.025, .35),
-                    widthFactor: .38,
-                    heightFactor: .543,
-                    child: Image.asset(
-                      'assets/branding/tap_water_green.png',
-                      width: 128,
-                      height: 128,
-                      filterQuality: FilterQuality.high,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+        prefixIcon: const Icon(
+          CupertinoIcons.search,
+          key: ValueKey('manual-search-icon'),
+          size: 22,
+          color: AppColors.green,
         ),
         suffixIcon: widget.controller.text.isEmpty
-            ? const Icon(Icons.search_rounded, size: 22, color: AppColors.muted)
+            ? null
             : IconButton(
                 tooltip: '검색 지우기',
                 onPressed: widget.onClear,

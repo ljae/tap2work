@@ -13,18 +13,46 @@ class AppToolbarButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onPressed,
+    this.selected,
   });
+  final bool? selected;
   final IconData icon;
   final String label;
   final VoidCallback? onPressed;
   @override
-  Widget build(BuildContext context) => Tooltip(
-    message: label,
-    child: TextButton.icon(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(textStyle: AppText.caption),
-      icon: Icon(icon, size: 18),
-      label: Text(label, style: const TextStyle(fontSize: 13)),
+  Widget build(BuildContext context) => Semantics(
+    selected: selected,
+    child: Tooltip(
+      message: label,
+      child: TextButton.icon(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          textStyle: AppText.caption,
+          foregroundColor: selected == false
+              ? AppColors.muted
+              : AppColors.green,
+          backgroundColor: selected == true
+              ? AppColors.lime
+              : Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        ),
+        icon: Icon(icon, size: 18),
+        label: Text(label, style: const TextStyle(fontSize: 13)),
+      ),
+    ),
+  );
+}
+
+/// Separates navigation, display options and editing actions in one toolbar.
+class AppToolbarDivider extends StatelessWidget {
+  const AppToolbarDivider({super.key});
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.symmetric(horizontal: 8),
+    child: SizedBox(
+      height: 18,
+      child: VerticalDivider(width: 1, color: AppColors.line),
     ),
   );
 }
