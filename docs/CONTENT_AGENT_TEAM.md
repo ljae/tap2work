@@ -44,7 +44,7 @@ node scripts/content-team.mjs record --job handoff-gap-v1 --artifact /path/to/ou
 node scripts/content-team.mjs status --job handoff-gap-v1
 ```
 
-`next`는 15분 lease를 잡는다. 진행 중 중복 claim은 leased를 반환한다. model 호출/검증 오류는 `run`이 fail 처리하고 동일 입력으로 다음 시도한다. 역할당 최대 3회, job당 최대 15회, Codex 호출당 10분이다. wall time/call count가 모델 토큰/요금의 정확한 상한을 보장하지 않는다. 초과/3회 실패는 failed 큐에 유지한다. 수정은 새 scope/job ID로 시작하며 실패 기록을 삭제하지 않는다. 정기 예약/상시 daemon/자동 발행은 활성화하지 않았다.
+`next`는 15분 lease를 잡는다. 진행 중 중복 claim은 leased를 반환한다. model 호출/검증 오류는 `run`이 fail 처리하고 동일 입력으로 다음 시도한다. 역할당 최대 3회, job당 최대 15회, Codex 호출당 10분이다. wall time/call count가 모델 토큰/요금의 정확한 상한을 보장하지 않는다. 초과/3회 실패는 failed 큐에 유지한다. 수정은 새 scope/job ID로 시작하며 실패 기록을 삭제하지 않는다. 사용자 선택은 직접 요청 실행이다. 정기 예약은 해제했다. [누적 개선/피드백/수동 실행](CONTENT_IMPROVEMENT.md)을 따른다. 자동 발행은 활성화하지 않았다.
 
 ```sh
 node scripts/content-team.mjs fail --job handoff-gap-v1 --lease LEASE_ID --reason "출처 접근 실패"
@@ -73,3 +73,7 @@ export는 `{release,summary,revision:0}` draft 요청과 별도 `.provenance.jso
 5역할 `fixture-first-team-20261007` smoke를 실제 로컬 큐에서 완료했다. fake executable을 이용한 child-process 테스트로 Codex 인수/서비스 env 제거를 확인했다. 16개 Node 테스트가 모두 통과했다. 추가로 실제 설치 Codex CLI의 researcher 역할 1회가 `fixture-codex-strict-schema-20261007`에서 38.847초에 완료했고, source.kind=fixture/URL 빈 문자열/외부 조사 미수행을 유지한 산출물이 스키마·해시 검증을 통과했다. 최초 실행과 진단 재시도는 strict JSON Schema의 const/enum 노드 type 누락으로 HTTP 400에서 실패했다. 명시적 type을 추가하고 새 고정 job으로 검증했으며 이전 실패/시도 이력을 보존했다. 실행 오류의 제한된 진단에는 JWT/Bearer/API 키 패턴을 제거한다.
 
 실제 외부 연구·업종별 전문 검토·생산 초안 등록/발행·주기 스케줄은 이번 fixture 검증에 포함하지 않았다. 실제 연구 job은 위 명령으로 명시적으로 시작한다.
+
+## 누적 개선 입력
+
+새 job에는 source registry, 이전 검토/QA/실행 오류, 제공자/현장 평가를 고정 learning snapshot으로 전달한다. 요청 실행은 `npm run content:cycle -- run --request REQUEST_ID`; default manual이다. 실제 관측 시각/시간대를 검사하고 재시도에는 이전 오류와 실행 시각을 전달한다. lease 재발급 시 입력 해시도 새 실행 문맥에 결합한다. 기존 불변 산출물/작업 설정은 유지한다. source/feedback의 정정 및 지표는 [CONTENT_IMPROVEMENT.md](CONTENT_IMPROVEMENT.md)에 있다.

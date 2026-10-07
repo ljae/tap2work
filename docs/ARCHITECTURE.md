@@ -1,3 +1,9 @@
+## 요청 기반 콘텐츠 누적 개선 · 2026-10-07
+
+사용자는 정기 실행 없이 직접 요청을 선택했다. ContentMemory의 append-only 사건/출처·분쟁·검토/QA/실행 실패·제공자/현장 피드백을 새로운 ContentTeam job의 고정 learning snapshot에 포함한다. ContentCycle은 최신 공용 DB 발행본을 읽어 대상 TAP과 함께 전달하며 요청 ID로 중복 호출을 방지하고 미완료 작업을 이어간다. 기본 manual/enabled:false, 실제 launchd 등록은 해제했다. 조사자는 서비스 키를 상속하지 않으며 생성 결과는 검토 후보이다.
+
+정확성/현장 유용성은 평가된 작업 단위로 집계하고 미평가는 null이다. 기술적 출처 접속/발췌 일치와 사실 검증을 구별한다. 기억은 현재 Mac의 .local에 있으며 다중 호스트 클라우드 공유는 후속. [누적 개선 운영](CONTENT_IMPROVEMENT.md) 참조.
+
 ## Edge 호환·접속 복구 · 2026-10-07
 
 DB 카탈로그 크기 검증은 전역 Node Buffer 대신 Web TextEncoder를 사용한다. 인증 이후 카탈로그를 실제로 읽는 경로를 Deno에서 Node 전역 없이 smoke test하며 CI도 동일 경로를 검사한다. 미인증401 확인만으로 인증된 운영 조회 성공을 대신하지 않는다. AppStartup은 초기화 시도 ID로 이전 지연 응답을 버리고, 초기 로딩/매장 조회의 단계 안내·진행/skeleton/오류 재시도를 표시한다. 기존 DB/실행을 재생성해 연결 오류를 복구하지 않는다.

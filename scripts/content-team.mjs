@@ -4,6 +4,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
+import {ContentMemory,sourceUrl} from '../developer/content_memory.mjs';
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const teamRoot = join(repo, '.agents/content-team');
@@ -25,7 +26,7 @@ const list = item => ({ type: 'array', items: item, maxItems: 100 });
 const strings = list(str);
 const obj = properties => ({ type: 'object', properties, required: Object.keys(properties), additionalProperties: false });
 const source = obj({ id: str, kind: { type: 'string', enum: ['external', 'fixture'] }, title: str,
-  url: { type: 'string', maxLength: 2000 }, publisher: str, retrievedAt: str, jurisdiction: str,
+  url: { type: 'string', maxLength: 2000 }, publisher: str, retrievedAt: {type:'string',pattern:'^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?(?:Z|[+-]\\d{2}:\\d{2})$'}, jurisdiction: str,
   applicability: str, excerpt: str, evidenceHash: { type: 'string', pattern: '^[a-f0-9]{64}$' } });
 const step = obj({ id: str, title: str, manual: str, completionCriteria: str, exceptionAction: str, evidenceSourceIds: strings });
 const results = {
@@ -72,6 +73,7 @@ export class ContentTeam {
   constructor({ root = join(repo, '.local/content-team'), now = () => Date.now() } = {}) {
     this.root = resolve(root); this.now = now;
     mkdirSync(this.root, { recursive: true, mode: 0o700 });
+    this.memory = new ContentMemory({root:join(this.root,'.learning'),now:this.now});
   }
   dir(jobId) { return join(this.root, id(jobId)); }
   withLock(jobId, action) {
@@ -81,17 +83,20 @@ export class ContentTeam {
     atomic(join(lock, 'owner.json'), { pid: process.pid, createdAt: this.now() });
     try { return action(directory); } finally { rmSync(lock, { recursive: true, force: true }); }
   }
-  init(jobId, scope) {
+  init(jobId, scope, {currentContent=null}={}) {
     sanitized(scope);
     return this.withLock(jobId, directory => {
       const path = join(directory, 'job.json');
       if (existsSync(path)) {
         const previous = json(path);
         if (previous.scopeHash !== sha(JSON.stringify(scope))) error('Job ID already has different scope');
+        if(currentContent!==null && sha(JSON.stringify(json(join(directory,'config.json')).learningSnapshot?.currentContent??[]))!==sha(JSON.stringify(currentContent)))error('Job ID already has different current content');
         this.verify(directory, previous); return previous;
       }
       const team = manifest();
-      const config = { schemas: Object.fromEntries(team.roles.map(role => [role.id, outputSchema(role.id)])), manifest: team, manifestHash: sha(bytes(join(teamRoot, 'manifest.json'))), prompts: {} };
+      const learningSnapshot=this.memory.context(scope);
+      if(currentContent!==null){if(!Array.isArray(currentContent))error('Current content must be an array');learningSnapshot.currentContent=structuredClone(currentContent);}
+      const config = { learningSnapshot, schemas: Object.fromEntries(team.roles.map(role => [role.id, outputSchema(role.id)])), manifest: team, manifestHash: sha(bytes(join(teamRoot, 'manifest.json'))), prompts: {} };
       for (const role of team.roles) config.prompts[role.id] = bytes(join(teamRoot, 'prompts/common.md')).toString() + '\n' + bytes(join(teamRoot, role.prompt)).toString();
       const job = { schemaVersion: 1, jobId, scopeHash: sha(JSON.stringify(scope)), configHash: sha(JSON.stringify(config)),
         calls: 0, status: 'pending', stages: team.roles.map(role => ({ role: role.id, status: 'pending', attempts: 0 })), events: [{ type: 'initialized', at: new Date(this.now()).toISOString() }] };
@@ -111,9 +116,9 @@ export class ContentTeam {
       if (dependency.status !== 'complete') error('Dependency incomplete');
       return { role: name, hash: dependency.outputHash, artifact: json(join(directory, 'artifacts', `${name}.json`)) };
     });
-    const inputs = { scopeHash: job.scopeHash, configHash: job.configHash, role: stage.role, dependencies: dependencies.map(({ role, hash }) => ({ role, hash })) };
-    return { schemaVersion: 1, jobId: job.jobId, role: stage.role, inputHash: sha(JSON.stringify(inputs)),
-      scope: json(join(directory, 'scope.json')), dependencies, prompt: config.prompts[stage.role], outputSchema: config.schemas[stage.role] };
+    const inputs = { runStartedAt:stage.runStartedAt, retryGuidance:job.events.filter(e=>e.type==='attempt_failed'&&e.role===stage.role).slice(-2).map(e=>e.reason), scopeHash: job.scopeHash, configHash: job.configHash, role: stage.role, dependencies: dependencies.map(({ role, hash }) => ({ role, hash })) };
+    return { schemaVersion: 1, jobId: job.jobId, role: stage.role, runStartedAt:inputs.runStartedAt, retryGuidance:inputs.retryGuidance, inputHash: sha(JSON.stringify(inputs)),
+      scope: json(join(directory, 'scope.json')), learning:config.learningSnapshot??{revision:0,sources:[],lessons:[]}, dependencies, prompt: config.prompts[stage.role], outputSchema: config.schemas[stage.role] };
   }
   next(jobId) {
     return this.withLock(jobId, directory => {
@@ -127,6 +132,7 @@ export class ContentTeam {
         stage.status = 'failed'; job.status = 'failed'; atomic(join(directory, 'job.json'), job);
         return { status: 'failed', jobId, role: stage.role };
       }
+      stage.runStartedAt = new Date(this.now()).toISOString();
       const packet = this.packet(directory, job, stage);
       stage.status = 'leased'; stage.attempts += 1; stage.inputHash = packet.inputHash;
       stage.leaseId = randomUUID(); stage.leaseUntil = this.now() + config.leaseSeconds * 1000;
@@ -152,9 +158,10 @@ export class ContentTeam {
     if (sourceIds.size !== sources.length) error('Duplicate evidence source ID');
     for (const source of sources) {
       if (sha(source.excerpt) !== source.evidenceHash) error('Evidence excerpt hash mismatch');
-      if (!/^\d{4}-\d{2}-\d{2}T/.test(source.retrievedAt) || !Number.isFinite(Date.parse(source.retrievedAt))) error('Invalid evidence retrieval date');
+      if (!/^\d{4}-\d{2}-\d{2}T/.test(source.retrievedAt) || !Number.isFinite(Date.parse(source.retrievedAt))) error('Invalid evidence retrieval date: timezone ISO timestamp required');
+      if(Date.parse(source.retrievedAt)>this.now()+300000)error('Invalid evidence retrieval date: future observation forbidden');
       if (source.kind === 'fixture' && packet.scope.mode !== 'fixture') error('Fixture evidence forbidden in research job');
-      if (source.kind === 'external' && (!source.url.startsWith('https://') || new URL(source.url).username || new URL(source.url).password)) error('Invalid evidence URL');
+      if (source.kind === 'external') { try{sourceUrl(source.url);}catch{error('Invalid evidence URL');} }
       if (source.kind === 'fixture' && source.url !== '') error('Fixture cannot claim external URL');
     }
     const references = references => { for (const reference of references) if (!sourceIds.has(reference)) error('Unknown evidence source ID'); };
@@ -193,6 +200,7 @@ export class ContentTeam {
       job.events.push({ type: 'recorded', role: stage.role, outputHash: stage.outputHash, at: new Date(this.now()).toISOString() });
       if (stage.role === 'coordinator') job.status = artifact.result.status === 'prepared' ? 'complete' : 'blocked';
       atomic(join(directory, 'job.json'), job);
+      try{this.memory.ingestJob(this.root,jobId);}catch(cause){job.events.push({type:'learning_sync_failed',reason:cause.message,at:new Date(this.now()).toISOString()});atomic(join(directory,'job.json'),job);}
       return { status: job.status, role: stage.role, outputHash: stage.outputHash };
     });
   }
@@ -205,7 +213,9 @@ export class ContentTeam {
       delete stage.leaseId; delete stage.leaseUntil;
       job.status = stage.status === 'failed' ? 'failed' : 'pending';
       job.events.push({ type: 'attempt_failed', role: stage.role, reason: String(reason).slice(0, 500), at: new Date(this.now()).toISOString() });
-      atomic(join(directory, 'job.json'), job); return { status: job.status, role: stage.role };
+      atomic(join(directory, 'job.json'), job);
+      try{this.memory.ingestJob(this.root,jobId);}catch{}
+      return { status: job.status, role: stage.role };
     });
   }
   async exportRelease(jobId, base) {

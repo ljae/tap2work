@@ -8,10 +8,68 @@
   "maxRunnerSeconds": 600,
   "maxCallsPerJob": 15,
   "roles": [
-    {"id":"researcher","prompt":"prompts/researcher.md","dependsOn":[],"capabilities":["public-research","sanitized-gap-analysis"]},
-    {"id":"editor","prompt":"prompts/editor.md","dependsOn":["researcher"],"capabilities":["draft-manual-checklist"]},
-    {"id":"reviewer","prompt":"prompts/reviewer.md","dependsOn":["researcher","editor"],"capabilities":["independent-content-review"]},
-    {"id":"qa","prompt":"prompts/qa.md","dependsOn":["researcher","editor","reviewer"],"capabilities":["artifact-contract-check"]},
-    {"id":"coordinator","prompt":"prompts/coordinator.md","dependsOn":["researcher","editor","reviewer","qa"],"capabilities":["draft-handoff","next-gap-priority"]}
-  ]
+    {
+      "id": "researcher",
+      "prompt": "prompts/researcher.md",
+      "dependsOn": [],
+      "capabilities": [
+        "public-research",
+        "sanitized-gap-analysis"
+      ]
+    },
+    {
+      "id": "editor",
+      "prompt": "prompts/editor.md",
+      "dependsOn": [
+        "researcher"
+      ],
+      "capabilities": [
+        "draft-manual-checklist"
+      ]
+    },
+    {
+      "id": "reviewer",
+      "prompt": "prompts/reviewer.md",
+      "dependsOn": [
+        "researcher",
+        "editor"
+      ],
+      "capabilities": [
+        "independent-content-review"
+      ]
+    },
+    {
+      "id": "qa",
+      "prompt": "prompts/qa.md",
+      "dependsOn": [
+        "researcher",
+        "editor",
+        "reviewer"
+      ],
+      "capabilities": [
+        "artifact-contract-check"
+      ]
+    },
+    {
+      "id": "coordinator",
+      "prompt": "prompts/coordinator.md",
+      "dependsOn": [
+        "researcher",
+        "editor",
+        "reviewer",
+        "qa"
+      ],
+      "capabilities": [
+        "draft-handoff",
+        "next-gap-priority"
+      ]
+    }
+  ],
+  "learning": {
+    "store": "append-only local events",
+    "context": "job-frozen source observations and feedback",
+    "truth": "requires rechecking; model agreement is not verification",
+    "metrics": "distinct evaluated jobs; unevaluated rates are null"
+  },
+  "execution": "explicit-request-only"
 }

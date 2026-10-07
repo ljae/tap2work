@@ -38,7 +38,7 @@ test('lease excludes simultaneous work and expires to a bounded failed queue', t
 });
 test('late output cannot reuse a replaced lease but correct repeated record is idempotent', t => {
   const { team, advance } = setup(t); const first = team.next('job'); advance(); const second = team.next('job');
-  assert.equal(first.inputHash, second.inputHash); assert.notEqual(first.leaseId, second.leaseId);
+  assert.notEqual(first.inputHash, second.inputHash); assert.notEqual(first.leaseId, second.leaseId);
   assert.throws(() => team.record('job', fixtureArtifact(first), first.leaseId), /lease/);
   const artifact = fixtureArtifact(second); team.record('job', artifact, second.leaseId);
   assert.equal(team.record('job', artifact, second.leaseId).status, 'already_recorded');

@@ -96,3 +96,7 @@ Git 추적 파일과 무시되지 않은 미추적 파일을 기준으로 복사
 ## 2026-10-07 접속 오류 후속
 
 DB 카탈로그 검증의 전역 Buffer는 운영 Edge에서 인증 조회500을 일으켰다. TextEncoder로 수정·서버/웹배포 후 실제 로그인GET200/기존37양식/18오늘업무와 화면복구 확인. `npm run test:edge`는 Node 전역 없이 DB카탈로그를읽는 인증된전체handler경로를 Deno에서검사하며 CI에포함한다. 신규API 미인증401만으로 운영조회성공이라고 판단하지 않는다. 데이터초기화/복원은수행하지않았다. 앱/매장조회 로딩단계와 지연/오류재시도, 초기화attempt응답순서보호를 적용했다.
+
+## 2026-10-07 요청 기반 팀 개선
+
+사용자 최종 선택은 정기 실행 없이 직접 요청. launchd 등록 제거, content-cycle default manual/enabled:false. ContentMemory는 .local/content-team/.learning/events의 불변 사건/출처·분쟁·검토/QA/실행실패·평가를 새 job 고정 learning snapshot으로 전달한다. `CONTENT_IMPROVEMENT.md`의 수동run/피드백/점검을 따른다. 반복 검색·AI 동의를 정확도로 집계하지 않는다. 첫 실제연구는 출처4/메모12를 누적하고 검토 보완으로 blocked, 운영 발행 없음. 해당job의 완료 role은 재실행하지 않으며 다음 명시적 요청에서 새job으로 수정한다. 기존 fixture는 기억/평가에 제외한다. 실제 평가율은 현재 null이다.
