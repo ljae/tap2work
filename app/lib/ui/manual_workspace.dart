@@ -1251,13 +1251,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (!recipes && ops.canEditTasks)
-                TextButton.icon(
+                AppToolbarButton(
                   key: const ValueKey('manual-market-button'),
                   onPressed: ops.busy ? null : openMarket,
-                  icon: const Icon(Icons.storefront_outlined, size: 18),
-                  label: const Text('매뉴얼 마켓', style: AppText.caption),
+                  icon: Icons.storefront_outlined,
+                  label: '매뉴얼 마켓',
                 ),
-              TextButton.icon(
+              AppToolbarButton(
                 key: const ValueKey('manual-print-button'),
                 onPressed: ops.busy
                     ? null
@@ -1270,13 +1270,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                           recipes: recipes,
                         ),
                       ),
-                icon: const Icon(Icons.print_outlined, size: 18),
-                label: const Text('인쇄·PDF', style: AppText.caption),
+                icon: Icons.print_outlined,
+                label: '인쇄·PDF',
               ),
               if (!recipes && ops.canEditTasks)
-                TextButton.icon(
+                AppToolbarButton(
                   key: const ValueKey('manual-add-folder'),
-                  icon: const Icon(Icons.create_new_folder_outlined, size: 18),
+                  icon: Icons.create_new_folder_outlined,
                   onPressed: ops.busy
                       ? null
                       : () async {
@@ -1293,10 +1293,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                             '',
                           );
                         },
-                  label: const Text('폴더 추가', style: AppText.caption),
+                  label: '폴더 추가',
                 ),
               if (!recipes && ops.canEditTasks) ...[
-                TextButton.icon(
+                AppToolbarButton(
                   key: const ValueKey('manual-add-tap'),
                   onPressed: ops.busy
                       ? null
@@ -1305,10 +1305,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                           builder: (_) =>
                               ManualTapEditor(ops: ops, folderId: scopeGroup),
                         ),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('TAP 추가', style: AppText.caption),
+                  icon: Icons.add,
+                  label: 'TAP 추가',
                 ),
-                TextButton.icon(
+                AppToolbarButton(
                   key: const ValueKey('manual-backup'),
                   onPressed: ops.busy
                       ? null
@@ -1316,12 +1316,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                           context,
                           builder: (_) => ChecklistBackupScreen(ops: ops),
                         ),
-                  icon: const Icon(Icons.restore, size: 18),
-                  label: const Text('백업 복원', style: AppText.caption),
+                  icon: Icons.restore,
+                  label: '백업 복원',
                 ),
               ],
               if (!recipes && ops.canEditTasks && editing)
-                TextButton(
+                AppToolbarButton(
+                  icon: Icons.check,
                   key: const ValueKey('manual-edit-done'),
                   onPressed: ops.busy
                       ? null
@@ -1329,7 +1330,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                           stopDragScroll();
                           editing = false;
                         }),
-                  child: const Text('편집 완료', style: AppText.caption),
+                  label: '편집 완료',
                 ),
             ],
           ),

@@ -7,6 +7,8 @@ void main() {
     'month shows past work and future open plans without history counts',
     (tester) async {
       await calendar.mount(tester, readOnly: false);
+      await tester.ensureVisible(find.widgetWithText(ChoiceChip, '월간'));
+      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ChoiceChip, '월간'));
       await tester.pumpAndSettle();
       expect(find.text('업무'), findsWidgets);

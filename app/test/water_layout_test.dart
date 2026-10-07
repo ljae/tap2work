@@ -41,11 +41,20 @@ void main() {
       final part = find.byKey(const ValueKey('roster-part-heading-kitchen'));
       final body = find.byKey(const ValueKey('roster-timeline'));
       final initialControls = tester.getRect(controls);
+      final weekly = tester.getRect(find.text('주간'));
+      final today = tester.getRect(find.text('오늘'));
+      final fullDay = tester.getRect(find.text('24시간 보기'));
+      expect(weekly.center.dy, closeTo(today.center.dy, 1));
+      expect(fullDay.center.dy, closeTo(today.center.dy, 1));
+      expect(tester.getRect(find.text('이전')).left, lessThan(weekly.left));
+      expect(tester.getRect(find.text('다음')).right, lessThan(weekly.left));
       final scroll = tester
           .widget<CustomScrollView>(
             find.byKey(const ValueKey('schedule-scroll')),
           )
           .controller!;
+      await tester.ensureVisible(find.text('24시간 보기'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('24시간 보기'));
       await tester.pumpAndSettle();
       scroll.jumpTo(400);

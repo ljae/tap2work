@@ -505,3 +505,5 @@ StaffWorkspace는 bounded CalendarScreen을 사용한다. 주간/월간 행은 �
 ## 2026-10-06 네이티브 테스트 배포
 
 iOS는 com.tap2work.tap2work, Android는 기존 com.tab2work.tab2work 식별자를 유지한다. 동일 Flutter 소스·공개 인증 defines로 1.0.0 빌드 6을 생성했다. Android release signing은 저장소 외부 TAP_ANDROID_SIGNING_PROPERTIES로 전달하고 debug signing을 재사용하지 않는다. Play 설치본의 서명 SHA-1에 해당하는 Android OAuth client를 같은 Google 프로젝트에 등록했으며 Web/server client를 ID token audience로 사용하는 기존 로그인 계약은 유지한다. 실제 크루 데이터·서명 키·심사 로그인 자격증명은 버전 이력에 기록하지 않는다. 스토어별 배포·심사 상태는 project-state history를 따른다.
+
+2026-10-07 고정 행 최신 원칙: 업무·매뉴얼·근무표의 고정 행 동작/설정은 공통 AppToolbarButton의 18px 아이콘 + 13sp 문자 형식으로 통일한다. 파트·주간/월간 선택도 같은 아이콘/문자 크기를 적용한다. 날짜 범위와 이전/다음은 주간·월간 왼쪽에 두고 영업시간·브레이크 범례, 24시간 보기, 오늘, 영업시간·인원, 크루 추가를 같은 고정 행에 둔다. 좁은 화면은 행 내부 가로 스크롤, 확대 글자는 행 높이를 늘려 수용한다. 검색 아이콘은 기존 투명 PNG에서 수도꼭지·바닥선을 화면 클리핑으로 제외하고 컵과 물방울만 40×48 영역에 확대 표시한다. 원본 자산과 상단 브랜드는 보존한다.

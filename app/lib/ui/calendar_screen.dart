@@ -1176,30 +1176,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     };
     final headerHeight =
         (dayNote(model.selected).isEmpty ? 80.0 : 112.0) * textScale;
-    final legend = Row(
-      children: [
-        Expanded(
-          child: Wrap(
-            spacing: 8,
-            children: [
-              Text(
-                '— 영업시간',
-                style: AppText.caption.copyWith(color: AppColors.green),
-              ),
-              if (ops.data?['workplace']?['breaks']?['$sourceDay'] != null)
-                Text(
-                  '■ 브레이크',
-                  style: AppText.caption.copyWith(color: Colors.orange),
-                ),
-            ],
-          ),
-        ),
-        TextButton(
-          onPressed: () => setState(() => fullDay = !fullDay),
-          child: Text(fullDay ? '근무 시간 중심 보기' : '24시간 보기'),
-        ),
-      ],
-    );
     final header = ColoredBox(
       color: AppColors.paper,
       child: Row(
@@ -1324,7 +1300,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (slivers) {
       return SliverMainAxisGroup(
         slivers: [
-          SliverToBoxAdapter(child: legend),
           SliverPersistentHeader(
             pinned: true,
             delegate: _RosterHeader(height: headerHeight, child: header),
@@ -1336,7 +1311,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
     return Column(
       children: [
-        legend,
         SizedBox(height: headerHeight, child: header),
         body,
         empty,
@@ -1646,25 +1620,113 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget viewControls() => SizedBox(
-    key: const ValueKey('schedule-header'),
-    height: 48,
-    child: Row(
-      children: [
-        if (editMode)
-          TextButton(onPressed: finishEdit, child: const Text('편집 완료')),
-        const Spacer(),
-        AppSegmented<bool>(
-          segments: const [
-            ButtonSegment(value: false, label: Text('주간')),
-            ButtonSegment(value: true, label: Text('월간')),
+  Widget viewControls() {
+    final exception =
+        ops.data?['workplace']?['dateOverrides']?[rosterDate(model.selected)];
+    final sourceDay = exception?['weekday'] ?? model.selected.weekday;
+    return SizedBox(
+      key: const ValueKey('schedule-header'),
+      height: 48 * (MediaQuery.textScalerOf(context).scale(13) / 13),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            AppToolbarButton(
+              icon: CupertinoIcons.chevron_left,
+              label: '이전',
+              onPressed: () {
+                model.move(-1);
+                loadHolidays();
+              },
+            ),
+            Text(
+              model.month
+                  ? '${model.selected.year}년 ${model.selected.month}월'
+                  : '${rosterDate(model.monday)} ~ ${rosterDate(model.monday.add(const Duration(days: 6)))}',
+              style: AppText.caption,
+            ),
+            AppToolbarButton(
+              icon: CupertinoIcons.chevron_right,
+              label: '다음',
+              onPressed: () {
+                model.move(1);
+                loadHolidays();
+              },
+            ),
+            const SizedBox(width: 8),
+            AppSegmented<bool>(
+              segments: const [
+                ButtonSegment(
+                  value: false,
+                  icon: Icon(Icons.view_week_outlined, size: 18),
+                  label: Text('주간', style: TextStyle(fontSize: 13)),
+                ),
+                ButtonSegment(
+                  value: true,
+                  icon: Icon(Icons.calendar_month_outlined, size: 18),
+                  label: Text('월간', style: TextStyle(fontSize: 13)),
+                ),
+              ],
+              selected: {model.month},
+              onSelectionChanged: (v) => model.setMonth(v.first),
+            ),
+            const SizedBox(width: 16),
+            const Icon(Icons.horizontal_rule, size: 18, color: AppColors.green),
+            Text(
+              '영업시간',
+              style: AppText.caption.copyWith(color: AppColors.green),
+            ),
+            if (ops.data?['workplace']?['breaks']?['$sourceDay'] != null) ...[
+              const SizedBox(width: 8),
+              const Icon(Icons.square, size: 18, color: Colors.orange),
+              Text(
+                '브레이크',
+                style: AppText.caption.copyWith(color: Colors.orange),
+              ),
+            ],
+            AppToolbarButton(
+              icon: Icons.schedule,
+              label: fullDay ? '근무 시간 중심 보기' : '24시간 보기',
+              onPressed: () => setState(() => fullDay = !fullDay),
+            ),
+            AppToolbarButton(
+              icon: Icons.today_outlined,
+              label: '오늘',
+              onPressed: () => model.selectDay(
+                DateTime.tryParse(ops.data?['day'] ?? '') ?? DateTime.now(),
+              ),
+            ),
+            AppToolbarButton(
+              key: const ValueKey('calendar-hours-button'),
+              icon: Icons.tune,
+              label: '영업시간·인원',
+              onPressed: () => openWorkplaceHours(context, ops),
+            ),
+            if (model.editable &&
+                !model.history &&
+                !isClosedDay(model.selected))
+              AppToolbarButton(
+                key: const ValueKey('calendar-add-crew'),
+                icon: Icons.person_add_outlined,
+                label: '크루 추가',
+                onPressed: model.visibleParts.where((p) => !p.hidden).isEmpty
+                    ? null
+                    : () => addShift(
+                        model.visibleParts.firstWhere((p) => !p.hidden),
+                        9 * 60,
+                      ),
+              ),
+            if (editMode)
+              AppToolbarButton(
+                icon: Icons.check,
+                label: '편집 완료',
+                onPressed: finishEdit,
+              ),
           ],
-          selected: {model.month},
-          onSelectionChanged: (v) => model.setMonth(v.first),
         ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 
   List<Widget> contents({bool slivers = false}) => [
     if (!holidays.keys.any((d) => d.startsWith('${model.selected.year}-')))
@@ -1729,87 +1791,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ],
         ),
       ),
-    const SizedBox(height: 16),
-    Row(
-      children: [
-        IconButton(
-          tooltip: '이전',
-          onPressed: () {
-            model.move(-1);
-            loadHolidays();
-          },
-          icon: const Icon(CupertinoIcons.chevron_left),
-        ),
-        Expanded(
-          child: Text(
-            model.month
-                ? '${model.selected.year}년 ${model.selected.month}월'
-                : '${rosterDate(model.monday)} ~ ${rosterDate(model.monday.add(const Duration(days: 6)))}',
-            textAlign: TextAlign.center,
-            style: AppText.caption,
-          ),
-        ),
-        IconButton(
-          tooltip: '다음',
-          onPressed: () {
-            model.move(1);
-            loadHolidays();
-          },
-          icon: const Icon(CupertinoIcons.chevron_right),
-        ),
-        TextButton(
-          onPressed: () => model.selectDay(
-            DateTime.tryParse(ops.data?['day'] ?? '') ?? DateTime.now(),
-          ),
-          child: const Text('오늘'),
-        ),
-      ],
-    ),
-    const SizedBox(height: 12),
     if (model.month && model.editable)
       const Padding(
         padding: EdgeInsets.only(bottom: 8),
         child: Text('날짜를 눌러 추가 휴무·업무일을 지정해요.', style: AppText.caption),
       ),
     if (model.month) month() else week(slivers: slivers),
-    const SizedBox(height: 16),
-    Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            key: const ValueKey('calendar-hours-button'),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(0, 56),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-            ),
-            onPressed: () => openWorkplaceHours(context, ops),
-            child: const Text('영업시간·인원', style: AppText.caption),
-          ),
-        ),
-        if (model.editable &&
-            !model.history &&
-            !isClosedDay(model.selected)) ...[
-          const SizedBox(width: 8),
-          Expanded(
-            child: OutlinedButton.icon(
-              key: const ValueKey('calendar-add-crew'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 56),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-              ),
-              onPressed: model.visibleParts.where((p) => !p.hidden).isEmpty
-                  ? null
-                  : () => addShift(
-                      model.visibleParts.firstWhere((p) => !p.hidden),
-                      9 * 60,
-                    ),
-              icon: const Icon(Icons.person_add_outlined, size: 18),
-              label: const Text('크루 추가'),
-            ),
-          ),
-        ],
-      ],
-    ),
     if (!model.history && !isClosedDay(model.selected))
       ShiftChangePanel(ops: ops),
   ];

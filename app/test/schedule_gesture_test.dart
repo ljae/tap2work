@@ -83,7 +83,9 @@ void main() {
       expect(find.text('담당 크루'), findsNothing);
       await tester.longPress(other);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('오늘'));
+      await tester.ensureVisible(find.text('오늘'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('오늘'));
       await tester.pumpAndSettle();
       expect(
         writes,
@@ -143,6 +145,8 @@ void main() {
           await gesture.up();
           await tester.pumpAndSettle();
           expect(writes.length, i);
+          await tester.ensureVisible(find.text('오늘'));
+          await tester.pumpAndSettle();
           await tester.tap(find.text('오늘'));
           await tester.pumpAndSettle();
           expect(writes.last['end'], '17:00');
@@ -213,6 +217,8 @@ void main() {
           }
           await tester.pumpAndSettle();
           expect(ops.busy, isFalse);
+          await tester.ensureVisible(find.text('오늘'));
+          await tester.pumpAndSettle();
           await tester.tap(find.text('오늘'));
           await tester.pumpAndSettle();
           expect(ops.busy, isTrue);
@@ -294,7 +300,9 @@ void main() {
       await gesture.up();
       await tester.pumpAndSettle();
       expect(sent, isNull);
-      await tester.tap(find.text('오늘'));
+      await tester.ensureVisible(find.text('오늘'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('오늘'));
       await tester.pumpAndSettle();
       expect(sent?['start'], '17:00');
       expect(sent?['end'], '22:00');

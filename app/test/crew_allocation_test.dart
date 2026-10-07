@@ -194,6 +194,8 @@ void main() {
         readOnly: false,
         write: writes.add,
       );
+      await tester.ensureVisible(find.widgetWithText(ChoiceChip, '월간'));
+      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ChoiceChip, '월간'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('28').last);
@@ -253,6 +255,8 @@ void main() {
   ) async {
     Json? sent;
     await calendar.mount(tester, readOnly: false, write: (v) => sent = v);
+    await tester.ensureVisible(find.widgetWithText(ChoiceChip, '월간'));
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ChoiceChip, '월간'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('28').last);

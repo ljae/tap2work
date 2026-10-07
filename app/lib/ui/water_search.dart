@@ -64,15 +64,26 @@ class _WaterSearchState extends State<WaterSearch> {
         hintText: '매뉴얼 검색',
         hintStyle: AppText.body.copyWith(color: AppColors.muted),
         prefixIcon: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: ExcludeSemantics(
             child: SizedBox(
-              width: 32,
-              height: 32,
-              child: Image.asset(
-                'assets/branding/tap_water_green.png',
+              width: 40,
+              height: 48,
+              child: FittedBox(
                 fit: BoxFit.contain,
-                filterQuality: FilterQuality.medium,
+                child: ClipRect(
+                  child: Align(
+                    alignment: const Alignment(-.025, .35),
+                    widthFactor: .38,
+                    heightFactor: .543,
+                    child: Image.asset(
+                      'assets/branding/tap_water_green.png',
+                      width: 128,
+                      height: 128,
+                      filterQuality: FilterQuality.high,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

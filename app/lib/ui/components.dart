@@ -6,6 +6,29 @@ import 'design_system.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+/// Shared icon and label treatment for fixed screen toolbars.
+class AppToolbarButton extends StatelessWidget {
+  const AppToolbarButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: label,
+    child: TextButton.icon(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(textStyle: AppText.caption),
+      icon: Icon(icon, size: 18),
+      label: Text(label, style: const TextStyle(fontSize: 13)),
+    ),
+  );
+}
+
 class BrandLogo extends StatelessWidget {
   const BrandLogo({super.key, this.compact = false});
   final bool compact;

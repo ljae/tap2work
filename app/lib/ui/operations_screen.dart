@@ -511,7 +511,16 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                               spacing: 8,
                                               children: [
                                                 ChoiceChip(
-                                                  label: const Text('전체파트'),
+                                                  avatar: const Icon(
+                                                    Icons.groups_outlined,
+                                                    size: 18,
+                                                  ),
+                                                  label: const Text(
+                                                    '전체파트',
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                    ),
+                                                  ),
                                                   selected: selected == null,
                                                   chipAnimationStyle:
                                                       AppMotion.chipStyle(
@@ -526,7 +535,16 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                                           p['hidden'] != true,
                                                     ))
                                                   ChoiceChip(
-                                                    label: Text(part['name']),
+                                                    avatar: const Icon(
+                                                      Icons.work_outline,
+                                                      size: 18,
+                                                    ),
+                                                    label: Text(
+                                                      part['name'],
+                                                      style: const TextStyle(
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
                                                     selected:
                                                         selected == part['id'],
                                                     chipAnimationStyle:

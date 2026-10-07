@@ -71,6 +71,8 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('roster-day-2026-09-22')));
       await tester.pumpAndSettle();
       expect(find.text('기록된 출퇴근 이력이 없어요.'), findsOneWidget);
+      await tester.ensureVisible(find.text('오늘'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('오늘'));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('attendance-history')), findsNothing);
