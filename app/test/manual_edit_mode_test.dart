@@ -114,6 +114,8 @@ void main() {
       find.byKey(const ValueKey('manual-actions-task:s1:a')),
       findsOneWidget,
     );
+    await tester.ensureVisible(find.byKey(const ValueKey('manual-edit-done')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('manual-edit-done')));
     await tester.pumpAndSettle();
     expect(

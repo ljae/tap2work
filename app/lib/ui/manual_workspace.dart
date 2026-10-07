@@ -1243,96 +1243,103 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     key: const ValueKey('manual-header'),
     children: [
       Expanded(
-        child: SingleChildScrollView(
-          key: const ValueKey('manual-header-actions'),
-          scrollDirection: Axis.horizontal,
-          reverse: true,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (!recipes && ops.canEditTasks)
-                AppToolbarButton(
-                  key: const ValueKey('manual-market-button'),
-                  onPressed: ops.busy ? null : openMarket,
-                  icon: Icons.storefront_outlined,
-                  label: '매뉴얼 마켓',
-                ),
-              AppToolbarButton(
-                key: const ValueKey('manual-print-button'),
-                onPressed: ops.busy
-                    ? null
-                    : () => showAppSheet(
-                        context,
-                        builder: (_) => ManualPrintScreen(
-                          ops: ops,
-                          templateId: scopeTap,
-                          folderId: scopeGroup,
-                          recipes: recipes,
-                        ),
-                      ),
-                icon: Icons.print_outlined,
-                label: '인쇄·PDF',
-              ),
-              if (!recipes && ops.canEditTasks)
-                AppToolbarButton(
-                  key: const ValueKey('manual-add-folder'),
-                  icon: Icons.create_new_folder_outlined,
-                  onPressed: ops.busy
-                      ? null
-                      : () async {
-                          widget.onClearSearch?.call();
-                          setState(() {
-                            editing = true;
-                            showTree = true;
-                          });
-                          await directEditNode(
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            key: const ValueKey('manual-header-actions'),
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!recipes && ops.canEditTasks)
+                    AppToolbarButton(
+                      key: const ValueKey('manual-market-button'),
+                      onPressed: ops.busy ? null : openMarket,
+                      icon: Icons.storefront_outlined,
+                      label: '매뉴얼 마켓',
+                    ),
+                  AppToolbarButton(
+                    key: const ValueKey('manual-print-button'),
+                    onPressed: ops.busy
+                        ? null
+                        : () => showAppSheet(
                             context,
-                            ops,
-                            'edit_manual_node',
-                            {'kind': 'group', 'operation': 'add'},
-                            '',
-                          );
-                        },
-                  label: '폴더 추가',
-                ),
-              if (!recipes && ops.canEditTasks) ...[
-                AppToolbarButton(
-                  key: const ValueKey('manual-add-tap'),
-                  onPressed: ops.busy
-                      ? null
-                      : () => showAppSheet(
-                          context,
-                          builder: (_) =>
-                              ManualTapEditor(ops: ops, folderId: scopeGroup),
-                        ),
-                  icon: Icons.add,
-                  label: 'TAP 추가',
-                ),
-                AppToolbarButton(
-                  key: const ValueKey('manual-backup'),
-                  onPressed: ops.busy
-                      ? null
-                      : () => showAppSheet(
-                          context,
-                          builder: (_) => ChecklistBackupScreen(ops: ops),
-                        ),
-                  icon: Icons.restore,
-                  label: '백업 복원',
-                ),
-              ],
-              if (!recipes && ops.canEditTasks && editing)
-                AppToolbarButton(
-                  icon: Icons.check,
-                  key: const ValueKey('manual-edit-done'),
-                  onPressed: ops.busy
-                      ? null
-                      : () => setState(() {
-                          stopDragScroll();
-                          editing = false;
-                        }),
-                  label: '편집 완료',
-                ),
-            ],
+                            builder: (_) => ManualPrintScreen(
+                              ops: ops,
+                              templateId: scopeTap,
+                              folderId: scopeGroup,
+                              recipes: recipes,
+                            ),
+                          ),
+                    icon: Icons.print_outlined,
+                    label: '인쇄·PDF',
+                  ),
+                  if (!recipes && ops.canEditTasks)
+                    AppToolbarButton(
+                      key: const ValueKey('manual-add-folder'),
+                      icon: Icons.create_new_folder_outlined,
+                      onPressed: ops.busy
+                          ? null
+                          : () async {
+                              widget.onClearSearch?.call();
+                              setState(() {
+                                editing = true;
+                                showTree = true;
+                              });
+                              await directEditNode(
+                                context,
+                                ops,
+                                'edit_manual_node',
+                                {'kind': 'group', 'operation': 'add'},
+                                '',
+                              );
+                            },
+                      label: '폴더 추가',
+                    ),
+                  if (!recipes && ops.canEditTasks) ...[
+                    AppToolbarButton(
+                      key: const ValueKey('manual-add-tap'),
+                      onPressed: ops.busy
+                          ? null
+                          : () => showAppSheet(
+                              context,
+                              builder: (_) => ManualTapEditor(
+                                ops: ops,
+                                folderId: scopeGroup,
+                              ),
+                            ),
+                      icon: Icons.add,
+                      label: 'TAP 추가',
+                    ),
+                    AppToolbarButton(
+                      key: const ValueKey('manual-backup'),
+                      onPressed: ops.busy
+                          ? null
+                          : () => showAppSheet(
+                              context,
+                              builder: (_) => ChecklistBackupScreen(ops: ops),
+                            ),
+                      icon: Icons.restore,
+                      label: '백업 복원',
+                    ),
+                  ],
+                  if (!recipes && ops.canEditTasks && editing)
+                    AppToolbarButton(
+                      icon: Icons.check,
+                      key: const ValueKey('manual-edit-done'),
+                      onPressed: ops.busy
+                          ? null
+                          : () => setState(() {
+                              stopDragScroll();
+                              editing = false;
+                            }),
+                      label: '편집 완료',
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

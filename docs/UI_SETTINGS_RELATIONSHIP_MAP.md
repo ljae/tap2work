@@ -391,3 +391,5 @@ S52 삭제 범위는 모든 소속 매장의 목록으로 확장한다. 유일 �
 2026-10-07 S03/S05/S27 고정 행: ScheduleController.selected/month → 날짜 이전/다음·주간/월간·오늘 → move/setMonth/selectDay → 기존 showScheduleRange 조회. fullDay → 아이콘+문자 보기 버튼 → 로컬 setState → 시간축 범위. workplace.days/breaks → 같은 행 범례 → 읽기 전용 표시. 영업시간·인원은 상단 AppToolbarButton → openWorkplaceHours → 기존 S03 저장/근무표 소비; 크루 추가는 같은 행 → addShift → 기존 save_staff_shift. 업무 파트와 매뉴얼 동작도 18px/13sp 공통 형식, 기존 액션·권한 유지. 검증: water_layout_test, calendar_test, menu_layout_test, schedule_workflow_test 및 check:ui-links.
 
 2026-10-07 후속: 업무 workplace.parts → AppToolbarButton(selected) → taskPart.value → 업무 필터; ScheduleController.month → 동일 선택 버튼 → setMonth → 주간/월간. fullDay도 selected 표시. 날짜 이동·오늘 / 보기 / 설정 그룹으로 정렬하며 S03/S27 저장·조회 계약 유지. manualSearch → 앞쪽 CupertinoIcons.search·뒤쪽 입력 시 지우기 → onChanged/onClear → 네 메뉴 검색 결과. 우리매장 제목 생략은 표시만 변경. 검증: menu_layout_test, water_layout_test, calendar_test, ui_ux_audit_test, check:ui-links.
+
+2026-10-07 S45: 매뉴얼 권한 → 왼쪽부터 시작하는 고정 가로 스크롤 행의 매뉴얼 마켓 → openMarket → 기존 마켓 탐색/가져오기. 좁은 화면 최초 노출만 변경하며 나머지 도구/편집 완료는 가로 스크롤로 접근한다. 검증: manual_phone_fix_test, manual_workspace_test, check:ui-links.

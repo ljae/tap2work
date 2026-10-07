@@ -87,6 +87,8 @@ void main() {
         expect(sent?['kind'], kind);
         expect(sent?['targetId'], kind == 'tap' ? 'close' : 'b');
         expect(sent?['revision'], 2);
+        await tester.ensureVisible(find.text('편집 완료'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('편집 완료'));
         await tester.pumpAndSettle();
         expect(find.byType(Draggable<Json>), findsNothing);
@@ -109,6 +111,9 @@ void main() {
         await tester.longPress(
           find.byKey(const ValueKey('manual-node-group:general')),
         );
+        await tester.pumpAndSettle();
+        expect(find.text('매뉴얼 마켓').hitTestable(), findsOneWidget);
+        await tester.ensureVisible(find.text('편집 완료'));
         await tester.pumpAndSettle();
         expect(find.text('편집 완료').hitTestable(), findsOneWidget);
         final titleY = tester
