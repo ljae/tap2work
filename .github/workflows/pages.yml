@@ -27,6 +27,10 @@ jobs:
           channel: stable
           cache: true
       - run: npm run check
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.1.4
+      - run: npm run test:edge
       - run: npm run test:console
       - run: npm install --prefix /tmp/tap2work-sql-tests --no-save @electric-sql/pglite@0.5.8
       - run: node scripts/test-content-catalog-sql.mjs --pglite-module=/tmp/tap2work-sql-tests/node_modules/@electric-sql/pglite/dist/index.js

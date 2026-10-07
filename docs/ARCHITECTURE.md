@@ -1,3 +1,7 @@
+## Edge 호환·접속 복구 · 2026-10-07
+
+DB 카탈로그 크기 검증은 전역 Node Buffer 대신 Web TextEncoder를 사용한다. 인증 이후 카탈로그를 실제로 읽는 경로를 Deno에서 Node 전역 없이 smoke test하며 CI도 동일 경로를 검사한다. 미인증401 확인만으로 인증된 운영 조회 성공을 대신하지 않는다. AppStartup은 초기화 시도 ID로 이전 지연 응답을 버리고, 초기 로딩/매장 조회의 단계 안내·진행/skeleton/오류 재시도를 표시한다. 기존 DB/실행을 재생성해 연결 오류를 복구하지 않는다.
+
 ## DB 공용 콘텐츠 런타임 · 2026-10-07 구현
 
 운영 operations는 `DatabaseCatalogRepository`로 Postgres `tap2work_catalog_channels/releases`의 발행본을 읽는다. 같은 요청에 고정된 catalog와 revision을 OperationsStore에 주입하고 sync/catalogView/import/configure 모두 공유한다. taxonomy 검증은 발행본을 따른다. 저장된 `catalogSync`보다 낮은 요청은409로 거절하여 최신 내용의 역전 적용을 막고, rollback은 증가 revision으로 동작한다. 신규 Flutter HTTP 캐시는 catalogRevision을 포함하고 구 앱은 full read로 호환한다. 기존 개인화/운영 설정/실행 snapshot은 유지한다.

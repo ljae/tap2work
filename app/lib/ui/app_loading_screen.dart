@@ -2,15 +2,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'components.dart';
 
-/// Real startup/data loading, without a fabricated percentage or minimum delay.
+/// Shows the real loading stage without fake percentages or a minimum delay.
 class AppLoadingScreen extends StatefulWidget {
   const AppLoadingScreen({
     super.key,
     this.error,
     this.onRetry,
     this.showSkeleton = true,
+    this.title = '저장된 매장을 불러오고 있어요',
+    this.message = '업무와 매뉴얼, 근무표를 확인하고 있어요.',
   });
   final bool showSkeleton;
+  final String title;
+  final String message;
   final String? error;
   final VoidCallback? onRetry;
   @override
@@ -29,20 +33,19 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> {
   void startWaiting() {
     timer?.cancel();
     slow = false;
+    if (widget.error != null) return;
     timer = Timer(const Duration(seconds: 12), () {
-      if (mounted) setState(() => slow = true);
+      if (mounted) {
+        setState(() => slow = true);
+      }
     });
   }
 
   @override
   void didUpdateWidget(covariant AppLoadingScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.error != widget.error) {
-      if (widget.error == null) {
-        startWaiting();
-      } else {
-        timer?.cancel();
-      }
+    if (oldWidget.error != widget.error || oldWidget.title != widget.title) {
+      startWaiting();
     }
   }
 
@@ -53,59 +56,71 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.error == null && !slow
-      ? Scaffold(
-          backgroundColor: AppColors.paper,
-          body: widget.showSkeleton
-              ? const WorkspaceSkeleton()
-              : const SizedBox.expand(),
-        )
-      : Scaffold(
-          backgroundColor: AppColors.paper,
-          body: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(32),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 360),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Semantics(
-                        liveRegion: true,
-                        child: Text(
-                          widget.error != null ? '연결을 확인해 주세요' : '매장을 준비하고 있어요',
-                          textAlign: TextAlign.center,
-                          style: AppText.section,
-                        ),
+  Widget build(BuildContext context) {
+    final failed = widget.error != null;
+    final loading = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Semantics(
+          liveRegion: true,
+          child: Text(
+            failed ? '매장을 불러오지 못했어요' : widget.title,
+            textAlign: TextAlign.center,
+            style: AppText.section,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          widget.error ??
+              (slow ? '연결이 조금 늦어지고 있어요. 잠시 기다리거나 다시 시도해 주세요.' : widget.message),
+          textAlign: TextAlign.center,
+          style: AppText.caption,
+        ),
+        const SizedBox(height: 24),
+        if (!failed)
+          const ClipRRect(
+            borderRadius: BorderRadius.all(Radius.circular(4)),
+            child: AppLinearProgress(minHeight: 4),
+          ),
+        if ((failed || slow) && widget.onRetry != null) ...[
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: widget.onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('다시 시도'),
+          ),
+        ],
+      ],
+    );
+    return Scaffold(
+      backgroundColor: AppColors.paper,
+      body: SafeArea(
+        child: widget.showSkeleton && !failed && !slow
+            ? Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 440),
+                        child: loading,
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        widget.error ??
-                            (slow
-                                ? '연결이 조금 늦어지고 있어요. 잠시만 기다려 주세요.'
-                                : '오늘의 업무와 근무표를 불러와요.'),
-                        textAlign: TextAlign.center,
-                        style: AppText.caption,
-                      ),
-                      const SizedBox(height: 28),
-                      if (widget.error == null)
-                        const ClipRRect(
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                          child: AppLinearProgress(minHeight: 4),
-                        ),
-                      if (widget.error != null && widget.onRetry != null)
-                        FilledButton.icon(
-                          onPressed: widget.onRetry,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('다시 시도'),
-                        ),
-                    ],
+                    ),
+                  ),
+                  const Expanded(child: WorkspaceSkeleton()),
+                ],
+              )
+            : Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: loading,
                   ),
                 ),
               ),
-            ),
-          ),
-        );
+      ),
+    );
+  }
 }

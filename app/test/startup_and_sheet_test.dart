@@ -13,6 +13,55 @@ import 'operations_test.dart' show response;
 import 'work_controller_test.dart' show MemoryStore;
 
 void main() {
+  testWidgets('retry ignores a late initialization from the previous attempt', (
+    tester,
+  ) async {
+    final old = Completer<Widget>();
+    var attempts = 0;
+    await tester.pumpWidget(
+      AppStartup(
+        progressStore: MemoryStore(),
+        initialize: () {
+          attempts++;
+          return attempts == 1
+              ? old.future
+              : Future.value(const MaterialApp(home: Text('latest')));
+        },
+      ),
+    );
+    await tester.pump(const Duration(seconds: 12));
+    await tester.tap(find.text('다시 시도'));
+    await tester.pumpAndSettle();
+    expect(find.text('latest'), findsOneWidget);
+    old.complete(const MaterialApp(home: Text('stale')));
+    await tester.pumpAndSettle();
+    expect(find.text('latest'), findsOneWidget);
+    expect(find.text('stale'), findsNothing);
+  });
+  testWidgets('loading message fits a short phone with large text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 360);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(
+            textScaler: TextScaler.linear(1.5),
+            disableAnimations: true,
+          ),
+          child: AppLoadingScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('저장된 매장을 불러오고 있어요'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets(
     'startup paints immediately and retries a failed initialization',
     (tester) async {
@@ -31,8 +80,9 @@ void main() {
       );
       expect(find.text('매장을 준비하고 있어요'), findsNothing);
       expect(find.text('ready'), findsNothing);
+      expect(find.text('앱을 준비하고 있어요'), findsOneWidget);
       expect(find.byType(BrandLogo), findsNothing);
-      expect(find.byType(AppLinearProgress), findsNothing);
+      expect(find.byType(AppLinearProgress), findsOneWidget);
       ready.completeError(StateError('offline'));
       await tester.pump();
       expect(find.text('다시 시도'), findsOneWidget);
@@ -65,7 +115,7 @@ void main() {
       expect(find.byType(WorkspaceSkeleton), findsOneWidget);
       expect(find.byKey(const ValueKey('floating-menu-0')), findsNothing);
       await tester.pump(const Duration(seconds: 2));
-      expect(find.text('매장을 준비하고 있어요'), findsNothing);
+      expect(find.text('저장된 매장을 불러오고 있어요'), findsOneWidget);
       pending.complete();
       await loading;
       await tester.pumpAndSettle();
@@ -97,7 +147,7 @@ void main() {
       expect(find.text('다시 시도'), findsOneWidget);
       await tester.tap(find.text('다시 시도'));
       await tester.pump();
-      expect(find.text('매장을 준비하고 있어요'), findsNothing);
+      expect(find.text('저장된 매장을 불러오고 있어요'), findsOneWidget);
       expect(find.text('다시 시도'), findsNothing);
       retry.complete();
       await tester.pumpAndSettle();

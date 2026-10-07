@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 235,
+  "revision": 236,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7328,7 +7328,29 @@
         "실제 외부 조사·새 운영콘텐츠 발행·정기자동실행/자동발행은 수행하지 않음. 테스트샘플은 생산초안 export 차단.",
         "네이티브 빌드/업로드 및 운영 로그인 상태 직접 클릭 검증 없음. CMS/독립source·advisory·현장feedback 테이블은 후속."
       ]
+    },
+    {
+      "at": "2026-10-07T11:57:48.224552+00:00",
+      "type": "fix",
+      "summary": "접속 시 초기화처럼 보이는 DB 조회500 오류 복구 및 단계별 로딩/재시도 개선.",
+      "reason": "사용자가 접속 시 내용 초기화를 신고. 운영 DB 기존 양식/실행은 남아 있었고 실제 로그인 브라우저 GET500을 재현. 카탈로그 검증의 Node Buffer 전역 의존을 제거 후 동일 세션 GET200 복구.",
+      "changes": [
+        "TextEncoder 기반 카탈로그 크기 검증으로 Edge 호환. operations/catalog-admin 긴급 재배포.",
+        "앱 초기화/저장된 매장 조회 안내·불확정 진행·skeleton·지연/오류 재시도. 빈 화면 제거, 오류 중복 banner 제거.",
+        "초기화 재시도의 늦은 이전 응답 무시. Deno 인증DB카탈로그 smoke를 CI에 추가."
+      ],
+      "verification": [
+        "운영 DB 읽기 전용 조사로 기존37 양식/153 실행 존재 확인. 데이터 복원/삭제/재설정 작업 없음.",
+        "실제 로그인된 브라우저 GET500→수정 후200, 양식37/오늘업무18/catalogRevision1 확인. 새로고침 후 기존 업무 화면 표시 및 오류 해제 확인.",
+        "전역Buffer 제거한 Deno에서 ReferenceError 재현. 수정 후 validation86 TAP 및 인증 DB-backed Edge smoke 통과.",
+        "Node 전체250tests, Flutter analyze 및 관련16tests 통과. 로딩320/390/1200px·1.5배글자 캡처1test 통과.",
+        "초기 Flutter 분석brace lint1개 발견 후 수정/재분석 통과."
+      ],
+      "limitations": [
+        "로딩 UI 웹 배포 진행 중. 네이티브 빌드/업로드 미실시.",
+        "관리 API의 변경된 logs endpoint 조회는 backend/table 오류로 실패. 실제 인증GET 재현과 수정 전후 응답으로 확인."
+      ]
     }
   ],
-  "updatedAt": "2026-10-07T11:30:53.000264+00:00"
+  "updatedAt": "2026-10-07T11:57:48.224552+00:00"
 }

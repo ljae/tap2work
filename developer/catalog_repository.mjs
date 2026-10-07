@@ -20,7 +20,7 @@ function validateTaxonomy(taxonomy){
 }
 export function validateRelease(value,{assignId=false}={}){
   if(!value||value.schemaVersion!==2)throw new StoreError('지원하지 않는 콘텐츠 버전이에요.',400);
-  if(Buffer.byteLength(JSON.stringify(value))>2*1024*1024)throw new StoreError('콘텐츠 발행본은 2MB 이하여야 해요.',413);
+  if(new TextEncoder().encode(JSON.stringify(value)).byteLength>2*1024*1024)throw new StoreError('콘텐츠 발행본은 2MB 이하여야 해요.',413);
   validateTaxonomy(value.taxonomy);
   let entries;
   try{entries=validateCatalog(value.entries,value.taxonomy);}catch{throw new StoreError('콘텐츠 항목과 출처 형식을 확인해 주세요.',400);}

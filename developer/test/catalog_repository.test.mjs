@@ -64,3 +64,10 @@ test('fresh DB revision zero seeds exact legacy once; initialized channel cannot
  assert.equal((await seedCatalog({url:'https://example.supabase.co',key:'secret',fetcher})).initialized,false);assert.equal(writes,1);
  current.release=next();await assert.rejects(seedCatalog({url:'https://example.supabase.co',key:'secret',fetcher}));assert.equal(writes,1);
 });
+test('catalog validation runs in Edge runtimes without Node Buffer globals',()=>{
+ const buffer=globalThis.Buffer;
+ try{
+  delete globalThis.Buffer;
+  assert.equal(validateRelease(manualCatalog).entries.length,86);
+ }finally{globalThis.Buffer=buffer;}
+});

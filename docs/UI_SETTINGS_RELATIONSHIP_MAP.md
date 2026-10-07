@@ -393,3 +393,5 @@ S52 삭제 범위는 모든 소속 매장의 목록으로 확장한다. 유일 �
 2026-10-07 후속: 업무 workplace.parts → AppToolbarButton(selected) → taskPart.value → 업무 필터; ScheduleController.month → 동일 선택 버튼 → setMonth → 주간/월간. fullDay도 selected 표시. 날짜 이동·오늘 / 보기 / 설정 그룹으로 정렬하며 S03/S27 저장·조회 계약 유지. manualSearch → 앞쪽 CupertinoIcons.search·뒤쪽 입력 시 지우기 → onChanged/onClear → 네 메뉴 검색 결과. 우리매장 제목 생략은 표시만 변경. 검증: menu_layout_test, water_layout_test, calendar_test, ui_ux_audit_test, check:ui-links.
 
 2026-10-07 S45: 매뉴얼 권한 → 왼쪽부터 시작하는 고정 가로 스크롤 행의 매뉴얼 마켓 → openMarket → 기존 마켓 탐색/가져오기. 좁은 화면 최초 노출만 변경하며 나머지 도구/편집 완료는 가로 스크롤로 접근한다. 검증: manual_phone_fix_test, manual_workspace_test, check:ui-links.
+
+2026-10-07 로딩/재시도: AppStartup.initialize → 앱 준비 안내/진행 → start 및 최신 attempt 확인 → CloudWorkspace. OperationsController.data/error → 저장된 매장 안내/skeleton 또는 오류의 다시 시도 → refresh → 실제 매장 snapshot. 데이터 없는 오류는 중복 banner 제거, 기존 snapshot은 갱신 실패 시 보존. 검증: startup_and_sheet_test, cloud_sync_test, operations_repository_test, check:ui-links.

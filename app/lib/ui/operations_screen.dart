@@ -450,7 +450,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         children: [
                           if (ops.data != null) manualSearchBar(),
                           if (ops.busy) const AppLinearProgress(minHeight: 2),
-                          if (ops.error != null)
+                          if (ops.error != null && ops.data != null)
                             MaterialBanner(
                               content: Text(
                                 ops.error!,

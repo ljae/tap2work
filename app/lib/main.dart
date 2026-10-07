@@ -34,6 +34,7 @@ class _AppStartupState extends State<AppStartup> {
   OperationsController? operations;
   Widget? destination;
   String? error;
+  int initializationAttempt = 0;
   @override
   void initState() {
     super.initState();
@@ -41,12 +42,17 @@ class _AppStartupState extends State<AppStartup> {
   }
 
   Future<void> start() async {
+    final attempt = ++initializationAttempt;
     setState(() => error = null);
     try {
       final next = await (widget.initialize?.call() ?? initialize());
-      if (mounted) setState(() => destination = next);
+      if (mounted && attempt == initializationAttempt) {
+        setState(() => destination = next);
+      }
     } catch (_) {
-      if (mounted) setState(() => error = '앱을 준비하지 못했어요. 연결을 확인하고 다시 시도해 주세요.');
+      if (mounted && attempt == initializationAttempt) {
+        setState(() => error = '앱을 준비하지 못했어요. 연결을 확인하고 다시 시도해 주세요.');
+      }
     }
   }
 
@@ -96,6 +102,8 @@ class _AppStartupState extends State<AppStartup> {
           error: error,
           onRetry: start,
           showSkeleton: false,
+          title: '앱을 준비하고 있어요',
+          message: '로그인 상태와 저장된 매장 연결을 확인해요.',
         ),
       );
 }
