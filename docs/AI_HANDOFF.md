@@ -92,3 +92,7 @@ Git 추적 파일과 무시되지 않은 미추적 파일을 기준으로 복사
 ## 2026-10-07 DB/팀 구현 인계
 
 콘텐츠 migration/초기86 TAP seed·operations DB 연결·catalog-admin API를 구현했다. `.agents/content-team/`와 `scripts/content-team.mjs`의 역할/해시/큐/실행/초안 export를 사용한다. `DB_CATALOG_OPERATIONS.md`에서 공급자 계정 등록·독립검토·CAS 발행을 따른다. 실제 제공자 계정은 임의 등록하지 않았다. 팀의 fixture 결과는 실제 조사/생산 승인/발행이 아니며 정기 실행 미활성. 교육 기능은 제외한다. 이전 설계의 미구현 문구보다 최신 구현/검증 history를 따른다.
+
+## 2026-10-07 접속 오류 후속
+
+DB 카탈로그 검증의 전역 Buffer는 운영 Edge에서 인증 조회500을 일으켰다. TextEncoder로 수정·서버/웹배포 후 실제 로그인GET200/기존37양식/18오늘업무와 화면복구 확인. `npm run test:edge`는 Node 전역 없이 DB카탈로그를읽는 인증된전체handler경로를 Deno에서검사하며 CI에포함한다. 신규API 미인증401만으로 운영조회성공이라고 판단하지 않는다. 데이터초기화/복원은수행하지않았다. 앱/매장조회 로딩단계와 지연/오류재시도, 초기화attempt응답순서보호를 적용했다.
