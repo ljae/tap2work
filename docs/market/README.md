@@ -1,3 +1,7 @@
+> 2026-10-07 운영 전환: 공용 콘텐츠는 DB 발행본을 사용한다. [DB 발행·검토·rollback 절차](../DB_CATALOG_OPERATIONS.md)와 [에이전트 팀](../CONTENT_AGENT_TEAM.md)을 따른다. 아래 SOURCE/JSON/Edge 재배포 절차는 초기 번들·로컬/정적 샘플 관리 이력이며 운영 콘텐츠의 발행 경로가 아니다.
+
+> 2026-10-07 설계 검토: 아래는 **현재 구현**의 서버 번들 발행 절차다. 사용자는 공용 매뉴얼을 DB에서 앱 재배포 없이 갱신하는 방향을 확정했다. [새 목표 구조·이관/수용 기준](../CONTINUOUS_OPERATIONS_ARCHITECTURE.md)을 따른다. DB 발행 저장소·제공자 CMS·정기 조사은 아직 구현되지 않았으며 아래 Edge 재배포 절차를 이미 대체한 것은 아니다.
+
 # 매뉴얼 마켓 운영
 
 현재 공통+12개 산업 탐색 영역에 86 TAP / 272 Task가 들어 있습니다. 기존 27개 컬렉션의 64 TAP / 211 Task는 모두 보존합니다. 기존 `docs/wiki/CHECKLISTS.md`와 `docs/wiki/checklist-library.json`에서 준비된 내용을 이관했습니다. 출처를 참고한 편집 제안이며 `basis`와 검토일을 화면에 표시합니다. 업종별 현장 검토가 완료됐다는 의미는 아닙니다.

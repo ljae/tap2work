@@ -1,5 +1,5 @@
 import {manualPrintView,saveManualPrintTranslation} from './manual_print.mjs';
-import {syncManualCatalog,manualMarketReplay,reconcileCatalogLinks,catalogView,checklistBackup,mutateManualMarket} from './manual_market.mjs';
+import {manualCatalog,syncManualCatalog,manualMarketReplay,reconcileCatalogLinks,catalogView,checklistBackup,mutateManualMarket} from './manual_market.mjs';
 import { ensureDefaultAssignments, scheduleRange } from './default_assignments.mjs';
 import { tapOnly, assertContentOnly, policyReport, convertPolicy, updateContentRevisions } from './tap_policy.mjs';
 import { businessDate, boundaryOf, shiftDate } from './business_day.mjs';
@@ -242,12 +242,19 @@ function stockReview(item) {
   if (!item.lastOrderedAt) return null;
   return { id: `stock-${item.id}-${item.lastOrderId || new Date(item.lastOrderedAt).getTime()}`, dueAt: new Date(new Date(item.lastOrderedAt).getTime() + item.reviewDays * dayMs).toISOString() };
 }
-function ensureDueTasks(state, now) {
-  let changed = ensureLayout(state);
+function ensureDueTasks(state, now, catalog = manualCatalog, catalogRevision = null) {
+  let changed = false;
+  if(catalogRevision != null){
+    if((state.catalogSync?.revision??0)>catalogRevision)fail('공용 매뉴얼이 먼저 업데이트됐어요. 다시 조회해 주세요.',409);
+    if(state.catalogSync?.revision!==catalogRevision || state.catalogSync?.releaseId!==catalog.releaseId){
+      state.catalogSync={revision:catalogRevision,releaseId:catalog.releaseId};changed=true;
+    }
+  }
+  if(ensureLayout(state))changed=true;
   if (ensureStaff(state, now)) changed = true;
   if (ensureDefaultAssignments(state, now)) changed = true;
   if (ensureChecklists(state)) changed = true;
-  if (syncManualCatalog(state,now)) changed = true;
+  if (syncManualCatalog(state,now,catalog)) changed = true;
   if (ensureTapBoard(state)) changed = true;
   if (!state.sales) { state.sales = seedSales(now); changed = true; }
   if (ensureMenuManuals(state)) changed = true;
@@ -294,7 +301,7 @@ function ensureDueTasks(state, now) {
 }
 export class OperationsStore {
   #queue = Promise.resolve();
-  constructor(filename, clock = () => new Date(), { persistence = null, actor = null } = {}) { this.filename = filename; this.clock = clock; this.persistence = persistence; this.trustedActor = actor; this.persistedRevision = null; }
+  constructor(filename, clock = () => new Date(), { persistence = null, actor = null, catalog = manualCatalog, catalogRevision = null } = {}) { this.catalogRevision = catalogRevision; this.catalog = structuredClone(catalog); this.filename = filename; this.clock = clock; this.persistence = persistence; this.trustedActor = actor; this.persistedRevision = null; }
   async #read() {
     if (this.persistence) { const state = await this.persistence.read(); this.persistedRevision = state.revision; return state; }
     try { return JSON.parse(await readFile(this.filename, 'utf8')); }
@@ -316,6 +323,7 @@ export class OperationsStore {
     delete result.sampleArchive;
     delete result.operationEditHistory;
     delete result.catalogHistory;
+    delete result.catalogSync;
     delete result.manualPrintTranslations;
     delete result.catalogOperations;
     delete result.catalogLinks;
@@ -385,7 +393,7 @@ export class OperationsStore {
       for (const order of result.orders) { delete order.total; for (const line of order.lines) delete line.price; }
     }
     result.checklistLibrary = checklistLibrary;
-    if (result.canEditTasks) {result.manualCatalog=catalogView(state);result.catalogLinks=structuredClone(state.catalogLinks??{});result.checklistBackup=checklistBackup(state);}
+    if (result.canEditTasks) {result.manualCatalog=catalogView(state,this.catalog);result.catalogLinks=structuredClone(state.catalogLinks??{});result.checklistBackup=checklistBackup(state);}
     result.manualSearch = manualSearchIndex(state);
     result.manualPrintTemplates = manualPrintView(state);
     if (['owner', 'manager'].includes(actor.role)) result.recommendedTaps = recommendedTaps(state);
@@ -398,7 +406,7 @@ export class OperationsStore {
     return this.#serial(async () => {
       const state = await this.#read();
       const now = this.clock();
-      const changed = ensureDueTasks(state, now);
+      const changed = ensureDueTasks(state, now,this.catalog,this.catalogRevision);
       if (ensureDefaultAssignments(state,now,{dates}) || changed) { state.revision++; await this.#save(state); }
       return this.#view(state, actor);
     });
@@ -408,7 +416,7 @@ export class OperationsStore {
     return this.#serial(async () => {
       const state = await this.#read();
       const now = this.clock();
-      if (ensureDueTasks(state, now)) { state.revision++; await this.#save(state); }
+      if (ensureDueTasks(state, now,this.catalog,this.catalogRevision)) { state.revision++; await this.#save(state); }
       if (input.action === 'split_tap_policy' && input.operationId && state.tapPolicyHistory?.some(h => h.operationId === input.operationId && h.actor.id === actor.id && h.template.id === input.templateId)) return this.#view(state,actor);
       actor = actorWithParts(state, actor);
       checkWorkplacePermission(state, actor, input.action);
@@ -640,7 +648,7 @@ export class OperationsStore {
         case 'import_recommended_taps': {
           leadership(actor);
           importRecommendedTaps(state, input.ids);
-          ensureDueTasks(state, now);
+          ensureDueTasks(state, now,this.catalog,this.catalogRevision);
           activity(`추천 업무 ${input.ids.length}개 선택 가져오기`); break;
         }
         case 'reopen_step': {
@@ -788,7 +796,7 @@ export class OperationsStore {
         case 'create_task': {
           leadership(actor); if (!slots.includes(input.slot) || !roles.includes(input.requiredRole) || !state.zones.some(zone => zone.id === input.zone)) fail('시간대·담당 직급·위치를 선택해 주세요.');
           const template = { id: randomUUID(), title: text(input.title, '업무 이름', 100), emoji: '📝', slot: input.slot, requiredRole: input.requiredRole, zone: input.zone, folderId: 'general', version: 1, sourceIds: [], steps: [{ id: randomUUID(), title: text(input.title, '업무 이름', 100), manual: '매장 절차를 버디와 확인한 뒤 진행하고 결과를 확인해요.', tip: '매장에 맞는 방법과 완료 기준을 편집해 주세요.' }] };
-          state.taskTemplates.push(template); ensureDueTasks(state, now); activity(`${template.title} · ${template.slot} 반복 업무 등록`); break;
+          state.taskTemplates.push(template); ensureDueTasks(state, now,this.catalog,this.catalogRevision); activity(`${template.title} · ${template.slot} 반복 업무 등록`); break;
         }
         case 'offer_cover': {
           const shift = state.shifts.find(shift => shift.id === input.shiftId);
@@ -820,7 +828,7 @@ export class OperationsStore {
           state.layout.updatedAt = iso(now); state.layout.updatedBy = who;
           activity(`${zone.name} 위치 안내 업데이트`); break;
         }
-        default: if (!mutateManualMarket(state,input,actor,now) && !mutateWorkplace(state, input, actor, now, activity, Boolean(this.trustedActor)) && !mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
+        default: if (!mutateManualMarket(state,input,actor,now,this.catalog) && !mutateWorkplace(state, input, actor, now, activity, Boolean(this.trustedActor)) && !mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
       }
       if (['move_tap', 'complete_task', 'complete_step', 'reopen_step'].includes(input.action)) syncOrderFromTap(state, input.taskId);
       if (['move_tap', 'complete_task', 'complete_step'].includes(input.action)) {
@@ -835,7 +843,7 @@ export class OperationsStore {
       updateContentRevisions(previousTemplates,state);
       reconcileCatalogLinks(state,now);
       state.activity = state.activity.slice(0, 100);
-      ensureDueTasks(state, now);
+      ensureDueTasks(state, now,this.catalog,this.catalogRevision);
       ensureDefaultAssignments(state,now,{dates:scheduleDates});
       state.revision++; await this.#save(state);
       return this.#view(state, actor);

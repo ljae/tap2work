@@ -80,6 +80,8 @@ class HttpOperationsRepository implements OperationsRepository {
         queryParameters: {
           ...uri.queryParameters,
           'revision': '${_sync!['revision']}',
+          if (_sync!['catalogRevision'] != null)
+            'catalogRevision': '${_sync!['catalogRevision']}',
           'window': '${_sync!['syncWindow']}',
           'role': '${_sync!['actor']['role']}',
           'workspace': '${_sync!['workspaceId']}',

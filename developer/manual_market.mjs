@@ -35,7 +35,12 @@ export function syncManualCatalog(state,now,catalog=release){
   if(link.mode!=='linked')continue;
   const source=catalog.entries.find(t=>t.sourceId===link.sourceId);
   const template=state.taskTemplates.find(t=>t.id===id&&!t.archivedAt);
-  if(!source||!template||contentHash(source)===link.contentHash)continue;
+  if(!source||!template)continue;
+  const hash=contentHash(source);
+  if(hash===link.contentHash){
+   if(link.releaseId!==catalog.releaseId){link.releaseId=catalog.releaseId;link.evaluatedReleaseId=catalog.releaseId;changed=true;}
+   continue;
+  }
   const previous=structuredClone(template);
   template.title=source.title;template.emoji=source.emoji;
   template.steps=source.steps.map(step=>{
@@ -43,13 +48,13 @@ export function syncManualCatalog(state,now,catalog=release){
    return {...structuredClone(stepContent(step)),contentRevision:(old?.contentRevision??0)+(JSON.stringify(stepContent(old??{}))===JSON.stringify(stepContent(step))?0:1)};
   });
   template.version=(template.version??1)+1;
-  link.releaseId=catalog.releaseId;link.contentHash=contentHash(template);link.updatedAt=new Date(now).toISOString();
+  link.releaseId=catalog.releaseId;link.evaluatedReleaseId=catalog.releaseId;link.contentHash=contentHash(template);link.updatedAt=new Date(now).toISOString();
   (state.catalogHistory??=[]).push({kind:'update',at:link.updatedAt,template:previous,sourceId:link.sourceId});
   changed=true;
  }
  return changed;
 }
-export function catalogView(state){return {...release,entries:release.entries.map(source=>({...source,installed:Object.entries(state.catalogLinks??{}).filter(([id,l])=>l.sourceId===source.sourceId&&l.mode!=='removed'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)).map(([templateId,l])=>({templateId,mode:l.mode,releaseId:l.releaseId}))}))};}
+export function catalogView(state,catalog=release){return {...catalog,entries:catalog.entries.map(source=>({...source,installed:Object.entries(state.catalogLinks??{}).filter(([id,l])=>l.sourceId===source.sourceId&&l.mode!=='removed'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)).map(([templateId,l])=>({templateId,mode:l.mode,releaseId:l.releaseId}))}))};}
 function addTemplates(state,drafts){
  const checked=validateChecklists({folders:state.checklistFolders,templates:[...state.taskTemplates,...drafts]},state);
  const ids=new Set(drafts.map(t=>t.id));
@@ -63,7 +68,7 @@ export function checklistBackup(state){
  const ids=new Set(templates.map(t=>t.folderId));
  return {format:'tap2work-checklists',schemaVersion:1,sourceRevision:state.revision,externalMedia:'links_only',folders:state.checklistFolders.filter(f=>ids.has(f.id)).map(f=>({id:f.id,name:f.name})),templates};
 }
-export function mutateManualMarket(state,input,actor,now){
+export function mutateManualMarket(state,input,actor,now,catalog=release){
  if(!['configure_manual_business','import_market_taps','personalize_market_tap','restore_checklist_backup','save_manual_tap'].includes(input.action))return false;
  if(!['owner','manager'].includes(actor.role))fail('매니저 이상만 매뉴얼을 바꿀 수 있어요.',403);
  if(input.action==='save_manual_tap'){
@@ -83,11 +88,11 @@ export function mutateManualMarket(state,input,actor,now){
  }
  receipt(state,input,actor,()=>{
   if(input.action==='configure_manual_business'){
-   if(input.releaseId!==release.releaseId)fail('공용 목록이 업데이트됐어요. 다시 확인해 주세요.',409);
-   if(!release.taxonomy.industries.some(i=>i.id===input.industryId))fail('업종을 선택해 주세요.');
+   if(input.releaseId!==catalog.releaseId)fail('공용 목록이 업데이트됐어요. 다시 확인해 주세요.',409);
+   if(!catalog.taxonomy.industries.some(i=>i.id===input.industryId))fail('업종을 선택해 주세요.');
    if(typeof input.specialization!=='string'||input.specialization.length>100)fail('사업장 특성은 100자 이내로 입력해 주세요.');
    if(!Array.isArray(input.sourceIds)||!input.sourceIds.length||new Set(input.sourceIds).size!==input.sourceIds.length)fail('필요한 매뉴얼을 선택해 주세요.');
-   const sources=input.sourceIds.map(id=>release.entries.find(s=>s.sourceId===id)??fail('공용 매뉴얼을 찾지 못했어요.'));
+   const sources=input.sourceIds.map(id=>catalog.entries.find(s=>s.sourceId===id)??fail('공용 매뉴얼을 찾지 못했어요.'));
    if(typeof input.replaceExisting!=='boolean'||typeof input.enableOperations!=='boolean')fail('적용 방식을 확인해 주세요.');
    const at=new Date(now).toISOString();
    if(input.replaceExisting){
@@ -103,7 +108,7 @@ export function mutateManualMarket(state,input,actor,now){
    const additions=sources.filter(source=>!Object.entries(state.catalogLinks??{}).some(([id,l])=>l.sourceId===source.sourceId&&l.mode==='linked'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)));
    const destinations=new Map();
    for(const source of additions){
-    const purpose=release.taxonomy.purposes.find(p=>p.id===source.purposeId);
+    const purpose=catalog.taxonomy.purposes.find(p=>p.id===source.purposeId);
     let folder=state.checklistFolders.find(f=>f.name===purpose.name);
     if(!folder){folder={id:uid(),name:purpose.name};state.checklistFolders.push(folder);}
     destinations.set(source.sourceId,folder.id);
@@ -113,28 +118,28 @@ export function mutateManualMarket(state,input,actor,now){
    addTemplates(state,drafts);
    drafts.forEach((draft,i)=>{
     const actual=state.taskTemplates.find(t=>t.id===draft.id),source=additions[i];
-    (state.catalogLinks??={})[draft.id]={mode:'linked',sourceId:source.sourceId,releaseId:release.releaseId,contentHash:contentHash(actual),importedAt:at};
+    (state.catalogLinks??={})[draft.id]={mode:'linked',sourceId:source.sourceId,releaseId:catalog.releaseId,contentHash:contentHash(actual),importedAt:at};
 
    });
    if(input.enableOperations)for(const source of sources.filter(s=>s.kind!=='legal')){
     const template=state.taskTemplates.find(t=>!t.archivedAt&&state.catalogLinks?.[t.id]?.mode==='linked'&&state.catalogLinks[t.id].sourceId===source.sourceId);
     if(template)saveTapSettings(state,{templateId:template.id,assignmentScopeVersion:2,settings:{...taskSettings(template),enabled:true}},now);
    }
-   state.manualBusinessProfile={industryId:input.industryId,specialization:input.specialization.trim(),configuredAt:at,releaseId:release.releaseId};
+   state.manualBusinessProfile={industryId:input.industryId,specialization:input.specialization.trim(),configuredAt:at,releaseId:catalog.releaseId};
    return drafts.map(t=>t.id);
   }
   if(input.action==='import_market_taps'){
-   if(input.releaseId!==release.releaseId)fail('공용 목록이 업데이트됐어요. 다시 확인해 주세요.',409);
+   if(input.releaseId!==catalog.releaseId)fail('공용 목록이 업데이트됐어요. 다시 확인해 주세요.',409);
    if(!Array.isArray(input.sourceIds)||!input.sourceIds.length||new Set(input.sourceIds).size!==input.sourceIds.length)fail('가져올 TAP을 골라 주세요.');
    if(input.folderMode!=null && !['purpose','existing'].includes(input.folderMode))fail('그룹 분류 방식을 확인해 주세요.');
    if(input.folderMode!=='purpose'&&!state.checklistFolders.some(f=>f.id===input.folderId))fail('대상 그룹을 선택해 주세요.');
-   const sources=input.sourceIds.map(id=>release.entries.find(t=>t.sourceId===id)??fail('공용 TAP을 찾지 못했어요.'));
+   const sources=input.sourceIds.map(id=>catalog.entries.find(t=>t.sourceId===id)??fail('공용 TAP을 찾지 못했어요.'));
    if(sources.some(s=>Object.entries(state.catalogLinks??{}).some(([id,l])=>l.sourceId===s.sourceId&&l.mode==='linked'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt))))fail('이미 공용 연결로 가져온 TAP이 있어요.');
    const folders=structuredClone(state.checklistFolders);
    const destinations=new Map();
    for(const source of sources){
     if(input.folderMode!=='purpose'){destinations.set(source.sourceId,input.folderId);continue;}
-    const purpose=release.taxonomy.purposes.find(p=>p.id===source.purposeId);
+    const purpose=catalog.taxonomy.purposes.find(p=>p.id===source.purposeId);
     let folder=folders.find(f=>f.name===purpose.name);
     if(!folder){folder={id:uid(),name:purpose.name};folders.push(folder);}
     destinations.set(source.sourceId,folder.id);
@@ -143,7 +148,7 @@ export function mutateManualMarket(state,input,actor,now){
    state.checklistFolders=folders;
    const drafts=sources.map(s=>({id:uid(),title:s.title,emoji:s.emoji,folderId:destinations.get(s.sourceId),slot:s.slot,requiredRole:'all',partId:null,zone:null,steps:structuredClone(s.steps),sourceIds:[]}));
    addTemplates(state,drafts);
-   drafts.forEach((t,i)=>{const actual=state.taskTemplates.find(v=>v.id===t.id);(state.catalogLinks??={})[t.id]={mode:'linked',sourceId:sources[i].sourceId,releaseId:release.releaseId,contentHash:contentHash(actual),importedAt:new Date(now).toISOString()};});
+   drafts.forEach((t,i)=>{const actual=state.taskTemplates.find(v=>v.id===t.id);(state.catalogLinks??={})[t.id]={mode:'linked',sourceId:sources[i].sourceId,releaseId:catalog.releaseId,contentHash:contentHash(actual),importedAt:new Date(now).toISOString()};});
    return drafts.map(t=>t.id);
   }
   if(input.action==='personalize_market_tap'){

@@ -1,0 +1,143 @@
+{
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "jobId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8000
+    },
+    "role": {
+      "type": "string",
+      "const": "editor"
+    },
+    "inputHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "result": {
+      "type": "object",
+      "properties": {
+        "drafts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8000
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8000
+              },
+              "applicability": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8000
+              },
+              "steps": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 8000
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 8000
+                    },
+                    "manual": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 8000
+                    },
+                    "completionCriteria": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 8000
+                    },
+                    "exceptionAction": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 8000
+                    },
+                    "evidenceSourceIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 8000
+                      },
+                      "maxItems": 100
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "manual",
+                    "completionCriteria",
+                    "exceptionAction",
+                    "evidenceSourceIds"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 100
+              }
+            },
+            "required": [
+              "sourceId",
+              "title",
+              "applicability",
+              "steps"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        },
+        "changeSummary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "evidenceSourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "maxItems": 100
+        },
+        "requiresHumanReview": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "drafts",
+        "changeSummary",
+        "evidenceSourceIds",
+        "requiresHumanReview"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "role",
+    "inputHash",
+    "result"
+  ],
+  "additionalProperties": false
+}

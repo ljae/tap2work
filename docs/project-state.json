@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 231,
+  "revision": 234,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1038,6 +1038,29 @@
       "reason": "사용자가 로고 삭제와 Apple 디자인 스타일의 녹색 돋보기를 명시.",
       "source": "사용자 요청 · 2026-10-07",
       "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "D-099",
+      "category": "제품 목표·콘텐츠·교육",
+      "title": "DB 기반 공용 매뉴얼·체크리스트 지속 개선",
+      "status": "confirmed",
+      "decision": "사장님 부재 시에도 높은 서비스 품질을 지원하도록 매뉴얼과 체크리스트를 지속 개선한다. 외부 조사·관리 공백을 콘텐츠에 반영하고 공용 콘텐츠는 앱 배포 없이 DB 업데이트로 공급하도록 설계한다. 별도 교육 기능은 만들지 않는다. 에이전트 팀은 이후 구성한다.",
+      "previous": "크루 고용·배치·지속 교육과 외부 조사 기반 체크리스트/매뉴얼 개선으로 사장님 부재 시에도 높은 서비스 품질을 지원한다. 공용 매뉴얼은 별도 앱 배포 없이 DB 업데이트로 공급하는 방향으로 설계한다. 향후 에이전트 팀을 구성해 발전시킨다.",
+      "next": "매뉴얼의 방법/완료 기준/예외 대응과 체크리스트 수행을 연결. DB 발행·버전·개인화/기록 보존·피드백 중심 설계. 교육 과제/진도/평가 제외.",
+      "reason": "사용자가 별도 교육 없이 매뉴얼·체크리스트에 집중하도록 명시.",
+      "source": "사용자 요청 · 2026-10-07",
+      "updatedAt": "2026-10-07T11:23:16.812654+00:00",
+      "implementation": "Implemented DB release/draft/review/channel/audit, operations request catalog injection and provider API; exact legacy86 TAP seed deployed. Five-role persistent agent queue/CLI configured; separate training excluded. Provider identities/periodic schedule not auto-provisioned."
+    },
+    {
+      "id": "D-100",
+      "category": "콘텐츠 공급·운영 제안",
+      "title": "불변 발행본·검토·체크리스트 피드백과 에이전트 역할 계약",
+      "status": "proposed",
+      "decision": "공용 콘텐츠 DB/채널 CAS, 초안-검토-발행, 요청당 catalog 일관성, 체크리스트/매뉴얼 버전별 운영 예외와 피드백, 에이전트 역할 계약을 제안한다. 별도 교육 저장소/기능은 제외한다. 자동 발행 범위·검토자·주기 등 세부 정책은 미확정.",
+      "reason": "확정된 제품 방향을 기존 D-081/복수 매장/기록 보존 구조와 연결하기 위한 설계안.",
+      "source": "설계 검토 제안 · docs/CONTINUOUS_OPERATIONS_ARCHITECTURE.md",
+      "updatedAt": "2026-10-07T11:04:24.503130+00:00"
     }
   ],
   "milestones": [
@@ -1214,6 +1237,12 @@
       "title": "iOS App Store 출시와 매장 구독",
       "status": "in_progress",
       "description": "TAP Work 새 브랜딩, 개인 소셜 로그인·개인정보·계정 삭제 로컬 구현. Flutter 분석/관련 테스트, Node 214, 격리 SQL, 웹 및 iOS 시뮬레이터 빌드 검증. Google OAuth 클라이언트·Apple provider/키 설정, 서버 이관/배포, 실기기 E2E와 서명·App Store 제출은 미완료. 구독 연동·가격·유료 기능은 후속."
+    },
+    {
+      "id": "M-030",
+      "title": "DB 공용 매뉴얼·체크리스트와 지속 콘텐츠 팀",
+      "status": "in_progress",
+      "description": "DB/서버 운영 전환·검토/발행 API·5역할 팀 구현/검증 완료. 웹 캐시 배포 진행. 제공자계정 지정/실제 콘텐츠 첫 발행·연구 주기 설정과 현장 피드백은 후속."
     }
   ],
   "history": [
@@ -7223,7 +7252,65 @@
       "limitations": [
         "웹만 배포. 네이티브 빌드/배포 및 운영 인증 화면 클릭 검증 미실시."
       ]
+    },
+    {
+      "at": "2026-10-07T11:01:53.480490+00:00",
+      "type": "architecture_review",
+      "summary": "지속 운영/교육 및 DB 공용 콘텐츠 공급 구조 검토·개선 설계.",
+      "changes": [
+        "서버 번들 의존·sync 외 정적 catalog 경로·taxonomy 결합·catalog 조건부 캐시 누락·메타데이터 버전·기기 교육 진도 공백 확인.",
+        "DB 테이블/API/권한/발행 CAS·실패/롤백·호환성·개인화/실행 보호·교육/예외·향후 에이전트 역할과 단계별 수용 기준 문서화.",
+        "PRODUCT/ARCHITECTURE/market README/AI_HANDOFF 연결. 사용자 방향 confirmed, 세부 정책 proposed 분리."
+      ],
+      "verification": [
+        "관련 소스와 기존 manual_market 서버 테스트로 현재 동작 확인.",
+        "공식 Supabase RLS/데이터 보호와 PostgreSQL SELECT 잠금 문서 확인."
+      ],
+      "limitations": [
+        "설계/문서 변경만 수행. 신규 DB migration/API/UI 구현 및 운영 배포 미실시.",
+        "실제 업종별 외부 조사/매뉴얼 발행·에이전트 팀 구성·주기 작업 활성화 미실시."
+      ]
+    },
+    {
+      "at": "2026-10-07T11:04:24.503130+00:00",
+      "type": "decision_update",
+      "summary": "사용자 범위 수정 반영: 별도 교육 없이 매뉴얼·체크리스트 집중.",
+      "previous": "설계 초안에 learning assignments/events, 버전별 교육 과제·연습·버디 확인·재교육 단계 제안.",
+      "next": "해당 테이블·교육 단계·교육 지표 제거. 같은 Task의 체크리스트 행동과 매뉴얼 방법/완료 기준/예외 대응, DB 발행·관리 공백 피드백에 집중.",
+      "reason": "사용자: 별도의 교육은 없으며 매뉴얼과 체크리스트에 집중.",
+      "verification": [
+        "기존 manual_market 서버 테스트 16개 통과; npm run check/UI links 47개 통과.",
+        "설계/PRODUCT/ARCHITECTURE/market README/AI_HANDOFF 범위 교정 및 JSON/문서 링크 확인."
+      ],
+      "limitations": [
+        "이번 결과는 설계 문서 개선. 신규 DB 기능·앱 변경·운영 배포 없음.",
+        "에이전트 팀은 구성/실행하지 않음."
+      ]
+    },
+    {
+      "at": "2026-10-07T11:23:16.812654+00:00",
+      "type": "implementation",
+      "summary": "DB 공용 카탈로그·검토/발행/rollback API와 지속 콘텐츠 에이전트 팀 구현 및 서버 운영 전환.",
+      "changes": [
+        "6개 중앙 테이블·등록 역할·정확한 초안 revision/hash 독립 검토·불변 발행본·CAS/멱등/감사·rollback.",
+        "요청별 동일 DB 발행본/분류 주입, catalogRevision 조건부 조회와 낮은 적용 revision 거절. 기존 개인화/설정/실행 보호.",
+        "연구/편집/검토/QA/조율 5역할 영속 JSON 큐·해시·lease·재시도·실패 기록·Codex 실행·DB 초안 export.",
+        "기존86 TAP ID/내용 그대로 운영DB 초기화. operations/catalog-admin Edge 배포. 별도 교육 없음."
+      ],
+      "verification": [
+        "Node 전체249 tests 통과; Flutter analyze/관련27 tests 통과. check/UI links47 통과.",
+        "격리 PGlite에서 공급자 권한·기여자 독립검토·revision/hash·immutable audit·CAS/retry·rollback·legacy86 TAP seed/read 통과.",
+        "운영DB 발행본 validation: revision1/86 TAP/기존 releaseId 정확히 유지. 신규 API 미인증401 확인.",
+        "팀16 tests 및 5역할 fixture smoke 통과. 실제 Codex fixture researcher38.847초 성공; 실제 외부 조사로 표현하지 않음.",
+        "검토 발견 seed revision0/null 처리와 지연구버전 덮어쓰기 회귀 수정. PostgREST 초기RPC404는 schema reload 후 seed 성공. 팀 strict JSON schema HTTP400 원인 수정 후 실제 실행 성공."
+      ],
+      "limitations": [
+        "신규 웹 캐시 코드 배포 진행 중. 네이티브 빌드/스토어 업로드 없음; 기존앱도 full read로 DB 호환.",
+        "공급자 계정은 임의 등록하지 않음. 문서의 grant-role로 지정 Auth 계정을 editor/reviewer/publisher에 등록 후 콘텐츠 발행 가능.",
+        "정기 자동조사/자동발행·실제 외부 조사/새 운영콘텐츠 발행·운영인증화면 직접클릭 검증 미실시.",
+        "독립 source/advisory/feedback/exception 테이블·CMS UI·실DB 다중세션 부하 검증은 후속."
+      ]
     }
   ],
-  "updatedAt": "2026-10-07T10:52:11.325689+00:00"
+  "updatedAt": "2026-10-07T11:23:16.812654+00:00"
 }

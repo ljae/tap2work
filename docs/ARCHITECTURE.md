@@ -1,3 +1,19 @@
+## DB 공용 콘텐츠 런타임 · 2026-10-07 구현
+
+운영 operations는 `DatabaseCatalogRepository`로 Postgres `tap2work_catalog_channels/releases`의 발행본을 읽는다. 같은 요청에 고정된 catalog와 revision을 OperationsStore에 주입하고 sync/catalogView/import/configure 모두 공유한다. taxonomy 검증은 발행본을 따른다. 저장된 `catalogSync`보다 낮은 요청은409로 거절하여 최신 내용의 역전 적용을 막고, rollback은 증가 revision으로 동작한다. 신규 Flutter HTTP 캐시는 catalogRevision을 포함하고 구 앱은 full read로 호환한다. 기존 개인화/운영 설정/실행 snapshot은 유지한다.
+
+`catalog-admin` Edge → JWT 본인 → service-only 공급자 RPC → 등록 역할/초안revision·해시/독립 reviewer → 채널 CAS 발행/감사 경계다. 중앙 역할은 매장 membership과 분리된다. 공용 초안/검토/발행본/채널/감사 DB와 기존86 TAP seed를 구현했다. 출처는 release.entries.references에 보존한다. 로컬/정적 샘플 번들은 운영 DB 원본을 대체하지 않는다. 요청별 DB read이며 정상 cache fallback이나 푸시 업데이트는 아직 없다.
+
+팀 계약은 `.agents/content-team/`와 `scripts/content-team.mjs`에 저장한다. 연구→편집→검토→QA→조정 순서의 JSON/해시/재시도 큐이고 결과는 검토용 초안이다. 서비스 키·생산 발행 권한·정기 실행을 팀에 주지 않았다. [운영 계약](DB_CATALOG_OPERATIONS.md)과 [팀 실행](CONTENT_AGENT_TEAM.md) 참조. 관리자 CMS·별도 근거/철회/현장 피드백 테이블은 후속; 교육 모듈 없음.
+
+## 지속 매뉴얼·체크리스트 공급 구조 · 2026-10-07 설계 검토
+
+[CONTINUOUS_OPERATIONS_ARCHITECTURE.md](CONTINUOUS_OPERATIONS_ARCHITECTURE.md)가 DB 공용 발행과 지속 매뉴얼·체크리스트 개선의 목표 설계/구현 계약이다. 이 절은 이전 설계 검토 기록이다. 최신 구현 상태는 위 DB 런타임 절을 따른다. CMS는 미구현이다. 사용자 수정에 따라 별도 교육 과정·진도·평가/learning 테이블은 설계하지 않는다. 기존 기기 학습 데모를 확장하는 작업도 이번 범위에서 제외한다.
+
+다음 구현 경계: CatalogRepository → 요청당 불변 catalog를 OperationsStore에 주입 → sync/catalogView/import/configure가 동일 발행본 사용. taxonomy 검증도 주입하고 channel revision을 조건부 조회에 포함한다. 내용과 메타데이터 해시를 구별한다. D-081의 ID/개인화/매장 운영 설정/기존 실행 보존을 유지하며 공용 발행 권한은 매장 직책과 분리한다. 관리 공백 피드백/예외는 체크리스트 실행과 해당 매뉴얼 버전에 연결한다.
+
+DB 업데이트와 매뉴얼·체크리스트 집중은 사용자 확정 방향이다. 테이블/API/워크플로·검토/발행/에이전트 정책과 일정은 제안이며 구현 상태를 별도로 기록한다.
+
 ## 복수 매장 경계 · 2026-10-06
 
 `WorkspaceMenu` → `OperationsController.selectWorkspace` → `OperationsRepository.read(workspaceId)` → HTTP `?workspace=` → `tap2work_read_workspace`의 본인+매장 membership 검증. 모든 POST는 `workspaceId`를 포함한다. 서버는 클라이언트의 role/userId를 신뢰하지 않고 선택 매장의 소속으로 actor와 권한 투영을 다시 구성한다. 여러 소속이 있는데 매장 지정 없는 이전 클라이언트의 쓰기는 409로 거절한다. 지정 매장의 권한이 없으면 403과 본인 소속 목록만 반환하며 다른 매장에 조용히 저장하지 않는다.

@@ -1,0 +1,77 @@
+{
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "jobId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8000
+    },
+    "role": {
+      "type": "string",
+      "const": "coordinator"
+    },
+    "inputHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "result": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "prepared",
+            "blocked"
+          ]
+        },
+        "handoff": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "nextGaps": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "maxItems": 100
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "maxItems": 100
+        },
+        "publishAllowed": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "required": [
+        "status",
+        "handoff",
+        "nextGaps",
+        "blockers",
+        "publishAllowed"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "role",
+    "inputHash",
+    "result"
+  ],
+  "additionalProperties": false
+}

@@ -9,7 +9,7 @@ export const contentFields=['id','title','manualTitle','manual','tip','tags','im
 export function stepContent(s){return {id:s.id,title:s.title,...(s.manualTitle?{manualTitle:s.manualTitle}:{}),manual:s.manual,tip:s.tip??'',tags:s.tags??[],imageUrl:s.imageUrl??'',videoUrl:s.videoUrl??'',sourceUrl:s.sourceUrl??''};}
 export function templateContent(t){return {title:t.title,...(t.manualTitle?{manualTitle:t.manualTitle}:{}),emoji:t.emoji??'📝',steps:(t.steps??[]).map(stepContent)};}
 export const contentHash=t=>createHash('sha256').update(JSON.stringify(templateContent(t))).digest('hex');
-export function validateCatalog(entries){
+export function validateCatalog(entries,catalogTaxonomy=taxonomy){
  if(!Array.isArray(entries)||!entries.length||entries.length>650)fail('Invalid catalogue size');
  const seen=new Set();
  return entries.map(t=>{
@@ -21,8 +21,8 @@ export function validateCatalog(entries){
    const sid=id(s.id);if(ids.has(sid))fail('Duplicate Task ID');ids.add(sid);
    return {id:sid,title:text(s.title,100,'Task title'),manual:text(s.manual,700,'manual'),tip:optional(s.tip,400),tags:manualTags(s.tags),imageUrl:mediaLink(s.imageUrl),videoUrl:mediaLink(s.videoUrl),sourceUrl:mediaLink(s.sourceUrl)};
   });
-  if(!Array.isArray(t.industryIds)||!t.industryIds.length||t.industryIds.some(id=>!taxonomy.industries.some(i=>i.id===id)))fail('Invalid industry');
-  if(!taxonomy.purposes.some(p=>p.id===t.purposeId))fail('Invalid purpose');
+  if(!Array.isArray(t.industryIds)||!t.industryIds.length||t.industryIds.some(id=>!catalogTaxonomy.industries.some(i=>i.id===id)))fail('Invalid industry');
+  if(!catalogTaxonomy.purposes.some(p=>p.id===t.purposeId))fail('Invalid purpose');
   if(!['legal','operation'].includes(t.kind))fail('Invalid catalogue kind');
   if(!Array.isArray(t.references)||t.references.length>12)fail('Invalid references');
   const references=t.references.map(r=>({title:text(r.title,120,'source title'),url:mediaLink(r.url),checkedAt:text(r.checkedAt,30,'source date'),scope:text(r.scope,500,'source scope')}));

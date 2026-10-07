@@ -13,3 +13,7 @@ entrypoint = "./functions/operations/index.ts"
 [functions.public-login]
 verify_jwt = false
 entrypoint = "./functions/public-login/index.ts"
+
+[functions.catalog-admin]
+verify_jwt = false
+entrypoint = "./functions/catalog-admin/index.ts"

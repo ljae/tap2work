@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "teamId": "tap2work-content",
+  "purpose": "사장 부재 시 관리 공백을 매뉴얼과 체크리스트로 보완",
+  "publication": "human-provider-review-required",
+  "maxAttempts": 3,
+  "leaseSeconds": 900,
+  "maxRunnerSeconds": 600,
+  "maxCallsPerJob": 15,
+  "roles": [
+    {"id":"researcher","prompt":"prompts/researcher.md","dependsOn":[],"capabilities":["public-research","sanitized-gap-analysis"]},
+    {"id":"editor","prompt":"prompts/editor.md","dependsOn":["researcher"],"capabilities":["draft-manual-checklist"]},
+    {"id":"reviewer","prompt":"prompts/reviewer.md","dependsOn":["researcher","editor"],"capabilities":["independent-content-review"]},
+    {"id":"qa","prompt":"prompts/qa.md","dependsOn":["researcher","editor","reviewer"],"capabilities":["artifact-contract-check"]},
+    {"id":"coordinator","prompt":"prompts/coordinator.md","dependsOn":["researcher","editor","reviewer","qa"],"capabilities":["draft-handoff","next-gap-priority"]}
+  ]
+}

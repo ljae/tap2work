@@ -34,6 +34,39 @@ class MemoryOperations implements OperationsRepository {
 
 void main() {
   test(
+    'conditional reads carry the catalog revision and replace it after publication',
+    () async {
+      final requests = <Uri>[];
+      var catalogRevision = 1;
+      final repository = HttpOperationsRepository(
+        endpoint: Uri.parse('https://example.test/operations'),
+        readOnly: false,
+        accessToken: () async => 'token',
+        client: MockClient((request) async {
+          requests.add(request.url);
+          return http.Response(
+            jsonEncode({
+              'revision': 7,
+              'syncWindow': 1,
+              'workspaceId': 'a',
+              'actor': {'role': 'owner'},
+              'catalogRevision': catalogRevision,
+            }),
+            200,
+          );
+        }),
+      );
+      addTearDown(repository.close);
+      await repository.read(actorId: 'owner', workspaceId: 'a');
+      catalogRevision = 2;
+      await repository.read(actorId: 'owner', workspaceId: 'a');
+      expect(requests.last.queryParameters['catalogRevision'], '1');
+      await repository.read(actorId: 'owner', workspaceId: 'a');
+      expect(requests.last.queryParameters['catalogRevision'], '2');
+    },
+  );
+
+  test(
     'HTTP authentication errors stay distinct from transport failures and recover',
     () async {
       var status = 401;

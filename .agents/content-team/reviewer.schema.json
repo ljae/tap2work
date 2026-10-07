@@ -1,0 +1,71 @@
+{
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "jobId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8000
+    },
+    "role": {
+      "type": "string",
+      "const": "reviewer"
+    },
+    "inputHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "result": {
+      "type": "object",
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "changes_required"
+          ]
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "maxItems": 100
+        },
+        "requiredHumanChecks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "maxItems": 100
+        },
+        "humanApproved": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "required": [
+        "outcome",
+        "findings",
+        "requiredHumanChecks",
+        "humanApproved"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "role",
+    "inputHash",
+    "result"
+  ],
+  "additionalProperties": false
+}

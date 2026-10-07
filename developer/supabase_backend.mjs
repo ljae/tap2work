@@ -1,10 +1,11 @@
+import {DatabaseCatalogRepository} from './catalog_repository.mjs';
 import { OperationsStore, seedOperations, emptyOperations } from './operations.mjs';
 import { sectionPatch } from './section_storage.mjs';
 import { ensureStaff } from './staff.mjs';
 import { StoreError } from './store.mjs';
 
 // Both Edge Functions and Node tests use this handler; demo actor headers are ignored.
-export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.work', 'https://www.tap2.work'], fetcher = fetch, clock = () => new Date(), sectionStorage = false, requireSocialIdentity = false }) {
+export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.work', 'https://www.tap2.work'], fetcher = fetch, clock = () => new Date(), sectionStorage = false, requireSocialIdentity = false, catalogDatabase = false, catalogRepository = null }) {
   if (!url || !serviceKey) throw new Error('Supabase server configuration is missing');
   const headers = { apikey: serviceKey, ...(serviceKey.startsWith('eyJ') ? { Authorization: `Bearer ${serviceKey}` } : {}), 'Content-Type': 'application/json' };
   async function rest(path, options = {}) {
@@ -12,6 +13,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
     if (!response.ok) throw new StoreError('클라우드 저장소를 준비하지 못했어요. 관리자에게 연결 상태를 확인해 주세요.', 503);
     return response.status === 204 ? null : response.json();
   }
+  const catalogs = catalogRepository ?? (catalogDatabase ? new DatabaseCatalogRepository(rest) : null);
   return async request => {
     const origin = request.headers.get('origin');
     const cors = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', Vary: 'Origin' };
@@ -30,6 +32,8 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       if (!/^[\da-f-]{36}$/i.test(user.id ?? '')) throw new StoreError('사용자를 확인하지 못했어요.', 401);
       if (requireSocialIdentity && !user.identities?.some(i => ['apple','google'].includes(i.provider))) throw new StoreError('Apple 또는 Google로 다시 로그인해 주세요.', 403);
       const query = new URL(request.url).searchParams;
+      const catalogSnapshot = catalogs ? await catalogs.readPublished() : null;
+      const catalogMatches = !catalogSnapshot || query.get('catalogRevision') === String(catalogSnapshot.revision);
       let input;
       if (request.method === 'POST') {
         if (!request.headers.get('content-type')?.startsWith('application/json')) throw new StoreError('JSON 요청이 필요해요.',415);
@@ -43,14 +47,14 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       if (selectedWorkspace != null && (typeof selectedWorkspace !== 'string' || !/^[a-zA-Z0-9-]{1,80}$/.test(selectedWorkspace))) throw new StoreError('매장 선택을 확인해 주세요.');
       const readWorkspace = () => rest('rpc/tap2work_read_workspace', {method:'POST', body:JSON.stringify({
         p_user_id:user.id,
-        p_revision:request.method === 'GET' && !query.has('scheduleFrom') && !query.has('scheduleTo') && query.get('view') !== 'employee' && /^\d+$/.test(query.get('revision') ?? '') ? Number(query.get('revision')) : null,
+        p_revision:catalogMatches && request.method === 'GET' && !query.has('scheduleFrom') && !query.has('scheduleTo') && query.get('view') !== 'employee' && /^\d+$/.test(query.get('revision') ?? '') ? Number(query.get('revision')) : null,
         p_window:request.method === 'GET' && /^\d+$/.test(query.get('window') ?? '') ? Number(query.get('window')) : null,
         p_role:request.method === 'GET' ? query.get('role') : null,
         p_workspace_id: selectedWorkspace,
       })});
       let document = sectionStorage ? await readWorkspace() : null;
       if (document?.forbidden) return reply(403, {error:'이 매장에 접근할 권한이 없어요. 다른 매장을 선택해 주세요.',workspaces:document.workspaces});
-      if (document?.unchanged) return reply(200, document);
+      if (document?.unchanged) return reply(200, {...document,...(catalogSnapshot?{catalogRevision:catalogSnapshot.revision}: {})});
       let memberships = sectionStorage ? (document.member ? [document.member] : []) : await rest(`tap2work_members?user_id=eq.${user.id}&select=workspace_id,role,display_name`);
       let createdWorkspace = false;
       if (input?.action === 'create_workspace' && input.requestId != null && sectionStorage) {
@@ -110,11 +114,11 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
           if (!saved) throw new StoreError('동료가 먼저 수정했어요. 새로고침 후 다시 시도해 주세요.', 409);
         },
       };
-      const store = new OperationsStore(null, clock, { persistence, actor });
+      const store = new OperationsStore(null, clock, { persistence, actor, ...(catalogSnapshot?{catalog:catalogSnapshot.release,catalogRevision:catalogSnapshot.revision}:{}) });
       let result;
       if (request.method === 'GET' || createdWorkspace) result = await store.snapshot(user.id, Object.fromEntries(query));
       else result = await store.mutate(user.id, input);
-      return reply(200, { ...result, canSwitchEmployee: member.role === 'owner', employeeMode, workspaceId: member.workspace_id, ...(document?.workspaces ? {workspaces: document.workspaces.map(w=>w.id===member.workspace_id?{...w,name:result.store?.name ?? w.name}:w)} : {}), ...(sectionStorage ? {syncWindow: document.window} : {}) });
+      return reply(200, { ...result, ...(catalogSnapshot?{catalogRevision:catalogSnapshot.revision,catalogReleaseId:catalogSnapshot.release.releaseId}:{}), canSwitchEmployee: member.role === 'owner', employeeMode, workspaceId: member.workspace_id, ...(document?.workspaces ? {workspaces: document.workspaces.map(w=>w.id===member.workspace_id?{...w,name:result.store?.name ?? w.name}:w)} : {}), ...(sectionStorage ? {syncWindow: document.window} : {}) });
     } catch (error) {
       return reply(error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : '요청을 처리하지 못했어요. 다시 시도해 주세요.' });
     }
