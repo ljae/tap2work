@@ -108,3 +108,7 @@ iOS TestFlight: 기존 앱 6819216931의 1.0.0 (6), build 04527d8d-1cb2-4b26-b27
 ### 최신 사용자 지시: iOS 운영 심사 제출
 
 2026-10-06 사용자가 iOS는 그대로 배포 검토 요청하도록 지시했다. 기존 빌드 5 심사 요청을 취소하고 1.0.0에 빌드 6을 연결해 다시 제출했다. 제출 `4e8d6c7b-fdb4-410a-8ed4-64ba46d6c9b7`, 제출 시각 `2026-10-06T13:39:46.469Z`, 상태 `WAITING_FOR_REVIEW`. 이전 테스트 전용 범위에서 iOS만 심사 제출로 확장했다. 기존 AFTER_APPROVAL 자동 출시 설정을 유지했다. 기존 연락처·심사 계정·소개·완료된 스크린샷을 보존했다. Apple 심사 승인이나 실기기 로그인 검증 완료를 뜻하지 않는다.
+
+## 2026-10-07 최신 배포
+
+웹 [Actions37627371108](https://github.com/ljae/tap2work/actions/runs/37627371108) 성공 및 실제 파일 일치 확인. iOS 1.0.0 빌드7 VALID·IN_BETA_TESTING·기존내부그룹연결. 빌드6 심사 취소 후 빌드7 제출 `e035efd1-228e-46d5-a3a9-1ba374346f33` WAITING_FOR_REVIEW, 승인 후 자동 출시 유지. Android 1.0.0 (7) 기존 내부트랙 Active / Available to internal testers 확인. Flutter 분석/전체368 tests·Node263·Edge smoke·CI SQL 통과. 실기기 설치·OAuth·삭제 및 Apple 승인은 미완료.

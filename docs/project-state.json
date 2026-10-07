@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 239,
+  "revision": 240,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7419,6 +7419,24 @@
       "limitations": [
         "현재마스터기억은개발Mac로컬이고cloud동기화미구현. 최초초안은검토/QA보완으로blocked; source/오류/후속후보를다음요청에재사용.",
         "실제현장효과나정확도향상은평가없어확정하지않음."
+      ]
+    },
+    {
+      "at": "2026-10-07T13:27:48.607498+00:00",
+      "type": "deployment",
+      "summary": "최신 웹 재배포·iOS/Android 1.0.0 빌드7 배포·iOS 심사 교체 완료.",
+      "verification": [
+        "npm check/UI links47, Node263, Deno 인증Edge smoke, Flutter analyze/전체368tests 통과.",
+        "GitHub Pages07560baec27dd710222ae5751d7d667a93d1fd59 / Actions37627371108 전체검사·SQL·Flutter·웹빌드·배포success. https://github.com/ljae/tap2work/actions/runs/37627371108",
+        "tap2.work 홈페이지/개인정보/계정삭제HTTP200. index/bootstrap/main·버전main이CI artifact와일치.",
+        "iOS 서명IPA·Android upload서명AAB 빌드7 성공. iOS 6e5629e8-79e8-41e7-b206-42aa85b4da9f VALID/IN_BETA_TESTING·기존내부그룹연결.",
+        "기존iOS 빌드6 심사취소후 빌드7 연결·제출e035efd1-228e-46d5-a3a9-1ba374346f33 2026-10-07T13:26:56.125Z WAITING_FOR_REVIEW. AFTER_APPROVAL 유지. 취소중409/암호화이미설정409 후재시도성공.",
+        "Google Play 빌드7(1.0.0) 내부테스트 Active/Available to internal testers. https://play.google.com/apps/internaltest/4701597674886311593"
+      ],
+      "limitations": [
+        "Apple 심사승인/운영출시대기. Android 내부테스트이며프로덕션출시없음. 실기기설치/OAuth/계정삭제미검증.",
+        "iOS 최소지원13의2027년4월이후15요구경고90068·기본launch image경고. 빌드/업로드성공.",
+        "콘텐츠신규발행·정기실행·운영데이터변경없음."
       ]
     }
   ],
