@@ -13,93 +13,93 @@ Aside CLI 공개 조사 기록 · 세션 qoKr9nFHpzsKqwqM · 2026-10-08
 ### ① 치킨
 **일반 후라이드·양념치킨의 공식 조리법은 미확인.** 확인된 것은 다음 변형 메뉴입니다.
 
-- **[삼계치킨](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=566)** · 식품안전나라  
+- **[삼계치킨](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=566)** · 식품안전나라
   재료: 닭가슴살, 인삼, 양송이, 양파·마늘, 생크림, 오렌지·레몬, 밀가루. 순서: 닭 밑간 → 인삼·채소 손질과 소스 제조 → 튀김옷을 입혀 튀김 → 소스·채소 곁들이기. **조건:** 인삼소스를 사용하는 저감형 닭가슴살 튀김입니다.
-- **[머스터드튤립치킨](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=561)** · 식품안전나라  
+- **[머스터드튤립치킨](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=561)** · 식품안전나라
   재료: 닭날개, 머스터드, 양파·마늘, 파슬리, 튀김가루, 레몬. 순서: 날개를 튤립 형태로 손질·밑간 → 튀김반죽 준비 → 튀긴 뒤 기름 제거 → 레몬 등 곁들이기. **조건:** 날개 부위와 특수 손질을 전제한 저감형 변형입니다.
 
 ### ② 한식
-- **[완자김치찌개](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=272)** · 식품안전나라  
+- **[완자김치찌개](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=272)** · 식품안전나라
   재료: 김치, 콩나물, 두부, 다진 돼지고기, 붉은고추, 새우젓, 쇠고기 육수. 순서: 육수 만들기 → 돼지고기·두부 등으로 완자를 빚어 찌기 → 김치·콩나물을 육수에 끓이기 → 완자 넣기. **조건:** 김치를 씻고 완자를 넣는 저감형 김치찌개입니다.
-- **[소고기채소불고기](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=548)** · 식품안전나라  
+- **[소고기채소불고기](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=548)** · 식품안전나라
   재료: 불고기용 소고기, 배, 양배추·양파·표고·당근·대파, 저염간장, 올리고당, 참기름, 마늘. 순서: 배즙에 고기 재우기 → 채소 손질·양념 제조 → 고기를 양념에 재우기 → 고기와 채소를 각각 볶아 담기. **조건:** 저염간장과 배즙을 사용하는 불고기입니다.
 
 ### ③ 돈까스
 **등심돈까스·치즈돈까스의 공식 원문은 미확인.** 다음 자료는 관련 조리 참고용이며, 돈까스 2종을 확보한 것으로 계산하지 않습니다.
 
-- **[돼지고기말이튀김](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=466)** · 식품안전나라  
+- **[돼지고기말이튀김](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=466)** · 식품안전나라
   재료: 돼지등심, 깻잎, 당근·피망·양파, 치즈, 밀가루·달걀·빵가루, 두부·마요네즈 소스. 순서: 등심 밑간 → 채소·치즈를 넣어 말기 → 밀가루·달걀물·빵가루 입히기 → 튀겨 소스와 제공. **조건:** 일반 돈까스가 아닌 채소·치즈말이 튀김입니다.
-- **[돼지고기 찹쌀부침](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=852)** · 식품안전나라  
+- **[돼지고기 찹쌀부침](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=852)** · 식품안전나라
   재료: 돼지등심, 젖은 찹쌀가루, 간장·물엿·마늘, 깻잎·대파, 파인애플 된장소스. 순서: 고기 밑간 → 채소·소스 준비 → 찹쌀가루를 입혀 팬에 지지기 → 채소를 얹어 말아 제공. **조건:** 빵가루 돈까스가 아니라 찹쌀 부침입니다.
 
 ### ④ 분식
-- **[토마토떡볶이](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=457)** · 식품안전나라  
+- **[토마토떡볶이](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=457)** · 식품안전나라
   재료: 떡볶이떡, 어묵, 양파·당근·양배추·대파, 토마토·사과, 고추장·케첩·올리고당, 육수, 버터. 순서: 떡 불리기·재료 손질 → 소스 섞기 → 버터에 과일·소스 볶기 → 떡·어묵·채소·육수를 넣고 끓이기. **조건:** 과일과 케첩을 쓰는 저감형 변형입니다.
-- **[새싹참치김밥](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=227)** · 식품안전나라  
+- **[새싹참치김밥](https://www.foodsafetykorea.go.kr/portal/cookrcp/cookrcpInfoDtl.do?rcp_seq=227)** · 식품안전나라
   재료: 밥, 김, 참치, 새싹채소, 파프리카, 파인애플, 달걀, 저염간장·마요네즈 소스. 순서: 소스·스크램블에그 준비 → 김에 밥과 속재료 올리기 → 소스를 뿌리고 접어 썰기. **조건:** 파인애플·새싹채소를 넣는 저감형 김밥입니다.
 
 ### ⑤ 고기구이
-- **[창녕갈릭 소불고기](https://www.okitchen.co.kr/category/m_detail?idx=1430)** · 오뚜기 오키친  
+- **[창녕갈릭 소불고기](https://www.okitchen.co.kr/category/m_detail?idx=1430)** · 오뚜기 오키친
   재료: 불고기용 소고기, 양파, 대파, 생강, 창녕갈릭소이소스, 후추. 순서: 양파 일부를 갈고 채소 손질 → 소스로 양념 제조 → 고기에 버무려 재우기 → 팬에서 볶듯이 굽기. **조건:** 특정 완제품 소스를 사용하는 가정용 레시피입니다.
-- **[창녕갈릭 LA갈비 구이](https://www.okitchen.co.kr/category/m_detail?idx=1429)** · 오뚜기 오키친  
+- **[창녕갈릭 LA갈비 구이](https://www.okitchen.co.kr/category/m_detail?idx=1429)** · 오뚜기 오키친
   재료: LA갈비, 창녕갈릭소이소스, 쪽파. 순서: 갈비 핏물 제거·세척 → 물기 제거 → 팬에서 먼저 굽기 → 양면에 소스를 발라 졸이듯 굽고 쪽파 올리기. **조건:** 완제품 소스를 쓰는 팬 조리법이며 숯불구이 공정은 아닙니다.
 
 ### ⑥ 일식초밥
 **유부초밥 2종은 확인했지만, 연어·새우 등 생선·해산물 초밥의 공식 조리법은 미확인입니다.**
 
-- **[게살 유부초밥](https://www.okitchen.co.kr/category/m_detail?idx=1119)** · 오뚜기 오키친  
+- **[게살 유부초밥](https://www.okitchen.co.kr/category/m_detail?idx=1119)** · 오뚜기 오키친
   재료: 즉석밥, 게맛살, 마요네스, 밥친구 치즈, 초밥용 유부. 순서: 게맛살 찢기·밥 조리 → 밥에 게맛살·마요네스·밥친구 섞기 → 유부에 채우기. **조건:** 제목은 ‘게살’이지만 재료는 게맛살이며, 제품 활용형 유부초밥입니다.
-- **[베이컨 유부초밥](https://www.okitchen.co.kr/category/m_detail?idx=1038)** · 오뚜기 오키친  
+- **[베이컨 유부초밥](https://www.okitchen.co.kr/category/m_detail?idx=1038)** · 오뚜기 오키친
   재료: 즉석밥, 베이컨, 스테이크소스, 밥친구 불고기, 초밥용 유부. 순서: 베이컨을 잘라 소스와 볶기 → 조리한 밥·밥친구와 섞기 → 유부에 채우기. **조건:** 베이컨과 가공 조미제품을 쓰는 변형 메뉴입니다.
 
 ### ⑦ 중식
-- **[고추잡채](https://www.okitchen.co.kr/category/m_detail?page=&searchCateFirst=&searchCateSecond=&sort=&idx=4)** · 오뚜기 오키친  
+- **[고추잡채](https://www.okitchen.co.kr/category/m_detail?page=&searchCateFirst=&searchCateSecond=&sort=&idx=4)** · 오뚜기 오키친
   재료: 돼지고기, 파프리카, 양파·대파·표고·마늘, 고추맛기름, 돼지불고기양념, 굴소스, 미향, 간장. 순서: 고기 밑간·채소 채썰기 → 고추맛기름에 마늘·고기 볶기 → 채소 추가 → 굴소스 등으로 양념해 볶기. **조건:** 시판 불고기양념 등을 사용하며 꽃빵 또는 밥을 곁들이는 레시피입니다.
-- **두 번째 대표 메뉴: 미확인.**  
+- **두 번째 대표 메뉴: 미확인.**
   확인한 **[짜장찜닭](https://www.okitchen.co.kr/category/m_detail?page=&searchCateFirst=&searchCateSecond=&sort=&idx=1069)**은 닭, 고구마·당근·대파, 짜장분말 등을 사용해 닭을 데친 뒤 양념과 채소를 넣고 끓이는 메뉴입니다. 한식 찜닭의 변형이므로 짜장면·짬뽕·탕수육을 대신하는 중식 대표 메뉴로 계산하지 않았습니다.
 
 ### ⑧ 피자
 **일반 도우 기반 대표 피자 2종은 미확인.** 아래는 간편형 참고자료입니다.
 
-- **[피자 토스트](https://www.okitchen.co.kr/category/detail?page=1&s_cate1=12&s_cate2=43&s_orderby=new&idx=1090)** · 오뚜기 오키친  
+- **[피자 토스트](https://www.okitchen.co.kr/category/detail?page=1&s_cate1=12&s_cate2=43&s_orderby=new&idx=1090)** · 오뚜기 오키친
   재료: 식빵, 피자소스, 모짜렐라, 양파·파프리카, 올리브, 스위트콘, 비엔나소시지. 순서: 토핑 손질 → 식빵에 소스·치즈 바탕 만들기 → 토핑·치즈 올리기 → 오븐에 굽기. **조건:** 발효 도우가 아닌 식빵 베이스입니다.
-- **[계란피자](https://www.okitchen.co.kr/category/m_detail?idx=1121)** · 오뚜기 오키친  
+- **[계란피자](https://www.okitchen.co.kr/category/m_detail?idx=1121)** · 오뚜기 오키친
   재료: 오뚜기 냉동피자, 달걀, 파슬리. 순서: 냉동피자에 달걀 올리기 → 조리 → 파슬리로 마무리. **조건:** 냉동 완제품 활용법이며 피자 도우·소스 제조법은 아닙니다.
 
 ### ⑨ 감자탕
 **직접 확인한 공공기관·제조사 공식 원문은 미확인입니다.** 다음 두 민간 공개 자료를 보조자료로 구분합니다.
 
-- **[뼈다귀감자탕(감자탕)](https://www.lampcook.com/food/food_local_view.php?idx_no=3147)** · 램프쿡  
+- **[뼈다귀감자탕(감자탕)](https://www.lampcook.com/food/food_local_view.php?idx_no=3147)** · 램프쿡
   재료: 돼지등뼈·등심, 감자, 얼갈이배추, 고추장·된장·고춧가루, 마늘·생강, 대파·깻잎, 들깻가루. 순서: 등뼈 핏물 제거 → 감자·데친 얼갈이 양념 → 등뼈·고기·생강 끓이기 → 양념 채소를 넣고 끓여 대파·깻잎·들깻가루로 마무리. **조건:** 농촌진흥청 전통향토음식 자료를 출처로 표시한 민간 재게시 자료이며, 공공 원문 직접 확인과는 다릅니다.
-- **[깔끔한 국물에 푸짐하게 뜯는 행복! ‘뼈다귀해장국 만들기’](https://amyzzung.tistory.com/1212)** · 개인 요리 블로그  
+- **[깔끔한 국물에 푸짐하게 뜯는 행복! ‘뼈다귀해장국 만들기’](https://amyzzung.tistory.com/1212)** · 개인 요리 블로그
   재료: 돼지등뼈, 우거지 또는 시래기, 대파·청양고추, 된장·고춧가루·진간장, 마늘·생강. 순서: 핏물 제거 → 애벌삶기·세척 → 등뼈 끓이기 → 양념한 우거지 추가 → 대파·고추로 마무리. **조건:** 비공식 개인 레시피이며 업소 표준공정으로 검증된 자료는 아닙니다.
 
 ### ⑩ 반찬도시락
 완성 도시락 구성이 아니라 **도시락에 활용할 반찬 2종**입니다.
 
-- **[카레 멸치볶음](https://www.okitchen.co.kr/category/detail?idx=1163)** · 오뚜기 오키친  
+- **[카레 멸치볶음](https://www.okitchen.co.kr/category/detail?idx=1163)** · 오뚜기 오키친
   재료: 볶음용 멸치, 백세카레 분말, 설탕, 콩기름, 물엿, 물. 순서: 멸치를 살짝 볶아 덜기 → 카레·물엿 등의 양념 끓이기 → 멸치를 넣고 볶기. **조건:** 원문에 도시락 태그가 있으며, 카레 분말을 사용하는 변형 반찬입니다.
-- **[고추참치계란말이](https://www.okitchen.co.kr/category/detail?idx=5)** · 오뚜기 오키친  
+- **[고추참치계란말이](https://www.okitchen.co.kr/category/detail?idx=5)** · 오뚜기 오키친
   재료: 달걀, 볶음고추장참치, 스트링치즈, 카놀라유, 소금. 순서: 계란물 준비 → 팬에 부어 익히기 → 참치·치즈 올리기 → 말아 익힌 뒤 썰기. **조건:** 참치 파우치·치즈를 쓰는 반찬이며, 원문에서 도시락 보관·운반 조건은 확인하지 못했습니다.
 
 ### ⑪ 카페
-- **[아이스 바닐라 라떼](https://www.nescafe.com/kr/recipes/iced-vanilla-latte)** · 네스카페 코리아  
+- **[아이스 바닐라 라떼](https://www.nescafe.com/kr/recipes/iced-vanilla-latte)** · 네스카페 코리아
   재료: NESCAFÉ Crema, 뜨거운 물, 우유, 바닐라 시럽, 얼음. 순서: 커피를 물에 풀고 시럽 섞기 → 우유 거품 만들기 → 얼음 잔에 우유와 커피 혼합물 붓기. **조건:** 인스턴트 커피를 사용하는 홈카페 레시피이며 에스프레소 머신 추출법은 아닙니다.
-- **[민트 스파클링 에스프레소](https://www.starbucksathome.com/kr/recipes/mint-sparkling-espresso)** · 스타벅스 앳 홈  
+- **[민트 스파클링 에스프레소](https://www.starbucksathome.com/kr/recipes/mint-sparkling-espresso)** · 스타벅스 앳 홈
   재료: 에스프레소, 시럽, 생민트, 탄산수, 얼음. 순서: 커피 추출 → 시럽·민트·커피 섞기 → 얼음 잔에 붓기 → 탄산수·민트 추가. **조건:** 브랜드의 홈카페 변형 음료입니다. 일반적인 업종 대표 메뉴로서의 적합성은 미확인입니다.
 
 ### ⑫ 베이커리
 확인된 것은 **믹스 활용 홈베이킹**이며, 일반 식빵·단팥빵 등의 제조법은 미확인입니다.
 
-- **[시나몬롤](https://www.okitchen.co.kr/category/detail?idx=1051)** · 오뚜기 오키친  
+- **[시나몬롤](https://www.okitchen.co.kr/category/detail?idx=1051)** · 오뚜기 오키친
   재료: 찹쌀호떡믹스와 동봉 이스트·잼믹스, 물, 콩기름. 순서: 물·기름·이스트 섞기 → 반죽믹스로 반죽 → 얇게 펴 잼믹스를 뿌리고 말기 → 잘라 에어프라이어에 굽기. **조건:** 호떡믹스를 활용한 변형 시나몬롤입니다.
-- **[더치베이비 팬케이크](https://www.okitchen.co.kr/category/detail?idx=20)** · 오뚜기 오키친  
+- **[더치베이비 팬케이크](https://www.okitchen.co.kr/category/detail?idx=20)** · 오뚜기 오키친
   재료: 넛츠 핫케이크믹스, 달걀, 우유, 버터린, 사과, 사과잼 등. 순서: 반죽 제조·휴지 → 사과 소스 만들기 → 유지가 녹은 오븐 팬에 반죽을 부어 굽기 → 소스 곁들이기. **조건:** 핫케이크믹스와 오븐을 사용하는 팬케이크이며 일반 발효빵은 아닙니다.
 
 ### ⑬ 주점
-- **[바지락찜](https://www.okitchen.co.kr/category/m_detail?idx=1036)** · 오뚜기 오키친  
+- **[바지락찜](https://www.okitchen.co.kr/category/m_detail?idx=1036)** · 오뚜기 오키친
   재료: 바지락, 마늘, 청양고추, 올리브유, 미향, 물, 소금, 실파. 순서: 바지락 해감·세척 → 마늘·고추 볶기 → 바지락·미향 추가 → 물을 넣고 덮어 끓이기 → 간·실파로 마무리. **조건:** 원문이 안주로 제안한 제조사 레시피입니다.
-- **[골뱅이야채초무침](https://www.okitchen.co.kr/category/detail?idx=6)** · 오뚜기 오키친  
+- **[골뱅이야채초무침](https://www.okitchen.co.kr/category/detail?idx=6)** · 오뚜기 오키친
   재료: 캔 골뱅이, 양파, 오이, 초고추장, 마늘, 고춧가루, 참기름. 순서: 채소·골뱅이 손질 → 양념 섞기 → 함께 버무리기 → 파채·참깨 등으로 마무리. **조건:** 통조림 골뱅이와 시판 초고추장을 사용하는 간편 조리법입니다.
 
 ### 업장 적용 범위
@@ -109,8 +109,8 @@ Aside CLI 공개 조사 기록 · 세션 qoKr9nFHpzsKqwqM · 2026-10-08
 
 ## 2. 다음 우편번호 서비스 공식 계약 확인
 
-**확인 제목:** Kakao Postcode Service User Guide  
-**기존 URL:** https://postcode.map.daum.net/guide  
+**확인 제목:** Kakao Postcode Service User Guide
+**기존 URL:** https://postcode.map.daum.net/guide
 **현재 연결되는 공식 URL:** https://postcode.map.kakao.com/guide
 
 ### 웹 주소 검색 embed
@@ -146,43 +146,43 @@ Aside CLI 공개 조사 기록 · 세션 qoKr9nFHpzsKqwqM · 2026-10-08
 ## 공식 자료로 교체·보완
 
 ### 감자탕: 공공 원문 확인
-**[감자탕 · 농촌진흥청 국립식량과학원 농식품올바로](https://www.nics.go.kr/food/kfi/tfSrch08/view?menuId=PS03520&tfcode=90170)**  
-재료: 돼지뼈, 감자, 시래기, 대파, 마른 고추, 들깨, 된장, 마늘. 순서: 돼지뼈를 삶아 국물을 내고 된장을 넣어 삶기 → 들깨물 준비 → 양념한 시래기·감자·들깨물을 넣고 끓이기 → 대파·마늘·고추로 마무리.  
+**[감자탕 · 농촌진흥청 국립식량과학원 농식품올바로](https://www.nics.go.kr/food/kfi/tfSrch08/view?menuId=PS03520&tfcode=90170)**
+재료: 돼지뼈, 감자, 시래기, 대파, 마른 고추, 들깨, 된장, 마늘. 순서: 돼지뼈를 삶아 국물을 내고 된장을 넣어 삶기 → 들깨물 준비 → 양념한 시래기·감자·들깨물을 넣고 끓이기 → 대파·마늘·고추로 마무리.
 **적용:** 기존 램프쿡 대신 이 공공 원문을 사용합니다. 업소용 보관·대량조리 기준을 확인한 것은 아닙니다.
 
 ### 중식: 짜장찜닭 제외, 해물쟁반짜장으로 교체
-**[해물쟁반짜장 · 오뚜기](https://www.okitchen.co.kr/category/m_detail?idx=1140)**  
+**[해물쟁반짜장 · 오뚜기](https://www.okitchen.co.kr/category/m_detail?idx=1140)**
 재료: 짜장분말, 생면, 오징어, 돼지등심, 새우, 양파·대파·마늘, 식용유, 미향. 순서: 재료 손질 → 파·마늘·돼지고기 볶기 → 채소·해물·짜장분말 볶기 → 물을 넣어 소스 만들기 → 삶은 면에 소스 올리기. **조건:** 오뚜기 짜장분말·생면 등을 사용하는 가정용 레시피입니다.
 
 ### 일식초밥: 베이컨 유부초밥 대신 연어초밥
-**[도톰한 대왕연어초밥 · 청정원 브랜드 게시 레시피](https://www.10000recipe.com/recipe/6945084)**  
+**[도톰한 대왕연어초밥 · 청정원 브랜드 게시 레시피](https://www.10000recipe.com/recipe/6945084)**
 재료: 연어, 밥, 레몬, 묵은지, 와사비, 들기름, 식초·올리고당·소금·맛술·설탕. 순서: 단촛물을 끓여 식힌 뒤 밥에 섞기 → 연어를 잘라 레몬즙 바르기 → 밥을 쥐어 연어로 감싸기 → 양념한 묵은지·와사비 곁들이기. **조건:** 만개의레시피에 게시된 제조사 브랜드 자료이며, 묵은지 토핑 변형입니다. 생식용 원물 적합성·보관·제공시간은 별도 검증이 필요합니다.
 
 ### 한식: 완자김치찌개 대신 차돌박이 된장찌개
-**[차돌박이 된장찌개 · 오뚜기](https://www.okitchen.co.kr/category/m_detail?idx=1071)**  
+**[차돌박이 된장찌개 · 오뚜기](https://www.okitchen.co.kr/category/m_detail?idx=1071)**
 재료: 즉석 애호박된장국, 차돌박이, 애호박, 두부, 팽이버섯, 대파·고추. 순서: 재료 손질 → 차돌박이 굽기 → 즉석된장국·물 넣기 → 채소·두부를 넣고 끓여 마무리. **조건:** 된장을 직접 배합하는 방식이 아니라 즉석국 제품 활용법입니다.
 
 ### 분식: 토마토떡볶이 대신 일반 떡볶이
-**[추억의 분식집 떡볶이 · 샘표 새미네부엌](https://semie.cooking/recipe-lab/archive/tteokbokki)**  
+**[추억의 분식집 떡볶이 · 샘표 새미네부엌](https://semie.cooking/recipe-lab/archive/tteokbokki)**
 재료: 떡, 사각어묵, 마늘, 쪽파, 고추장, 연두순, 설탕, 물엿, 식용유. 순서: 떡 데치기·재료 손질 → 마늘·고추장 볶기 → 떡·어묵·양념·물을 넣고 끓이기 → 쪽파로 마무리. **조건:** 연두순을 사용하는 제조사 레시피입니다.
 
 ### 카페: 민트 스파클링 대신 아메리카노
-**[아메리카노 · 스타벅스 앳 홈](https://www.starbucksathome.com/kr/recipes/americano)**  
+**[아메리카노 · 스타벅스 앳 홈](https://www.starbucksathome.com/kr/recipes/americano)**
 재료: 에스프레소, 뜨거운 물. 순서: 머그에 끓인 물을 따른 뒤 에스프레소를 천천히 붓기. **조건:** 브랜드 커피 제품을 제안하는 홈카페 레시피입니다.
 
 ### 베이커리: 기존 2종을 다음으로 교체
-- **[콩가루스콘 · 오뚜기](https://www.okitchen.co.kr/category/detail?idx=1081)**  
+- **[콩가루스콘 · 오뚜기](https://www.okitchen.co.kr/category/detail?idx=1081)**
   재료: 박력분, 콩가루, 설탕, 베이킹파우더, 두유, 카놀라유, 식초, 달걀, 우유. 순서: 액체 재료 섞기 → 가루를 체 쳐 섞기 → 반죽을 접어 정리 → 계란물을 바르고 잘라 굽기. **조건:** 오븐을 사용하는 홈베이킹 레시피입니다.
-- **[카라멜애플파운드케이크 · 오뚜기](https://www.okitchen.co.kr/category/detail?idx=1133)**  
+- **[카라멜애플파운드케이크 · 오뚜기](https://www.okitchen.co.kr/category/detail?idx=1133)**
   재료: 핫케이크믹스, 우유, 물, 사과, 흑설탕. 순서: 사과를 설탕 시럽에 졸이기 → 믹스·우유로 반죽 → 틀에 담아 굽기 → 사과조림 곁들이기. **조건:** 핫케이크믹스 기반 제과이며 일반 파운드케이크 배합과는 다릅니다.
 
 ## 돈까스: 공식 출처는 미확인, 일반 메뉴 공개 원문은 확인
 
 앞 보고서의 찹쌀부침 등은 제외하고 다음을 **비공식 보조자료**로 사용합니다.
 
-- **[간단한 돈까스 만드는법, 돈까스 만들기](https://www.10000recipe.com/recipe/6871696)**  
+- **[간단한 돈까스 만드는법, 돈까스 만들기](https://www.10000recipe.com/recipe/6871696)**
   재료: 돼지등심, 밀가루, 달걀, 빵가루, 식용유, 허브솔트. 순서: 등심을 두드려 밑간 → 튀김옷 입히기 → 튀기기. **조건:** 만개의레시피 이용자 게시 가정용 등심돈까스입니다.
-- **[치즈돈까스 만드는법: 치즈가 듬뿍 치즈카츠 만들기](https://www.10000recipe.com/recipe/6903997)**  
+- **[치즈돈까스 만드는법: 치즈가 듬뿍 치즈카츠 만들기](https://www.10000recipe.com/recipe/6903997)**
   재료: 돼지등심, 모짜렐라, 밀가루, 달걀, 식빵, 소금·후추. 순서: 등심을 얇게 펴 밑간 → 치즈를 말아 넣기 → 밀가루·달걀물·간 식빵 입히기 → 튀기기. **조건:** 이용자 게시 가정용 레시피이며 식빵을 갈아 튀김옷으로 사용합니다.
 
 **나머지 업종의 확인자료와 다음 우편번호 계약 설명은 앞 보고서대로입니다. 피자의 일반 도우 기반 대표 메뉴와 치킨의 일반형 공식 레시피 등 남은 공백은 미확인으로 유지하고 조사를 종료합니다.**
