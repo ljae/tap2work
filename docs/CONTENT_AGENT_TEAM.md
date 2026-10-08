@@ -90,3 +90,5 @@ node scripts/content-team.mjs run --job donkatsu-recipe-v1 --runner codex
 ```
 
 scope.gap에 조사할 메뉴·재료·레시피와 매뉴얼/체크리스트 공백을 적는다. 신규 묶음은 후보이며 자동 DB 발행/운영 매장 덮어쓰기는 없다. 기존 export-release는 기존 sourceId 변경 병합만 지원하므로 신규 TAP의 taxonomy/ID와 초기 매장 bundle 채택은 검토 후 별도로 반영한다. 정기 실행은 계속 비활성이다. 초기 앱 기본 레시피는 상세 분량/온도/시간을 추정하지 않은 편집용 초안이며 외부 연구 전문 승인을 주장하지 않는다.
+
+기존 요청형 진입 `npm run content:cycle -- run --request REQUEST_ID`도 research 역할을 기본 Aside로, 후속 역할을 Codex로 연결한다. `--researcher codex`로 명시적으로 바꿀 수 있다. 조용한 fallback이나 자동 예약은 없다. 2026-10-08 실제 `store-bundle-aside-direct-20261008` researcher 1회를 실행하여 농촌진흥청 감자탕 출처·재료·순서·미확인 조건이 기존 스키마/시각/해시 검증을 통과해 저장되는 것을 확인했다. 이후 editor/검토/QA/발행 완료를 뜻하지 않는다.

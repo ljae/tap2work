@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'components.dart';
 import 'address_search_stub.dart'
-    if (dart.library.html) 'address_search_web.dart'
+    if (dart.library.js_interop) 'address_search_web.dart'
     as platform;
 
 class StoreAddressField extends StatefulWidget {

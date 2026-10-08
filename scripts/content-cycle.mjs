@@ -3,7 +3,7 @@ import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash,randomUUID} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
-import {ContentTeam,runCodex} from './content-team.mjs';
+import {ContentTeam,runCodex,runAside} from './content-team.mjs';
 import {ContentMemory} from '../developer/content_memory.mjs';
 import {DatabaseCatalogRepository} from '../developer/catalog_repository.mjs';
 import {checkSource} from '../developer/content_source_checks.mjs';
@@ -17,8 +17,12 @@ export function cycleKey(now,cadence){
  if(cadence!=='weekly')throw Error('Cadence must be daily or weekly');
  const date=new Date(day+'T00:00:00Z');date.setUTCDate(date.getUTCDate()-(date.getUTCDay()+6)%7);return date.toISOString().slice(0,10);
 }
+export function createContentRunner({researcher='aside',aside=runAside,codex=runCodex}={}){
+ if(!['aside','codex'].includes(researcher))throw Error('Researcher must be aside or codex');
+ return packet=>packet.role==='researcher'&&packet.scope.mode==='research'&&researcher==='aside'?aside(packet):codex(packet);
+}
 export class ContentCycle{
- constructor({root=join(repository,'.local/content-team'),now=()=>Date.now(),runner=runCodex,catalogLoader,sourceChecker=checkSource}={}){
+ constructor({root=join(repository,'.local/content-team'),now=()=>Date.now(),runner=createContentRunner(),catalogLoader,sourceChecker=checkSource}={}){
   this.root=resolve(root);this.now=now;this.runner=runner;this.catalogLoader=catalogLoader;this.sourceChecker=sourceChecker;
   this.service=join(this.root,'.service');mkdirSync(this.service,{recursive:true,mode:0o700});
   this.team=new ContentTeam({root:this.root,now});this.memory=this.team.memory;
@@ -92,7 +96,7 @@ async function liveCatalog(){
 }
 async function cli(){
  const [command,...args]=process.argv.slice(2),options={};for(let i=0;i<args.length;i+=2){if(!args[i].startsWith('--')||!args[i+1])throw Error('Use --name value');options[args[i].slice(2)]=args[i+1];}
- const cycle=new ContentCycle({root:options.root,catalogLoader:liveCatalog});
+ const cycle=new ContentCycle({root:options.root,catalogLoader:liveCatalog,runner:createContentRunner({researcher:options.researcher??'aside'})});
  if(command==='configure')console.log(JSON.stringify(cycle.configure({cadence:options.cadence??'manual',maxCallsPerTick:Number(options['max-calls']??5)})));
  else if(command==='tick')console.log(JSON.stringify(await cycle.tick()));
  else if(command==='run')console.log(JSON.stringify(await cycle.tick({manual:true,requestId:options.request??null}))); 

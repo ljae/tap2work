@@ -1,9 +1,8 @@
-// ignore_for_file: deprecated_member_use, avoid_web_libraries_in_flutter
-import 'dart:async';
 import 'dart:convert';
-import 'dart:html' as html;
+import 'dart:js_interop';
 import 'dart:ui_web' as ui;
 import 'package:flutter/material.dart';
+import 'package:web/web.dart' as web;
 
 Widget addressSearch(
   String query,
@@ -21,12 +20,12 @@ class _AddressSearch extends StatefulWidget {
 class _AddressSearchState extends State<_AddressSearch> {
   static int serial = 0;
   late final String view = 'store-address-${serial++}';
-  late final html.IFrameElement frame;
-  StreamSubscription<html.MessageEvent>? subscription;
+  late final web.HTMLIFrameElement frame;
+  late final JSFunction listener;
   @override
   void initState() {
     super.initState();
-    frame = html.IFrameElement()
+    frame = web.HTMLIFrameElement()
       ..src = Uri.base
           .resolve('address-search.html')
           .replace(queryParameters: {'q': widget.query})
@@ -36,14 +35,17 @@ class _AddressSearchState extends State<_AddressSearch> {
       ..style.width = '100%'
       ..style.height = '100%';
     ui.platformViewRegistry.registerViewFactory(view, (_) => frame);
-    subscription = html.window.onMessage.listen((event) {
-      if (event.origin != Uri.base.origin ||
-          event.source != frame.contentWindow ||
-          event.data is! String) {
+    listener = ((web.Event event) {
+      final message = event as web.MessageEvent;
+      // Native JS window identity; dart:html used different wrappers for these getters.
+      if (message.origin != Uri.base.origin ||
+          message.source != frame.contentWindow) {
         return;
       }
+      final data = message.data.dartify();
+      if (data is! String) return;
       try {
-        final value = jsonDecode(event.data as String);
+        final value = jsonDecode(data);
         if (value is Map<String, dynamic> &&
             value['type'] == 'tap-address' &&
             value['address'] is String &&
@@ -53,12 +55,13 @@ class _AddressSearchState extends State<_AddressSearch> {
       } on FormatException {
         /* Ignore unrelated provider messages. */
       }
-    });
+    }).toJS;
+    web.window.addEventListener('message', listener);
   }
 
   @override
   void dispose() {
-    subscription?.cancel();
+    web.window.removeEventListener('message', listener);
     frame.remove();
     super.dispose();
   }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 243,
+  "revision": 244,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7549,7 +7549,26 @@
         "실제 Aside 공개 조사 실행, runner 계약은 fake executable 테스트. 5역할 실제 연구 발행 완료를 주장하지 않음.",
         "로그인 실제 신규 매장 생성/네이티브 검증은 미수행. 웹 빌드/배포 진행 중."
       ]
+    },
+    {
+      "at": "2026-10-08T10:39:20.801462+00:00",
+      "type": "verification",
+      "title": "Standard address browser bridge and real Aside researcher verified",
+      "detail": "Reproduced an actual Flutter web failure: dart:html wraps event.source and iframe.contentWindow differently. Replaced with package:web native JS identity checks. Actual selection now closes the sheet and populates the address and postcode. Same-origin messages from another window are rejected. Pages run 37763814173 was cancelled during build to prevent shipping the affected frontend.",
+      "verification": [
+        "Flutter analyze clean; dedicated address-review Flutter web build passed",
+        "Actual browser displayed selected standard Seoul City Hall address and postcode 04524",
+        "All 274 Node tests passed; npm check passed with 51 UI links",
+        "Prior full Flutter 375 tests passed; follow-up setup 6 tests passed; final CI will repeat",
+        "Real Aside researcher store-bundle-aside-direct-20261008 completed and recorded one official NICS source, claims and unresolved conditions in the existing queue",
+        "content:cycle now routes research to Aside by default and subsequent roles to Codex; no scheduler or automatic publishing"
+      ],
+      "limitations": [
+        "Initial HTML callback verification did not exercise the Flutter bridge; final interactive verification found and fixed the issue.",
+        "dart:js_util fallback failed analysis on this SDK; existing locked package:web 1.1.1 promoted to a direct dependency.",
+        "No full five-role real publication, actual authenticated store creation, or native build was performed."
+      ]
     }
   ],
-  "updatedAt": "2026-10-08T10:28:19.081075+00:00"
+  "updatedAt": "2026-10-08T10:39:20.801462+00:00"
 }

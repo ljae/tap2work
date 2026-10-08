@@ -338,7 +338,7 @@ export async function runAside(packet, {executable='aside', maxSeconds=manifest(
   const guide=await call(['guide']);
   if (!guide.includes('aside exec')) error('Aside guide unavailable; update CLI and retry');
   const {runDirectory,leaseId,status,...safe}=packet;
-  const prompt = `Read-only public web research. Do not use private browser history, credentials, messages, purchases or modify files. Follow this CLI guide: ${guide}\nRead this sanitized research packet and return ONLY one JSON envelope matching outputSchema. Research industry major menu candidates, ingredients, recipe sequence, manual and checklist actions. Link each claim to sources actually opened. Record household/product-specific limitations; never invent quantities, cooking temperatures, shelf life or source verification. Do not publish.\n${JSON.stringify(safe)}`;
+  const prompt = `Read-only public web research. Do not use private browser history, credentials, messages, purchases or modify files. You are already executing inside Aside CLI. Use your provided browser tools directly; do not invoke another aside command or spawn another CLI session.\nRead this sanitized research packet and return ONLY one JSON envelope matching outputSchema. Research industry major menu candidates, ingredients, recipe sequence, manual and checklist actions. Link each claim to sources actually opened. Record household/product-specific limitations; never invent quantities, cooking temperatures, shelf life or source verification. Do not publish.\n${JSON.stringify(safe)}`;
   const raw=await call(['exec',prompt]);
   // Preserve failed results for inspection; never guess a successful envelope.
   writeFileSync(join(runDirectory,'aside-response.txt'),raw,{mode:0o600});

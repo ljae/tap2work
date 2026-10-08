@@ -162,3 +162,12 @@ test('Aside runner reads guide, excludes service credentials and records researc
  assert.equal(team.next('menu-research').role,'editor');
  await assert.rejects(()=>runAside({...packet,role:'editor'},{executable}),/research-mode/);
 });
+
+test('manual content cycle routes research to Aside and later roles to Codex',async()=>{
+ const {createContentRunner}=await import('../../scripts/content-cycle.mjs');
+ const runner=createContentRunner({aside:async()=> 'aside',codex:async()=> 'codex'});
+ assert.equal(await runner({role:'researcher',scope:{mode:'research'}}),'aside');
+ for(const role of ['editor','reviewer','qa','coordinator']) assert.equal(await runner({role,scope:{mode:'research'}}),'codex');
+ assert.equal(await runner({role:'researcher',scope:{mode:'fixture'}}),'codex');
+ assert.throws(()=>createContentRunner({researcher:'unknown'}),/Researcher/);
+});
