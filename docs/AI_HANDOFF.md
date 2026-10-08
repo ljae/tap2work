@@ -133,3 +133,6 @@ Web deployed: b19d775 / Actions 37771127850 succeeded. Initial inline SVG and Fl
 ## 2026-10-08 매뉴얼·업무 연결 구현
 
 사용자가 D-104 설계에 따른 구현을 요청했다. knowledge_work.mjs와 ManualWorkScreen, TAP usage/표시 진단, 배치별 수동 실행·증거·이상처리, 참고문서 snapshot, 명시적 브레이크 분리를 구현했다. 원본91개는 [검토안](MANUAL_RELEASE_REVIEW_2026-10-08.md). 운영 stable86개는 미발행 상태로 보존하고 새 코드로 실제 read/해시검증에 성공했다. 공급자 역할은 등록돼 있지만 CATALOG_ACCESS_TOKEN은 미설정이며 독립 정확해시 검토를 수행하지 않았다. service key로 역할·승인을 위조하거나 seed로 업데이트를 우회하지 않는다. 코드 배포와 공용 발행은 구분한다. 기존 source/content/personalization/실행 snapshot 보존. 신규 메뉴/재료에 수치를 추정해 넣지 않았다.
+
+
+웹 배포 완료: c0263eb / Actions 37780306822 성공, operations API 배포 완료. CI Flutter378·Node285·정적분석·UI57·Deno·SQL 검사 통과. 초기 백업검증 실패는 reference/event의 잘못된 반복값을 검증 전에 정규화하던 문제로, c0263eb에서 원본 입력 검증으로 수정했다. 공개 index/해시 bootstrap/main/owner sample이 artifact SHA256과 일치하며 샘플은91개다. 검증 산출물은 `.local/store-setup-web-release/.local/manual-knowledge-web-artifact/verification.json`. 운영 stable86은 유지되고 콘텐츠 발행은 미실시다. 공통 브레이크 분리 버튼은 새 replacement 발행 이후 사용 가능하다. 실제 운영 배치 생성/완료, native, schema migration은 수행하지 않았다.

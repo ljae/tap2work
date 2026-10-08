@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 252,
+  "revision": 253,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7717,7 +7717,25 @@
         "No native build, schema migration, actual supplier orders or invented storage limits",
         "Events currently manually started by managers; no POS/sensor automation or numeric safety judgement"
       ]
+    },
+    {
+      "at": "2026-10-08T13:01:33.989949+00:00",
+      "type": "deployment",
+      "title": "Manual knowledge/checklist web and API deployed",
+      "detail": "Web c0263eb via Actions 37780306822 and operations API deployed. Public index, hashed bootstrap/main and owner sample match artifact SHA256. Sample catalog contains 91 entries. Live stable content remains the original 86 pending independent provider review/publication.",
+      "verification": [
+        "CI Flutter analysis and all 378 tests passed",
+        "All 285 Node tests, 57 UI contracts, JS/catalog checks, Deno and SQL checks passed",
+        "Public artifact comparison: .local/store-setup-web-release/.local/manual-knowledge-web-artifact/verification.json",
+        "Initial CI 37779852142 failed malformed backup recurrence validation; fixed validation in c0263eb and full rerun passed; superseded run 37779760586 cancelled"
+      ],
+      "limitations": [
+        "No native build or schema migration",
+        "No actual production batch creation/completion or supplier orders",
+        "New 91-entry content candidate not published: authenticated provider draft submission and exact-hash independent review required",
+        "Shared break split becomes available after replacement content is published; existing operational manuals/history preserved"
+      ]
     }
   ],
-  "updatedAt": "2026-10-08T12:49:45.422636+00:00"
+  "updatedAt": "2026-10-08T13:01:33.989949+00:00"
 }
