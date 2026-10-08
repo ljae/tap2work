@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 246,
+  "revision": 247,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7601,7 +7601,23 @@
         "Only the research stage of a real content job was executed; no automatic publication or overwrite of existing store content.",
         "Native apps remain unchanged."
       ]
+    },
+    {
+      "at": "2026-10-08T11:36:00.456765+00:00",
+      "type": "implementation",
+      "title": "TAP Water cup-filling loading animation",
+      "detail": "User requested water flowing from TAP into a cup during loading. Added matching Flutter custom-paint and initial web SVG/CSS activity loops, reduced-motion/error pause and short-screen scrolling. Existing real loading stages, retry and first-frame transition remain.",
+      "verification": [
+        "Flutter analyze clean",
+        "10 focused Flutter animation/startup/sheet tests passed",
+        "3 web startup/error/retry Node tests passed",
+        "320/390/1200 visual captures passed and 390px image inspected",
+        "UI/settings link check passed"
+      ],
+      "limitations": [
+        "Not a measured progress indicator. No native build or backend change. Web deployment pending."
+      ]
     }
   ],
-  "updatedAt": "2026-10-08T10:49:30.507490+00:00"
+  "updatedAt": "2026-10-08T11:36:00.456765+00:00"
 }

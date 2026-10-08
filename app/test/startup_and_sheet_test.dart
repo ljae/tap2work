@@ -1,3 +1,4 @@
+import 'package:tap2work/ui/tap_water_loading.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -82,7 +83,7 @@ void main() {
       expect(find.text('ready'), findsNothing);
       expect(find.text('앱을 준비하고 있어요'), findsOneWidget);
       expect(find.byType(BrandLogo), findsNothing);
-      expect(find.byType(AppLinearProgress), findsOneWidget);
+      expect(find.byType(TapWaterLoading), findsOneWidget);
       ready.completeError(StateError('offline'));
       await tester.pump();
       expect(find.text('다시 시도'), findsOneWidget);
@@ -168,7 +169,7 @@ void main() {
     );
     await tester.pump(const Duration(seconds: 12));
     expect(find.textContaining('연결이 조금 늦어지고'), findsOneWidget);
-    expect(find.byType(AppLinearProgress), findsOneWidget);
+    expect(find.byType(TapWaterLoading), findsOneWidget);
     await tester.pumpAndSettle();
     await tester.pumpWidget(const SizedBox.shrink());
   });

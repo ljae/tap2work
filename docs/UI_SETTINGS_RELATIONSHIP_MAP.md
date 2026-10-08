@@ -416,3 +416,5 @@ S08/S03 설정 요약: store.profile·workplace.days/parts·taskTemplates → �
 | S58 | storeSetupCatalog.bundles/bundleVersion → 메뉴 선택 → applyStoreBundle | 업종에 맞는 메뉴 ID/버전 검증, 새 매장에만 저장, 기존 메뉴/재료/매뉴얼 편집 재사용. 주문·재고 증가·외부 연결 없음 | store_setup.test.mjs, store_setup_test.dart |
 
 S55/S58 후속 검증: 돈까스는 manualVariants.donkatsu로 미리보기/저장 문구를 함께 맞추고 sourceId가 남는 personalized 복사본을 유지한다. 공용 발행본 동기화가 이를 덮어쓰지 않는 서버 테스트를 추가했다. S57은 package:web의 실제 창 identity로 비교하며 실제 브라우저에서 주소 선택→Flutter 값 반영과 다른 창 메시지 거절을 검증했다.
+
+E06 로딩 시각화 후속: 기존 초기화/매장 조회 상태 → TapWaterLoading 및 웹 SVG/CSS → 실제 성공 시 화면 전환/실패 시 정지·다시 시도. 저장 효과 없음. 동작 줄이기 설정은 정지된 컵으로 소비하며 사용자에게 퍼센트를 제시하지 않는다. startup_and_sheet_test/tap_water_loading_test/startup.test.mjs로 재시도·지연·정지/재개·ticker 해제를 검증한다.

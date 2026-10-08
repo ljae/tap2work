@@ -561,3 +561,7 @@ iOS는 com.tap2work.tap2work, Android는 기존 com.tab2work.tab2work 식별자�
 주소 iframe 브리지는 package:web의 JS 창 identity로 source를 비교한다. dart:html의 서로 다른 wrapper(EventTarget/WindowBase) 비교는 실제 선택 메시지를 거절하므로 사용하지 않는다. 2026-10-08 실제 Flutter 웹에서 표준주소/우편번호 반환과 다른 source의 같은 origin 메시지 거절을 확인했다. 재현 화면은 app/tool/address_search_review.dart이다.
 
 돈까스 초기 튀김 공통 매뉴얼은 생닭/반반 메뉴 표현을 생고기/메뉴별 사이드·소스로 바꾼다. 미리보기 manualVariants.donkatsu와 저장에 같은 변환을 사용하고 원본 sourceId를 보존한 personalized 링크로 표시해 다음 공용 발행으로 매장 문구가 덮어써지지 않게 한다.
+
+## TAP Water 로딩 · 2026-10-08
+
+AppLoadingScreen은 TapWaterLoading(단일 AnimationController+CustomPainter repaint)을 사용한다. 웹 엔진 로딩 전 index.html은 같은 형상의 inline SVG/CSS로 외부 자산 로딩 없이 즉시 표시한다. 수도꼭지·물방울·물결 수면은 3.2초 활동 표시이며 측정 진행률이 아니다. Flutter의 disableAnimations/TickerMode와 웹 prefers-reduced-motion에서 정지, 실패에서도 정지한다. controller/timer는 dispose하고 실제 응답 이후 대기시간을 추가하지 않는다. 높이600px 미만은 스크롤 가능한 중앙 안내, 큰 매장 조회 화면은 기존 skeleton 유지. E06 초기화·오류·재시도 계약은 유지한다.

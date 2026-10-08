@@ -59,7 +59,7 @@ test('web engine failure keeps actionable error instead of an endless loader', a
   await vm.runInNewContext(bootstrap, p.context);
   assert.match(p.node('boot-title').textContent, /불러오지 못/);
   assert.equal(p.node('boot-retry').hidden, false);
-  assert.equal(p.node('.boot-track').hidden, true);
+  assert.deepEqual(p.node('.boot-track').classes, ['paused']);
   assert.equal(p.node('app-boot').removed, false);
 });
 

@@ -38,27 +38,51 @@
 <body>
   <style>
     html, body { margin: 0; background: #101112; color: #f0f2f4; }
-    #app-boot { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; padding: 32px; background: #101112; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; transition: opacity 240ms ease-out; }
+    #app-boot { position: fixed; inset: 0; z-index: 9999; overflow:auto; display: grid; place-items: center; align-items: safe center; padding: 32px; background: #101112; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; transition: opacity 240ms ease-out; }
     #app-boot.leaving { opacity: 0; pointer-events: none; }
     .boot-content { width: min(100%, 360px); text-align: center; }
-    .boot-brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 40px; font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+    .boot-brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; font-size: 24px; font-weight: 800; letter-spacing: -1px; }
     .boot-brand img { width: 44px; height: 44px; }
     #boot-title { font-size: 18px; line-height: 1.4; margin: 0 0 12px; }
     #boot-message { color: #a0a7af; font-size: 14px; line-height: 1.6; margin: 0; }
-    .boot-track { height: 4px; margin-top: 28px; overflow: hidden; border-radius: 4px; background: #222528; }
-    .boot-track::after { content: ""; display: block; width: 40%; height: 100%; border-radius: inherit; background: #46c69b; animation: boot-progress 1.5s ease-in-out infinite; }
+    .boot-track { width:160px; height:180px; margin:0 auto 20px; }
+    .water-fill { animation: water-rise 3.2s ease-in-out infinite; }
+    .water-loop { animation: water-reset 3.2s linear infinite; }
+    .water-drop { animation: water-fall .8s linear infinite; }
+    .water-drop.second { animation-delay: -.4s; }
+    @keyframes water-rise { 0% { transform:translateY(59px); } 84%,100% { transform:translateY(0); } }
+    @keyframes water-reset { 0%,84% { opacity:1; } 100% { opacity:0; } }
+    @keyframes water-fall { 0% { transform:translateY(0); opacity:0; } 35%,75% { opacity:1; } 100% { transform:translateY(29px); opacity:0; } }
+    .boot-track.paused * { animation:none; }
+    .boot-track.paused .water-fill { transform:translateY(24px); }
+    .boot-track.paused .water-drop { opacity:0; }
     #boot-retry { margin-top: 24px; padding: 16px 24px; min-height: 48px; border: 0; border-radius: 14px; background: #007d73; color: white; font: inherit; cursor: pointer; }
-    @keyframes boot-progress { from { transform: translateX(-110%); } to { transform: translateX(350%); } }
-    @media (prefers-reduced-motion: reduce) { #app-boot { transition: none; } .boot-track::after { animation: none; width: 100%; opacity: .5; } }
+    @media (prefers-reduced-motion: reduce) { #app-boot { transition: none; } .boot-track * { animation:none; } .water-fill { transform:translateY(24px); } .water-drop { opacity:0; } }
   </style>
   <div id="app-boot">
     <div class="boot-content">
       <div class="boot-brand"><img src="favicon.png" alt=""><span>TAP Work</span></div>
+      <div class="boot-track" aria-hidden="true">
+        <svg viewBox="0 0 160 180" width="160" height="180" focusable="false">
+          <defs><clipPath id="water-cup"><path d="M43 82H117L108 145Q106 159 94 159H66Q54 159 52 145Z"/></clipPath></defs>
+          <path d="M131 23H99Q77 23 77 48H91Q91 37 103 37H131" fill="none" stroke="#a0a7af" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M40 166H120" stroke="#2b2e32" stroke-width="3" stroke-linecap="round"/>
+          <g clip-path="url(#water-cup)">
+            <path d="M43 82H117L108 145Q106 159 94 159H66Q54 159 52 145Z" fill="#46c69b" opacity=".06"/>
+            <g class="water-loop"><g class="water-fill">
+              <path d="M40 92Q60 87 80 92T120 92V170H40Z" fill="#46c69b" opacity=".8"/>
+              <circle cx="93" cy="110" r="3" fill="white" opacity=".55"/><circle cx="84" cy="121" r="2" fill="white" opacity=".4"/>
+            </g></g>
+          </g>
+          <path d="M43 82H117L108 145Q106 159 94 159H66Q54 159 52 145Z" fill="none" stroke="#a0a7af" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M57 101L61 131" stroke="#a0a7af" opacity=".5" stroke-width="3" stroke-linecap="round"/>
+          <g class="water-loop" fill="#46c69b"><rect class="water-drop" x="82" y="50" width="4" height="7" rx="3"/><rect class="water-drop second" x="82" y="50" width="4" height="7" rx="3"/></g>
+        </svg>
+      </div>
       <div role="status" aria-live="polite">
         <h1 id="boot-title">TAP Work를 열고 있어요</h1>
         <p id="boot-message">앱 화면을 준비하고 있어요.</p>
       </div>
-      <div class="boot-track" aria-hidden="true"></div>
       <button id="boot-retry" type="button" hidden>다시 불러오기</button>
     </div>
   </div>
@@ -81,7 +105,7 @@
         clearTimeout(slowTimer);
         document.getElementById('boot-title').textContent = '앱을 불러오지 못했어요';
         message.textContent = '인터넷 연결을 확인하고 다시 시도해 주세요.';
-        document.querySelector('.boot-track').hidden = true;
+        document.querySelector('.boot-track').classList.add('paused');
         retry.hidden = false;
       };
       window.addEventListener('flutter-first-frame', () => {

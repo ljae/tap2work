@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'components.dart';
+import 'tap_water_loading.dart';
 
 /// Shows the real loading stage without fake percentages or a minimum delay.
 class AppLoadingScreen extends StatefulWidget {
@@ -62,6 +63,8 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Center(child: TapWaterLoading(animate: !failed)),
+        const SizedBox(height: 20),
         Semantics(
           liveRegion: true,
           child: Text(
@@ -78,11 +81,6 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> {
           style: AppText.caption,
         ),
         const SizedBox(height: 24),
-        if (!failed)
-          const ClipRRect(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            child: AppLinearProgress(minHeight: 4),
-          ),
         if ((failed || slow) && widget.onRetry != null) ...[
           const SizedBox(height: 16),
           FilledButton.icon(
@@ -96,30 +94,36 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> {
     return Scaffold(
       backgroundColor: AppColors.paper,
       body: SafeArea(
-        child: widget.showSkeleton && !failed && !slow
-            ? Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 440),
-                        child: loading,
+        child: LayoutBuilder(
+          builder: (context, constraints) =>
+              widget.showSkeleton &&
+                  !failed &&
+                  !slow &&
+                  constraints.maxHeight >= 600
+              ? Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 440),
+                          child: loading,
+                        ),
                       ),
                     ),
-                  ),
-                  const Expanded(child: WorkspaceSkeleton()),
-                ],
-              )
-            : Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 440),
-                    child: loading,
+                    const Expanded(child: WorkspaceSkeleton()),
+                  ],
+                )
+              : Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      child: loading,
+                    ),
                   ),
                 ),
-              ),
+        ),
       ),
     );
   }
