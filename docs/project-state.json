@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 244,
+  "revision": 245,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7568,7 +7568,18 @@
         "dart:js_util fallback failed analysis on this SDK; existing locked package:web 1.1.1 promoted to a direct dependency.",
         "No full five-role real publication, actual authenticated store creation, or native build was performed."
       ]
+    },
+    {
+      "at": "2026-10-08T10:41:39.897412+00:00",
+      "type": "implementation",
+      "title": "Donkatsu manual wording matches its industry bundle",
+      "detail": "The shared frying source contained chicken-only tool/half-and-half wording. Preview and saved donkatsu manuals now use meat tools and menu-specific sides/sauces. Preserve the source provenance as personalized so published updates cannot overwrite the adapted store copy.",
+      "verification": [
+        "12 setup/workspace server tests passed including preview/save/sync preservation",
+        "14 setup/settings widget tests passed",
+        "Flutter analyze clean"
+      ]
     }
   ],
-  "updatedAt": "2026-10-08T10:39:20.801462+00:00"
+  "updatedAt": "2026-10-08T10:41:39.897412+00:00"
 }

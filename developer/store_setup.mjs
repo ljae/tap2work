@@ -8,9 +8,15 @@ import { manualCatalog, mutateManualMarket } from './manual_market.mjs';
 import { applyStoreBundle, storeBundles, bundleVersion } from './store_bundle.mjs';
 import { businessTypes } from './business_types.mjs';
 
+function donkatsuSteps(steps) {
+  return steps.map(step=>({...step,
+    manual:step.manual?.replaceAll('생닭용','생고기용'),
+    tip:step.tip?.replaceAll('반반 메뉴는 두 맛의 수량을 각각 봐요.','사이드와 소스 구성을 메뉴별로 확인해요.'),
+  }));
+}
 export function storeSetupCatalog(catalog = manualCatalog) {
   const collections = new Set(['common', 'delivery', ...businessTypes.map(t => t.collectionId)]);
-  return { releaseId: catalog.releaseId, businessTypes, bundles:storeBundles, bundleVersion, purposes: catalog.taxonomy.purposes,
+  return { manualVariants:{donkatsu:catalog.entries.filter(e=>e.kind!=='legal'&&collections.has(e.collectionId)).map(e=>({...e,steps:e.collectionId==='chicken'?donkatsuSteps(e.steps):e.steps}))}, releaseId: catalog.releaseId, businessTypes, bundles:storeBundles, bundleVersion, purposes: catalog.taxonomy.purposes,
     entries: catalog.entries.filter(e => e.kind !== 'legal' && collections.has(e.collectionId))
       .map(e => ({sourceId:e.sourceId, collectionId:e.collectionId, title:e.title, purposeId:e.purposeId, steps:e.steps.map(s=>({title:s.title,manual:s.manual}))})) };
 }
@@ -60,6 +66,16 @@ export function applyStoreSetup(state, input, actor, now, catalog = manualCatalo
   if (setup.sourceIds.length) {
     // No replace: creation is isolated and all imported definitions keep source links.
     mutateManualMarket(state,{action:'configure_manual_business',operationId:`setup-${input.requestId}`,releaseId:catalog.releaseId,industryId:'food',specialization:type.name,sourceIds:setup.sourceIds,replaceExisting:false,enableOperations:setup.enableOperations},actor,now,catalog);
+    if (type.id === 'donkatsu') for (const template of state.taskTemplates) {
+      const link=state.catalogLinks?.[template.id];
+      if (!link?.sourceId?.startsWith('chicken/')) continue;
+      const before=JSON.stringify(template.steps);
+      template.steps=donkatsuSteps(template.steps);
+      if (before!==JSON.stringify(template.steps)) {
+        template.version++;template.steps.forEach(step=>step.contentRevision=(step.contentRevision??0)+1);
+        link.mode='personalized';link.detachedAt=now.toISOString();link.customizedFor='donkatsu';
+      }
+    }
     for (const template of state.taskTemplates) saveTapSettings(state,{templateId:template.id,assignmentScopeVersion:2,settings:{...taskSettings(template),recurrence:{mode:'weekly',weekdays:days}}},now);
     state.checklistFolders=state.checklistFolders.filter(f=>f.id!=='general'||state.taskTemplates.some(t=>t.folderId===f.id));
   }

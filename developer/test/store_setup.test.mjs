@@ -91,3 +91,14 @@ test('standard address stores selection separately from editable detail and inva
  saveStoreProfile(state,'basic',{name:'변경',industryId:'restaurant',serviceModes:['hall'],address:'이전 클라이언트 주소'});
  assert.equal(state.store.profile.addressSelection,null);
 });
+
+test('donkatsu preview and saved manuals use meat wording and preserve store-specific edits on sync',async()=>{
+ const preview=catalog.manualVariants.donkatsu.find(e=>e.sourceId==='chicken/prep');
+ assert.ok(preview.steps.some(s=>s.manual.includes('생고기용')));
+ const state=create(setup({businessTypeId:'donkatsu',sourceIds:['chicken/prep','chicken/peak']}));
+ assert.ok(state.taskTemplates.every(t=>!JSON.stringify(t.steps).includes('생닭용')));
+ assert.ok(Object.values(state.catalogLinks).every(l=>l.mode==='personalized'));
+ const {syncManualCatalog}=await import('../manual_market.mjs');
+ const before=structuredClone(state.taskTemplates);syncManualCatalog(state,now,manualCatalog);
+ assert.deepEqual(state.taskTemplates,before);
+});

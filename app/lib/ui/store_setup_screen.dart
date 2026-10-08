@@ -92,16 +92,18 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
   List<Json> get menuSuggestions =>
       (catalog['bundles']?[typeId] as List? ?? []).cast<Json>();
   String get current => steps[step.clamp(0, steps.length - 1)];
-  List<Json> get recommended => (catalog['entries'] as List? ?? [])
-      .cast<Json>()
-      .where(
-        (e) => [
-          'common',
-          type?['collectionId'],
-          if (modes.contains('delivery')) 'delivery',
-        ].contains(e['collectionId']),
-      )
-      .toList();
+  List<Json> get recommended =>
+      ((catalog['manualVariants']?[typeId] ?? catalog['entries']) as List? ??
+              [])
+          .cast<Json>()
+          .where(
+            (e) => [
+              'common',
+              type?['collectionId'],
+              if (modes.contains('delivery')) 'delivery',
+            ].contains(e['collectionId']),
+          )
+          .toList();
   static String _uuid() {
     final r = Random.secure();
     final b = List.generate(16, (_) => r.nextInt(256));
@@ -569,7 +571,9 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
           ),
           summary(
             '주소·찾아오는 안내',
-            address.text.trim().isEmpty ? '나중에 설정' : '${address.text.trim()} ${addressDetail.text.trim()}'.trim(),
+            address.text.trim().isEmpty
+                ? '나중에 설정'
+                : '${address.text.trim()} ${addressDetail.text.trim()}'.trim(),
             'location',
           ),
           summary(

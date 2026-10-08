@@ -559,3 +559,5 @@ iOS는 com.tap2work.tap2work, Android는 기존 com.tab2work.tab2work 식별자�
 2026-10-07 매뉴얼 도구 행: 좁은 화면은 왼쪽 시작점의 매뉴얼 마켓부터 표시하며 오른쪽 도구는 가로 스크롤로 접근한다. 넓은 화면에서는 기존 오른쪽 정렬을 유지한다. 역방향 스크롤로 마지막 도구부터 표시하지 않는다.
 
 주소 iframe 브리지는 package:web의 JS 창 identity로 source를 비교한다. dart:html의 서로 다른 wrapper(EventTarget/WindowBase) 비교는 실제 선택 메시지를 거절하므로 사용하지 않는다. 2026-10-08 실제 Flutter 웹에서 표준주소/우편번호 반환과 다른 source의 같은 origin 메시지 거절을 확인했다. 재현 화면은 app/tool/address_search_review.dart이다.
+
+돈까스 초기 튀김 공통 매뉴얼은 생닭/반반 메뉴 표현을 생고기/메뉴별 사이드·소스로 바꾼다. 미리보기 manualVariants.donkatsu와 저장에 같은 변환을 사용하고 원본 sourceId를 보존한 personalized 링크로 표시해 다음 공용 발행으로 매장 문구가 덮어써지지 않게 한다.
