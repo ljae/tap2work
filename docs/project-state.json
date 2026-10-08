@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 249,
+  "revision": 250,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7649,7 +7649,20 @@
       "limitations": [
         "Web deployment pending; no Flutter source or native changes."
       ]
+    },
+    {
+      "at": "2026-10-08T11:54:36.198707+00:00",
+      "type": "deployment",
+      "title": "Animation-only web splash deployed",
+      "commit": "bf8b4df24d2977e5e0f0ede8d23e89481463a5cc",
+      "verification": [
+        "GitHub Actions 37772451127 full checks/build/deploy succeeded",
+        "Actual public Chromium page at tap2.work verified: standalone logo absent, animation 240px wide, normal status visually hidden; screenshot saved locally"
+      ],
+      "limitations": [
+        "No native build or backend changes."
+      ]
     }
   ],
-  "updatedAt": "2026-10-08T11:47:57.236073+00:00"
+  "updatedAt": "2026-10-08T11:54:36.198707+00:00"
 }
