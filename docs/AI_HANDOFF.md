@@ -108,3 +108,7 @@ DB 카탈로그 검증의 전역 Buffer는 운영 Edge에서 인증 조회500을
 기존 StoreProfileScreen은 basic/pos/delivery 직접 진입으로 바뀌고 선언 크루 수/채용 필요 인원 UI·운영/주문 연결 중복을 제거했다. 영업시간/필요 인원은 workplace.days/breaks/headcounts 단일 원본. legacy profile.hours/staffing 데이터는 삭제하지 않는다. profile.businessTypeId 변경만으로 기존 매뉴얼을 교체하지 않는다. 우리매장 목록은 실제 저장값 요약을 표시한다.
 
 API는 인증 사용자+requestId가 이미 생성됐으면 기존 매장부터 찾아 권한 재검증 후 반환한다. 생성 전 검증 실패에만 setupRejected=true를 반환해 UI 재편집을 허용한다. 전송 실패는 같은 payload를 재시도한다. 새 migration 없음. 이번 변경의 외부 배포·네이티브 빌드는 수행하지 않았다. 최종 검증은 project-state 최신 history와 [점검 기록](STORE_SETUP_AUDIT_2026-10-08.md)을 따른다. 배포 시 앱과 operations API 모두 필요하다.
+
+## 2026-10-08 웹 배포 후속
+
+사용자 요청으로 웹과 필요한 operations API를 배포했다. 코드 460533ec1b3c31f75a333913b1d24ab438f540d8, Actions 37759423579 build/deploy success. 공개 root/index·버전 bootstrap/main이 CI artifact와 SHA256 일치, 정책/계정삭제 페이지200. 네이티브 빌드/업로드·DB migration·운영 데이터 생성 없음. 실제 인증 세션의 매장 생성은 미실시이며 API 미인증401 확인을 기능 검증으로 간주하지 않는다.

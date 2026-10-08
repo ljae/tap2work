@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 241,
+  "revision": 242,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7501,7 +7501,24 @@
         "등록 초안은 열린 화면 메모리에서 유지하며 앱 종료 복원은 미구현. 돈까스 전용 레시피 신규 발행 대신 기존 튀김 공통 내용을 사용한다.",
         "등록에서 요일별 다른 교대/인원·실제 크루·메뉴/재고·배치도·정산/권한 세부값은 기존 설정 화면에서 이어서 수정한다. 24시간 동일 시작/종료는 간단 등록에서 지원하지 않는다."
       ]
+    },
+    {
+      "at": "2026-10-08T09:57:11.526670+00:00",
+      "type": "deployment",
+      "title": "새 매장 등록 웹 배포 완료 · 네이티브 제외",
+      "detail": "사용자의 웹 배포 요청에 따라 신규 등록/설정 UI를 GitHub Pages에 배포하고 웹 기능에 필요한 operations API를 함께 반영했다. 기존 작업 트리는 보존하고 origin/main 기반 격리 worktree에서 이번 변경 30파일만 반영. iOS/Android 빌드·업로드·심사 변경 없음.",
+      "commit": "460533ec1b3c31f75a333913b1d24ab438f540d8",
+      "verification": [
+        "GitHub Actions 37759423579 build/deploy success: npm check, Edge smoke, 서버 tests, SQL/PGlite, Flutter analyze/tests, public web build. https://github.com/ljae/tap2work/actions/runs/37759423579",
+        "operations API 배포 성공. 미인증 HTTP401와 tap2.work CORS 확인; 이것은 인증 사용자 기능 검증을 대체하지 않는다.",
+        "https://tap2.work/ 및 /privacy/, /delete-account/ HTTP200. 공개 index.html, flutter_bootstrap.327444f200f7c9efda93.js, main.43edf0db99e22a086eb8.dart.js SHA256이 CI github-pages artifact 11541388707과 일치.",
+        ".local/store-setup-web-artifact/verification.json에 공개 응답 해시 검증 기록."
+      ],
+      "limitations": [
+        "실제 로그인 세션에서 신규 매장 생성은 수행하지 않았다. 운영 데이터 생성/초기화, DB migration, 공용 콘텐츠 발행 없음.",
+        "이번 요청은 웹만 대상. 네이티브 앱은 이전 배포 유지."
+      ]
     }
   ],
-  "updatedAt": "2026-10-08T09:35:13.323597+00:00"
+  "updatedAt": "2026-10-08T09:57:11.526670+00:00"
 }
