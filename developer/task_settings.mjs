@@ -31,7 +31,7 @@ export function stepSettings(step) {
 export function validateTaskSettings(value, state) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) fail('TAP 설정을 확인해 주세요.');
   if (!workTypes.includes(value.type)) fail('업무 유형을 선택해 주세요.');
-  const recurrence = ['reference','event'].includes(value.usage)?{mode:'daily',weekdays:[]}:value.recurrence;
+  const recurrence = value.recurrence;
   if (!recurrence || !['daily', 'weekly'].includes(recurrence.mode) || !Array.isArray(recurrence.weekdays)) fail('반복 요일을 확인해 주세요.');
   const weekdays = recurrence.weekdays.map(day => integer(day, 1, 7, '요일'));
   if (new Set(weekdays).size !== weekdays.length || (recurrence.mode === 'weekly' && !weekdays.length)) fail('반복 요일을 하나 이상 선택해 주세요.');
