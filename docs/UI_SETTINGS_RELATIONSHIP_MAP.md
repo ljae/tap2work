@@ -414,3 +414,5 @@ S08/S03 설정 요약: store.profile·workplace.days/parts·taskTemplates → �
 | --- | --- | --- | --- |
 | S57 | 주소 입력 → StoreAddressField/표준 주소 검색 → 공식 검색 iframe 선택 → profile.addressSelection/addressDetail | 신규/기존 매장 같은 컨트롤, 동일 origin+frame 검증, 표준주소와 상세주소 분리. 미선택 검색어는 신규 등록 불가; 검색 실패/취소 시 초안 보존 | store_setup.test.mjs, store_setup_test.dart, Flutter analyze/web build |
 | S58 | storeSetupCatalog.bundles/bundleVersion → 메뉴 선택 → applyStoreBundle | 업종에 맞는 메뉴 ID/버전 검증, 새 매장에만 저장, 기존 메뉴/재료/매뉴얼 편집 재사용. 주문·재고 증가·외부 연결 없음 | store_setup.test.mjs, store_setup_test.dart |
+
+S55/S58 후속 검증: 돈까스는 manualVariants.donkatsu로 미리보기/저장 문구를 함께 맞추고 sourceId가 남는 personalized 복사본을 유지한다. 공용 발행본 동기화가 이를 덮어쓰지 않는 서버 테스트를 추가했다. S57은 package:web의 실제 창 identity로 비교하며 실제 브라우저에서 주소 선택→Flutter 값 반영과 다른 창 메시지 거절을 검증했다.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 245,
+  "revision": 246,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7579,7 +7579,29 @@
         "14 setup/settings widget tests passed",
         "Flutter analyze clean"
       ]
+    },
+    {
+      "at": "2026-10-08T10:49:30.507490+00:00",
+      "type": "deployment",
+      "title": "Industry store setup web deployment completed",
+      "detail": "Deployed web UI and the required operations API. Preserved unrelated dirty working tree changes using the existing isolated release worktree. No native build/upload, database migration, or public content publication.",
+      "commit": "49f302857ad5077f7c87d3c687699a64afae769d",
+      "verification": [
+        "GitHub Actions build and deploy success: https://github.com/ljae/tap2work/actions/runs/37765154721",
+        "CI passed JS/UI contracts, Edge smoke, 275 Node tests, SQL tests, Flutter locked dependencies, analysis, full Flutter tests and public web build",
+        "Local full Flutter suite: 375 passed; final targeted setup/settings: 14 passed",
+        "Public root, index, address-search.html, hashed bootstrap and main JavaScript returned HTTP200 and matched the CI artifact SHA256",
+        "Required operations API redeployed successfully; no actual authenticated store creation was performed",
+        "Actual address selection round-trip and wrong-window message rejection verified in a local production Flutter web build",
+        "Actual Aside researcher completed via the integrated CLI and stored official recipe evidence with unresolved conditions"
+      ],
+      "artifactVerification": ".local/store-bundle-web-artifact/verification.json",
+      "limitations": [
+        "Recipes remain editable starter drafts; store-specific quantities, temperatures, times and ingredient/procurement settings require review.",
+        "Only the research stage of a real content job was executed; no automatic publication or overwrite of existing store content.",
+        "Native apps remain unchanged."
+      ]
     }
   ],
-  "updatedAt": "2026-10-08T10:41:39.897412+00:00"
+  "updatedAt": "2026-10-08T10:49:30.507490+00:00"
 }
