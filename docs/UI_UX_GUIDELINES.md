@@ -331,3 +331,8 @@ Schedule density (2026-10-04): use 48px/hour for long assignments; if any assign
 
 
 2026-10-08 initial web loading refinement: user requested animation only. Remove the standalone logo/wordmark and visually hide normal status text while preserving the live region. Center the cup animation at up to 240 x 270 CSS pixels (previously 160 x 180), constrained by viewport width/height. Reveal status and retry on slow/error states. Flutter internal loading is unchanged.
+
+
+## 2026-10-08 매뉴얼 지식·실행 분리 설계
+
+[매뉴얼·업무 연결 제안](MANUAL_KNOWLEDGE_TASK_DESIGN_2026-10-08.md): 기존 매장 입력을 재사용하고 미확인 공정 조건만 화면당 최대3개 질문한다. 참고용/정기 확인/작업할 때 확인을 구분하며 매뉴얼 수와 매일 체크 수를 별도로 보여준다. 정상 크루 화면은 짧은 작업+방법 펼치기, 관리자만 미연결 원인 진단을 본다. 필수 안전 측정을 단축/일괄 완료하지 않는다. 모두 proposed; 현재 UI가 구현됐다는 뜻이 아니다.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 250,
+  "revision": 251,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1098,6 +1098,18 @@
       "reason": "사용자의 2026-10-08 후속 지시. 기존 매장 수정본·기록/권한과 미확인 연구 상태를 보존한다.",
       "source": "사용자 요청 · 2026-10-08",
       "updatedAt": "2026-10-08T10:28:19.081075+00:00"
+    },
+    {
+      "id": "D-104",
+      "category": "매뉴얼·업무·콘텐츠",
+      "title": "매뉴얼 적용 범위와 실행 연결 분리 설계",
+      "status": "proposed",
+      "decision": "사용자 요구인 공통 브레이크 분리·피로도 낮은 업무 연결·레시피/보관 노하우 축적을 위해 공통/공정/메뉴 적용 범위와 참고용/정기/작업사건을 분리하는 설계를 제안한다. 세부 데이터 계약과 UI는 미확정·미구현이다.",
+      "previous": "컬렉션·업종·목적·slot 기반 추천과 일괄 업무 사용. 공통 브레이크 원본 없음, bonejjim/break에 공통/메뉴/고정시각 혼재.",
+      "next": "제안: 조건 기반 공통 지식과 매장 실행 TAP 연결, 미표시 원인 진단, 배치/로트별 사건 업무, 버전/개인화 보존 이관.",
+      "reason": "2026-10-08 사용자 조사·설계 요청과 로컬86 TAP 감사, FSA/식약처 공개 자료 조사. 제안을 사용자 승인으로 기록하지 않음.",
+      "source": "docs/MANUAL_KNOWLEDGE_TASK_DESIGN_2026-10-08.md",
+      "updatedAt": "2026-10-08T12:18:30.934912+00:00"
     }
   ],
   "milestones": [
@@ -7662,7 +7674,30 @@
       "limitations": [
         "No native build or backend changes."
       ]
+    },
+    {
+      "at": "2026-10-08T12:18:30.934912+00:00",
+      "type": "design",
+      "title": "Manual taxonomy, checklist coverage and recipe/storage knowledge design",
+      "detail": "Audited 86 local catalog TAPs; only bonejjim/break covers break time and mixes generic work, menu preparation and fixed store hours. Researched official sources using web and Aside. Added proposed classification/data/UI/migration design and improved researcher/editor/reviewer/QA prompts without changing output schemas.",
+      "verification": [
+        "Actual Aside public research completed: four official sources and unresolved product-specific storage conditions",
+        "Additional MFDS source read through web; local catalog audit saved",
+        "31 content-team/content-memory Node tests passed",
+        "51 UI/settings links verified"
+      ],
+      "artifacts": [
+        "docs/MANUAL_KNOWLEDGE_TASK_DESIGN_2026-10-08.md",
+        ".local/manual-taxonomy-research/catalog-audit.json",
+        ".local/manual-taxonomy-research/aside-summary.md"
+      ],
+      "limitations": [
+        "Live store/catalog database not queried or modified",
+        "No production content publication, UI/event-engine implementation or deployment",
+        "No commercial recipe/storage validation; no universal shelf life inferred",
+        "Flutter analysis/tests not run because Flutter source unchanged; full production five-role content job not executed"
+      ]
     }
   ],
-  "updatedAt": "2026-10-08T11:54:36.198707+00:00"
+  "updatedAt": "2026-10-08T12:18:30.934912+00:00"
 }

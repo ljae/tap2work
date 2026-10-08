@@ -123,3 +123,8 @@ API는 인증 사용자+requestId가 이미 생성됐으면 기존 매장부터 
 ## 2026-10-08 TAP Water loading deployment
 
 Web deployed: b19d775 / Actions 37771127850 succeeded. Initial inline SVG and Flutter TapWaterLoading share a 3.2-second faucet/cup activity loop, reduced-motion/error pause, and short-screen scrolling. Real readiness/retry controls remain authoritative; no artificial delay or measured percentage. Full CI passed; public index and hashed bootstrap/main match artifact SHA256 (.local/water-loading-deploy/verification.json). Existing tool/loading_review.dart preserves startup/store/error captures; tool/tap_water_loading_review.dart captures the new animation. No backend/native/data changes.
+
+
+## 2026-10-08 매뉴얼 지식·실행 분리 설계
+
+사용자는 브레이크 공통/뼈찜 혼합 정리, 피로도 낮은 매뉴얼↔할 일 설정, 기본 레시피와 보관 노하우 축적의 조사·설계를 요청했다. [설계안](MANUAL_KNOWLEDGE_TASK_DESIGN_2026-10-08.md)에 소스 감사/공식 근거/분류·계약·UI·이관·검증을 기록했다. 브레이크 원본은 common이 아니라 bonejjim/break이며 공통판은 없음. 운영 DB 원인까지 확인한 것은 아니다. researcher/editor/reviewer/qa 지침을 보강했고 출력스키마/예약/발행은 변경하지 않았다. 실제 앱·카탈로그 수정/배포·신규 사건 엔진은 미실시다. 세부 제안은 confirmed로 바꾸지 말 것.

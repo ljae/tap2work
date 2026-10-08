@@ -568,3 +568,8 @@ AppLoadingScreen은 TapWaterLoading(단일 AnimationController+CustomPainter rep
 
 
 2026-10-08 initial web loading refinement: user requested animation only. Remove the standalone logo/wordmark and visually hide normal status text while preserving the live region. Center the cup animation at up to 240 x 270 CSS pixels (previously 160 x 180), constrained by viewport width/height. Reveal status and retry on slow/error states. Flutter internal loading is unchanged.
+
+
+## 2026-10-08 매뉴얼 지식·실행 분리 설계
+
+매뉴얼 재분류·지식과 실행 연결의 후속 설계는 [MANUAL_KNOWLEDGE_TASK_DESIGN_2026-10-08.md](MANUAL_KNOWLEDGE_TASK_DESIGN_2026-10-08.md)를 따른다. 현재 카탈로그86개 중 브레이크는 bonejjim/break 1개이며 공통/메뉴 작업이 혼합돼 있다. scope·공정·메뉴·시점 분리, 지식 버전 참조와 실행 TAP, 참고용/정기/사건 연결은 proposed이며 새 schema/UI/사건 엔진은 미구현이다. TAP 단위 운영 설정·개인화·실행 snapshot·D-017 재고 확인은 보존한다. 조사/편집/검토/QA 프롬프트의 분류·보관 지침만 보강했다.
