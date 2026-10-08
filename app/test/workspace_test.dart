@@ -1,3 +1,4 @@
+import 'support/store_setup_fixture.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ Json snapshot(String id) => {
   'actor': {'id': 'user', 'role': id == 'b' ? 'crew' : 'owner'},
   'workspaceId': id,
   'workspaces': stores,
+  'storeSetupCatalog': setupCatalogFixture(),
   'store': {'name': id == 'b' ? '홍대점' : stores.first['name']},
   'syncWindow': 1,
 };
@@ -156,14 +158,22 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('+ 새 매장 추가'));
         await tester.pumpAndSettle();
-        await tester.tap(find.widgetWithText(FilledButton, '매장 추가'));
+        await tester.tap(find.widgetWithText(FilledButton, '다음'));
         await tester.pumpAndSettle();
         expect(writes, isEmpty);
         await tester.enterText(
           find.byKey(const ValueKey('new-workspace-name')),
           '새로운 지점',
         );
-        await tester.tap(find.widgetWithText(FilledButton, '매장 추가'));
+        await tester.tap(find.widgetWithText(FilledButton, '다음'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilterChip, '치킨'));
+        for (var i = 0; i < 11; i++) {
+          await tester.tap(find.widgetWithText(FilledButton, '다음'));
+          await tester.pumpAndSettle();
+        }
+        expect(writes, isEmpty);
+        await tester.tap(find.widgetWithText(FilledButton, '매장 등록'));
         await tester.pumpAndSettle();
         expect(writes.single['name'], '새로운 지점');
         expect(writes.single['mode'], 'blank');

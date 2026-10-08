@@ -1,3 +1,4 @@
+import 'store_setup_screen.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -209,11 +210,8 @@ class _WorkspaceSetup extends StatelessWidget {
                 child: FilledButton(
                   onPressed: ops.busy
                       ? null
-                      : () => ops.act('create_workspace', {
-                          'mode': 'blank',
-                          'revision': 0,
-                        }),
-                  child: const Text('빈 매장으로 시작'),
+                      : () => openStoreSetup(context, ops),
+                  child: const Text('새 매장 등록'),
                 ),
               ),
               const SizedBox(height: 12),

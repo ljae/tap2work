@@ -44,6 +44,36 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
     industry = widget.ops.data?['manualBusinessProfile']?['industryId'];
     specialization.text =
         widget.ops.data?['manualBusinessProfile']?['specialization'] ?? '';
+    if (widget.setup) {
+      final profile = widget.ops.data?['store']?['profile'] as Json? ?? {};
+      final types =
+          (widget.ops.data?['storeSetupCatalog']?['businessTypes'] as List? ??
+                  [])
+              .cast<Json>();
+      final type = types
+          .where((t) => t['id'] == profile['businessTypeId'])
+          .firstOrNull;
+      if (type != null) {
+        industry = 'food';
+        specialization.text = type['name'];
+        final collections = {
+          'common',
+          type['collectionId'],
+          if ((profile['serviceModes'] as List? ?? []).contains('delivery'))
+            'delivery',
+        };
+        selected.addAll(
+          catalog.entries
+              .where(
+                (e) =>
+                    collections.contains(e['collectionId']) &&
+                    e['kind'] != 'legal' &&
+                    !catalog.linked(e),
+              )
+              .map((e) => e['sourceId'] as String),
+        );
+      }
+    }
     final folders = widget.ops.rows('checklistFolders');
     folder = folders.any((f) => f['id'] == widget.folderId)
         ? widget.folderId!

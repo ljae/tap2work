@@ -84,6 +84,8 @@ Map<String, Widget> sheetCases(OperationsController ops) => {
     countOnly: true,
   ),
   'profile': StoreProfileScreen(ops: ops),
+  'pos': StoreProfileScreen(ops: ops, initialSection: 'pos'),
+  'delivery': StoreProfileScreen(ops: ops, initialSection: 'delivery'),
   'payroll': PayrollSettingsScreen(ops: ops),
   'tap': TapSettingsScreen(ops: ops, initialTemplateId: 'a'),
   'task': TapSettingsScreen(
@@ -158,15 +160,6 @@ void main() {
             isNull,
             reason: '${entry.key} initial',
           );
-          if (entry.key == 'profile') {
-            for (final label in ['POS', '배달', '크루', '운영', '기본']) {
-              final tab = find.text(label).first;
-              await tester.ensureVisible(tab);
-              await tester.tap(tab);
-              await tester.pumpAndSettle();
-              expect(tester.takeException(), isNull, reason: 'profile $label');
-            }
-          }
           if (entry.key == 'actions') {
             expect(
               tester.getTopLeft(find.text('입력 내용')).dy,

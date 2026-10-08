@@ -1,3 +1,4 @@
+import { applyStoreSetup, storeSetupCatalog } from './store_setup.mjs';
 import {DatabaseCatalogRepository} from './catalog_repository.mjs';
 import { OperationsStore, seedOperations, emptyOperations } from './operations.mjs';
 import { sectionPatch } from './section_storage.mjs';
@@ -61,19 +62,36 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
         const name = typeof input.name === 'string' ? input.name.trim() : '';
         if (!name || name.length > 80 || !/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(input.requestId) || input.mode !== 'blank') throw new StoreError('매장 이름을 1~80자로 입력해 주세요.');
         const ownerName=String(user.user_metadata?.display_name || '사장님').trim().slice(0,80) || '사장님';
-        const initial=emptyOperations(clock(),user.id,ownerName);
-        initial.store.name=name;
-        selectedWorkspace=await rest('rpc/tap2work_create_workspace',{method:'POST',body:JSON.stringify({p_user_id:user.id,p_name:ownerName,p_state:initial,p_request_id:input.requestId})});
+        // Resolve a committed intent before validating a possibly newer catalog.
+        const previous = input.setup == null ? [] : await rest(`tap2work_workspace_requests?user_id=eq.${user.id}&request_id=eq.${input.requestId}&select=workspace_id`);
+        if (previous.length) selectedWorkspace = previous[0].workspace_id;
+        else {
+          const initial=emptyOperations(clock(),user.id,ownerName);
+          initial.store.name=name;
+          if (input.setup != null) {
+            try { applyStoreSetup(initial,input,{id:user.id,name:ownerName,role:'owner'},clock(),catalogSnapshot?.release); }
+            catch (error) {
+              if (error instanceof StoreError) return reply(error.status,{error:error.message,setupRejected:true});
+              throw error;
+            }
+          }
+          selectedWorkspace=await rest('rpc/tap2work_create_workspace',{method:'POST',body:JSON.stringify({p_user_id:user.id,p_name:ownerName,p_state:initial,p_request_id:input.requestId})});
+        }
         document=await readWorkspace();
+        if (document?.forbidden) return reply(403,{error:'이 매장에 접근할 권한이 없어요.',workspaces:document.workspaces});
         memberships=document.member ? [document.member] : [];
         createdWorkspace=true;
       }
       if (!memberships.length) {
-        if (request.method === 'GET') return reply(200, { needsWorkspace: true, authenticated: true });
+        if (request.method === 'GET') return reply(200, { needsWorkspace: true, authenticated: true, storeSetupCatalog: storeSetupCatalog(catalogSnapshot?.release) });
         const setup = input;
         if (setup?.action !== 'create_workspace' || !['blank', 'sample'].includes(setup.mode) || setup.revision !== 0) throw new StoreError('시작 방식을 선택해 주세요.');
         const ownerName = String(user.user_metadata?.display_name || '사장님').trim().slice(0, 80) || '사장님';
         const initial = setup.mode === 'blank' ? emptyOperations(clock(), user.id, ownerName) : seedOperations(clock());
+        if (setup.setup != null) {
+          if (setup.mode !== 'blank') throw new StoreError('빈 매장에만 초기 설정을 적용할 수 있어요.');
+          applyStoreSetup(initial,setup,{id:user.id,name:ownerName,role:'owner'},clock(),catalogSnapshot?.release);
+        }
         if (setup.mode === 'sample') {
           ensureStaff(initial, clock());
           Object.assign(initial.tappers.find(t => t.actorId === 'owner'), { actorId: user.id, nickname: ownerName });
@@ -118,7 +136,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       let result;
       if (request.method === 'GET' || createdWorkspace) result = await store.snapshot(user.id, Object.fromEntries(query));
       else result = await store.mutate(user.id, input);
-      return reply(200, { ...result, ...(catalogSnapshot?{catalogRevision:catalogSnapshot.revision,catalogReleaseId:catalogSnapshot.release.releaseId}:{}), canSwitchEmployee: member.role === 'owner', employeeMode, workspaceId: member.workspace_id, ...(document?.workspaces ? {workspaces: document.workspaces.map(w=>w.id===member.workspace_id?{...w,name:result.store?.name ?? w.name}:w)} : {}), ...(sectionStorage ? {syncWindow: document.window} : {}) });
+      return reply(200, { ...result, storeSetupCatalog: storeSetupCatalog(catalogSnapshot?.release), ...(catalogSnapshot?{catalogRevision:catalogSnapshot.revision,catalogReleaseId:catalogSnapshot.release.releaseId}:{}), canSwitchEmployee: member.role === 'owner', employeeMode, workspaceId: member.workspace_id, ...(document?.workspaces ? {workspaces: document.workspaces.map(w=>w.id===member.workspace_id?{...w,name:result.store?.name ?? w.name}:w)} : {}), ...(sectionStorage ? {syncWindow: document.window} : {}) });
     } catch (error) {
       return reply(error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : '요청을 처리하지 못했어요. 다시 시도해 주세요.' });
     }

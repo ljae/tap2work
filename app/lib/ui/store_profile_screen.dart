@@ -1,14 +1,18 @@
-import 'workplace_screens.dart';
+import 'store_setup_screen.dart';
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
 
 /// Store settings use a local draft and the revision from the opening snapshot.
 class StoreProfileScreen extends StatefulWidget {
-  const StoreProfileScreen({super.key, required this.ops});
+  const StoreProfileScreen({
+    super.key,
+    required this.ops,
+    this.initialSection = 'basic',
+  });
   final OperationsController ops;
+  final String initialSection;
 
   @override
   State<StoreProfileScreen> createState() => _StoreProfileScreenState();
@@ -21,15 +25,27 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
   late final TextEditingController note;
   late final TextEditingController address;
   late final TextEditingController arrival;
-  late final TextEditingController staffCount;
   late final TextEditingController posModel;
   late final TextEditingController posName;
   late final TextEditingController guideUrl;
   late final TextEditingController deviceCount;
   late Json profile;
-  String section = 'basic';
+  late final String section;
+  late final Object? openingWorkspace;
   String? error;
   bool saving = false;
+  late final String initialSignature;
+  String get signature => jsonEncode([
+    profile,
+    name.text,
+    note.text,
+    address.text,
+    arrival.text,
+    posModel.text,
+    posName.text,
+    guideUrl.text,
+    deviceCount.text,
+  ]);
 
   Json get draft => profile;
   Json get pos =>
@@ -38,17 +54,6 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
   Json get delivery =>
       (draft['delivery'] as Json?) ??
       {'configured': false, 'enabled': false, 'platforms': <Json>[]};
-  Json get staffing =>
-      (draft['staffing'] as Json?) ??
-      {'declaredCount': null, 'includesOwner': false, 'roleTargets': <Json>[]};
-  Json get hours =>
-      (draft['hours'] as Json?) ??
-      {
-        'weekdays': <int>[],
-        'opening': '09:00',
-        'closing': '21:00',
-        'endsNextDay': false,
-      };
   static const industry = {
     'restaurant': '식당',
     'cafe': '카페',
@@ -56,7 +61,6 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     'bakery': '베이커리',
     'other': '기타',
   };
-  static const providers = {'okpos': '오케이포스', 'other': '기타'};
   static const platformNames = {
     'baemin': '배달의민족',
     'coupang-eats': '쿠팡이츠',
@@ -70,14 +74,11 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     'kitchen-print': '주방 출력',
     'closing': '마감',
   };
-  Map<String, String> get roles => {
-    for (final p in storeParts(widget.ops).where((p) => p['hidden'] != true))
-      p['id'] as String: p['name'] as String,
-  };
-
   @override
   void initState() {
     super.initState();
+    section = widget.initialSection;
+    openingWorkspace = widget.ops.workspaceId;
     final store = widget.ops.data?['store'] as Json? ?? {};
     openingRevision = widget.ops.data?['revision'] as int? ?? 0;
     openingActor = widget.ops.actorId;
@@ -89,9 +90,6 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     note = TextEditingController(text: '${store['note'] ?? ''}');
     address = TextEditingController(text: '${profile['address'] ?? ''}');
     arrival = TextEditingController(text: '${profile['arrivalNote'] ?? ''}');
-    staffCount = TextEditingController(
-      text: '${staffing['declaredCount'] ?? ''}',
-    );
     posModel = TextEditingController(
       text:
           '${((pos['devices'] as List? ?? []).firstOrNull as Json?)?['model'] ?? ''}',
@@ -108,6 +106,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
       text:
           '${((pos['devices'] as List? ?? []).firstOrNull as Json?)?['count'] ?? 1}',
     );
+    initialSignature = signature;
   }
 
   @override
@@ -117,7 +116,6 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
       note,
       address,
       arrival,
-      staffCount,
       posModel,
       posName,
       guideUrl,
@@ -138,8 +136,38 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     draft[key] = values;
   });
 
+  Future<void> close() async {
+    if (saving) return;
+    if (signature == initialSignature) {
+      Navigator.pop(context);
+      return;
+    }
+    final discard = await showAppDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('변경한 내용을 버릴까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text('계속 수정'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('변경 버리기'),
+          ),
+        ],
+      ),
+    );
+    if (discard == true && mounted) Navigator.pop(context);
+  }
+
   Future<void> save() async {
-    if (saving || widget.ops.actorId != openingActor) return;
+    if (saving) return;
+    if (widget.ops.actorId != openingActor ||
+        widget.ops.workspaceId != openingWorkspace) {
+      setState(() => error = '매장 또는 권한이 변경됐어요. 다시 열어 주세요.');
+      return;
+    }
     Json values;
     if (section == 'basic') {
       if (name.text.trim().isEmpty || profile['industryId'] == null) {
@@ -150,6 +178,8 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
         'name': name.text.trim(),
         'note': note.text.trim(),
         'industryId': profile['industryId'],
+        if (profile['businessTypeId'] != null)
+          'businessTypeId': profile['businessTypeId'],
         'serviceModes': profile['serviceModes'] ?? <String>[],
         'address': address.text.trim(),
         'arrivalNote': arrival.text.trim(),
@@ -169,32 +199,23 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
       values = {
         ...p,
         'devices': [
-          for (final row in devices)
-            {
-              ...row,
-              'model': posModel.text.trim(),
-              'customName': posName.text.trim(),
-              'guideUrl': guideUrl.text.trim(),
-              'count': count,
-            },
+          for (final (index, row) in devices.indexed)
+            if (index == 0)
+              {
+                ...row,
+                'model': posModel.text.trim(),
+                'customName': posName.text.trim(),
+                'guideUrl': guideUrl.text.trim(),
+                'count': count,
+              }
+            else
+              row,
         ],
       };
     } else if (section == 'delivery') {
       values = delivery;
-    } else if (section == 'staffing') {
-      if (staffCount.text.trim().isNotEmpty &&
-          int.tryParse(staffCount.text.trim()) == null) {
-        setState(() => error = '크루 수는 숫자로 입력해 주세요.');
-        return;
-      }
-      values = {
-        ...staffing,
-        'declaredCount': staffCount.text.trim().isEmpty
-            ? null
-            : int.tryParse(staffCount.text.trim()),
-      };
     } else {
-      values = hours;
+      return;
     }
     setState(() {
       saving = true;
@@ -221,6 +242,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     padding: const EdgeInsets.only(bottom: 14),
     child: TextField(
       controller: controller,
+      onChanged: (_) => update(() {}),
       keyboardType: numeric ? TextInputType.number : TextInputType.text,
       decoration: InputDecoration(
         labelText: label,
@@ -266,18 +288,32 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
       textField('매장명 · 필수', name),
       textField('팀 안내 · 선택', note),
       AppPillField<String>(
-        initialValue: industry.containsKey(profile['industryId'])
-            ? profile['industryId']
-            : null,
+        initialValue: profile['businessTypeId'] ?? profile['industryId'],
         decoration: const InputDecoration(
-          labelText: '업종 · 필수',
+          labelText: '매장 업종',
           border: OutlineInputBorder(),
         ),
         items: [
-          for (final entry in industry.entries)
-            DropdownMenuItem(value: entry.key, child: Text(entry.value)),
+          for (final t in storeBusinessTypes(widget.ops))
+            DropdownMenuItem(
+              value: t['id'] as String,
+              child: Text(t['name'] as String),
+            ),
+          for (final e in industry.entries)
+            if (!storeBusinessTypes(widget.ops).any((t) => t['id'] == e.key))
+              DropdownMenuItem(value: e.key, child: Text(e.value)),
         ],
-        onChanged: (value) => update(() => profile['industryId'] = value),
+        onChanged: (value) => update(() {
+          final type = storeBusinessTypes(
+            widget.ops,
+          ).where((t) => t['id'] == value).firstOrNull;
+          profile['industryId'] = type?['industryId'] ?? value;
+          profile['businessTypeId'] = type?['id'];
+        }),
+      ),
+      const Text(
+        '기존 매뉴얼은 그대로 유지해요. 기본 매뉴얼 구성에서 필요한 항목을 추가할 수 있어요.',
+        style: AppText.caption,
       ),
       const SizedBox(height: 18),
       const Text('운영 형태'),
@@ -300,50 +336,40 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        settingSwitch(
-          'POS 사용 정보를 설정했어요',
-          p['configured'] == true,
-          (value) => update(() {
-            p['configured'] = value;
-            if (!value) p['enabled'] = false;
+        chips(
+          const {
+            'unset': '나중에 설정',
+            'none': '사용 안 함',
+            'okpos': '오케이포스',
+            'other': '기타 POS',
+          },
+          [
+            p['configured'] != true
+                ? 'unset'
+                : p['enabled'] != true
+                ? 'none'
+                : provider ?? 'other',
+          ],
+          (id) => update(() {
+            p['configured'] = id != 'unset';
+            p['enabled'] = id != 'unset' && id != 'none';
+            if (p['enabled'] == true) {
+              p['devices'] = [
+                {
+                  ...?first,
+                  'id': first?['id'] ?? 'pos-main',
+                  'providerId': id,
+                  'count': first?['count'] ?? 1,
+                  'functions': first?['functions'] ?? <String>[],
+                },
+                ...devices.skip(1),
+              ];
+            }
             profile['pos'] = p;
           }),
         ),
         if (p['configured'] == true) ...[
-          settingSwitch(
-            'POS 사용 중',
-            p['enabled'] == true,
-            (value) => update(() {
-              p['enabled'] = value;
-              profile['pos'] = p;
-            }),
-          ),
           if (p['enabled'] == true) ...[
-            AppPillField<String>(
-              initialValue: providers.containsKey(provider) ? provider : null,
-              decoration: const InputDecoration(
-                labelText: 'POS 제품',
-                border: OutlineInputBorder(),
-              ),
-              items: [
-                for (final entry in providers.entries)
-                  DropdownMenuItem(value: entry.key, child: Text(entry.value)),
-              ],
-              onChanged: (id) => update(() {
-                p['devices'] = [
-                  {
-                    'id': first?['id'] ?? 'pos-main',
-                    'providerId': id,
-                    'customName': posName.text.trim(),
-                    'model': posModel.text.trim(),
-                    'count': int.tryParse(deviceCount.text.trim()) ?? 1,
-                    'functions': first?['functions'] ?? <String>[],
-                    'guideUrl': guideUrl.text.trim(),
-                  },
-                ];
-                profile['pos'] = p;
-              }),
-            ),
             const SizedBox(height: 14),
             textField('모델명 · 선택', posModel),
             if (first?['providerId'] == 'other') textField('제품명', posName),
@@ -373,24 +399,22 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        settingSwitch(
-          '배달 사용 정보를 설정했어요',
-          d['configured'] == true,
-          (v) => update(() {
-            d['configured'] = v;
-            if (!v) d['enabled'] = false;
+        chips(
+          const {'unset': '나중에 설정', 'none': '사용 안 함', 'enabled': '사용 중'},
+          [
+            d['configured'] != true
+                ? 'unset'
+                : d['enabled'] == true
+                ? 'enabled'
+                : 'none',
+          ],
+          (id) => update(() {
+            d['configured'] = id != 'unset';
+            d['enabled'] = id == 'enabled';
             profile['delivery'] = d;
           }),
         ),
         if (d['configured'] == true) ...[
-          settingSwitch(
-            '배달앱 사용 중',
-            d['enabled'] == true,
-            (v) => update(() {
-              d['enabled'] = v;
-              profile['delivery'] = d;
-            }),
-          ),
           if (d['enabled'] == true) ...[
             const Text('사용하는 플랫폼'),
             chips(
@@ -426,13 +450,13 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
                   key: ValueKey('delivery-name-${row['id']}'),
                   initialValue: '${row['customName'] ?? ''}',
                   decoration: const InputDecoration(labelText: '플랫폼 이름'),
-                  onChanged: (v) => row['customName'] = v.trim(),
+                  onChanged: (v) => update(() => row['customName'] = v.trim()),
                 ),
               TextFormField(
                 key: ValueKey('delivery-device-${row['id']}'),
                 initialValue: '${row['device'] ?? ''}',
                 decoration: const InputDecoration(labelText: '주문 확인 기기 · 선택'),
-                onChanged: (v) => row['device'] = v.trim(),
+                onChanged: (v) => update(() => row['device'] = v.trim()),
               ),
               AppPillField<String>(
                 initialValue: row['acceptanceMode'] ?? 'unset',
@@ -470,161 +494,55 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     );
   }
 
-  Widget staffingForm() {
-    final s = staffing;
-    final targets = (s['roleTargets'] as List? ?? []).cast<Json>();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        textField('크루 수 · 미입력 가능', staffCount, numeric: true),
-        settingSwitch(
-          '크루 수에 사장 포함',
-          s['includesOwner'] == true,
-          (v) => update(() {
-            s['includesOwner'] = v;
-            profile['staffing'] = s;
-          }),
-        ),
-        const Text('필요한 파트 · 채용 초안에 활용'),
-        chips(
-          roles,
-          targets.map((e) => (e['partId'] ?? e['roleId']) as String).toList(),
-          (id) => update(() {
-            final index = targets.indexWhere(
-              (row) => (row['partId'] ?? row['roleId']) == id,
-            );
-            if (index >= 0) {
-              targets.removeAt(index);
-            } else {
-              targets.add({'roleId': id, 'partId': id, 'count': 1});
-            }
-            s['roleTargets'] = targets;
-            profile['staffing'] = s;
-          }),
-        ),
-        for (final row in targets)
-          Row(
-            children: [
-              Expanded(
-                child: Text(roles[row['partId'] ?? row['roleId']] ?? '전체 파트'),
-              ),
-              IconButton(
-                tooltip: '필요 인원 줄이기',
-                onPressed: row['count'] > 0
-                    ? () => update(() => row['count']--)
-                    : null,
-                icon: const Icon(CupertinoIcons.minus_circle),
-              ),
-              Text('${row['count']}명'),
-              IconButton(
-                tooltip: '필요 인원 늘리기',
-                onPressed: row['count'] < 999
-                    ? () => update(() => row['count']++)
-                    : null,
-                icon: const Icon(CupertinoIcons.plus_circle),
-              ),
-            ],
-          ),
-        const Information('입력한 크루 수는 등록된 크루 명단이나 확정 근무 인원과 별도로 보관돼요.'),
-      ],
-    );
-  }
-
-  Widget hoursForm() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Information('영업시간과 파트별 필요 인원을 한 곳에서 관리해요.'),
-      const SizedBox(height: 16),
-      SettingRow(
-        title: '영업시간·필요 인원',
-        subtitle: '휴무일 → 교대 → 시간·인원',
-        icon: CupertinoIcons.clock,
-        onTap: () => openWorkplaceHours(context, widget.ops),
-      ),
-      SettingRow(
-        title: '파트 관리',
-        subtitle: '이름·순서·숨김',
-        icon: CupertinoIcons.person_2,
-        onTap: () => showAppFormSheet(
-          context: context,
-          builder: (_) => WorkplaceSettings(ops: widget.ops, section: 'parts'),
-        ),
-      ),
-    ],
-  );
-
   @override
-  Widget build(BuildContext context) => AppEditorScaffold(
-    title: '우리매장 설정',
-    footer: section == 'hours'
-        ? null
-        : AppSheetFooter(
+  Widget build(BuildContext context) => PopScope(
+    canPop: !saving && signature == initialSignature,
+    onPopInvokedWithResult: (didPop, result) {
+      if (!didPop) close();
+    },
+    child: AppEditorScaffold(
+      onClose: close,
+      title: switch (section) {
+        'pos' => 'POS',
+        'delivery' => '배달 플랫폼',
+        _ => '매장 정보',
+      },
+      footer: AppSheetFooter(
+        children: [
+          FilledButton(
+            onPressed: widget.ops.isOwner && !widget.ops.readOnly && !saving
+                ? save
+                : null,
+            child: Text(saving ? '저장 중…' : '이 설정 저장'),
+          ),
+        ],
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: appEditorWidth),
+          child: ListView(
+            padding: const EdgeInsets.all(24),
             children: [
-              FilledButton(
-                onPressed: widget.ops.isOwner && !widget.ops.readOnly && !saving
-                    ? save
-                    : null,
-                child: Text(saving ? '저장 중…' : '이 설정 저장'),
+              if (widget.ops.readOnly)
+                const Information('공개 미리보기에서는 설정을 저장하지 않아요.'),
+              KeyedSubtree(
+                key: ValueKey('store-section-$section'),
+                child: switch (section) {
+                  'pos' => posForm(),
+                  'delivery' => deliveryForm(),
+                  _ => basicForm(),
+                },
               ),
+              if (error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Information('$error\n입력 중인 내용은 남아 있어요.'),
+                ),
+              if (widget.ops.data?['revision'] != openingRevision)
+                const Information('다른 변경이 저장됐어요. 이 화면을 다시 열어 최신 설정을 확인해 주세요.'),
+              const SizedBox(height: 16),
             ],
           ),
-    body: Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: appEditorWidth),
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            SettingRow(
-              title: '주문처리 시스템 연결',
-              subtitle: widget.ops.data?['orderBoardEnabled'] == true
-                  ? '보드 사용 중'
-                  : '보드 꺼짐',
-              icon: CupertinoIcons.link,
-              onTap: () => showAppSheet(
-                context,
-                builder: (_) =>
-                    WorkplaceSettings(ops: widget.ops, section: 'order-system'),
-              ),
-            ),
-            if (widget.ops.readOnly)
-              const Information('공개 미리보기에서는 설정을 저장하지 않아요.'),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: AppSegmented<String>(
-                segments: const [
-                  ButtonSegment(value: 'basic', label: Text('기본')),
-                  ButtonSegment(value: 'pos', label: Text('POS')),
-                  ButtonSegment(value: 'delivery', label: Text('배달')),
-                  ButtonSegment(value: 'staffing', label: Text('크루')),
-                  ButtonSegment(value: 'hours', label: Text('운영')),
-                ],
-                selected: {section},
-                onSelectionChanged: (values) => setState(() {
-                  section = values.first;
-                  error = null;
-                }),
-              ),
-            ),
-            const SizedBox(height: 32),
-            KeyedSubtree(
-              key: ValueKey('store-section-$section'),
-              child: switch (section) {
-                'pos' => posForm(),
-                'delivery' => deliveryForm(),
-                'staffing' => staffingForm(),
-                'hours' => hoursForm(),
-                _ => basicForm(),
-              },
-            ),
-            if (error != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Information('$error\n입력 중인 내용은 남아 있어요.'),
-              ),
-            if (widget.ops.data?['revision'] != openingRevision)
-              const Information('다른 변경이 저장됐어요. 이 화면을 다시 열어 최신 설정을 확인해 주세요.'),
-            const SizedBox(height: 16),
-          ],
         ),
       ),
     ),

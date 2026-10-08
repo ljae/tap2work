@@ -1,3 +1,13 @@
+## 신규 매장 단계형 등록 · 2026-10-08
+
+첫 매장과 헤더 추가 매장은 공통 StoreSetupScreen의 13~14단계(질문 1~3개/화면)를 사용한다. 마지막 create_workspace(name, requestId, setup) 한 번으로 독립 매장의 기본 정보·요일/교대/브레이크·파트/필요 인원·POS/배달·업종별 공용 TAP/Task를 원자 생성한다. 새 DB migration은 없다. business_types.mjs가 14개 세부 업종 ID/표시명/호환 대분류/공용 collection을 제공하고 store_setup.mjs는 요청당 주입된 catalog를 선택·검증하며 기존 도메인 mutation을 재사용한다. 클라이언트에 별도 공용 콘텐츠 사본을 하드코딩하지 않는다.
+
+profile.businessTypeId는 매장 세부 업종, industryId는 기존 대분류, manualBusinessProfile은 마지막 매뉴얼 구성 기록이다. 신규 매장의 영업시간 원본은 workplace.days/breaks/businessDayStart, 필요 인원은 headcounts. 크루 숫자/채용 목표의 중복 UI와 프로필 운영/주문 연결 중복 진입을 제거했다. 이전 profile.hours/staffing 저장값과 API는 호환·기록 보존 대상으로 남긴다. 기존 업종 수정은 운영 중 매뉴얼을 자동 교체하지 않는다.
+
+setup.sourceIds는 외식 공통/선택 업종/배달 조건에 맞는 발행본만 허용하고 releaseId를 검증한다. 목적별 폴더 아래 공용 연결 TAP와 내용 전용 Task를 가져오며 법적 참고는 등록 기본 묶음에 넣지 않는다. 돈까스는 기존 튀김 공통 내용을 재사용한다고 표시한다. 업무 사용은 기본 OFF, 사용자가 켠 경우 선택 영업 요일로 반복한다. 새 매장의 필요 인원이 가상 크루/근무를 생성하지 않는다.
+
+생성 요청 재시도는 인증 사용자+requestId로 이미 생성된 workspace를 먼저 찾으며 catalog가 갱신돼도 같은 매장을 반환한다. 생성 전에 검증 거절된 응답만 setupRejected=true이며 초안을 다시 편집할 수 있다. 전송/서버 오류는 원래 payload로 재시도한다. 기존 매장에는 쓰지 않고 account/membership 경계를 유지한다. 등록 중 초안은 메모리이고 앱 종료 복원은 미구현. [설정 점검·세부 흐름](STORE_SETUP_AUDIT_2026-10-08.md).
+
 ## 요청 기반 콘텐츠 누적 개선 · 2026-10-07
 
 사용자는 정기 실행 없이 직접 요청을 선택했다. ContentMemory의 append-only 사건/출처·분쟁·검토/QA/실행 실패·제공자/현장 피드백을 새로운 ContentTeam job의 고정 learning snapshot에 포함한다. ContentCycle은 최신 공용 DB 발행본을 읽어 대상 TAP과 함께 전달하며 요청 ID로 중복 호출을 방지하고 미완료 작업을 이어간다. 기본 manual/enabled:false, 실제 launchd 등록은 해제했다. 조사자는 서비스 키를 상속하지 않으며 생성 결과는 검토 후보이다.

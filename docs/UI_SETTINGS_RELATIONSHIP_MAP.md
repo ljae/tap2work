@@ -37,12 +37,12 @@ flowchart LR
 | --- | --- | --- | --- | --- |
 | S01 | `workplace.parts[]` | `workplace_screens.dart` 파트 관리 → `save_workplace_parts` | 업무 전체 파트/개별 파트 필터, 매뉴얼 폴더와 별개, 근무표 요일×파트 열, 크루 파트 선택 | `developer/test/workplace.test.mjs`, 근무표 테스트 |
 | S02 | `tappers[].workProfile.partIds[]`, `bands[]` | `workplace_screens.dart` 크루 프로필 → `save_staff_profile`; `team_screen.dart` 크루 편집 → `save_tapper` | 파트별 업무 수행 가능 여부, 근무표 배정 선택지, 크루 카드. 직책/권한과 분리 | `workplace.test.mjs`, `operations.test.mjs` |
-| S03 | `workplace.days[weekday][]`, `workplace.breaks[weekday]` | 우리매장 > 영업시간 설정 / 준비 목록 / 프로필 운영 / 근무표 영업시간·인원 → `openWorkplaceHours` → 영업시간 설정(휴무일→2교대 이상→브레이크 타임 토글)/인원 배치 탭·전체/개별 복수 요일·시간 표기가 붙은 영업/브레이크 드래그 막대·교대×파트 카운터 표 → `save_workplace_hours` (7일·브레이크 원자 저장) | `rosterTemplates[]` 생성, 브레이크를 차감하지 않는 근무표 요일·파트별 기본 슬롯·필요 시간 충족률. 전체 영업시간 `store.profile.hours`는 호환 기본값 | `workplace.test.mjs`, `calendar_test.dart` |
+| S03 | `workplace.days[weekday][]`, `workplace.breaks[weekday]` | 우리매장 > 영업시간 설정 / 준비 목록 / 신규 등록 / 근무표 영업시간·인원 → `openWorkplaceHours` → 영업시간 설정(휴무일→2교대 이상→브레이크 타임 토글)/인원 배치 탭·전체/개별 복수 요일·시간 표기가 붙은 영업/브레이크 드래그 막대·교대×파트 카운터 표 → `save_workplace_hours` (7일·브레이크 원자 저장) | `rosterTemplates[]` 생성, 브레이크를 차감하지 않는 근무표 요일·파트별 기본 슬롯·필요 시간 충족률. 전체 영업시간 `store.profile.hours`는 호환 기본값 | `workplace.test.mjs`, `calendar_test.dart` |
 | S04 | `rosterOverrides[]` | 근무표 슬롯 클릭 → `save_roster_slot`, `reset_roster_slot` | 선택 날짜의 이름·시작/끝·숨김만 덮어쓰기; 고정 왼쪽 시간축에 반영 | `workplace.test.mjs`, `calendar_test.dart` |
 | S05 | `staffShifts[]`, `shiftPatterns[]` | 근무표 개별 배정 → `save_staff_shift`; 반복은 S28 | 주간/월간 근무표, 필요 슬롯 충족률, 인건비 계획. 출퇴근 기록과 구별 | `workplace.test.mjs`, `calendar_test.dart` |
 | S06 | `store.profile.orderSystem.enabled` | 우리매장 주문처리 시스템 토글 → `save_order_system` | 서버 `orderBoardEnabled`; ON일 때만 업무 주문처리 보드/주문 카드 표시. 주문 기록 유지 | `workplace.test.mjs`, 업무 화면 테스트 |
 | S07 | `workplace.restrictions[role]` | 우리매장 직책 권한 → `save_workplace_permissions` | 업무 편집은 서버 `canEditTasks`와 UI를 연결; 재고/직원 등의 서버 액션 권한 검사 | `workplace.test.mjs` |
-| S08 | `store.profile` 기본/영업/POS/배달/인력 섹션 | 매장 프로필 → `save_store_profile`; 운영 탭은 S03 공통 설정으로 이동 | 우리매장 카드, 근무표 기본 시간, 주문·배달 정보. POS 연결 상태는 별도 실제 연동 아님 | `workspace_settings.test.mjs` |
+| S08 | `store.profile` 기본/POS/배달; `businessTypeId` 세부 업종 | 우리매장 매장 정보/POS/배달 플랫폼 → 영역별 StoreProfileScreen → `save_store_profile`; 인원/영업시간은 S03 | 매장 카드·주문 도구 정보·기본 매뉴얼 제안. legacy hours/staffing 입력 UI 제거·데이터 호환 보존 | `workspace_settings.test.mjs`, `settings_screens_test.dart`, `settings_sheet_audit_test.dart` |
 | S09 | `payrollSettings` 및 이력 | 급여·정산 설정 → `save_payroll_settings` | 사장님 전용 인건비 계산·지급 주기/시작일/반올림/규모/주휴. 기존 근무/지급 기록을 역수정하지 않음 | `cloud.test.mjs`, `payroll_settings_test.dart` |
 | S10 | `tappers[]`, `attendance[]`, `payAdjustments[]`, `payments[]` | 크루 정보/출퇴근/급여 기록 → `save_tapper`, `clock_in`, `break_start`, `break_end`, `clock_out`, `adjust_attendance`, `add_pay_adjustment`, `record_payment` | 근무표·크루·사장님 인건비 화면. 개인 급여는 역할별 투영으로 보호 | `labor.test.mjs`, `labor_panel_test.dart` |
 | S11 | `checklistFolders[]`, `taskTemplates[]` | 매뉴얼 항목 길게 누르기 → 폴더 추가 / 항목 ⋯ → 추가·이름·상세·이동·삭제 | 정의 편집은 매뉴얼에 집중. 업무의 내용 편집 진입 제거 | `manual_authoring_test.dart`, `task_inline_edit_test.dart` |
@@ -375,7 +375,7 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 | ID | 원본 → 조작 → 액션 | 소비·보호 경계 | 검증 |
 | --- | --- | --- | --- |
 | S53 | 본인 membership 목록 → 내 계정 왼쪽 WorkspaceMenu → selectWorkspace / GET workspace / POST workspaceId | 업무·매뉴얼·근무표·우리매장 전부 선택 매장 기준. 직책 재검증·이전 응답 무시·계정별 마지막 선택·매장 캐시 분리 | workspace_test.dart, multiple_workspaces.test.mjs, multiple_workspaces.sql |
-| S54 | WorkspaceMenu 신규 추가 → 매장 이름 시트 → create_workspace(name, requestId, blank) → tap2work_create_workspace | 새 매장 owner 소속·빈 독립 데이터·중복 요청 재사용·성공 후 전환. 기존 매장 변경 없음 | workspace_test.dart, multiple_workspaces.test.mjs, multiple_workspaces.sql |
+| S54 | 첫 매장/WorkspaceMenu 추가 → StoreSetupScreen → create_workspace(name, requestId, setup) → applyStoreSetup/tap2work_create_workspace | 독립 매장 설정·공용 TAP/Task 원자 생성, owner 소속·같은 요청 재사용·기존 매장 보존 | store_setup_test.dart, workspace_test.dart, store_setup.test.mjs, multiple_workspaces.test.mjs |
 
 S52 삭제 범위는 모든 소속 매장의 목록으로 확장한다. 유일 사장님 매장 삭제와 공유 매장 유지/개인정보 정리를 구분하고, 전체 scope가 변경되면 재확인한다. 현재 선택 매장만 삭제하는 기능이 아니다.
 
@@ -395,3 +395,15 @@ S52 삭제 범위는 모든 소속 매장의 목록으로 확장한다. 유일 �
 2026-10-07 S45: 매뉴얼 권한 → 왼쪽부터 시작하는 고정 가로 스크롤 행의 매뉴얼 마켓 → openMarket → 기존 마켓 탐색/가져오기. 좁은 화면 최초 노출만 변경하며 나머지 도구/편집 완료는 가로 스크롤로 접근한다. 검증: manual_phone_fix_test, manual_workspace_test, check:ui-links.
 
 2026-10-07 로딩/재시도: AppStartup.initialize → 앱 준비 안내/진행 → start 및 최신 attempt 확인 → CloudWorkspace. OperationsController.data/error → 저장된 매장 안내/skeleton 또는 오류의 다시 시도 → refresh → 실제 매장 snapshot. 데이터 없는 오류는 중복 banner 제거, 기존 snapshot은 갱신 실패 시 보존. 검증: startup_and_sheet_test, cloud_sync_test, operations_repository_test, check:ui-links.
+
+## 단계형 매장 등록·중복 설정 정리 · 2026-10-08
+
+| ID | source → control → action | consumer · 보호 경계 | 검증 |
+| --- | --- | --- | --- |
+| S55 | storeSetupCatalog(businessTypes/purposes/entries/releaseId) → 13~14단계(질문1~3개) → create_workspace.setup / applyStoreSetup | profile.businessTypeId/address/arrivalNote/POS/delivery, workplace.days/breaks/parts/headcounts, 목적 폴더·공용 TAP/Task·선택 영업일 반복. 기존 매장과 실행 기록 보존 | store_setup_test.dart, store_setup.test.mjs, multiple_workspaces.test.mjs |
+| S56 | CloudWorkspace.needsWorkspace / WorkspaceMenu.add → openStoreSetup → 공통 StoreSetupScreen | 첫 매장/추가 매장 동일 UI·계정 소속. requestId로 조회 후 재사용, 생성 전 명시적 setupRejected만 초안 수정, 전송실패는 같은 payload 재시도 | workspace_test.dart, store_setup_test.dart, multiple_workspaces.test.mjs |
+| S47 | profile.businessTypeId + storeSetupCatalog + manualCatalog → 기본 매뉴얼 구성의 해당 업종 미설치 추천 → configure_manual_business | 기존 공용 연결 중복 추가 없음. 기존 양식 교체는 기존 명시적 replaceExisting 선택에만 따름. 매장 업종 변경만으로 기록/레시피 삭제 없음 | manual_market_discovery_test.dart, manual_market.test.mjs |
+
+S08 POS/배달은 설정완료/사용중 이중 스위치를 단일 상태 선택으로 통합한다. 별도 크루 숫자/채용 목표 입력 탭과 프로필 운영 탭·주문처리 링크를 제거한다. 인원은 S03, 주문 보드는 S06, 실제 크루는 S10이며 같은 값의 복제 폼을 새로 두지 않는다. 매장 프로필 저장은 opening revision/actor/workspace를 유지하고 텍스트·선택 초안 취소 확인을 제공한다. [영역별 점검](STORE_SETUP_AUDIT_2026-10-08.md).
+
+S08/S03 설정 요약: store.profile·workplace.days/parts·taskTemplates → 우리매장 카드의 업종/POS제품/배달플랫폼/영업일·시간·교대/사용 파트/TAP 수 → 같은 영역 편집 → 저장 응답을 받아 즉시 재표시. 읽기 요약에 별도 캐시/복제 저장값을 만들지 않는다. 검증: menu_layout_test, operations_test, workspace_test, ui_ux_audit_test.

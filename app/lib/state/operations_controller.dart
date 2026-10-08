@@ -51,6 +51,7 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   Json? data;
   String actorId = 'owner';
   String? error;
+  Json? actionFailure;
   bool busy = false;
   bool _refreshing = false;
   bool _disposed = false;
@@ -207,6 +208,7 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<bool> act(String action, Json values) async {
+    actionFailure = null;
     if (readOnly) {
       error = '공개 미리보기에서는 저장하지 않아요. 화면과 발주 구성을 살펴보세요.';
       _emit();
@@ -249,6 +251,7 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
         _token = body['demoToken'] as String?;
         success = true;
       } else {
+        actionFailure = body;
         failure = body['error'] as String? ?? '저장하지 못했어요.';
         conflict = response.statusCode == 409 || response.statusCode == 403;
       }

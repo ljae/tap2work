@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'store_setup_screen.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -22,10 +22,7 @@ class WorkspaceMenu extends StatelessWidget {
       popUpAnimationStyle: AppMotion.dialogStyle(context),
       onSelected: (id) {
         if (id == 'add') {
-          showAppFormSheet<void>(
-            context: context,
-            builder: (_) => _CreateWorkspace(ops: ops),
-          );
+          openStoreSetup(context, ops);
         } else {
           ops.selectWorkspace(id);
         }
@@ -81,99 +78,4 @@ class WorkspaceMenu extends StatelessWidget {
       ),
     );
   }
-}
-
-class _CreateWorkspace extends StatefulWidget {
-  const _CreateWorkspace({required this.ops});
-  final OperationsController ops;
-  @override
-  State<_CreateWorkspace> createState() => _CreateWorkspaceState();
-}
-
-class _CreateWorkspaceState extends State<_CreateWorkspace> {
-  final name = TextEditingController();
-  // Keep the same identity on retry after a lost response: one store per intent.
-  late final requestId = _requestId();
-  bool saving = false;
-  String? error;
-  static String _requestId() {
-    final random = Random.secure();
-    final bytes = List.generate(16, (_) => random.nextInt(256));
-    bytes[6] = (bytes[6] & 15) | 64;
-    bytes[8] = (bytes[8] & 63) | 128;
-    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
-    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
-  }
-
-  @override
-  void dispose() {
-    name.dispose();
-    super.dispose();
-  }
-
-  Future<void> create() async {
-    if (saving) return;
-    if (name.text.trim().isEmpty) {
-      setState(() => error = '매장 이름을 입력해 주세요.');
-      return;
-    }
-    setState(() {
-      saving = true;
-      error = null;
-    });
-    final ok = await widget.ops.act('create_workspace', {
-      'mode': 'blank',
-      'name': name.text.trim(),
-      'requestId': requestId,
-      'revision': 0,
-    });
-    if (!mounted) return;
-    if (ok) {
-      Navigator.pop(context);
-      return;
-    }
-    setState(() {
-      saving = false;
-      error = widget.ops.error ?? '매장을 추가하지 못했어요.';
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: !saving,
-    child: AppSheetPanel(
-      title: const Text('새 매장 추가'),
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text('새 매장의 사장님으로 시작해요. 업무·매뉴얼·근무표와 크루는 매장별로 관리해요.'),
-          const SizedBox(height: 24),
-          TextField(
-            key: const ValueKey('new-workspace-name'),
-            controller: name,
-            enabled: !saving,
-            maxLength: 80,
-            autofocus: true,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => create(),
-            decoration: const InputDecoration(
-              labelText: '매장 이름',
-              hintText: '예: 강남점',
-            ),
-          ),
-          if (error != null) Information(error!),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: saving ? null : () => Navigator.pop(context),
-          child: const Text('취소'),
-        ),
-        FilledButton(
-          onPressed: saving ? null : create,
-          child: Text(saving ? '추가 중…' : '매장 추가'),
-        ),
-      ],
-    ),
-  );
 }

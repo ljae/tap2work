@@ -1,3 +1,4 @@
+import 'store_setup_screen.dart';
 import 'water_search.dart';
 import 'manual_market_screen.dart';
 import 'workspace_menu.dart';
@@ -678,6 +679,26 @@ class _OperationsScreenState extends State<OperationsScreen> {
     final profile = ops.data?['store']?['profile'] as Json? ?? {};
     final pos = profile['pos'] as Json? ?? {};
     final delivery = profile['delivery'] as Json? ?? {};
+    final configuredDays = ops.data?['workplace']?['days'] as Json? ?? {};
+    final openDays = [
+      for (var d = 1; d <= 7; d++)
+        if ((configuredDays['$d'] as List? ?? []).isNotEmpty) d,
+    ];
+    final hours = <String>{};
+    for (final d in openDays) {
+      final bands = (configuredDays['$d'] as List)
+          .cast<Json>()
+          .where((b) => b['custom'] != true)
+          .toList();
+      if (bands.isNotEmpty) {
+        hours.add(
+          '${bands.first['start']}–${'${bands.last['end']}'.compareTo('${bands.first['start']}') < 0 ? '다음 날 ' : ''}${bands.last['end']} · ${bands.length}교대',
+        );
+      }
+    }
+    final hoursLabel = openDays.isEmpty
+        ? '영업일·시간을 설정해 주세요'
+        : '${openDays.length == 7 ? '매일' : openDays.map((d) => ['월', '화', '수', '목', '금', '토', '일'][d - 1]).join('·')} · ${hours.length == 1 ? hours.single : '요일별 시간'}';
     return [
       if (ops.isOwner) ...[
         actionCard(
@@ -713,21 +734,72 @@ class _OperationsScreenState extends State<OperationsScreen> {
       title('매장 관리'),
       actionCard(
         CupertinoIcons.gear,
-        '매장 설정',
-        '${ops.data?['store']?['name'] ?? '새 매장'} · ${profile['industryId'] ?? '업종 미설정'}',
-        () =>
-            showAppSheet(context, builder: (_) => StoreProfileScreen(ops: ops)),
+        '매장 정보',
+        '${ops.data?['store']?['name'] ?? '새 매장'} · ${storeBusinessName(ops)}',
+        () => showAppFormSheet(
+          context: context,
+          builder: (_) => StoreProfileScreen(ops: ops),
+        ),
       ),
+      actionCard(
+        CupertinoIcons.creditcard,
+        'POS',
+        pos['configured'] != true
+            ? '나중에 설정'
+            : pos['enabled'] == true
+            ? (pos['devices'] as List? ?? [])
+                  .map(
+                    (d) => d['providerId'] == 'okpos'
+                        ? '오케이포스'
+                        : (d['customName'] as String? ?? '').isNotEmpty
+                        ? d['customName']
+                        : '기타 POS',
+                  )
+                  .join(' · ')
+            : '사용 안 함',
+        () => showAppFormSheet(
+          context: context,
+          builder: (_) => StoreProfileScreen(ops: ops, initialSection: 'pos'),
+        ),
+      ),
+      actionCard(
+        CupertinoIcons.bag,
+        '배달 플랫폼',
+        delivery['configured'] != true
+            ? '나중에 설정'
+            : delivery['enabled'] == true
+            ? (delivery['platforms'] as List? ?? [])
+                  .map((p) => setupPlatforms[p['providerId']] ?? '기타')
+                  .join(' · ')
+            : '사용 안 함',
+        () => showAppFormSheet(
+          context: context,
+          builder: (_) =>
+              StoreProfileScreen(ops: ops, initialSection: 'delivery'),
+        ),
+      ),
+      if (ops.canEditTasks)
+        actionCard(
+          CupertinoIcons.book,
+          '기본 매뉴얼 구성',
+          '${storeBusinessName(ops)} · ${ops.rows('taskTemplates').where((t) => t['archivedAt'] == null).length} TAP',
+          () => showAppFormSheet(
+            context: context,
+            builder: (_) => ManualMarketScreen(ops: ops, setup: true),
+          ),
+        ),
       actionCard(
         CupertinoIcons.clock,
         '영업시간 설정',
-        '휴무일 · 교대 시간 · 파트별 필요 인원',
+        hoursLabel,
         () => openWorkplace('hours'),
       ),
       actionCard(
         CupertinoIcons.person_2_square_stack,
         '파트 관리',
-        '크루 · 할 일 파트',
+        storeParts(
+          ops,
+        ).where((p) => p['hidden'] != true).map((p) => p['name']).join(' · '),
         () => openWorkplace('parts'),
       ),
       if (ops.isOwner) ...[

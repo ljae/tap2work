@@ -1,3 +1,4 @@
+import { businessTypes } from './business_types.mjs';
 import { validatePart, partForLegacy } from './parts.mjs';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
@@ -40,6 +41,11 @@ export function saveStoreProfile(state, section, values) {
       const name = short(values.name, '매장명', 80, true);
       const industryId = choice(values.industryId, ['restaurant', 'cafe', 'bar', 'bakery', 'other'], '업종');
       profile.industryId = industryId;
+      if (values.businessTypeId != null) {
+        const type = businessTypes.find(t=>t.id===values.businessTypeId && t.industryId===industryId);
+        if (!type) fail('매장 업종을 선택해 주세요.');
+        profile.businessTypeId = type.id;
+      } else if (businessTypes.find(t=>t.id===profile.businessTypeId)?.industryId !== industryId) delete profile.businessTypeId;
       profile.serviceModes = rows(values.serviceModes ?? [], '운영 형태', 3).map(mode => choice(mode, ['hall', 'takeout', 'delivery'], '운영 형태'));
       unique(profile.serviceModes, '운영 형태');
       profile.address = short(values.address, '주소', 200);

@@ -47,6 +47,21 @@ Future<OperationsController> mountSettings(
 }
 
 void main() {
+  testWidgets('store text draft requires discard confirmation on back', (
+    tester,
+  ) async {
+    await mountSettings(tester, (ops) => StoreProfileScreen(ops: ops));
+    final field = find.byType(TextField).first;
+    await tester.enterText(field, '수정 중인 매장');
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('변경한 내용을 버릴까요?'), findsOneWidget);
+    await tester.tap(find.text('계속 수정'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(field).controller!.text, '수정 중인 매장');
+  });
+
   testWidgets('stale TAP link never opens an unrelated template', (
     tester,
   ) async {

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 240,
+  "revision": 241,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1073,6 +1073,19 @@
       "reason": "사용자 지속 개선 요청 및 주기 답변: 정기 실행 없이 직접 요청.",
       "source": "사용자 요청/답변 · 2026-10-07",
       "updatedAt": "2026-10-07T12:59:18.686932+00:00"
+    },
+    {
+      "id": "D-102",
+      "category": "가입·설정·매뉴얼",
+      "title": "단계형 새 매장 등록과 업종별 기본 매뉴얼",
+      "status": "confirmed",
+      "decision": "새 매장을 등록할 때 한 화면당 1~3개 항목을 답하거나 선택하고 다음 화면으로 진행한다. 등록 후 기존 설정과 항목·UI·저장 효과를 통일한다. 중복 설정을 정리하고 치킨·한식·돈까스 등 주요 업종에 맞는 기본 TAP/Task를 구성한다.",
+      "previous": "D-095 신규 추가는 이름만 입력, 최초 매장은 빈/샘플 즉시 생성. 매장 프로필/운영/인원/매뉴얼 업종 설정이 분리돼 있었음.",
+      "next": "첫/추가 공통 단계형 초안과 최종 원자 등록. 영업시간·필요 인원은 기존 workplace 원본, 세부 업종은 profile.businessTypeId, 매뉴얼은 공용 발행본에서 선택. 기존 업종 변경만으로 매뉴얼을 삭제/교체하지 않음.",
+      "reason": "사용자가 토스 방식의 순차 질문 UI와 전체 설정 중복 정리, 업종별 기본 매뉴얼 구성을 요청했다. 복수 매장 경계와 기존 실행/매뉴얼 기록은 유지한다.",
+      "source": "사용자 요청 · 2026-10-08",
+      "updatedAt": "2026-10-08T09:35:13.323597+00:00",
+      "implementation": "13~14단계/14업종. 돈까스는 기존 튀김 공통 TAP 재사용을 표시. POS/배달 상태 선택 단순화, 프로필 인력·운영 중복 UI 제거, 우리매장 실제 저장값 요약. 선택 업무 기본 OFF, 켜면 영업 요일 반복. 앱 종료 초안 복원·네이티브 검증·배포는 이번 범위에서 미실시."
     }
   ],
   "milestones": [
@@ -1261,6 +1274,12 @@
       "title": "요청 기반 콘텐츠 누적 개선 도구",
       "status": "complete",
       "description": "출처/수정/실패·평가 기억, 고정다음입력, 출처기술점검과 수동요청/재시작을 구현·검증. 첫 실제연구에서 보완대상초안을 차단. 실제현장효과평가는 후속."
+    },
+    {
+      "id": "M-032",
+      "title": "단계형 매장 등록·설정 통합·업종별 매뉴얼",
+      "status": "done",
+      "description": "로컬 구현과 분석·서버/위젯/Edge/웹 빌드 검증 완료. 실제 앱/API 배포 및 네이티브 실기기 검증은 별도이며 이번 작업에서는 수행하지 않았다."
     }
   ],
   "history": [
@@ -7438,7 +7457,51 @@
         "iOS 최소지원13의2027년4월이후15요구경고90068·기본launch image경고. 빌드/업로드성공.",
         "콘텐츠신규발행·정기실행·운영데이터변경없음."
       ]
+    },
+    {
+      "at": "2026-10-08T09:35:13.323597+00:00",
+      "type": "implementation",
+      "title": "새 매장 단계형 등록·설정 중복 정리·업종별 기본 TAP/Task",
+      "detail": "등록 초안을 마지막 create_workspace.setup 단일 요청에서 검증/원자 생성한다. 기존 RPC와 settings/manual 도메인을 재사용한다. 이름·14업종·운영 형태·주소·영업일/시간·교대/브레이크·파트/필요 인원·POS/배달·매뉴얼 확인 단계. 이전/다음·취소·오류 입력 보존·카탈로그 변경 재확인·같은 요청 재시도 지원. 기존 프로필 크루 수/채용 목표 및 운영/주문 연결 중복 UI 제거, 실제 인원 배치로 통합하고 저장된 legacy 데이터는 보존. 설정 목록에 실제 업종/제품/플랫폼/영업시간/교대/파트/TAP 수 표시. 기존 매장·공용 콘텐츠 DB·개인화/실행 기록 변경 없음.",
+      "files": [
+        "app/lib/ui/store_setup_screen.dart",
+        "app/lib/ui/workspace_menu.dart",
+        "app/lib/ui/cloud_workspace.dart",
+        "app/lib/ui/store_profile_screen.dart",
+        "app/lib/ui/operations_screen.dart",
+        "app/lib/ui/manual_market_screen.dart",
+        "app/lib/state/operations_controller.dart",
+        "developer/store_setup.mjs",
+        "developer/business_types.mjs",
+        "developer/supabase_backend.mjs",
+        "developer/store_profile.mjs",
+        "developer/operations.mjs",
+        "scripts/check-ui-links.mjs",
+        "docs/STORE_SETUP_AUDIT_2026-10-08.md",
+        "docs/ARCHITECTURE.md",
+        "docs/UI_SETTINGS_RELATIONSHIP_MAP.md",
+        "docs/UI_UX_GUIDELINES.md",
+        "docs/TOSS_UI_PROMPT_TEMPLATE.md",
+        "docs/AI_HANDOFF.md",
+        "PRODUCT.md"
+      ],
+      "verification": [
+        "flutter analyze: No issues found.",
+        "전체 Flutter 372 tests 통과 후 카탈로그 거절/초안 취소 보강을 포함한 대상 위젯·캡처24 tests 및 설정 요약 관련34 tests 통과. 320/390/1200px·1.5배 글자·키보드·입력/뒤로/재시도·첫/추가 매장 확인.",
+        "npm run test:console: 최종269/269 통과. 첫/추가 매장 HTTP mock, 원자 검증 실패, requestId 재시도, 다른 매장 보존, 신규 업종·야간 시간·브레이크·교대/인원·공용발행본/잘못된업종거절 검증.",
+        "npm run check, npm run check:ui-links: 49 links 및 기존 manual route 통과.",
+        "npm run test:edge: Deno에서 Node 전역 없이 인증 DB-catalog mock 경로 통과.",
+        "npm run build:app: Flutter release web build/web 성공. 네이티브 빌드가 아님. 최종 UI 빌드 후 의미 변경 없는 if 중괄호 lint 수정 및 analyze 재확인.",
+        "app/tool/store_setup_review.dart: 3화면폭×이름/업종/시간/매뉴얼/요약 15 PNG 생성, 업종·매뉴얼·320px요약 직접 시각 확인. .local/store-setup-review/에 보관.",
+        "초기검사 실패 해결: 새 경로에 맞춰 S54 연결검사 변경, 단계 수 변경에 맞춘 기존 위젯 테스트 갱신, 오류 문구 초기화 버그 수정, 작은화면 매뉴얼 테스트에서 실제 스크롤 반영, lint 수정. 현재 남은 실패 없음.",
+        "git diff --check 통과."
+      ],
+      "limitations": [
+        "외부 앱/API 배포, 네이티브 빌드·실기기, 실제 Supabase RPC 통합 검증은 미실시. 앱과 operations API의 함께 배포가 필요하다.",
+        "등록 초안은 열린 화면 메모리에서 유지하며 앱 종료 복원은 미구현. 돈까스 전용 레시피 신규 발행 대신 기존 튀김 공통 내용을 사용한다.",
+        "등록에서 요일별 다른 교대/인원·실제 크루·메뉴/재고·배치도·정산/권한 세부값은 기존 설정 화면에서 이어서 수정한다. 24시간 동일 시작/종료는 간단 등록에서 지원하지 않는다."
+      ]
     }
   ],
-  "updatedAt": "2026-10-07T13:07:39.056963+00:00"
+  "updatedAt": "2026-10-08T09:35:13.323597+00:00"
 }

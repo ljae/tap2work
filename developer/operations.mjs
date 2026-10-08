@@ -1,3 +1,4 @@
+import { storeSetupCatalog } from './store_setup.mjs';
 import {manualPrintView,saveManualPrintTranslation} from './manual_print.mjs';
 import {manualCatalog,syncManualCatalog,manualMarketReplay,reconcileCatalogLinks,catalogView,checklistBackup,mutateManualMarket} from './manual_market.mjs';
 import { ensureDefaultAssignments, scheduleRange } from './default_assignments.mjs';
@@ -393,7 +394,7 @@ export class OperationsStore {
       for (const order of result.orders) { delete order.total; for (const line of order.lines) delete line.price; }
     }
     result.checklistLibrary = checklistLibrary;
-    if (result.canEditTasks) {result.manualCatalog=catalogView(state,this.catalog);result.catalogLinks=structuredClone(state.catalogLinks??{});result.checklistBackup=checklistBackup(state);}
+    if (result.canEditTasks) {result.storeSetupCatalog=storeSetupCatalog(this.catalog);result.manualCatalog=catalogView(state,this.catalog);result.catalogLinks=structuredClone(state.catalogLinks??{});result.checklistBackup=checklistBackup(state);}
     result.manualSearch = manualSearchIndex(state);
     result.manualPrintTemplates = manualPrintView(state);
     if (['owner', 'manager'].includes(actor.role)) result.recommendedTaps = recommendedTaps(state);
