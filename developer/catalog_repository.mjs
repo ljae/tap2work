@@ -1,3 +1,4 @@
+import legacyCatalog from '../docs/market/releases/473ae81f07c0e1289ff6e7ed1dc97f133586b93ec71559e5833032f1129ac9c1.json' with {type:'json'};
 import {createHash} from 'node:crypto';
 import {manualCatalog} from './manual_market.mjs';
 import {validateCatalog} from './manual_catalog_schema.mjs';
@@ -27,7 +28,7 @@ export function validateRelease(value,{assignId=false}={}){
   const release={schemaVersion:2,taxonomy:structuredClone(value.taxonomy),entries};
   const hash=releaseHash(release);
   // Legacy IDs survive the first seed; arbitrary content cannot borrow that ID.
-  const exactLegacy=value.releaseId===manualCatalog.releaseId && canonicalJson({taxonomy:release.taxonomy,entries:release.entries})===canonicalJson({taxonomy:manualCatalog.taxonomy,entries:manualCatalog.entries});
+  const exactLegacy=[manualCatalog,legacyCatalog].some(known=>value.releaseId===known.releaseId && canonicalJson({taxonomy:release.taxonomy,entries:release.entries})===canonicalJson({taxonomy:known.taxonomy,entries:known.entries}));
   if(!assignId && value.releaseId!==hash && !exactLegacy)throw new StoreError('콘텐츠 발행본 해시가 맞지 않아요.',400);
   release.releaseId=assignId?hash:value.releaseId;
   return release;

@@ -15,10 +15,10 @@ function donkatsuSteps(steps) {
   }));
 }
 export function storeSetupCatalog(catalog = manualCatalog) {
-  const collections = new Set(['common', 'delivery', ...businessTypes.map(t => t.collectionId)]);
+  const collections = new Set(['common', 'food', 'process', 'delivery', ...businessTypes.map(t => t.collectionId)]);
   return { manualVariants:{donkatsu:catalog.entries.filter(e=>e.kind!=='legal'&&collections.has(e.collectionId)).map(e=>({...e,steps:e.collectionId==='chicken'?donkatsuSteps(e.steps):e.steps}))}, releaseId: catalog.releaseId, businessTypes, bundles:storeBundles, bundleVersion, purposes: catalog.taxonomy.purposes,
-    entries: catalog.entries.filter(e => e.kind !== 'legal' && collections.has(e.collectionId))
-      .map(e => ({sourceId:e.sourceId, collectionId:e.collectionId, title:e.title, purposeId:e.purposeId, steps:e.steps.map(s=>({title:s.title,manual:s.manual}))})) };
+    entries: catalog.entries.filter(e => e.kind !== 'legal' && !e.knowledge?.supersededBy?.length && collections.has(e.collectionId))
+      .map(e => ({sourceId:e.sourceId, collectionId:e.collectionId, title:e.title, knowledge:e.knowledge, purposeId:e.purposeId, steps:e.steps.map(s=>({title:s.title,manual:s.manual}))})) };
 }
 
 export function applyStoreSetup(state, input, actor, now, catalog = manualCatalog) {
@@ -60,7 +60,7 @@ export function applyStoreSetup(state, input, actor, now, catalog = manualCatalo
   saveStoreProfile(state,'delivery',{configured:!setup.serviceModes.includes('delivery')||platforms.length>0,enabled:platforms.length>0,platforms:platforms.map(id=>({id:`delivery-${id}`,providerId:id}))});
   }
   const available=storeSetupCatalog(catalog);
-  const allowed=new Set(available.entries.filter(e=>['common',type.collectionId,...(setup.serviceModes.includes('delivery')?['delivery']:[])].includes(e.collectionId)).map(e=>e.sourceId));
+  const allowed=new Set(available.entries.filter(e=>['common','food','process',type.collectionId,...(setup.serviceModes.includes('delivery')?['delivery']:[])].includes(e.collectionId)).map(e=>e.sourceId));
   if (setup.releaseId!==catalog.releaseId) throw new StoreError('기본 매뉴얼이 업데이트됐어요. 목록을 새로 확인해 주세요.',409);
   if (!Array.isArray(setup.sourceIds) || setup.sourceIds.some(id=>!allowed.has(id)) || new Set(setup.sourceIds).size!==setup.sourceIds.length || typeof setup.enableOperations!=='boolean') throw new StoreError('기본 매뉴얼 선택을 확인해 주세요.');
   if (setup.sourceIds.length) {

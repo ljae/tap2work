@@ -84,6 +84,7 @@ export function validateChecklists(input, state) {
     unique(steps);
     const sourceIds = Array.isArray(row.sourceIds) ? [...new Set(row.sourceIds.filter(id => checklistLibrary.sources.some(source => source.id === id)))] : [];
     return { assignmentScopeVersion:scope, id: text(row.id, 100, '업무 ID'), partId: validatePart(state, Object.hasOwn(row, 'partId') ? row.partId : previous?.partId ?? partForLegacy(state, row.requiredRole), {allowAll:true, allowHidden:true}), title: text(previous?.menuManualId ? previous.title : row.title, 100, '업무 이름'), emoji: emoji(row.emoji), folderId: row.folderId, slot: row.slot, requiredRole: row.requiredRole, zone: row.zone ?? null, steps, sourceIds,
+      ...(previous?.knowledge ? {knowledge:structuredClone(previous.knowledge)} : {}),
       ...(previous?.settings ? { settings: structuredClone(previous.settings), settingsVersion: previous.settingsVersion ?? 1 } : {}),
       ...((row.manualTitle ?? previous?.manualTitle) ? {manualTitle: text(row.manualTitle ?? previous.manualTitle, 100, '매뉴얼 표시 이름')} : {}),
       ...(previous?.menuManualId ? { menuManualId: previous.menuManualId } : {}),
@@ -106,7 +107,7 @@ export function saveChecklists(input, state, now) {
   for (const task of state.tasks.filter(row => row.kind === 'routine' && !row.orderId && !row.archivedAt)) {
     const next = templates.find(row => row.id === task.templateId);
     const started = task.completedAt || task.boardStatus === 'processing' || task.steps?.some(step => step.completedAt);
-    if (!started && (!next || next.version !== task.version)) task.archivedAt = new Date(now).toISOString();
+    if (!task.workEvent && !started && (!next || next.version !== task.version)) task.archivedAt = new Date(now).toISOString();
   }
   state.checklistFolders = folders;
   state.taskTemplates = templates;

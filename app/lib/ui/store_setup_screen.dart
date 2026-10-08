@@ -97,11 +97,21 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
               [])
           .cast<Json>()
           .where(
-            (e) => [
-              'common',
-              type?['collectionId'],
-              if (modes.contains('delivery')) 'delivery',
-            ].contains(e['collectionId']),
+            (e) =>
+                [
+                  'common',
+                  'food',
+                  'process',
+                  type?['collectionId'],
+                  if (modes.contains('delivery')) 'delivery',
+                ].contains(e['collectionId']) &&
+                (e['knowledge']?['supersededBy'] as List? ?? []).isEmpty &&
+                (e['collectionId'] != 'process' ||
+                    (e['knowledge']?['menuNames'] as List? ?? []).any(
+                      (name) => menuSuggestions.any(
+                        (m) => menuIds.contains(m['id']) && m['name'] == name,
+                      ),
+                    )),
           )
           .toList();
   static String _uuid() {
@@ -209,7 +219,9 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
         'menuIds': menuIds.toList(),
         'headcounts': {for (final p in parts) p: headcounts[p]},
         'releaseId': catalog['releaseId'],
-        'sourceIds': selected.toList(),
+        'sourceIds': selected
+            .where((id) => recommended.any((e) => e['sourceId'] == id))
+            .toList(),
         'enableOperations': enableOperations,
       },
     };
@@ -554,8 +566,10 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
             ],
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
-            title: const Text('영업일마다 업무에도 사용'),
-            subtitle: const Text('끄면 매뉴얼만 준비해요. 사용할 TAP은 나중에 켤 수 있어요.'),
+            title: const Text('기본 점검을 업무에도 사용'),
+            subtitle: const Text(
+              '정기 점검만 영업일에 연결해요. 레시피·보관 작업은 기준을 확인한 뒤 업무 연결에서 설정하세요.',
+            ),
             value: enableOperations,
             onChanged: (v) => change(() => enableOperations = v),
           ),

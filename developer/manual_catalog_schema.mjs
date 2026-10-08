@@ -1,3 +1,4 @@
+import {knowledgeFields} from './knowledge_work.mjs';
 import taxonomy from '../docs/market/taxonomy.json' with {type:'json'};
 import {createHash} from 'node:crypto';
 import {mediaLink,manualTags} from './checklists.mjs';
@@ -28,6 +29,6 @@ export function validateCatalog(entries,catalogTaxonomy=taxonomy){
   const references=t.references.map(r=>({title:text(r.title,120,'source title'),url:mediaLink(r.url),checkedAt:text(r.checkedAt,30,'source date'),scope:text(r.scope,500,'source scope')}));
   if(references.some(r=>!r.url))fail('Source URL required');
   if(t.kind==='legal'&&(!references.length||references.some(r=>!new URL(r.url).hostname.endsWith('.go.kr'))))fail('Legal criteria require Korean official sources');
-  return {industryIds:[...new Set(t.industryIds)],purposeId:t.purposeId,kind:t.kind,summary:text(t.summary,200,'summary'),applicability:text(t.applicability,500,'applicability'),jurisdiction:text(t.jurisdiction,100,'jurisdiction'),keywords:manualTags(t.keywords),references,sourceId,collectionId:id(t.collectionId),collectionName:text(t.collectionName,80,'collection'),title:text(t.title,100,'TAP title'),emoji:optional(t.emoji,20)||'📝',slot:['오픈','준비','피크','브레이크','마감'].includes(t.slot)?t.slot:'준비',reviewedAt:text(t.reviewedAt,30,'review date'),basis:optional(t.basis,500),steps};
+  return {...(t.knowledge?{knowledge:knowledgeFields(t.knowledge)}:{}),industryIds:[...new Set(t.industryIds)],purposeId:t.purposeId,kind:t.kind,summary:text(t.summary,200,'summary'),applicability:text(t.applicability,500,'applicability'),jurisdiction:text(t.jurisdiction,100,'jurisdiction'),keywords:manualTags(t.keywords),references,sourceId,collectionId:id(t.collectionId),collectionName:text(t.collectionName,80,'collection'),title:text(t.title,100,'TAP title'),emoji:optional(t.emoji,20)||'📝',slot:['오픈','준비','피크','브레이크','마감'].includes(t.slot)?t.slot:'준비',reviewedAt:text(t.reviewedAt,30,'review date'),basis:optional(t.basis,500),steps};
  });
 }

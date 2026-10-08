@@ -25,7 +25,7 @@ try {
   const initial = await store.snapshot('owner');
   await store.mutate('owner', {action:'configure_manual_business', revision:initial.revision,
     operationId:'public-business-setup', releaseId:manualCatalog.releaseId, industryId:'food', specialization:'고기집 · 뼈찜',
-    sourceIds:['business/opening','business/service','business/inventory','business/cleaning','business/safety','business/people','business/closing','common/prep','legal/employment','legal/privacy','legal/food-training','legal/fire-training','legal/permits'],
+    sourceIds:['common/break-service','food/service-reset','process/broth-storage','process/rice-cake-storage','business/opening','business/service','business/inventory','business/cleaning','business/safety','business/people','business/closing','common/prep','legal/employment','legal/privacy','legal/food-training','legal/fire-training','legal/permits'],
     replaceExisting:true,enableOperations:true});
   const dataRoot = path.join(output, 'review-data');
   await mkdir(dataRoot, { recursive: true });

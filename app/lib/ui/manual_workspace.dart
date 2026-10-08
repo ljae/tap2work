@@ -1,3 +1,4 @@
+import 'manual_work_screen.dart';
 import 'manual_print_screen.dart';
 import 'manual_tap_editor.dart';
 import 'catalog_editor.dart';
@@ -979,6 +980,22 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             duration([selected]),
             style: const TextStyle(fontSize: 13, color: AppColors.muted),
           ),
+          for (final id in (selected['knowledgeIds'] as List? ?? []))
+            ExpansionTile(
+              title: Text(
+                '참고 · ${ops.rows('manualSearch').where((r) => r['templateId'] == id).firstOrNull?['tapTitle'] ?? '연결 매뉴얼'}',
+              ),
+              children: [
+                for (final row
+                    in ops
+                        .rows('manualSearch')
+                        .where((r) => r['templateId'] == id))
+                  ListTile(
+                    title: Text('${row['title']}'),
+                    subtitle: Text('${row['manual']}'),
+                  ),
+              ],
+            ),
           if (canEdit &&
               selected['editable'] == true &&
               selected['templateId'] != null &&
@@ -1259,6 +1276,18 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       onPressed: ops.busy ? null : openMarket,
                       icon: Icons.storefront_outlined,
                       label: '매뉴얼 마켓',
+                    ),
+                  if (canEdit)
+                    AppToolbarButton(
+                      icon: Icons.link,
+                      label: '업무 연결',
+                      onPressed: () async {
+                        await showAppSheet(
+                          context,
+                          builder: (_) => ManualWorkScreen(ops: ops),
+                        );
+                        if (mounted) setState(() => sync(force: true));
+                      },
                     ),
                   AppToolbarButton(
                     key: const ValueKey('manual-print-button'),

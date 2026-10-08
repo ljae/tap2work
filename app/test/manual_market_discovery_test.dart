@@ -68,7 +68,7 @@ void main() {
     'all legacy collections are discoverable; industry includes common legal and operations',
     () {
       final catalog = ManualMarketCatalog(release());
-      expect(catalog.entries.length, 86);
+      expect(catalog.entries.length, 91);
       expect(
         catalog
             .search(industry: 'beauty')

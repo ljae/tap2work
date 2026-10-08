@@ -128,3 +128,8 @@ Web deployed: b19d775 / Actions 37771127850 succeeded. Initial inline SVG and Fl
 ## 2026-10-08 매뉴얼 지식·실행 분리 설계
 
 사용자는 브레이크 공통/뼈찜 혼합 정리, 피로도 낮은 매뉴얼↔할 일 설정, 기본 레시피와 보관 노하우 축적의 조사·설계를 요청했다. [설계안](MANUAL_KNOWLEDGE_TASK_DESIGN_2026-10-08.md)에 소스 감사/공식 근거/분류·계약·UI·이관·검증을 기록했다. 브레이크 원본은 common이 아니라 bonejjim/break이며 공통판은 없음. 운영 DB 원인까지 확인한 것은 아니다. researcher/editor/reviewer/qa 지침을 보강했고 출력스키마/예약/발행은 변경하지 않았다. 실제 앱·카탈로그 수정/배포·신규 사건 엔진은 미실시다. 세부 제안은 confirmed로 바꾸지 말 것.
+
+
+## 2026-10-08 매뉴얼·업무 연결 구현
+
+사용자가 D-104 설계에 따른 구현을 요청했다. knowledge_work.mjs와 ManualWorkScreen, TAP usage/표시 진단, 배치별 수동 실행·증거·이상처리, 참고문서 snapshot, 명시적 브레이크 분리를 구현했다. 원본91개는 [검토안](MANUAL_RELEASE_REVIEW_2026-10-08.md). 운영 stable86개는 미발행 상태로 보존하고 새 코드로 실제 read/해시검증에 성공했다. 공급자 역할은 등록돼 있지만 CATALOG_ACCESS_TOKEN은 미설정이며 독립 정확해시 검토를 수행하지 않았다. service key로 역할·승인을 위조하거나 seed로 업데이트를 우회하지 않는다. 코드 배포와 공용 발행은 구분한다. 기존 source/content/personalization/실행 snapshot 보존. 신규 메뉴/재료에 수치를 추정해 넣지 않았다.

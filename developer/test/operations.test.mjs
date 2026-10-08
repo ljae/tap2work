@@ -22,8 +22,8 @@ test('private owner data and procurement prices are projected by demo role', asy
   const owner = await store.snapshot('owner');
   const manager = await store.snapshot('manager');
   const crew = await store.snapshot('crew');
-  // Every seeded 뼈찜 group plus the two inventory checks whose order date has passed.
-  assert.equal(owner.tasks.length, owner.taskTemplates.filter(template => !template.archivedAt && !template.menuManualId).length + 2 + owner.tasks.filter(task => task.orderId).length + owner.tasks.filter(task => task.preparedItemId).length);
+  // No break routine without configured break hours; other seeded 뼈찜 groups plus the two inventory checks whose order date has passed.
+  assert.equal(owner.tasks.length, owner.taskTemplates.filter(template => !template.archivedAt && !template.menuManualId && template.slot!=='브레이크').length + 2 + owner.tasks.filter(task => task.orderId).length + owner.tasks.filter(task => task.preparedItemId).length);
   assert.equal(owner.tasks.filter(task => task.kind === 'stock').length, 2);
   assert.ok(owner.privateSummary);
   assert.equal(manager.privateSummary, undefined);

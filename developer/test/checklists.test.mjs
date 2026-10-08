@@ -95,7 +95,8 @@ test('fresh demo starts with the 뼈찜 collection in its own folder, place and 
   assert.ok(state.taskTemplates.every(row => row.version === 1));
   const prep = state.taskTemplates.find(row => row.id === PREP);
   assert.equal(prep.zone, 'prep'); assert.equal(prep.requiredRole, 'cook'); assert.equal(prep.emoji, '🍖');
-  assert.ok(state.tasks.find(row => row.templateId === 'library-bonejjim-break').slot === '브레이크');
+  assert.equal(state.tasks.some(row => row.templateId === 'library-bonejjim-break'),false);
+  assert.equal(state.taskTemplates.find(row=>row.id==='library-bonejjim-break').slot,'브레이크');
   assert.ok(checklistSlots.includes('브레이크'));
   // A store without the hinted place falls back to its first place rather than failing.
   const other = libraryTemplates('bonejjim', [{ id: 'only' }]);

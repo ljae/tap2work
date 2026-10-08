@@ -16,6 +16,6 @@ try{
   }});
  const response=await handler(new Request('https://example.invalid/operations',{headers:{Authorization:'Bearer fixture'}}));
  const result=await response.json();
- if(response.status!==200||result.manualCatalog?.entries.length!==86||!result.taskTemplates?.length)throw Error(`Authenticated Edge smoke failed (${response.status})`);
+ if(response.status!==200||result.manualCatalog?.entries.length!==manualCatalog.entries.length||!result.taskTemplates?.length)throw Error(`Authenticated Edge smoke failed (${response.status})`);
  console.log('Authenticated DB-backed Edge read passed without Node globals.');
 }finally{if(originalBuffer!==undefined)globalThis.Buffer=originalBuffer;}

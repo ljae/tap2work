@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 251,
+  "revision": 252,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1103,13 +1103,13 @@
       "id": "D-104",
       "category": "매뉴얼·업무·콘텐츠",
       "title": "매뉴얼 적용 범위와 실행 연결 분리 설계",
-      "status": "proposed",
-      "decision": "사용자 요구인 공통 브레이크 분리·피로도 낮은 업무 연결·레시피/보관 노하우 축적을 위해 공통/공정/메뉴 적용 범위와 참고용/정기/작업사건을 분리하는 설계를 제안한다. 세부 데이터 계약과 UI는 미확정·미구현이다.",
-      "previous": "컬렉션·업종·목적·slot 기반 추천과 일괄 업무 사용. 공통 브레이크 원본 없음, bonejjim/break에 공통/메뉴/고정시각 혼재.",
-      "next": "제안: 조건 기반 공통 지식과 매장 실행 TAP 연결, 미표시 원인 진단, 배치/로트별 사건 업무, 버전/개인화 보존 이관.",
-      "reason": "2026-10-08 사용자 조사·설계 요청과 로컬86 TAP 감사, FSA/식약처 공개 자료 조사. 제안을 사용자 승인으로 기록하지 않음.",
+      "status": "confirmed",
+      "decision": "사용자가 제안한 매뉴얼 분류·업무 연결 설계의 개선 생성을 요청했다. 공통/공정/메뉴 분류, 참고용/정기/작업사건, 개인화·실행 이력 보존 방향을 확정하고 1차 구현한다. 공용 콘텐츠 발행은 독립 검토 절차를 유지한다.",
+      "previous": "D-104 조사·설계 proposed",
+      "next": "사용자 설계 적용 요청 confirmed; 실행 가능한 1차 구현, 공용91개 검토안은 미발행",
+      "reason": "사용자: 해당 설계방안으로 개선 생성해주세요.",
       "source": "docs/MANUAL_KNOWLEDGE_TASK_DESIGN_2026-10-08.md",
-      "updatedAt": "2026-10-08T12:18:30.934912+00:00"
+      "updatedAt": "2026-10-08T12:49:45.422636+00:00"
     }
   ],
   "milestones": [
@@ -7697,7 +7697,27 @@
         "No commercial recipe/storage validation; no universal shelf life inferred",
         "Flutter analysis/tests not run because Flutter source unchanged; full production five-role content job not executed"
       ]
+    },
+    {
+      "at": "2026-10-08T12:49:45.422636+00:00",
+      "type": "implementation",
+      "title": "Manual classification and low-friction execution linkage",
+      "detail": "Added reference/routine/event settings, server execution diagnosis, manual batch events with idempotency, evidence and exception resolution, frozen related knowledge, explicit mixed-break replacement and responsive UI. Added five content drafts and metadata to original catalog without changing the live stable channel.",
+      "verification": [
+        "Flutter analysis clean; full Flutter suite 378 passed before final related-manual projection; final focused widgets 21 passed",
+        "284 Node tests passed",
+        "57 UI/settings contracts and npm check passed",
+        "Deno authenticated catalog read and SQL roles/CAS/independent review tests passed",
+        "320/390/1200 screenshot captures passed; 390 image inspected",
+        "Actual stable catalog read: revision1, 86 entries; verified old JSONB catalog remains accepted with new code"
+      ],
+      "limitations": [
+        "Code deployment pending",
+        "91-entry public content candidate not published; independent review/login required",
+        "No native build, schema migration, actual supplier orders or invented storage limits",
+        "Events currently manually started by managers; no POS/sensor automation or numeric safety judgement"
+      ]
     }
   ],
-  "updatedAt": "2026-10-08T12:18:30.934912+00:00"
+  "updatedAt": "2026-10-08T12:49:45.422636+00:00"
 }

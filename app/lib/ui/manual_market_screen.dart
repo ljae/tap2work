@@ -30,7 +30,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
   final search = TextEditingController();
   final specialization = TextEditingController();
   bool replaceExisting = false, enableOperations = false;
-  String? industry, kind, error;
+  String? industry, kind, scope, error;
   bool saving = false, reviewing = false;
   final operationId = 'import-${DateTime.now().microsecondsSinceEpoch}';
 
@@ -58,6 +58,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
         specialization.text = type['name'];
         final collections = {
           'common',
+          'food',
           type['collectionId'],
           if ((profile['serviceModes'] as List? ?? []).contains('delivery'))
             'delivery',
@@ -67,6 +68,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
               .where(
                 (e) =>
                     collections.contains(e['collectionId']) &&
+                    (e['knowledge']?['supersededBy'] as List? ?? []).isEmpty &&
                     e['kind'] != 'legal' &&
                     !catalog.linked(e),
               )
@@ -259,6 +261,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
   @override
   Widget build(BuildContext context) {
     final results = catalog.search(
+      scope: scope,
       query: search.text,
       industry: industry,
       kind: kind,
@@ -448,6 +451,30 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   onChanged: (_) => setState(() {}),
                 ),
                 const SizedBox(height: 16),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (final item in <String, String>{
+                        '': '전체',
+                        'universal': '업종 공통',
+                        'food': '외식 공통',
+                        'process': '공정·보관',
+                        'menu': '메뉴·업종별',
+                      }.entries)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(item.value),
+                            selected: (scope ?? '') == item.key,
+                            onSelected: (_) => setState(
+                              () => scope = item.key.isEmpty ? null : item.key,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
                 OutlinedButton.icon(
                   key: const ValueKey('market-industry'),
                   onPressed: () async {

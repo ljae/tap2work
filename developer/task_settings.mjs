@@ -1,3 +1,4 @@
+import {usageFields} from './knowledge_work.mjs';
 import { tapOnly, assertContentOnly, convertPolicy, validateQuantity } from './tap_policy.mjs';
 import { validateAssignment, assignmentPermission } from './work_assignments.mjs';
 import { validatePart } from './parts.mjs';
@@ -13,7 +14,7 @@ const integer = (value, min, max, label) => {
 const bool = (value, label) => { if (typeof value !== 'boolean') fail(`${label}을 선택해 주세요.`); return value; };
 
 export function taskSettings(template) {
-  return { ...(tapOnly(template) ? {completionPolicy:template.settings?.completionPolicy ?? {kind:'check',quantitySpec:null},estimatedMinutes:template.settings?.estimatedMinutes ?? null} : {}), ...(template.settings?.assignment ? {assignment: template.settings.assignment} : {}), type: template.settings?.type ?? 'general', enabled: template.settings?.enabled ?? true,
+  return { ...usageFields(template.settings??{}), ...(tapOnly(template) ? {completionPolicy:template.settings?.completionPolicy ?? {kind:'check',quantitySpec:null},estimatedMinutes:template.settings?.estimatedMinutes ?? null} : {}), ...(template.settings?.assignment ? {assignment: template.settings.assignment} : {}), type: template.settings?.type ?? 'general', enabled: template.settings?.enabled ?? true,
     recurrence: template.settings?.recurrence ?? { mode: 'daily', weekdays: [] },
     allowBulkComplete: template.settings?.allowBulkComplete ?? true,
     enforceSequence: template.settings?.enforceSequence ?? false };
@@ -30,11 +31,11 @@ export function stepSettings(step) {
 export function validateTaskSettings(value, state) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) fail('TAP 설정을 확인해 주세요.');
   if (!workTypes.includes(value.type)) fail('업무 유형을 선택해 주세요.');
-  const recurrence = value.recurrence;
+  const recurrence = ['reference','event'].includes(value.usage)?{mode:'daily',weekdays:[]}:value.recurrence;
   if (!recurrence || !['daily', 'weekly'].includes(recurrence.mode) || !Array.isArray(recurrence.weekdays)) fail('반복 요일을 확인해 주세요.');
   const weekdays = recurrence.weekdays.map(day => integer(day, 1, 7, '요일'));
   if (new Set(weekdays).size !== weekdays.length || (recurrence.mode === 'weekly' && !weekdays.length)) fail('반복 요일을 하나 이상 선택해 주세요.');
-  return { ...(Object.hasOwn(value, 'assignment') ? {assignment: validateAssignment(value.assignment, state)} : {}), type: value.type, enabled: bool(value.enabled, '업무 사용 여부'),
+  return { ...usageFields(value), ...(Object.hasOwn(value, 'assignment') ? {assignment: validateAssignment(value.assignment, state)} : {}), type: value.type, enabled: bool(value.enabled, '업무 사용 여부'),
     recurrence: { mode: recurrence.mode, weekdays: recurrence.mode === 'weekly' ? weekdays : [] },
     allowBulkComplete: bool(value.allowBulkComplete, '일괄 완료'),
     enforceSequence: bool(value.enforceSequence, '순서대로 수행') };
@@ -68,7 +69,15 @@ export function saveTapSettings(state, input, now = new Date()) {
     if (!Object.hasOwn(input.settings ?? {},'assignment') && template.settings?.assignment) input = {...input,settings:{...input.settings,assignment:structuredClone(template.settings.assignment)}};
     if (input.steps != null && !Array.isArray(input.steps)) fail('Task 목록을 확인해 주세요.');
     if (input.steps) for (const step of input.steps) assertContentOnly(step);
-    const settings = validateTaskSettings(input.settings, state);
+    const settings = validateTaskSettings({...template.settings,...input.settings}, state);
+    if (settings.usage) settings.enabled = settings.usage !== 'reference';
+    if (settings.usage==='event') {
+      settings.allowBulkComplete=false;
+      if(settings.assignment?.mode==='scheduled') fail('작업할 때 확인은 담당 크루 또는 직접 맡기를 선택해 주세요.');
+    }
+    if(settings.enabled && template.knowledge?.safetyReviewRequired && !settings.operatingStandard) fail('제품·공정에 맞는 매장 기준을 입력해 주세요.');
+    if((settings.knowledgeIds??[]).some(id=>id===template.id||!state.taskTemplates.some(t=>t.id===id&&!t.archivedAt))) fail('연결할 매뉴얼을 확인해 주세요.');
+    if(settings.usage==='event' && input.settings.completionPolicy?.kind==='quantity') fail('작업별 확인은 수량 일괄 완료 대신 항목별 기록을 사용해 주세요.');
     const policy = input.settings.completionPolicy ?? {kind:'check',quantitySpec:null};
     if (!['check','quantity'].includes(policy.kind)) fail('TAP 완료 방식을 확인해 주세요.');
     const quantity = validateStepSettings({completionKind:policy.kind,quantitySpec:policy.quantitySpec,estimatedMinutes:input.settings.estimatedMinutes},state);
@@ -76,8 +85,9 @@ export function saveTapSettings(state, input, now = new Date()) {
     settings.estimatedMinutes = quantity.estimatedMinutes;
     if (input.zone != null && !state.zones.some(z => z.id === input.zone)) fail('TAP 장소를 확인해 주세요.');
     const next = convertPolicy(structuredClone(template), {acknowledge: input.acknowledgeLegacyPolicy === true});
-    const assignmentChanged = JSON.stringify(template.settings?.assignment ?? null) !== JSON.stringify(settings.assignment ?? null) || !tapOnly(template);
-    if (assignmentChanged) for (const task of state.tasks.filter(t => t.templateId === template.id && t.date === state.day && !t.archivedAt && !t.completedAt && t.boardStatus !== 'processing' && !t.steps?.some(s => s.completedAt))) task.archivedAt = new Date(now).toISOString();
+    const usageChanged = settings.usage !== template.settings?.usage;
+    const assignmentChanged = usageChanged || JSON.stringify(template.settings?.assignment ?? null) !== JSON.stringify(settings.assignment ?? null) || !tapOnly(template);
+    if (assignmentChanged) for (const task of state.tasks.filter(t => !t.workEvent && t.templateId === template.id && t.date === state.day && !t.archivedAt && !t.completedAt && t.boardStatus !== 'processing' && !t.steps?.some(s => s.completedAt))) task.archivedAt = new Date(now).toISOString();
     next.settings = settings;
     if (settings.assignment?.mode === 'scheduled') next.partId = settings.assignment.partId;
     if (Object.hasOwn(input,'zone')) next.zone = input.zone;
@@ -121,7 +131,7 @@ export function saveTapSettings(state, input, now = new Date()) {
 
 export function repeatsOn(template, date) {
   const settings = taskSettings(template);
-  if (!settings.enabled) return false;
+  if (!settings.enabled || settings.usage==='reference' || settings.usage==='event') return false;
   if (settings.recurrence.mode === 'daily') return true;
   const day = new Date(`${date}T12:00:00+09:00`).getUTCDay();
   return settings.recurrence.weekdays.includes(day === 0 ? 7 : day);
@@ -152,6 +162,8 @@ export function completeStepIssue(actor, task, step, quantity, state) {
 }
 
 export function bulkCompleteIssue(actor, task, state, quantity) {
+  if(task.workIssue?.status==='open') return '이상 기록의 조치를 먼저 확인해 주세요.';
+  if(task.workEvent) return '작업별 확인과 기록은 Task에서 하나씩 완료해 주세요.';
   if (tapOnly(task) && task.settings?.completionPolicy?.kind === 'quantity' && !validateQuantity(quantity,task.settings.completionPolicy.quantitySpec)) return 'TAP의 실제 완성 수량을 입력해 주세요.';
   const pending = (task.steps ?? []).filter(step => !step.completedAt);
   if (!pending.length) return null;

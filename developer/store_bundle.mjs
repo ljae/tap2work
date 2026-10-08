@@ -41,7 +41,8 @@ export function applyStoreBundle(state, setup, type, now) {
     });
     const menu = {id:`starter-menu-${row.id}`,name:row.name,category:type.name,price:0,ingredientIds,setupNeedsReview:true};
     state.sales.menus.push(menu);
-    state.taskTemplates.push({id:`menu-manual-${menu.id}`,menuManualId:menu.id,title:menu.name,emoji:'🍽️',folderId:'store-recipes',slot:'피크',requiredRole:'cook',zone:null,assignmentScopeVersion:2,version:1,sourceIds:[],settings:{type:'order',enabled:false,recurrence:{mode:'daily',weekdays:[]},allowBulkComplete:false,enforceSequence:false},steps:[{id:'menu',title:menu.name,manual:`기본 초안 · 매장 기준 확인 필요\n주요 재료: ${row.ingredients.join(', ')}\n${row.method}\n분량·온도·시간·알레르기·제공 기준은 매장에서 확인해 수정하세요.`,tip:'메뉴 가격과 재료 단위·공급처·발주 기준도 매장에 맞게 수정하세요.',contentRevision:1}]});
+    const knowledgeIds=state.taskTemplates.filter(t=>t.knowledge?.menuNames?.includes(row.name)||t.knowledge?.ingredientNames?.some(name=>row.ingredients.includes(name))).map(t=>t.id);
+    state.taskTemplates.push({knowledge:{scope:'menu',topics:['recipe'],safetyReviewRequired:true},id:`menu-manual-${menu.id}`,menuManualId:menu.id,title:menu.name,emoji:'🍽️',folderId:'store-recipes',slot:'피크',requiredRole:'cook',zone:null,assignmentScopeVersion:2,version:1,sourceIds:[],settings:{usage:'reference',knowledgeIds,type:'order',enabled:false,recurrence:{mode:'daily',weekdays:[]},allowBulkComplete:false,enforceSequence:false},steps:[{id:'menu',title:menu.name,manual:`기본 초안 · 매장 기준 확인 필요\n주요 재료: ${row.ingredients.join(', ')}\n${row.method}\n분량·온도·시간·알레르기·제공 기준은 매장에서 확인해 수정하세요.`,tip:'메뉴 가격과 재료 단위·공급처·발주 기준도 매장에 맞게 수정하세요.',contentRevision:1}]});
   }
   state.store.starterBundle={version:bundleVersion,businessTypeId:type.id,menuIds:setup.menuIds,createdAt:now.toISOString()};
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateRelease,releaseHash,DatabaseCatalogRepository} from '../catalog_repository.mjs';
+import {validateRelease,releaseHash,canonicalJson,DatabaseCatalogRepository} from '../catalog_repository.mjs';
 import {manualCatalog,syncManualCatalog,mutateManualMarket} from '../manual_market.mjs';
 import {seedOperations,OperationsStore} from '../operations.mjs';
 import {createCloudHandler} from '../supabase_backend.mjs';
@@ -68,6 +68,14 @@ test('catalog validation runs in Edge runtimes without Node Buffer globals',()=>
  const buffer=globalThis.Buffer;
  try{
   delete globalThis.Buffer;
-  assert.equal(validateRelease(manualCatalog).entries.length,86);
+  assert.equal(validateRelease(manualCatalog).entries.length,91);
  }finally{globalThis.Buffer=buffer;}
+});
+
+test('original database seed remains readable after bundled catalog advances',async()=>{
+ const {default:legacy}=await import('../../docs/market/releases/473ae81f07c0e1289ff6e7ed1dc97f133586b93ec71559e5833032f1129ac9c1.json',{with:{type:'json'}});
+ const jsonb=JSON.parse(canonicalJson(legacy));
+ assert.equal(validateRelease(jsonb).entries.length,86);
+ jsonb.entries[0].steps[0].manual+=' tampered';
+ assert.throws(()=>validateRelease(jsonb));
 });

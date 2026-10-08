@@ -55,7 +55,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "people"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -112,7 +119,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -169,7 +183,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "hygiene"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -235,7 +256,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "people"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -309,7 +337,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -383,7 +418,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -449,7 +491,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -523,7 +572,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -597,7 +653,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -671,7 +734,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -737,7 +807,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -811,7 +888,20 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "break",
+      "preparation"
+    ],
+    "suggestedUse": "reference",
+    "supersededBy": [
+      "common/break-service",
+      "food/service-reset",
+      "bonejjim/evening-prep"
+    ]
+  }
 }
 ```
 
@@ -885,7 +975,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -959,7 +1056,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1016,7 +1120,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1073,7 +1184,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1130,7 +1248,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1187,7 +1312,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1244,7 +1376,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1301,7 +1440,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1358,7 +1504,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "inventory"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1415,7 +1568,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1472,7 +1632,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1529,7 +1696,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1586,7 +1760,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1643,7 +1824,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1700,7 +1888,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1757,7 +1952,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1814,7 +2016,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1871,7 +2080,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1928,7 +2144,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -1985,7 +2208,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2042,7 +2272,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2099,7 +2336,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2156,7 +2400,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2213,7 +2464,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2270,7 +2528,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2327,7 +2592,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "inventory"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2384,7 +2656,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "inventory"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2441,7 +2720,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2498,7 +2784,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2555,7 +2848,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2612,7 +2912,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2669,7 +2976,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2726,7 +3040,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2783,7 +3104,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2840,7 +3168,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2897,7 +3232,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -2954,7 +3296,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3011,7 +3360,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3068,7 +3424,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "hygiene"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3125,7 +3488,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "hygiene"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3182,7 +3552,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3239,7 +3616,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3296,7 +3680,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "inventory"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3353,7 +3744,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3410,7 +3808,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3467,7 +3872,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3524,7 +3936,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3581,7 +4000,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3638,7 +4064,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "people"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3695,7 +4128,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3752,7 +4192,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3809,7 +4256,14 @@
       "checkedAt": "2026-09-20",
       "scope": "기존 위키 조사 자료 · 업무 구조 참고, 국내 법적 기준으로 단정하지 않음"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -3870,7 +4324,14 @@
       "tags": [],
       "sourceUrl": "https://www.moel.go.kr/news/cardinfo/view.do?bbs_seq=20220500493"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "compliance"
+    ],
+    "suggestedUse": "reference"
+  }
 }
 ```
 
@@ -3931,7 +4392,14 @@
       "tags": [],
       "sourceUrl": "https://pipc.go.kr/np/cop/bbs/selectBoardArticle.do?bbsId=BS217&mCode=G010030020&nttId=10897"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "compliance"
+    ],
+    "suggestedUse": "reference"
+  }
 }
 ```
 
@@ -3984,7 +4452,14 @@
       "tags": [],
       "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=4&cciNo=1&cnpClsNo=2&csmSeq=839&popMenu=ov"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "compliance"
+    ],
+    "suggestedUse": "reference"
+  }
 }
 ```
 
@@ -4037,7 +4512,14 @@
       "tags": [],
       "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=4&cciNo=3&cnpClsNo=1&csmSeq=1574&menuType=cnpcls&popMenu=ov"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "compliance"
+    ],
+    "suggestedUse": "reference"
+  }
 }
 ```
 
@@ -4094,7 +4576,14 @@
       "tags": [],
       "sourceUrl": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/3m-j.pdf"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "compliance"
+    ],
+    "suggestedUse": "reference"
+  }
 }
 ```
 
@@ -4151,7 +4640,14 @@
       "tags": [],
       "sourceUrl": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/5s-j.pdf"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "compliance"
+    ],
+    "suggestedUse": "reference"
+  }
 }
 ```
 
@@ -4200,7 +4696,14 @@
       "tags": [],
       "sourceUrl": "https://www.sdm.go.kr/health/static/upload/editor-images/20260205/4s-j.pdf"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "compliance"
+    ],
+    "suggestedUse": "reference"
+  }
 }
 ```
 
@@ -4252,7 +4755,14 @@
       "tags": [],
       "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMainBtr.laf?ccfNo=2&cciNo=2&cnpClsNo=1&csmSeq=1140&popMenu=ov"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "compliance"
+    ],
+    "suggestedUse": "reference"
+  }
 }
 ```
 
@@ -4302,7 +4812,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4352,7 +4869,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4402,7 +4926,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "inventory"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4452,7 +4983,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "hygiene"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4502,7 +5040,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "safety"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4552,7 +5097,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "people"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4602,7 +5154,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4652,7 +5211,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4702,7 +5268,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4752,7 +5325,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "safety"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4802,7 +5382,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "inventory"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4852,7 +5439,14 @@
       "tags": [],
       "sourceUrl": ""
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "service"
+    ],
+    "suggestedUse": "routine"
+  }
 }
 ```
 
@@ -4912,7 +5506,14 @@
       "tags": [],
       "sourceUrl": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=2&cciNo=3&cnpClsNo=3&csmSeq=1257&popMenu=ov"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "compliance"
+    ],
+    "suggestedUse": "reference"
+  }
 }
 ```
 
@@ -4965,6 +5566,401 @@
       "tags": [],
       "sourceUrl": "https://m.easylaw.go.kr/MOB/CsmInfoRetrieve.laf?ccfNo=3&cciNo=2&cnpClsNo=2&csmSeq=632"
     }
-  ]
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "compliance"
+    ],
+    "suggestedUse": "reference"
+  }
+}
+```
+
+
+## 브레이크 · 영업 안내와 재개
+
+```tap2work-tap
+{
+  "sourceId": "common/break-service",
+  "collectionId": "common",
+  "collectionName": "업종 공통",
+  "title": "브레이크 · 영업 안내와 재개",
+  "emoji": "📖",
+  "slot": "브레이크",
+  "reviewedAt": "2026-10-08",
+  "basis": "공개 근거에 따른 편집 초안. 제품·장비별 조건과 매장 기준 확인 필요.",
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "중단·재개 시간 안내",
+      "manual": "우리매장 영업시간에 설정된 오늘의 브레이크 시작·종료 시각을 확인해 안내를 바꿔요. 특정 시각이나 주말 제외를 임의로 적용하지 않아요.",
+      "tip": "",
+      "tags": [
+        "break"
+      ],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607"
+    },
+    {
+      "id": "step-2",
+      "title": "고객·인계 확인",
+      "manual": "진행 중인 응대와 전달할 사항을 담당 파트에 남겨요. 영업 브레이크와 크루 개인 휴게는 별개이므로 개인 휴게에 업무를 배정하지 않아요.",
+      "tip": "",
+      "tags": [
+        "break"
+      ],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607"
+    },
+    {
+      "id": "step-3",
+      "title": "영업 재개 확인",
+      "manual": "설정된 재개 시각에 안내와 담당 파트의 준비 상태를 확인해요.",
+      "tip": "",
+      "tags": [
+        "break"
+      ],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607"
+    }
+  ],
+  "industryIds": [
+    "all"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "중단·재개 시간 안내 · 고객·인계 확인 · 영업 재개 확인",
+  "applicability": "매장의 해당 공정·메뉴를 취급할 때만 사용. 제품 표시와 승인한 매장 기준을 함께 확인하세요.",
+  "jurisdiction": "대한민국 · 운영 참고",
+  "keywords": [
+    "break"
+  ],
+  "references": [
+    {
+      "title": "식약처 대량조리 음식 주의요령",
+      "url": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607",
+      "checkedAt": "2026-10-08",
+      "scope": "공정 관리 원칙 참고. 개별 제품의 보관기간 검증이 아님."
+    }
+  ],
+  "knowledge": {
+    "scope": "universal",
+    "topics": [
+      "break"
+    ],
+    "suggestedUse": "routine",
+    "requiresBreak": true
+  }
+}
+```
+
+
+## 영업 사이 · 위생 정리
+
+```tap2work-tap
+{
+  "sourceId": "food/service-reset",
+  "collectionId": "food",
+  "collectionName": "외식 공통",
+  "title": "영업 사이 · 위생 정리",
+  "emoji": "📖",
+  "slot": "준비",
+  "reviewedAt": "2026-10-08",
+  "basis": "공개 근거에 따른 편집 초안. 제품·장비별 조건과 매장 기준 확인 필요.",
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "작업 구역 정리",
+      "manual": "작업대와 사용 도구를 정리하고 매장 세척·소독 방법에 따라 처리해요.",
+      "tip": "",
+      "tags": [
+        "reset"
+      ],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607"
+    },
+    {
+      "id": "step-2",
+      "title": "보관 대상 확인",
+      "manual": "남은 식품은 제품·공정별 보관 기준으로 처리해요. 시간·상태가 불명확한 식품은 제공하지 말고 책임자에게 알려요.",
+      "tip": "",
+      "tags": [
+        "reset"
+      ],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607"
+    },
+    {
+      "id": "step-3",
+      "title": "필요한 것만 보충",
+      "manual": "다음 영업에 부족한 재료와 도구만 기존 재고·보충 요청에 남겨요. 같은 수량을 다시 기록하지 않아요.",
+      "tip": "",
+      "tags": [
+        "reset"
+      ],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "hygiene",
+  "kind": "operation",
+  "summary": "작업 구역 정리 · 보관 대상 확인 · 필요한 것만 보충",
+  "applicability": "매장의 해당 공정·메뉴를 취급할 때만 사용. 제품 표시와 승인한 매장 기준을 함께 확인하세요.",
+  "jurisdiction": "대한민국 · 운영 참고",
+  "keywords": [
+    "reset"
+  ],
+  "references": [
+    {
+      "title": "식약처 대량조리 음식 주의요령",
+      "url": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607",
+      "checkedAt": "2026-10-08",
+      "scope": "공정 관리 원칙 참고. 개별 제품의 보관기간 검증이 아님."
+    }
+  ],
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "reset"
+    ],
+    "suggestedUse": "routine"
+  }
+}
+```
+
+
+## 등뼈·육수 다음 영업 준비
+
+```tap2work-tap
+{
+  "sourceId": "bonejjim/evening-prep",
+  "collectionId": "bonejjim",
+  "collectionName": "뼈찜·감자탕 전문점",
+  "title": "등뼈·육수 다음 영업 준비",
+  "emoji": "📖",
+  "slot": "준비",
+  "reviewedAt": "2026-10-08",
+  "basis": "공개 근거에 따른 편집 초안. 제품·장비별 조건과 매장 기준 확인 필요.",
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "준비량 확인",
+      "manual": "예정 판매량과 남은 준비분을 확인해 초벌 등뼈·육수의 필요한 수량을 정해요.",
+      "tip": "",
+      "tags": [
+        "preparation"
+      ],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607"
+    },
+    {
+      "id": "step-2",
+      "title": "메뉴 기준으로 준비",
+      "manual": "매장에서 승인한 등뼈 전처리·육수 레시피와 보관 기준을 확인해 준비해요. 조리된 식품의 불명확한 보관 이력을 재가열로 대신하지 않아요.",
+      "tip": "",
+      "tags": [
+        "preparation"
+      ],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "준비량 확인 · 메뉴 기준으로 준비",
+  "applicability": "매장의 해당 공정·메뉴를 취급할 때만 사용. 제품 표시와 승인한 매장 기준을 함께 확인하세요.",
+  "jurisdiction": "대한민국 · 운영 참고",
+  "keywords": [
+    "preparation"
+  ],
+  "references": [
+    {
+      "title": "식약처 대량조리 음식 주의요령",
+      "url": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607",
+      "checkedAt": "2026-10-08",
+      "scope": "공정 관리 원칙 참고. 개별 제품의 보관기간 검증이 아님."
+    }
+  ],
+  "knowledge": {
+    "scope": "menu",
+    "topics": [
+      "preparation"
+    ],
+    "suggestedUse": "event",
+    "eventKind": "batch",
+    "menuNames": [
+      "감자탕",
+      "뼈해장국"
+    ],
+    "safetyReviewRequired": true
+  }
+}
+```
+
+
+## 국물 배치 · 냉각과 보관
+
+```tap2work-tap
+{
+  "sourceId": "process/broth-storage",
+  "collectionId": "process",
+  "collectionName": "보관·조리 공정",
+  "title": "국물 배치 · 냉각과 보관",
+  "emoji": "📖",
+  "slot": "준비",
+  "reviewedAt": "2026-10-08",
+  "basis": "공개 근거에 따른 편집 초안. 제품·장비별 조건과 매장 기준 확인 필요.",
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "배치와 냉각 시작 확인",
+      "manual": "육수인지 해산물 등이 들어간 완성 국물인지 구분해요. 실제 제조량·용기·냉각 장비와 시작 시각을 기록해요. 큰 솥을 실온에 방치해 천천히 식히지 않아요.",
+      "tip": "",
+      "tags": [
+        "storage"
+      ],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607"
+    },
+    {
+      "id": "step-2",
+      "title": "냉각 기준 확인",
+      "manual": "매장에 검증된 용기 분할·냉각 방법을 사용하고 정해진 시점의 실제 시간·온도를 기록해요. 기준을 벗어나면 정상 완료하지 말고 사용을 보류한 뒤 책임자에게 알려요.",
+      "tip": "",
+      "tags": [
+        "storage"
+      ],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607"
+    },
+    {
+      "id": "step-3",
+      "title": "표시와 보관 확인",
+      "manual": "배치명·제조/냉각 시각·보관 위치와 매장에 확인된 사용기한을 표시해요. 다음 사용 때 이력을 확인해요. 짬뽕 국물에 통일된 보관 일수를 임의로 적용하지 않아요.",
+      "tip": "",
+      "tags": [
+        "storage"
+      ],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "hygiene",
+  "kind": "operation",
+  "summary": "배치와 냉각 시작 확인 · 냉각 기준 확인 · 표시와 보관 확인",
+  "applicability": "매장의 해당 공정·메뉴를 취급할 때만 사용. 제품 표시와 승인한 매장 기준을 함께 확인하세요.",
+  "jurisdiction": "대한민국 · 운영 참고",
+  "keywords": [
+    "storage"
+  ],
+  "references": [
+    {
+      "title": "식약처 대량조리 음식 주의요령",
+      "url": "https://www.mfds.go.kr/brd/m_827/view.do?seq=3607",
+      "checkedAt": "2026-10-08",
+      "scope": "공정 관리 원칙 참고. 개별 제품의 보관기간 검증이 아님."
+    }
+  ],
+  "knowledge": {
+    "scope": "process",
+    "topics": [
+      "storage"
+    ],
+    "suggestedUse": "event",
+    "eventKind": "batch",
+    "ingredientNames": [
+      "육수",
+      "우동육수"
+    ],
+    "menuNames": [
+      "짬뽕",
+      "감자탕",
+      "뼈해장국",
+      "어묵탕"
+    ],
+    "safetyReviewRequired": true
+  }
+}
+```
+
+
+## 떡 · 개봉과 보관
+
+```tap2work-tap
+{
+  "sourceId": "process/rice-cake-storage",
+  "collectionId": "process",
+  "collectionName": "보관·조리 공정",
+  "title": "떡 · 개봉과 보관",
+  "emoji": "📖",
+  "slot": "준비",
+  "reviewedAt": "2026-10-08",
+  "basis": "공개 근거에 따른 편집 초안. 제품·장비별 조건과 매장 기준 확인 필요.",
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "제품·상태 확인",
+      "manual": "제품 표시의 보관방법과 소비기한을 확인해요. 실온 유통 밀봉 제품, 냉장·냉동 제품, 개봉·해동·불림·조리 상태를 구분해요.",
+      "tip": "",
+      "tags": [
+        "storage"
+      ],
+      "sourceUrl": "https://www.foodsafetykorea.go.kr/portal/board/boardDetail.do?menu_no=3120&bbs_no=bbs001&ntctxt_no=1101604&menu_grp=MENU_NEW01"
+    },
+    {
+      "id": "step-2",
+      "title": "개봉·보관 기록",
+      "manual": "제품과 로트, 실제 개봉 시각, 매장에 확인된 개봉 후 보관조건·기한과 위치를 기록해요. 밀봉 제품의 소비기한을 개봉 후에도 그대로 적용하지 않아요.",
+      "tip": "",
+      "tags": [
+        "storage"
+      ],
+      "sourceUrl": "https://www.foodsafetykorea.go.kr/portal/board/boardDetail.do?menu_no=3120&bbs_no=bbs001&ntctxt_no=1101604&menu_grp=MENU_NEW01"
+    },
+    {
+      "id": "step-3",
+      "title": "사용 전 기준 확인",
+      "manual": "표시와 실제 보관 이력을 대조해요. 불린 떡에 일반 제품의 기간을 적용하지 않아요. 곰팡이 등 이상이나 불명확한 이력이 있으면 사용을 보류하고 책임자에게 알려요.",
+      "tip": "",
+      "tags": [
+        "storage"
+      ],
+      "sourceUrl": "https://www.foodsafetykorea.go.kr/portal/board/boardDetail.do?menu_no=3120&bbs_no=bbs001&ntctxt_no=1101604&menu_grp=MENU_NEW01"
+    }
+  ],
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "hygiene",
+  "kind": "operation",
+  "summary": "제품·상태 확인 · 개봉·보관 기록 · 사용 전 기준 확인",
+  "applicability": "매장의 해당 공정·메뉴를 취급할 때만 사용. 제품 표시와 승인한 매장 기준을 함께 확인하세요.",
+  "jurisdiction": "대한민국 · 운영 참고",
+  "keywords": [
+    "storage"
+  ],
+  "references": [
+    {
+      "title": "식품안전나라 떡 소비기한과 보관방법",
+      "url": "https://www.foodsafetykorea.go.kr/portal/board/boardDetail.do?menu_no=3120&bbs_no=bbs001&ntctxt_no=1101604&menu_grp=MENU_NEW01",
+      "checkedAt": "2026-10-08",
+      "scope": "표시 보관조건과 소비기한 준수. 제품별 개봉·해동 후 기간 미확인."
+    }
+  ],
+  "knowledge": {
+    "scope": "process",
+    "topics": [
+      "storage"
+    ],
+    "suggestedUse": "event",
+    "eventKind": "opened",
+    "ingredientNames": [
+      "떡",
+      "떡볶이떡"
+    ],
+    "menuNames": [
+      "떡볶이"
+    ],
+    "safetyReviewRequired": true
+  }
 }
 ```

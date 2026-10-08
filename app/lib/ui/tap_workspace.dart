@@ -1313,6 +1313,43 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     );
   }
 
+  Future<void> workIssue(Json task, bool resolve) async {
+    final input = TextEditingController();
+    final reason = await showAppDialog<String>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(resolve ? '조치 결과 기록' : '이상·수행 불가 기록'),
+        content: TextField(
+          controller: input,
+          maxLines: 4,
+          maxLength: 500,
+          decoration: const InputDecoration(labelText: '상태와 조치'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (input.text.trim().isNotEmpty) {
+                Navigator.pop(c, input.text.trim());
+              }
+            },
+            child: const Text('기록'),
+          ),
+        ],
+      ),
+    );
+    input.dispose();
+    if (reason == null || !mounted) return;
+    final ok = await ops.act(
+      resolve ? 'resolve_work_issue' : 'flag_work_issue',
+      {'taskId': task['id'], 'reason': reason},
+    );
+    if (mounted) notice(ok ? '기록했어요' : ops.error ?? '저장하지 못했어요');
+  }
+
   Widget _manual(Json task, Json step) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1328,6 +1365,37 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       ),
       const SizedBox(height: 16),
       Text(step['manual'] ?? '등록된 방법이 없어요.'),
+      if (task['workIssue'] != null)
+        Information(
+          '이상 기록 · ${task['workIssue']['reason']}\n${task['workIssue']['resolution'] ?? '조치 확인 전 완료할 수 없어요.'}',
+        ),
+      if (task['workEvent'] != null && task['completedAt'] == null)
+        Wrap(
+          children: [
+            TextButton(
+              onPressed: ops.readOnly ? null : () => workIssue(task, false),
+              child: const Text('이상·수행 불가'),
+            ),
+            if (ops.canEditTasks && task['workIssue']?['status'] == 'open')
+              TextButton(
+                onPressed: ops.readOnly ? null : () => workIssue(task, true),
+                child: const Text('조치 결과 기록'),
+              ),
+          ],
+        ),
+      for (final ref in (task['knowledgeSnapshots'] as List? ?? []))
+        ExpansionTile(
+          title: Text('참고 · ${ref['title']}'),
+          children: [
+            for (final item in (ref['steps'] as List? ?? []))
+              ListTile(
+                title: Text('${item['title']}'),
+                subtitle: Text('${item['manual']}'),
+              ),
+          ],
+        ),
+      if (step['evidence'] != null)
+        Text('확인 기록 · ${step['evidence']['value']}'),
       if ((step['tip'] ?? '').toString().isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: 16),
@@ -1516,6 +1584,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     task = currentTask;
     step = currentStep;
     final openingActor = ops.actorId;
+    final openingWorkspace = ops.data?['workspaceId'];
     final checked = step['completedAt'] != null;
     if (checked && task['preparedOutputMovementId'] != null) {
       notice('완성 수량이 반영된 Tap은 되돌릴 수 없어요. 실제 수량 보정을 사용해 주세요.');
@@ -1597,10 +1666,59 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         quantity = await _stepQuantity(step);
         if (quantity == null || !mounted) return;
       }
+      String? evidence;
+      if (!checked &&
+          task['workEvent'] != null &&
+          task['knowledge']?['safetyReviewRequired'] == true) {
+        final input = TextEditingController();
+        evidence = await showAppDialog<String>(
+          context: context,
+          builder: (c) => AlertDialog(
+            title: Text('${step['title']} · 기록'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('${task['settings']?['operatingStandard'] ?? ''}'),
+                  TextField(
+                    controller: input,
+                    maxLength: 500,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: '실제 시간·온도·상태와 조치',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(c),
+                child: const Text('취소'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  if (input.text.trim().isNotEmpty) {
+                    Navigator.pop(c, input.text.trim());
+                  }
+                },
+                child: const Text('기록하고 완료'),
+              ),
+            ],
+          ),
+        );
+        input.dispose();
+        if (evidence == null || !mounted) return;
+      }
+      if (openingActor != ops.actorId ||
+          openingWorkspace != ops.data?['workspaceId']) {
+        return;
+      }
       final success = await ops.act(checked ? 'reopen_step' : 'complete_step', {
         'taskId': task['id'],
         'stepId': step['id'],
         'quantity': ?quantity,
+        'evidence': ?evidence,
       });
       if (mounted && !success) notice(ops.error ?? '변경하지 못했어요.');
       if (mounted && success && !checked) {

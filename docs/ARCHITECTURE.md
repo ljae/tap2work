@@ -573,3 +573,12 @@ AppLoadingScreen은 TapWaterLoading(단일 AnimationController+CustomPainter rep
 ## 2026-10-08 매뉴얼 지식·실행 분리 설계
 
 매뉴얼 재분류·지식과 실행 연결의 후속 설계는 [MANUAL_KNOWLEDGE_TASK_DESIGN_2026-10-08.md](MANUAL_KNOWLEDGE_TASK_DESIGN_2026-10-08.md)를 따른다. 현재 카탈로그86개 중 브레이크는 bonejjim/break 1개이며 공통/메뉴 작업이 혼합돼 있다. scope·공정·메뉴·시점 분리, 지식 버전 참조와 실행 TAP, 참고용/정기/사건 연결은 proposed이며 새 schema/UI/사건 엔진은 미구현이다. TAP 단위 운영 설정·개인화·실행 snapshot·D-017 재고 확인은 보존한다. 조사/편집/검토/QA 프롬프트의 분류·보관 지침만 보강했다.
+
+
+## 2026-10-08 매뉴얼·업무 연결 구현
+
+매뉴얼 연결 1차 구현: `developer/knowledge_work.mjs`가 공개 knowledge metadata 검증, usage(reference/routine/event), 동일 생성/진단 조건, 배치 requestId 재시도와 linked knowledge snapshot을 담당한다. 실제 운영 설정은 기존 TAP settings에 저장하며 별도 Task 배정은 없다. 메뉴 초안은 관련 공정 매뉴얼 ID를 참조한다. 이벤트 실행은 기존 tasks에 workEvent/증거/workIssue를 저장하므로 신규 DB 테이블이 필요 없다. 입력한 매장 기준은 전문 승인으로 간주하지 않는다. reference/event는 일반 일일 생성에서 제외, 미완료 event는 날짜를 바꾸지 않고 다음날에도 표시한다. unresolved workIssue는 완료를 막고 관리자 조치 기록 후 해제한다. 기존 발주 재고확인 로직은 변경하지 않는다.
+
+공용 원본 91개(기존86+신규5)는 번들/공개 샘플용 검토안이다. stable DB는 독립 검토/발행 전 기존86 유지. 원래 seed의 불변473ae81f 발행본을 명시적으로 검증 허용하여 JSONB 키순서와 새 번들 변경에도 운영 조회를 보존한다. API/웹 배포가 공용 콘텐츠 발행을 의미하지 않는다. common/break-service, food/service-reset, bonejjim/evening-prep, process/broth-storage, process/rice-cake-storage를 추가했으며 old bonejjim/break는 deprecated metadata와 명시적 분리 action으로만 이관한다. 개인화 원본·시작/완료 실행은 보존하고 신규 매뉴얼은 OFF로 가져온다.
+
+ManualWorkScreen은 서버 진단을 보여주고 설정/작업 시작/분리로 연결한다. TapSettingsScreen은 세 가지 사용 방식·제품/공정 기준·참고 매뉴얼을 편집한다. 사건 생성은 현재 관리자가 수동으로 시작한다. POS/자동 센서, 숫자 기준 자동 판정, 범용 지식 문서 DB와 다단계 버전 그래프는 미구현이다.

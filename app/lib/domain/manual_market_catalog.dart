@@ -19,6 +19,13 @@ class ManualMarketCatalog {
           .cast<Json>();
   List<String> industryIds(Json entry) =>
       (entry['industryIds'] as List? ?? ['all']).cast<String>();
+  String scopeOf(Json entry) =>
+      entry['knowledge']?['scope'] ??
+      (entry['collectionId'] == 'common'
+          ? 'food'
+          : entry['kind'] == 'legal' || entry['collectionId'] == 'business'
+          ? 'universal'
+          : 'menu');
   String industryName(String id) =>
       industries.where((i) => i['id'] == id).firstOrNull?['name'] ?? '업종 공통';
   String purposeName(Json entry) =>
@@ -28,11 +35,20 @@ class ManualMarketCatalog {
       '운영 업무';
   bool linked(Json entry) =>
       (entry['installed'] as List? ?? []).any((i) => i['mode'] == 'linked');
-  List<Json> search({String query = '', String? industry, String? kind}) {
+  List<Json> search({
+    String query = '',
+    String? industry,
+    String? kind,
+    String? scope,
+  }) {
     String normalize(String s) =>
         s.toLowerCase().replaceAll(RegExp(r'\s+'), '');
     final words = query.trim().split(RegExp(r'\s+')).map(normalize);
     return entries.where((entry) {
+      if ((entry['knowledge']?['supersededBy'] as List? ?? []).isNotEmpty) {
+        return false;
+      }
+      if (scope != null && scopeOf(entry) != scope) return false;
       final ids = industryIds(entry);
       if (industry != null && !ids.contains(industry) && !ids.contains('all')) {
         return false;

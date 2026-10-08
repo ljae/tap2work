@@ -152,7 +152,9 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
     if (saving || openingActor != widget.ops.actorId) return;
     final task = template;
     final recurrence = settings['recurrence'] as Json;
-    if (recurrence['mode'] == 'weekly' &&
+    if (settings['usage'] != 'event' &&
+        settings['usage'] != 'reference' &&
+        recurrence['mode'] == 'weekly' &&
         (recurrence['weekdays'] as List? ?? []).isEmpty) {
       setState(() => error = '반복 요일을 하나 이상 선택해 주세요.');
       return;
@@ -467,11 +469,12 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                   ),
                 ...[
                   const SizedBox(height: 16),
-                  WorkAssignmentField(
-                    ops: widget.ops,
-                    value: config['assignment'] as Json?,
-                    onChanged: (v) => update(() => config['assignment'] = v),
-                  ),
+                  if (config['usage'] != 'reference')
+                    WorkAssignmentField(
+                      ops: widget.ops,
+                      value: config['assignment'] as Json?,
+                      onChanged: (v) => update(() => config['assignment'] = v),
+                    ),
                   AppPillField<String>(
                     key: ValueKey('type-$selectedId'),
                     initialValue: config['type'],
@@ -485,49 +488,156 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                     ],
                     onChanged: (v) => update(() => config['type'] = v),
                   ),
-                  switchRow(
-                    '다음 업무에도 사용',
-                    config['enabled'] == true,
-                    (v) => update(() => config['enabled'] = v),
-                  ),
-                  const Text(
-                    '반복',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  AppSegmented<String>(
-                    segments: const [
-                      ButtonSegment(value: 'daily', label: Text('매일')),
-                      ButtonSegment(value: 'weekly', label: Text('요일 선택')),
+                  AppPillField<String>(
+                    key: ValueKey('usage-$selectedId'),
+                    initialValue:
+                        config['usage'] ??
+                        (config['enabled'] == true
+                            ? 'routine'
+                            : 'unclassified'),
+                    decoration: const InputDecoration(labelText: '매뉴얼 사용 방법'),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'unclassified',
+                        child: Text('아직 선택하지 않음'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'reference',
+                        child: Text('필요할 때 보기'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'routine',
+                        child: Text('정기적으로 확인'),
+                      ),
+                      DropdownMenuItem(value: 'event', child: Text('작업할 때 확인')),
                     ],
-                    selected: {recurrence['mode'] ?? 'daily'},
-                    onSelectionChanged: (v) => update(() {
-                      recurrence['mode'] = v.first;
-                      recurrence['weekdays'] = v.first == 'daily'
-                          ? <int>[]
-                          : [1];
+                    onChanged: (v) => update(() {
+                      if (v == 'unclassified') {
+                        config['usage'] = null;
+                        config['enabled'] = false;
+                      } else {
+                        config['usage'] = v;
+                        config['enabled'] = v != 'reference';
+                      }
+                      if (v == 'event') {
+                        config['eventKind'] ??=
+                            task['knowledge']?['eventKind'] ?? 'batch';
+                        config['allowBulkComplete'] = false;
+                        config['completionPolicy'] = {
+                          'kind': 'check',
+                          'quantitySpec': null,
+                        };
+                        if (config['assignment']?['mode'] == 'scheduled') {
+                          config['assignment'] = {'mode': 'anyone'};
+                        }
+                      }
                     }),
                   ),
-                  if (recurrence['mode'] == 'weekly')
-                    Wrap(
-                      spacing: 6,
+                  if (task['workStatus']?['label'] != null)
+                    Information('현재 저장 상태 · ${task['workStatus']['label']}'),
+                  if (config['usage'] == 'event') ...[
+                    const Information(
+                      '제품·배치별로 작업을 시작하면 업무가 만들어져요. 시간대 배정 대신 담당 크루 또는 직접 맡기를 선택하세요.',
+                    ),
+                    AppPillField<String>(
+                      initialValue: config['eventKind'] ?? 'batch',
+                      decoration: const InputDecoration(labelText: '작업 발생 시점'),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'batch',
+                          child: Text('제조·준비 배치'),
+                        ),
+                        DropdownMenuItem(value: 'opened', child: Text('제품 개봉')),
+                        DropdownMenuItem(value: 'thawed', child: Text('해동')),
+                        DropdownMenuItem(value: 'received', child: Text('입고')),
+                      ],
+                      onChanged: (v) => update(() => config['eventKind'] = v),
+                    ),
+                  ],
+                  if (task['knowledge']?['safetyReviewRequired'] == true)
+                    TextFormField(
+                      key: ValueKey('standard-$selectedId'),
+                      initialValue: config['operatingStandard'] ?? '',
+                      maxLength: 1000,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        labelText: '제품·공정별 매장 기준',
+                        hintText: '근거, 제품 상태, 시간·온도, 보관 조건과 이상 시 조치',
+                      ),
+                      onChanged: (v) =>
+                          update(() => config['operatingStandard'] = v),
+                    ),
+                  if (config['usage'] != 'reference')
+                    ExpansionTile(
+                      title: const Text('연결할 참고 매뉴얼'),
                       children: [
-                        for (var d = 1; d <= 7; d++)
-                          FilterChip(
-                            chipAnimationStyle: AppMotion.chipStyle(context),
-                            label: Text(days[d - 1]),
-                            selected: weekdays.contains(d),
-                            onSelected: (_) => update(() {
-                              final selected = List<int>.from(
-                                recurrence['weekdays'],
+                        for (final other
+                            in widget.ops
+                                .rows('taskTemplates')
+                                .where(
+                                  (t) =>
+                                      t['id'] != selectedId &&
+                                      t['archivedAt'] == null,
+                                ))
+                          CheckboxListTile(
+                            title: Text('${other['title']}'),
+                            value: (config['knowledgeIds'] as List? ?? [])
+                                .contains(other['id']),
+                            onChanged: (v) => update(() {
+                              final ids = List<String>.from(
+                                config['knowledgeIds'] ?? [],
                               );
-                              selected.contains(d)
-                                  ? selected.remove(d)
-                                  : selected.add(d);
-                              recurrence['weekdays'] = selected;
+                              if (v == true) {
+                                ids.add(other['id']);
+                              } else {
+                                ids.remove(other['id']);
+                              }
+                              config['knowledgeIds'] = ids;
                             }),
                           ),
                       ],
                     ),
+                  if (config['usage'] != 'event' &&
+                      config['usage'] != 'reference') ...[
+                    const Text(
+                      '반복',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    AppSegmented<String>(
+                      segments: const [
+                        ButtonSegment(value: 'daily', label: Text('매일')),
+                        ButtonSegment(value: 'weekly', label: Text('요일 선택')),
+                      ],
+                      selected: {recurrence['mode'] ?? 'daily'},
+                      onSelectionChanged: (v) => update(() {
+                        recurrence['mode'] = v.first;
+                        recurrence['weekdays'] = v.first == 'daily'
+                            ? <int>[]
+                            : [1];
+                      }),
+                    ),
+                    if (recurrence['mode'] == 'weekly')
+                      Wrap(
+                        spacing: 6,
+                        children: [
+                          for (var d = 1; d <= 7; d++)
+                            FilterChip(
+                              chipAnimationStyle: AppMotion.chipStyle(context),
+                              label: Text(days[d - 1]),
+                              selected: weekdays.contains(d),
+                              onSelected: (_) => update(() {
+                                final selected = List<int>.from(
+                                  recurrence['weekdays'],
+                                );
+                                selected.contains(d)
+                                    ? selected.remove(d)
+                                    : selected.add(d);
+                                recurrence['weekdays'] = selected;
+                              }),
+                            ),
+                        ],
+                      ),
+                  ],
                   switchRow(
                     'TAP에서 한 번에 완료 허용',
                     config['allowBulkComplete'] == true,

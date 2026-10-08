@@ -1,3 +1,4 @@
+import {knowledgeFields} from './knowledge_work.mjs';
 import release from '../docs/market/current.json' with {type:'json'};
 import {randomUUID,createHash} from 'node:crypto';
 import {StoreError} from './store.mjs';
@@ -38,11 +39,12 @@ export function syncManualCatalog(state,now,catalog=release){
   if(!source||!template)continue;
   const hash=contentHash(source);
   if(hash===link.contentHash){
+   if(JSON.stringify(template.knowledge)!==JSON.stringify(source.knowledge)){template.knowledge=structuredClone(source.knowledge);changed=true;}
    if(link.releaseId!==catalog.releaseId){link.releaseId=catalog.releaseId;link.evaluatedReleaseId=catalog.releaseId;changed=true;}
    continue;
   }
   const previous=structuredClone(template);
-  template.title=source.title;template.emoji=source.emoji;
+  template.knowledge=structuredClone(source.knowledge);template.title=source.title;template.emoji=source.emoji;
   template.steps=source.steps.map(step=>{
    const old=previous.steps.find(s=>s.id===step.id);
    return {...structuredClone(stepContent(step)),contentRevision:(old?.contentRevision??0)+(JSON.stringify(stepContent(old??{}))===JSON.stringify(stepContent(step))?0:1)};
@@ -62,11 +64,30 @@ function addTemplates(state,drafts){
 }
 export function checklistBackup(state){
  const templates=state.taskTemplates.filter(t=>!t.archivedAt && state.catalogLinks?.[t.id]?.mode!=='linked').map(t=>({
-  ...templateContent(t),folderId:t.folderId,slot:t.slot,
+  ...templateContent(t),id:t.id,...(t.knowledge?{knowledge:t.knowledge}:{}),folderId:t.folderId,slot:t.slot,
   settings:{...taskSettings(t),enabled:false,assignment:undefined},
  }));
  const ids=new Set(templates.map(t=>t.folderId));
  return {format:'tap2work-checklists',schemaVersion:1,sourceRevision:state.revision,externalMedia:'links_only',folders:state.checklistFolders.filter(f=>ids.has(f.id)).map(f=>({id:f.id,name:f.name})),templates};
+}
+// Explicit replacement preserves old definitions and started/completed execution snapshots.
+export function replaceMixedBreak(state,input,actor,now,catalog=release) {
+ if(!['owner','manager'].includes(actor.role)) fail('매니저 이상만 매뉴얼을 정리할 수 있어요.',403);
+ return receipt(state,input,actor,()=>{
+  const old=state.taskTemplates.find(t=>t.id===input.templateId&&!t.archivedAt);
+  if(!old || !(old.knowledge?.supersededBy?.length || old.id==='library-bonejjim-break' || state.catalogLinks?.[old.id]?.sourceId==='bonejjim/break')) fail('분리할 매뉴얼을 확인해 주세요.');
+  if(input.releaseId!==catalog.releaseId) fail('공용 목록을 새로 확인해 주세요.',409);
+  const ids=old.knowledge?.supersededBy??['common/break-service','food/service-reset','bonejjim/evening-prep'];
+  if(ids.some(id=>!catalog.entries.some(e=>e.sourceId===id))) fail('분리 매뉴얼의 공용 발행을 기다리고 있어요.');
+  const before=structuredClone(old);
+  const missing=ids.filter(sourceId=>!Object.entries(state.catalogLinks??{}).some(([id,l])=>l.sourceId===sourceId&&l.mode==='linked'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)));
+  if(missing.length)mutateManualMarket(state,{action:'import_market_taps',operationId:input.operationId+'-import',releaseId:catalog.releaseId,sourceIds:missing,folderMode:'purpose'},actor,now,catalog);
+  old.archivedAt=new Date(now).toISOString();old.settings={...taskSettings(old),usage:'reference',enabled:false};
+  if(state.catalogLinks?.[old.id])state.catalogLinks[old.id].mode='removed';
+  for(const task of state.tasks.filter(t=>t.templateId===old.id&&!t.workEvent&&!t.completedAt&&!t.archivedAt&&t.boardStatus!=='processing'&&!t.steps?.some(s=>s.completedAt))) task.archivedAt=old.archivedAt;
+  (state.catalogHistory??=[]).push({kind:'split-break',at:old.archivedAt,template:before,replacements:ids});
+  return ids;
+ });
 }
 export function mutateManualMarket(state,input,actor,now,catalog=release){
  if(!['configure_manual_business','import_market_taps','personalize_market_tap','restore_checklist_backup','save_manual_tap'].includes(input.action))return false;
@@ -118,12 +139,14 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
    addTemplates(state,drafts);
    drafts.forEach((draft,i)=>{
     const actual=state.taskTemplates.find(t=>t.id===draft.id),source=additions[i];
+    actual.knowledge=structuredClone(source.knowledge);
+    actual.settings.usage=input.enableOperations && source.kind!=='legal' && !source.knowledge?.safetyReviewRequired && !source.knowledge?.supersededBy?.length && !['reference','event'].includes(source.knowledge?.suggestedUse)?'routine':'reference';
     (state.catalogLinks??={})[draft.id]={mode:'linked',sourceId:source.sourceId,releaseId:catalog.releaseId,contentHash:contentHash(actual),importedAt:at};
 
    });
    if(input.enableOperations)for(const source of sources.filter(s=>s.kind!=='legal')){
     const template=state.taskTemplates.find(t=>!t.archivedAt&&state.catalogLinks?.[t.id]?.mode==='linked'&&state.catalogLinks[t.id].sourceId===source.sourceId);
-    if(template)saveTapSettings(state,{templateId:template.id,assignmentScopeVersion:2,settings:{...taskSettings(template),enabled:true}},now);
+    if(template && !source.knowledge?.safetyReviewRequired && !source.knowledge?.supersededBy?.length && source.knowledge?.suggestedUse!=='reference' && source.knowledge?.suggestedUse!=='event')saveTapSettings(state,{templateId:template.id,assignmentScopeVersion:2,settings:{...taskSettings(template),enabled:true}},now);
    }
    state.manualBusinessProfile={industryId:input.industryId,specialization:input.specialization.trim(),configuredAt:at,releaseId:catalog.releaseId};
    return drafts.map(t=>t.id);
@@ -148,7 +171,7 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
    state.checklistFolders=folders;
    const drafts=sources.map(s=>({id:uid(),title:s.title,emoji:s.emoji,folderId:destinations.get(s.sourceId),slot:s.slot,requiredRole:'all',partId:null,zone:null,steps:structuredClone(s.steps),sourceIds:[]}));
    addTemplates(state,drafts);
-   drafts.forEach((t,i)=>{const actual=state.taskTemplates.find(v=>v.id===t.id);(state.catalogLinks??={})[t.id]={mode:'linked',sourceId:sources[i].sourceId,releaseId:catalog.releaseId,contentHash:contentHash(actual),importedAt:new Date(now).toISOString()};});
+   drafts.forEach((t,i)=>{const actual=state.taskTemplates.find(v=>v.id===t.id);actual.knowledge=structuredClone(sources[i].knowledge);(state.catalogLinks??={})[t.id]={mode:'linked',sourceId:sources[i].sourceId,releaseId:catalog.releaseId,contentHash:contentHash(actual),importedAt:new Date(now).toISOString()};});
    return drafts.map(t=>t.id);
   }
   if(input.action==='personalize_market_tap'){
@@ -173,7 +196,13 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
   state.checklistFolders=checked.folders;
   addTemplates(state,drafts);
   drafts.forEach((t,i)=>{
-   const settings={...blankSettings(),...file.templates[i].settings,assignment:undefined,enabled:false};
+   const original=file.templates[i];
+   const actual=state.taskTemplates.find(v=>v.id===t.id);
+   if(original.knowledge)actual.knowledge=knowledgeFields(original.knowledge);
+   const ids=file.templates.map(row=>row.id).filter(Boolean);
+   if(new Set(ids).size!==ids.length)fail('백업 매뉴얼 ID가 중복됐어요.');
+   const references=(original.settings?.knowledgeIds??[]).map(id=>file.templates.findIndex(row=>row.id===id)).filter(index=>index>=0&&drafts[index].id!==t.id).map(index=>drafts[index].id);
+   const settings={...blankSettings(),...original.settings,assignment:undefined,enabled:false,usage:original.settings?.usage?'reference':undefined,knowledgeIds:references};
    delete settings.assignment;
    saveTapSettings(state,{templateId:t.id,assignmentScopeVersion:2,settings},now);
    (state.catalogLinks??={})[t.id]={mode:'personalized',restoredAt:new Date(now).toISOString()};
@@ -186,7 +215,7 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
 // Only successful creation receipts may bypass a stale revision; authorization is
 // checked by the caller first. A changed payload or actor must never replay it.
 export function manualMarketReplay(state,input,actor){
- if(!['configure_manual_business','import_market_taps','personalize_market_tap','restore_checklist_backup','save_manual_tap'].includes(input.action))return false;
+ if(!['replace_mixed_break','configure_manual_business','import_market_taps','personalize_market_tap','restore_checklist_backup','save_manual_tap'].includes(input.action))return false;
  const previous=state.catalogOperations?.[input.operationId];if(!previous)return false;
  const {revision,operationId,...body}=input;
  const hash=createHash('sha256').update(JSON.stringify(body)).digest('hex');

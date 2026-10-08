@@ -1,6 +1,7 @@
+import {workEligibility,workStatus,startManualWork,eventReplay,knowledgeSnapshots} from './knowledge_work.mjs';
 import { storeSetupCatalog } from './store_setup.mjs';
 import {manualPrintView,saveManualPrintTranslation} from './manual_print.mjs';
-import {manualCatalog,syncManualCatalog,manualMarketReplay,reconcileCatalogLinks,catalogView,checklistBackup,mutateManualMarket} from './manual_market.mjs';
+import {manualCatalog,replaceMixedBreak,syncManualCatalog,manualMarketReplay,reconcileCatalogLinks,catalogView,checklistBackup,mutateManualMarket} from './manual_market.mjs';
 import { ensureDefaultAssignments, scheduleRange } from './default_assignments.mjs';
 import { tapOnly, assertContentOnly, policyReport, convertPolicy, updateContentRevisions } from './tap_policy.mjs';
 import { businessDate, boundaryOf, shiftDate } from './business_day.mjs';
@@ -40,6 +41,7 @@ function manualSearchIndex(state) {
         tapId: template ? task.id : `occurrence:${task.id}`,
         templateId: template ? task.id : null,
         menuManualId: task.menuManualId ?? null,
+        knowledgeIds: task.settings?.knowledgeIds??[],
         sourceStepId: step.id,
         editable: template,
         estimatedMinutes: tapOnly(task) ? null : step.settings?.estimatedMinutes ?? null,
@@ -270,14 +272,14 @@ function ensureDueTasks(state, now, catalog = manualCatalog, catalogRevision = n
   if (ensureOrderTaps(state, now)) changed = true;
   if (ensurePreparationTaps(state, now)) changed = true;
   for (const template of state.taskTemplates) {
-    if (template.archivedAt || template.generationNotBeforeBusinessDate > date || template.menuManualId || template.steps.length === 0 || !repeatsOn(template, date)) continue;
+    if (workEligibility(state,template,date)[0]!=='ready' || template.archivedAt || template.generationNotBeforeBusinessDate > date || template.menuManualId || template.steps.length === 0 || !repeatsOn(template, date)) continue;
     const existing = state.tasks.filter(task => task.templateId === template.id && task.date === date && !task.archivedAt);
     // Settings changes leave started/completed snapshots alone, including their band set.
     if (existing.some(task => task.timeBandId == null && task.version !== template.version && (task.completedAt || task.boardStatus === 'processing' || task.steps?.some(s => s.completedAt)))) continue;
     for (const occurrence of assignmentOccurrences(state, template, date)) {
       const id = `daily-${template.id}-v${template.version}-${date}${occurrence.timeBandId ? `-band-${encodeURIComponent(occurrence.timeBandId)}` : ''}`;
       if (!existing.some(task => (task.timeBandId ?? null) === occurrence.timeBandId)) {
-        state.tasks.push({ ...structuredClone(template), ...structuredClone(occurrence), templateId: template.id, id, date, businessDayStart: boundaryOf(state), dueAt: iso(now), kind: 'routine', boardStatus: 'todo', completedAt: null, completedBy: null }); changed = true;
+        state.tasks.push({ ...structuredClone(template), knowledgeSnapshots:knowledgeSnapshots(state,template), ...structuredClone(occurrence), templateId: template.id, id, date, businessDayStart: boundaryOf(state), dueAt: iso(now), kind: 'routine', boardStatus: 'todo', completedAt: null, completedBy: null }); changed = true;
       }
     }
   }
@@ -354,7 +356,7 @@ export class OperationsStore {
     result.items = result.items.filter(item => !item.archivedAt);
     if (actor.role !== 'owner') result.activity = result.activity.filter(entry =>
       entry.kind !== 'pay' && !/^(?:급여 지급 기록|추가보수) [\d,]+원(?:$|\s)/.test(entry.message));
-    result.tasks = result.tasks.filter(task => !task.supersededAt && !task.archivedAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day));
+    result.tasks = result.tasks.filter(task => !task.supersededAt && !task.archivedAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day || task.workEvent && !task.completedAt));
     for (const item of result.items) {
       const review = stockReview(item);
       const task = review && state.tasks.find(task => task.id === review.id);
@@ -363,7 +365,7 @@ export class OperationsStore {
       item.reviewCompletedBy = task?.completedBy ?? null;
       item.reviewCompletedAt = task?.completedAt ?? null;
     }
-    if (result.canEditTasks) for (const template of result.taskTemplates) template.policyReport = policyReport(template);
+    if (result.canEditTasks) for (const template of result.taskTemplates) {template.policyReport = policyReport(template);template.workStatus=workStatus(state,template,state.day,this.catalog);}
     const completionEnabled = actor.role === 'owner' || state.workplace?.restrictions?.[actor.role]?.complete !== false;
     const assignments = assignmentContext(state);
     for (const task of result.tasks) {
@@ -421,6 +423,7 @@ export class OperationsStore {
       if (input.action === 'split_tap_policy' && input.operationId && state.tapPolicyHistory?.some(h => h.operationId === input.operationId && h.actor.id === actor.id && h.template.id === input.templateId)) return this.#view(state,actor);
       actor = actorWithParts(state, actor);
       checkWorkplacePermission(state, actor, input.action);
+      if (eventReplay(state,input,actor)) return this.#view(state,actor);
       if (manualMarketReplay(state,input,actor)) return this.#view(state,actor);
       if (input.revision !== state.revision) fail('다른 동료가 먼저 업데이트했어요. 최신 내용을 확인하고 다시 눌러 주세요.', 409);
       const scheduleDates = scheduleRange(input);
@@ -637,6 +640,28 @@ export class OperationsStore {
           if (!template) fail('TAP 양식을 찾지 못했어요.',404);
           return {...this.#view(state,actor),tapPolicyPreview:{templateId:template.id,templateVersion:template.version,revision:state.revision,...policyReport(template)}};
         }
+        case 'replace_mixed_break': {
+          leadership(actor); replaceMixedBreak(state,input,actor,now,this.catalog);activity('브레이크 공통 업무와 메뉴 준비 분리');break;
+        }
+        case 'flag_work_issue':
+        case 'resolve_work_issue': {
+          const task=state.tasks.find(t=>t.id===input.taskId&&t.workEvent&&!t.archivedAt&&!t.completedAt);
+          if(!task) fail('진행 중인 작업을 확인해 주세요.',404);
+          if(!allowed(actor,task,state)) fail('담당 업무를 확인해 주세요.',403);
+          if(typeof input.reason!=='string'||!input.reason.trim()||input.reason.length>500) fail('상태와 조치를 500자 이내로 적어 주세요.');
+          if(input.action==='resolve_work_issue') {
+            leadership(actor);
+            if(task.workIssue?.status!=='open') fail('확인할 이상 기록이 없어요.');
+            task.workIssue={...task.workIssue,status:'resolved',resolution:input.reason.trim(),resolvedAt:iso(now),resolvedBy:who};
+          } else {
+            (task.workIssueHistory??=[]).push(...(task.workIssue?[structuredClone(task.workIssue)]:[]));
+            task.workIssue={status:'open',reason:input.reason.trim(),at:iso(now),actor:who};
+          }
+          activity('작업 이상·조치 기록');break;
+        }
+        case 'start_manual_work': {
+          leadership(actor); startManualWork(state,input,actor,now); activity('작업별 체크리스트 생성'); break;
+        }
         case 'save_tap_settings': {
           leadership(actor);
           const before = state.taskTemplates.find(t => t.id === input.templateId);
@@ -674,7 +699,8 @@ export class OperationsStore {
           if (!task) fail('업무를 찾지 못했어요.', 404);
           if (task.archivedAt) fail('업무가 변경되었어요. 최신 카드를 확인해 주세요.', 409);
           if (task.supersededAt || new Date(task.dueAt) > now) fail('발주 기준 확인 예정일이 바뀌었어요. 최신 업무를 확인해 주세요.', 409);
-          if (task.kind === 'routine' && task.date !== state.day) fail('오늘 업무를 다시 확인해 주세요.', 409);
+          if (task.kind === 'routine' && !task.workEvent && task.date !== state.day) fail('오늘 업무를 다시 확인해 주세요.', 409);
+          if(task.workIssue?.status==='open') fail('이상 기록의 조치를 먼저 확인해 주세요.',409);
           if (task.completedAt) fail(`${task.completedBy.name}님이 이미 확인했어요.`, 409);
           const selectedStep = input.action === 'complete_step' ? task.steps?.find(step => step.id === input.stepId) : null;
           if (!(selectedStep ? canCompleteStep(actor, task, selectedStep, state) : task.steps?.length ? task.steps.filter(s => !s.completedAt).every(s => canCompleteStep(actor, task, s, state)) : allowed(actor, task, state))) fail('이 업무의 담당 직급이 아니에요. 매니저에게 알려 주세요.', 403);
@@ -685,6 +711,10 @@ export class OperationsStore {
             if (step.completedAt) fail('동료가 이미 확인한 행위예요.', 409);
             const issue = completeStepIssue(actor, task, step, input.quantity, state);
             if (issue) fail(issue, issue.includes('담당') ? 403 : 409);
+            if (task.workEvent && task.knowledge?.safetyReviewRequired) {
+              if(typeof input.evidence!=='string'||!input.evidence.trim()||input.evidence.length>500) fail('실제 시간·온도·상태와 조치를 기록해 주세요.');
+              step.evidence={value:input.evidence.trim(),at:iso(now),actor:who};
+            }
             if (task.preparedItemId && task.steps.filter(row => !row.completedAt).length === 1) {
               finishPreparation(state, task, input.quantity, now, who);
             }
