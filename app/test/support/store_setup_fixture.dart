@@ -8,6 +8,23 @@ Json setupCatalogFixture() {
           as Json;
   return {
     ...release,
+    'bundleVersion': 'test-bundle-v1',
+    'bundles': {
+      'donkatsu': [
+        {
+          'id': 'donkatsu-1',
+          'name': '등심 돈까스',
+          'ingredients': ['돼지등심', '빵가루'],
+          'method': '매장 기준으로 튀김옷을 입혀 조리해요.',
+        },
+        {
+          'id': 'donkatsu-2',
+          'name': '치즈 돈까스',
+          'ingredients': ['돼지등심', '치즈'],
+          'method': '치즈를 넣고 매장 기준으로 조리해요.',
+        },
+      ],
+    },
     'businessTypes': [
       {
         'id': 'chicken',

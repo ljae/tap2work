@@ -147,3 +147,18 @@ test('fixture smoke cannot export a production draft', async t => {
   for (let index = 0; index < 5; index++) { const packet = team.next('job'); team.record('job', fixtureArtifact(packet), packet.leaseId); }
   await assert.rejects(team.exportRelease('job', {}), /Fixture jobs/);
 });
+
+test('Aside runner reads guide, excludes service credentials and records researcher in existing queue',async t=>{
+ const {runAside}=await import('../../scripts/content-team.mjs');
+ const {root}=setup(t);const team=new ContentTeam({root:join(root,'aside')});
+ team.init('menu-research',{...scope,mode:'research',gap:'돈까스 메뉴 재료 레시피'});
+ const packet=team.next('menu-research');
+ const artifact={schemaVersion:1,jobId:packet.jobId,role:packet.role,inputHash:packet.inputHash,result:{gaps:['recipe'],sources:[],claims:[],unresolved:['fixture executable; external research not performed']}};
+ const executable=join(root,'fake-aside');
+ writeFileSync(executable,`#!/usr/bin/env node\nif(process.env.SUPABASE_SECRET_KEY)process.exit(9); if(process.argv[2]==='guide')console.log('aside exec public browser guide');else console.log(${JSON.stringify(JSON.stringify(artifact))});`,{mode:0o700});
+ process.env.SUPABASE_SECRET_KEY='must-not-leak';t.after(()=>delete process.env.SUPABASE_SECRET_KEY);
+ const output=await runAside(packet,{executable,maxSeconds:5});
+ team.record('menu-research',output,packet.leaseId);
+ assert.equal(team.next('menu-research').role,'editor');
+ await assert.rejects(()=>runAside({...packet,role:'editor'},{executable}),/research-mode/);
+});

@@ -400,6 +400,11 @@ class _CatalogEditorState extends State<CatalogEditor> {
                   ),
                 ),
               ],
+              if (menus.any((m) => m['setupNeedsReview'] == true) ||
+                  items.any((i) => i['setupNeedsReview'] == true))
+                const Information(
+                  '업종별 기본 초안이에요. 메뉴·재료의 수정 메뉴에서 가격·단위·공급처·발주 기준을 확인하고, 매뉴얼 → 메뉴·레시피에서 조리 방법을 수정해 주세요.',
+                ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -425,7 +430,11 @@ class _CatalogEditorState extends State<CatalogEditor> {
                 AppCard(
                   child: ListTile(
                     title: Text('${menu['name']}'),
-                    subtitle: Text('${menu['category']} · ${menu['price']}원'),
+                    subtitle: Text(
+                      menu['setupNeedsReview'] == true
+                          ? '${menu['category']} · 기본 메뉴 — 가격을 확인해 주세요'
+                          : '${menu['category']} · ${menu['price']}원',
+                    ),
                     trailing: ops.isLeader
                         ? PopupMenuButton<String>(
                             popUpAnimationStyle: AppMotion.dialogStyle(context),

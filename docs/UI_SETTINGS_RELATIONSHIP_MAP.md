@@ -407,3 +407,10 @@ S52 삭제 범위는 모든 소속 매장의 목록으로 확장한다. 유일 �
 S08 POS/배달은 설정완료/사용중 이중 스위치를 단일 상태 선택으로 통합한다. 별도 크루 숫자/채용 목표 입력 탭과 프로필 운영 탭·주문처리 링크를 제거한다. 인원은 S03, 주문 보드는 S06, 실제 크루는 S10이며 같은 값의 복제 폼을 새로 두지 않는다. 매장 프로필 저장은 opening revision/actor/workspace를 유지하고 텍스트·선택 초안 취소 확인을 제공한다. [영역별 점검](STORE_SETUP_AUDIT_2026-10-08.md).
 
 S08/S03 설정 요약: store.profile·workplace.days/parts·taskTemplates → 우리매장 카드의 업종/POS제품/배달플랫폼/영업일·시간·교대/사용 파트/TAP 수 → 같은 영역 편집 → 저장 응답을 받아 즉시 재표시. 읽기 요약에 별도 캐시/복제 저장값을 만들지 않는다. 검증: menu_layout_test, operations_test, workspace_test, ui_ux_audit_test.
+
+2026-10-08 후속 S55/S56: 최초 등록의 POS·배달앱 단계/요약은 제외한다. 기존 설정 데이터와 구버전 요청 호환은 유지한다. 업종 → 메뉴 후보 2개 선택 → setup.menuIds/bundleVersion → sales.menus/ingredientIds, 중복 제거 items(재고0), menuManualId로 연결된 메뉴·레시피 TAP(업무OFF). 메뉴·재료는 CatalogEditor, 레시피는 기존 매뉴얼 편집에서 수정한다. customParts의 임시 ID는 기존 파트 mutation이 발급한 ID로 headcounts까지 변환한다. 인원 입력은 최대 3파트/단계다.
+
+| ID | source → control → action | consumer · 보호 경계 | 검증 |
+| --- | --- | --- | --- |
+| S57 | 주소 입력 → StoreAddressField/표준 주소 검색 → 공식 검색 iframe 선택 → profile.addressSelection/addressDetail | 신규/기존 매장 같은 컨트롤, 동일 origin+frame 검증, 표준주소와 상세주소 분리. 미선택 검색어는 신규 등록 불가; 검색 실패/취소 시 초안 보존 | store_setup.test.mjs, store_setup_test.dart, Flutter analyze/web build |
+| S58 | storeSetupCatalog.bundles/bundleVersion → 메뉴 선택 → applyStoreBundle | 업종에 맞는 메뉴 ID/버전 검증, 새 매장에만 저장, 기존 메뉴/재료/매뉴얼 편집 재사용. 주문·재고 증가·외부 연결 없음 | store_setup.test.mjs, store_setup_test.dart |

@@ -112,3 +112,7 @@ API는 인증 사용자+requestId가 이미 생성됐으면 기존 매장부터 
 ## 2026-10-08 웹 배포 후속
 
 사용자 요청으로 웹과 필요한 operations API를 배포했다. 코드 460533ec1b3c31f75a333913b1d24ab438f540d8, Actions 37759423579 build/deploy success. 공개 root/index·버전 bootstrap/main이 CI artifact와 SHA256 일치, 정책/계정삭제 페이지200. 네이티브 빌드/업로드·DB migration·운영 데이터 생성 없음. 실제 인증 세션의 매장 생성은 미실시이며 API 미인증401 확인을 기능 검증으로 간주하지 않는다.
+
+## 2026-10-08 업종별 초기 묶음 후속
+
+최신 사용자 지시: 표준주소 검색/선택, 파트 직접 추가, POS·배달앱 초기 설정 제외, 업종별 매뉴얼/체크리스트/메뉴/재료/레시피와 기존 편집 연결. `developer/store_bundle.mjs`가 13업종×2 기본 후보 및 버전 계약, `applyStoreSetup`이 customParts ID를 기존 파트 mutation으로 발급/인원 매핑한다. `StoreAddressField`는 새 등록/기존 매장 정보 공통이며 웹 공식 postcode iframe과 표준주소/상세주소 분리. 기존 클라이언트/매장 데이터를 보존한다. 레시피는 구체 배합/온도/시간을 추정하지 않은 초안이다. `scripts/content-team.mjs run --runner aside`는 researcher만 공개 자료 조사하고 기존 큐의 편집/검토/QA를 따른다. 실제 Aside 조사와 미확인 사항은 `STORE_BUNDLE_RESEARCH_2026-10-08.md`. 정기 실행/자동 발행 없음.

@@ -2,17 +2,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import 'address_search.dart';
 import 'time_wheel.dart';
 import 'workplace_screens.dart' show SettingRow;
 
 const storeServiceModes = {'hall': '홀', 'takeout': '포장', 'delivery': '배달'};
-const setupParts = {'kitchen': '주방', 'hall': '홀', 'management': '관리'};
+// Shared labels for the existing advanced settings summary.
 const setupPlatforms = {
   'baemin': '배달의민족',
   'coupang-eats': '쿠팡이츠',
   'yogiyo': '요기요',
   'other': '기타',
 };
+const setupParts = {'kitchen': '주방', 'hall': '홀', 'management': '관리'};
 
 List<Json> storeBusinessTypes(OperationsController ops) =>
     (ops.data?['storeSetupCatalog']?['businessTypes'] as List? ?? [])
@@ -49,6 +51,11 @@ class StoreSetupScreen extends StatefulWidget {
 class _StoreSetupScreenState extends State<StoreSetupScreen> {
   final name = TextEditingController();
   final address = TextEditingController();
+  final addressDetail = TextEditingController();
+  final partName = TextEditingController();
+  Json? addressSelection;
+  final partLabels = <String, String>{...setupParts};
+  final menuIds = <String>{};
   final arrival = TextEditingController();
   final scroll = ScrollController();
   late final requestId = _uuid();
@@ -57,9 +64,8 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
   final weekdays = <int>{1, 2, 3, 4, 5, 6, 7};
   final parts = <String>{'kitchen', 'hall', 'management'};
   final headcounts = <String, int>{'kitchen': 1, 'hall': 1, 'management': 0};
-  final platforms = <String>{};
   final selected = <String>{};
-  String opening = '09:00', closing = '21:00', pos = 'unset';
+  String opening = '09:00', closing = '21:00';
   bool enableOperations = false, saving = false, completed = false;
   int step = 0, shiftCount = 1;
   bool hasBreak = false;
@@ -78,12 +84,13 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
     'shifts',
     'break',
     'parts',
-    'counts',
-    'pos',
-    if (modes.contains('delivery')) 'delivery',
+    for (var i = 0; i < (parts.length / 3).ceil(); i++) 'counts-$i',
+    'menus',
     'manual',
     'review',
   ];
+  List<Json> get menuSuggestions =>
+      (catalog['bundles']?[typeId] as List? ?? []).cast<Json>();
   String get current => steps[step.clamp(0, steps.length - 1)];
   List<Json> get recommended => (catalog['entries'] as List? ?? [])
       .cast<Json>()
@@ -108,6 +115,8 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
   void dispose() {
     name.dispose();
     address.dispose();
+    addressDetail.dispose();
+    partName.dispose();
     arrival.dispose();
     scroll.dispose();
     super.dispose();
@@ -118,6 +127,9 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
     action();
   });
   void recommend() {
+    menuIds
+      ..clear()
+      ..addAll(menuSuggestions.map((e) => e['id'] as String));
     selected
       ..clear()
       ..addAll(recommended.map((e) => e['sourceId'] as String));
@@ -133,6 +145,9 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
     'name' when name.text.trim().isEmpty => '매장 이름을 입력해 주세요.',
     'type' when type == null => '매장 업종을 선택해 주세요.',
     'service' when modes.isEmpty => '운영 형태를 하나 이상 선택해 주세요.',
+    'location'
+        when address.text.trim().isNotEmpty && addressSelection == null =>
+      '표준 주소 검색에서 주소를 선택해 주세요.',
     'days' when weekdays.isEmpty => '영업일을 하루 이상 선택해 주세요.',
     'hours' when opening == closing => '시작과 종료 시간을 다르게 선택해 주세요.',
     'parts' when parts.isEmpty => '파트를 하나 이상 선택해 주세요.',
@@ -172,6 +187,8 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
       'setup': {
         'businessTypeId': typeId,
         'address': address.text.trim(),
+        'addressSelection': addressSelection,
+        'addressDetail': addressDetail.text.trim(),
         'arrivalNote': arrival.text.trim(),
         'serviceModes': modes.toList(),
         'weekdays': weekdays.toList(),
@@ -180,11 +197,15 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
         'shiftCount': shiftCount,
         'breakTime': hasBreak ? {'start': breakStart, 'end': breakEnd} : null,
         'partIds': parts.toList(),
+        'customParts': [
+          for (final entry in partLabels.entries.where(
+            (e) => !setupParts.containsKey(e.key),
+          ))
+            {'id': entry.key, 'name': entry.value},
+        ],
+        'bundleVersion': catalog['bundleVersion'],
+        'menuIds': menuIds.toList(),
         'headcounts': {for (final p in parts) p: headcounts[p]},
-        'pos': pos,
-        'deliveryPlatforms': modes.contains('delivery')
-            ? platforms.toList()
-            : <String>[],
         'releaseId': catalog['releaseId'],
         'sourceIds': selected.toList(),
         'enableOperations': enableOperations,
@@ -198,6 +219,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
       await widget.ops.refresh(force: true);
       if (!mounted) return;
       submitted = null;
+      menuIds.retainAll(menuSuggestions.map((e) => e['id'] as String));
       selected.retainAll(recommended.map((e) => e['sourceId'] as String));
       step = steps.indexOf('manual');
     }
@@ -296,9 +318,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
             },
           ),
           if (typeId == 'donkatsu')
-            const Information(
-              '돈까스는 튀김 작업 공통 매뉴얼로 시작해요. 매장 레시피는 등록 후 추가할 수 있어요.',
-            ),
+            const Information('돈까스 메뉴·재료와 튀김 작업 공통 매뉴얼을 함께 준비해요.'),
         ];
       case 'service':
         return [
@@ -310,10 +330,17 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
         ];
       case 'location':
         return [
-          TextField(
+          StoreAddressField(
             controller: address,
-            maxLength: 200,
-            decoration: const InputDecoration(labelText: '주소 · 선택'),
+            onSelected: (value) => change(() => addressSelection = value),
+          ),
+          TextField(
+            controller: addressDetail,
+            maxLength: 100,
+            decoration: const InputDecoration(
+              labelText: '상세 주소 · 선택',
+              hintText: '층·호수',
+            ),
           ),
           TextField(
             controller: arrival,
@@ -396,23 +423,52 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
         ];
       case 'parts':
         return [
-          choices(setupParts, parts, (id) => toggle(parts, id)),
+          choices(partLabels, parts, (id) => toggle(parts, id)),
+          TextField(
+            controller: partName,
+            maxLength: 40,
+            decoration: const InputDecoration(
+              labelText: '새 파트 이름',
+              hintText: '예: 제빵, 포장',
+            ),
+          ),
+          OutlinedButton.icon(
+            onPressed: partLabels.length >= 12
+                ? null
+                : () {
+                    final value = partName.text.trim();
+                    if (value.isEmpty || partLabels.values.contains(value)) {
+                      change(() => error = '중복되지 않는 파트 이름을 입력해 주세요.');
+                      return;
+                    }
+                    change(() {
+                      final id = 'custom-${_uuid()}';
+                      partLabels[id] = value;
+                      parts.add(id);
+                      headcounts[id] = 1;
+                      partName.clear();
+                    });
+                  },
+            icon: const Icon(Icons.add),
+            label: const Text('파트 추가'),
+          ),
           const Text(
             '파트는 업무를 나누는 기준이에요. 직책별 권한은 별도로 관리해요.',
             style: AppText.caption,
           ),
         ];
-      case 'counts':
+      case final countStep when countStep.startsWith('counts-'):
         return [
-          for (final id in parts)
+          for (final id
+              in parts.skip(int.parse(current.split('-').last) * 3).take(3))
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${setupParts[id]} · 필요 인원', style: AppText.body),
+                Text('${partLabels[id]} · 필요 인원', style: AppText.body),
                 Row(
                   children: [
                     IconButton(
-                      tooltip: '${setupParts[id]} 인원 줄이기',
+                      tooltip: '${partLabels[id]} 인원 줄이기',
                       onPressed: headcounts[id]! > 0
                           ? () => change(
                               () => headcounts[id] = headcounts[id]! - 1,
@@ -422,7 +478,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
                     ),
                     Text('${headcounts[id]}명'),
                     IconButton(
-                      tooltip: '${setupParts[id]} 인원 늘리기',
+                      tooltip: '${partLabels[id]} 인원 늘리기',
                       onPressed: headcounts[id]! < 12
                           ? () => change(
                               () => headcounts[id] = headcounts[id]! + 1,
@@ -439,27 +495,30 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
             style: AppText.caption,
           ),
         ];
-      case 'pos':
+      case 'menus':
         return [
-          choices(
-            const {
-              'unset': '나중에 설정',
-              'none': '사용 안 함',
-              'okpos': '오케이포스',
-              'other': '기타 POS',
-            },
-            {pos},
-            (id) => pos = id,
-          ),
           const Text(
-            '사용 정보를 저장해요. 실제 주문 연동은 별도로 연결해야 해요.',
+            '선택한 메뉴의 주요 재료와 레시피 초안을 함께 준비해요. 가격·분량·조리 기준은 매장에 맞게 수정해 주세요.',
             style: AppText.caption,
           ),
-        ];
-      case 'delivery':
-        return [
-          choices(setupPlatforms, platforms, (id) => toggle(platforms, id)),
-          const Text('선택 없이 다음으로 가면 나중에 설정할 수 있어요.', style: AppText.caption),
+          if (menuSuggestions.isEmpty)
+            const Information(
+              '이 업종은 메뉴를 직접 추가해 주세요. 등록 후 우리매장 → 메뉴에서 추가할 수 있어요.',
+            ),
+          for (final menu in menuSuggestions)
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              value: menuIds.contains(menu['id']),
+              onChanged: (_) => change(() => toggle(menuIds, menu['id'])),
+              title: Text(menu['name']),
+              subtitle: Text(
+                '주요 재료: ${(menu['ingredients'] as List).join(', ')}\n${menu['method']}',
+              ),
+            ),
+          const Text(
+            '재고는 0으로 시작해요. 메뉴 가격과 재료 단위·공급처·발주 기준을 등록 후 확인해 주세요.',
+            style: AppText.caption,
+          ),
         ];
       case 'manual':
         return [
@@ -510,7 +569,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
           ),
           summary(
             '주소·찾아오는 안내',
-            address.text.trim().isEmpty ? '나중에 설정' : address.text.trim(),
+            address.text.trim().isEmpty ? '나중에 설정' : '${address.text.trim()} ${addressDetail.text.trim()}'.trim(),
             'location',
           ),
           summary(
@@ -526,34 +585,17 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
           ),
           summary(
             '파트·필요 인원',
-            parts.map((p) => '${setupParts[p]} ${headcounts[p]}명').join(' · '),
-            'counts',
+            parts.map((p) => '${partLabels[p]} ${headcounts[p]}명').join(' · '),
+            'counts-0',
           ),
-          summary(
-            'POS',
-            const {
-              'unset': '나중에 설정',
-              'none': '사용 안 함',
-              'okpos': '오케이포스',
-              'other': '기타 POS',
-            }[pos]!,
-            'pos',
-          ),
-          if (modes.contains('delivery'))
-            summary(
-              '배달 플랫폼',
-              platforms.isEmpty
-                  ? '나중에 설정'
-                  : platforms.map((p) => setupPlatforms[p]).join(' · '),
-              'delivery',
-            ),
+          summary('메뉴·재료·레시피', '${menuIds.length}개 메뉴와 주요 재료', 'menus'),
           summary(
             '기본 매뉴얼',
             '${selected.length} TAP · ${enableOperations ? '영업일마다 업무 사용' : '매뉴얼만 준비'}',
             'manual',
           ),
           const Text(
-            '크루·요일별 교대·메뉴·재고·배치도·정산·권한은 등록 후 우리매장에서 이어서 설정해요.',
+            '메뉴 가격·재료 기준은 우리매장, 레시피는 매뉴얼 → 메뉴·레시피에서 수정해요. 크루·배치도·정산도 이어서 설정할 수 있어요.',
             style: AppText.caption,
           ),
         ];
@@ -574,8 +616,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
       'break': '브레이크 타임이 있나요?',
       'parts': '어떤 파트가 필요한가요?',
       'counts': '파트마다 몇 명이 필요한가요?',
-      'pos': '어떤 POS를 사용하나요?',
-      'delivery': '어떤 배달앱을 사용하나요?',
+      'menus': '기본 메뉴와 재료를 준비했어요',
       'manual': '기본 매뉴얼을 준비했어요',
       'review': '이 설정으로 시작할까요?',
     };
@@ -591,7 +632,11 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
         }
       },
       child: AppEditorScaffold(
-        title: completed ? '매장 준비가 끝났어요' : titles[current]!,
+        title: completed
+            ? '매장 준비가 끝났어요'
+            : current.startsWith('counts-')
+            ? '파트마다 몇 명이 필요한가요?'
+            : titles[current]!,
         subtitle: completed
             ? '우리매장에서 같은 항목을 찾아 수정할 수 있어요.'
             : '${step + 1} / ${steps.length} · 새 매장 등록',

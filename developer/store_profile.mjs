@@ -49,6 +49,12 @@ export function saveStoreProfile(state, section, values) {
       profile.serviceModes = rows(values.serviceModes ?? [], '운영 형태', 3).map(mode => choice(mode, ['hall', 'takeout', 'delivery'], '운영 형태'));
       unique(profile.serviceModes, '운영 형태');
       profile.address = short(values.address, '주소', 200);
+      if (values.addressSelection !== undefined) {
+        const selection = values.addressSelection;
+        if (selection !== null && (selection.provider !== 'kakao-postcode' || selection.address !== profile.address || !/^\d{5}$/.test(selection.zonecode))) fail('검색 결과에서 주소를 선택해 주세요.');
+        profile.addressSelection = selection === null ? null : Object.fromEntries(['provider','address','roadAddress','jibunAddress','zonecode','buildingName','bname'].map(key=>[key,short(selection[key], '표준 주소',200)]));
+      } else if (profile.addressSelection?.address !== profile.address) profile.addressSelection = null;
+      if (values.addressDetail !== undefined) profile.addressDetail = short(values.addressDetail,'상세 주소',100);
       profile.arrivalNote = short(values.arrivalNote, '찾아오는 안내', 300);
       state.store.name = name;
       state.store.note = short(values.note ?? state.store.note ?? '', '매장 안내', 500);

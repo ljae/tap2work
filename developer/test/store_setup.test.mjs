@@ -56,3 +56,38 @@ test('setup uses injected published catalog and stable generic industry metadata
  assert.equal(state.store.profile.businessTypeId,'korean');assert.equal(state.taskTemplates[0].title,'새 발행 튀김 준비');
  assert.throws(()=>saveStoreProfile(state,'basic',{name:'카페',industryId:'cafe',businessTypeId:'korean'}));
 });
+
+test('industry bundle creates linked editable recipes and deduplicated zero-stock ingredients without order integrations',async()=>{
+ for(const type of catalog.businessTypes){
+  const menus=catalog.bundles[type.id];
+  const state=create(setup({businessTypeId:type.id,sourceIds:[],pos:undefined,deliveryPlatforms:undefined,bundleVersion:catalog.bundleVersion,menuIds:menus.map(m=>m.id)}));
+  assert.equal(state.sales.menus.length,menus.length);
+  assert.equal(state.taskTemplates.length,menus.length);
+  assert.equal(state.orders.length,0);assert.equal(state.sales.tickets.length,0);
+  assert.equal(new Set(state.items.map(i=>i.name)).size,state.items.length);
+  assert.ok(state.items.every(i=>i.quantity===0&&i.lastOrderedAt===null&&i.price===0));
+  for(const menu of state.sales.menus){
+   assert.ok(menu.ingredientIds.every(id=>state.items.some(i=>i.id===id)));
+   const recipe=state.taskTemplates.find(t=>t.menuManualId===menu.id);
+   assert.equal(recipe.settings.enabled,false);assert.match(recipe.steps[0].manual,/매장 기준 확인 필요/);
+  }
+ }
+ assert.throws(()=>create(setup({menuIds:['korean-1'],bundleVersion:catalog.bundleVersion})),/기본 메뉴/);
+ assert.throws(()=>create(setup({menuIds:[],bundleVersion:'old'})),/기본 메뉴/);
+});
+test('custom parts receive server identities and staffing refers to the same identities',()=>{
+ const state=create(setup({customParts:[{id:'custom-packing',name:'포장'}],partIds:['kitchen','custom-packing'],headcounts:{kitchen:1,'custom-packing':2}}));
+ const part=state.workplace.parts.find(p=>p.name==='포장');assert.ok(part);assert.notEqual(part.id,'custom-packing');
+ assert.equal(state.workplace.days[1][0].headcounts[part.id],2);
+ assert.equal(state.workplace.days[1][0].headcounts['custom-packing'],undefined);
+ assert.throws(()=>create(setup({customParts:[{id:'custom-a',name:'주방'}]})),/중복/);
+ assert.throws(()=>create(setup({customParts:[{id:'custom-a',name:'포장'},{id:'custom-a',name:'준비'}]})),/추가 파트/);
+});
+test('standard address stores selection separately from editable detail and invalid metadata rejects',()=>{
+ const addressSelection={provider:'kakao-postcode',address:'서울특별시 테스트로 1',roadAddress:'서울특별시 테스트로 1',jibunAddress:'',zonecode:'12345',buildingName:'',bname:''};
+ const state=create(setup({address:addressSelection.address,addressSelection,addressDetail:'2층'}));
+ assert.equal(state.store.profile.addressDetail,'2층');assert.deepEqual(state.store.profile.addressSelection,addressSelection);
+ assert.throws(()=>create(setup({address:'다른 주소',addressSelection})),/검색 결과/);
+ saveStoreProfile(state,'basic',{name:'변경',industryId:'restaurant',serviceModes:['hall'],address:'이전 클라이언트 주소'});
+ assert.equal(state.store.profile.addressSelection,null);
+});

@@ -481,7 +481,7 @@ export class OperationsStore {
           if (!Number.isInteger(input.reviewDays) || input.reviewDays < 1 || input.reviewDays > 90) fail('발주 후 확인 일수는 1~90일로 정해 주세요.');
           if (old && state.orders.some(order => order.status === 'ordered' && order.lines.some(line => line.itemId === old.id)) && (old.unit !== unit || old.supplier !== supplier)) fail('입고 대기 중에는 단위와 공급처를 바꿀 수 없어요.', 409);
           const editable = { name, unit, supplier, emoji, zone, minimum, orderQuantity, price: input.price, reviewDays: input.reviewDays };
-          if (old) Object.assign(old, editable);
+          if (old) Object.assign(old, editable, {setupNeedsReview:false});
           else {
             if (state.items.length >= 500) fail('재료는 최대 500개까지 등록할 수 있어요.');
             state.items.push({ id: randomUUID(), ...editable, quantity: 0, lastOrderedAt: null, lastCheckedAt: null });
@@ -503,7 +503,7 @@ export class OperationsStore {
           const name = text(input.name, '메뉴 이름', 80), category = text(input.category, '분류', 40);
           if (!Number.isSafeInteger(input.price) || input.price < 0 || input.price > 100000000) fail('메뉴 가격은 0~100,000,000원 사이로 입력해 주세요.');
           if (state.sales.menus.some(menu => menu.id !== old?.id && !menu.archivedAt && menu.name === name)) fail('같은 이름의 메뉴가 있어요.');
-          if (old) Object.assign(old, { name, category, price: input.price });
+          if (old) Object.assign(old, { name, category, price: input.price, setupNeedsReview:false });
           else {
             if (state.sales.menus.length >= 500) fail('메뉴는 최대 500개까지 등록할 수 있어요.');
             state.sales.menus.push({ id: randomUUID(), name, category, price: input.price });

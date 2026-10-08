@@ -1,3 +1,13 @@
+## 업종 중심 등록 후속 · 2026-10-08 (최신)
+
+표준 주소 검색 결과 선택과 상세 주소를 분리하고 기존 매장 정보에도 같은 컨트롤을 사용한다. 파트를 직접 추가할 수 있고 필요 인원은 화면당 최대 3파트로 나눈다. POS 연결·배달앱/주문처리는 확장 범위이므로 초기 설정에서 제외한다. 과거 설정/API는 보존한다.
+
+업종을 선택하면 공용 매뉴얼/체크리스트와 기본 메뉴·주요 재료·레시피 초안이 따라온다. 13개 구체 업종에 각 2개 기본 메뉴 후보, 기타 업종은 직접 추가. storeSetupCatalog.bundles/bundleVersion을 서버가 제공하며 setup.menuIds를 검증해 같은 원자 생성에 포함한다. 메뉴의 ingredientIds는 중복 제거한 items를 가리키고 menuManualId는 기존 메뉴·레시피 폴더의 편집 가능한 TAP을 연결한다. 초기 재고/가격은 0, 공급처/단위/발주 기준은 확인 대상으로 표시하고 실 주문/재고 증가는 만들지 않는다. 메뉴·재료는 기존 CatalogEditor에서, 레시피는 매뉴얼에서 수정한다. 업종 변경/공용 콘텐츠 갱신은 매장 편집본을 자동 덮어쓰지 않는다.
+
+customParts 임시 ID는 save_workplace_parts가 발급한 안정 ID로 headcounts까지 변환한다. 주소는 공식 Kakao Postcode embed로 선택하고 profile.addressSelection에 도로명/지번/우편번호를, addressDetail에 층·호수를 저장한다. 웹 iframe 메시지는 origin/source를 모두 검증한다. 네이티브 검색은 이번 웹 범위에 포함하지 않는다.
+
+콘텐츠 팀 researcher에 Aside CLI runner를 추가하고 메뉴·재료·레시피/매뉴얼/체크리스트의 근거·적용 조건 검토를 공유 prompt에 통합했다. 사용자 요청 때 조사하며 자동 발행은 없다. 기본 메뉴 후보는 인기 통계나 전문 검토를 주장하지 않는다.
+
 ## 신규 매장 단계형 등록 · 2026-10-08
 
 첫 매장과 헤더 추가 매장은 공통 StoreSetupScreen의 13~14단계(질문 1~3개/화면)를 사용한다. 마지막 create_workspace(name, requestId, setup) 한 번으로 독립 매장의 기본 정보·요일/교대/브레이크·파트/필요 인원·POS/배달·업종별 공용 TAP/Task를 원자 생성한다. 새 DB migration은 없다. business_types.mjs가 14개 세부 업종 ID/표시명/호환 대분류/공용 collection을 제공하고 store_setup.mjs는 요청당 주입된 catalog를 선택·검증하며 기존 도메인 mutation을 재사용한다. 클라이언트에 별도 공용 콘텐츠 사본을 하드코딩하지 않는다.

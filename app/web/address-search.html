@@ -1,0 +1,20 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>표준 주소 검색</title>
+<style>html,body,#search{height:100%;margin:0}body{font:16px sans-serif;background:#fff}#status{padding:20px}button{padding:12px}</style>
+<div id="status">주소 검색을 준비하고 있어요. <button onclick="location.reload()">다시 시도</button></div><div id="search"></div>
+<script>
+const status = document.getElementById('status');
+const loader = document.createElement('script');
+loader.src = 'https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+loader.onerror = () => { status.firstChild.textContent = '주소 검색에 연결하지 못했어요. '; };
+loader.onload = () => {
+  const provider = window.kakao || window.daum;
+  if (!provider?.Postcode) { status.firstChild.textContent = '주소 검색을 다시 시도해 주세요. '; return; }
+  new provider.Postcode({width:'100%',height:'100%',oncomplete(data){
+    const address = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
+    if (!address) return;
+    parent.postMessage(JSON.stringify({type:'tap-address',provider:'kakao-postcode',address,roadAddress:data.roadAddress,jibunAddress:data.jibunAddress,zonecode:data.zonecode,buildingName:data.buildingName,bname:data.bname}),location.origin);
+  },onresize(){status.hidden = true;}}).embed(document.getElementById('search'),{q:new URLSearchParams(location.search).get('q') || '',autoClose:false});
+  status.hidden = true;
+};
+document.head.append(loader);
+</script></html>

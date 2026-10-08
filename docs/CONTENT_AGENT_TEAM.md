@@ -77,3 +77,16 @@ export는 `{release,summary,revision:0}` draft 요청과 별도 `.provenance.jso
 ## 누적 개선 입력
 
 새 job에는 source registry, 이전 검토/QA/실행 오류, 제공자/현장 평가를 고정 learning snapshot으로 전달한다. 요청 실행은 `npm run content:cycle -- run --request REQUEST_ID`; default manual이다. 실제 관측 시각/시간대를 검사하고 재시도에는 이전 오류와 실행 시각을 전달한다. lease 재발급 시 입력 해시도 새 실행 문맥에 결합한다. 기존 불변 산출물/작업 설정은 유지한다. source/feedback의 정정 및 지표는 [CONTENT_IMPROVEMENT.md](CONTENT_IMPROVEMENT.md)에 있다.
+
+## 업종별 메뉴·재료·레시피 조사 · 2026-10-08
+
+`run --runner aside`를 추가했다. research 모드 researcher 역할에서 `aside guide`를 먼저 읽고 `aside exec`로 정제된 scope/고정 prompt/스키마만 전달한다. 공개 자료 조회만 요청하며 운영 env는 상속하지 않는다. 실제 Aside 계정과 브라우저 실행 환경을 사용한다. 메뉴 후보, 주요 재료, 조리 순서, 가정용/제품 의존 조건을 근거 claims에 연결한다. JSON envelope가 없거나 출처/시각/스키마가 잘못되면 기존 실패·재시도 큐에 남으며 완료로 간주하지 않는다. raw 결과는 로컬 run 디렉터리에만 남긴다.
+
+```sh
+node scripts/content-team.mjs init --job donkatsu-recipe-v1 --scope /path/to/sanitized-scope.json
+node scripts/content-team.mjs run --job donkatsu-recipe-v1 --runner aside
+# 이후 editor/reviewer/qa/coordinator는 기존 codex runner 또는 next/record로 진행
+node scripts/content-team.mjs run --job donkatsu-recipe-v1 --runner codex
+```
+
+scope.gap에 조사할 메뉴·재료·레시피와 매뉴얼/체크리스트 공백을 적는다. 신규 묶음은 후보이며 자동 DB 발행/운영 매장 덮어쓰기는 없다. 기존 export-release는 기존 sourceId 변경 병합만 지원하므로 신규 TAP의 taxonomy/ID와 초기 매장 bundle 채택은 검토 후 별도로 반영한다. 정기 실행은 계속 비활성이다. 초기 앱 기본 레시피는 상세 분량/온도/시간을 추정하지 않은 편집용 초안이며 외부 연구 전문 승인을 주장하지 않는다.

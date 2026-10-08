@@ -1,3 +1,4 @@
+import 'address_search.dart';
 import 'store_setup_screen.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
   late final TextEditingController name;
   late final TextEditingController note;
   late final TextEditingController address;
+  late final TextEditingController addressDetail;
   late final TextEditingController arrival;
   late final TextEditingController posModel;
   late final TextEditingController posName;
@@ -35,11 +37,13 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
   String? error;
   bool saving = false;
   late final String initialSignature;
+  late final String initialAddress;
   String get signature => jsonEncode([
     profile,
     name.text,
     note.text,
     address.text,
+    addressDetail.text,
     arrival.text,
     posModel.text,
     posName.text,
@@ -89,6 +93,9 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     );
     note = TextEditingController(text: '${store['note'] ?? ''}');
     address = TextEditingController(text: '${profile['address'] ?? ''}');
+    addressDetail = TextEditingController(
+      text: '${profile['addressDetail'] ?? ''}',
+    );
     arrival = TextEditingController(text: '${profile['arrivalNote'] ?? ''}');
     posModel = TextEditingController(
       text:
@@ -107,6 +114,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
           '${((pos['devices'] as List? ?? []).firstOrNull as Json?)?['count'] ?? 1}',
     );
     initialSignature = signature;
+    initialAddress = address.text.trim();
   }
 
   @override
@@ -115,6 +123,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
       name,
       note,
       address,
+      addressDetail,
       arrival,
       posModel,
       posName,
@@ -170,6 +179,12 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     }
     Json values;
     if (section == 'basic') {
+      if (address.text.trim().isNotEmpty &&
+          address.text.trim() != initialAddress &&
+          profile['addressSelection'] == null) {
+        setState(() => error = '표준 주소 검색에서 주소를 선택해 주세요.');
+        return;
+      }
       if (name.text.trim().isEmpty || profile['industryId'] == null) {
         setState(() => error = '매장명과 업종을 입력해 주세요.');
         return;
@@ -182,6 +197,8 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
           'businessTypeId': profile['businessTypeId'],
         'serviceModes': profile['serviceModes'] ?? <String>[],
         'address': address.text.trim(),
+        'addressSelection': profile['addressSelection'],
+        'addressDetail': addressDetail.text.trim(),
         'arrivalNote': arrival.text.trim(),
       };
     } else if (section == 'pos') {
@@ -323,7 +340,12 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
         (id) => toggleIn('serviceModes', id),
       ),
       const SizedBox(height: 32),
-      textField('주소 · 선택', address),
+      StoreAddressField(
+        controller: address,
+        onSelected: (value) =>
+            setState(() => profile['addressSelection'] = value),
+      ),
+      textField('상세 주소 · 선택', addressDetail),
       textField('찾아오는 안내 · 선택', arrival),
     ],
   );

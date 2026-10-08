@@ -312,13 +312,50 @@ export async function runCodex(packet, { maxSeconds = manifest().maxRunnerSecond
       child.on('error', cause => { clearTimeout(timer); rejectRun(cause); });
       child.on('close', code => { clearTimeout(timer); code === 0 ? resolveRun() : rejectRun(Error(`Runner exited ${code}: ${safeDiagnostic()}`)); });
       child.stdin.on('error', () => {});
-      child.stdin.end('Read AGENTS.md and packet.json. Produce one JSON artifact following output-schema.json. Scope is manual/checklist content only. You have no production credentials or publication authority.');
+      child.stdin.end('Read AGENTS.md and packet.json. Produce one JSON artifact following output-schema.json. Scope includes manuals, checklists and industry menu/ingredient/recipe research drafts. You have no production credentials or publication authority.');
     });
     if (bytes(output).length > 1024 * 1024) error('Artifact exceeds 1MB');
     const artifact = json(output);
     atomic(join(runDirectory, 'response.json'), artifact);
     return artifact;
   } finally { rmSync(isolated, { recursive: true, force: true }); }
+}
+
+// Aside is an explicit research runner; subsequent editing/review retain the same queue.
+export async function runAside(packet, {executable='aside', maxSeconds=manifest().maxRunnerSeconds}={}) {
+  if (packet.role !== 'researcher' || packet.scope.mode !== 'research') error('Aside is available for research-mode researcher only');
+  const env = Object.fromEntries(['PATH','HOME','TMPDIR','LANG','LC_ALL'].filter(key=>process.env[key]).map(key=>[key,process.env[key]]));
+  const call = args => new Promise((resolveRun,rejectRun)=> {
+    const child=spawn(executable,args,{env,stdio:['ignore','pipe','pipe'],detached:process.platform!=='win32'});
+    let output='', diagnostic='';
+    const stop=()=>{try {if(process.platform!=='win32'&&child.pid) process.kill(-child.pid,'SIGKILL');else child.kill('SIGKILL');}catch{child.kill('SIGKILL');}};
+    const timer=setTimeout(()=>{stop();rejectRun(Error('Aside research deadline exceeded'));},maxSeconds*1000);
+    child.stdout.on('data',data=>{output+=data.toString();if(output.length>1024*1024){stop();rejectRun(Error('Aside output exceeds 1MB'));}});
+    child.stderr.on('data',data=>{diagnostic=(diagnostic+data).slice(-500);});
+    child.on('error',cause=>{clearTimeout(timer);rejectRun(cause);});
+    child.on('close',code=>{clearTimeout(timer);code===0?resolveRun(output):rejectRun(Error(`Aside exited ${code}; research not recorded`));});
+  });
+  const guide=await call(['guide']);
+  if (!guide.includes('aside exec')) error('Aside guide unavailable; update CLI and retry');
+  const {runDirectory,leaseId,status,...safe}=packet;
+  const prompt = `Read-only public web research. Do not use private browser history, credentials, messages, purchases or modify files. Follow this CLI guide: ${guide}\nRead this sanitized research packet and return ONLY one JSON envelope matching outputSchema. Research industry major menu candidates, ingredients, recipe sequence, manual and checklist actions. Link each claim to sources actually opened. Record household/product-specific limitations; never invent quantities, cooking temperatures, shelf life or source verification. Do not publish.\n${JSON.stringify(safe)}`;
+  const raw=await call(['exec',prompt]);
+  // Preserve failed results for inspection; never guess a successful envelope.
+  writeFileSync(join(runDirectory,'aside-response.txt'),raw,{mode:0o600});
+  const clean=raw.replace(/\x1b\[[0-9;]*m/g,'');
+  let artifact;
+  for(let start=clean.lastIndexOf('{');start>=0;start=clean.lastIndexOf('{',start-1)) {
+    try {
+      const tail=clean.slice(start), end=tail.lastIndexOf('}');
+      const candidate=JSON.parse(tail.slice(0,end+1));
+      if(candidate.jobId===packet.jobId && candidate.role==='researcher'){artifact=candidate;break;}
+    } catch { /* CLI may include progress before the final JSON. */ }
+    if(start===0) break;
+  }
+  if(!artifact) error('Aside did not return the required research JSON; inspect aside-response.txt');
+  // Compute hashes from returned excerpt bytes, then the normal team validator applies.
+  for(const source of artifact.result?.sources??[]) source.evidenceHash=sha(source.excerpt);
+  return artifact;
 }
 
 async function cli() {
@@ -348,10 +385,10 @@ async function cli() {
   }
   else if (command === 'fail') result = team.fail(options.job, options.lease, options.reason ?? 'Runner failed');
   else if (command === 'run') {
-    if (!['codex', 'fixture'].includes(options.runner)) error('Choose --runner codex or fixture');
+    if (!['codex', 'fixture', 'aside'].includes(options.runner)) error('Choose --runner codex, aside or fixture');
     const packet = team.next(options.job);
     if (packet.status !== 'ready') result = packet;
-    else try { result = team.record(options.job, options.runner === 'fixture' ? fixtureArtifact(packet) : await runCodex(packet), packet.leaseId); }
+    else try { result = team.record(options.job, options.runner === 'fixture' ? fixtureArtifact(packet) : options.runner === 'aside' ? await runAside(packet) : await runCodex(packet), packet.leaseId); }
     catch (cause) { team.fail(options.job, packet.leaseId, cause.message); throw cause; }
   } else if (command === 'smoke') {
     const jobId = options.job ?? `fixture-${Date.now()}`;
