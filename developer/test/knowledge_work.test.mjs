@@ -86,3 +86,10 @@ test('invalid event requests and quantity-only policies fail explicitly',async()
  await assert.rejects(x.act('start_manual_work',{templateId:t.id,subject:'x'}),{status:400});
  await assert.rejects(x.act('save_tap_settings',{templateId:t.id,assignmentScopeVersion:2,settings:{...t.settings,usage:'event',eventKind:'batch',completionPolicy:{kind:'quantity',quantitySpec:{unit:'개',decimalPlaces:0,target:null}}}}),/항목별/);
 });
+test('personalizing a safety manual preserves its review requirement and starts as reference',async()=>{
+ const x=fixture(),t=await x.importSource('process/rice-cake-storage');
+ await x.act('personalize_market_tap',{templateId:t.id,operationId:'personalize-safety-123'});
+ const copy=x.raw().taskTemplates.find(v=>v.id!==t.id&&x.raw().catalogLinks[v.id]?.mode==='personalized');
+ assert.equal(copy.knowledge.safetyReviewRequired,true);assert.equal(copy.settings.usage,'reference');
+ await assert.rejects(x.act('save_tap_settings',{templateId:copy.id,assignmentScopeVersion:2,settings:{...copy.settings,usage:'event',eventKind:'opened'}}),/매장 기준/);
+});

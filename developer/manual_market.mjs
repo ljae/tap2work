@@ -178,6 +178,9 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
    const source=state.taskTemplates.find(t=>t.id===input.templateId&&!t.archivedAt);if(!source)fail('TAP을 찾지 못했어요.',404);
    const draft={...structuredClone(source),id:uid(),title:`${source.title.slice(0,90)} · 개인화`,menuManualId:undefined};
    addTemplates(state,[draft]);
+   const copy=state.taskTemplates.find(t=>t.id===draft.id);
+   copy.knowledge=structuredClone(source.knowledge);
+   copy.settings={...taskSettings(source),enabled:false,usage:'reference',assignment:undefined};
    (state.catalogLinks??={})[draft.id]={mode:'personalized',sourceId:state.catalogLinks?.[source.id]?.sourceId??null,createdAt:new Date(now).toISOString()};
    return [draft.id];
   }
