@@ -41,11 +41,12 @@
     #app-boot { position: fixed; inset: 0; z-index: 9999; overflow:auto; display: grid; place-items: center; align-items: safe center; padding: 32px; background: #101112; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; transition: opacity 240ms ease-out; }
     #app-boot.leaving { opacity: 0; pointer-events: none; }
     .boot-content { width: min(100%, 360px); text-align: center; }
-    .boot-brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; font-size: 24px; font-weight: 800; letter-spacing: -1px; }
-    .boot-brand img { width: 44px; height: 44px; }
     #boot-title { font-size: 18px; line-height: 1.4; margin: 0 0 12px; }
     #boot-message { color: #a0a7af; font-size: 14px; line-height: 1.6; margin: 0; }
-    .boot-track { width:160px; height:180px; margin:0 auto 20px; }
+    .boot-track { width:min(240px, 100%, 55svh); aspect-ratio:8 / 9; margin:0 auto; }
+    .boot-track svg { display:block; width:100%; height:100%; }
+    .boot-content:has(#boot-retry[hidden]) .boot-status { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+    .boot-content:has(#boot-retry:not([hidden])) .boot-track { margin-bottom:20px; }
     .water-fill { animation: water-rise 3.2s ease-in-out infinite; }
     .water-loop { animation: water-reset 3.2s linear infinite; }
     .water-drop { animation: water-fall .8s linear infinite; }
@@ -61,7 +62,6 @@
   </style>
   <div id="app-boot">
     <div class="boot-content">
-      <div class="boot-brand"><img src="favicon.png" alt=""><span>TAP Work</span></div>
       <div class="boot-track" aria-hidden="true">
         <svg viewBox="0 0 160 180" width="160" height="180" focusable="false">
           <defs><clipPath id="water-cup"><path d="M43 82H117L108 145Q106 159 94 159H66Q54 159 52 145Z"/></clipPath></defs>
@@ -79,7 +79,7 @@
           <g class="water-loop" fill="#46c69b"><rect class="water-drop" x="82" y="50" width="4" height="7" rx="3"/><rect class="water-drop second" x="82" y="50" width="4" height="7" rx="3"/></g>
         </svg>
       </div>
-      <div role="status" aria-live="polite">
+      <div class="boot-status" role="status" aria-live="polite">
         <h1 id="boot-title">TAP Work를 열고 있어요</h1>
         <p id="boot-message">앱 화면을 준비하고 있어요.</p>
       </div>

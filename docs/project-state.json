@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 248,
+  "revision": 249,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7635,7 +7635,21 @@
       "limitations": [
         "Activity animation does not measure loading progress. Native apps were not built or deployed."
       ]
+    },
+    {
+      "at": "2026-10-08T11:47:57.236073+00:00",
+      "type": "implementation",
+      "title": "Animation-only initial web loading",
+      "detail": "User requested removing the logo and enlarging the animation. Initial web splash now shows only the centered cup animation, up to 240x270 instead of 160x180. Normal text remains accessible to screen readers; slow/error status and retry stay visible. Internal Flutter loading unchanged.",
+      "verification": [
+        "3 startup Node tests passed",
+        "Chromium 320x360, 390x844 and 1200x800: animation within viewport, logo absent, normal text visually hidden, retry status visible, reduced motion static",
+        "390px screenshot inspected"
+      ],
+      "limitations": [
+        "Web deployment pending; no Flutter source or native changes."
+      ]
     }
   ],
-  "updatedAt": "2026-10-08T11:45:09.631711+00:00"
+  "updatedAt": "2026-10-08T11:47:57.236073+00:00"
 }

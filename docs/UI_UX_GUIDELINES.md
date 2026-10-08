@@ -328,3 +328,6 @@ Schedule density (2026-10-04): use 48px/hour for long assignments; if any assign
 2026-10-08 후속 최신: 신규 등록에서 POS·배달앱 선택 제외, 업종별 메뉴·재료·레시피 후보를 표시한다. 주소 검색/선택과 상세주소를 분리하고 기존 설정에도 같은 컴포넌트를 사용한다. 파트 직접 추가, 필요 인원은 단계당 최대 3파트. 기본 초안의 가격·공급처·조리 기준 확인 필요를 해당 설정에 표시한다.
 
 2026-10-08 로딩 최신: 웹 최초 진입과 Flutter 초기화/매장 읽기에 수도꼭지→물방울→초록색 컵 수면의 3.2초 반복 모션을 사용한다. 수면은 장식이며 실제 진행률이 아니다. 동작 줄이기·오류·비활성 화면에서는 정지하며 지연/오류 안내·재시도와 실제 준비 완료 시 즉시 전환을 유지한다. 짧은 화면은 중앙 안내를 스크롤하고 충분한 높이의 매장 조회 화면은 기존 skeleton을 함께 표시한다.
+
+
+2026-10-08 initial web loading refinement: user requested animation only. Remove the standalone logo/wordmark and visually hide normal status text while preserving the live region. Center the cup animation at up to 240 x 270 CSS pixels (previously 160 x 180), constrained by viewport width/height. Reveal status and retry on slow/error states. Flutter internal loading is unchanged.

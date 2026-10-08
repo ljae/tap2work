@@ -565,3 +565,6 @@ iOS는 com.tap2work.tap2work, Android는 기존 com.tab2work.tab2work 식별자�
 ## TAP Water 로딩 · 2026-10-08
 
 AppLoadingScreen은 TapWaterLoading(단일 AnimationController+CustomPainter repaint)을 사용한다. 웹 엔진 로딩 전 index.html은 같은 형상의 inline SVG/CSS로 외부 자산 로딩 없이 즉시 표시한다. 수도꼭지·물방울·물결 수면은 3.2초 활동 표시이며 측정 진행률이 아니다. Flutter의 disableAnimations/TickerMode와 웹 prefers-reduced-motion에서 정지, 실패에서도 정지한다. controller/timer는 dispose하고 실제 응답 이후 대기시간을 추가하지 않는다. 높이600px 미만은 스크롤 가능한 중앙 안내, 큰 매장 조회 화면은 기존 skeleton 유지. E06 초기화·오류·재시도 계약은 유지한다.
+
+
+2026-10-08 initial web loading refinement: user requested animation only. Remove the standalone logo/wordmark and visually hide normal status text while preserving the live region. Center the cup animation at up to 240 x 270 CSS pixels (previously 160 x 180), constrained by viewport width/height. Reveal status and retry on slow/error states. Flutter internal loading is unchanged.
