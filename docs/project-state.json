@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 247,
+  "revision": 248,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7617,7 +7617,25 @@
       "limitations": [
         "Not a measured progress indicator. No native build or backend change. Web deployment pending."
       ]
+    },
+    {
+      "at": "2026-10-08T11:45:09.631711+00:00",
+      "type": "deployment",
+      "title": "TAP Water loading web deployment completed",
+      "detail": "Deployed matching cup-filling activity animations for initial web boot and Flutter loading. Preserved the existing startup/store/error capture tool and separated the new water-animation capture harness. No backend, native or operational data changes.",
+      "commit": "b19d775ef2433a885094f0ebe31f42d2ddb1a3b4",
+      "verification": [
+        "GitHub Actions build/deploy succeeded: https://github.com/ljae/tap2work/actions/runs/37771127850",
+        "CI full checks, Flutter analysis/tests and public web build passed",
+        "Public index and hashed main/bootstrap JavaScript returned HTTP 200 and matched CI artifact SHA256",
+        "10 focused Flutter tests and 3 web startup tests passed; UI link check passed",
+        "Animation captures at 320/390/1200 widths passed; 390px image inspected; restored startup/store/error capture tool passed"
+      ],
+      "artifactVerification": ".local/water-loading-deploy/verification.json",
+      "limitations": [
+        "Activity animation does not measure loading progress. Native apps were not built or deployed."
+      ]
     }
   ],
-  "updatedAt": "2026-10-08T11:36:00.456765+00:00"
+  "updatedAt": "2026-10-08T11:45:09.631711+00:00"
 }

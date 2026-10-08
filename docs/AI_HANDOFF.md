@@ -118,3 +118,8 @@ API는 인증 사용자+requestId가 이미 생성됐으면 기존 매장부터 
 최신 사용자 지시: 표준주소 검색/선택, 파트 직접 추가, POS·배달앱 초기 설정 제외, 업종별 매뉴얼/체크리스트/메뉴/재료/레시피와 기존 편집 연결. `developer/store_bundle.mjs`가 13업종×2 기본 후보 및 버전 계약, `applyStoreSetup`이 customParts ID를 기존 파트 mutation으로 발급/인원 매핑한다. `StoreAddressField`는 새 등록/기존 매장 정보 공통이며 웹 공식 postcode iframe과 표준주소/상세주소 분리. 기존 클라이언트/매장 데이터를 보존한다. 레시피는 구체 배합/온도/시간을 추정하지 않은 초안이다. `scripts/content-team.mjs run --runner aside`는 researcher만 공개 자료 조사하고 기존 큐의 편집/검토/QA를 따른다. 실제 Aside 조사와 미확인 사항은 `STORE_BUNDLE_RESEARCH_2026-10-08.md`. 정기 실행/자동 발행 없음.
 
 웹 배포 완료: 49f3028 / GitHub Actions 37765154721 성공. 공개 https://tap2.work/ 앱·주소 검색 파일의 SHA256이 CI artifact와 일치한다. 검증 로그 `.local/store-bundle-web-artifact/verification.json`. API도 배포했으며 네이티브/DB migration/공용 콘텐츠 발행/실제 매장 생성은 하지 않았다. 서버275 테스트, CI Flutter 전체검사 통과. 실제 Aside researcher 1단계 및 Flutter 웹 주소 선택 왕복·다른 창 메시지 거절을 검증했다. 최초 주소 브리지 오류로 37763814173 배포는 중단하고 package:web로 수정했다. 기본 레시피는 매장 기준 확인용 초안이다.
+
+
+## 2026-10-08 TAP Water loading deployment
+
+Web deployed: b19d775 / Actions 37771127850 succeeded. Initial inline SVG and Flutter TapWaterLoading share a 3.2-second faucet/cup activity loop, reduced-motion/error pause, and short-screen scrolling. Real readiness/retry controls remain authoritative; no artificial delay or measured percentage. Full CI passed; public index and hashed bootstrap/main match artifact SHA256 (.local/water-loading-deploy/verification.json). Existing tool/loading_review.dart preserves startup/store/error captures; tool/tap_water_loading_review.dart captures the new animation. No backend/native/data changes.
