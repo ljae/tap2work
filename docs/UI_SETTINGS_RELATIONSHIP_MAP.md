@@ -52,7 +52,7 @@ flowchart LR
 | S15 | `tasks[].steps[]` 실행 스냅샷 | 업무 카드/단계 상세 → `complete_step`, `reopen_step`, `complete_task`, `save_step_manual` | 오늘 업무 완료 상태·기록; 정의 매뉴얼 수정과 별개. 서버가 완료 규칙 검사 | `operations_test.dart`, `checklists.test.mjs` |
 | S16 | `items[]`, `orders[]`, `preparedItems[]` | 재고/발주/입고/준비품 → `save_inventory_item`, `check_stock`, `place_order`, `receive_order`, `save_prepared_item`, `count_prepared_item` | 우리매장 재고, 부족 알림, 준비품·업무 카드. 주문만으로 재고 증가 없음 | `operations.test.mjs`, `prepared_items.test.mjs` |
 | S17 | `menus[]`, 주문 양식 | 메뉴 편집 → `save_menu` | 우리매장 메뉴, 메뉴 연계 매뉴얼·주문 업무 | `catalog.test.mjs`, `menu_layout_test.dart` |
-| S18 | `layout`, `zones[]` | 매장 배치 편집 → `save_layout` | 우리매장 공간/동선, 재고·업무 위치 참조. 삭제·겹침은 서버 검사 | `layout.test.mjs`, `floor_plan_test.dart` |
+| S18 | `layout`, `zones[]` | 공간·장비 → 간단 배치도(선택) → 층별 편집 → `save_layout(floorScope)` | 우리매장 공간/동선, 재고·업무 위치 참조. 미배치 장소·다른 층·사진 보존; 삭제·겹침은 서버 검사 | `layout.test.mjs`, `floor_plan_test.dart` |
 | S19 | `hiringDrafts[]` | 근무표 > 채용 초안 → `save_hiring_draft`, `archive_hiring_draft` | 사장/매니저 초안 목록. 외부 공고 발행 없음 | `workspace_settings.test.mjs` |
 | S20 | `laborReviews[]` | 인건비 검토 → `save_labor_review` | 사장님 인건비 화면의 검토 상태; 급여 지급 실행과 구별 | `labor.test.mjs` |
 | S21 | 기기 내 `WorkController` 학습 진도 | 근무표 > 교육/첫 근무 | 사람별 연습·버디 확인 분리. 매장 공용 설정이나 급여 기록 아님 | `work_controller_test.dart` |
@@ -448,3 +448,26 @@ E06 로딩 시각화 후속: 기존 초기화/매장 조회 상태 → TapWaterL
 | S03/S27 | ScheduleController 날짜/보기 → 같은 단일 AppToolbarScroll/48px 버튼 → move/setMonth/showScheduleRange 및 기존 설정 | pinned header와 영업시간/크루 저장 재사용, 가로 스크롤 위치만 기기 메모리 | water_layout_test.dart, schedule_workflow_test.dart, schedule_gesture_test.dart |
 | TAP 내용 | task/step → 좁은 카드 완료/내용 열기와 별도 손잡이 → 기존 check/onOpen/drag | 완료와 열기 분리, 이동·완료 기록 계약 유지. 영어 Task 열기 UI만 내용으로 표시 | tap_workspace_test.dart |
 | 우리매장 링크 | 기존 설정 snapshot → 내부16px actionCard → 기존 설정 시트 | source/control/action/consumer와 저장효과 동일, 표시만 정리 | menu_layout_test.dart, ui_ux_audit_test.dart |
+
+
+## Proposed: 매뉴얼 구성 조건·공통 값 (2026-10-09)
+
+아래는 미구현 연결 제안이며 기존 S번호/액션을 대체하지 않는다.
+
+| 임시 ID | source → control → action | consumer·보호 경계 | 검증 |
+| --- | --- | --- | --- |
+| P-M01 | profile/운영 조건 → 공통 매장 특성 편집 → 영향 계산/최종 저장 | 조건 절차·수정 보존 | 독립 Ego 시안의 적용/취소 |
+| P-M02 | 매장 공통 값 ID → 연결 값/동일 편집기 → 저장 | 홀·주방 마감 같은 참조, 예외 명시 | 독립 시안의 동시 반영 |
+| P-M03 | workplace.days/breaks → 기존 시간 편집 → 상대 시간 재계산 제안 | 고정 시각/진행·완료 기록 보호 | 계약만 작성 |
+| P-M04 | zones/장비 의미 타입·메뉴/품목 → 기존 편집 → 조건 영향 계산 | 이름 추측 금지·기존 ID 유지 | 계약만 작성 |
+| P-M05 | 실제 변경 상태/실행 snapshot → 수정 배지 → 수정 상세 | 매뉴얼·업무 동일 표시, 매장 값/업종 변형과 구별 | 시안의 추가/되돌림, snapshot 미구현 |
+
+[상세 계약](MANUAL_COVERAGE_AND_SETTINGS_2026-10-09.md).
+
+## 2026-10-09 매뉴얼·공간 안내
+
+| ID | 설정/원본 경로 | 입력 UI와 액션 | 저장 후 소비 화면·파생 값 | 검증 기준 |
+| --- | --- | --- | --- | --- |
+| S65 | store.manualSetup.conditions/places; 기존 workplace.days/breaks/parts | 신규 등록 ManualConditions / 우리매장 매장 특성·공통 장소 → save_manual_setup | composeManual → 매뉴얼 검색·새 업무, sharedPlaces → 동일 zone 상세. 시작/완료 보존 | place_manual_setup.test.mjs, place_manual_setup_test.dart |
+| S66 | zones[id].floor/area/description/photo/mapped | 공간·장비/매뉴얼 구성/준비품 → 공통 PlaceEditor → save_place | 장소 검색·층 목록·작업/재고 위치; 같은 ID를 선택 배치도에 연결 | place_manual_setup.test.mjs, floor_plan_test.dart |
+| S67 | taskTemplates.manualCustomization | 매뉴얼 내용 편집 액션의 contentHash 비교 → modified/created | manualSearch·TAP 카드·상세 코랄 텍스트/아이콘; 조건/장소 수정만으로 배지 없음 | place_manual_setup.test.mjs, place_manual_setup_test.dart |

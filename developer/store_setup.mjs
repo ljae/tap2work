@@ -1,3 +1,4 @@
+import { presentSource, saveManualSetup } from './manual_setup.mjs';
 import { saveTapSettings, taskSettings } from './task_settings.mjs';
 import { StoreError } from './store.mjs';
 import { saveStoreProfile } from './store_profile.mjs';
@@ -15,6 +16,7 @@ function donkatsuSteps(steps) {
   }));
 }
 export function storeSetupCatalog(catalog = manualCatalog) {
+  catalog={...catalog,entries:catalog.entries.map(presentSource)};
   const collections = new Set(['common', 'food', 'process', 'delivery', ...businessTypes.map(t => t.collectionId)]);
   return { manualVariants:{donkatsu:catalog.entries.filter(e=>e.kind!=='legal'&&collections.has(e.collectionId)).map(e=>({...e,steps:e.collectionId==='chicken'?donkatsuSteps(e.steps):e.steps}))}, releaseId: catalog.releaseId, businessTypes, bundles:storeBundles, bundleVersion, purposes: catalog.taxonomy.purposes,
     entries: catalog.entries.filter(e => e.kind !== 'legal' && !e.knowledge?.supersededBy?.length && collections.has(e.collectionId))
@@ -80,6 +82,7 @@ export function applyStoreSetup(state, input, actor, now, catalog = manualCatalo
     state.checklistFolders=state.checklistFolders.filter(f=>f.id!=='general'||state.taskTemplates.some(t=>t.folderId===f.id));
   }
   state.manualBusinessProfile ??= {industryId:'food',specialization:type.name,configuredAt:now.toISOString(),releaseId:catalog.releaseId};
+  if(setup.manualSetup)saveManualSetup(state,setup.manualSetup);
   applyStoreBundle(state,setup,type,now);
   state.store.onboarding={version:2,completedAt:now.toISOString()};
 }

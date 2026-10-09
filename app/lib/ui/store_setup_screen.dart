@@ -1,3 +1,4 @@
+import 'manual_setup_screen.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -61,6 +62,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
   late final requestId = _uuid();
   String? typeId, error;
   final modes = <String>{'hall'};
+  final Json conditions = {};
   final weekdays = <int>{1, 2, 3, 4, 5, 6, 7};
   final parts = <String>{'kitchen', 'hall', 'management'};
   final headcounts = <String, int>{'kitchen': 1, 'hall': 1, 'management': 0};
@@ -106,6 +108,15 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
                   if (modes.contains('delivery')) 'delivery',
                 ].contains(e['collectionId']) &&
                 (e['knowledge']?['supersededBy'] as List? ?? []).isEmpty &&
+                (![
+                      'food/hall-open',
+                      'food/hall-close',
+                      'food/service',
+                    ].contains(e['sourceId']) ||
+                    modes.contains('hall')) &&
+                (e['sourceId'] != 'food/packing' ||
+                    modes.contains('takeout') ||
+                    modes.contains('delivery')) &&
                 (e['collectionId'] != 'process' ||
                     (e['knowledge']?['menuNames'] as List? ?? []).any(
                       (name) => menuSuggestions.any(
@@ -203,6 +214,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
         'addressDetail': addressDetail.text.trim(),
         'arrivalNote': arrival.text.trim(),
         'serviceModes': modes.toList(),
+        'manualSetup': {'conditions': conditions, 'places': {}},
         'weekdays': weekdays.toList(),
         'opening': opening,
         'closing': closing,
@@ -341,6 +353,11 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
             recommend();
           }),
           const Text('함께 운영하는 형태를 모두 골라 주세요.', style: AppText.caption),
+          const SizedBox(height: 24),
+          ManualConditions(
+            values: conditions,
+            onChanged: (k, v) => change(() => conditions[k] = v),
+          ),
         ];
       case 'location':
         return [
@@ -537,7 +554,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
       case 'manual':
         return [
           const Text(
-            '선택한 TAP 안에 실행할 Task와 방법이 들어 있어요. 항목을 펼쳐 확인하고 필요 없는 TAP은 제외하세요.',
+            '외식업 공통 업무에 업종 특화 업무를 더했어요. 필요한 업무를 선택하고 매장에 맞게 수정할 수 있어요.',
             style: AppText.caption,
           ),
           for (final purpose
@@ -550,6 +567,12 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
                 ExpansionTile(
                   tilePadding: EdgeInsets.zero,
                   title: Text(entry['title'], style: AppText.body),
+                  subtitle: Text(
+                    ['common', 'food'].contains(entry['collectionId'])
+                        ? '외식업 공통'
+                        : '업종 특화',
+                    style: AppText.caption,
+                  ),
                   leading: Checkbox(
                     value: selected.contains(entry['sourceId']),
                     onChanged: (_) =>
@@ -557,10 +580,14 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
                   ),
                   children: [
                     for (final task in entry['steps'] as List)
-                      ListTile(
-                        title: Text(task['title']),
-                        subtitle: Text(task['manual']),
-                      ),
+                      if (!(conditions['selfbar'] == false &&
+                              ['selfbar'].contains(task['id'])) &&
+                          !(conditions['tableBurner'] == false &&
+                              task['id'] == 'burner'))
+                        ListTile(
+                          title: Text(task['title']),
+                          subtitle: Text(task['manual']),
+                        ),
                   ],
                 ),
             ],

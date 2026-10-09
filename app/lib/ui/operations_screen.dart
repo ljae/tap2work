@@ -1,3 +1,4 @@
+import 'manual_setup_screen.dart';
 import 'store_setup_screen.dart';
 import 'water_search.dart';
 import 'manual_market_screen.dart';
@@ -639,7 +640,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
           'inventory': '재고와 발주',
           'people': '크루',
           'pay': '인건비',
-          'layout': '배치도와 동선',
+          'layout': '공간·장비',
         }[section]!,
         body: SingleChildScrollView(
           primary: false,
@@ -780,7 +781,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
       if (ops.canEditTasks)
         actionCard(
           CupertinoIcons.book,
-          '기본 매뉴얼 구성',
+          '업종·기본 매뉴얼',
           '${storeBusinessName(ops)} · ${ops.rows('taskTemplates').where((t) => t['archivedAt'] == null).length} TAP',
           () => showAppFormSheet(
             context: context,
@@ -843,10 +844,17 @@ class _OperationsScreenState extends State<OperationsScreen> {
         '실사 · 데모 발주 · 입고',
         () => openStoreDetail('inventory'),
       ),
+      if (ops.isLeader)
+        actionCard(
+          CupertinoIcons.slider_horizontal_3,
+          '매장 특성·공통 장소',
+          '매장 특성 · 공통 장소 연결',
+          () => openManualSetup(context, ops),
+        ),
       actionCard(
         CupertinoIcons.map,
-        '배치도와 동선',
-        '테이블 · 기기 · 보관 장소',
+        '공간·장비',
+        '층·구역 · 사진 · 위치 안내',
         () => openStoreDetail('layout'),
       ),
       if (ops.isOwner)

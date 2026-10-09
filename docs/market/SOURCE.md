@@ -262,7 +262,10 @@
     "topics": [
       "people"
     ],
-    "suggestedUse": "routine"
+    "suggestedUse": "routine",
+    "supersededBy": [
+      "food/shift"
+    ]
   }
 }
 ```
@@ -343,7 +346,10 @@
     "topics": [
       "opening"
     ],
-    "suggestedUse": "routine"
+    "suggestedUse": "routine",
+    "supersededBy": [
+      "food/hall-open"
+    ]
   }
 }
 ```
@@ -981,7 +987,11 @@
     "topics": [
       "closing"
     ],
-    "suggestedUse": "routine"
+    "suggestedUse": "routine",
+    "supersededBy": [
+      "food/kitchen-close",
+      "bonejjim/evening-prep"
+    ]
   }
 }
 ```
@@ -1062,7 +1072,10 @@
     "topics": [
       "closing"
     ],
-    "suggestedUse": "routine"
+    "suggestedUse": "routine",
+    "supersededBy": [
+      "food/hall-close"
+    ]
   }
 }
 ```
@@ -5962,5 +5975,1270 @@
     ],
     "safetyReviewRequired": true
   }
+}
+```
+
+
+## 2026-10-09 외식업 공통 구성 후보
+
+업무 범위 조사 기반 원문. DB 공용 채널 발행은 별도 독립 검토 후 수행한다.
+
+```tap2work-tap
+{
+  "sourceId": "food/shift",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "people",
+  "kind": "operation",
+  "summary": "근무 시작·교대 인수인계 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "근무 시작·교대 인수인계"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "오픈",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "people"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": false
+  },
+  "steps": [
+    {
+      "id": "ready",
+      "title": "근무 준비",
+      "manual": "개인 물품을 지정 장소에 두고 매장에서 정한 복장과 개인 위생 기준을 확인해요. 작업에 영향을 주는 몸 상태나 어려움은 시작 전에 책임자에게 알려요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "handover",
+      "title": "변경 사항 확인",
+      "manual": "품절·예약·고장·미완료 업무를 이전 담당과 확인해요. 맡을 업무와 도움이 필요한 일을 정하고 다음 담당에게 전달할 내용을 남겨요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    }
+  ],
+  "title": "근무 시작·교대 인수인계"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/hall-open",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "홀 오픈 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "홀 오픈"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "오픈",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "opening",
+      "hall"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": false
+  },
+  "steps": [
+    {
+      "id": "entrance",
+      "title": "입구와 안내 확인",
+      "manual": "통행을 방해하는 물건을 정리하고 우리매장에 설정된 영업시간·브레이크 안내가 현장 안내와 같은지 확인해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "tables",
+      "title": "좌석과 비품 준비",
+      "manual": "테이블·의자의 상태와 청결을 확인하고 매장 제공 방식에 맞는 식기·비품을 준비해요. 부족한 물품은 연결된 보관 장소에서 채워요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "selfbar",
+      "title": "셀프바 준비",
+      "manual": "셀프바를 운영하는 경우 취급 품목별 매장 기준에 맞춰 준비해요. 전용 도구·표시·보관 상태를 확인하고 기준을 알 수 없는 품목은 책임자에게 확인해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    }
+  ],
+  "title": "홀 오픈"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/kitchen-open",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "opening",
+  "kind": "operation",
+  "summary": "주방 오픈 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "주방 오픈"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "오픈",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "opening"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": true
+  },
+  "steps": [
+    {
+      "id": "workbench",
+      "title": "작업대와 도구 확인",
+      "manual": "작업대·손 씻는 곳·도구의 준비 상태를 확인해요. 용도별 구분과 설비 사용 전 확인은 매장 및 제조사 지침을 따라요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "stock",
+      "title": "오늘 준비할 재료 확인",
+      "manual": "오늘 메뉴와 준비량·품절 사항을 확인해요. 사용할 재료의 표시와 보관 상태를 확인하고 이상이 있으면 사용 전에 책임자에게 알려요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    }
+  ],
+  "title": "주방 오픈"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/purchasing",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "inventory",
+  "kind": "operation",
+  "summary": "구매·발주 준비 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "구매·발주 준비"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "준비",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "inventory"
+    ],
+    "suggestedUse": "reference",
+    "safetyReviewRequired": false
+  },
+  "steps": [
+    {
+      "id": "need",
+      "title": "필요 품목 확인",
+      "manual": "재고와 사용 예정량, 입고 대기 주문을 함께 확인해요. 같은 품목을 중복 발주하지 않도록 단위와 수량을 대조해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "approve",
+      "title": "발주 내용 인계",
+      "manual": "공급처·규격·수량·납품 예정일을 확인하고 승인 권한에 맞춰 발주 요청을 전달해요. 앱의 데모 발주는 실제 공급처 전송과 구별해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    }
+  ],
+  "title": "구매·발주 준비"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/receiving",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "inventory",
+  "kind": "operation",
+  "summary": "입고 확인 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "입고 확인"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "준비",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "inventory"
+    ],
+    "suggestedUse": "reference",
+    "safetyReviewRequired": true
+  },
+  "steps": [
+    {
+      "id": "match",
+      "title": "주문과 납품 대조",
+      "manual": "실제 도착한 품목의 이름·규격·수량을 주문과 비교해요. 누락·오배송·파손은 별도로 기록하고 담당자에게 알려요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "condition",
+      "title": "상태 확인과 보관",
+      "manual": "품목별 검수 기준에 따라 표시·보관 상태를 확인해요. 기준에 맞지 않거나 판단하기 어려운 물품은 사용하지 않고 담당자에게 확인한 뒤 처리해요. 확인한 물품만 지정 장소에 보관하고 입고를 기록해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    }
+  ],
+  "title": "입고 확인"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/storage",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "inventory",
+  "kind": "operation",
+  "summary": "보관·재고 확인 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "보관·재고 확인"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "준비",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "inventory"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": true
+  },
+  "steps": [
+    {
+      "id": "locate",
+      "title": "보관 위치와 표시 확인",
+      "manual": "품목별 지정 위치와 표시를 확인해요. 새 입고분과 기존 물품을 구분하고 매장 사용 순서에 맞춰 정리해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "count",
+      "title": "실제 수량과 이상 기록",
+      "manual": "대상 품목의 단위를 확인한 뒤 실물을 세어 기록해요. 수량 차이·표시 누락·이상 상태는 담당자에게 전달해요. 발주 후 확인 시점은 재고 설정을 따라요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    }
+  ],
+  "title": "보관·재고 확인"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/prep",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "식재료 전처리·준비 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "식재료 전처리·준비"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "준비",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": true
+  },
+  "steps": [
+    {
+      "id": "plan",
+      "title": "준비량과 기준 확인",
+      "manual": "선택한 메뉴·재료의 매장 레시피와 준비량을 확인해요. 도구·작업 공간·사용할 물품을 정하고 공정별 기준이 없으면 먼저 책임자에게 확인해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "prepare",
+      "title": "전처리와 소분",
+      "manual": "재료별 승인된 손질·해동·세척·소분 방법을 따라요. 사용한 재료와 준비 상태를 구분해 표시하고 정해진 보관 장소로 옮겨요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "handover",
+      "title": "준비 결과 인계",
+      "manual": "준비량·남은 작업·이상 사항을 다음 담당에게 전달해요. 실제 준비량은 준비품 기록과 대조해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    }
+  ],
+  "title": "식재료 전처리·준비"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/cooking",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "production",
+  "kind": "operation",
+  "summary": "조리·완성 확인 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "조리·완성 확인"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "피크",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "production"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": true
+  },
+  "steps": [
+    {
+      "id": "order",
+      "title": "주문과 조리 기준 확인",
+      "manual": "메뉴·수량·옵션·제외 요청을 주문표와 대조해요. 알레르기 관련 요청은 추측하지 말고 확인된 재료 정보와 책임자 지침으로 처리해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "process",
+      "title": "메뉴별 방법 수행",
+      "manual": "매장에서 확인한 레시피와 장비 지침에 따라 조리해요. 가열·냉각·재가열·보온이 필요한 공정은 해당 검증 기준과 실제 기록을 사용해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "finish",
+      "title": "완성품 대조",
+      "manual": "완성된 메뉴·수량·옵션·제공 상태를 확인하고 담당자에게 인계해요. 기준에 맞지 않는 결과는 제공 전에 조치해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    }
+  ],
+  "title": "조리·완성 확인"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/service",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "홀 서비스·고객 요청 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "홀 서비스·고객 요청"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "피크",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "service",
+      "hall"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": false
+  },
+  "steps": [
+    {
+      "id": "request",
+      "title": "주문과 요청 확인",
+      "manual": "좌석·메뉴·수량·옵션과 고객 요청을 확인하고 담당자에게 정확히 전달해요. 답을 모르는 재료·알레르기 질문은 확인 후 안내해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "serve",
+      "title": "제공과 후속 응대",
+      "manual": "주문과 준비된 음식을 대조해 안내해요. 추가 요청·지연·불만은 담당자에게 전달하고 처리 여부를 확인해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "reset",
+      "title": "다음 손님 자리 준비",
+      "manual": "사용 식기를 회수하고 매장 방법에 따라 테이블과 주변을 정리해요. 분실물은 지정 담당에게 인계하고 비품을 보충해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    }
+  ],
+  "title": "홀 서비스·고객 요청"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/packing",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "service",
+  "kind": "operation",
+  "summary": "포장·배달 인계 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "포장·배달 인계"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "피크",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "service",
+      "takeout"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": false
+  },
+  "steps": [
+    {
+      "id": "match",
+      "title": "주문 구성 대조",
+      "manual": "본품·옵션·소스·동반품을 주문표와 대조해요. 고객 요청과 제외 품목을 확인해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "pack",
+      "title": "포장 상태 확인",
+      "manual": "메뉴에 적합한 용기와 매장 포장 방법을 사용해요. 뚜껑·누수·혼입 여부를 확인하고 필요한 표시를 붙여요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "handoff",
+      "title": "수령자에게 인계",
+      "manual": "주문 식별 정보를 대조하고 정해진 위치에서 고객 또는 기사에게 전달해요. 누락·오배송이 발견되면 책임자에게 즉시 인계해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    }
+  ],
+  "title": "포장·배달 인계"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/cleaning",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "hygiene",
+  "kind": "operation",
+  "summary": "세척·청소 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "세척·청소"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "마감",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "hygiene"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": true
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "title": "대상과 도구 확인",
+      "manual": "오늘 대상 구역·기구와 승인된 세척 방법을 확인해요. 용도별 청소도구를 구분하고 제품 사용 지침을 확인해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "clean",
+      "title": "세척과 정리",
+      "manual": "대상에 맞는 매장 방법과 장비 지침에 따라 작업해요. 주변 식재료와 작업에 영향을 주지 않도록 구분하고, 완료 후 도구를 지정 장소에 정리해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "inspect",
+      "title": "완료 상태 확인",
+      "manual": "대상 구역과 기구가 다음 작업에 사용할 수 있는 상태인지 확인해요. 손상·배수 문제 등 이상을 기록하고 담당자에게 알려요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    }
+  ],
+  "title": "세척·청소"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/restrooms",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "hygiene",
+  "kind": "operation",
+  "summary": "화장실 점검·청소 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "화장실 점검·청소"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "준비",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "hygiene"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": true
+  },
+  "steps": [
+    {
+      "id": "check",
+      "title": "시설과 비품 확인",
+      "manual": "바닥·세면대·변기·통행 상태를 확인하고 필요한 비품을 보충해요. 고장이나 물 고임은 담당자에게 알려요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "clean",
+      "title": "전용 도구로 청소",
+      "manual": "주방용과 구분한 도구 및 매장에서 승인한 제품 지침으로 청소해요. 사용 중 안내와 완료 상태를 확인하고 도구를 지정 장소에 보관해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    }
+  ],
+  "title": "화장실 점검·청소"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/waste",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "hygiene",
+  "kind": "operation",
+  "summary": "폐기물 정리 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "폐기물 정리"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "마감",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "hygiene"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": false
+  },
+  "steps": [
+    {
+      "id": "sort",
+      "title": "종류별 분리",
+      "manual": "매장과 지역의 품목 구분에 따라 폐기물을 나눠요. 분류를 모르면 책임자에게 확인해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "move",
+      "title": "지정 장소로 배출",
+      "manual": "연결된 배출 장소와 매장 배출 시점을 확인한 뒤 이동해요. 용기 주변 오염·누수와 통행 상태를 정리해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "pest",
+      "title": "이상 흔적 인계",
+      "manual": "폐기물 보관 구역의 파손이나 해충 흔적은 담당자에게 알려요. 매장에서 승인하지 않은 약품이나 방제 작업을 임의로 수행하지 않아요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    }
+  ],
+  "title": "폐기물 정리"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/hall-close",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "홀 마감 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "홀 마감"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "마감",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "closing",
+      "hall"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": false
+  },
+  "steps": [
+    {
+      "id": "tables",
+      "title": "좌석 구역 정리",
+      "manual": "테이블·의자·바닥을 매장 청소 방법에 따라 정리해요. 손님 물품과 남은 요청이 없는지 확인해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "selfbar",
+      "title": "셀프바 정리",
+      "manual": "취급 품목별 매장 보관·폐기 기준을 확인해 처리해요. 용기·도구는 지정 방법으로 세척·정리하고 다음 영업 준비 상태를 확인해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "burner",
+      "title": "테이블 화구 확인",
+      "manual": "사용 중인 테이블 화구의 제조사·매장 종료 지침을 확인해요. 이상이나 종료 여부가 불확실하면 담당자에게 알려요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "waste",
+      "title": "폐기물 배출",
+      "manual": "매장 분류·배출 기준에 따라 정리하고 연결된 배출 장소를 사용해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "supplies",
+      "title": "비품과 다음 영업 준비",
+      "manual": "다음 영업에 필요한 식기·비품을 확인하고 연결된 보관 장소에서 보충해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "secure",
+      "title": "시설 종료·인계",
+      "manual": "종료할 설비와 계속 가동할 설비를 구분해 매장 지침에 따라 확인해요. 출입문과 미완료 사항을 마지막 담당에게 인계해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    }
+  ],
+  "title": "홀 마감"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/kitchen-close",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "주방 마감 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "주방 마감"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "마감",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": true
+  },
+  "steps": [
+    {
+      "id": "remaining",
+      "title": "남은 식재료 처리",
+      "manual": "제품·공정별 확인된 매장 보관·폐기 기준에 따라 잔량을 처리하고 표시해요. 기준이 불명확한 식품은 다음 영업용으로 임의 확정하지 않아요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "clean",
+      "title": "작업대·식기·설비 정리",
+      "manual": "오늘 세척 대상과 방법을 확인해 작업하고, 다음 사용에 필요한 상태를 확인해요. 정기 정비는 별도 계획을 따라요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "storage",
+      "title": "보관 설비 확인",
+      "manual": "계속 가동해야 하는 장비와 종료할 장비를 구별해 확인해요. 표시·보관 상태·고장·품절을 다음 담당에게 전달해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    }
+  ],
+  "title": "주방 마감"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/equipment",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "safety",
+  "kind": "operation",
+  "summary": "정기 시설·장비 관리 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "정기 시설·장비 관리"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "준비",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "safety"
+    ],
+    "suggestedUse": "reference",
+    "safetyReviewRequired": true
+  },
+  "steps": [
+    {
+      "id": "plan",
+      "title": "대상과 주기 확인",
+      "manual": "장비 목록과 제조사·매장 관리 계획에서 이번 대상·담당·작업 범위를 확인해요. 외부 업체 작업과 크루가 할 일을 구분해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "record",
+      "title": "점검·정비 결과 인계",
+      "manual": "허용된 작업만 수행하고 이상·조치·다음 점검 정보를 남겨요. 고장 장비의 사용 여부는 책임자에게 확인해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    }
+  ],
+  "title": "정기 시설·장비 관리"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/incident",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "safety",
+  "kind": "operation",
+  "summary": "이상·회수·영업 중단 대응 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "이상·회수·영업 중단 대응"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "준비",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "safety"
+    ],
+    "suggestedUse": "reference",
+    "safetyReviewRequired": true
+  },
+  "steps": [
+    {
+      "id": "report",
+      "title": "이상 발견과 보고",
+      "manual": "고장·정전·이물·제품 회수 등 상황을 발견하면 대상과 발생 위치를 확인해 책임자에게 알려요. 급박한 상황은 현장 비상 지침을 따라요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "isolate",
+      "title": "대상 구분과 기록",
+      "manual": "책임자 지시에 따라 영향을 받은 물품·장비·주문을 구분하고 확인된 사실과 조치를 기록해요. 임의로 재사용하거나 재가동하지 않아요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    },
+    {
+      "id": "resume",
+      "title": "후속 조치 인계",
+      "manual": "조치 완료 여부와 남은 일을 다음 담당에게 전달해요. 영업·사용 재개는 정해진 책임자의 확인을 따라요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+    }
+  ],
+  "title": "이상·회수·영업 중단 대응"
+}
+```
+
+```tap2work-tap
+{
+  "sourceId": "food/settlement",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "industryIds": [
+    "food"
+  ],
+  "purposeId": "closing",
+  "kind": "operation",
+  "summary": "마감 정산·관리 인계 · 매장 조건과 기준을 연결해 사용하는 기본 절차",
+  "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
+  "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
+  "keywords": [
+    "마감 정산·관리 인계"
+  ],
+  "references": [
+    {
+      "title": "식약처 개방형주방 매뉴얼",
+      "url": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196",
+      "checkedAt": "2026-10-09",
+      "scope": "2015 자료의 업무 분류·관리 구조 참고. 최신 법적·수치 기준으로 사용하지 않음"
+    },
+    {
+      "title": "RestaurantOwner 운영 체크리스트",
+      "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
+      "checkedAt": "2026-10-09",
+      "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    }
+  ],
+  "emoji": "📋",
+  "slot": "마감",
+  "reviewedAt": "2026-10-09",
+  "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
+  "knowledge": {
+    "scope": "food",
+    "topics": [
+      "closing"
+    ],
+    "suggestedUse": "routine",
+    "safetyReviewRequired": false
+  },
+  "steps": [
+    {
+      "id": "records",
+      "title": "기록 대조",
+      "manual": "담당 권한 안에서 결제·취소·환불 기록과 마감 자료를 대조해요. 차이가 있으면 근거와 함께 책임자에게 알려요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    },
+    {
+      "id": "handover",
+      "title": "미완료 사항 인계",
+      "manual": "미완료 주문·수리 요청·다음 영업 준비 사항을 담당과 함께 남겨요. 실제 결제·급여 처리와 이 확인 기록을 구별해요.",
+      "tip": "기준이 없거나 수행하기 어려우면 담당자에게 확인하고 상태를 남겨요.",
+      "tags": [],
+      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+    }
+  ],
+  "title": "마감 정산·관리 인계"
 }
 ```

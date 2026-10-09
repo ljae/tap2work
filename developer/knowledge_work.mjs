@@ -1,3 +1,4 @@
+import { composeManual } from './manual_setup.mjs';
 import { StoreError } from './store.mjs';
 import { assignmentOccurrences } from './work_assignments.mjs';
 import { businessDate } from './business_day.mjs';
@@ -47,7 +48,7 @@ export function workEligibility(state,t,date) {
 }
 export function workStatus(state,t,date,catalog) {
   let [code,label]=workEligibility(state,t,date);
-  if(t.knowledge?.supersededBy?.length || t.id==='library-bonejjim-break' || state.catalogLinks?.[t.id]?.sourceId==='bonejjim/break'){code='replacement';label='공통 업무와 메뉴 준비가 섞여 있어요. 분리 구성을 확인해 주세요';}
+  if(t.knowledge?.supersededBy?.length || t.id==='library-bonejjim-break' || state.catalogLinks?.[t.id]?.sourceId==='bonejjim/break'){code='replacement';label='공통 업무로 정리된 새 구성을 확인해 주세요';}
   const tasks=state.tasks.filter(x=>x.templateId===t.id&&!x.archivedAt&&!x.supersededAt&&(x.date===date||x.workEvent&&!x.completedAt));
   if (code==='ready') {code=tasks.length?'scheduled':'missing';label=tasks.length?`오늘 업무 ${tasks.length}개에 연결됐어요`:'생성할 업무를 찾지 못했어요. 새로고침해 주세요';}
   const replacementIds=t.knowledge?.supersededBy??['common/break-service','food/service-reset','bonejjim/evening-prep'];
@@ -62,7 +63,8 @@ export function eventReplay(state,input,actor) {
 }
 export function startManualWork(state,input,actor,now) {
   if (!/^[a-zA-Z0-9-]{8,100}$/.test(input.requestId??'')) fail('작업 요청 ID를 확인해 주세요.');
-  const t=state.taskTemplates.find(t=>t.id===input.templateId&&!t.archivedAt);
+  const original=state.taskTemplates.find(t=>t.id===input.templateId&&!t.archivedAt);
+  const t=original?composeManual(state,original):null;
   if (!t) fail('매뉴얼을 찾지 못했어요.');
   const [code,label]=workEligibility(state,t,businessDate(state,now));
   if (code!=='event') fail(label);

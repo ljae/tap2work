@@ -1,3 +1,6 @@
+import { contentHash } from './manual_catalog_schema.mjs';
+import { composeManual, saveManualSetup, retireUnstartedComposition } from './manual_setup.mjs';
+import { savePlace } from './place_guide.mjs';
 import {workEligibility,workStatus,startManualWork,eventReplay,knowledgeSnapshots} from './knowledge_work.mjs';
 import { storeSetupCatalog } from './store_setup.mjs';
 import {manualPrintView,saveManualPrintTranslation} from './manual_print.mjs';
@@ -28,13 +31,14 @@ import { recommendedTaps, importRecommendedTaps } from './work_recommendations.m
 function manualSearchIndex(state) {
   const rows = new Map();
   const add = (task, template) => {
+    if(template)task=composeManual(state,task);
     for (const step of task.steps ?? []) {
       const sourceTemplateId = step.sourceTemplateId ?? task.templateId ?? task.id;
       const sourceStepId = step.sourceStepId ?? step.id;
       const key = `${sourceTemplateId}/${sourceStepId}`;
       if (rows.has(key)) continue;
       rows.set(key, {
-        id: key, taskId: template ? null : task.id, stepId: step.id,
+        manualCustomization:task.manualCustomization??null, sharedPlaces:task.sharedPlaces??[], zone:task.zone??null, id: key, taskId: template ? null : task.id, stepId: step.id,
         tapTitle: task.manualTitle ?? task.title, title: step.manualTitle ?? step.title,
         folderId: task.folderId ?? 'general',
         folderName: state.checklistFolders.find(folder => folder.id === task.folderId)?.name ?? '기본 업무',
@@ -277,9 +281,9 @@ function ensureDueTasks(state, now, catalog = manualCatalog, catalogRevision = n
     // Settings changes leave started/completed snapshots alone, including their band set.
     if (existing.some(task => task.timeBandId == null && task.version !== template.version && (task.completedAt || task.boardStatus === 'processing' || task.steps?.some(s => s.completedAt)))) continue;
     for (const occurrence of assignmentOccurrences(state, template, date)) {
-      const id = `daily-${template.id}-v${template.version}-${date}${occurrence.timeBandId ? `-band-${encodeURIComponent(occurrence.timeBandId)}` : ''}`;
+      const id = `daily-${template.id}-v${template.version}-${date}${state.store.manualSetup?'-config-'+state.store.manualSetup.revision:''}${occurrence.timeBandId ? `-band-${encodeURIComponent(occurrence.timeBandId)}` : ''}`;
       if (!existing.some(task => (task.timeBandId ?? null) === occurrence.timeBandId)) {
-        state.tasks.push({ ...structuredClone(template), knowledgeSnapshots:knowledgeSnapshots(state,template), ...structuredClone(occurrence), templateId: template.id, id, date, businessDayStart: boundaryOf(state), dueAt: iso(now), kind: 'routine', boardStatus: 'todo', completedAt: null, completedBy: null }); changed = true;
+        state.tasks.push({ ...structuredClone(composeManual(state,{...template,...occurrence})), knowledgeSnapshots:knowledgeSnapshots(state,template), templateId: template.id, id, date, businessDayStart: boundaryOf(state), dueAt: iso(now), kind: 'routine', boardStatus: 'todo', completedAt: null, completedBy: null }); changed = true;
       }
     }
   }
@@ -588,6 +592,19 @@ export class OperationsStore {
           if (source) { Object.assign(source, { manual, videoUrl, imageUrl, sourceUrl, tags }); template.version++; }
           activity(`${task.title} · ${step.title} 매뉴얼 저장`); break;
         }
+        case 'save_manual_setup': {
+          leadership(actor);
+          saveManualSetup(state,input.setup);
+          retireUnstartedComposition(state, now);
+          activity('매뉴얼 구성·공통 장소 저장');
+          break;
+        }
+        case 'save_place': {
+          leadership(actor);
+          savePlace(state,input,now);
+          activity('매장 장소 안내 저장');
+          break;
+        }
         case 'save_layout': {
           leadership(actor);
           const updated = validateLayout(input, state);
@@ -855,7 +872,7 @@ export class OperationsStore {
         case 'edit_zone': {
           leadership(actor); const zone = state.zones.find(zone => zone.id === input.zoneId); if (!zone) fail('위치를 찾지 못했어요.', 404);
           zone.name = text(input.name, '장소 이름', 30); zone.description = text(input.description, '위치 안내', 500);
-          validateLayout({ layout: state.layout, zones: state.zones }, state);
+          validateLayout({ layout: state.layout, zones: state.zones.filter(z=>z.mapped!==false) }, state);
           state.layout.updatedAt = iso(now); state.layout.updatedBy = who;
           activity(`${zone.name} 위치 안내 업데이트`); break;
         }
@@ -870,6 +887,10 @@ export class OperationsStore {
       for (const template of state.taskTemplates) {
         if (!previousTemplates.some(t => t.id === template.id)) { convertPolicy(template); }
         if (tapOnly(template)) for (const step of template.steps) assertContentOnly(step);
+      }
+      if (['save_manual_tap','save_checklists','save_step_manual','edit_manual_node','edit_work_node','save_task_step','create_task'].includes(input.action)) for (const t of state.taskTemplates) {
+        const old=previousTemplates.find(x=>x.id===t.id);
+        if(!old||contentHash(old)!==contentHash(t))t.manualCustomization={kind:old?'modified':'created',at:iso(now)};
       }
       updateContentRevisions(previousTemplates,state);
       reconcileCatalogLinks(state,now);

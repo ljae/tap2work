@@ -68,7 +68,7 @@ test('catalog validation runs in Edge runtimes without Node Buffer globals',()=>
  const buffer=globalThis.Buffer;
  try{
   delete globalThis.Buffer;
-  assert.equal(validateRelease(manualCatalog).entries.length,91);
+  assert.equal(validateRelease(manualCatalog).entries.length,109);
  }finally{globalThis.Buffer=buffer;}
 });
 

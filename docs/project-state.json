@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 257,
+  "revision": 261,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1110,6 +1110,31 @@
       "reason": "사용자: 해당 설계방안으로 개선 생성해주세요.",
       "source": "docs/MANUAL_KNOWLEDGE_TASK_DESIGN_2026-10-08.md",
       "updatedAt": "2026-10-08T12:49:45.422636+00:00"
+    },
+    {
+      "id": "D-105",
+      "category": "매뉴얼·구조",
+      "title": "외식업 공통·맞춤 매뉴얼 원점 재설계와 단일 마감 표시",
+      "status": "confirmed",
+      "decision": "실사용 고객이 없는 단계에서 기존 업종별 구조에 얽매이지 않고 외식업 전반의 공통 업무와 맞춤이 필요한 업무를 Ego Lite 조사·질의로 다시 설계한다. 크루 화면은 홀 마감 하나에 필요한 절차를 묶어 표시한다. 독립 사본/원본 연결과 업데이트·수정 정책은 상세 비교표를 읽은 뒤 결정할 미정 사항이다.",
+      "previous": "업종별 컬렉션에 공통 마감·위생·메뉴 특화가 혼재한 기존 원본과 D-104 부분 개선",
+      "next": "외식업 전반 기준의 원점 설계 및 크루에게 단일 홀 마감 표시. 내부 조합/스키마/원본 정책은 proposed로 검토",
+      "reason": "사용자가 뼈찜 컬렉션의 홀 마감 분류 문제와 실사용 고객 부재를 설명하고 재설계를 요청했으며, 후속 질의에 범위·표시 방식을 선택하고 원본 관계는 비교 후 결정한다고 답했다.",
+      "source": "사용자 요청 및 3차 질의 답변 · 2026-10-09",
+      "updatedAt": "2026-10-09T13:16:49.411323+00:00"
+    },
+    {
+      "id": "D-106",
+      "category": "매뉴얼·설정·UI",
+      "title": "외식업 업무 범위 충실화·설정 재사용·매장 수정 구별",
+      "status": "confirmed",
+      "decision": "일반 식당에서 별도 업무 영역을 추가할 필요가 적도록 소스를 충분히 조사하고 매장별 조정은 허용한다. 매뉴얼 구성 조건과 기존 설정을 연결해 재입력을 줄인다. 매장용으로 수정된 매뉴얼·업무리스트를 색과 아이콘으로 명확히 구별한다.",
+      "previous": "D-105 범위·단일 홀 마감 표시와 원본 관계 비교 중심",
+      "next": "범위 충실화·설정 단일 원본 재사용·수정 구별 요구 확정. 14영역, 상세 연결 계약, 코랄 배지 디자인은 proposed.",
+      "reason": "사용자가 업무 추가/중복 입력 피로도를 줄이고 매장 수정본을 직관적으로 구별하도록 요청했다.",
+      "source": "사용자 후속 요청 · 2026-10-09",
+      "updatedAt": "2026-10-09T14:05:14.251347+00:00",
+      "implementation": "조사·설계·독립 HTML 시안. Flutter/API/DB 미변경. 원본 사본/연결·업데이트 정책은 미정."
     }
   ],
   "milestones": [
@@ -7819,7 +7844,81 @@
         "No operations API deployment, database/catalog publication, native build or production data mutation",
         "Original working tree and pre-existing uncommitted files preserved"
       ]
+    },
+    {
+      "at": "2026-10-09T13:16:49.411323+00:00",
+      "type": "research",
+      "title": "Research common and customized F&B manuals from a clean design baseline",
+      "detail": "User requested an Ego Lite investigation and collaborative redesign after noticing hall closing inside the bonejjim collection. Audited local 91-entry catalog and confirmed 12 bonejjim rows all have menu scope. Reviewed six service providers plus FSA, NCS foodservice job description and NASA checklist-design appendix. Wrote a sourced common-goal/conditional-procedure/store-value proposal, worked hall-closing decomposition, detailed independent-copy vs linked-override comparison and separate update-policy tradeoffs. User confirmed broad F&B scope and one composed hall-closing view; copy/link/update choices remain undecided until they read the comparison.",
+      "source": "docs/MANUAL_STRUCTURE_RESEARCH_2026-10-09.md",
+      "verification": [
+        "Ego Lite space5: official service help/docs and public template pages opened; URLs/titles/text/checkedAt stored in .local/manual-structure-research",
+        "FSA opening/closing and cleaning PDF, NASA appendix and NCS foodservice p1 downloaded via Ego and extracted; FSA cleaning table p2 visually inspected in Ego PDF viewer",
+        "Current JSON count/scope/source IDs and ManualMarketCatalog fallback inspected; no catalog or production DB writes",
+        "Distinguished public documented features, provider marketing, guidance/research scope and proposed architecture"
+      ],
+      "limitations": [
+        "No paid editor trials, interviews, actual-store observation or measured usability/outcomes",
+        "FSA material has foreign jurisdiction; safety/legal numeric defaults not adopted",
+        "NASA aviation guidance is not restaurant-specific empirical validation; NCS file is a specific employer job description",
+        "Initial FSA cross-origin fetch failed CORS; same official PDF origin retrieval succeeded",
+        "Original/source-copy relation, update behavior, free-edit range and new schema remain proposed; no app/API/DB reset, content publication or native changes for this research"
+      ]
+    },
+    {
+      "at": "2026-10-09T14:05:14.251347+00:00",
+      "type": "research",
+      "title": "Expand restaurant manual coverage and design shared settings with customization indicators",
+      "detail": "Reviewed official public RestaurantOwner, FSA and FoodDocs material in Ego Lite space6, plus MFDS open-kitchen guide and selected PDF pages. Prepared a 14-domain coverage proposal, shared-setting source/control/action/consumer map, condition-change preservation rules and coral icon/text customization indicators. Created an isolated interactive review artifact, not a production app implementation.",
+      "source": "docs/MANUAL_COVERAGE_AND_SETTINGS_2026-10-09.md",
+      "verification": [
+        "Ego: one location input reflected in hall and kitchen manuals without customization badge",
+        "Ego: adding a procedure shows customization badge in both manual and work preview",
+        "Ego: self-bar removal requires apply, preserves local addition/location, cancel preserves current configuration",
+        "check:ui-links passed 57 existing links; proposed rows are not implemented contracts"
+      ],
+      "limitations": [
+        "No completed catalog authoring, field study or measured coverage guarantee",
+        "MFDS 2015 source used for structure, not current legal/numeric requirements; specialist meat-retail guide excluded",
+        "Prototype only: no Flutter/server/native tests required or run for these documentation and isolated artifact changes",
+        "No app/API/DB changes, deployment or catalog publication; source update policy remains undecided",
+        "Initial inline documentation updater failed source encoding before writes; replaced with UTF-8 script"
+      ]
+    },
+    {
+      "at": "2026-10-09T14:06:13.250664+00:00",
+      "type": "verification",
+      "title": "Verify isolated manual setup review layout and undo behavior",
+      "detail": "Ego Lite prototype checked at 320, 390 and 1200 CSS px with 1.0/1.5 body and caption sizing: no horizontal overflow; visible controls at least48px. Undo removed both customization badges while preserving shared location. Desktop/mobile screenshots visually reviewed.",
+      "verification": [
+        ".local/manual-coverage-review/verification.json",
+        "npm run check:ui-links:57 existing links passed",
+        "JSON parsing and git diff --check passed"
+      ],
+      "limitations": [
+        "Independent HTML prototype only, not Flutter accessibility/textScale or server integration tests",
+        "No production publication or source-update policy selection"
+      ]
+    },
+    {
+      "at": "2026-10-09T14:57:57.490675+00:00",
+      "type": "implementation",
+      "title": "Compose F&B manuals and add location-first store guidance",
+      "detail": "User authorized applying the manual/space proposals and web deployment. Added shared conditional composition, place references, coral customization indicators and searchable floor/photo/directions places with optional same-ID floor-scoped grid. Preserved source content/IDs, customized edits and started/completed work. Saved109-entry catalog draft; designated existing independent reviewer account registered but authenticated review/publication pending. No new source-update policy inferred.",
+      "verification": [
+        "Flutter full391 passed",
+        "Node full291 passed",
+        "Edge authenticated DB runtime passed",
+        "Flutter targeted14 and Node targeted6 after footer/map follow-ups",
+        "Flutter analyze clean after final braces fix"
+      ],
+      "limitations": [
+        "Initial full tests failed outdated counts/labels and a compile scope; corrected, reruns passed",
+        "Condition-generation merge initially restored excluded steps; fixed with preserving unstarted/started snapshot regression test",
+        "No native build/real-store study/catalog publication; deployment verification pending"
+      ],
+      "source": "docs/MANUAL_SPACE_RELEASE_2026-10-09.md"
     }
   ],
-  "updatedAt": "2026-10-09T12:54:21.330973+00:00"
+  "updatedAt": "2026-10-09T14:57:57.490675+00:00"
 }

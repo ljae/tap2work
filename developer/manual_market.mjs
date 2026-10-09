@@ -1,3 +1,4 @@
+import { presentSource } from './manual_setup.mjs';
 import {knowledgeFields} from './knowledge_work.mjs';
 import release from '../docs/market/current.json' with {type:'json'};
 import {randomUUID,createHash} from 'node:crypto';
@@ -56,7 +57,7 @@ export function syncManualCatalog(state,now,catalog=release){
  }
  return changed;
 }
-export function catalogView(state,catalog=release){return {...catalog,entries:catalog.entries.map(source=>({...source,installed:Object.entries(state.catalogLinks??{}).filter(([id,l])=>l.sourceId===source.sourceId&&l.mode!=='removed'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)).map(([templateId,l])=>({templateId,mode:l.mode,releaseId:l.releaseId}))}))};}
+export function catalogView(state,catalog=release){return {...catalog,entries:catalog.entries.map(source=>({...presentSource(source),installed:Object.entries(state.catalogLinks??{}).filter(([id,l])=>l.sourceId===source.sourceId&&l.mode!=='removed'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)).map(([templateId,l])=>({templateId,mode:l.mode,releaseId:l.releaseId}))}))};}
 function addTemplates(state,drafts){
  const checked=validateChecklists({folders:state.checklistFolders,templates:[...state.taskTemplates,...drafts]},state);
  const ids=new Set(drafts.map(t=>t.id));
@@ -126,7 +127,7 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
      if(ids.has(task.templateId)&&!task.orderId&&!started&&!task.archivedAt&&task.date>=state.day)task.archivedAt=at;
     }
    }
-   const additions=sources.filter(source=>!Object.entries(state.catalogLinks??{}).some(([id,l])=>l.sourceId===source.sourceId&&l.mode==='linked'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)));
+   const additions=sources.filter(source=>!Object.entries(state.catalogLinks??{}).some(([id,l])=>l.sourceId===source.sourceId&&l.mode!=='removed'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)));
    const destinations=new Map();
    for(const source of additions){
     const purpose=catalog.taxonomy.purposes.find(p=>p.id===source.purposeId);

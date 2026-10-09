@@ -1,3 +1,4 @@
+import 'manual_setup_screen.dart';
 import 'manual_work_screen.dart';
 import 'manual_print_screen.dart';
 import 'manual_tap_editor.dart';
@@ -174,6 +175,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 (t) => t['menuManualId'] == null && t['archivedAt'] == null,
               ))
         {
+          'manualCustomization': t['manualCustomization'],
           'tapId': t['id'],
           'templateId': t['id'],
           'tapTitle': t['manualTitle'] ?? t['title'],
@@ -516,6 +518,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     bool hasChildren = false,
     int count = 0,
     String? durationText,
+    dynamic customization,
   }) {
     final compactEdit = editing && MediaQuery.sizeOf(context).width < 700;
     final key = '$kind:$id${kind == 'task' ? ':$tapId' : ''}';
@@ -652,6 +655,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                               ),
                             ),
                           ),
+                          ManualCustomizationBadge(value: customization),
                           if (durationText != null)
                             Text(
                               durationText,
@@ -884,6 +888,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         nodes.add(
           node(
             kind: 'tap',
+            customization: tap['manualCustomization'],
             id: tap['tapId'],
             folderId: folder['id'],
             label: tap['editable'] == true
@@ -971,6 +976,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       return ListView(
         padding: const EdgeInsets.all(24),
         children: [
+          ManualCustomizationBadge(value: selected['manualCustomization']),
+          SharedPlaceLinks(ops: ops, row: selected),
           Text(
             '${selected['folderName'] ?? ''} / ${selected['tapTitle']} / Task',
             style: const TextStyle(fontSize: 13, color: AppColors.muted),
@@ -1135,11 +1142,17 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 row['title'],
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              subtitle: Text(
-                row['editable'] == true
-                    ? duration([row])
-                    : '${duration([row])} · 오늘 업무 · 조회 전용',
-                maxLines: 2,
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ManualCustomizationBadge(value: row['manualCustomization']),
+                  Text(
+                    row['editable'] == true
+                        ? duration([row])
+                        : '${duration([row])} · 오늘 업무 · 조회 전용',
+                    maxLines: 2,
+                  ),
+                ],
               ),
               trailing: Icon(
                 editing && row['editable'] == true

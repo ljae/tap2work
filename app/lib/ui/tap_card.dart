@@ -1,3 +1,4 @@
+import 'manual_setup_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'components.dart';
@@ -26,6 +27,7 @@ class TapCard extends StatelessWidget {
     this.assigneeBadges,
     this.completionTrigger,
     this.holdCompletion = false,
+    this.customization,
   });
 
   final String level, title, subtitle, emoji, footer;
@@ -40,6 +42,7 @@ class TapCard extends StatelessWidget {
   final Widget? assigneeBadges;
   final Object? completionTrigger;
   final bool holdCompletion;
+  final dynamic customization;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +89,7 @@ class TapCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      ManualCustomizationBadge(value: customization),
                       Row(
                         children: [
                           if (dragHandle != null && !separateDrag) ...[

@@ -1,3 +1,4 @@
+import 'manual_setup_screen.dart';
 import 'crew_colors.dart';
 import 'workplace_screens.dart';
 import 'dart:async';
@@ -547,6 +548,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               ? completionTick
               : null,
           key: ValueKey('tap-${t['id']}'),
+          customization: t['manualCustomization'],
           level: 'TAP',
           emoji: t['emoji'] ?? '📋',
           title: t['title'],
@@ -1353,6 +1355,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
+      ManualCustomizationBadge(value: task['manualCustomization']),
+      SharedPlaceLinks(ops: ops, row: task),
       Text(
         task['title'],
         style: const TextStyle(fontSize: 13, color: AppColors.muted),

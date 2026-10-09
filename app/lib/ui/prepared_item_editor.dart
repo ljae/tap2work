@@ -1,3 +1,4 @@
+import 'place_guide.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -300,7 +301,11 @@ class _PreparedItemEditorState extends State<PreparedItemEditor> {
                           }),
                         ),
                       if (zones.isEmpty)
-                        const Information('매장 배치도에 준비 장소를 먼저 추가해 주세요.')
+                        TextButton.icon(
+                          onPressed: () => editPlace(context, widget.ops),
+                          icon: const Icon(Icons.add_location_alt_outlined),
+                          label: const Text('준비 장소 추가'),
+                        )
                       else
                         AppPicker<String>(
                           label: '준비 장소',

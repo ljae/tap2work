@@ -1,3 +1,13 @@
+## 2026-10-09 매뉴얼 구성·공간 안내 구현
+
+`developer/manual_setup.mjs`가 store.manualSetup={conditions:{selfbar,tableBurner}:boolean|null,places:{waste,supplies}:zoneId|null,revision}를 소유한다. store_setup의 초기 설정과 save_manual_setup이 같은 검증을 사용한다. composeManual은 원본 단계 ID에 따라 읽기/새 실행을 구성하고 원본을 변경하지 않는다. manualSearch 및 일일/사건 실행에서 사용한다. 조건 변경 시 해당 미시작 실행만 보관하고 구성 revision을 일일 ID에 포함한다. 시작/완료 snapshot은 고정한다.
+
+내용 해시가 달라진 매장 편집은 template.manualCustomization={kind:modified|created,at}; 검색/업무 snapshot에 투영한다. 공통 설정 변경은 표시 대상이 아니다. 기존 catalogLinks/개인화 계약을 유지한다. DB 발행 후보109와 운영 stable86은 독립이다.
+
+`developer/place_guide.mjs`는 zones의 ID를 유지하면서 floor/area/description/photo를 저장한다. 새 목록 전용 장소는 mapped:false 및 호환 기본 좌표를 가진다. save_layout은 미배치 장소/다른 층/기존 메타데이터를 보존하고 floorScope 내에서만 편집한다. 물리적 겹침은 동일 층의 mapped 항목끼리 검사한다. 참조된 장소 삭제는 공통 매뉴얼 장소 연결도 검사한다. 사진350KB/전체 인라인 문자열1.5MB 한도, revision·권한 검증을 사용한다. 현재 층별 크기 정보는 공유 layout 격자를 쓰며 다른 층에 배치가 있으면 격자 크기 변경을 거절한다.
+
+UI는 공간·장비 목록→장소 상세→동일 편집 폼, 배치도는 접힌 선택 영역. 우리매장 매장 특성·공통 장소와 신규 등록의 조건 컨트롤을 공유한다. 자세한 계약·한계는 MANUAL_SPACE_RELEASE_2026-10-09.md.
+
 ## 업종 중심 등록 후속 · 2026-10-08 (최신)
 
 표준 주소 검색 결과 선택과 상세 주소를 분리하고 기존 매장 정보에도 같은 컨트롤을 사용한다. 파트를 직접 추가할 수 있고 필요 인원은 화면당 최대 3파트로 나눈다. POS 연결·배달앱/주문처리는 확장 범위이므로 초기 설정에서 제외한다. 과거 설정/API는 보존한다.
@@ -593,3 +603,12 @@ CloudWorkspace는 개인 세션과 읽기 전용 샘플 진입을 소유하고 L
 AppToolbarScroll은 인스턴스별 ScrollController를 소유/해제하고 브라우저 자동 scrollbar를 중복 표시하지 않는다. 업무 파트·매뉴얼 동작·근무표 고정 행은 기존 단일 행/액션 순서를 유지하며 overflow에만 은은한 3px RawScrollbar thumb/track을 보여준다. AppToolbarButton은 최소48px·선택 초록/일반 본문색 공통 표현이다. TapCard는 부모 폭360px 미만 또는 큰 글자에서 보조 정보가 있을 때만 dragHandle을 subtitle 행으로 옮기고 완료·열기 콜백은 각각 유지한다. 보조 정보가 없는 Task에는 빈 손잡이 행을 만들지 않으며 제목 툴팁의 중복 접근성 읽기를 제외한다. 근무표는 같은 연도·월 반복을 줄인 날짜 범위를 표시하고 전체 날짜는 툴팁에 보존한다. UI 저장 원본·repository/API·TAP/Task 구조·크루 기록은 변경하지 않는다. 로그인은 표시 전용 소개 문구, 우리매장 링크는16px 여백을 사용한다.
 
 Tap2workApp ThemeData는 VisualDensity.standard를 명시해 데스크톱 compact 밀도가 실제 버튼 높이를8px 줄이는 플랫폼 차이를 제거한다. 로그인56px·상단48px 기준은 웹과 모바일에 동일하게 적용하며 폼/모든 화면의 회귀를 Flutter 전체 테스트로 검사한다.
+
+## 차기 매뉴얼 구조 재설계 조사 · 2026-10-09
+
+사용자 범위: 외식업 전반, 실사용 고객이 없는 단계에서 원점 설계, 공통 업무/맞춤 업무 구분, 크루에게 홀 마감을 하나로 표시. [조사·비교표](MANUAL_STRUCTURE_RESEARCH_2026-10-09.md)는 기준 매뉴얼·적용 조건·매장 값·업무 계획·실행 기록을 나누는 proposed 경계다. 공통 원본 복제/연결·매장 수정·업데이트 정책과 실제 스키마는 아직 미정이며 기술 추천을 사용자 승인으로 취급하지 않는다. 현재 D-104 구현·운영DB·원본 발행은 변경하지 않았다. 실사용 고객 이관 부담을 새 설계의 선행 조건으로 두지 않되, 설계 요청으로 기존 개인 계정/운영·데모 데이터를 삭제하지 않는다.
+
+
+## 2026-10-09 매뉴얼 범위·설정 연결 후속
+
+사용자는 일반 식당의 충분한 업무 범위, 구성 조건과 기존 설정 연결, 매장 수정 표시를 요청했다. [설계](MANUAL_COVERAGE_AND_SETTINGS_2026-10-09.md)의 14영역은 누락 점검용 proposed이며 메뉴14개가 아니다. 기존 profile/workplace/layout+zones/menus/items를 단일 원본으로 재사용하고 조건·공통 값·업무별 예외를 분리한다. 영향 계산→단일 저장/CAS→구성 반영, 제외 조건의 수정과 실행 기록 보존은 신규 계약 제안이다. 매장 값 주입과 실제 절차 변경을 구분하며 catalogLinks.personalized만으로 사용자 수정을 단정하지 않는다. 실행 표시에는 생성 시점 상태를 사용한다. 원본 사본/연결·업데이트 정책은 미정이다. 이번 작업은 문서와 독립 시안이며 실제 앱/API/DB는 변경하지 않았다.

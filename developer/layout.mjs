@@ -36,13 +36,17 @@ export function validateLayout(input, state) {
     rows: integer(input.layout.rows, 8, 30, '세로 칸 수'),
   };
   if (!Array.isArray(input.zones) || input.zones.length > 80) fail('배치 항목은 최대 80개까지 설정할 수 있어요.');
+  const scoped = input.floorScope !== undefined;
+  if(scoped && (typeof input.floorScope !== 'string' || input.floorScope.length>30))fail('층을 확인해 주세요.');
+  if(scoped && (input.layout.columns!==state.layout.columns || input.layout.rows!==state.layout.rows) && state.zones.some(z=>z.mapped!==false && (z.floor??'')!==input.floorScope))fail('다른 층에 배치가 있어 격자 크기를 유지해 주세요.');
   const ids = new Set();
   const tableNames = new Set();
   const zones = input.zones.map(zone => {
     if (!zone || typeof zone !== 'object' || typeof zone.id !== 'string' || !/^[a-zA-Z0-9_-]{1,80}$/.test(zone.id) || ids.has(zone.id)) fail('배치 항목의 식별자가 중복되거나 잘못되었어요.');
     ids.add(zone.id);
     if (!kinds.includes(zone.kind)) fail('테이블·기기·보관·출입구·구역 중에서 선택해 주세요.');
-    const result = { id: zone.id, kind: zone.kind, name: label(zone.name, 30), description: label(zone.description, 500, false),
+    if(scoped && (state.zones.find(old=>old.id===zone.id)?.floor??zone.floor??'')!==input.floorScope)fail('다른 층의 장소는 이 배치에서 수정할 수 없어요.');
+    const result = { ...state.zones.find(old => old.id === zone.id), id: zone.id, mapped: true, floor: scoped ? input.floorScope : (state.zones.find(old=>old.id===zone.id)?.floor??''), kind: zone.kind, name: label(zone.name, 30), description: label(zone.description, 500, false),
       x: integer(zone.x, 0, layout.columns - 1, '가로 위치'), y: integer(zone.y, 0, layout.rows - 1, '세로 위치'),
       width: integer(zone.width, 1, layout.columns, '가로 크기'), height: integer(zone.height, 1, layout.rows, '세로 크기'),
       seats: zone.kind === 'table' ? integer(zone.seats, 1, 20, '좌석 수') : 0,
@@ -59,16 +63,17 @@ export function validateLayout(input, state) {
     }
     return result;
   });
+  zones.push(...state.zones.filter(z => (z.mapped === false || scoped && (z.floor??'')!==input.floorScope) && !ids.has(z.id)));
   for (const zone of state.zones) {
     const replacement = zones.find(z => z.id === zone.id);
-    const referenced = [...state.items, ...(state.preparedItems ?? []), ...state.tasks, ...state.taskTemplates].some(item => item.zone === zone.id);
+    const referenced = Object.values(state.store.manualSetup?.places??{}).includes(zone.id) || [...state.items, ...(state.preparedItems ?? []), ...state.tasks, ...state.taskTemplates].some(item => item.zone === zone.id);
     if (referenced && (!replacement || replacement.kind !== zone.kind)) fail(`${zone.name}은 재고나 업무에 연결되어 있어 삭제하거나 종류를 바꿀 수 없어요. 위치·이름은 바꿀 수 있어요.`);
   }
   for (let i = 0; i < zones.length; i++) {
     for (const other of zones.slice(i + 1)) {
       const z = zones[i];
       // Areas may contain equipment/tables; physical objects may not overlap.
-      if (z.kind === 'area' || other.kind === 'area') continue;
+      if (z.mapped === false || other.mapped === false || (z.floor ?? '') !== (other.floor ?? '') || z.kind === 'area' || other.kind === 'area') continue;
       const occupied = occupiedCells(z);
       if ([...occupiedCells(other)].some(cell => occupied.has(cell))) fail(`${z.name}과 ${other.name}의 위치가 겹쳐요.`);
     }

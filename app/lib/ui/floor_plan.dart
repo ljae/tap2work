@@ -1,3 +1,4 @@
+import 'place_guide.dart';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -32,6 +33,7 @@ class FloorPlanView extends StatefulWidget {
 class _FloorPlanViewState extends State<FloorPlanView> {
   String? selected;
   String route = '전체 배치';
+  String mapFloor = '';
   @override
   Widget build(BuildContext context) {
     final ops = widget.operations;
@@ -39,7 +41,18 @@ class _FloorPlanViewState extends State<FloorPlanView> {
     if (layout == null) {
       return const Information('매장 배치를 불러오려면 최신 매장 서버에 연결해 주세요.');
     }
-    final zones = ops.rows('zones');
+    final mapFloors = ops
+        .rows('zones')
+        .map((z) => z['floor'] as String? ?? '')
+        .toSet()
+        .toList();
+    if (mapFloors.isNotEmpty && !mapFloors.contains(mapFloor)) {
+      mapFloor = mapFloors.first;
+    }
+    final zones = ops
+        .rows('zones')
+        .where((z) => z['mapped'] != false && (z['floor'] ?? '') == mapFloor)
+        .toList();
     final availableRoutes = _routes.entries
         .where((r) => r.value.every((id) => zones.any((z) => z['id'] == id)))
         .toList();
@@ -50,115 +63,137 @@ class _FloorPlanViewState extends State<FloorPlanView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const PageHeading(
-          '매장 공간',
-          '우리 매장의 전체 배치',
-          '홀 테이블부터 주방 기기까지, 어디에 무엇이 있는지 한눈에.',
-        ),
-        _Summary(zones: zones),
-        const SizedBox(height: 18),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.center,
+        PlaceGuide(ops: ops),
+        const SizedBox(height: 24),
+        ExpansionTile(
+          title: const Text('간단 배치도 · 선택'),
           children: [
-            if (ops.isLeader)
-              PressBounce(
-                child: FilledButton.icon(
-                  onPressed: ops.busy
-                      ? null
-                      : () => showAppSheet(
-                          context,
-                          builder: (_) => _LayoutEditor(operations: ops),
-                        ),
-                  icon: const Icon(Icons.edit_location_alt_outlined),
-                  label: const Text('배치 설정'),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final f in mapFloors)
+                  ChoiceChip(
+                    label: Text(f.isEmpty ? '기본 구역' : f),
+                    selected: mapFloor == f,
+                    onSelected: (_) => setState(() {
+                      mapFloor = f;
+                      selected = null;
+                      route = '전체 배치';
+                    }),
+                  ),
+              ],
+            ),
+            _Summary(zones: zones),
+            const SizedBox(height: 18),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (ops.isLeader)
+                  PressBounce(
+                    child: FilledButton.icon(
+                      onPressed: ops.busy
+                          ? null
+                          : () => showAppSheet(
+                              context,
+                              builder: (_) => _LayoutEditor(
+                                operations: ops,
+                                floor: mapFloor,
+                              ),
+                            ),
+                      icon: const Icon(Icons.edit_location_alt_outlined),
+                      label: const Text('배치 설정'),
+                    ),
+                  ),
+                const Text(
+                  '테이블 · 기기 · 보관 · 출입구',
+                  style: TextStyle(fontSize: 13, color: AppColors.muted),
                 ),
-              ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            AppChoiceGroup<String>(
+              values: ['전체 배치', ...availableRoutes.map((r) => r.key)],
+              selected: route,
+              labelOf: (name) => name,
+              onSelected: (name) => setState(() => route = name),
+            ),
+            const SizedBox(height: 12),
+            _MapCanvas(
+              layout: layout,
+              zones: zones,
+              selected: selected,
+              route: path,
+              onSelect: (id) => setState(() => selected = id),
+            ),
+            const SizedBox(height: 10),
             const Text(
-              '테이블 · 기기 · 보관 · 출입구',
+              '두 손가락으로 확대 · 항목을 눌러 상세 확인 · 격자는 상대적인 배치 기준',
               style: TextStyle(fontSize: 13, color: AppColors.muted),
             ),
+            if (selection != null) ...[
+              const SizedBox(height: 16),
+              Surface(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${selection['name']} · ${_kinds[selection['kind']]}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (selection['kind'] == 'table')
+                      Text('${selection['seats']}인석'),
+                    if (selection['description'] != '')
+                      Text(
+                        selection['description'],
+                        style: const TextStyle(height: 1.7),
+                      ),
+                    if (ops
+                        .rows('items')
+                        .any((i) => i['zone'] == selection['id']))
+                      Text(
+                        '보관 재료: ${ops.rows('items').where((i) => i['zone'] == selection['id']).map((i) => i['name']).join(', ')}',
+                      ),
+                  ],
+                ),
+              ),
+            ],
+            if (path.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Information(
+                  '$route 예시 · 장애물을 피해 이동 가능한 격자 경로를 표시해요. 막힌 구간은 선이 보이지 않아요.\n${path.indexed.map((p) => '${p.$1 + 1}. ${zones.firstWhere((z) => z['id'] == p.$2)['name']}').join(' → ')}',
+                ),
+              ),
+            const SizedBox(height: 20),
+            const SectionHeading('재료 위치와 수량', '배치와 연결된 재료의 최근 기록이에요.'),
+            Surface(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              child: Column(
+                children: [
+                  for (final (index, item) in ops.rows('items').indexed) ...[
+                    if (index > 0) const Divider(height: 1),
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(vertical: 5),
+                      leading: const Icon(Icons.inventory_2_outlined),
+                      title: Text(
+                        '${item['name']} · ${item['quantity']}${item['unit']}',
+                      ),
+                      subtitle: Text(
+                        '마지막 실사 ${_stamp(item['lastCheckedAt'])} · 마지막 발주 ${_stamp(item['lastOrderedAt'])}',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
           ],
         ),
-        const SizedBox(height: 14),
-        AppChoiceGroup<String>(
-          values: ['전체 배치', ...availableRoutes.map((r) => r.key)],
-          selected: route,
-          labelOf: (name) => name,
-          onSelected: (name) => setState(() => route = name),
-        ),
-        const SizedBox(height: 12),
-        _MapCanvas(
-          layout: layout,
-          zones: zones,
-          selected: selected,
-          route: path,
-          onSelect: (id) => setState(() => selected = id),
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          '두 손가락으로 확대 · 항목을 눌러 상세 확인 · 격자는 상대적인 배치 기준',
-          style: TextStyle(fontSize: 13, color: AppColors.muted),
-        ),
-        if (selection != null) ...[
-          const SizedBox(height: 16),
-          Surface(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${selection['name']} · ${_kinds[selection['kind']]}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                if (selection['kind'] == 'table')
-                  Text('${selection['seats']}인석'),
-                if (selection['description'] != '')
-                  Text(
-                    selection['description'],
-                    style: const TextStyle(height: 1.7),
-                  ),
-                if (ops.rows('items').any((i) => i['zone'] == selection['id']))
-                  Text(
-                    '보관 재료: ${ops.rows('items').where((i) => i['zone'] == selection['id']).map((i) => i['name']).join(', ')}',
-                  ),
-              ],
-            ),
-          ),
-        ],
-        if (path.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: Information(
-              '$route 예시 · 장애물을 피해 이동 가능한 격자 경로를 표시해요. 막힌 구간은 선이 보이지 않아요.\n${path.indexed.map((p) => '${p.$1 + 1}. ${zones.firstWhere((z) => z['id'] == p.$2)['name']}').join(' → ')}',
-            ),
-          ),
-        const SizedBox(height: 20),
-        const SectionHeading('재료 위치와 수량', '배치와 연결된 재료의 최근 기록이에요.'),
-        Surface(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          child: Column(
-            children: [
-              for (final (index, item) in ops.rows('items').indexed) ...[
-                if (index > 0) const Divider(height: 1),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 5),
-                  leading: const Icon(Icons.inventory_2_outlined),
-                  title: Text(
-                    '${item['name']} · ${item['quantity']}${item['unit']}',
-                  ),
-                  subtitle: Text(
-                    '마지막 실사 ${_stamp(item['lastCheckedAt'])} · 마지막 발주 ${_stamp(item['lastOrderedAt'])}',
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
         const Information(
           '좌석 수는 설정된 정원이며 실시간 착석 정보가 아니에요. 배치는 개략도이며, 실제 장비 사용법과 안전·비상 동선은 현장에서 확인해 주세요.',
         ),
@@ -648,7 +683,8 @@ class _GridPainter extends CustomPainter {
 }
 
 class _LayoutEditor extends StatefulWidget {
-  const _LayoutEditor({required this.operations});
+  const _LayoutEditor({required this.operations, required this.floor});
+  final String floor;
   final OperationsController operations;
   @override
   State<_LayoutEditor> createState() => _LayoutEditorState();
@@ -673,7 +709,13 @@ class _LayoutEditorState extends State<_LayoutEditor> {
 
   void load() {
     layout = _copy(ops.data!['layout'] as Json);
-    zones = ops.rows('zones').map(_copy).toList();
+    zones = ops
+        .rows('zones')
+        .where(
+          (z) => z['mapped'] != false && (z['floor'] ?? '') == widget.floor,
+        )
+        .map(_copy)
+        .toList();
     revision = ops.data!['revision'];
     actorId = ops.actorId;
     selected = null;
@@ -823,6 +865,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
     final ok = await ops.act('save_layout', {
       'revision': revision,
       'layout': layout,
+      'floorScope': widget.floor,
       'zones': zones,
     });
     if (!mounted) return;
@@ -895,6 +938,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
     if (result == null || !mounted) return;
     setState(() {
       if (item == null) {
+        result['floor'] = widget.floor;
         zones.add(result);
       } else {
         zones[zones.indexOf(item)] = result;
@@ -994,6 +1038,54 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                       ),
                     const SizedBox(height: 12),
                     _Summary(zones: zones),
+                    if (ops
+                        .rows('zones')
+                        .any(
+                          (z) =>
+                              z['mapped'] == false &&
+                              (z['floor'] ?? '') == widget.floor &&
+                              !zones.any((d) => d['id'] == z['id']),
+                        ))
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(
+                          labelText: '등록한 장소를 배치도에 표시',
+                        ),
+                        items: [
+                          for (final z
+                              in ops
+                                  .rows('zones')
+                                  .where(
+                                    (z) =>
+                                        z['mapped'] == false &&
+                                        (z['floor'] ?? '') == widget.floor &&
+                                        !zones.any((d) => d['id'] == z['id']),
+                                  ))
+                            DropdownMenuItem(
+                              value: z['id'] as String,
+                              child: Text(z['name']),
+                            ),
+                        ],
+                        onChanged: (id) async {
+                          final place = ops
+                              .rows('zones')
+                              .firstWhere((z) => z['id'] == id);
+                          final result = await showAppFormSheet<Json>(
+                            context: context,
+                            builder: (_) => _ItemDialog(
+                              item: place,
+                              layout: layout,
+                              initialSpot: (0, 0),
+                            ),
+                          );
+                          if (result != null && mounted) {
+                            setState(() {
+                              zones.add({...place, ...result, 'mapped': true});
+                              dirty = true;
+                              selected = id;
+                            });
+                          }
+                        },
+                      ),
                     Wrap(
                       spacing: 10,
                       runSpacing: 8,
