@@ -1,3 +1,5 @@
+2026-10-10 완료: 웹 c8c96a9 / Actions37948946797 성공, operations·catalog-admin 배포 및 운영 stable109개(revision2) 발행. 사용자가 추가 동의 없이 반영을 명시하여 이번 발행은 DB 관리자 직접 작업으로 기록했다. 독립 검토 계정을 가장하거나 승인 이력을 생성하지 않았다. 새 원본 업데이트 정책은 미정으로 유지한다.
+
 ## 2026-10-09 매뉴얼 구성·공간 안내 구현
 
 `developer/manual_setup.mjs`가 store.manualSetup={conditions:{selfbar,tableBurner}:boolean|null,places:{waste,supplies}:zoneId|null,revision}를 소유한다. store_setup의 초기 설정과 save_manual_setup이 같은 검증을 사용한다. composeManual은 원본 단계 ID에 따라 읽기/새 실행을 구성하고 원본을 변경하지 않는다. manualSearch 및 일일/사건 실행에서 사용한다. 조건 변경 시 해당 미시작 실행만 보관하고 구성 revision을 일일 ID에 포함한다. 시작/완료 snapshot은 고정한다.
