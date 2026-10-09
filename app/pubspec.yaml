@@ -88,6 +88,7 @@ flutter:
     - assets/calendar/LICENSE.txt
     - assets/fonts/PRETENDARD-OFL.txt
     - assets/branding/tap2work.png
+    - assets/branding/google_g.png
     - assets/branding/tap_water_green.png
     - assets/menu/menu_tap2.png
 

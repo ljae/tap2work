@@ -458,14 +458,13 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               selected: mineOnly,
               onSelected: (v) => setState(() => mineOnly = v),
             ),
-          if (task == null) const SizedBox(height: 12),
 
           ...[
             if (task == null && widget.partFilter == null) ...[
               _folderBar(),
               const SizedBox(height: 16),
             ],
-            const SizedBox(height: 8),
+            if (task != null) const SizedBox(height: 8),
             Wrap(
               spacing: 12,
               runSpacing: 8,

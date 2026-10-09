@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 253,
+  "revision": 256,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7735,7 +7735,72 @@
         "New 91-entry content candidate not published: authenticated provider draft submission and exact-hash independent review required",
         "Shared break split becomes available after replacement content is published; existing operational manuals/history preserved"
       ]
+    },
+    {
+      "at": "2026-10-08T14:49:53.008956+00:00",
+      "type": "research",
+      "title": "Research a working day for manual/checklist design",
+      "detail": "User requested real-work research first, followed by questions to optimize manuals and checklists for new crew. Reviewed Korean NCS-based employer role documents, O*NET occupational tasks and FSA operating guidance. Created a sourced reconstruction of a restaurant day with 60 work fragments, parallel parts, handoffs, novice walkthrough, TAP/manual proposals and cafe/retail/housekeeping comparisons.",
+      "source": "docs/DAILY_WORKFLOW_RESEARCH_2026-10-08.md",
+      "verification": [
+        "Opened primary public role/guidance sources; source register records scope and PDF refetch failures",
+        "Verified unique contiguous W01–W60 and project-state JSON readability",
+        "Compared current knowledge_work.mjs and architecture contracts; separated implemented functions from proposed handoff/dependency functions"
+      ],
+      "limitations": [
+        "Desk research, not observation/interviews of an actual restaurant; no measured times, frequencies or staffing norms",
+        "Scenario and detailed product mappings remain proposed pending user answers",
+        "No code, operational data, catalog publication or deployment changes; Flutter/server tests not run for documentation-only research"
+      ]
+    },
+    {
+      "at": "2026-10-09T12:06:45.866890+00:00",
+      "type": "implementation",
+      "title": "Flutter login redesign and Ego Lite visual review",
+      "detail": "User requested a contemporary Flutter login and specified Ego Lite for design checks. Added presentation-only LoginScreen with restrained green background, brand introduction/coral feature labels, responsive single/two-column layout and distinct equal-size Google/Apple buttons. Preserved auth/preview/privacy callbacks, added actual provider/sign-in progress and guarded retries; successful provider retry clears stale error. Updated architecture/design/relationship documents; existing uncommitted work preserved.",
+      "verification": [
+        "flutter analyze: no issues",
+        "Related login/cloud sync/native auth/account widget tests plus capture: 17 passed",
+        "node --test developer/test/cloud.test.mjs: 7 passed",
+        "npm run check:ui-links: 57 contracts passed",
+        "npm run build:app: release web build passed",
+        "Ego Lite space 2: actual local web at 320x640, 390x844 and 1200x900; screenshots reviewed, small-screen scrolling, privacy open/close and read-only sample entry checked",
+        "Widget layout checks at 320/390/1200 and text scales 1.0/1.5 passed"
+      ],
+      "limitations": [
+        "Initial compile checks failed on const Semantics; corrected and rerun passed",
+        "Local preview sample entry initially returned 404 because build:app omits review fixtures; fresh code-only samples were generated in ignored app/build/web/review-data and retry succeeded; production sample build unchanged",
+        "No real OAuth round trip, native build, deployment or provider design approval; no production data modified"
+      ],
+      "source": ".local/login-design-review/ego-mobile.png; .local/login-design-review/ego-desktop.png"
+    },
+    {
+      "at": "2026-10-09T12:37:10.255608+00:00",
+      "type": "implementation",
+      "title": "Minimal UI audit and fixes verified with Ego Lite",
+      "detail": "Reviewed the real local Flutter web login and four destinations in Ego Lite. Removed noninteractive login button-like decorations and redundant copy, standardized toolbar selection/action colors and 48px controls, made horizontal tool overflow visible with a quiet scrollbar, removed 28px redundant work-board spacing, moved narrow-card drag handles into existing metadata rows, renamed TAP open action to content, removed duplicate title semantics, shortened repeated schedule date components with full-date tooltip, and reduced store-link card padding to 16px. Explicit standard visual density prevents desktop defaults shrinking real controls. Updated UI, architecture and relationship documentation; preserved existing uncommitted work, four destinations, permission and persistence contracts.",
+      "previous": "Button-like noninteractive intro, uniformly green toolbar actions, compact desktop density, hidden tool overflow, crowded card title actions, repeated date components and 24px store-link padding.",
+      "next": "Plain intro text, selection-only green, standard density with measured 48px/56px controls, visible overflow, adaptive metadata drag handle, concise date display and 16px store-link padding.",
+      "reason": "User requested minimal, intuitive design corrections based on Ego Lite inspection. These are presentation refinements, not new product policy approvals.",
+      "verification": [
+        "flutter analyze --no-pub: no issues",
+        "flutter test --no-pub final full suite: 387 passed; .local/minimal-ui-review/flutter-tests-final.log",
+        "npm run build:app: release web build passed",
+        "npm run check:ui-links: 57 contracts passed",
+        "node --test cloud/checklists/workplace suites: 35 passed",
+        "Ego Lite space 3: actual local web screenshots reviewed at CSS widths 320, 390 and 1200; default and reduced motion observed",
+        "Ego DOM measurements: Google/Apple 56px, part toolbar buttons 48px",
+        "Ego UI: part filtering/restoration, content open/back, horizontal tools, shared hours sheet, store profile open/close verified",
+        "Relevant automated tests include enlarged text, keyboard insets, reduced motion, draft preservation, independent check/open/drag and server role/revision preservation"
+      ],
+      "limitations": [
+        "Initial full suite failed four tests: two old Task label selectors and two desktop debug-platform invariant failures. Updated visible-label selectors and used TargetPlatformVariant; targeted 13 and full 387 reruns passed.",
+        "Ego screenshot DPR normalization cropped mobile captures after resize; replaced them with same-page CDP full captures, preserving CSS viewport sizes.",
+        "No real-user study, exhaustive every-settings visual audit, production OAuth round trip, native build, deployment or production data modification.",
+        "Single-row toolbar policy preserved; narrow screens still require horizontal scrolling for all tools."
+      ],
+      "source": "docs/MINIMAL_UI_REVIEW_2026-10-09.md"
     }
   ],
-  "updatedAt": "2026-10-08T13:01:33.989949+00:00"
+  "updatedAt": "2026-10-09T12:37:10.255608+00:00"
 }

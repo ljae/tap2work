@@ -429,3 +429,22 @@ E06 로딩 시각화 후속: 기존 초기화/매장 조회 상태 → TapWaterL
 | S62 | settings.knowledgeIds → 연결할 참고 매뉴얼 → save_tap_settings | 실행 knowledgeSnapshots 버전 고정, 업무에서 참고 펼치기 | knowledge_work.test.mjs |
 | S63 | workEvent/workIssue → 이상·수행 불가 / 조치 결과 → flag_work_issue/resolve_work_issue | 담당자 이상 기록, 관리자 조치, 미해결 완료 금지 | knowledge_work.test.mjs |
 | S64 | manualCatalog.knowledge.scope → 마켓 분류 칩 → search(scope) | 업종 공통/외식 공통/공정·보관/메뉴별 필터, 옛 혼합 TAP 신규 추천 제외 | manual_market_discovery_test.dart |
+
+
+## 로그인 화면 표시·연결 상태 · 2026-10-09
+
+| 연결 | source → control → action | consumer / effect | 검증 |
+| --- | --- | --- | --- |
+| E07 로그인 | configuredSocialProviders → SocialSignInButtons 동일 크기 Google/Apple 버튼·진행/재확인 → AuthRepository.signIn / loadProviders | 실제 제공자 설정에만 활성화, SDK/OAuth·개인 세션 유지, 중복 연결/조회 방지, 재확인 성공 시 오류 해제 | login_screen_test.dart, cloud_sync_test.dart, native_auth_test.dart |
+| E04 샘플 | CloudWorkspace.preview=false → LoginScreen 샘플 둘러보기 → preview=true / ops.start | 기존 readOnly OperationsController, 운영 저장 없음 | cloud_workspace_test.dart, login_screen_test.dart |
+| S51 로그인 방침 | assets/legal/privacy.json → LoginScreen 개인정보처리방침 → openPrivacy | 기존 방침 화면; 세션/매장 저장 변경 없음 | account_test.dart, login_screen_test.dart |
+
+## 미니멀 도구·카드 일관성 · 2026-10-09
+
+| 연결 | source → control → action | consumer / effect | 검증 |
+| --- | --- | --- | --- |
+| 업무 파트 | workplace.parts → 48px AppToolbarButton + AppToolbarScroll → taskPart.value | 기존 파트 필터, 선택만 초록. 저장/권한 변경 없음 | menu_layout_test.dart, design_system_test.dart |
+| S11/S14/S45/S48/S59 | 매뉴얼 현재 범위/직책 → 스크롤바 있는 공통 단일 도구 행 → 기존 마켓/업무 연결/인쇄/추가/백업 | 첫 항목 순서·권한·revision/기존 저장 계약 유지 | manual_workspace_test.dart, manual_phone_fix_test.dart |
+| S03/S27 | ScheduleController 날짜/보기 → 같은 단일 AppToolbarScroll/48px 버튼 → move/setMonth/showScheduleRange 및 기존 설정 | pinned header와 영업시간/크루 저장 재사용, 가로 스크롤 위치만 기기 메모리 | water_layout_test.dart, schedule_workflow_test.dart, schedule_gesture_test.dart |
+| TAP 내용 | task/step → 좁은 카드 완료/내용 열기와 별도 손잡이 → 기존 check/onOpen/drag | 완료와 열기 분리, 이동·완료 기록 계약 유지. 영어 Task 열기 UI만 내용으로 표시 | tap_workspace_test.dart |
+| 우리매장 링크 | 기존 설정 snapshot → 내부16px actionCard → 기존 설정 시트 | source/control/action/consumer와 저장효과 동일, 표시만 정리 | menu_layout_test.dart, ui_ux_audit_test.dart |

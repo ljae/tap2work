@@ -1261,9 +1261,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     children: [
       Expanded(
         child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
+          builder: (context, constraints) => AppToolbarScroll(
             key: const ValueKey('manual-header-actions'),
-            scrollDirection: Axis.horizontal,
             child: ConstrainedBox(
               constraints: BoxConstraints(minWidth: constraints.maxWidth),
               child: Row(

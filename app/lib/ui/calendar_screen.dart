@@ -1624,11 +1624,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final exception =
         ops.data?['workplace']?['dateOverrides']?[rosterDate(model.selected)];
     final sourceDay = exception?['weekday'] ?? model.selected.weekday;
+    final start = model.monday;
+    final end = start.add(const Duration(days: 6));
+    final fullRange = '${rosterDate(start)} ~ ${rosterDate(end)}';
+    final shortRange = start.year != end.year
+        ? fullRange
+        : start.month == end.month
+        ? '${start.year}년 ${start.month}.${start.day}–${end.day}'
+        : '${start.year}년 ${start.month}.${start.day}–${end.month}.${end.day}';
     return SizedBox(
       key: const ValueKey('schedule-header'),
       height: 48 * (MediaQuery.textScalerOf(context).scale(13) / 13),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
+      child: AppToolbarScroll(
         child: Row(
           children: [
             AppToolbarButton(
@@ -1639,11 +1646,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 loadHolidays();
               },
             ),
-            Text(
-              model.month
+            Tooltip(
+              message: model.month
                   ? '${model.selected.year}년 ${model.selected.month}월'
-                  : '${rosterDate(model.monday)} ~ ${rosterDate(model.monday.add(const Duration(days: 6)))}',
-              style: AppText.caption,
+                  : fullRange,
+              child: Text(
+                model.month
+                    ? '${model.selected.year}년 ${model.selected.month}월'
+                    : shortRange,
+                style: AppText.caption,
+              ),
             ),
             AppToolbarButton(
               icon: CupertinoIcons.chevron_right,

@@ -470,7 +470,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                             ),
                           if (tab == 0 && manualQuery.trim().isEmpty)
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
+                              padding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
                               child: Center(
                                 child: ConstrainedBox(
                                   constraints: const BoxConstraints(
@@ -487,8 +487,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                     child: ValueListenableBuilder<String?>(
                                       valueListenable: taskPart,
                                       builder: (context, selected, _) =>
-                                          SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
+                                          AppToolbarScroll(
                                             child: Row(
                                               spacing: 8,
                                               children: [
@@ -946,7 +945,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
           child: InkWell(
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   Icon(icon, size: 21, color: AppColors.green),

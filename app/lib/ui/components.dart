@@ -27,10 +27,9 @@ class AppToolbarButton extends StatelessWidget {
       child: TextButton.icon(
         onPressed: onPressed,
         style: TextButton.styleFrom(
+          minimumSize: const Size(48, 48),
           textStyle: AppText.caption,
-          foregroundColor: selected == false
-              ? AppColors.muted
-              : AppColors.green,
+          foregroundColor: selected == true ? AppColors.green : AppColors.ink,
           backgroundColor: selected == true
               ? AppColors.lime
               : Colors.transparent,
@@ -39,6 +38,47 @@ class AppToolbarButton extends StatelessWidget {
         ),
         icon: Icon(icon, size: 18),
         label: Text(label, style: const TextStyle(fontSize: 13)),
+      ),
+    ),
+  );
+}
+
+/// Keeps a single toolbar row while making overflow visible and draggable.
+class AppToolbarScroll extends StatefulWidget {
+  const AppToolbarScroll({super.key, required this.child});
+  final Widget child;
+
+  @override
+  State<AppToolbarScroll> createState() => _AppToolbarScrollState();
+}
+
+class _AppToolbarScrollState extends State<AppToolbarScroll> {
+  final controller = ScrollController();
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => RawScrollbar(
+    controller: controller,
+    thumbVisibility: true,
+    trackVisibility: true,
+    interactive: true,
+    thickness: 3,
+    thumbColor: AppColors.muted.withValues(alpha: 0.5),
+    trackColor: AppColors.line.withValues(alpha: 0.4),
+    trackBorderColor: Colors.transparent,
+    radius: const Radius.circular(3),
+    scrollbarOrientation: ScrollbarOrientation.bottom,
+    child: ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+      child: SingleChildScrollView(
+        controller: controller,
+        scrollDirection: Axis.horizontal,
+        child: widget.child,
       ),
     ),
   );

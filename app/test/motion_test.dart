@@ -63,9 +63,7 @@ void main() {
     final tap = find.byKey(const ValueKey('tap-daily-prep'));
     await tester.ensureVisible(tap);
     // Open through the visible card to exercise the same path as the app.
-    await tester.tap(
-      find.descendant(of: tap, matching: find.text('Task')).first,
-    );
+    await tester.tap(find.descendant(of: tap, matching: find.text('내용')).first);
     await tester.pumpAndSettle();
 
     final small = find.byKey(const ValueKey('small-s1'));
@@ -106,7 +104,7 @@ void main() {
       final tap = find.byKey(const ValueKey('tap-daily-prep'));
       await tester.ensureVisible(tap);
       await tester.tap(
-        find.descendant(of: tap, matching: find.text('Task')).first,
+        find.descendant(of: tap, matching: find.text('내용')).first,
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));

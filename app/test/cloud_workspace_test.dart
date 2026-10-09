@@ -31,7 +31,7 @@ void main() {
       expect(find.text('Google로 계속하기'), findsOneWidget);
       expect(find.text('Apple로 계속하기'), findsOneWidget);
       expect(find.text('개인정보처리방침'), findsOneWidget);
-      expect(find.text('근무표'), findsNothing);
+      expect(find.byType(NavigationBar), findsNothing);
       expect(find.byType(TextFormField), findsNothing);
       expect(find.textContaining('공용 계정'), findsNothing);
       expect(tester.takeException(), isNull);

@@ -5,6 +5,51 @@ import 'package:tap2work/ui/components.dart';
 
 void main() {
   testWidgets(
+    'toolbar keeps 48px actions and hidden tools reachable with enlarged text',
+    (tester) async {
+      var calls = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(1.5)),
+              child: Center(
+                child: SizedBox(
+                  width: 280,
+                  height: 72,
+                  child: AppToolbarScroll(
+                    child: Row(
+                      children: [
+                        for (var i = 0; i < 8; i++)
+                          AppToolbarButton(
+                            icon: Icons.tune,
+                            label: '설정 $i',
+                            onPressed: () => calls++,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final last = find.widgetWithText(TextButton, '설정 7');
+      expect(last.hitTestable(), findsNothing);
+      await tester.ensureVisible(last);
+      await tester.pumpAndSettle();
+      final size = tester.getSize(last);
+      expect(size.width, greaterThanOrEqualTo(48));
+      expect(size.height, greaterThanOrEqualTo(48));
+      await tester.tap(last);
+      expect(calls, 1);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
     'button shrinks, restores after cancellation and fires only once',
     (tester) async {
       var taps = 0;

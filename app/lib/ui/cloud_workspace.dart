@@ -10,6 +10,7 @@ import '../data/workspace_selection_repository.dart';
 import '../data/native_auth_service.dart';
 import 'account_screen.dart';
 import 'privacy_screen.dart';
+import 'login_screen.dart';
 import '../state/operations_controller.dart';
 import '../state/work_controller.dart';
 import 'components.dart';
@@ -111,59 +112,16 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
       accountEmail: widget.client.auth.currentUser?.email,
       homeOverride: userId == null && !preview
           ? Builder(
-              builder: (context) => Scaffold(
-                body: SafeArea(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 460),
-                      child: ListView(
-                        shrinkWrap: true,
-                        padding: const EdgeInsets.all(28),
-                        children: [
-                          const BrandLogo(),
-                          const SizedBox(height: 40),
-                          const Text(
-                            '우리 매장의 하루를\n함께 관리해요',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
-                              height: 1.35,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            '한 번 로그인하면 다음 방문부터 자동으로 연결돼요.',
-                            style: TextStyle(
-                              color: AppColors.muted,
-                              height: 1.6,
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          SocialSignInButtons(
-                            onSignIn: auth.signIn,
-                            loadProviders: widget.loadProviders,
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Apple 또는 Google 계정으로 시작해요. 비밀번호는 TAP Work에 전달되지 않아요.',
-                            style: AppText.caption,
-                          ),
-                          TextButton(
-                            onPressed: () => openPrivacy(context),
-                            child: const Text('개인정보처리방침'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              setState(() => preview = true);
-                              ops.start();
-                            },
-                            child: const Text('저장 없이 샘플 둘러보기'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+              builder: (context) => LoginScreen(
+                signInButtons: SocialSignInButtons(
+                  onSignIn: auth.signIn,
+                  loadProviders: widget.loadProviders,
                 ),
+                onPrivacy: () => openPrivacy(context),
+                onPreview: () {
+                  setState(() => preview = true);
+                  ops.start();
+                },
               ),
             )
           : ops.data?['needsWorkspace'] == true
@@ -312,6 +270,11 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
   }
 
   Future<void> load() async {
+    if (checkingProviders) return;
+    setState(() {
+      checkingProviders = true;
+      error = null;
+    });
     try {
       final value = await widget.loadProviders();
       if (mounted) setState(() => providers = value);
@@ -322,15 +285,20 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
           error = '로그인 연결 상태를 확인하지 못했어요. 다시 시도해 주세요.';
         });
       }
+    } finally {
+      if (mounted) setState(() => checkingProviders = false);
     }
   }
 
+  bool checkingProviders = false;
   bool busy = false;
+  OAuthProvider? activeProvider;
   String? error;
   Future<void> signIn(OAuthProvider provider) async {
     if (busy) return;
     setState(() {
       busy = true;
+      activeProvider = provider;
       error = null;
     });
     try {
@@ -342,7 +310,12 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
         setState(() => error = '로그인하지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.');
       }
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted) {
+        setState(() {
+          busy = false;
+          activeProvider = null;
+        });
+      }
     }
   }
 
@@ -353,25 +326,92 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
       for (final provider in [OAuthProvider.google, OAuthProvider.apple]) ...[
         PressBounce(
           child: OutlinedButton(
-            onPressed: busy || providers?.contains(provider) != true
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(48, 56),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              backgroundColor: provider == OAuthProvider.google
+                  ? AppColors.white
+                  : Colors.black,
+              foregroundColor: provider == OAuthProvider.google
+                  ? const Color(0xFF1F1F1F)
+                  : AppColors.white,
+              disabledForegroundColor: AppColors.muted,
+              disabledBackgroundColor: AppColors.elevated,
+              side: BorderSide(
+                color: provider == OAuthProvider.google
+                    ? const Color(0xFF747775)
+                    : AppColors.controlLine,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed:
+                busy ||
+                    checkingProviders ||
+                    providers?.contains(provider) != true
                 ? null
                 : () => signIn(provider),
-            child: Text(
-              provider == OAuthProvider.google ? 'Google로 계속하기' : 'Apple로 계속하기',
+            child: Row(
+              children: [
+                ExcludeSemantics(
+                  child: activeProvider == provider
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : provider == OAuthProvider.google
+                      ? Image.asset(
+                          'assets/branding/google_g.png',
+                          width: 20,
+                          height: 20,
+                        )
+                      : const Icon(Icons.apple, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    provider == OAuthProvider.google
+                        ? 'Google로 계속하기'
+                        : 'Apple로 계속하기',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 20),
+              ],
             ),
           ),
         ),
         const SizedBox(height: 8),
       ],
-      if (providers != null && providers!.length < 2)
+      if (checkingProviders)
+        Semantics(
+          liveRegion: true,
+          child: const Text('로그인 연결 확인 중이에요.', style: AppText.caption),
+        ),
+      if (!checkingProviders &&
+          providers != null &&
+          providers!.length < 2 &&
+          error == null)
         const Text(
           '소셜 로그인 연결 준비 중이에요. 잠시 후 다시 시도해 주세요.',
           style: AppText.caption,
         ),
-      if (error != null) Information(error!),
+      if (busy)
+        Semantics(
+          liveRegion: true,
+          child: const Text('계정 연결을 기다리고 있어요.', style: AppText.caption),
+        ),
+      if (error != null)
+        Semantics(liveRegion: true, child: Information(error!)),
       if (providers != null && providers!.length < 2)
         TextButton(
-          onPressed: busy ? null : load,
+          onPressed: busy || checkingProviders ? null : load,
           child: const Text('연결 다시 확인'),
         ),
     ],

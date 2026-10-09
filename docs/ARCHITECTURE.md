@@ -582,3 +582,14 @@ AppLoadingScreen은 TapWaterLoading(단일 AnimationController+CustomPainter rep
 공용 원본 91개(기존86+신규5)는 번들/공개 샘플용 검토안이다. stable DB는 독립 검토/발행 전 기존86 유지. 원래 seed의 불변473ae81f 발행본을 명시적으로 검증 허용하여 JSONB 키순서와 새 번들 변경에도 운영 조회를 보존한다. API/웹 배포가 공용 콘텐츠 발행을 의미하지 않는다. common/break-service, food/service-reset, bonejjim/evening-prep, process/broth-storage, process/rice-cake-storage를 추가했으며 old bonejjim/break는 deprecated metadata와 명시적 분리 action으로만 이관한다. 개인화 원본·시작/완료 실행은 보존하고 신규 매뉴얼은 OFF로 가져온다.
 
 ManualWorkScreen은 서버 진단을 보여주고 설정/작업 시작/분리로 연결한다. TapSettingsScreen은 세 가지 사용 방식·제품/공정 기준·참고 매뉴얼을 편집한다. 사건 생성은 현재 관리자가 수동으로 시작한다. POS/자동 센서, 숫자 기준 자동 판정, 범용 지식 문서 DB와 다단계 버전 그래프는 미구현이다.
+
+
+## 로그인 표시 계층 · 2026-10-09
+
+CloudWorkspace는 개인 세션과 읽기 전용 샘플 진입을 소유하고 LoginScreen은 표시와 콜백만 담당한다. 900px 미만은 최대 440px 한 열, 그 이상은 최대 1040px 소개/로그인 두 열이다. SafeArea와 세로 스크롤·확대 글자를 지원한다. SocialSignInButtons는 제공자 확인·계정 연결 중 중복 요청을 막고 선택한 제공자의 진행 상태와 오류/재확인을 표시한다. 인증 repository, SDK/OAuth 및 운영 데이터 계약은 유지한다.
+
+## 미니멀 UI 검수 · 2026-10-09
+
+AppToolbarScroll은 인스턴스별 ScrollController를 소유/해제하고 브라우저 자동 scrollbar를 중복 표시하지 않는다. 업무 파트·매뉴얼 동작·근무표 고정 행은 기존 단일 행/액션 순서를 유지하며 overflow에만 은은한 3px RawScrollbar thumb/track을 보여준다. AppToolbarButton은 최소48px·선택 초록/일반 본문색 공통 표현이다. TapCard는 부모 폭360px 미만 또는 큰 글자에서 보조 정보가 있을 때만 dragHandle을 subtitle 행으로 옮기고 완료·열기 콜백은 각각 유지한다. 보조 정보가 없는 Task에는 빈 손잡이 행을 만들지 않으며 제목 툴팁의 중복 접근성 읽기를 제외한다. 근무표는 같은 연도·월 반복을 줄인 날짜 범위를 표시하고 전체 날짜는 툴팁에 보존한다. UI 저장 원본·repository/API·TAP/Task 구조·크루 기록은 변경하지 않는다. 로그인은 표시 전용 소개 문구, 우리매장 링크는16px 여백을 사용한다.
+
+Tap2workApp ThemeData는 VisualDensity.standard를 명시해 데스크톱 compact 밀도가 실제 버튼 높이를8px 줄이는 플랫폼 차이를 제거한다. 로그인56px·상단48px 기준은 웹과 모바일에 동일하게 적용하며 폼/모든 화면의 회귀를 Flutter 전체 테스트로 검사한다.

@@ -154,6 +154,7 @@ class Tap2workApp extends StatelessWidget {
     supportedLocales: const [Locale('ko', 'KR'), Locale('en', 'US')],
     localizationsDelegates: GlobalMaterialLocalizations.delegates,
     theme: ThemeData(
+      visualDensity: VisualDensity.standard,
       brightness: Brightness.dark,
       fontFamily: 'Pretendard',
       useMaterial3: true,
