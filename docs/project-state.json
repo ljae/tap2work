@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 256,
+  "revision": 257,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7800,7 +7800,26 @@
         "Single-row toolbar policy preserved; narrow screens still require horizontal scrolling for all tools."
       ],
       "source": "docs/MINIMAL_UI_REVIEW_2026-10-09.md"
+    },
+    {
+      "at": "2026-10-09T12:54:21.330973+00:00",
+      "type": "deployment",
+      "title": "Minimal login and shared UI deployed to tap2.work",
+      "detail": "User requested web deployment. Reused a clean release checkout at remote main and copied only the reviewed UI, tests and documentation. Web code 36685c62f40d108789a093e619442dcbf265adbf deployed through GitHub Pages Actions 37932033230. Public index, hashed bootstrap/main, fresh owner sample and Google asset match the actual CI artifact SHA256.",
+      "verification": [
+        "Local public build passed with repository public auth variables; no .local or credentials published",
+        "CI build/deploy both success, including Flutter/Node/Edge/SQL gates",
+        "Local complete Flutter suite 387 passed; release Node suite 285 passed",
+        "Public index, hashed bootstrap/main, owner sample and Google asset HTTP200 with exact CI artifact match",
+        "Privacy and account deletion pages HTTP200",
+        ".local/minimal-ui-web-deployment/public-verification.json"
+      ],
+      "limitations": [
+        "Initial CI 37931715218 failed unnecessary foundation import in login test; removed import and release analysis/8 login tests plus complete CI rerun passed",
+        "No operations API deployment, database/catalog publication, native build or production data mutation",
+        "Original working tree and pre-existing uncommitted files preserved"
+      ]
     }
   ],
-  "updatedAt": "2026-10-09T12:37:10.255608+00:00"
+  "updatedAt": "2026-10-09T12:54:21.330973+00:00"
 }
