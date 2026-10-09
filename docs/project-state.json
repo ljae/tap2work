@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 261,
+  "revision": 262,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -7918,7 +7918,25 @@
         "No native build/real-store study/catalog publication; deployment verification pending"
       ],
       "source": "docs/MANUAL_SPACE_RELEASE_2026-10-09.md"
+    },
+    {
+      "at": "2026-10-09T15:04:07.447742+00:00",
+      "type": "verification",
+      "title": "Preserve manual customization through unrelated saves and verify local Ego flows",
+      "detail": "Found checklist normalization dropping previously saved customization flags; preserved server-owned flags and added a regression. Directly created manuals keep their origin after later edits. Common-place references block map deletion. Updated generic replacement UI for hall/kitchen as well as break.",
+      "verification": [
+        "Node full293 passed; Edge runtime passed",
+        "Flutter analysis clean; targeted20 and final6 tests passed",
+        "UI/settings60 contracts passed",
+        "Ego Lite space8: desktop place form screenshot reviewed, unplaced place created through UI, selfbar=false saved through UI in isolated preview state"
+      ],
+      "limitations": [
+        "Ego semantic input/focus and text waits initially failed; used observed UI and persisted local state to verify actual saves",
+        "Ego mobile screenshot capture timed out; no mobile screenshot claim. 320/390/1200 textScale1.5 widget tests passed",
+        "Independent reviewer role registered, exact-hash draft ready, browser handed to user for authentication. No reviewer identity impersonation/publication",
+        "Operations API deployed; final web CI pending; live authenticated read unavailable after existing browser session ended"
+      ]
     }
   ],
-  "updatedAt": "2026-10-09T14:57:57.490675+00:00"
+  "updatedAt": "2026-10-09T15:04:07.447742+00:00"
 }

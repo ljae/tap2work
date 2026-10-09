@@ -425,7 +425,7 @@ E06 로딩 시각화 후속: 기존 초기화/매장 조회 상태 → TapWaterL
 |---|---|---|---|
 | S59 | taskTemplates.workStatus → 매뉴얼 업무 연결 / 연결 설정 → save_tap_settings usage | reference/routine/event; 실제 생성 조건과 동일한 서버 진단, event는 일일 생성 제외 | knowledge_work.test.mjs, manual_work_test.dart |
 | S60 | settings.eventKind/operatingStandard → 작업 시작·배치 입력 → start_manual_work | requestId 멱등, 배치별 snapshot·미완료 이월, 안전 관련 실제 기록 필수 | knowledge_work.test.mjs, manual_work_test.dart |
-| S61 | knowledge.supersededBy → 공통·메뉴 분리 → replace_mixed_break | 명시적 가져오기, 기존 원본 보관, 진행/완료 기록 유지 | knowledge_work.test.mjs |
+| S61 | knowledge.supersededBy → 새 구성 적용 → replace_mixed_break | 명시적 가져오기, 기존 원본 보관, 진행/완료 기록 유지 | knowledge_work.test.mjs |
 | S62 | settings.knowledgeIds → 연결할 참고 매뉴얼 → save_tap_settings | 실행 knowledgeSnapshots 버전 고정, 업무에서 참고 펼치기 | knowledge_work.test.mjs |
 | S63 | workEvent/workIssue → 이상·수행 불가 / 조치 결과 → flag_work_issue/resolve_work_issue | 담당자 이상 기록, 관리자 조치, 미해결 완료 금지 | knowledge_work.test.mjs |
 | S64 | manualCatalog.knowledge.scope → 마켓 분류 칩 → search(scope) | 업종 공통/외식 공통/공정·보관/메뉴별 필터, 옛 혼합 TAP 신규 추천 제외 | manual_market_discovery_test.dart |

@@ -888,9 +888,9 @@ export class OperationsStore {
         if (!previousTemplates.some(t => t.id === template.id)) { convertPolicy(template); }
         if (tapOnly(template)) for (const step of template.steps) assertContentOnly(step);
       }
-      if (['save_manual_tap','save_checklists','save_step_manual','edit_manual_node','edit_work_node','save_task_step','create_task'].includes(input.action)) for (const t of state.taskTemplates) {
+      if (['save_manual_tap','save_checklists','save_step_manual','edit_manual_node','edit_work_node','save_task_step','create_task','restore_checklist_backup'].includes(input.action)) for (const t of state.taskTemplates) {
         const old=previousTemplates.find(x=>x.id===t.id);
-        if(!old||contentHash(old)!==contentHash(t))t.manualCustomization={kind:old?'modified':'created',at:iso(now)};
+        if(!old||contentHash(old)!==contentHash(t))t.manualCustomization={kind:!old||old.manualCustomization?.kind==='created'?'created':'modified',at:iso(now)};
       }
       updateContentRevisions(previousTemplates,state);
       reconcileCatalogLinks(state,now);

@@ -104,9 +104,7 @@ class _ManualWorkScreenState extends State<ManualWorkScreen> {
                                     final accepted = await showAppDialog<bool>(
                                       context: context,
                                       builder: (c) => AlertDialog(
-                                        title: const Text(
-                                          '공통 업무와 메뉴 준비를 나눌까요?',
-                                        ),
+                                        title: const Text('공통 업무로 정리할까요?'),
                                         content: const Text(
                                           '기존 매뉴얼은 보관하고 진행 중·완료 기록은 유지해요. 새 매뉴얼은 업무 사용을 끈 상태로 가져와요. 매장에서 수정한 내용은 기존 보관본에서 확인할 수 있어요.',
                                         ),
@@ -134,7 +132,7 @@ class _ManualWorkScreenState extends State<ManualWorkScreen> {
                                     });
                                     if (mounted) setState(() {});
                                   },
-                            child: const Text('공통·메뉴 분리'),
+                            child: const Text('새 구성 적용'),
                           ),
                         if (t['workStatus']?['code'] == 'event')
                           FilledButton(

@@ -192,7 +192,9 @@ class _PlaceEditorState extends State<PlaceEditor> {
       widget.place?['id'] ?? 'place-${DateTime.now().microsecondsSinceEpoch}';
   String? error;
   bool busy = false;
-  int seats = 4;
+  late int seats = widget.place?['kind'] == 'table'
+      ? widget.place!['seats']
+      : 4;
   bool get dirty =>
       name.text != (widget.place?['name'] ?? '') ||
       floor.text != (widget.place?['floor'] ?? '') ||
@@ -271,7 +273,7 @@ class _PlaceEditorState extends State<PlaceEditor> {
         'description': note.text,
         'kind': kind,
         'photo': photo,
-        'seats': widget.place?['seats'] ?? seats,
+        'seats': seats,
       },
     });
     if (!mounted) return;
