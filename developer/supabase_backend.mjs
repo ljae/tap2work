@@ -1,3 +1,4 @@
+import { createContentTranslationHandler } from './content_translation.mjs';
 import { createManualMediaHandler, validateManualMediaScope, stripForeignBackupPhotos } from './manual_media.mjs';
 import { applyStoreSetup, storeSetupCatalog } from './store_setup.mjs';
 import {DatabaseCatalogRepository} from './catalog_repository.mjs';
@@ -7,7 +8,7 @@ import { ensureStaff } from './staff.mjs';
 import { StoreError } from './store.mjs';
 
 // Both Edge Functions and Node tests use this handler; demo actor headers are ignored.
-export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.work', 'https://www.tap2.work'], fetcher = fetch, clock = () => new Date(), sectionStorage = false, requireSocialIdentity = false, catalogDatabase = false, catalogRepository = null, manualMediaEnabled = false }) {
+export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.work', 'https://www.tap2.work'], fetcher = fetch, clock = () => new Date(), sectionStorage = false, requireSocialIdentity = false, catalogDatabase = false, catalogRepository = null, manualMediaEnabled = false, translationEnabled = false, translationApiKey = null }) {
   if (!url || !serviceKey) throw new Error('Supabase server configuration is missing');
   const headers = { apikey: serviceKey, ...(serviceKey.startsWith('eyJ') ? { Authorization: `Bearer ${serviceKey}` } : {}), 'Content-Type': 'application/json' };
   async function rest(path, options = {}) {
@@ -16,6 +17,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
     return response.status === 204 ? null : response.json();
   }
   const media = createManualMediaHandler({ url, headers, rest, fetcher, sectionStorage });
+  const translate = createContentTranslationHandler({ rest, sectionStorage, fetcher, apiKey: translationApiKey, enabled: translationEnabled, clock });
   const catalogs = catalogRepository ?? (catalogDatabase ? new DatabaseCatalogRepository(rest) : null);
   return async request => {
     const origin = request.headers.get('origin');
@@ -35,6 +37,10 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       if (!/^[\da-f-]{36}$/i.test(user.id ?? '')) throw new StoreError('사용자를 확인하지 못했어요.', 401);
       if (requireSocialIdentity && !user.identities?.some(i => ['apple','google'].includes(i.provider))) throw new StoreError('Apple 또는 Google로 다시 로그인해 주세요.', 403);
       const query = new URL(request.url).searchParams;
+      if (query.has('translate')) {
+        if (query.get('translate') !== 'content') throw new StoreError('번역 요청을 확인해 주세요.');
+        return await translate({ request, user, cors });
+      }
       if (query.get('media') === 'upload' && !manualMediaEnabled) throw new StoreError('사진 저장소를 준비 중이에요. 잠시 후 다시 시도해 주세요.',503);
       if (query.has('media')) return await media({ request, user, query, cors });
       const catalogSnapshot = catalogs ? await catalogs.readPublished() : null;
@@ -113,14 +119,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       if (input) validateManualMediaScope(input, member.workspace_id);
       const actor = { id: user.id, name: member.display_name, role: member.role, label: {owner:'사장님',manager:'매니저',cook:'조리 담당',crew:'크루'}[member.role] };
       let original = document?.payload;
-      const employeeMode = query.get('view') === 'employee';
-      if (employeeMode) {
-        if (member.role !== 'owner') throw new StoreError('화면 전환 권한이 없어요.',403);
-        const payload = original ?? (await rest(`tap2work_state?workspace_id=eq.${member.workspace_id}&select=payload`))[0]?.payload;
-        const employee = payload?.tappers?.find(t => t.id === payload.sharedEmployeeId && t.active && t.rank === 'crew');
-        if (!employee) throw new StoreError('직원 화면을 먼저 연결해 주세요.',409);
-        Object.assign(actor,{id:employee.actorId,name:employee.nickname,role:'crew',label:'단기 계약 크루'});
-      }
+      const employeeMode = false; // Legacy view queries never replace authenticated identity.
       const persistence = {
         async read() {
           if (sectionStorage) return structuredClone(original);
@@ -142,7 +141,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       let result;
       if (request.method === 'GET' || createdWorkspace) result = await store.snapshot(user.id, Object.fromEntries(query));
       else result = await store.mutate(user.id, input);
-      return reply(200, { ...result, ...(restoredPhotosOmitted ? {restoredPhotosOmitted} : {}), storeSetupCatalog: storeSetupCatalog(catalogSnapshot?.release), ...(catalogSnapshot?{catalogRevision:catalogSnapshot.revision,catalogReleaseId:catalogSnapshot.release.releaseId}:{}), canSwitchEmployee: member.role === 'owner', employeeMode, workspaceId: member.workspace_id, ...(document?.workspaces ? {workspaces: document.workspaces.map(w=>w.id===member.workspace_id?{...w,name:result.store?.name ?? w.name}:w)} : {}), ...(sectionStorage ? {syncWindow: document.window} : {}) });
+      return reply(200, { ...result, ...(restoredPhotosOmitted ? {restoredPhotosOmitted} : {}), storeSetupCatalog: storeSetupCatalog(catalogSnapshot?.release), ...(catalogSnapshot?{catalogRevision:catalogSnapshot.revision,catalogReleaseId:catalogSnapshot.release.releaseId}:{}), canSwitchEmployee: false, employeeMode, workspaceId: member.workspace_id, ...(document?.workspaces ? {workspaces: document.workspaces.map(w=>w.id===member.workspace_id?{...w,name:result.store?.name ?? w.name}:w)} : {}), ...(sectionStorage ? {syncWindow: document.window} : {}) });
     } catch (error) {
       return reply(error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : '요청을 처리하지 못했어요. 다시 시도해 주세요.' });
     }

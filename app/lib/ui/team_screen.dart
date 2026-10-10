@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'time_wheel.dart';
 import 'payroll_settings_screen.dart';
 import 'workplace_screens.dart';
@@ -36,6 +37,50 @@ class _TeamScreenState extends State<TeamScreen> {
     }
   }
 
+  Future<String?> pickNationality(List<Json> countries, String? selected) {
+    var query = '';
+    return showAppSheet<String>(
+      context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, update) => AppEditorScaffold(
+          title: context.t('crew.nationality'),
+          body: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: TextField(
+                  decoration: InputDecoration(
+                    labelText: context.t('common.search'),
+                  ),
+                  onChanged: (value) =>
+                      update(() => query = value.trim().toLowerCase()),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  children: [
+                    for (final country in countries.where(
+                      (c) => '${c['name']} ${c['code']}'.toLowerCase().contains(
+                        query,
+                      ),
+                    ))
+                      ListTile(
+                        title: Text('${country['name']}'),
+                        subtitle: Text('${country['code']}'),
+                        selected: country['code'] == selected,
+                        onTap: () =>
+                            Navigator.pop(context, country['code'] as String),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> editCrew([Json? current]) async {
     final nickname = TextEditingController(text: current?['nickname'] ?? '');
     final rate = TextEditingController(
@@ -44,6 +89,9 @@ class _TeamScreenState extends State<TeamScreen> {
     final kakao = TextEditingController(text: current?['kakaoUrl'] ?? '');
     final phone = TextEditingController(text: current?['phone'] ?? '');
     var rank = current?['rank'] as String? ?? 'crew';
+    String? nationality = current?['nationality'] as String?;
+    String? guideLocale = current?['guideLocale'] as String?;
+    final nationalityOptions = ops.rows('nationalityOptions');
     final period = current?['payPeriod'] as String? ?? 'monthly';
     var employment = current?['employmentType'] as String? ?? '시간알바';
     Future<dynamic>? sheetClosed;
@@ -75,6 +123,47 @@ class _TeamScreenState extends State<TeamScreen> {
                         onChanged: (_) => update(() {}),
                         decoration: const InputDecoration(labelText: '별칭(이름)'),
                       ),
+                    if (!widget.payOnly) ...[
+                      InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: context.t('crew.nationality'),
+                        ),
+                        child: TextButton.icon(
+                          key: const ValueKey('crew-nationality'),
+                          onPressed: () async {
+                            final selected = await pickNationality(
+                              nationalityOptions,
+                              nationality,
+                            );
+                            if (selected != null && context.mounted) {
+                              update(() => nationality = selected);
+                            }
+                          },
+                          icon: const Icon(Icons.public),
+                          label: Text(
+                            '${nationalityOptions.where((c) => c['code'] == nationality).firstOrNull?['name'] ?? context.t('crew.select')}',
+                          ),
+                        ),
+                      ),
+                      AppPicker<String>(
+                        key: const ValueKey('crew-guide-language'),
+                        label: context.t('crew.guideLanguage'),
+                        value: guideLocale,
+                        items: appLanguageNames.entries
+                            .map(
+                              (language) => DropdownMenuItem<String>(
+                                value: language.key,
+                                child: Text(language.value),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) => update(() => guideLocale = value),
+                      ),
+                      Text(
+                        context.t('crew.languageIndependent'),
+                        style: AppText.caption,
+                      ),
+                    ],
                     if (!widget.payOnly)
                       AppPicker<String>(
                         label: '직급',
@@ -150,11 +239,15 @@ class _TeamScreenState extends State<TeamScreen> {
                 child: FilledButton(
                   onPressed:
                       nickname.text.trim().isEmpty ||
+                          (!widget.payOnly &&
+                              (nationality == null || guideLocale == null)) ||
                           int.tryParse(rate.text) == null
                       ? null
                       : () => Navigator.pop(context, {
                           if (current != null) 'id': current['id'],
                           'nickname': nickname.text.trim(),
+                          if (!widget.payOnly) 'nationality': nationality,
+                          if (!widget.payOnly) 'guideLocale': guideLocale,
                           'rank': rank,
                           'employmentType': employment,
                           'hourlyWon': int.parse(rate.text),

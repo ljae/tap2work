@@ -47,7 +47,7 @@ test('manual directory rejects missing targets without partial edits, and resolv
 test('manual directory enforces role and opening revision; crew can search hierarchy',async()=>{
  const crew=fixture('crew');
  const view=await crew.store.snapshot(crew.actor.id);
- assert.equal(view.taskTemplates,undefined);
+ assert.ok(view.taskTemplates.length); assert.equal(view.canEditTasks,false);
  assert.equal(view.manualSearch.find(r=>r.id==='a/s1').folderId,'general');
  await assert.rejects(()=>crew.act({kind:'group',id:'close',beforeId:'general'}),{status:403});
  const owner=fixture();

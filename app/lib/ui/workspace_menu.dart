@@ -2,11 +2,14 @@ import 'store_setup_screen.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import '../l10n/app_localizations.dart';
+import 'shared_welcome_screen.dart';
 
 /// Global store scope, immediately before the account menu.
 class WorkspaceMenu extends StatelessWidget {
-  const WorkspaceMenu({super.key, required this.ops});
+  const WorkspaceMenu({super.key, required this.ops, this.onWelcome});
   final OperationsController ops;
+  final VoidCallback? onWelcome;
 
   @override
   Widget build(BuildContext context) {
@@ -14,14 +17,20 @@ class WorkspaceMenu extends StatelessWidget {
         .where((w) => w['id'] == ops.workspaceId)
         .firstOrNull;
     final name =
-        '${ops.data?['store']?['name'] ?? selected?['name'] ?? '매장 선택'}';
+        '${ops.data?['store']?['name'] ?? selected?['name'] ?? context.t('store.select')}';
     return PopupMenuButton<String>(
       key: const ValueKey('header-workspace-menu'),
       enabled: !ops.busy,
-      tooltip: '$name · 매장 선택',
+      tooltip: context.t('store.selectNamed', args: {'name': name}),
       popUpAnimationStyle: AppMotion.dialogStyle(context),
       onSelected: (id) {
-        if (id == 'add') {
+        if (id == 'welcome') {
+          if (onWelcome != null) {
+            onWelcome!();
+          } else {
+            openSharedWelcome(context, ops);
+          }
+        } else if (id == 'add') {
           openStoreSetup(context, ops);
         } else {
           ops.selectWorkspace(id);
@@ -51,7 +60,14 @@ class WorkspaceMenu extends StatelessWidget {
             ),
           ),
         const PopupMenuDivider(),
-        const PopupMenuItem<String>(value: 'add', child: Text('+ 새 매장 추가')),
+        PopupMenuItem<String>(
+          value: 'welcome',
+          child: Text(context.t('welcome.reopen')),
+        ),
+        PopupMenuItem<String>(
+          value: 'add',
+          child: Text(context.t('store.add')),
+        ),
       ],
       child: Container(
         width: (MediaQuery.sizeOf(context).width - 180).clamp(100.0, 200.0),

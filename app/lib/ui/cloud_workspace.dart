@@ -13,6 +13,7 @@ import 'privacy_screen.dart';
 import 'login_screen.dart';
 import '../state/operations_controller.dart';
 import '../state/work_controller.dart';
+import '../state/app_locale_controller.dart';
 import 'components.dart';
 
 class CloudWorkspace extends StatefulWidget {
@@ -36,6 +37,7 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   StreamSubscription<AuthState>? subscription;
   String? userId;
   bool preview = false;
+  String? localeScope, lastServerLocale;
   late final auth = AuthRepository(widget.client);
   bool isSocialUser(User? user) =>
       user?.identities?.any(
@@ -53,6 +55,8 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
       unawaited(auth.signOut().catchError((Object _) {}));
     }
     ops = controller();
+    ops.addListener(syncLocale);
+    syncLocale();
     if (userId != null) ops.start();
     subscription = widget.client.auth.onAuthStateChange.listen((state) {
       final next = isSocialUser(state.session?.user)
@@ -60,10 +64,13 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
           : null;
       if (next == userId || !mounted) return;
       final previous = ops;
+      previous.removeListener(syncLocale);
       setState(() {
         userId = next;
         preview = false;
         ops = controller();
+        ops.addListener(syncLocale);
+        syncLocale();
         if (userId != null) ops.start();
       });
       previous.dispose();
@@ -90,9 +97,49 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   Future<void> account(BuildContext context) =>
       openAccount(context, widget.client);
 
+  void syncLocale() {
+    final current = ops;
+    final scope = userId == null
+        ? 'guest'
+        : '$userId/${current.workspaceId ?? ''}';
+    final serverLocale =
+        current.data?['languageContext']?['preferredLocale'] as String?;
+    if (localeScope != scope) {
+      localeScope = scope;
+      lastServerLocale = serverLocale;
+      unawaited(
+        AppLocaleController.instance.bindAccount(
+          userId == null ? null : scope,
+          serverLanguage: serverLocale,
+          saveRemote: userId == null
+              ? null
+              : (tag) async {
+                  if (!mounted ||
+                      !identical(current, ops) ||
+                      localeScope != scope ||
+                      current.data == null ||
+                      current.data?['needsWorkspace'] == true) {
+                    return;
+                  }
+                  final saved = await current.act('save_language_preference', {
+                    'locale': tag,
+                  });
+                  if (!saved) {
+                    throw StateError('Language preference could not be saved');
+                  }
+                },
+        ),
+      );
+    } else if (serverLocale != null && serverLocale != lastServerLocale) {
+      lastServerLocale = serverLocale;
+      AppLocaleController.instance.adoptServerLanguage(serverLocale);
+    }
+  }
+
   @override
   void dispose() {
     subscription?.cancel();
+    ops.removeListener(syncLocale);
     ops.dispose();
     super.dispose();
   }

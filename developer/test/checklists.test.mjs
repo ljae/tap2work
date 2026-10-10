@@ -37,7 +37,7 @@ test('global manual index and related words reach crew without private data or d
   assert.equal(result.sourceUrl, 'https://example.com/guide');
   assert.deepEqual(saved.tasks.find(row => row.id === task.id).steps[0].manualHistory[0].tags, step.tags ?? []);
   const crew = await store.snapshot('crew');
-  assert.equal(crew.taskTemplates, undefined);
+  assert.ok(crew.taskTemplates.length); assert.equal(crew.canEditTasks,false);
   assert.equal(crew.privateSummary, undefined);
   assert.ok(crew.manualSearch.some(row => row.id === result.id));
   await assert.rejects(act('save_step_manual', { taskId: task.id, stepId: step.id, manual: 'x', tags: ['a'.repeat(31)] }), { status: 400 });
@@ -183,7 +183,7 @@ test('folder moves, order and deletion are shared by every role without rewritin
   moved.folderId = 'kitchen';
   await act('save_checklists', draft(state));
   const crew = await store.snapshot('crew');
-  assert.equal(crew.taskTemplates, undefined);
+  assert.ok(crew.taskTemplates.length); assert.equal(crew.canEditTasks,false);
   assert.equal(crew.tasks.find(t => t.templateId === 'library-bonejjim-hall-close').folderId, 'kitchen');
   assert.equal(crew.tasks.find(t => t.templateId === 'library-bonejjim-hall-close').displayOrder, 0);
   const empty = await act('save_checklists', { folders: [{ id: 'general', name: '기본' }, { id: 'bone-preparation', name: '뼈찜 조리' }], templates: [] });

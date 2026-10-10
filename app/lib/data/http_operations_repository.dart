@@ -3,11 +3,15 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../domain/operations_repository.dart';
 import '../domain/manual_media_repository.dart';
+import '../domain/content_translation_repository.dart';
 
 /// Reads public samples or the existing demo/cloud snapshot API.
 /// Provider webhooks belong on the server, never in this client adapter.
 class HttpOperationsRepository
-    implements OperationsRepository, ManualMediaRepository {
+    implements
+        OperationsRepository,
+        ManualMediaRepository,
+        ContentTranslationRepository {
   HttpOperationsRepository({
     http.Client? client,
     required this.endpoint,
@@ -128,6 +132,42 @@ class HttpOperationsRepository
 
   @override
   void close() => _client.close();
+
+  @override
+  Future<Json> translateContent({
+    required String actorId,
+    required String workspaceId,
+    required String targetLocale,
+    required String kind,
+    String? id,
+  }) async {
+    if (readOnly || accessToken == null) {
+      return {'status': 'unavailable'};
+    }
+    final response = await _client
+        .post(
+          endpoint.replace(
+            queryParameters: {
+              ...endpoint.queryParameters,
+              'translate': 'content',
+            },
+          ),
+          headers: {
+            ...await _headers(actorId, null),
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'workspaceId': workspaceId,
+            'targetLocale': targetLocale,
+            'source': {'kind': kind, 'id': ?id},
+          }),
+        )
+        .timeout(const Duration(seconds: 25));
+    if (response.statusCode != 200) {
+      throw StateError('Translation unavailable (${response.statusCode})');
+    }
+    return jsonDecode(utf8.decode(response.bodyBytes)) as Json;
+  }
 
   Uri _mediaEndpoint(String media, String workspaceId) => endpoint.replace(
     queryParameters: {

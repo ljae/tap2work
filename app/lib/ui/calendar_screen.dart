@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'time_wheel.dart';
 import '../domain/schedule_layout.dart';
 import '../domain/attendance_history.dart';
@@ -247,11 +248,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
+            child: Text(context.t('common.cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('삭제'),
+            child: Text(context.t('common.delete')),
           ),
         ],
       ),
@@ -495,7 +496,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   final vertical = ScrollController();
-  static const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
+  List<String> get weekdays {
+    if (AppStrings.of(context).languageTag == 'ko') {
+      return const ['월', '화', '수', '목', '금', '토', '일'];
+    }
+    final names = MaterialLocalizations.of(context).narrowWeekdays;
+    return [...names.skip(1), names.first];
+  }
+
   @override
   void initState() {
     super.initState();
@@ -550,10 +558,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 subtitle: Text('${slot.start}–${slot.end}'),
                 onTap: () => Navigator.pop(context, slot),
               ),
-            if (slots.isEmpty) const ListTile(title: Text('배정된 근무가 없어요.')),
+            if (slots.isEmpty)
+              ListTile(title: Text(context.t('calendar.noShift'))),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('닫기'),
+              child: Text(context.t('common.close')),
             ),
           ],
         ),
@@ -696,7 +705,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('취소'),
+              child: Text(context.t('common.cancel')),
             ),
             FilledButton(
               onPressed:
@@ -725,7 +734,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         'weekdays': days.toList(),
                       },
                     }),
-              child: const Text('저장'),
+              child: Text(context.t('common.save')),
             ),
           ],
         ),
@@ -1049,21 +1058,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final sessions = attendanceSessions(
       ops.rows('attendance'),
     ).where((s) => rosterDate(s.day) == rosterDate(model.selected)).toList();
-    const labels = {
-      'clock_in': '출근',
-      'clock_out': '퇴근',
-      'break_start': '휴게 시작',
-      'break_end': '휴게 종료',
-    };
     return Column(
       key: const ValueKey('attendance-history'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(rosterDate(model.selected), style: AppText.caption),
         const SizedBox(height: 4),
-        const Text('출퇴근 이력', style: AppText.section),
+        Text(context.t('attendance.history'), style: AppText.section),
         const SizedBox(height: 12),
-        if (sessions.isEmpty) const Information('기록된 출퇴근 이력이 없어요.'),
+        if (sessions.isEmpty) Information(context.t('attendance.empty')),
         for (final session in sessions) ...[
           Surface(
             child: Column(
@@ -1078,9 +1081,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   style: AppText.body,
                 ),
                 if (!session.hasClockIn)
-                  const Text('출근 미기록', style: AppText.caption),
+                  Text(
+                    context.t('attendance.noClockIn'),
+                    style: AppText.caption,
+                  ),
                 if (!session.hasClockOut)
-                  const Text('퇴근 미기록', style: AppText.caption),
+                  Text(
+                    context.t('attendance.noClockOut'),
+                    style: AppText.caption,
+                  ),
                 const SizedBox(height: 8),
                 for (final event in session.events)
                   Padding(
@@ -1089,7 +1098,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            labels[event['type']]!,
+                            context.t('attendance.${event['type']}'),
                             style: AppText.caption,
                           ),
                         ),
@@ -1180,9 +1189,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
       color: AppColors.paper,
       child: Row(
         children: [
-          const SizedBox(
+          SizedBox(
             width: 36,
-            child: Center(child: Text('시간', style: AppText.caption)),
+            child: Center(
+              child: Text(context.t('calendar.time'), style: AppText.caption),
+            ),
           ),
           Expanded(
             child: Column(
@@ -1640,7 +1651,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           children: [
             AppToolbarButton(
               icon: CupertinoIcons.chevron_left,
-              label: '이전',
+              label: context.t('common.previous'),
               onPressed: () {
                 model.move(-1);
                 loadHolidays();
@@ -1648,18 +1659,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
             Tooltip(
               message: model.month
-                  ? '${model.selected.year}년 ${model.selected.month}월'
+                  ? (AppStrings.of(context).languageTag == 'ko'
+                        ? '${model.selected.year}년 ${model.selected.month}월'
+                        : MaterialLocalizations.of(
+                            context,
+                          ).formatMonthYear(model.selected))
                   : fullRange,
               child: Text(
                 model.month
-                    ? '${model.selected.year}년 ${model.selected.month}월'
+                    ? (AppStrings.of(context).languageTag == 'ko'
+                          ? '${model.selected.year}년 ${model.selected.month}월'
+                          : MaterialLocalizations.of(
+                              context,
+                            ).formatMonthYear(model.selected))
                     : shortRange,
                 style: AppText.caption,
               ),
             ),
             AppToolbarButton(
               icon: CupertinoIcons.chevron_right,
-              label: '다음',
+              label: context.t('common.next'),
               onPressed: () {
                 model.move(1);
                 loadHolidays();
@@ -1667,7 +1686,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
             AppToolbarButton(
               icon: Icons.today_outlined,
-              label: '오늘',
+              label: context.t('calendar.today'),
               onPressed: () => model.selectDay(
                 DateTime.tryParse(ops.data?['day'] ?? '') ?? DateTime.now(),
               ),
@@ -1675,13 +1694,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
             const AppToolbarDivider(),
             AppToolbarButton(
               icon: Icons.view_week_outlined,
-              label: '주간',
+              label: context.t('calendar.week'),
               selected: !model.month,
               onPressed: () => model.setMonth(false),
             ),
             AppToolbarButton(
               icon: Icons.calendar_month_outlined,
-              label: '월간',
+              label: context.t('calendar.month'),
               selected: model.month,
               onPressed: () => model.setMonth(true),
             ),
@@ -1701,7 +1720,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ],
             AppToolbarButton(
               icon: Icons.schedule,
-              label: fullDay ? '근무 시간 중심 보기' : '24시간 보기',
+              label: fullDay
+                  ? context.t('calendar.workHours')
+                  : context.t('calendar.fullDay'),
               selected: fullDay,
               onPressed: () => setState(() => fullDay = !fullDay),
             ),
@@ -1709,7 +1730,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             AppToolbarButton(
               key: const ValueKey('calendar-hours-button'),
               icon: Icons.tune,
-              label: '영업시간·인원',
+              label: context.t('calendar.hoursStaff'),
               onPressed: () => openWorkplaceHours(context, ops),
             ),
             if (model.editable &&
@@ -1718,7 +1739,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               AppToolbarButton(
                 key: const ValueKey('calendar-add-crew'),
                 icon: Icons.person_add_outlined,
-                label: '크루 추가',
+                label: context.t('calendar.addCrew'),
                 onPressed: model.visibleParts.where((p) => !p.hidden).isEmpty
                     ? null
                     : () => addShift(
@@ -1729,7 +1750,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             if (editMode)
               AppToolbarButton(
                 icon: Icons.check,
-                label: '편집 완료',
+                label: context.t('manual.editDone'),
                 onPressed: finishEdit,
               ),
           ],
@@ -1790,7 +1811,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               icon: const Icon(Icons.edit_outlined),
             ),
             IconButton(
-              tooltip: '삭제',
+              tooltip: context.t('common.delete'),
               onPressed: () async {
                 final slot = selectedSlot!;
                 if (await finishEdit() && mounted) await deleteSlot(slot);

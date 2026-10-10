@@ -45,7 +45,7 @@ function normalizeBands(state, bands, oldRows, day) {
   return normalized;
 }
 export const permissionActions = {
-  tasks: ['save_manual_setup','resolve_work_issue','replace_mixed_break','start_manual_work','save_manual_print_translation','configure_manual_business','import_market_taps','personalize_market_tap','restore_checklist_backup','save_manual_tap','split_tap_policy', 'preview_tap_policy_migration', 'edit_work_node', 'edit_manual_node', 'save_task_step', 'reorder_small_taps', 'reorder_big_taps', 'create_task', 'save_checklists', 'save_tap_settings', 'save_step_manual', 'move_manual_node', 'import_recommended_taps'],
+  tasks: ['save_manual_translation','save_welcome','save_manual_setup','resolve_work_issue','replace_mixed_break','start_manual_work','save_manual_print_translation','configure_manual_business','import_market_taps','personalize_market_tap','restore_checklist_backup','save_manual_tap','split_tap_policy', 'preview_tap_policy_migration', 'edit_work_node', 'edit_manual_node', 'save_task_step', 'reorder_small_taps', 'reorder_big_taps', 'create_task', 'save_checklists', 'save_tap_settings', 'save_step_manual', 'move_manual_node', 'import_recommended_taps'],
   complete: ['flag_work_issue','complete_task', 'complete_step', 'reopen_step', 'move_tap', 'complete_preparation'],
   schedule: ['save_calendar_day', 'save_crew_allocations', 'apply_crew_allocations', 'save_crew_pattern', 'apply_crew_pattern', 'save_roster_slot', 'delete_roster_slot', 'reset_roster_slot', 'delete_staff_shift', 'save_staffing_slots', 'assign_staffing_slot', 'save_staff_shift', 'save_shift_pattern', 'assign_cover', 'update_shift'],
   stock: ['check_stock', 'count_prepared_item'],

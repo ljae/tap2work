@@ -1,3 +1,6 @@
+import '../l10n/manual_text_scope.dart';
+import '../l10n/app_localizations.dart';
+import 'translated_content.dart';
 import 'manual_setup_screen.dart';
 import 'crew_colors.dart';
 import 'workplace_screens.dart';
@@ -195,7 +198,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   String estimatedDuration(Json task) {
     if (task['assignmentScopeVersion'] == 2) {
       final value = task['settings']?['estimatedMinutes'];
-      return value is int && value > 0 ? '약 $value분' : '';
+      return value is int && value > 0
+          ? context.t('work.approxMinutes', args: {'minutes': value})
+          : '';
     }
     final steps = (task['steps'] as List? ?? []).whereType<Json>().toList();
     final times = steps
@@ -205,7 +210,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         .toList();
     if (times.isEmpty) return '';
     final total = times.fold<int>(0, (sum, minutes) => sum + minutes);
-    return times.length == steps.length ? '약 $total분' : '약 $total분+';
+    return '${context.t('work.approxMinutes', args: {'minutes': total})}${times.length == steps.length ? '' : '+'}';
   }
 
   String place(Json task) =>
@@ -445,7 +450,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               child: TextButton.icon(
                 onPressed: () => navigate(folder: folderId),
                 icon: const Icon(CupertinoIcons.chevron_back, size: 18),
-                label: const Text('TAP 목록으로'),
+                label: Text(context.t('work.backList')),
               ),
             ),
             PageHeading('', task['title'], ''),
@@ -458,7 +463,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ),
           if (task == null && !ops.canEditTasks)
             FilterChip(
-              label: const Text('내 담당만'),
+              label: Text(context.t('work.myOnly')),
               selected: mineOnly,
               onSelected: (v) => setState(() => mineOnly = v),
             ),
@@ -554,7 +559,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           customization: t['manualCustomization'],
           level: 'TAP',
           emoji: t['emoji'] ?? '📋',
-          title: t['title'],
+          title: manualDisplayText(
+            context,
+            t['title'],
+            translations: ops.data?['manualContentTranslations'],
+            templateId: t['templateId'],
+          ),
           subtitle:
               '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${t['slot']} · ${assigneeLabel(t)}${estimatedDuration(t).isEmpty ? '' : ' · ${estimatedDuration(t)}'}',
           accentColor: assigneeColor(t),
@@ -884,7 +894,13 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  lane,
+                                  context.t(
+                                    lane == '완료'
+                                        ? 'manual.completed'
+                                        : lane == '주문처리중'
+                                        ? 'work.processing'
+                                        : 'work.todo',
+                                  ),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -901,9 +917,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                           ),
                         ),
                         if (rejected.isNotEmpty)
-                          const Text(
-                            '이 열에는 놓을 수 없어요',
-                            style: TextStyle(
+                          Text(
+                            context.t('work.badDrop'),
+                            style: const TextStyle(
                               color: AppColors.accent,
                               fontSize: 13,
                             ),
@@ -941,7 +957,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                               horizontal: 8,
                             ),
                             child: Text(
-                              '아직 카드가 없어요',
+                              context.t('work.empty'),
                               style: const TextStyle(
                                 fontSize: 13,
                                 color: AppColors.muted,
@@ -1223,7 +1239,13 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         emoji: '✓',
         assigneeBadges: hasAssigned(step) ? assigneeBadges(step) : null,
         accentColor: hasAssigned(step) ? assigneeColor(step) : null,
-        title: step['title'],
+        title: manualDisplayText(
+          context,
+          step['title'],
+          translations: ops.data?['manualContentTranslations'],
+          templateId: task['templateId'],
+          stepId: step['id'],
+        ),
         subtitle: [
           subtitleFor(step),
           if (hasAssigned(step)) assigneeLabel(step),
@@ -1364,7 +1386,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         PressBounce(
           child: TextButton.icon(
             icon: const Icon(Icons.zoom_in),
-            label: const Text('사진 크게 보기'),
+            label: Text(context.t('manual.openPhoto')),
             onPressed: () {
               final actor = ops.actorId;
               final workspace = ops.data?['workspaceId'];
@@ -1406,12 +1428,31 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     children: [
       ManualCustomizationBadge(value: task['manualCustomization']),
       SharedPlaceLinks(ops: ops, row: task),
-      Text(
-        step['title'],
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      TranslatedContent(
+        ops: ops,
+        kind: 'task',
+        entityId: task['id'],
+        stepId: step['id'],
+        source: step,
+        builder: (context, displayed) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${displayed['title']}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text('${displayed['manual'] ?? ''}', style: AppText.body),
+            if ('${displayed['tip'] ?? ''}'.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Information(
+                  '${context.t('manual.tip')} · ${displayed['tip']}',
+                ),
+              ),
+          ],
+        ),
       ),
-      const SizedBox(height: 16),
-      Text(step['manual'] ?? '등록된 방법이 없어요.', style: AppText.body),
       if ((step['imageUrl'] ?? '').toString().isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: AppSpacing.medium),
@@ -1448,11 +1489,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         ),
       if (step['evidence'] != null)
         Text('확인 기록 · ${step['evidence']['value']}'),
-      if ((step['tip'] ?? '').toString().isNotEmpty)
-        Padding(
-          padding: const EdgeInsets.only(top: 16),
-          child: Information('팁 · ${step['tip']}'),
-        ),
       if ((step['tags'] as List? ?? []).isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: 10),
@@ -1467,7 +1503,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         PressBounce(
           child: TextButton.icon(
             icon: const Icon(Icons.edit_outlined),
-            label: const Text('매뉴얼 바로 수정'),
+            label: Text(context.t('manual.editInline')),
             onPressed: ops.readOnly
                 ? null
                 : () => showAppFormSheet<void>(
@@ -1488,9 +1524,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               ),
               label: Text(
                 field == 'videoUrl'
-                    ? '영상 열기'
+                    ? context.t('manual.openVideo')
                     : field == 'imageUrl'
-                    ? '사진 열기'
+                    ? context.t('manual.openPhoto')
                     : '공식 사진 가이드 열기',
               ),
               onPressed: () async {

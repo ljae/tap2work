@@ -1,4 +1,7 @@
+import 'l10n/manual_text_scope.dart';
 import 'dart:async';
+import 'l10n/app_localizations.dart';
+import 'state/app_locale_controller.dart';
 import 'data/photo_capture_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -17,6 +20,7 @@ import 'ui/app_loading_screen.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   unawaited(PhotoCaptureService().discardLostData());
+  unawaited(AppLocaleController.instance.initialize());
   runApp(const AppStartup());
 }
 
@@ -101,12 +105,14 @@ class _AppStartupState extends State<AppStartup> {
       destination ??
       Tap2workApp(
         controller: work,
-        homeOverride: AppLoadingScreen(
-          error: error,
-          onRetry: start,
-          showSkeleton: false,
-          title: '앱을 준비하고 있어요',
-          message: '로그인 상태와 저장된 매장 연결을 확인해요.',
+        homeOverride: Builder(
+          builder: (context) => AppLoadingScreen(
+            error: error == null ? null : context.t('loading.startFailed'),
+            onRetry: start,
+            showSkeleton: false,
+            title: context.t('loading.startTitle'),
+            message: context.t('loading.startMessage'),
+          ),
         ),
       );
 }
@@ -142,239 +148,260 @@ class Tap2workApp extends StatelessWidget {
     this.onAccountPressed,
     this.accountEmail,
     this.homeOverride,
+    this.localeController,
   });
   final WorkController controller;
   final OperationsController? operations;
   final Future<void> Function(BuildContext context)? onAccountPressed;
   final String? accountEmail;
   final Widget? homeOverride;
+  final AppLocaleController? localeController;
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'TAP Work',
-    builder: (context, child) => AppMotionScope(child: child!),
-    debugShowCheckedModeBanner: false,
-    locale: const Locale('ko', 'KR'),
-    supportedLocales: const [Locale('ko', 'KR'), Locale('en', 'US')],
-    localizationsDelegates: GlobalMaterialLocalizations.delegates,
-    theme: ThemeData(
-      visualDensity: VisualDensity.standard,
-      brightness: Brightness.dark,
-      fontFamily: 'Pretendard',
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        brightness: Brightness.dark,
-        seedColor: AppColors.primary,
-        primary: AppColors.green,
-        onPrimary: AppColors.paper,
-        surface: AppColors.surface,
-        onSurface: AppColors.ink,
-        onSurfaceVariant: AppColors.muted,
-        outline: AppColors.controlLine,
-      ),
-      scaffoldBackgroundColor: AppColors.paper,
-      textTheme: const TextTheme(
-        headlineSmall: AppText.title,
-        headlineMedium: AppText.title,
-        titleLarge: AppText.title,
-        titleMedium: AppText.body,
-        titleSmall: AppText.body,
-        bodyMedium: AppText.body,
-        bodyLarge: AppText.body,
-        bodySmall: AppText.caption,
-        labelLarge: AppText.body,
-        labelMedium: AppText.caption,
-        labelSmall: AppText.caption,
-      ),
-      cardTheme: const CardThemeData(
-        color: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: 1,
-        shadowColor: Color(0x0A000000),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(16)),
+  Widget build(BuildContext context) => AppLocaleScope(
+    controller: localeController ?? AppLocaleController.instance,
+    child: AnimatedBuilder(
+      animation: localeController ?? AppLocaleController.instance,
+      builder: (context, _) => MaterialApp(
+        title: 'TAP Work',
+        builder: (context, child) => PreparedManualScope(
+          language: AppStrings.of(context).languageTag,
+          child: AppMotionScope(child: child!),
         ),
-      ),
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
-        },
-      ),
-      appBarTheme: const AppBarTheme(
-        centerTitle: false,
-        titleSpacing: 24,
-        titleTextStyle: AppText.title,
-        backgroundColor: AppColors.paper,
-        foregroundColor: AppColors.ink,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(48, 56),
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(48, 48),
-          foregroundColor: AppColors.green,
-          side: const BorderSide(color: AppColors.controlLine),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: AppColors.green),
-      ),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppColors.surface,
-        indicatorColor: Colors.transparent,
-        height: 70,
-        iconTheme: WidgetStateProperty.resolveWith(
-          (states) => IconThemeData(
-            size: 25,
-            color: states.contains(WidgetState.selected)
-                ? AppColors.accent
-                : AppColors.muted,
-          ),
-        ),
-        labelTextStyle: WidgetStateProperty.all(const TextStyle(fontSize: 13)),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: AppColors.elevated,
-        constraints: const BoxConstraints(minHeight: 56),
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-        labelStyle: AppText.body.copyWith(color: AppColors.muted),
-        floatingLabelStyle: AppText.body.copyWith(color: AppColors.ink),
-        hintStyle: AppText.body.copyWith(color: AppColors.muted),
-        helperStyle: AppText.caption,
-        helperMaxLines: 4,
-        errorMaxLines: 4,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.green, width: 2),
-        ),
-      ),
-      chipTheme: ChipThemeData(
-        backgroundColor: AppColors.surface,
-        selectedColor: AppColors.lime,
-        side: BorderSide.none,
-        shape: const StadiumBorder(),
-        labelStyle: const TextStyle(
+        debugShowCheckedModeBanner: false,
+        locale: (localeController ?? AppLocaleController.instance).locale,
+        supportedLocales: appSupportedLocales,
+        localizationsDelegates: [
+          AppStrings.delegate,
+          ...GlobalMaterialLocalizations.delegates,
+        ],
+        theme: ThemeData(
+          visualDensity: VisualDensity.standard,
+          brightness: Brightness.dark,
           fontFamily: 'Pretendard',
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: AppColors.ink,
-        ),
-        secondaryLabelStyle: const TextStyle(
-          fontFamily: 'Pretendard',
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: AppColors.ink,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        showCheckmark: false,
-      ),
-      popupMenuTheme: PopupMenuThemeData(
-        color: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      dialogTheme: DialogThemeData(
-        backgroundColor: AppColors.paper,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppColors.paper,
-        constraints: BoxConstraints(maxWidth: 880),
-        dragHandleColor: AppColors.controlLine,
-        dragHandleSize: Size(32, 4),
-        showDragHandle: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-      ),
-      segmentedButtonTheme: SegmentedButtonThemeData(
-        style: ButtonStyle(
-          side: const WidgetStatePropertyAll(BorderSide.none),
-          backgroundColor: WidgetStateProperty.resolveWith(
-            (states) => states.contains(WidgetState.selected)
-                ? AppColors.ink
-                : AppColors.surface,
+          fontFamilyFallback: appFontFallbacks,
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            brightness: Brightness.dark,
+            seedColor: AppColors.primary,
+            primary: AppColors.green,
+            onPrimary: AppColors.paper,
+            surface: AppColors.surface,
+            onSurface: AppColors.ink,
+            onSurfaceVariant: AppColors.muted,
+            outline: AppColors.controlLine,
           ),
-          foregroundColor: WidgetStateProperty.resolveWith(
-            (states) => states.contains(WidgetState.selected)
-                ? AppColors.paper
-                : AppColors.muted,
+          scaffoldBackgroundColor: AppColors.paper,
+          textTheme: const TextTheme(
+            headlineSmall: AppText.title,
+            headlineMedium: AppText.title,
+            titleLarge: AppText.title,
+            titleMedium: AppText.body,
+            titleSmall: AppText.body,
+            bodyMedium: AppText.body,
+            bodyLarge: AppText.body,
+            bodySmall: AppText.caption,
+            labelLarge: AppText.body,
+            labelMedium: AppText.caption,
+            labelSmall: AppText.caption,
           ),
-          padding: const WidgetStatePropertyAll(
-            EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          cardTheme: const CardThemeData(
+            color: AppColors.surface,
+            surfaceTintColor: Colors.transparent,
+            elevation: 1,
+            shadowColor: Color(0x0A000000),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+            ),
+          ),
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: {
+              TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+            },
+          ),
+          appBarTheme: const AppBarTheme(
+            centerTitle: false,
+            titleSpacing: 24,
+            titleTextStyle: AppText.title,
+            backgroundColor: AppColors.paper,
+            foregroundColor: AppColors.ink,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+          ),
+          filledButtonTheme: FilledButtonThemeData(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(48, 56),
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          outlinedButtonTheme: OutlinedButtonThemeData(
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(48, 48),
+              foregroundColor: AppColors.green,
+              side: const BorderSide(color: AppColors.controlLine),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(foregroundColor: AppColors.green),
+          ),
+          navigationBarTheme: NavigationBarThemeData(
+            backgroundColor: AppColors.surface,
+            indicatorColor: Colors.transparent,
+            height: 70,
+            iconTheme: WidgetStateProperty.resolveWith(
+              (states) => IconThemeData(
+                size: 25,
+                color: states.contains(WidgetState.selected)
+                    ? AppColors.accent
+                    : AppColors.muted,
+              ),
+            ),
+            labelTextStyle: WidgetStateProperty.all(
+              const TextStyle(fontSize: 13),
+            ),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: AppColors.elevated,
+            constraints: const BoxConstraints(minHeight: 56),
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            labelStyle: AppText.body.copyWith(color: AppColors.muted),
+            floatingLabelStyle: AppText.body.copyWith(color: AppColors.ink),
+            hintStyle: AppText.body.copyWith(color: AppColors.muted),
+            helperStyle: AppText.caption,
+            helperMaxLines: 4,
+            errorMaxLines: 4,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.green, width: 2),
+            ),
+          ),
+          chipTheme: ChipThemeData(
+            backgroundColor: AppColors.surface,
+            selectedColor: AppColors.lime,
+            side: BorderSide.none,
+            shape: const StadiumBorder(),
+            labelStyle: const TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
+            ),
+            secondaryLabelStyle: const TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            showCheckmark: false,
+          ),
+          popupMenuTheme: PopupMenuThemeData(
+            color: AppColors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          dialogTheme: DialogThemeData(
+            backgroundColor: AppColors.paper,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+          bottomSheetTheme: const BottomSheetThemeData(
+            backgroundColor: AppColors.paper,
+            constraints: BoxConstraints(maxWidth: 880),
+            dragHandleColor: AppColors.controlLine,
+            dragHandleSize: Size(32, 4),
+            showDragHandle: true,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+          ),
+          segmentedButtonTheme: SegmentedButtonThemeData(
+            style: ButtonStyle(
+              side: const WidgetStatePropertyAll(BorderSide.none),
+              backgroundColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? AppColors.ink
+                    : AppColors.surface,
+              ),
+              foregroundColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? AppColors.paper
+                    : AppColors.muted,
+              ),
+              padding: const WidgetStatePropertyAll(
+                EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+            ),
+          ),
+          switchTheme: SwitchThemeData(
+            thumbColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.selected)
+                  ? AppColors.paper
+                  : AppColors.muted,
+            ),
+            trackColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.selected)
+                  ? AppColors.ink
+                  : AppColors.elevated,
+            ),
+          ),
+          listTileTheme: const ListTileThemeData(
+            titleTextStyle: AppText.body,
+            subtitleTextStyle: AppText.caption,
+            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          ),
+          dividerTheme: const DividerThemeData(
+            color: AppColors.line,
+            space: 24,
+            thickness: 1,
+          ),
+          dividerColor: AppColors.line,
+          snackBarTheme: const SnackBarThemeData(
+            backgroundColor: AppColors.green,
+            contentTextStyle: TextStyle(
+              fontFamily: 'Pretendard',
+              color: AppColors.surface,
+              fontSize: 13,
+            ),
+            behavior: SnackBarBehavior.floating,
           ),
         ),
-      ),
-      switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected)
-              ? AppColors.paper
-              : AppColors.muted,
-        ),
-        trackColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected)
-              ? AppColors.ink
-              : AppColors.elevated,
-        ),
-      ),
-      listTileTheme: const ListTileThemeData(
-        titleTextStyle: AppText.body,
-        subtitleTextStyle: AppText.caption,
-        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.line,
-        space: 24,
-        thickness: 1,
-      ),
-      dividerColor: AppColors.line,
-      snackBarTheme: const SnackBarThemeData(
-        backgroundColor: AppColors.green,
-        contentTextStyle: TextStyle(
-          fontFamily: 'Pretendard',
-          color: AppColors.surface,
-          fontSize: 13,
-        ),
-        behavior: SnackBarBehavior.floating,
+        home:
+            homeOverride ??
+            (operations == null
+                ? WorkspaceScreen(controller: controller)
+                : OperationsScreen(
+                    operations: operations!,
+                    work: controller,
+                    onAccountPressed: onAccountPressed,
+                    accountEmail: accountEmail,
+                  )),
       ),
     ),
-    home:
-        homeOverride ??
-        (operations == null
-            ? WorkspaceScreen(controller: controller)
-            : OperationsScreen(
-                operations: operations!,
-                work: controller,
-                onAccountPressed: onAccountPressed,
-                accountEmail: accountEmail,
-              )),
   );
 }

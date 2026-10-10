@@ -1,11 +1,25 @@
-/// Persist BCP-47 preferences separately from languages with shipped resources.
-/// Only Korean is shipped now. Do not add a language picker before translations.
+/// App chrome resources are shipped for these languages. Store-authored text
+/// uses a separate versioned translation service and original-content toggle.
 class LocalePolicy {
-  static const supportedLanguages = {'ko'};
+  static const supportedLanguages = {
+    'ko',
+    'en',
+    'vi',
+    'zh-Hans',
+    'ja',
+    'th',
+    'ne',
+    'id',
+  };
   static const fallbackLanguage = 'ko';
   static const defaultStoreTimeZone = 'Asia/Seoul';
   static String effectiveLanguage(String? preferred) {
-    final language = preferred?.split('-').first.toLowerCase();
-    return supportedLanguages.contains(language) ? language! : fallbackLanguage;
+    final language = preferred
+        ?.replaceAll('_', '-')
+        .split('-')
+        .first
+        .toLowerCase();
+    final tag = language == 'zh' ? 'zh-Hans' : language;
+    return supportedLanguages.contains(tag) ? tag! : fallbackLanguage;
   }
 }

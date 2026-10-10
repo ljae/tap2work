@@ -28,6 +28,7 @@ export function eraseMemberData(payload, user) {
         return {id:value.id, actorId:replacement, nickname:'탈퇴한 크루', rank:'crew', active:false, duties:[]};
       }
       return Object.fromEntries(Object.entries(value).map(([k,v]) => {
+        if (['actorPreferences','welcomeAcknowledgments'].includes(k) && v && typeof v === 'object') return [k,scrub(Object.fromEntries(Object.entries(v).filter(([id]) => id !== user.id)),k)];
         // crewIds maps part IDs to ordered slots; preserve empty slot positions.
         if (k === 'crewIds' && v && !Array.isArray(v) && typeof v==='object') {
           return [k,Object.fromEntries(Object.entries(v).map(([part,list])=>[part,Array.isArray(list)?list.map(id=>ids.has(id)?null:id):list]))];

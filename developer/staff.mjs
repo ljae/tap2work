@@ -1,3 +1,5 @@
+import { validNationality } from './countries.mjs';
+import { supportedLocales } from './localization.mjs';
 import { actualDate, businessDate, shiftDate } from './business_day.mjs';
 import { mutateShiftRequest } from './shift_requests.mjs';
 import { mutateCrewPattern } from './crew_patterns.mjs';
@@ -149,6 +151,8 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       if (!owner) fail('사장님만 직원 정보를 바꿀 수 있어요.', 403);
       const row = input.id ? state.tappers.find(t => t.id === input.id) : null;
       if (input.id && !row) fail('크루를 찾지 못했어요.', 404);
+      if ((!row || Object.hasOwn(input,'nationality')) && !validNationality(input.nationality)) fail('국적을 선택해 주세요.');
+      if ((!row || Object.hasOwn(input,'guideLocale')) && !supportedLocales.includes(input.guideLocale)) fail('안내에 사용할 언어를 별도로 선택해 주세요.');
       if (!roles.includes(input.rank) || !periods.includes(input.payPeriod)) fail('직급과 급여방식을 확인해 주세요.');
       if (input.partIds !== undefined) {
         if (!Array.isArray(input.partIds) || !input.partIds.length) fail('파트를 선택해 주세요.');
@@ -165,7 +169,13 @@ export function mutateStaff(state, input, actor, now, who, activity) {
       if (!employmentTypes.includes(input.employmentType ?? row?.employmentType ?? '시간알바')) fail('고용형태를 확인해 주세요.');
       const next = { rank: input.rank, nickname: safeText(input.nickname, 40, '별칭'), duties: [...new Set(input.duties ?? row?.duties ?? [])], ...(input.partIds ? {workProfile: {...row?.workProfile, partIds: [...new Set(input.partIds)], bands: row?.workProfile?.bands ?? []}} : {}), employmentType: input.employmentType ?? row?.employmentType ?? '시간알바',
         hourlyWon: nonnegative(input.hourlyWon, '시급'), payPeriod: input.payPeriod,
-        kakaoUrl, phone, active: input.active !== false };
+        kakaoUrl, phone, active: input.active !== false,
+        ...(input.nationality !== undefined ? { nationality: input.nationality } : {}),
+        ...(input.guideLocale !== undefined ? { guideLocale: input.guideLocale } : {}) };
+      if (row?.actorId && input.guideLocale !== undefined && !state.actorPreferences?.[row.actorId]?.locale) {
+        state.actorPreferences ??= {};
+        state.actorPreferences[row.actorId] = { ...state.actorPreferences[row.actorId], locale: input.guideLocale };
+      }
       if (row) Object.assign(row, next); else state.tappers.push({ id: randomUUID(), ...(input.partIds === undefined && input.duties === undefined ? {workProfile: {partIds: [], bands: []}} : {}), ...next });
       activity(`${next.nickname} 크루 정보 저장`); return true;
     }
@@ -309,6 +319,7 @@ export function staffView(state, actor, now) {
       attendanceState: state.attendance.filter(e => e.tapperId === t.id && !e.voidedAt).at(-1)?.type ?? 'off_duty' };
     if (owner) Object.assign(view, { payPeriod:policy.configured?policy.cycle:t.payPeriod, payPeriodEnd:period?.end, settledMinutes, adjustments, paid, gross, remaining: gross - paid, monthlyGross: Math.round(monthlyMinutes * t.hourlyWon / 60) + monthAdjustments });
     else { delete view.hourlyWon; delete view.payPeriod; delete view.payPeriodStart; delete view.kakaoUrl; delete view.phone; }
+    if (!owner && t.actorId !== actor.id) { delete view.nationality; delete view.guideLocale; delete view.preferences; }
     return view;
   });
   return { ...(owner ? {payrollSettings:payrollSettings(state),labor: laborView(state, id => completedSessions(state.attendance.filter(e => e.tapperId === id)), day)} : {}), staffingSlots: staffingSlots(state), tappers, staffShifts: state.staffShifts.map(s=>({...s,businessDate:businessDate(state,`${s.date}T${s.start}:00+09:00`)})), attendance: state.attendance.filter(e => owner || e.tapperId === own?.id),

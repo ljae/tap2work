@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'components.dart';
+import '../l10n/app_localizations.dart';
+import 'app_language_picker.dart';
 
 /// Presentation only: authentication and read-only preview stay in the host.
 class LoginScreen extends StatelessWidget {
@@ -46,7 +48,7 @@ class LoginScreen extends StatelessWidget {
                               children: [
                                 const Expanded(child: _LoginIntroduction()),
                                 const SizedBox(width: 80),
-                                Expanded(child: _actions()),
+                                Expanded(child: _actions(context)),
                               ],
                             )
                           : Column(
@@ -54,7 +56,7 @@ class LoginScreen extends StatelessWidget {
                               children: [
                                 const _LoginIntroduction(),
                                 const SizedBox(height: AppSpacing.section),
-                                _actions(),
+                                _actions(context),
                               ],
                             ),
                     ),
@@ -68,9 +70,11 @@ class LoginScreen extends StatelessWidget {
     ),
   );
 
-  Widget _actions() => Column(
+  Widget _actions(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
+      const Align(alignment: Alignment.centerRight, child: AppLanguageButton()),
+      const SizedBox(height: AppSpacing.small),
       Container(
         padding: const EdgeInsets.all(AppSpacing.large),
         decoration: BoxDecoration(
@@ -81,12 +85,12 @@ class LoginScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('내 매장으로 들어가기', style: AppText.section),
+            Text(context.t('login.enterStore'), style: AppText.section),
             const SizedBox(height: AppSpacing.large),
             signInButtons,
             const SizedBox(height: AppSpacing.medium),
-            const Text(
-              '비밀번호는 TAP Work에 전달되지 않아요.',
+            Text(
+              context.t('login.passwordPrivate'),
               style: AppText.caption,
               textAlign: TextAlign.center,
             ),
@@ -101,13 +105,13 @@ class LoginScreen extends StatelessWidget {
             minimumSize: const Size(48, 48),
             foregroundColor: AppColors.ink,
           ),
-          child: const Wrap(
+          child: Wrap(
             alignment: WrapAlignment.center,
             crossAxisAlignment: WrapCrossAlignment.center,
             spacing: 8,
             children: [
-              Text('저장 없이 샘플 둘러보기'),
-              Icon(CupertinoIcons.arrow_right, size: 16),
+              Text(context.t('login.preview')),
+              const Icon(CupertinoIcons.arrow_right, size: 16),
             ],
           ),
         ),
@@ -120,7 +124,7 @@ class LoginScreen extends StatelessWidget {
             foregroundColor: AppColors.muted,
             textStyle: AppText.caption,
           ),
-          child: const Text('개인정보처리방침'),
+          child: Text(context.t('login.privacy')),
         ),
       ),
     ],
@@ -137,21 +141,29 @@ class _LoginIntroduction extends StatelessWidget {
       const BrandLogo(),
       const SizedBox(height: AppSpacing.large),
       Text(
-        '우리 매장의 하루를',
+        context.t('login.heading'),
         style: AppText.title.copyWith(fontWeight: FontWeight.w800),
       ),
       const SizedBox(height: 4),
       Text(
-        '함께, 더 가볍게.',
+        context.t('login.headingAccent'),
         style: AppText.title.copyWith(
           color: AppColors.green,
           fontWeight: FontWeight.w800,
         ),
       ),
       const SizedBox(height: AppSpacing.small),
-      const Text('오늘의 업무부터 근무표까지,\n크루와 함께 한곳에서 관리해요.', style: AppText.body),
+      Text(context.t('login.description'), style: AppText.body),
       const SizedBox(height: AppSpacing.medium),
-      const Text('업무 · 매뉴얼 · 근무표 · 우리매장', style: AppText.caption),
+      Text(
+        [
+          'nav.work',
+          'nav.manual',
+          'nav.roster',
+          'nav.store',
+        ].map(context.t).join(' · '),
+        style: AppText.caption,
+      ),
     ],
   );
 }

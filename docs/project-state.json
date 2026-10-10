@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 280,
+  "revision": 284,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1291,6 +1291,69 @@
       "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md",
       "updatedAt": "2026-10-10T10:19:44.985543+00:00",
       "implementation": "웹 https://tap2.work/ 배포 완료(code135f8ef6739c8d4a96703d28a3fe616c2dbf742a,Actions38044078051). 업로드 활성화/운영 삭제 스케줄 확인. 네이티브 새 private 사진 호환은 다음 업데이트; 이번에는 native 빌드/업로드하지 않았다."
+    },
+    {
+      "id": "D-119",
+      "category": "공통 화면·다국어",
+      "title": "모든 파트너의 공통 웰컴·업무·매뉴얼",
+      "status": "confirmed",
+      "decision": "사장님과 크루가 동일한 웰컴·업무·매뉴얼·진행 기록을 보고 수정만 기존 권한으로 구분한다. 실제 로그인 신원을 크루로 바꾸지 않는다. 비공개 급여·매출 권한은 유지한다.",
+      "previous": "사장님/크루의 매뉴얼 조회 투영이 다르고 웰컴은 계획 상태.",
+      "next": "사장님과 크루가 동일한 웰컴·업무·매뉴얼·진행 기록을 보고 수정만 기존 권한으로 구분한다. 실제 로그인 신원을 크루로 바꾸지 않는다. 비공개 급여·매출 권한은 유지한다.",
+      "reason": "사용자가 모두 파트너로서 같은 화면에서 현재 진행을 공유하도록 요청.",
+      "source": "사용자 대화 2026-10-10",
+      "updatedAt": "2026-10-10T10:37:02.190520+00:00",
+      "implementation": "Core shared workflows implemented and verified. 109 manuals plus welcome: 990 strings in each of 7 foreign languages (AI draft, no native-speaker review). Operations v58 live; web/iOS/Android release in progress."
+    },
+    {
+      "id": "D-120",
+      "category": "공통 화면·다국어",
+      "title": "8개 언어 UI와 개인 언어 선택",
+      "status": "confirmed",
+      "decision": "한국어·영어·베트남어·중국어 간체·일본어·태국어·네팔어·인도네시아어 UI를 제공하고 개인 선택을 저장한다. 언어 변경은 업무 ID/한국 시간 경계를 바꾸지 않는다.",
+      "previous": "한국어 앱, 인쇄만 한국어·영어·베트남어·중국어 간체·일본어.",
+      "next": "한국어·영어·베트남어·중국어 간체·일본어·태국어·네팔어·인도네시아어 UI를 제공하고 개인 선택을 저장한다. 언어 변경은 업무 ID/한국 시간 경계를 바꾸지 않는다.",
+      "reason": "사용자가 기존5언어에 태국어·네팔어·인도네시아어를 추가 선택.",
+      "source": "사용자 대화 2026-10-10",
+      "updatedAt": "2026-10-10T10:37:02.190520+00:00",
+      "implementation": "Core shared workflows implemented and verified. 109 manuals plus welcome: 990 strings in each of 7 foreign languages (AI draft, no native-speaker review). Operations v58 live; web/iOS/Android release in progress."
+    },
+    {
+      "id": "D-121",
+      "category": "공통 화면·다국어",
+      "title": "사전 번역·변경 항목 직접 등록과 원문 보기",
+      "status": "confirmed",
+      "decision": "기존 공용 매뉴얼을 7개 외국어로 미리 번역하여 한국어와 함께 제공한다. 유료 실시간 Google 번역 활성화는 보류한다. 매장 수정으로 바뀐 항목만 번역 필요 표시하고 번역문 직접 등록·JSON 가져오기를 제공한다. 변하지 않은 항목의 번역은 재사용하고 원문 보기와 같은 업무 기록을 유지한다.",
+      "previous": "Google Cloud Translation 사용량 과금 서비스를 서버에서 연결한다. 웰컴·매뉴얼 자동 번역을 바로 표시하고 원문 보기 제공. 원문 버전·언어별 캐시, 실패시 원문 유지.",
+      "next": "기존 공용 매뉴얼을 7개 외국어로 미리 번역하여 한국어와 함께 제공한다. 유료 실시간 Google 번역 활성화는 보류한다. 매장 수정으로 바뀐 항목만 번역 필요 표시하고 번역문 직접 등록·JSON 가져오기를 제공한다. 변하지 않은 항목의 번역은 재사용하고 원문 보기와 같은 업무 기록을 유지한다.",
+      "reason": "활성 결제 계정 부재 확인 후 사용자가 기존 매뉴얼 사전 번역과 변경 부분 직접 등록·가져오기를 선택.",
+      "source": "사용자 대화 2026-10-10",
+      "updatedAt": "2026-10-10T10:52:39.649085+00:00",
+      "implementation": "Core shared workflows implemented and verified. 109 manuals plus welcome: 990 strings in each of 7 foreign languages (AI draft, no native-speaker review). Operations v58 live; web/iOS/Android release in progress."
+    },
+    {
+      "id": "D-122",
+      "category": "공통 화면·다국어",
+      "title": "공통 화면·다국어 개선 후 웹·네이티브 배포",
+      "status": "confirmed",
+      "decision": "개선 및 검증 후 웹과 iOS/Android를 배포·스토어 제출한다. 배포 담당은 Sol low 모델. 스토어 심사 완료와 제출 완료는 구분한다.",
+      "previous": "D-118 웹 우선 배포 후 네이티브 후속.",
+      "next": "개선 및 검증 후 웹과 iOS/Android를 배포·스토어 제출한다. 배포 담당은 Sol low 모델. 스토어 심사 완료와 제출 완료는 구분한다.",
+      "reason": "사용자가 전체 개선 후 웹 및 앱 배포와 배포 모델 sol low를 명시.",
+      "source": "사용자 대화 2026-10-10",
+      "updatedAt": "2026-10-10T10:37:02.190520+00:00",
+      "implementation": "진행 중. 이 결정 기록은 구현·배포 완료를 의미하지 않는다."
+    },
+    {
+      "id": "D-123",
+      "category": "크루 등록·언어",
+      "title": "국적 필수·안내 언어 별도 선택",
+      "status": "confirmed",
+      "decision": "새 크루 등록 시 ISO 국적을 필수로 받고 안내 언어는 별도로 선택한다. 국적으로 언어·권한을 결정하지 않는다. 기존 크루의 미입력 국적은 임의 추정하지 않는다. 개인이 직접 선택한 언어를 우선하며 국적은 사장님·본인에게만 노출한다.",
+      "reason": "사용자가 국적 필수 입력·안내 언어 별도 선택을 확정.",
+      "source": "사용자 대화 2026-10-10",
+      "updatedAt": "2026-10-10T10:52:39.649085+00:00",
+      "implementation": "Core shared workflows implemented and verified. 109 manuals plus welcome: 990 strings in each of 7 foreign languages (AI draft, no native-speaker review). Operations v58 live; web/iOS/Android release in progress."
     }
   ],
   "milestones": [
@@ -8486,7 +8549,33 @@
         "Root stale generated Flutter web cache was isolated without deleting native build artifacts; source and previous unrelated dirty work retained"
       ],
       "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md"
+    },
+    {
+      "at": "2026-10-10T10:37:02.190520+00:00",
+      "type": "decision",
+      "title": "공통 파트너 화면·8언어·즉시 자동 번역 및 Sol low 배포 확정",
+      "detail": "D-119~122 사용자 선택 기록. Flutter UI, 서버 권한/번역/언어 저장을 분담 구현 중. Google Cloud 제공자 연결과 전체 검증·배포는 아직 미완료."
+    },
+    {
+      "at": "2026-10-10T10:52:39.649085+00:00",
+      "type": "decision",
+      "title": "번역 비용 절감 및 국적 등록 선택 확정",
+      "previous": "Google Cloud Translation 사용량 과금 서비스를 서버에서 연결한다. 웰컴·매뉴얼 자동 번역을 바로 표시하고 원문 보기 제공. 원문 버전·언어별 캐시, 실패시 원문 유지.",
+      "next": "기존 공용 매뉴얼을 7개 외국어로 미리 번역하여 한국어와 함께 제공한다. 유료 실시간 Google 번역 활성화는 보류한다. 매장 수정으로 바뀐 항목만 번역 필요 표시하고 번역문 직접 등록·JSON 가져오기를 제공한다. 변하지 않은 항목의 번역은 재사용하고 원문 보기와 같은 업무 기록을 유지한다.",
+      "detail": "D-121 실시간 유료 번역 대신 사전 번역·수정 항목 수동 등록/가져오기. D-123 국적 필수/언어 별도. 이미 적용한 비공개 번역 캐시 SQL은 유지하되 유료 런타임 Edge는 명시적으로 비활성. 사전 번역과 UI 검증 중, 배포 미완료."
+    },
+    {
+      "at": "2026-10-10T11:04:29.639524+00:00",
+      "type": "implementation",
+      "title": "공통 파트너·국적·필드별 번역 서버 v58 배포 및 앱 통합 검증",
+      "detail": "Sol low가 검증한 별도 release worktree의 operations v58 ACTIVE 배포. 비인증401, 유료 Google runtime false. 신규 국적 필수/언어 독립, 국적 사장님·본인 투영, 웰컴/개인 언어, 필드별 번역 CAS 저장. Node333/333, Edge 인증 DB 읽기, SQL 서비스권한·쿼터·삭제, UI69연결 통과. Flutter analyze 문제0. 전체 Flutter478통과/3skip/1신규테스트 실패는 입력 후 pump 누락으로 수정하여 관련7/7 재검증 통과; 최종 전체검증 예정. 영어·베트남어990문구 각각 완료, 나머지5언어 작성 중. 웹/native 미배포. Android 기존 TAP 서명 인증서 일치 확인, iOS11/Android10 준비. 기존 작업 트리와 비공개 자료 보존."
+    },
+    {
+      "at": "2026-10-10T11:16:59.901121+00:00",
+      "type": "verification",
+      "title": "Shared partner workflows and 7-language prepared manuals verified; Sol low release handoff",
+      "detail": "990 source strings x 7 foreign languages = 6930 prepared translations. Exact source coverage, numeric tokens, placeholders and catalog release metadata passed. Flutter 500 passed / 3 web-only skipped; analyze no issues; Node 333 passed; UI links 69; authenticated Edge and translation SQL passed. Includes 21 multilingual cases with actual font metrics, eight languages at 320px/1.5 scale, long text/fixed footer, original toggle, stable completion IDs, source invalidation, language/store/actor races, translated search and actual EN/VI asset loads. Initial Korean label/date regressions and test async/pump failures fixed and retested. Audited isolated source copied without unrelated RESEARCH or existing root dirty work. Sol low handles web, iOS11 and Android10 build/upload/submission. Some deep inventory/sales/admin labels remain Korean; native-speaker and real-device review not performed."
     }
   ],
-  "updatedAt": "2026-10-10T10:19:44.985543+00:00"
+  "updatedAt": "2026-10-10T11:16:59.901121+00:00"
 }

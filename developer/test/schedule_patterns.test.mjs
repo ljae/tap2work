@@ -61,9 +61,9 @@ test('own leave and shortened shift require owner approval; requests never chang
  await assert.rejects(act('owner','review_shift_change',{id:leave.id,decision:'approved'}),{status:409});
  state=await act('owner','review_shift_change',{id:leave.id,decision:'rejected'});assert.deepEqual(state.attendance,attendance);
 });
-test('future language preferences preserve per-person choice and explicit invitation override without claiming translations',()=>{
+test('language preferences resolve the eight supported languages independently of translation availability',()=>{
  const state={store:{locale:'ko',timeZone:'Asia/Seoul'}};
- assert.deepEqual(languageContext(state,{preferences:{locale:'vi'}},{locale:'en-US'}),{storeLocale:'ko',preferredLocale:'vi',effectiveLocale:'ko',invitationLocale:'en-US',effectiveInvitationLocale:'ko',timeZone:'Asia/Seoul'});
+ assert.deepEqual(languageContext(state,{preferences:{locale:'vi'}},{locale:'en-US'}),{storeLocale:'ko',preferredLocale:'vi',effectiveLocale:'vi',invitationLocale:'en-US',effectiveInvitationLocale:'en',timeZone:'Asia/Seoul'});
  assert.equal(canonicalLocale('../../secret'),null);assert.equal(languageContext(state,null).effectiveLocale,'ko');
 });
 test('leave approval and cancellation retain original shift/attendance history and reject duplicate decisions',async t=>{

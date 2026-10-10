@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'manual_setup_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -50,7 +51,9 @@ class TapCard extends StatelessWidget {
     final complete = checked || (total > 0 && done == total);
     final tint = accentColor ?? AppColors.accent;
     final largeText = MediaQuery.textScalerOf(context).scale(16) > 20;
-    final openLabel = level.toLowerCase() == 'task' ? '매뉴얼 열기' : '업무 내용 열기';
+    final openLabel = level.toLowerCase() == 'task'
+        ? context.t('work.openManual')
+        : context.t('work.openTask');
     // Keep the title beside its check action; secondary movement goes below
     // when a narrow card or enlarged type would squeeze the title.
     return LayoutBuilder(
@@ -98,7 +101,9 @@ class TapCard extends StatelessWidget {
                           ],
                           if (onCheck != null) ...[
                             IconButton(
-                              tooltip: checked ? '완료 되돌리기' : '완료하기',
+                              tooltip: checked
+                                  ? context.t('manual.undoCompletion')
+                                  : context.t('work.completeAction'),
                               constraints: const BoxConstraints(
                                 minWidth: 48,
                                 minHeight: 48,
@@ -168,8 +173,8 @@ class TapCard extends StatelessWidget {
                                     if (!largeText)
                                       Text(
                                         level.toLowerCase() == 'task'
-                                            ? '매뉴얼'
-                                            : '내용',
+                                            ? context.t('nav.manual')
+                                            : context.t('work.content'),
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,

@@ -29,6 +29,12 @@ abstract final class AppSpacing {
 abstract final class AppText {
   static const section = TextStyle(
     fontFamily: 'Pretendard',
+    fontFamilyFallback: [
+      'NotoSansThai',
+      'NotoSansDevanagari',
+      'NotoSansSC',
+      'NotoSansJP',
+    ],
     fontSize: 18,
     fontWeight: FontWeight.w700,
     height: 1.4,
@@ -36,6 +42,12 @@ abstract final class AppText {
   );
   static const title = TextStyle(
     fontFamily: 'Pretendard',
+    fontFamilyFallback: [
+      'NotoSansThai',
+      'NotoSansDevanagari',
+      'NotoSansSC',
+      'NotoSansJP',
+    ],
     fontSize: 24,
     fontWeight: FontWeight.w700,
     height: 1.3,
@@ -43,6 +55,12 @@ abstract final class AppText {
   );
   static const body = TextStyle(
     fontFamily: 'Pretendard',
+    fontFamilyFallback: [
+      'NotoSansThai',
+      'NotoSansDevanagari',
+      'NotoSansSC',
+      'NotoSansJP',
+    ],
     fontSize: 16,
     fontWeight: FontWeight.w500,
     height: 1.5,
@@ -50,6 +68,12 @@ abstract final class AppText {
   );
   static const caption = TextStyle(
     fontFamily: 'Pretendard',
+    fontFamilyFallback: [
+      'NotoSansThai',
+      'NotoSansDevanagari',
+      'NotoSansSC',
+      'NotoSansJP',
+    ],
     fontSize: 13,
     fontWeight: FontWeight.w400,
     height: 1.45,

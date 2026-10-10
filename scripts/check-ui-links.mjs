@@ -5,6 +5,11 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S72','app/lib/ui/shared_welcome_screen.dart',"'ack_welcome'",'developer/common_guidance.mjs',"'ack_welcome'"],
+  ['S73','app/lib/ui/cloud_workspace.dart',"'save_language_preference'",'developer/common_guidance.mjs',"'save_language_preference'"],
+  ['S74','app/lib/ui/translated_content.dart','BundledManualTranslations.load','app/lib/data/bundled_manual_translations.dart','assets/manual_translations/'],
+  ['S75','app/lib/ui/manual_translation_editor.dart',"'save_manual_translation'",'developer/manual_content_translations.mjs','saveManualTranslation'],
+  ['S76','app/lib/ui/team_screen.dart',"'guideLocale'",'developer/staff.mjs','guideLocale'],
   ['S68','app/lib/ui/tap_workspace.dart','ManualActionSlides(','app/lib/ui/manual_action_slides.dart','onToggle'],
   ['S69','app/lib/ui/checklist_editor.dart','uploadManualPhoto','app/lib/state/operations_controller.dart','uploadManualPhoto'],
   ['S70','app/lib/ui/place_guide.dart','loadManualPhoto','app/lib/data/http_operations_repository.dart','loadManualPhoto'],
@@ -89,7 +94,7 @@ for (const [id, from, trigger, to, target] of contracts) {
 // The actual button path is also covered by a widget test. Keep this cheap
 // static guard for code changes that accidentally reconnect it to the board.
 const manual = await readFile(path.join(root, 'app/lib/ui/manual_workspace.dart'), 'utf8');
-const editButton = manual.match(/label: const Text\('매뉴얼 편집'\)[\s\S]*?if \(mounted\) setState\(\(\) => sync\(force: true\)\);/);
+const editButton = manual.match(/label: Text\(context\.t\('manual\.edit'\)\)[\s\S]*?if \(mounted\) setState\(\(\) => sync\(force: true\)\);/);
 if (!editButton || !editButton[0].includes('ManualTaskEditor(') || editButton[0].includes('ChecklistEditor(')) {
   console.error('S12: manual edit must open ManualTaskEditor for the selected Task');
   errors++;
@@ -99,7 +104,7 @@ if (['DirectEditFrame(', 'TaskStepEditor(', 'TapSettingsScreen(', "'edit_work_no
   console.error('Board must not expose global TAP settings or overlapping default drag handles');
   errors++;
 }
-if (!manual.includes("Text('TAP 설정')") || manual.includes("initialStepId: selected['sourceStepId']")) {
+if (!manual.includes("context.t('manual.tapSettings')") || manual.includes("initialStepId: selected['sourceStepId']")) {
   console.error('S13: manual settings must target the parent TAP without Task allocation');
   errors++;
 }

@@ -660,3 +660,19 @@ Tap2workApp ThemeData는 VisualDensity.standard를 명시해 데스크톱 compac
 운영 bucket 비공개/250000byte/JPEG, 삭제 큐와 cron을 구성했다. 합성 사진의 실제 Storage 업로드·서비스 권한 조회·public/anon 거절, pg_net→Edge HMAC→삭제→tombstone 재예약 왕복을 검증했고 합성 fixture를 제거했다. 실제 크루 데이터·일정·카탈로그는 수정하지 않았다. 운영 사용자의 인증된 업로드/실기기 카메라·HEIC를 확인한 것은 아니다. 웹 프런트 배포 결과는 아래 후속 기록을 따른다.
 
 2026-10-10 최종 운영 상태: 위 사진/삭제 계약과 웹 화면은135f8ef/Actions38044078051로 배포·활성화됐다. public7파일 해시와 브라우저 렌더를 확인했다. root generated Flutter web cache의 오래된 plugin registry는 .local로 옮겼으며 이후 빌드는 새 entrypoint를 생성한다. 네이티브 호환과 전체 내비게이션 로드맵은 별도 후속이다.
+
+## 2026-10-10 공통 파트너 화면과 8개 언어
+
+최신 사용자 결정 D-119~122가 과거 한국어 우선·웰컴 미구현 범위를 확장한다. 사장님과 크루는 동일한 업무 ID·매뉴얼 원본·웰컴과 진행 기록을 조회한다. 서버는 편집/완료 권한과 비공개 급여·매출 투영을 계속 검사한다. 인증된 사장님을 임의 크루 신원으로 바꾸는 employee view는 제거한다. 다른 사람 이름으로 수행을 기록하지 않는다.
+
+`welcome`은 `{revision,importantRevision,sourceLocale,title,body,updatedAt,updatedBy}`의 매장 공통 원본이다. `welcomeAcknowledgments`와 `actorPreferences`는 actor ID별로 저장하며 snapshot은 본인 값만 반환한다. `save_welcome`은 업무 편집 권한, `ack_welcome`은 본인+표시한 welcomeRevision, `save_language_preference`는 본인 locale만 변경한다. 일반 수정은 이미 확인한 사용자에게 재확인을 강제하지 않고 사장님이 중요 변경을 지정한 경우 요청한다. 웰컴 별도 화면에서 언제든 업무로 이동 가능하며 헤더/우리매장에 다시보기 경로를 둔다.
+
+Flutter `AppStrings`/`AppLocaleController`는 ko/en/vi/zh-Hans/ja/th/ne/id를 사용한다. 앱 고정 문구는 번들 자료, 태국어/네팔어는 번들 Noto 서체를 사용한다. 언어는 개인 설정이며 날짜·시간대·권한·엔티티 ID를 바꾸지 않는다. 빠른 언어 변경·계정 전환 중 늦은 저장 응답을 구분한다.
+
+`ContentTranslationRepository`는 일반 operations snapshot과 별개로 `POST ?translate=content`를 호출한다. 요청은 `{workspaceId,targetLocale,source:{kind:'welcome'|'manual'|'task',id?}}`, 본문 원문은 서버에서 소속 확인 후 조회한다. 응답은 `{status,sourceHash,sourceLocale,targetLocale,source,original,translated,cached}`이며 상태는 translated/original/unavailable/rate_limited다. 실행 번역은 실행 당시 snapshot, 매뉴얼은 현재 구성된 본문을 사용한다. 서버 키는 Google Cloud Translation Basic API에만 사용한다. 매장·원문 해시·목표 언어별 서비스 전용 캐시와 원자 요청 한도를 두고, 매장 삭제 시 FK cascade로 삭제한다. Flutter는 표시 텍스트만 겹쳐 보여주고 ID·사진·완료 callback은 원래 객체를 유지한다. 원문 보기/실패 원문/Google Translate 출처를 표시한다. 다른 매장·다른 원문에 해당하는 지연 응답은 버린다.
+
+### 최신 비용 결정에 따른 변경
+
+후속 사용자 선택으로 위의 실시간 Google 자동 번역 활성화는 보류한다. 공용109매뉴얼+기본웰컴의 정확한 원문 문자열에 대응하는7언어 JSON을 `app/assets/manual_translations/`에 묶고 `BundledManualTranslations`/`PreparedManualScope`/`TranslatedContent`에서 사용한다. 기존 DB 캐시 migration은 보존하되 운영 Edge의 runtime provider는 false다. 매장 수정본은 `manualContentTranslations`의 매뉴얼 ID/언어/단계/필드별 `{sourceHash,sourceText,text,updatedAt,updatedBy}`로 저장한다. 공유 snapshot은 sourceHash/sourceText/text/current만 투영한다. `save_manual_translation`은 기존 revision과 각 sourceText를 검증해 입력/JSON 가져오기를 원자 반영한다. 바뀐 필드만 원문 표시하고 나머지는 기존 번역을 재사용한다. 운영 비용과 검증 계획은 `SHARED_PARTNER_LANGUAGE_RELEASE_2026-10-10.md`를 따른다.
+
+`save_tapper` 신규 등록은 nationality(249개 ISO 코드)와 guideLocale(8개 BCP47)을 필수로 받는다. 기존 레코드의 미입력 값은 보존한다. 사장님 snapshot에만 localized nationalityOptions를 제공하고 nationality는 owner/self만 조회한다. 개인 actorPreferences.locale이 등록 언어보다 우선이며 국적에서 언어·권한을 추론하지 않는다.

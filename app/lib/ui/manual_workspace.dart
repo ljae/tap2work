@@ -1,3 +1,6 @@
+import '../l10n/manual_text_scope.dart';
+import '../l10n/app_localizations.dart';
+import 'translated_content.dart';
 import 'manual_setup_screen.dart';
 import 'place_guide.dart';
 import 'manual_work_screen.dart';
@@ -226,8 +229,25 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       widget.query,
     ).trim().split(RegExp(r'\s+')).where((s) => s.isNotEmpty);
     final folder = folders.where((f) => f['id'] == row['folderId']).firstOrNull;
+    final translated = [
+      manualDisplayText(
+        context,
+        '${row['tapTitle'] ?? ''}',
+        translations: ops.data?['manualContentTranslations'],
+        templateId: row['templateId'],
+      ),
+      for (final field in ['title', 'manual', 'tip'])
+        manualDisplayText(
+          context,
+          '${row[field] ?? ''}',
+          translations: ops.data?['manualContentTranslations'],
+          templateId: row['templateId'],
+          stepId: row['sourceStepId'],
+          field: field,
+        ),
+    ].join(' ');
     final text = normalize(
-      '${folder?['name']} ${row['tapTitle']} ${row['title']} ${row['manual']} ${row['tip']} ${(row['tags'] as List? ?? []).join(' ')}',
+      '$translated ${folder?['name']} ${row['tapTitle']} ${row['title']} ${row['manual']} ${row['tip']} ${(row['tags'] as List? ?? []).join(' ')}',
     );
     return words.every(text.contains);
   }
@@ -241,11 +261,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     final tapMinutes = tasks.isEmpty
         ? null
         : tasks.first['tapEstimatedMinutes'];
-    if (tapMinutes is int && tapMinutes > 0) return 'TAP 약 $tapMinutes분';
+    if (tapMinutes is int && tapMinutes > 0) {
+      return 'TAP ${context.t('work.approxMinutes', args: {'minutes': tapMinutes})}';
+    }
     final known = tasks.map(minutes).whereType<int>().toList();
-    if (known.isEmpty) return '시간 미설정';
+    if (known.isEmpty) return context.t('work.timeUnset');
     final total = known.fold<int>(0, (sum, value) => sum + value);
-    return known.length == tasks.length ? '약 $total분' : '약 $total분+';
+    return '${context.t('work.approxMinutes', args: {'minutes': total})}${known.length == tasks.length ? '' : '+'}';
   }
 
   List<Json> get results => rows
@@ -826,7 +848,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       ListTile(
         dense: true,
         leading: const Icon(CupertinoIcons.folder),
-        title: const Text('전체 매뉴얼'),
+        title: Text(context.t('manual.all')),
         selected: scopeGroup == null && scopeTap == null,
         onTap: () => setState(() {
           scopeGroup = null;
@@ -923,7 +945,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               id: task['sourceStepId'],
               tapId: tap['tapId'],
               folderId: folder['id'],
-              label: task['title'],
+              label: manualDisplayText(
+                context,
+                task['title'],
+                translations: ops.data?['manualContentTranslations'],
+                templateId: task['templateId'],
+                stepId: task['sourceStepId'],
+              ),
               depth: 2,
               editable: task['editable'] == true,
               selected: selectedId == task['id'],
@@ -963,7 +991,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           final current =
               rows.where((r) => r['id'] == row['id']).firstOrNull ?? row;
           return AppEditorScaffold(
-            title: '매뉴얼',
+            title: context.t('nav.manual'),
             body: content(selected: current),
           );
         },
@@ -1014,7 +1042,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 PressBounce(
                   child: TextButton.icon(
                     icon: const Icon(CupertinoIcons.clock),
-                    label: const Text('TAP 설정'),
+                    label: Text(context.t('manual.tapSettings')),
                     onPressed: () async {
                       await showAppSheet(
                         context,
@@ -1030,7 +1058,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 PressBounce(
                   child: TextButton.icon(
                     icon: const Icon(CupertinoIcons.pencil),
-                    label: const Text('매뉴얼 편집'),
+                    label: Text(context.t('manual.edit')),
                     onPressed: () async {
                       await showAppSheet(
                         context,
@@ -1046,19 +1074,34 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 ),
               ],
             ),
-          Text(
-            selected['title'],
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+          TranslatedContent(
+            ops: ops,
+            kind: 'manual',
+            entityId: selected['templateId'],
+            stepId: selected['sourceStepId'],
+            source: selected,
+            builder: (context, displayed) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${displayed['title']}',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SelectableText(
+                  '${displayed['manual'] ?? ''}',
+                  style: const TextStyle(fontSize: 16, height: 1.65),
+                ),
+                if ('${displayed['tip'] ?? ''}'.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  Information('${displayed['tip']}'),
+                ],
+              ],
+            ),
           ),
-          const SizedBox(height: 20),
-          SelectableText(
-            '${selected['manual']}',
-            style: const TextStyle(fontSize: 16, height: 1.65),
-          ),
-          if ('${selected['tip'] ?? ''}'.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            Information(selected['tip']),
-          ],
           if ('${selected['imageUrl'] ?? ''}'.isNotEmpty) ...[
             const SizedBox(height: 16),
             placePhoto(selected['imageUrl'], ops: ops),
@@ -1093,10 +1136,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             padding: const EdgeInsets.all(16),
             child: Text(
               widget.query.trim().isNotEmpty
-                  ? '검색 결과가 없어요.'
+                  ? context.t('manual.noResults')
                   : canEdit
                   ? 'Task가 없어요. TAP을 선택하고 Task를 추가해 주세요.'
-                  : '등록된 Task가 없어요.',
+                  : context.t('manual.empty'),
             ),
           );
         }
@@ -1140,7 +1183,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             margin: const EdgeInsets.only(bottom: 8),
             child: ListTile(
               title: Text(
-                row['title'],
+                manualDisplayText(
+                  context,
+                  row['title'],
+                  translations: ops.data?['manualContentTranslations'],
+                  templateId: row['templateId'],
+                  stepId: row['sourceStepId'],
+                ),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               subtitle: Column(
@@ -1288,12 +1337,12 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       key: const ValueKey('manual-market-button'),
                       onPressed: ops.busy ? null : openMarket,
                       icon: Icons.storefront_outlined,
-                      label: '매뉴얼 마켓',
+                      label: context.t('manual.market'),
                     ),
                   if (canEdit)
                     AppToolbarButton(
                       icon: Icons.link,
-                      label: '업무 연결',
+                      label: context.t('manual.linkWork'),
                       onPressed: () async {
                         await showAppSheet(
                           context,
@@ -1316,7 +1365,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                             ),
                           ),
                     icon: Icons.print_outlined,
-                    label: '인쇄·PDF',
+                    label: context.t('manual.print'),
                   ),
                   if (!recipes && ops.canEditTasks)
                     AppToolbarButton(
@@ -1338,7 +1387,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                                 '',
                               );
                             },
-                      label: '폴더 추가',
+                      label: context.t('manual.addFolder'),
                     ),
                   if (!recipes && ops.canEditTasks) ...[
                     AppToolbarButton(
@@ -1353,7 +1402,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                               ),
                             ),
                       icon: Icons.add,
-                      label: 'TAP 추가',
+                      label: context.t('manual.addTap'),
                     ),
                     AppToolbarButton(
                       key: const ValueKey('manual-backup'),
@@ -1364,7 +1413,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                               builder: (_) => ChecklistBackupScreen(ops: ops),
                             ),
                       icon: Icons.restore,
-                      label: '백업 복원',
+                      label: context.t('manual.backup'),
                     ),
                   ],
                   if (!recipes && ops.canEditTasks && editing)
@@ -1377,7 +1426,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                               stopDragScroll();
                               editing = false;
                             }),
-                      label: '편집 완료',
+                      label: context.t('manual.editDone'),
                     ),
                 ],
               ),
@@ -1412,7 +1461,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         child: TextButton(
                           onPressed: () => setState(() => recipes = false),
                           child: Text(
-                            '운영 매뉴얼',
+                            context.t('manual.operations'),
                             style: TextStyle(
                               color: recipes ? AppColors.muted : AppColors.ink,
                               fontWeight: recipes
@@ -1429,7 +1478,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                             editing = false;
                           }),
                           child: Text(
-                            '메뉴·레시피',
+                            context.t('manual.recipes'),
                             style: TextStyle(
                               color: recipes ? AppColors.ink : AppColors.muted,
                               fontWeight: recipes
@@ -1455,7 +1504,12 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                                     : CupertinoIcons.folder,
                               ),
                               label: Text(
-                                showTree ? '매뉴얼 ${results.length}' : '디렉토리',
+                                showTree
+                                    ? context.t(
+                                        'manual.count',
+                                        args: {'count': results.length},
+                                      )
+                                    : context.t('manual.directory'),
                               ),
                               onPressed: () => setState(() {
                                 showTree = !showTree;
@@ -1489,7 +1543,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                             child: TextButton(
                               onPressed: () =>
                                   setState(() => sync(force: true)),
-                              child: const Text('초기화'),
+                              child: Text(context.t('common.reset')),
                             ),
                           ),
                       ],

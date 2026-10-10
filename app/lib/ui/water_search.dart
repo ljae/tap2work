@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -62,7 +63,7 @@ class _WaterSearchState extends State<WaterSearch> {
       onChanged: widget.onChanged,
       textInputAction: TextInputAction.search,
       decoration: InputDecoration(
-        hintText: '매뉴얼 검색',
+        hintText: context.t('manual.search'),
         hintStyle: AppText.body.copyWith(color: AppColors.muted),
         prefixIcon: const Icon(
           CupertinoIcons.search,
@@ -73,7 +74,7 @@ class _WaterSearchState extends State<WaterSearch> {
         suffixIcon: widget.controller.text.isEmpty
             ? null
             : IconButton(
-                tooltip: '검색 지우기',
+                tooltip: context.t('manual.clearSearch'),
                 onPressed: widget.onClear,
                 icon: const Icon(Icons.close, size: 20),
               ),

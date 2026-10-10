@@ -53,6 +53,7 @@ export function createConsoleServer({ stateFile = path.join(root, 'docs/project-
       }
       if (!local && !(route === '/api/operations' && publicOrigins.length)) throw new StoreError('로컬 주소로 접속해 주세요.', 403);
       if (route.startsWith('/api/')) {
+        if (route === '/api/operations' && url.searchParams.has('translate')) throw new StoreError('샘플에서는 자동 번역을 사용할 수 없어요. 로그인한 매장에서 이용해 주세요.', 501);
         if (route === '/api/operations' && url.searchParams.has('media')) throw new StoreError('샘플에서는 비공개 사진 저장소를 사용할 수 없어요. 로그인한 매장에서 등록해 주세요.', 501);
         if (route === '/api/operations' && req.method === 'GET') {
           return json(res, 200, { ...await operations.snapshot(req.headers['x-demo-actor'] || 'owner', Object.fromEntries(url.searchParams)), demoToken: token });

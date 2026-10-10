@@ -483,3 +483,18 @@ E06 로딩 시각화 후속: 기존 초기화/매장 조회 상태 → TapWaterL
 | S71 | checklistBackup.templates[].steps[].imageUrl → 복원 미리보기·제외 사진 수 → restore_checklist_backup | 다른 매장 비공개 사진은 제외하고 본문 복원·재등록 안내. 같은 매장 참조와 외부 링크 유지 | manual_media.test.mjs, manual_media_backup_test.dart |
 
 S15의 Task 열기는 S68 통합 행동 화면을 사용한다. 매뉴얼 원본 편집 S12/S22와 실제 생성 실행의 완료는 구분한다. S46의 다른 매장 사진 복원은 S71을 따른다. 배포 전 Storage bucket/삭제 정리 경로 준비·활성화가 필요하며 소스 구현만으로 운영 업로드가 활성화되지 않는다.
+
+## 2026-10-10 공통 파트너 화면·언어
+
+| ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
+| --- | --- | --- | --- |
+| S72 | store welcome + own welcomeAcknowledgment → 별도 웰컴/다시 보기/확인 → save_welcome / ack_welcome | 모든 역할 동일 본문, 편집만 canEditTasks. 첫 사용·중요 변경 재확인, 업무 진입 비차단. 다른 사람의 확인 이력 대신 작성 금지 | shared_welcome_test.dart, common_guidance.test.mjs |
+| S73 | 개인 locale → AppLanguageButton → selectLanguage / save_language_preference | 8언어 UI, 본인 계정·매장 선택 저장. ID·완료 기록·한국 날짜 경계 유지. 기존 다른 언어 인쇄 계약 독립 | app_locale_test.dart |
+| S74 | 현재 원문 + targetLocale → TranslatedContent → 공용 사전 번역/매장 번역 → 원문 보기 | 정확한 원문 일치 시 자동 표시. 바뀐 항목만 원문과 번역 필요. 외부 유료 runtime 비활성, operations snapshot/완료 상태 불변 | translated_content_test.dart, content_translation_repository_test.dart |
+
+S72~74는 D-119~122의 구현 대상이다. 실제 수행한 검증과 배포 여부는 project-state.json 최신 history를 확인한다.
+
+| S75 | taskTemplates/welcome 원문 + manualContentTranslations → 번역 등록/양식 복사/JSON 가져오기 → save_manual_translation | 현재 언어·정확한 원문·opening revision 검증, 바뀐 필드만 번역 필요. 공용 사전 번역은 자산에서 읽고 외부 유료 호출 없음 | manual_content_translations.test.mjs, translated_content_test.dart, manual_translation_editor_test.dart |
+| S76 | nationalityOptions + tappers.nationality/guideLocale → 크루 등록의 검색형 국적·독립 언어 선택 → save_tapper | 신규 필수, 기존 미입력 추정 없음. 개인 직접 언어 우선. 국적은 사장님/본인만 표시 | crew_nationality.test.mjs, attendance_history_test.dart |
+
+최신 D-121 변경: S74의 유료 runtime 호출은 비활성화했다. 먼저 공용 사전 번역과 S75 매장 등록 번역을 사용하고 없는/바뀐 필드에는 원문과 번역 필요를 표시한다.

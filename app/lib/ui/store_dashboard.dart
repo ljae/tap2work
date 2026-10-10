@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
 import 'menu_artwork.dart';
+import '../l10n/app_localizations.dart';
+import 'shared_welcome_screen.dart';
 
 String _number(num value) => value.round().toString().replaceAllMapped(
   RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
@@ -19,9 +21,11 @@ class StoreDashboard extends StatefulWidget {
     super.key,
     required this.operations,
     required this.onNavigate,
+    this.onWelcome,
   });
   final OperationsController operations;
   final ValueChanged<int> onNavigate;
+  final VoidCallback? onWelcome;
   @override
   State<StoreDashboard> createState() => _StoreDashboardState();
 }
@@ -36,10 +40,11 @@ class _StoreDashboardState extends State<StoreDashboard> {
   OperationsController get ops => widget.operations;
   Widget space([double value = 16]) => SizedBox(height: value);
   Widget note(String text) => Text(
-    text,
+    context.t(text),
     style: const TextStyle(fontSize: 13, height: 1.55, color: AppColors.muted),
   );
-  Widget heading(String text, String detail) => SectionHeading(text, detail);
+  Widget heading(String text, String detail) =>
+      SectionHeading(context.t(text), context.t(detail));
   Widget chips(
     List<String> values,
     String selected,
@@ -47,7 +52,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
   ) => AppChoiceGroup<String>(
     values: values,
     selected: selected,
-    labelOf: (value) => value,
+    labelOf: (value) => context.t(value),
     onSelected: (value) => setState(() => select(value)),
   );
   Widget adaptive(
@@ -81,6 +86,23 @@ class _StoreDashboardState extends State<StoreDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        PressBounce(
+          child: ListTile(
+            key: const ValueKey('dashboard-shared-welcome'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.menu_book_outlined),
+            title: Text(context.t('welcome.reopen')),
+            subtitle: Text(context.t('welcome.shared')),
+            trailing: const Icon(Icons.chevron_right),
+            onTap:
+                widget.onWelcome ??
+                () => openSharedWelcome(
+                  context,
+                  ops,
+                  onWork: () => widget.onNavigate(1),
+                ),
+          ),
+        ),
         priorityCard(dashboard),
         space(32),
         heading('오늘의 운영', '지금 확인할 매장 상황이에요.'),
@@ -93,12 +115,12 @@ class _StoreDashboardState extends State<StoreDashboard> {
               : '주문 연동 전이에요. 등록한 메뉴를 확인하세요.',
         ),
         if (dashboard == null) ...[
-          const Information('메뉴·매출 데이터를 아직 불러오지 못했어요. 새로고침 후 다시 확인해 주세요.'),
+          Information(context.t('store.statsMissing')),
           PressBounce(
             child: TextButton.icon(
               onPressed: () => ops.refresh(),
               icon: const Icon(Icons.refresh),
-              label: const Text('현황 새로고침'),
+              label: Text(context.t('store.refreshStats')),
             ),
           ),
         ] else
@@ -118,10 +140,10 @@ class _StoreDashboardState extends State<StoreDashboard> {
         .where((item) => (item['quantity'] as num) <= (item['minimum'] as num))
         .length;
     final headline = queue > 0
-        ? '처리 중 주문 $queue건'
+        ? context.t('store.processingOrders', args: {'count': queue})
         : remaining > 0
-        ? '남은 확인 $remaining개'
-        : '오늘 확인할 일을 살펴보세요';
+        ? context.t('store.remainingChecks', args: {'count': remaining})
+        : context.t('store.checkToday');
     return Surface(
       color: AppColors.lime,
       padding: const EdgeInsets.all(22),
@@ -130,8 +152,8 @@ class _StoreDashboardState extends State<StoreDashboard> {
           final content = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '지금 확인할 일',
+              Text(
+                context.t('store.currentTasks'),
                 style: TextStyle(
                   color: AppColors.muted,
                   fontSize: 13,
@@ -150,7 +172,10 @@ class _StoreDashboardState extends State<StoreDashboard> {
               ),
               const SizedBox(height: 8),
               Text(
-                '할 일 $remaining개 · 부족 재료 $low개 · 샘플 주문 기준',
+                context.t(
+                  'store.summaryCounts',
+                  args: {'tasks': remaining, 'stock': low},
+                ),
                 style: const TextStyle(
                   color: AppColors.muted,
                   fontSize: 13,
@@ -167,7 +192,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                 foregroundColor: AppColors.paper,
               ),
               icon: const Icon(Icons.arrow_forward_rounded, size: 19),
-              label: const Text('할 일 보드 열기'),
+              label: Text(context.t('store.openTasks')),
             ),
           );
           if (box.maxWidth < 600) {
@@ -230,7 +255,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
             '${dashboard['source'] == 'sample' ? '샘플 주문' : '주문 연동 전'} · POS 미연동 · ${_clock(dashboard['asOf'])} 집계',
           ),
           IconButton(
-            tooltip: '현황 새로고침',
+            tooltip: context.t('store.refreshStats'),
             onPressed: ops.busy ? null : () => ops.refresh(),
             icon: const Icon(Icons.refresh, size: 20),
           ),
@@ -310,7 +335,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          context.t(label),
           style: TextStyle(
             fontSize: 13,
             color: dark ? AppColors.green : AppColors.muted,
@@ -374,8 +399,8 @@ class _StoreDashboardState extends State<StoreDashboard> {
           ),
           TextField(
             onChanged: (value) => setState(() => query = value),
-            decoration: const InputDecoration(
-              hintText: '메뉴 이름 검색',
+            decoration: InputDecoration(
+              hintText: context.t('store.menuSearch'),
               prefixIcon: Icon(Icons.search),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -391,13 +416,16 @@ class _StoreDashboardState extends State<StoreDashboard> {
               child: SizedBox(
                 width: 160,
                 child: AppPicker<String>(
-                  label: '정렬',
+                  label: context.t('store.sort'),
                   value: sort,
                   items: ['매출순', '주문수량순']
                       .map(
                         (s) => DropdownMenuItem(
                           value: s,
-                          child: Text(s, style: const TextStyle(fontSize: 13)),
+                          child: Text(
+                            context.t(s),
+                            style: const TextStyle(fontSize: 13),
+                          ),
                         ),
                       )
                       .toList(),
@@ -488,11 +516,14 @@ class _StoreDashboardState extends State<StoreDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          heading('지금 처리할 주문', '전체 채널 ${all.length}건 · 오래된 주문부터'),
+          heading(
+            '지금 처리할 주문',
+            context.t('store.queueCount', args: {'count': all.length}),
+          ),
           PressBounce(
             child: TextButton(
               onPressed: () => widget.onNavigate(1),
-              child: const Text('Tap 보드에서 처리 →'),
+              child: Text(context.t('store.openOrderBoard')),
             ),
           ),
           chips(
@@ -532,7 +563,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                       ),
                       if ((order['request'] ?? '').toString().isNotEmpty)
                         IconButton(
-                          tooltip: '요청사항 보기',
+                          tooltip: context.t('store.viewRequest'),
                           icon: const Icon(
                             Icons.chat_bubble_outline,
                             color: AppColors.accent,
@@ -540,7 +571,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                           onPressed: () => showAppDialog<void>(
                             context: context,
                             builder: (_) => AlertDialog(
-                              title: const Text('주문 요청사항'),
+                              title: Text(context.t('store.request')),
                               content: Text(order['request']),
                               actions: [
                                 PressBounce(
@@ -747,7 +778,10 @@ class _StoreDashboardState extends State<StoreDashboard> {
                   Icon(icon, size: 20, color: AppColors.green),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(title, style: const TextStyle(fontSize: 13)),
+                    child: Text(
+                      context.t(title),
+                      style: const TextStyle(fontSize: 13),
+                    ),
                   ),
                   const Icon(Icons.arrow_forward, size: 16),
                 ],
@@ -772,8 +806,14 @@ class _StoreDashboardState extends State<StoreDashboard> {
         tile(
           Icons.checklist,
           '공유 체크리스트',
-          '$done / ${tasks.length} 완료',
-          '남은 확인 ${tasks.length - done}개',
+          context.t(
+            'store.completedCount',
+            args: {'done': done, 'total': tasks.length},
+          ),
+          context.t(
+            'store.remainingChecks',
+            args: {'count': tasks.length - done},
+          ),
           1,
         ),
         tile(
@@ -788,15 +828,15 @@ class _StoreDashboardState extends State<StoreDashboard> {
         tile(
           Icons.local_shipping_outlined,
           '발주 · 입고',
-          '$orders건 입고 대기',
+          context.t('store.waitingReceipt', args: {'count': orders}),
           '입고 확인 후 재고에 반영',
           2,
         ),
         tile(
           Icons.people_outline,
           '오늘 근무표',
-          '$work명 근무 예정',
-          '대체 근무 미정 $gaps건 · 실시간 출근 정보 아님',
+          context.t('store.plannedCrew', args: {'count': work}),
+          context.t('store.coverage', args: {'count': gaps}),
           3,
         ),
       ],

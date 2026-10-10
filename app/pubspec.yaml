@@ -83,14 +83,23 @@ flutter:
     - family: NotoSansJP
       fonts:
         - asset: assets/fonts/print/NotoSansJP-Regular.ttf
+    - family: NotoSansThai
+      fonts:
+        - asset: assets/fonts/app/NotoSansThai-Variable.ttf
+    - family: NotoSansDevanagari
+      fonts:
+        - asset: assets/fonts/app/NotoSansDevanagari-Variable.ttf
   assets:
+    - assets/manual_translations/
     - assets/legal/privacy.json
     - assets/fonts/print/
+    - assets/fonts/app/
     - assets/calendar/kr.json
     - assets/calendar/LICENSE.txt
     - assets/fonts/PRETENDARD-OFL.txt
     - assets/branding/tap2work.png
     - assets/branding/google_g.png
+    - assets/branding/google_translate.png
     - assets/branding/tap_water_green.png
     - assets/menu/menu_tap2.png
 

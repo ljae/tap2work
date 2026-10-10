@@ -1,3 +1,5 @@
+2026-10-10 최신 구현 중: D-119~123에 따라 사장님·크루 공통 웰컴/업무/매뉴얼과 공유 진행 기록, 8개 안내 언어를 적용한다. 신규 크루는 국적 필수·안내 언어 별도 선택이며 본인 언어 설정이 우선한다. 최신 사용자 선택은 기존 공용 매뉴얼 사전 번역 + 수정 항목만 번역 필요 표시 + 직접 등록/JSON 가져오기다. Google 실시간 유료 번역은 비활성화한다. 웹·iOS·Android 배포는 Sol low 담당으로 승인되어 있으며 실제 결과는 프로젝트 이력/SHARED_PARTNER_LANGUAGE_RELEASE_2026-10-10.md를 확인한다. 원어민 검수 및 배포 완료로 미리 표시하지 않는다.
+
 2026-10-10 최신 진행 중: 사용자 직원교육·일상 루틴·정기관리 중심 매뉴얼 상세화/마켓 UI 개선 요청 후 자리 비움으로 MD 인계 요청. `MANUAL_ROUTINE_TODO_2026-10-10.md`부터 재개한다. 루트5개 소스 구현 초안, 18매뉴얼84단계는 `MANUAL_ROUTINE_CONTENT_DRAFT_2026-10-10.md`에 보관. 콘텐츠 미적용, 분석/테스트/배포 미실시. D-109 요구 confirmed, 구현안 미완료. 기존 dirty tree 보존.
 
 2026-10-10 최신: 문의메일 tap2work.dev@gmail.com으로소스/웹/Play·IARC/ASC ko,en-US·심사연락처/Google OAuth지원·개발자통일. 웹 a35827b Actions38016182177 성공·실제정책SHA일치. 새iOS10 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL·내부그룹연결, Android9 내부available/Alpha inreview. 이전심사용로그인/계정소유자/공급자·불변이력은보존. D-093 갱신, 검증/초기400·409복구는최신history. `.local/native-release-20261010/` 이메일후속JSON참조.

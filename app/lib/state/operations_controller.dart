@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../data/http_operations_repository.dart';
 import '../domain/operations_repository.dart';
 import '../domain/manual_media_repository.dart';
+import '../domain/content_translation_repository.dart';
 export '../domain/operations_repository.dart' show Json;
 
 /// Public preview, local demo, or verified Supabase workspace transport.
@@ -79,6 +80,50 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   bool get isLeader => ['owner', 'manager'].contains(actor['role']);
   bool get canEditTasks => isLeader && data?['canEditTasks'] != false;
   bool get isOwner => actor['role'] == 'owner';
+
+  // In-flight deduplication is scoped to identity, store, content and language.
+  // Completed results live in the server's source-hash cache, not this snapshot.
+  final Map<String, Future<Json>> _translations = {};
+  Future<Json> translateContent({
+    required String kind,
+    String? id,
+    required String targetLocale,
+  }) async {
+    final repository = _repository;
+    final openingActor = actorId;
+    final openingWorkspace = data?['workspaceId'] as String?;
+    final openingRevision = data?['revision'];
+    if (_disposed ||
+        readOnly ||
+        !cloud ||
+        openingWorkspace == null ||
+        repository is! ContentTranslationRepository) {
+      return {'status': 'unavailable'};
+    }
+    final key =
+        '$openingActor/$openingWorkspace/$openingRevision/$kind/$id/$targetLocale';
+    final future = _translations.putIfAbsent(
+      key,
+      () => (repository as ContentTranslationRepository).translateContent(
+        actorId: openingActor,
+        workspaceId: openingWorkspace,
+        targetLocale: targetLocale,
+        kind: kind,
+        id: id,
+      ),
+    );
+    try {
+      final result = await future;
+      if (_disposed ||
+          openingActor != actorId ||
+          openingWorkspace != data?['workspaceId']) {
+        return {'status': 'unavailable'};
+      }
+      return result;
+    } finally {
+      if (identical(_translations[key], future)) _translations.remove(key);
+    }
+  }
 
   Future<String> uploadManualPhoto(Uint8List bytes) async {
     final repository = _repository;

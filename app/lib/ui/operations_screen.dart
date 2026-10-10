@@ -22,6 +22,11 @@ import 'catalog_editor.dart';
 import 'store_profile_screen.dart';
 import 'staff_workspace.dart';
 import 'recommended_taps_screen.dart';
+import '../l10n/app_localizations.dart';
+import 'shared_welcome_screen.dart';
+import 'place_guide.dart';
+import 'translated_content.dart';
+import 'app_language_picker.dart';
 
 class OperationsScreen extends StatefulWidget {
   const OperationsScreen({
@@ -51,8 +56,87 @@ class _OperationsScreenState extends State<OperationsScreen> {
   int tab = 0;
   final manualSearch = TextEditingController();
   String manualQuery = '';
+  final presentedWelcomes = <String>{};
+  bool welcomeQueued = false, welcomeOpen = false;
+
+  String? get welcomeScope {
+    final document = ops.data?['welcome'];
+    if (document is! Json) return null;
+    return '${ops.actorId}/${ops.data?['workspaceId']}/${document['importantRevision']}';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    ops.addListener(maybeOpenWelcome);
+    WidgetsBinding.instance.addPostFrameCallback((_) => maybeOpenWelcome());
+  }
+
+  @override
+  void didUpdateWidget(covariant OperationsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.operations != ops) {
+      oldWidget.operations.removeListener(maybeOpenWelcome);
+      ops.addListener(maybeOpenWelcome);
+      presentedWelcomes.clear();
+      maybeOpenWelcome();
+    }
+  }
+
+  void maybeOpenWelcome() {
+    final scope = welcomeScope;
+    if (!mounted ||
+        scope == null ||
+        welcomeOpen ||
+        welcomeQueued ||
+        ops.data?['welcomeNeedsAcknowledgment'] != true ||
+        presentedWelcomes.contains(scope)) {
+      return;
+    }
+    welcomeQueued = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      welcomeQueued = false;
+      if (!mounted ||
+          scope != welcomeScope ||
+          welcomeOpen ||
+          ops.data?['welcomeNeedsAcknowledgment'] != true ||
+          presentedWelcomes.contains(scope)) {
+        return;
+      }
+      openWelcome();
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
+  Future<void> openWelcome({VoidCallback? closeDetail}) async {
+    if (welcomeOpen || !mounted || ops.data == null) return;
+    final scope = welcomeScope;
+    if (scope != null) presentedWelcomes.add(scope);
+    welcomeOpen = true;
+    try {
+      await openSharedWelcome(
+        context,
+        ops,
+        onWork: () {
+          closeDetail?.call();
+          if (mounted) {
+            updateView(() {
+              tab = 0;
+              manualSearch.clear();
+              manualQuery = '';
+            });
+          }
+        },
+      );
+    } finally {
+      welcomeOpen = false;
+      maybeOpenWelcome();
+    }
+  }
+
   @override
   void dispose() {
+    ops.removeListener(maybeOpenWelcome);
     taskPart.dispose();
     manualSearch.dispose();
     detailRevision.dispose();
@@ -94,89 +178,99 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 
   Future<void> openManual(Json row) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      sheetAnimationStyle: AppMotion.panelStyle(context),
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: FractionallySizedBox(
-          heightFactor: 0.8,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${row['tapTitle']} · Task',
-                  style: const TextStyle(color: AppColors.muted, fontSize: 13),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${row['title']}',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 16),
-                SelectableText('${row['manual']}'),
-                if ('${row['imageUrl'] ?? ''}'.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Image.network(
-                      '${row['imageUrl']}',
-                      height: 220,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Information(
-                            '사진을 불러오지 못했어요. 아래 공식 사진 가이드에서 확인해 주세요.',
-                          ),
+    final actor = ops.actorId;
+    final workspace = ops.data?['workspaceId'];
+    await showAppSheet<void>(
+      context,
+      builder: (_) => AppEditorScaffold(
+        title: context.t('nav.manual'),
+        body: ListenableBuilder(
+          listenable: ops,
+          builder: (context, _) {
+            final selected = ops
+                .rows('manualSearch')
+                .where((current) => current['id'] == row['id'])
+                .firstOrNull;
+            if (actor != ops.actorId ||
+                workspace != ops.data?['workspaceId'] ||
+                selected == null) {
+              return Center(
+                child: Information(context.t('manual.changedTask')),
+              );
+            }
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.large),
+              child: TranslatedContent(
+                ops: ops,
+                kind: 'manual',
+                entityId: selected['templateId'] ?? selected['tapId'],
+                stepId: selected['sourceStepId'],
+                source: selected,
+                builder: (context, displayed) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${displayed['tapTitle']} · Task',
+                      style: AppText.caption,
                     ),
-                  ),
-                if ('${row['tip'] ?? ''}'.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text('팁 · ${row['tip']}'),
-                  ),
-                if ((row['tags'] as List? ?? []).isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Wrap(
-                      spacing: 8,
-                      children: [
-                        for (final tag in row['tags'])
-                          Chip(label: Text('#$tag')),
-                      ],
+                    const SizedBox(height: 8),
+                    Text('${displayed['title']}', style: AppText.title),
+                    const SizedBox(height: 16),
+                    SelectableText(
+                      '${displayed['manual']}',
+                      style: AppText.body,
                     ),
-                  ),
-                for (final field in ['sourceUrl', 'imageUrl', 'videoUrl'])
-                  if ('${row[field] ?? ''}'.isNotEmpty)
-                    PressBounce(
-                      child: TextButton.icon(
-                        onPressed: () {
-                          final uri = Uri.tryParse('${row[field]}');
-                          if (uri != null && uri.scheme == 'https') {
-                            launchUrl(
-                              uri,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          }
-                        },
-                        icon: Icon(
-                          field == 'videoUrl'
-                              ? Icons.play_circle_outline
-                              : Icons.open_in_new,
-                        ),
-                        label: Text(
-                          field == 'sourceUrl'
-                              ? '사진·상세 설명 보기'
-                              : field == 'imageUrl'
-                              ? '사진 열기'
-                              : '영상 열기',
+                    if ('${displayed['imageUrl'] ?? ''}'.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: placePhoto(displayed['imageUrl'], ops: ops),
+                      ),
+                    if ('${displayed['tip'] ?? ''}'.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Text(
+                          '${context.t('manual.tip')} · ${displayed['tip']}',
                         ),
                       ),
-                    ),
-              ],
-            ),
-          ),
+                    if ((displayed['tags'] as List? ?? []).isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Wrap(
+                          spacing: 8,
+                          children: [
+                            for (final tag in displayed['tags'])
+                              Chip(label: Text('#$tag')),
+                          ],
+                        ),
+                      ),
+                    for (final field in ['sourceUrl', 'imageUrl', 'videoUrl'])
+                      if (Uri.tryParse('${displayed[field] ?? ''}')?.scheme ==
+                          'https')
+                        PressBounce(
+                          child: TextButton.icon(
+                            onPressed: () => launchUrl(
+                              Uri.parse(displayed[field]),
+                              mode: LaunchMode.externalApplication,
+                            ),
+                            icon: Icon(
+                              field == 'videoUrl'
+                                  ? Icons.play_circle_outline
+                                  : Icons.open_in_new,
+                            ),
+                            label: Text(
+                              field == 'sourceUrl'
+                                  ? context.t('manual.photo')
+                                  : field == 'imageUrl'
+                                  ? context.t('manual.openPhoto')
+                                  : context.t('manual.openVideo'),
+                            ),
+                          ),
+                        ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -210,12 +304,12 @@ class _OperationsScreenState extends State<OperationsScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                '매뉴얼 ${results.length}개',
+                context.t('store.manualCount', args: {'count': results.length}),
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 12),
               if (results.isEmpty)
-                const Information('검색 결과가 없어요. 업무 이름이나 연관어로 다시 찾아보세요.'),
+                Information(context.t('store.noManualResults')),
               for (final row in results)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
@@ -328,7 +422,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? '매장에 함께 반영했어요' : ops.error ?? '저장하지 못했어요.'),
+          content: Text(
+            success
+                ? context.t('store.updated')
+                : ops.error ?? context.t('store.saveFailed'),
+          ),
         ),
       );
     }
@@ -358,7 +456,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (ops.cloud) ...[
-                      WorkspaceMenu(ops: ops),
+                      WorkspaceMenu(ops: ops, onWelcome: () => openWelcome()),
                       const SizedBox(width: 8),
                     ],
                     PopupMenuButton<String>(
@@ -372,10 +470,16 @@ class _OperationsScreenState extends State<OperationsScreen> {
                           320.0,
                         ),
                       ),
-                      tooltip: ops.cloud ? '내 계정' : '계정과 체험 역할',
+                      tooltip: context.t(
+                        ops.cloud ? 'store.account' : 'store.accountPreview',
+                      ),
                       onSelected: (id) async {
                         if (id == 'account') {
                           await widget.onAccountPressed?.call(context);
+                        } else if (id == 'welcome') {
+                          await openWelcome();
+                        } else if (id == 'language') {
+                          await openAppLanguagePicker(context);
                         } else if (id == 'catalog') {
                           if (mounted) {
                             showAppSheet(
@@ -389,16 +493,33 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         }
                       },
                       itemBuilder: (_) => [
+                        PopupMenuItem<String>(
+                          key: const ValueKey('header-language-menu'),
+                          value: 'language',
+                          child: Text(context.t('language.title')),
+                        ),
+                        if (ops.data != null)
+                          PopupMenuItem<String>(
+                            value: 'welcome',
+                            child: Text(context.t('welcome.reopen')),
+                          ),
                         if (ops.data != null && ops.isLeader && !ops.readOnly)
-                          const PopupMenuItem<String>(
+                          PopupMenuItem<String>(
                             value: 'catalog',
-                            child: Text('매장·메뉴·재료 편집'),
+                            child: Text(context.t('store.editCatalog')),
                           ),
                         if (ops.cloud)
                           PopupMenuItem<String>(
                             enabled: false,
                             child: Text(
-                              '내 매장 · ${ops.actor['label'] ?? ops.actor['role'] ?? ''}',
+                              context.t(
+                                'store.myStoreRole',
+                                args: {
+                                  'role': context.t(
+                                    '${ops.actor['label'] ?? ops.actor['role'] ?? ''}',
+                                  ),
+                                },
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -408,32 +529,35 @@ class _OperationsScreenState extends State<OperationsScreen> {
                             value: 'account',
                             child: Text(
                               widget.accountEmail == null
-                                  ? '내 매장 로그인'
-                                  : '계정 · ${widget.accountEmail}',
+                                  ? context.t('store.login')
+                                  : context.t(
+                                      'store.emailAccount',
+                                      args: {'email': widget.accountEmail!},
+                                    ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         if (!ops.cloud) ...[
-                          const PopupMenuItem<String>(
+                          PopupMenuItem<String>(
                             enabled: false,
-                            child: Text('체험 역할 · 실제 로그인 아님'),
+                            child: Text(context.t('store.previewRoles')),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'owner',
-                            child: Text('서연 · 사장님'),
+                            child: Text('서연 · ${context.t('store.owner')}'),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'manager',
-                            child: Text('민지 · 매니저'),
+                            child: Text('민지 · ${context.t('store.manager')}'),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'cook',
-                            child: Text('현우 · 조리 담당'),
+                            child: Text('현우 · ${context.t('store.cook')}'),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'crew',
-                            child: Text('지우 · 크루'),
+                            child: Text('지우 · ${context.t('store.crew')}'),
                           ),
                         ],
                       ],
@@ -464,7 +588,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                     onPressed: ops.busy
                                         ? null
                                         : () => ops.refresh(),
-                                    child: const Text('새로고침'),
+                                    child: Text(context.t('store.refresh')),
                                   ),
                                 ),
                               ],
@@ -494,7 +618,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                               children: [
                                                 AppToolbarButton(
                                                   icon: Icons.groups_outlined,
-                                                  label: '전체파트',
+                                                  label: context.t(
+                                                    'store.allParts',
+                                                  ),
                                                   selected: selected == null,
                                                   onPressed: () =>
                                                       taskPart.value = null,
@@ -536,7 +662,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                           : PressBounce(
                                               child: OutlinedButton(
                                                 onPressed: () => ops.refresh(),
-                                                child: const Text('매장 다시 연결'),
+                                                child: Text(
+                                                  context.t('store.reconnect'),
+                                                ),
                                               ),
                                             ),
                                     )
@@ -617,11 +745,23 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   manualQuery = '';
                   FocusScope.of(context).unfocus();
                 }),
-                items: const [
-                  FloatingMenuItem('업무', CupertinoIcons.checkmark_alt_circle),
-                  FloatingMenuItem('매뉴얼', CupertinoIcons.book),
-                  FloatingMenuItem('근무표', CupertinoIcons.calendar),
-                  FloatingMenuItem('우리매장', CupertinoIcons.square_grid_2x2),
+                items: [
+                  FloatingMenuItem(
+                    context.t('nav.work'),
+                    CupertinoIcons.checkmark_alt_circle,
+                  ),
+                  FloatingMenuItem(
+                    context.t('nav.manual'),
+                    CupertinoIcons.book,
+                  ),
+                  FloatingMenuItem(
+                    context.t('nav.roster'),
+                    CupertinoIcons.calendar,
+                  ),
+                  FloatingMenuItem(
+                    context.t('nav.store'),
+                    CupertinoIcons.square_grid_2x2,
+                  ),
                 ],
               ),
             ),
@@ -635,13 +775,15 @@ class _OperationsScreenState extends State<OperationsScreen> {
     builder: (sheetContext) => ListenableBuilder(
       listenable: Listenable.merge([ops, detailRevision]),
       builder: (context, _) => AppEditorScaffold(
-        title: {
-          'overview': '운영 현황',
-          'inventory': '재고와 발주',
-          'people': '크루',
-          'pay': '인건비',
-          'layout': '공간·장비',
-        }[section]!,
+        title: context.t(
+          {
+            'overview': '운영 현황',
+            'inventory': '재고와 발주',
+            'people': '크루',
+            'pay': '인건비',
+            'layout': '공간·장비',
+          }[section]!,
+        ),
         body: SingleChildScrollView(
           primary: false,
           padding: const EdgeInsets.all(24),
@@ -651,6 +793,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
               if (section == 'overview')
                 StoreDashboard(
                   operations: ops,
+                  onWelcome: () => openWelcome(
+                    closeDetail: () => Navigator.pop(sheetContext),
+                  ),
                   onNavigate: (value) {
                     Navigator.pop(sheetContext);
                     go(value);
@@ -700,6 +845,12 @@ class _OperationsScreenState extends State<OperationsScreen> {
         ? '영업일·시간을 설정해 주세요'
         : '${openDays.length == 7 ? '매일' : openDays.map((d) => ['월', '화', '수', '목', '금', '토', '일'][d - 1]).join('·')} · ${hours.length == 1 ? hours.single : '요일별 시간'}';
     return [
+      actionCard(
+        CupertinoIcons.book,
+        context.t('welcome.reopen'),
+        context.t('welcome.shared'),
+        () => openWelcome(),
+      ),
       if (ops.isOwner) ...[
         actionCard(
           CupertinoIcons.money_dollar_circle,
@@ -731,7 +882,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
       ],
       AttendanceCard(ops: ops),
       gap(),
-      title('매장 관리'),
+      title(context.t('store.management')),
       actionCard(
         CupertinoIcons.gear,
         '매장 정보',
@@ -831,7 +982,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         ),
       ],
       gap(),
-      title('운영'),
+      title(context.t('store.operations')),
       actionCard(
         CupertinoIcons.chart_bar,
         '운영 현황',
@@ -963,7 +1114,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          heading,
+                          context.t(heading),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -990,7 +1141,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
       title('매장 기록'),
       Text('${ops.data!['privateSummary']['note']}'),
     ],
-    title('함께 업데이트했어요'),
+    title(context.t('store.sharedUpdates')),
     if (ops.rows('activity').isEmpty)
       const Information('아직 새 소식이 없어요. 재고나 할 일을 확인하면 누가 했는지 이곳에 남아요.'),
     for (final event in ops.rows('activity').take(4))

@@ -1,6 +1,6 @@
 // Language preferences and actual translation availability are independent.
 // Keep BCP-47 strings, never translated labels, in persisted configuration.
-export const supportedLocales = ['ko'];
+export const supportedLocales = ['ko', 'en', 'vi', 'zh-Hans', 'ja', 'th', 'ne', 'id'];
 export function canonicalLocale(value) {
   if (typeof value !== 'string' || value.length > 35) return null;
   try { return Intl.getCanonicalLocales(value)[0] ?? null; } catch { return null; }

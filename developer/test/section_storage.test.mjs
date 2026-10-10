@@ -91,15 +91,13 @@ test('distant schedule query bypasses unchanged cache and persists generated def
 });
 test('section storage retains server role projection and write permissions',async()=>{
   const x=fixture('crew');const view=await(await x.request()).json();
-  assert.equal(view.payrollSettings,undefined);assert.equal(view.taskTemplates,undefined);
+  assert.equal(view.payrollSettings,undefined);assert.ok(view.taskTemplates.length); assert.equal(view.canEditTasks,false);
   const response=await x.request({action:'save_order_system',enabled:true,revision:view.revision});assert.equal(response.status,403);
 });
-test('section employee view cannot reuse owner cache or write owner settings; preferences retain Korean fallback',async()=>{
+test('section legacy view query returns the same verified actor and personal language preference',async()=>{
  const x=fixture();let view=await(await x.request()).json();
- let response=await x.request({action:'setup_shared_employee',revision:view.revision});assert.equal(response.status,200);view=await response.json();
+ let response=await x.request({action:'save_language_preference',revision:view.revision,locale:'vi'});assert.equal(response.status,200);view=await response.json();
  const query=`?view=employee&revision=${view.revision}&window=${view.syncWindow}&role=owner&workspace=workspace-a`;
- response=await x.request(null,query);assert.equal(response.status,200);const employee=await response.json();
- assert.equal(employee.unchanged,undefined);assert.equal(employee.actor.role,'crew');assert.equal(employee.canEditTasks,false);assert.equal(employee.canEditSchedule,false);assert.equal(employee.languageContext.effectiveLocale,'ko');assert.equal(employee.payrollSettings,undefined);
- response=await x.request({action:'save_order_system',revision:employee.revision,enabled:true},query);assert.equal(response.status,403);
- const owner=await(await x.request()).json();assert.equal(owner.actor.role,'owner');assert.equal(owner.sharedEmployeeId,view.sharedEmployeeId);
+ response=await x.request(null,query);assert.equal(response.status,200);const same=await response.json();
+ assert.equal(same.unchanged,undefined);assert.equal(same.actor.role,'owner');assert.equal(same.actor.id,view.actor.id);assert.equal(same.canEditTasks,true);assert.equal(same.languageContext.effectiveLocale,'vi');assert.equal(same.canSwitchEmployee,false);
 });

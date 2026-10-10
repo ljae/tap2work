@@ -91,15 +91,14 @@ test('cloud schedule range generates defaults years ahead and persists later fin
  state=await (await request()).json();
  assert.equal(state.staffShifts.find(s=>s.id===far.id).start,'10:00');
 });
-test('shared owner can enter fixed employee projection, employee mode denies owner writes and real crew cannot escalate',async()=>{
- const {request,handler}=setup();
- let state=await (await request()).json();
- let r=await request({action:'setup_shared_employee',revision:state.revision});assert.equal(r.status,200);state=await r.json();
- const crew=state.tappers.find(t=>t.id===state.sharedEmployeeId);assert.equal(crew.contractType,'short_term');
+test('legacy employee query preserves verified identity and cloud cannot create an impersonated actor',async()=>{
+ const {request,handler}=setup();const state=await(await request()).json();
+ assert.equal((await request({action:'setup_shared_employee',revision:state.revision})).status,403);
  const endpoint='https://example.supabase.co/functions/v1/operations?view=employee';
  const headers={Authorization:'Bearer session','Content-Type':'application/json'};
- r=await handler(new Request(endpoint,{headers}));assert.equal(r.status,200);const employee=await r.json();
- assert.equal(employee.actor.role,'crew');assert.equal(employee.actor.id,crew.actorId);assert.equal(employee.canEditSchedule,false);assert.equal(employee.labor,undefined);
- r=await handler(new Request(endpoint,{method:'POST',headers,body:JSON.stringify({action:'save_order_system',enabled:true,revision:employee.revision})}));assert.equal(r.status,403);
- const actual=setup('crew');r=await actual.handler(new Request(endpoint,{headers}));assert.equal(r.status,403);
+ let response=await handler(new Request(endpoint,{headers}));const owner=await response.json();
+ assert.equal(owner.actor.role,'owner');assert.equal(owner.actor.id,uid);assert.equal(owner.employeeMode,false);assert.equal(owner.canSwitchEmployee,false);
+ response=await handler(new Request(endpoint,{method:'POST',headers,body:JSON.stringify({action:'save_order_system',enabled:true,revision:owner.revision})}));assert.equal(response.status,200);
+ const actual=setup('crew');response=await actual.handler(new Request(endpoint,{headers}));const crew=await response.json();assert.equal(response.status,200);assert.equal(crew.actor.role,'crew');assert.equal(crew.actor.id,uid);assert.equal(crew.canEditTasks,false);
+ response=await actual.handler(new Request(endpoint,{method:'POST',headers,body:JSON.stringify({action:'save_order_system',enabled:true,revision:crew.revision})}));assert.equal(response.status,403);
 });

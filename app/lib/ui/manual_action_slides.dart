@@ -1,3 +1,5 @@
+import '../l10n/app_localizations.dart';
+import '../l10n/manual_text_scope.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -87,7 +89,7 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
   }
 
   String? blocked(Json? task, Json? step) {
-    if (task == null || step == null) return '업무가 변경됐어요. 목록에서 다시 열어 주세요.';
+    if (task == null || step == null) return context.t('manual.changedTask');
     if (task['preparedOutputMovementId'] != null) {
       return '완성 수량이 반영됐어요. 실제 수량 보정을 사용해 주세요.';
     }
@@ -96,13 +98,15 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
         return '기존 확인 기록은 체험에서 변경할 수 없어요.';
       }
       if (!widget.ops.canEditTasks && step['completedBy']?['id'] != actor) {
-        return '확인한 본인이나 사장님·매니저만 되돌릴 수 있어요.';
+        return context.t('work.undoRestricted');
       }
       return null;
     }
-    if (task['workIssue']?['status'] == 'open') return '조치 확인 전 완료할 수 없어요.';
+    if (task['workIssue']?['status'] == 'open') {
+      return context.t('work.issueBlocked');
+    }
     if ((step['canComplete'] ?? task['canComplete']) != true) {
-      return '담당자나 사장님·매니저가 확인해요.';
+      return context.t('work.blocked');
     }
     final current = (task['steps'] as List? ?? []).whereType<Json>().toList();
     final at = current.indexWhere((row) => row['id'] == step['id']);
@@ -110,7 +114,7 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
         current
             .take(at < 0 ? 0 : at)
             .any((row) => row['completedAt'] == null)) {
-      return '앞의 행동을 먼저 완료해 주세요.';
+      return context.t('work.sequence');
     }
     return null;
   }
@@ -127,7 +131,7 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
     try {
       saved = await widget.onToggle(task, step);
     } catch (_) {
-      if (mounted) failure = '저장하지 못했어요. 다시 확인해 주세요.';
+      if (mounted) failure = context.t('work.saveFailed');
     }
     if (!mounted) return;
     setState(() {
@@ -164,9 +168,14 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
         child: Focus(
           autofocus: true,
           child: AppEditorScaffold(
-            title: widget.task['title'] as String,
+            title: manualDisplayText(
+              context,
+              widget.task['title'] as String,
+              translations: widget.ops.data?['manualContentTranslations'],
+              templateId: widget.task['templateId'],
+            ),
             subtitle:
-                '${index + 1}/${ids.length} 행동${widget.ops.readOnly ? ' · 체험 · 저장 안 됨' : ''}',
+                '${context.t('work.actions', args: {'current': index + 1, 'total': ids.length})}${widget.ops.readOnly ? ' · ${context.t('work.preview')}' : ''}',
             onClose: () => Navigator.pop(context),
             body: PageView.builder(
               key: const ValueKey('manual-action-pages'),
@@ -185,7 +194,7 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
                   ),
                   padding: const EdgeInsets.all(AppSpacing.large),
                   child: currentTask == null || row == null
-                      ? const Information('업무가 변경됐어요. 목록에서 다시 열어 주세요.')
+                      ? Information(context.t('manual.changedTask'))
                       : widget.bodyBuilder(currentTask, row),
                 );
               },
@@ -204,7 +213,10 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
                 if (done)
                   Semantics(
                     liveRegion: true,
-                    child: const Text('완료했어요', style: AppText.caption),
+                    child: Text(
+                      context.t('manual.completed'),
+                      style: AppText.caption,
+                    ),
                   ),
                 PressBounce(
                   child: FilledButton.icon(
@@ -223,10 +235,10 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
                     ),
                     label: Text(
                       saving
-                          ? '저장 중…'
+                          ? context.t('common.saving')
                           : done
-                          ? '완료 되돌리기'
-                          : '완료 체크',
+                          ? context.t('manual.undoCompletion')
+                          : context.t('manual.checkComplete'),
                     ),
                   ),
                 ),
@@ -247,7 +259,7 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
                               currentTask['canComplete'] != true
                           ? null
                           : () => widget.onCompleteQuantity!(currentTask),
-                      child: const Text('TAP 완성 수량 입력'),
+                      child: Text(context.t('manual.enterQuantity')),
                     ),
                   ),
                 Row(
@@ -263,7 +275,7 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
                             CupertinoIcons.chevron_back,
                             size: 18,
                           ),
-                          label: const Text('이전'),
+                          label: Text(context.t('common.previous')),
                         ),
                       ),
                     ),
@@ -278,7 +290,7 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
                             CupertinoIcons.chevron_forward,
                             size: 18,
                           ),
-                          label: const Text('다음'),
+                          label: Text(context.t('common.next')),
                         ),
                       ),
                     ),

@@ -160,7 +160,7 @@ test('business breaks persist atomically, leave requirement seats unchanged, pre
 
 test('crew registration can omit assignment; editing preserves existing work profile', async t => {
   const {store,act}=await setup(t);
-  const values={nickname:'신규 크루',rank:'crew',employmentType:'시간알바',hourlyWon:10320,payPeriod:'monthly',kakaoUrl:'',phone:''};
+  const values={nationality:'VN',guideLocale:'vi',nickname:'신규 크루',rank:'crew',employmentType:'시간알바',hourlyWon:10320,payPeriod:'monthly',kakaoUrl:'',phone:''};
   const added=await act('owner','save_tapper',values);
   const person=added.tappers.find(p=>p.nickname===values.nickname);
   assert.deepEqual(person.workProfile,{partIds:[],bands:[]});

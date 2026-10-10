@@ -1,3 +1,6 @@
+import { manualTranslationView, saveManualTranslation } from './manual_content_translations.mjs';
+import { nationalityOptions } from './countries.mjs';
+import { guidanceView, mutateGuidance, readableTemplates } from './common_guidance.mjs';
 import { contentHash } from './manual_catalog_schema.mjs';
 import { composeManual, saveManualSetup, retireUnstartedComposition } from './manual_setup.mjs';
 import { savePlace } from './place_guide.mjs';
@@ -340,7 +343,12 @@ export class OperationsStore {
     Object.assign(result, staffView(state, actor, this.clock()));
     result.workplace = workplaceView(state, actor);
     const ownCrew = state.tappers.find(t => t.actorId === actor.id && t.active);
-    result.languageContext = languageContext(state,ownCrew);
+    result.languageContext = languageContext(state,{ preferences: { ...ownCrew?.preferences, ...(ownCrew?.guideLocale ? {locale:ownCrew.guideLocale} : {}), ...state.actorPreferences?.[actor.id] } });
+    if (actor.role === 'owner') result.nationalityOptions = nationalityOptions(result.languageContext.effectiveLocale);
+    Object.assign(result, guidanceView(state, actor));
+    result.manualContentTranslations = manualTranslationView(state);
+    delete result.actorPreferences;
+    delete result.welcomeAcknowledgments;
     result.shiftChangeRequests = (state.shiftChangeRequests ?? []).filter(r => actor.role === 'owner' || r.tapperId === ownCrew?.id);
     if (!['owner','manager'].includes(actor.role)) result.crewPatterns = (state.crewPatterns ?? []).filter(p => p.tapperId === ownCrew?.id);
     if (actor.role !== 'owner') { delete result.demoInvites; delete result.payrollSettings; delete result.payrollSettingsHistory; }
@@ -404,7 +412,9 @@ export class OperationsStore {
     result.manualSearch = manualSearchIndex(state);
     result.manualPrintTemplates = manualPrintView(state);
     if (['owner', 'manager'].includes(actor.role)) result.recommendedTaps = recommendedTaps(state);
-    if (!['owner', 'manager'].includes(actor.role)) delete result.taskTemplates;
+    if (!result.canEditTasks) result.taskTemplates = readableTemplates(state.taskTemplates);
+    for (const template of result.taskTemplates) template.translationSource = {kind:'manual',id:template.id};
+    for (const task of result.tasks) if(task.templateId) task.translationSource = {kind:'manual',id:task.templateId};
     return result;
   }
   snapshot(actorId, options = {}) {
@@ -427,6 +437,7 @@ export class OperationsStore {
       if (input.action === 'split_tap_policy' && input.operationId && state.tapPolicyHistory?.some(h => h.operationId === input.operationId && h.actor.id === actor.id && h.template.id === input.templateId)) return this.#view(state,actor);
       actor = actorWithParts(state, actor);
       checkWorkplacePermission(state, actor, input.action);
+      if (this.trustedActor && input.action === 'setup_shared_employee') fail('로그인한 본인 계정으로 공통 업무를 이용해 주세요.', 403);
       if (eventReplay(state,input,actor)) return this.#view(state,actor);
       if (manualMarketReplay(state,input,actor)) return this.#view(state,actor);
       if (input.revision !== state.revision) fail('다른 동료가 먼저 업데이트했어요. 최신 내용을 확인하고 다시 눌러 주세요.', 409);
@@ -436,6 +447,7 @@ export class OperationsStore {
       const itemFor = id => { const item = state.items.find(item => item.id === id && !item.archivedAt); if (!item) fail('사용 중인 재료를 찾지 못했어요.', 404); return item; };
       const previousTemplates = structuredClone(state.taskTemplates);
       switch (input.action) {
+        case 'save_manual_translation': saveManualTranslation(state,input,actor,now); break;
         case 'start_blank_from_sample': {
           if (!this.trustedActor || actor.role !== 'owner') fail('클라우드 매장 사장님만 시작 방식을 바꿀 수 있어요.', 403);
           if (state.store?.setup === 'blank' || state.store?.setup === 'configured' || state.sales?.source !== 'sample' || state.sampleArchive) fail('샘플 매장 상태를 확인해 주세요.', 409);
@@ -876,7 +888,7 @@ export class OperationsStore {
           state.layout.updatedAt = iso(now); state.layout.updatedBy = who;
           activity(`${zone.name} 위치 안내 업데이트`); break;
         }
-        default: if (!mutateManualMarket(state,input,actor,now,this.catalog) && !mutateWorkplace(state, input, actor, now, activity, Boolean(this.trustedActor)) && !mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
+        default: if (!mutateGuidance(state,input,actor,now) && !mutateManualMarket(state,input,actor,now,this.catalog) && !mutateWorkplace(state, input, actor, now, activity, Boolean(this.trustedActor)) && !mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
       }
       if (['move_tap', 'complete_task', 'complete_step', 'reopen_step'].includes(input.action)) syncOrderFromTap(state, input.taskId);
       if (['move_tap', 'complete_task', 'complete_step'].includes(input.action)) {

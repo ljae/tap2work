@@ -93,7 +93,13 @@ void main() {
       final ops = OperationsController(
         client: MockClient((r) async {
           if (r.method == 'POST') writes.add(jsonDecode(r.body));
-          return response(calendarData());
+          return response({
+            ...calendarData(),
+            'nationalityOptions': [
+              {'code': 'VN', 'name': '베트남'},
+              {'code': 'KR', 'name': '대한민국'},
+            ],
+          });
         }),
       );
       addTearDown(ops.dispose);
@@ -117,9 +123,25 @@ void main() {
       );
       await tester.enterText(find.byType(TextField).first, '새 크루');
       await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, '저장'))
+            .onPressed,
+        isNull,
+      );
+      await tester.tap(find.byKey(const ValueKey('crew-nationality')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('베트남').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('crew-guide-language')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('English').last);
+      await tester.pumpAndSettle();
       await tester.tap(find.text('저장'));
       await tester.pumpAndSettle();
       expect(writes.single['action'], 'save_tapper');
+      expect(writes.single['nationality'], 'VN');
+      expect(writes.single['guideLocale'], 'en');
       expect(writes.single.containsKey('partIds'), false);
       expect(writes.single.containsKey('bands'), false);
       await tester.tap(find.text('현우').last);
