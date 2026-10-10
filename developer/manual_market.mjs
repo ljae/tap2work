@@ -2,6 +2,7 @@ import { presentSource } from './manual_setup.mjs';
 import {knowledgeFields} from './knowledge_work.mjs';
 import release from '../docs/market/current.json' with {type:'json'};
 import {randomUUID,createHash} from 'node:crypto';
+import {isDeepStrictEqual} from 'node:util';
 import {StoreError} from './store.mjs';
 import {validateChecklists} from './checklists.mjs';
 import {assertContentOnly} from './tap_policy.mjs';
@@ -40,7 +41,8 @@ export function syncManualCatalog(state,now,catalog=release){
   if(!source||!template)continue;
   const hash=contentHash(source);
   if(hash===link.contentHash){
-   if(JSON.stringify(template.knowledge)!==JSON.stringify(source.knowledge)){template.knowledge=structuredClone(source.knowledge);changed=true;}
+   // JSONB reorders object keys; unchanged metadata must not advance revision.
+   if(!isDeepStrictEqual(template.knowledge,source.knowledge)){template.knowledge=structuredClone(source.knowledge);changed=true;}
    if(link.releaseId!==catalog.releaseId){link.releaseId=catalog.releaseId;link.evaluatedReleaseId=catalog.releaseId;changed=true;}
    continue;
   }
