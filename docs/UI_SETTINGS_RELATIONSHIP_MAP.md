@@ -344,7 +344,7 @@ S12 매뉴얼 편집의 저장 액션은 이제 `save_manual_tap`으로 선택 T
 | ID | source → control → action | consumer | 검증 |
 | --- | --- | --- | --- |
 | S50 | Supabase 개인 세션 → 헤더 내 계정 → AccountScreen/로그아웃 | 본인 세션 종료, 로그인 화면 복귀 | cloud_workspace_test.dart, account_test.dart |
-| S51 | assets/legal/privacy.json → 로그인/내 계정 개인정보처리방침 → PrivacyScreen | OpenEdu·문의 이메일·처리 항목/기간/삭제 안내, 동일 JSON 정적 웹 페이지 | account_test.dart, build-legal.mjs |
+| S51 | assets/legal/privacy.json → 로그인/내 계정 개인정보처리방침 → PrivacyScreen | OpenEdu·tap2work.dev@gmail.com 문의 버튼(mailto)·처리 항목/기간/삭제 안내, 동일 JSON 정적 웹 페이지 | account_test.dart, build-legal.mjs |
 | S52 | 검증된 본인 계정·매장 소속·revision → 삭제 범위 확인/명시적 체크 → account preview/delete | Apple revoke 후 DB 원자 삭제; 유일 사장님 매장·접근 삭제, 다른 크루 계정 보존; 기기 백업·세션 정리 | account_test.dart, account.test.mjs, account_deletion.sql |
 
 ## 영업시간·인원 저장 재반영 보정 · 2026-10-06

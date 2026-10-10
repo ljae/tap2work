@@ -44,7 +44,7 @@ customParts 임시 ID는 save_workplace_parts가 발급한 안정 ID로 headcoun
 
 최신 사용자 요청으로 임시 공용 로그인 진입을 Apple·Google 개인 로그인으로 교체한다. iOS는 두 제공자의 네이티브 SDK, Android는 Google SDK와 Apple 웹 OAuth, 웹은 OAuth를 사용한다. 아래 과거 공용 로그인 설명은 이전 이력이다. 기존 공용 매장을 새 계정에 자동 이전하지 않는다.
 
-운영자 OpenEdu, 개인정보 문의 esther.runstrict@gmail.com. 로그인 전과 내 계정에서 개인정보처리방침을 열고, 내 계정에서 삭제 범위를 조회·확인한 뒤 영구 삭제한다. 유일한 사장님은 매장 데이터와 전 크루의 해당 매장 접근도 함께 삭제하며 다른 크루의 로그인 계정은 보존한다. 다른 사장님이 남으면 공유 매장을 유지한다. Apple/Google provider·서버 키 설정과 tap2.work 웹·계정 삭제/운영 서버 배포를 완료했다. iOS App Store Connect 1.0.0 빌드 5는 처리 VALID를 통과해 제출 준비 버전에 연결되었다. 한국어·영어 메타데이터, 무료·전 지역 출시 설정과 심사 정보를 저장했다. 실기기 로그인·삭제 검증과 심사 제출은 남아 있다. [설정 안내](docs/NATIVE_AUTH_SETUP.md).
+운영자 OpenEdu, 개인정보 문의 tap2work.dev@gmail.com. 로그인 전과 내 계정에서 개인정보처리방침을 열고, 내 계정에서 삭제 범위를 조회·확인한 뒤 영구 삭제한다. 유일한 사장님은 매장 데이터와 전 크루의 해당 매장 접근도 함께 삭제하며 다른 크루의 로그인 계정은 보존한다. 다른 사장님이 남으면 공유 매장을 유지한다. Apple/Google provider·서버 키 설정과 tap2.work 웹·계정 삭제/운영 서버 배포를 완료했다. iOS App Store Connect 1.0.0 빌드 5는 처리 VALID를 통과해 제출 준비 버전에 연결되었다. 한국어·영어 메타데이터, 무료·전 지역 출시 설정과 심사 정보를 저장했다. 실기기 로그인·삭제 검증과 심사 제출은 남아 있다. [설정 안내](docs/NATIVE_AUTH_SETUP.md).
 
 ## TAP 배정 단일화·중앙 Task/매뉴얼 개선 · 2026-10-04 · 구현 예정
 

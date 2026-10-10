@@ -1,6 +1,6 @@
 # TAP Work 로그인·개인정보·계정 삭제 설정
 
-2026-10-05. 운영자 **OpenEdu**, 문의 **esther.runstrict@gmail.com**. Aside CLI로 실제 콘솔을 확인하고 Google/Apple provider, Apple 키, 서버 secrets, callback 설정을 완료했다. 삭제 SQL과 account/operations/public-login 함수·tap2.work 웹 배포를 완료했다. iOS 1.0.0 빌드 5 서명 IPA가 Apple 처리 VALID를 통과하고 iOS 제출 준비 버전에 연결되었다. 실기기 로그인은 별도다. 참고 앱 runner와 같은 네이티브 SDK → ID token → Supabase 구조이며 TAP Work 전용 OAuth 값을 사용한다.
+2026-10-05. 운영자 **OpenEdu**, 문의 **tap2work.dev@gmail.com**. Aside CLI로 실제 콘솔을 확인하고 Google/Apple provider, Apple 키, 서버 secrets, callback 설정을 완료했다. 삭제 SQL과 account/operations/public-login 함수·tap2.work 웹 배포를 완료했다. iOS 1.0.0 빌드 5 서명 IPA가 Apple 처리 VALID를 통과하고 iOS 제출 준비 버전에 연결되었다. 실기기 로그인은 별도다. 참고 앱 runner와 같은 네이티브 SDK → ID token → Supabase 구조이며 TAP Work 전용 OAuth 값을 사용한다.
 
 ## 실제 설정 확인 결과
 
@@ -19,7 +19,7 @@
 
 Google 웹 클라이언트에 새 secret을 추가해 Supabase에 설정했다. 기존 secret은 다른 사용처를 끊지 않도록 유지했으며 실제 로그인 검증 후 정리할 수 있다. Apple provider 초안에 들어 있던 Google secret은 Apple 서명 JWT로 교체했다. Google nonce 검사 우회와 이메일 없는 가입 허용은 켜지 않았다.
 
-Google Audience는 **External / 프로덕션 단계**로 전환했다. 전환 전에는 테스트 사용자 1명으로 제한되어 있었다. Branding 이름을 `TAP work`에서 **TAP Work**로 저장했다. 홈페이지·개인정보 링크와 개발자 연락처 `esther.runstrict@gmail.com`은 등록되어 있다. 사용자 지원 이메일은 현재 로그인 계정 `ljae.m10@gmail.com`만 선택 가능해 유지했다. 지정한 문의 이메일로 바꾸려면 해당 계정으로 프로젝트에 접근해 선택 가능한지 확인해야 한다. Google 동의 화면의 브랜드 로고 업로드·별도 브랜드 검증은 미완료다.
+Google Audience는 **External / 프로덕션 단계**로 전환했다. 전환 전에는 테스트 사용자 1명으로 제한되어 있었다. Branding 이름을 `TAP work`에서 **TAP Work**로 저장했다. 홈페이지·개인정보 링크와 개발자 연락처 `tap2work.dev@gmail.com`은 등록되어 있다. 사용자 지원 이메일은 현재 로그인 계정 `ljae.m10@gmail.com`만 선택 가능해 유지했다. 지정한 문의 이메일로 바꾸려면 해당 계정으로 프로젝트에 접근해 선택 가능한지 확인해야 한다. Google 동의 화면의 브랜드 로고 업로드·별도 브랜드 검증은 미완료다.
 
 Apple `.p8` 다운로드 파일은 `~/Downloads/AuthKey_BY6QCTR4RP.p8`에 있다. 재다운로드할 수 없으므로 별도 안전한 보관소에 백업한다. 작업용 사본과 CLI secrets 파일은 Git 제외된 `.local/private-auth/`에 권한 600으로 보관했다. `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_SERVICE_ID`, `APPLE_PRIVATE_KEY` 네 서버 secrets 저장 및 등록 이름을 확인했다. 키 원문은 앱·문서에 포함하지 않는다.
 
@@ -29,7 +29,7 @@ Google/Apple authorize 요청은 각각 `accounts.google.com`/`appleid.apple.com
 
 [Google Cloud Console](https://console.cloud.google.com/)에서 TAP Work용 프로젝트를 선택하거나 생성한다. **Google Auth Platform** 메뉴를 연다(이전 UI는 APIs & Services → OAuth consent screen/Credentials).
 
-1. **Branding**: 앱 이름 `TAP Work`, 지원/개발자 이메일 `esther.runstrict@gmail.com`. 홈페이지 `https://tap2.work/`, 개인정보처리방침 `https://tap2.work/privacy/`를 입력한다. 방침 URL은 이번 웹 변경을 배포한 뒤 실제 열리는지 확인해야 한다. 도메인 소유 확인이 요구되면 `tap2.work`를 확인한다.
+1. **Branding**: 앱 이름 `TAP Work`, 지원/개발자 이메일 `tap2work.dev@gmail.com`. 홈페이지 `https://tap2.work/`, 개인정보처리방침 `https://tap2.work/privacy/`를 입력한다. 방침 URL은 이번 웹 변경을 배포한 뒤 실제 열리는지 확인해야 한다. 도메인 소유 확인이 요구되면 `tap2.work`를 확인한다.
 2. **Audience**: 일반 고객용은 External. 테스트 단계에는 본인/테스터 Google 이메일을 Test users에 추가한다. 출시 전 Publishing status와 요청되는 브랜드 검증을 완료한다.
 3. **Data Access**: `openid`, 이메일, 기본 프로필만 사용한다. Gmail·Drive 권한은 필요하지 않다.
 4. **Clients → Create client → iOS**:

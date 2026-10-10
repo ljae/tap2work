@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'components.dart';
 
-const privacyContact = 'esther.runstrict@gmail.com';
+const privacyContact = 'tap2work.dev@gmail.com';
 
 Future<void> openPrivacy(BuildContext context) =>
     showAppSheet<void>(context, builder: (_) => const PrivacyScreen());

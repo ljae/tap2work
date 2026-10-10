@@ -113,7 +113,7 @@ void main() {
     });
     await tester.pumpAndSettle();
     expect(find.textContaining('OpenEdu'), findsWidgets);
-    expect(find.textContaining('esther.runstrict@gmail.com'), findsWidgets);
+    expect(find.textContaining('tap2work.dev@gmail.com'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 }
