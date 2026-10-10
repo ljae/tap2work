@@ -162,7 +162,9 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _foreground = state == AppLifecycleState.resumed;
     if (_foreground) {
-      refresh();
+      // Public samples have no remote changes; reloading them would discard
+      // the current in-memory walkthrough whenever the browser gains focus.
+      if (!readOnly || data == null) refresh();
       scheduleRefresh();
     } else {
       _timer?.cancel();

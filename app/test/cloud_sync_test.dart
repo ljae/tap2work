@@ -4,10 +4,123 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:tap2work/state/operations_controller.dart';
+import 'package:tap2work/domain/operations_repository.dart';
 import 'package:tap2work/ui/cloud_workspace.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+class LifecycleRepository implements OperationsRepository {
+  int reads = 0, writes = 0;
+  bool failReads = false;
+
+  @override
+  Future<OperationsResult> read({
+    required String actorId,
+    String? demoToken,
+    String? scheduleFrom,
+    String? scheduleTo,
+    String? workspaceId,
+    bool useCache = true,
+  }) {
+    reads++;
+    return Future.value(
+      failReads
+          ? const OperationsResult(503, {'error': '샘플을 읽지 못했어요.'})
+          : OperationsResult(200, {
+              'revision': reads,
+              'actor': {'id': actorId, 'role': actorId},
+              'tasks': [
+                <String, dynamic>{
+                  'id': 'sample-task',
+                  'kind': 'routine',
+                  'canComplete': true,
+                  'steps': [
+                    <String, dynamic>{'id': 'first'},
+                    <String, dynamic>{'id': 'second'},
+                  ],
+                },
+              ],
+            }),
+    );
+  }
+
+  @override
+  Future<OperationsResult> write({
+    required String actorId,
+    String? demoToken,
+    required Json values,
+  }) async {
+    writes++;
+    throw StateError('This audit must not write');
+  }
+
+  @override
+  void close() {}
+}
+
 void main() {
+  testWidgets(
+    'public sample resume preserves preview checks without another read',
+    (tester) async {
+      final repository = LifecycleRepository();
+      final ops = OperationsController(readOnly: true, repository: repository);
+      addTearDown(ops.dispose);
+      await ops.start();
+      ops.previewToggleStep('sample-task', 'first');
+      final snapshot = ops.data;
+      ops.didChangeAppLifecycleState(AppLifecycleState.paused);
+      ops.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await tester.pump(const Duration(minutes: 1));
+      expect(repository.reads, 1);
+      expect(identical(ops.data, snapshot), isTrue);
+      expect(ops.rows('tasks').single['steps'][0]['completedAt'], isNotNull);
+      expect(repository.writes, 0);
+
+      await ops.refresh();
+      expect(repository.reads, 2);
+      expect(ops.rows('tasks').single['steps'][0]['completedAt'], isNull);
+      ops.previewToggleStep('sample-task', 'first');
+      await ops.selectActor('crew');
+      expect(repository.reads, 3);
+      expect(ops.actorId, 'crew');
+      expect(ops.rows('tasks').single['steps'][0]['completedAt'], isNull);
+    },
+  );
+  testWidgets(
+    'public sample resume loads initially and retries when no data exists',
+    (tester) async {
+      final repository = LifecycleRepository()..failReads = true;
+      final ops = OperationsController(readOnly: true, repository: repository);
+      addTearDown(ops.dispose);
+      ops.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(repository.reads, 1);
+      expect(ops.data, isNull);
+      expect(ops.error, '샘플을 읽지 못했어요.');
+
+      repository.failReads = false;
+      ops.didChangeAppLifecycleState(AppLifecycleState.paused);
+      ops.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(repository.reads, 2);
+      expect(ops.data, isNotNull);
+      expect(ops.error, isNull);
+    },
+  );
+  testWidgets('live demo still refreshes its snapshot when resuming', (
+    tester,
+  ) async {
+    final repository = LifecycleRepository();
+    final ops = OperationsController(readOnly: false, repository: repository);
+    addTearDown(ops.dispose);
+    await ops.refresh();
+    expect(ops.data!['revision'], 1);
+    ops.didChangeAppLifecycleState(AppLifecycleState.paused);
+    ops.didChangeAppLifecycleState(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(repository.reads, 2);
+    expect(ops.data!['revision'], 2);
+    ops.didChangeAppLifecycleState(AppLifecycleState.paused);
+  });
   testWidgets(
     'unchanged sync keeps data, polls at 30s and stops in background',
     (tester) async {

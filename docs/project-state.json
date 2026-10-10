@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 278,
+  "revision": 279,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -8444,7 +8444,24 @@
         "Welcome/work-ON/timing/buddy/selective source updates/reminders/PiP/audio remain later phases; unlinked existing-workspace photo GC and embedded PDF photos remain future work"
       ],
       "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md"
+    },
+    {
+      "at": "2026-10-10T10:10:59.940438+00:00",
+      "type": "verification-fix",
+      "title": "Stop first web run for real-browser photo validation; rebuild clean and preserve preview checks on resume",
+      "detail": "GitHub run38043540444 for2488fd0 was cancelled before web deployment when actual local compiled-web photo capture failed. Local Flutter3.41.2 generated entrypoint cache omitted ImagePickerPlugin despite updated dependency graph. Fresh isolated release checkout generated correct registration and built successfully58.7seconds. Stale root .dart_tool/flutter_build cache was moved under .local/manual-navigation-deployment, preserving app/build native artifacts. Also fixed pre-existing public preview resume refresh that cleared unsaved checks; live/cloud refresh behavior retained.",
+      "verification": [
+        "Fresh isolated web build passed and ImagePickerPlugin registration present",
+        "Actual plugin Chrome DOM tests3/3 passed including capture=environment, gallery input and cancel cleanup; Flutter test explicitly registers the real plugin, so this is distinct from release auto-registration",
+        "Preview/live/initial lifecycle plus action-slide targeted tests17/17 passed; scoped analysis clean"
+      ],
+      "limitations": [
+        "Actual fresh-built browser photo verification and final web deployment still pending at this entry",
+        "First web run cancelled, not a deployed success. Backend remains prepared and upload enabled as authorized",
+        "Browser automation initially missed a partially occluded control; photo failure was subsequently visible in UI. No production photo/user data used."
+      ],
+      "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md"
     }
   ],
-  "updatedAt": "2026-10-10T10:01:26.183816+00:00"
+  "updatedAt": "2026-10-10T10:10:59.940438+00:00"
 }

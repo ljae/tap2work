@@ -84,3 +84,5 @@
 운영 bucket 비공개/250000byte/JPEG, 삭제 큐와 cron을 구성했다. 합성 사진의 실제 Storage 업로드·서비스 권한 조회·public/anon 거절, pg_net→Edge HMAC→삭제→tombstone 재예약 왕복을 검증했고 합성 fixture를 제거했다. 실제 크루 데이터·일정·카탈로그는 수정하지 않았다. 운영 사용자의 인증된 업로드/실기기 카메라·HEIC를 확인한 것은 아니다. 웹 프런트 배포 결과는 아래 후속 기록을 따른다.
 
 운영 준비 검증: Flutter432통과/브라우저 전용2개는 별도Chrome2통과, Node317통과, 정적 분석/64UI링크/Edge/PGlite2종 통과. operations v56, account v5, cleanup v1 및 활성 cron/flag 확인. 비밀 설정 성공 응답의 빈 본문, digest 응답 필드명 가정은 검증 스크립트에서 수정했다. D109 직원교육/정기관리 분류의 stable 메타데이터 보완은 별도 후속이며 이번 사진 출시로 콘텐츠 정비가 완료된 것은 아니다.
+
+첫 웹 Actions38043540444(2488fd0)는 실제 로컬 웹 사진 검증 중 중단했다. 로컬 Flutter3.41.2의 기존 생성 entrypoint/플러그인 등록 캐시에 ImagePicker가 빠져 있었으며 독립 작업 폴더의 새 빌드에서는 정상 등록됐다. root의 생성 캐시만 .local로 이동하고 native 빌드 산출물은 보존했다. 실제 플러그인을 쓰는 Chrome DOM 검사3개와 체험 재진입 체크 유지/클라우드 새로고침 회귀17개가 통과했다. PUBLIC_REVIEW의 pause/resume은 이미 받은 체험 데이터를 자동 초기화하지 않으며 수동 새로고침·역할 변경·초기 로딩은 유지한다.

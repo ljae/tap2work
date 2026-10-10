@@ -11,6 +11,39 @@ import 'support/photo_blob_stub.dart'
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test(
+    'real registered ImagePicker creates camera/gallery DOM input and cleans up on cancel',
+    () async {
+      // Chrome unit-test bootstrap does not register application plugins.
+      // Register the real plugin through Flutter's standard web registrar.
+      // This verifies actual plugin DOM behavior, not release bundle registry.
+      registerRealWebPhotoPicker();
+      for (final source in [PhotoSource.camera, PhotoSource.gallery]) {
+        Object? failure;
+        final pending = PhotoCaptureService().pick(source).catchError((
+          Object error,
+        ) {
+          failure = error;
+          return null;
+        });
+        await pumpEventQueue();
+        expect(
+          failure,
+          isNull,
+          reason: 'Actual web platform picker must initialize.',
+        );
+        expect(photoPickerInputCount(), 1);
+        expect(
+          photoPickerCaptureAttribute(),
+          source == PhotoSource.camera ? 'environment' : null,
+        );
+        cancelPhotoPickerInput();
+        expect(await pending, isNull);
+        expect(photoPickerInputCount(), 0);
+      }
+    },
+    skip: !kIsWeb,
+  );
+  test(
     'web keeps a single bounded input and revokes it after optimized conversion',
     () async {
       final input = img.Image(width: 80, height: 40);
