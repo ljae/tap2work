@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'data/photo_capture_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'ui/cloud_workspace.dart';
@@ -14,6 +16,7 @@ import 'ui/app_loading_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  unawaited(PhotoCaptureService().discardLostData());
   runApp(const AppStartup());
 }
 

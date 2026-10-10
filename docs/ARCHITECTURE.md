@@ -1,4 +1,37 @@
-2026-10-10 완료: 웹 c8c96a9 / Actions37948946797 성공, operations·catalog-admin 배포 및 운영 stable109개(revision2) 발행. 사용자가 추가 동의 없이 반영을 명시하여 이번 발행은 DB 관리자 직접 작업으로 기록했다. 독립 검토 계정을 가장하거나 승인 이력을 생성하지 않았다. 새 원본 업데이트 정책은 미정으로 유지한다.
+## 2026-10-10 행동 안내·사진 저장 구현
+
+[에이전트 실행 문서](MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md). `ManualActionSlides`는 기존 task/step ID 순서와 매장·크루·날짜를 고정해 읽는다. 설명·사진·수행 체크는 같은 화면이며 기존 완료 API의 성공 이후만 다음 행동으로 이동한다. 스와이프·사진 열람은 기록을 만들지 않는다. 기존 수량/관찰/미해결 이상·직책·순서 제한을 유지한다. 별도 지식/완료 엔진은 만들지 않는다.
+
+`PhotoCaptureService → optimizePhoto → PhotoRegistrationField → OperationsController.uploadManualPhoto → ManualMediaRepository`가 촬영/앨범·변환·미리보기·저장을 나눈다. 최대1280px/목표150KB/상한250KB·필요 시1024/800px, JPEG82/74/66/58 단계는 현재 조정 가능한 기술값이다. 방향을 보정한 새 RGB 픽셀을 인코딩해 EXIF/GPS 등 메타데이터를 제거한다. 고화질 원본은 업로드하지 않으며 네이티브 picker 임시 사본은 정리한다. 미신뢰 Android 프로세스 종료 복구 사진은 다른 매뉴얼에 붙이지 않고 정리한다.
+
+기존 인증 operations endpoint `POST ?media=upload`에 `{workspaceId,photo:optimized JPEG dataURL}`를 보내고 `{reference,contentType,bytes,width,height}`를 받는다. 비공개 `tap2work-manual-media` bucket에는 변경 불가 파일을, 기존 `imageUrl`/`photo`에는 `tap2work-media:<workspace>/<uuid>.jpg`를 저장한다. `GET ?media=<reference>&workspace=<id>`는 같은 매장 멤버를 검증해 JPEG bytes를 반환하고 no-store를 사용한다. 사진 응답은 operations snapshot/revision을 대체하지 않는다. 업로드는 사장/업무 편집 권한 매니저만 허용하며 공용 카탈로그의 HTTPS-only 계약은 유지한다. 실제 참조 적용은 기존 save_manual_tap/save_step_manual/save_place revision 검사로 별도 수행한다. 원본 편집은 이미 생성된 실행을 역수정하지 않는다.
+
+실패 시 초안·업로드된 참조를 유지해 같은 재시도에서 중복 업로드하지 않는다. 매장/크루 변경 결과는 폐기한다. 다른 매장 백업 복원 시 private 사진 참조만 제외하고 본문을 복원하며, 미리보기에서 재등록할 수를 안내한다. 같은 매장 참조/외부 링크는 보존한다. PDF는 비공개 내부 주소를 출력하지 않고 앱에서 사진 확인 안내를 제공한다(사진 PDF 내장 미구현). 로컬 장소 데모는 최적화 dataURL을 기존 계약으로 저장하며, 비공개 media API는 로컬/공개 샘플에서 사용할 수 없다.
+
+migration `20261010010000_manual_media.sql`은 private JPEG250KB bucket, 일반 클라이언트 직접 접근 차단, workspace 삭제 트랜잭션과 함께 생성되는 `tap2work_media_deletions`를 추가한다. account 삭제 CAS 성공 뒤 정리하며 실패/늦게 끝나는 업로드는 durable tombstone 재시도로 처리한다. `scripts/cleanup-manual-media.mjs`는 service 전용 반복 실행 작업이다. 실패 항목은5분 뒤 재시도로 다른 삭제를 막지 않는다. 기존 매장 및 과거 실행의 사진은 삭제하지 않으며, 저장 취소로 생긴 미연결 사진의 참조 기반 정리는 후속이다.
+
+기본 업로드는 비활성이다. migration 적용→operations/account 배포→삭제 재시도 스케줄 확인 후 Edge `TAP2WORK_MANUAL_MEDIA_ENABLED=true`로 활성화한다. 이 작업에서 운영 migration/배포/스케줄은 실행하지 않았다. 실제 카메라·HEIC/가독성·기기 백그라운드 실험과 전체 웰컴/버디/시간 안내는 별도 단계다.
+
+## 2026-10-10 최신 목표 계약: 매뉴얼 기반 업무 안내 (미구현)
+
+사진 후속 목표: 촬영 우선·업로드 전 자동 최적화·원본 미보관. 시안은 클라이언트 Canvas JPEG 변환/임시URL로 검증했다. 생산은 공통 사진 처리기와 전용 Storage의 변환본/썸네일, 매장 권한·사진 참조 CAS·업로드 실패/고아 정리·과거 참조 보존을 설계한다. 1280px/150KB목표·250KB상한은 proposed 기술값. 현재 zones.photo dataURL/HTTPS와350KB/1.5MB 제한은 미변경이며 구 데이터 호환·실제 촬영/HEIC 검증이 필요하다.
+
+최신 사용자 후속 목표: 같은 Task 실행/매뉴얼 버전에서 핵심 행동·설명·사진·체크를 하나의 슬라이드에 투영하고 좌우 이동한다. 탐색/사진 보기와 수행 체크는 별도이며 Task별 새 배정은 만들지 않는다. 식기 분류·폐기물/거름망·건조 위치는 기존 zone 참조와 매장 확인값을 재사용한다. 다중 사진/링크/캡션과 실제 업로드·상세 콘텐츠 저장 계약은 아직 proposed. [독립 시안](prototypes/manual-action-slides-review.html)의 파일 사진은 브라우저 임시URL이며 운영 업로드가 아니다. 완료 체크는 다음 행동으로 자동 이동하고, 체크 없이도 좌우 탐색할 수 있다. 실제 앱에서는 저장 성공 후 이동한다.
+
+후속 D-112의 웰컴 UI 목표는 첫 근무·중요 변경 시 **별도 웰컴 화면**, 평소 다시보기다. 확인과 업무 ON은 별도이며 확인 전 진입도 허용한다. [단계별 시안 검토](MANUAL_NAVIGATION_REVIEW_SEQUENCE_2026-10-10.md)의 독립 HTML에서 검증했고 앱/API 계약 구현은 아직이다.
+
+[상세 계획](MANUAL_NAVIGATION_WORK_PLAN_2026-10-10.md)의 C01–C12는 사용자 확정 선택이다. 상세 스키마/API·화면 배치는 proposed다. 현재 구현은 아래 기존 계약을 따르며 이 절은 완료 선언이 아니다.
+
+- 업무 ON은 인증된 크루의 매장별 안내 세션으로 근태와 분리한다. 배정·시간창·완료 원본은 기존 TAP 실행을 재사용하고 플랫폼 표시마다 복제 엔진을 만들지 않는다.
+- 웰컴 버전, 선택 리마인드 묶음 확인, 실제 수행, 버디 확인을 구별한다. 사장님이 중요 웰컴 변경을 표시하며 재확인 대기 중 업무 진입은 허용한다. 버디 부재 시 본인 사유로 최종 완료하되 버디 확인을 위조하지 않고 본인 예외 완료 사건으로 남긴다.
+- 공용 본문 자동 갱신(D-081)은 사장님의 TAP별 개선 비교·선택 적용으로 변경한다. 현재 적용본/업데이트 후보/매장 수정본을 구별하고 충돌은 확인 후 교체한다. 이관·구 클라이언트 경로를 구현하기 전에는 기존 런타임이 자동 변경되지 않는다. 미시작을 포함한 이미 생성된 모든 실행은 보존하고 새 내용은 다음 생성부터 적용한다.
+- 700자 Task 요약을 유지하며 구조화 상세 문서/버전 참조를 확장하는 안이다. catalog hash/validate/export/개인화/백업/PDF/번역/실행 snapshot을 함께 검증한다. 기존 ID·매장값·조건·장소를 재사용한다.
+- 크루 계정→매장 membership→크루 ID→버디 권한 연결은 P0/P2의 필수 감사 항목이다. 기기 로컬 첫 근무 데모를 공유 매장 확인으로 대체하지 않는다.
+- Flutter 안내 카드 먼저, Android PiP·iPhone Live Activities·이어폰 출력은 별도 실험이다. 네이티브 어댑터는 동일 안내 상태를 소비하고 앱 종료·잠금·통화·권한·연결 해제·장시간을 실제 기기로 검증한다.
+
+이번 작업은 계획·문서만 변경했다. 아래 ‘새 업데이트 정책 미정’은 위의 확정 목표로 대체하되 현재 동작 설명과 과거 이력은 보존한다.
+
+2026-10-10 이전 발행 완료: 웹 c8c96a9 / Actions37948946797 성공, operations·catalog-admin 배포 및 운영 stable109개(revision2) 발행. 사용자가 추가 동의 없이 반영을 명시하여 이번 발행은 DB 관리자 직접 작업으로 기록했다. 독립 검토 계정을 가장하거나 승인 이력을 생성하지 않았다. 당시 새 원본 업데이트 정책은 미정이었다.
 
 ## 2026-10-09 매뉴얼 구성·공간 안내 구현
 
@@ -614,3 +647,14 @@ Tap2workApp ThemeData는 VisualDensity.standard를 명시해 데스크톱 compac
 ## 2026-10-09 매뉴얼 범위·설정 연결 후속
 
 사용자는 일반 식당의 충분한 업무 범위, 구성 조건과 기존 설정 연결, 매장 수정 표시를 요청했다. [설계](MANUAL_COVERAGE_AND_SETTINGS_2026-10-09.md)의 14영역은 누락 점검용 proposed이며 메뉴14개가 아니다. 기존 profile/workplace/layout+zones/menus/items를 단일 원본으로 재사용하고 조건·공통 값·업무별 예외를 분리한다. 영향 계산→단일 저장/CAS→구성 반영, 제외 조건의 수정과 실행 기록 보존은 신규 계약 제안이다. 매장 값 주입과 실제 절차 변경을 구분하며 catalogLinks.personalized만으로 사용자 수정을 단정하지 않는다. 실행 표시에는 생성 시점 상태를 사용한다. 원본 사본/연결·업데이트 정책은 미정이다. 이번 작업은 문서와 독립 시안이며 실제 앱/API/DB는 변경하지 않았다.
+
+
+## 2026-10-10 웹 우선 배포 준비
+
+사용자 D-118: 웹에서 사진 등록 먼저 활성화, 구버전 네이티브의 새 private 사진 표시·관련 편집 제한은 다음 업데이트에서 해소한다. 행동 슬라이드/사진 첫 묶음의 배포이며 웰컴·버디·시간 안내·선택 업데이트·PiP·음성은 아직 후속이다.
+
+웹 사진 선택은 플러그인 중복 디코딩을 끄고 입력 크기 확인 후 자체 JPEG 최적화를 실행한다. 반환 Blob URL은 성공·실패 모두 finally에서 해제한다. 인쇄 화면은 계정·매장·깊은 snapshot을 initState에서 함께 고정하고 범위가 바뀐 늦은 PDF 결과를 버린다.
+
+예약 삭제는 manual-media-cleanup Edge와 pg_cron/pg_net을 사용한다. 삭제 tombstone이 있을 때만 5분 주기로 Edge를 호출한다. Vault/Edge 전용 비밀키의 5분 HMAC을 요청마다 만들며 재사용 가능한 비밀키를 HTTP 큐에 넣지 않는다. 삭제된 매장의 immutable prefix만 제한된 작업량으로 처리하며 현재 매장 사진·기존 업무 참조는 보존한다.
+
+운영 bucket 비공개/250000byte/JPEG, 삭제 큐와 cron을 구성했다. 합성 사진의 실제 Storage 업로드·서비스 권한 조회·public/anon 거절, pg_net→Edge HMAC→삭제→tombstone 재예약 왕복을 검증했고 합성 fixture를 제거했다. 실제 크루 데이터·일정·카탈로그는 수정하지 않았다. 운영 사용자의 인증된 업로드/실기기 카메라·HEIC를 확인한 것은 아니다. 웹 프런트 배포 결과는 아래 후속 기록을 따른다.

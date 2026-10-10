@@ -16,7 +16,7 @@ function donkatsuSteps(steps) {
   }));
 }
 export function storeSetupCatalog(catalog = manualCatalog) {
-  catalog={...catalog,entries:catalog.entries.map(presentSource)};
+  catalog={...catalog,entries:catalog.entries.filter(e=>e.knowledge?.useCase!=='startup').map(presentSource)};
   const collections = new Set(['common', 'food', 'process', 'delivery', ...businessTypes.map(t => t.collectionId)]);
   return { manualVariants:{donkatsu:catalog.entries.filter(e=>e.kind!=='legal'&&collections.has(e.collectionId)).map(e=>({...e,steps:e.collectionId==='chicken'?donkatsuSteps(e.steps):e.steps}))}, releaseId: catalog.releaseId, businessTypes, bundles:storeBundles, bundleVersion, purposes: catalog.taxonomy.purposes,
     entries: catalog.entries.filter(e => e.kind !== 'legal' && !e.knowledge?.supersededBy?.length && collections.has(e.collectionId))

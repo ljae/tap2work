@@ -10,6 +10,9 @@ import '../state/operations_controller.dart';
 import 'checklist_board.dart' show rowsOf, stampOf;
 import 'components.dart';
 import 'tap_card.dart';
+import 'manual_action_slides.dart';
+import 'manual_action_editor.dart';
+import 'place_guide.dart';
 
 /// TAP그룹 folders filter the TAP board; each TAP opens its Task.
 /// Existing IDs, role checks and completion APIs remain the source of truth.
@@ -1064,9 +1067,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         .rows('preparedItems')
         .where((row) => row['id'] == task['preparedItemId'])
         .firstOrNull;
-    final controller = TextEditingController(
-      text: '${task['plannedQuantity'] ?? 1}',
-    );
+    var quantityText = '${task['plannedQuantity'] ?? 1}';
     final result = await showAppFormSheet<int>(
       context: context,
       builder: (dialog) => AppSheetPanel(
@@ -1075,8 +1076,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text('실제로 완성해 보관한 수량만 입력하세요.'),
-            TextField(
-              controller: controller,
+            TextFormField(
+              initialValue: quantityText,
+              onChanged: (value) => quantityText = value,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: '완성 수량 · ${item?['unit'] ?? '개'}',
@@ -1094,14 +1096,13 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           PressBounce(
             child: FilledButton(
               onPressed: () =>
-                  Navigator.pop(dialog, int.tryParse(controller.text)),
+                  Navigator.pop(dialog, int.tryParse(quantityText)),
               child: const Text('완료'),
             ),
           ),
         ],
       ),
     );
-    controller.dispose();
     if (result == null) return null;
     if (result < 1 || result > 100000) {
       notice('실제 완성 수량은 1~100,000으로 입력해 주세요.');
@@ -1235,20 +1236,19 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         selected: selected?['id'] == step['id'],
         onOpen: () {
           setState(() => selectedStepId = step['id']);
-          {
-            showModalBottomSheet<void>(
-              context: context,
-              sheetAnimationStyle: AppMotion.panelStyle(context),
-              isScrollControlled: true,
-              showDragHandle: true,
-              builder: (context) => SafeArea(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: _manual(task, step),
-                ),
-              ),
-            );
-          }
+          showAppSheet<void>(
+            context,
+            maxWidth: appEditorWidth,
+            builder: (_) => ManualActionSlides(
+              ops: ops,
+              task: task,
+              steps: all,
+              initialStepId: step['id'],
+              bodyBuilder: _manual,
+              onToggle: _toggle,
+              onCompleteQuantity: _checkMenu,
+            ),
+          );
         },
         checked: step['completedAt'] != null,
         locked:
@@ -1315,13 +1315,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   }
 
   Future<void> workIssue(Json task, bool resolve) async {
-    final input = TextEditingController();
+    var input = '';
     final reason = await showAppDialog<String>(
       context: context,
       builder: (c) => AlertDialog(
         title: Text(resolve ? '조치 결과 기록' : '이상·수행 불가 기록'),
-        content: TextField(
-          controller: input,
+        content: TextFormField(
+          initialValue: input,
+          onChanged: (value) => input = value,
           maxLines: 4,
           maxLength: 500,
           decoration: const InputDecoration(labelText: '상태와 조치'),
@@ -1333,8 +1334,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           ),
           FilledButton(
             onPressed: () {
-              if (input.text.trim().isNotEmpty) {
-                Navigator.pop(c, input.text.trim());
+              if (input.trim().isNotEmpty) {
+                Navigator.pop(c, input.trim());
               }
             },
             child: const Text('기록'),
@@ -1342,13 +1343,61 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         ],
       ),
     );
-    input.dispose();
     if (reason == null || !mounted) return;
     final ok = await ops.act(
       resolve ? 'resolve_work_issue' : 'flag_work_issue',
       {'taskId': task['id'], 'reason': reason},
     );
     if (mounted) notice(ok ? '기록했어요' : ops.error ?? '저장하지 못했어요');
+  }
+
+  Widget _actionPhoto(Json step) {
+    final value = step['imageUrl'] as String;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Semantics(
+          label: '${step['title']} 사진',
+          image: true,
+          child: placePhoto(value, ops: ops),
+        ),
+        PressBounce(
+          child: TextButton.icon(
+            icon: const Icon(Icons.zoom_in),
+            label: const Text('사진 크게 보기'),
+            onPressed: () {
+              final actor = ops.actorId;
+              final workspace = ops.data?['workspaceId'];
+              final day = ops.data?['day'];
+              showAppSheet<void>(
+                context,
+                builder: (_) => AppEditorScaffold(
+                  title: '사진 · ${step['title']}',
+                  body: ListenableBuilder(
+                    listenable: ops,
+                    builder: (context, _) =>
+                        actor != ops.actorId ||
+                            workspace != ops.data?['workspaceId'] ||
+                            day != ops.data?['day']
+                        ? const Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Information('업무가 변경됐어요. 다시 열어 주세요.'),
+                          )
+                        : Center(
+                            child: InteractiveViewer(
+                              minScale: 1,
+                              maxScale: 5,
+                              child: placePhoto(value, ops: ops),
+                            ),
+                          ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _manual(Json task, Json step) => Column(
@@ -1358,16 +1407,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       ManualCustomizationBadge(value: task['manualCustomization']),
       SharedPlaceLinks(ops: ops, row: task),
       Text(
-        task['title'],
-        style: const TextStyle(fontSize: 13, color: AppColors.muted),
-      ),
-      const SizedBox(height: 8),
-      Text(
         step['title'],
         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
       const SizedBox(height: 16),
-      Text(step['manual'] ?? '등록된 방법이 없어요.'),
+      Text(step['manual'] ?? '등록된 방법이 없어요.', style: AppText.body),
+      if ((step['imageUrl'] ?? '').toString().isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.medium),
+          child: _actionPhoto(step),
+        ),
       if (task['workIssue'] != null)
         Information(
           '이상 기록 · ${task['workIssue']['reason']}\n${task['workIssue']['resolution'] ?? '조치 확인 전 완료할 수 없어요.'}',
@@ -1421,124 +1470,15 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             label: const Text('매뉴얼 바로 수정'),
             onPressed: ops.readOnly
                 ? null
-                : () async {
-                    final revision = ops.data?['revision'];
-                    final manual = TextEditingController(text: step['manual']);
-                    final video = TextEditingController(
-                      text: step['videoUrl'] ?? '',
-                    );
-                    final photo = TextEditingController(
-                      text: step['imageUrl'] ?? '',
-                    );
-                    final source = TextEditingController(
-                      text: step['sourceUrl'] ?? '',
-                    );
-                    final tags = TextEditingController(
-                      text: (step['tags'] as List? ?? []).join(', '),
-                    );
-                    final result = await showAppFormSheet<bool>(
-                      context: context,
-                      builder: (context) => AppSheetPanel(
-                        title: Text(step['title']),
-                        content: SizedBox(
-                          width: 480,
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                TextField(
-                                  controller: manual,
-                                  minLines: 3,
-                                  maxLines: 8,
-                                  maxLength: 700,
-                                  decoration: const InputDecoration(
-                                    labelText: '방법과 완료 기준',
-                                  ),
-                                ),
-                                TextField(
-                                  controller: video,
-                                  decoration: const InputDecoration(
-                                    labelText: '영상 HTTPS 링크',
-                                  ),
-                                ),
-                                TextField(
-                                  controller: photo,
-                                  decoration: const InputDecoration(
-                                    labelText: '사진 HTTPS 링크',
-                                  ),
-                                ),
-                                TextField(
-                                  controller: source,
-                                  decoration: const InputDecoration(
-                                    labelText: '공식 사진 가이드 HTTPS 링크',
-                                  ),
-                                ),
-                                TextField(
-                                  controller: tags,
-                                  decoration: const InputDecoration(
-                                    labelText: '#연관어 · 쉼표로 구분',
-                                    helperText: '최대 20개, 각 30자 이내',
-                                  ),
-                                ),
-                                const Text(
-                                  '연결된 기본 레시피도 갱신해 다음 주문에 사용해요. 완료 기록은 유지돼요.',
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        actions: [
-                          PressBounce(
-                            child: TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('취소'),
-                            ),
-                          ),
-                          PressBounce(
-                            child: FilledButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text('저장'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (result == true) {
-                      final ok = await ops.act('save_step_manual', {
-                        'revision': revision,
-                        'taskId': task['id'],
-                        'stepId': step['id'],
-                        'manual': manual.text.trim(),
-                        'videoUrl': video.text.trim(),
-                        'imageUrl': photo.text.trim(),
-                        'sourceUrl': source.text.trim(),
-                        'tags': tags.text
-                            .split(',')
-                            .map(
-                              (tag) =>
-                                  tag.trim().replaceFirst(RegExp(r'^#+'), ''),
-                            )
-                            .where((tag) => tag.isNotEmpty)
-                            .toList(),
-                      });
-                      if (mounted) {
-                        notice(
-                          ok
-                              ? '매뉴얼을 저장했어요. 다시 열면 새 내용이 보여요.'
-                              : ops.error ?? '저장하지 못했어요.',
-                        );
-                      }
-                    }
-                    manual.dispose();
-                    video.dispose();
-                    photo.dispose();
-                    source.dispose();
-                    tags.dispose();
-                  },
+                : () => showAppFormSheet<void>(
+                    context: context,
+                    builder: (_) =>
+                        ManualActionEditor(ops: ops, task: task, step: step),
+                  ),
           ),
         ),
       for (final field in ['videoUrl', 'imageUrl', 'sourceUrl'])
-        if ((step[field] ?? '').toString().isNotEmpty)
+        if (Uri.tryParse((step[field] ?? '').toString())?.scheme == 'https')
           PressBounce(
             child: TextButton.icon(
               icon: Icon(
@@ -1572,8 +1512,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           ),
     ],
   );
-  Future<void> _toggle(Json task, Json step) async {
-    if (ops.busy) return;
+  Future<bool> _toggle(Json task, Json step) async {
+    if (ops.busy) return false;
     final currentTask = groups.where((t) => t['id'] == task['id']).firstOrNull;
     final currentStep = currentTask == null
         ? null
@@ -1582,25 +1522,41 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         currentStep == null ||
         currentStep['completedAt'] != step['completedAt']) {
       notice('업무가 변경됐어요. 현재 카드를 다시 확인해 주세요.');
-      return;
+      return false;
     }
     task = currentTask;
     step = currentStep;
     final openingActor = ops.actorId;
     final openingWorkspace = ops.data?['workspaceId'];
+    final openingDay = ops.data?['day'];
+    final openingRevision = ops.data?['revision'];
     final checked = step['completedAt'] != null;
+    if (!checked && task['workIssue']?['status'] == 'open') {
+      notice('조치 확인 전 완료할 수 없어요.');
+      return false;
+    }
+    final sequence = steps(task);
+    final currentIndex = sequence.indexWhere((s) => s['id'] == step['id']);
+    if (!checked &&
+        task['settings']?['enforceSequence'] == true &&
+        sequence
+            .take(currentIndex < 0 ? 0 : currentIndex)
+            .any((s) => s['completedAt'] == null)) {
+      notice('앞의 행동을 먼저 완료해 주세요.');
+      return false;
+    }
     if (checked && task['preparedOutputMovementId'] != null) {
       notice('완성 수량이 반영된 Tap은 되돌릴 수 없어요. 실제 수량 보정을 사용해 주세요.');
-      return;
+      return false;
     }
     if (!checked && (step['canComplete'] ?? task['canComplete']) != true) {
       notice('${role(task)} 담당 Tap이에요. 담당자나 사장님·매니저가 확인해요.');
-      return;
+      return false;
     }
     if (checked) {
       if (!ops.canEditTasks && step['completedBy']?['id'] != ops.actor['id']) {
         notice('확인한 본인이나 사장님·매니저만 되돌릴 수 있어요.');
-        return;
+        return false;
       }
       final confirmed = await showAppDialog<bool>(
         context: context,
@@ -1623,18 +1579,29 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           ],
         ),
       );
-      if (confirmed != true || !mounted) return;
-      if (openingActor != ops.actorId || ops.busy) return;
+      if (confirmed != true || !mounted) return false;
+      if (openingActor != ops.actorId ||
+          openingWorkspace != ops.data?['workspaceId'] ||
+          openingDay != ops.data?['day'] ||
+          ops.busy) {
+        return false;
+      }
     }
     if (ops.readOnly) {
       if (checked && step['preview'] != true) {
         notice('기존 확인 기록은 공개 미리보기에서 변경할 수 없어요.');
-        return;
+        return false;
       }
       if (!checked &&
           task['preparedItemId'] != null &&
           steps(task).where((s) => s['completedAt'] == null).length == 1) {
         final quantity = await _preparedQuantity(task);
+        if (!mounted ||
+            openingActor != ops.actorId ||
+            openingWorkspace != ops.data?['workspaceId'] ||
+            openingDay != ops.data?['day']) {
+          return false;
+        }
         if (quantity != null) {
           ops.previewCompletePreparation(task['id'], quantity);
         }
@@ -1657,23 +1624,31 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           );
         }
       }
+      final updatedTask = groups
+          .where((t) => t['id'] == task['id'])
+          .firstOrNull;
+      final updatedStep = updatedTask == null
+          ? null
+          : steps(updatedTask).where((s) => s['id'] == step['id']).firstOrNull;
+      return updatedStep != null &&
+          (updatedStep['completedAt'] != null) != checked;
     } else {
       num? quantity;
       if (!checked &&
           task['preparedItemId'] != null &&
           steps(task).where((s) => s['completedAt'] == null).length == 1) {
         quantity = await _preparedQuantity(task);
-        if (quantity == null || !mounted) return;
+        if (quantity == null || !mounted) return false;
       } else if (!checked &&
           step['settings']?['completionKind'] == 'quantity') {
         quantity = await _stepQuantity(step);
-        if (quantity == null || !mounted) return;
+        if (quantity == null || !mounted) return false;
       }
       String? evidence;
       if (!checked &&
           task['workEvent'] != null &&
           task['knowledge']?['safetyReviewRequired'] == true) {
-        final input = TextEditingController();
+        var input = '';
         evidence = await showAppDialog<String>(
           context: context,
           builder: (c) => AlertDialog(
@@ -1683,8 +1658,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('${task['settings']?['operatingStandard'] ?? ''}'),
-                  TextField(
-                    controller: input,
+                  TextFormField(
+                    initialValue: input,
+                    onChanged: (value) => input = value,
                     maxLength: 500,
                     maxLines: 4,
                     decoration: const InputDecoration(
@@ -1701,8 +1677,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               ),
               FilledButton(
                 onPressed: () {
-                  if (input.text.trim().isNotEmpty) {
-                    Navigator.pop(c, input.text.trim());
+                  if (input.trim().isNotEmpty) {
+                    Navigator.pop(c, input.trim());
                   }
                 },
                 child: const Text('기록하고 완료'),
@@ -1710,14 +1686,15 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ],
           ),
         );
-        input.dispose();
-        if (evidence == null || !mounted) return;
+        if (evidence == null || !mounted) return false;
       }
       if (openingActor != ops.actorId ||
-          openingWorkspace != ops.data?['workspaceId']) {
-        return;
+          openingWorkspace != ops.data?['workspaceId'] ||
+          openingDay != ops.data?['day']) {
+        return false;
       }
       final success = await ops.act(checked ? 'reopen_step' : 'complete_step', {
+        'revision': openingRevision,
         'taskId': task['id'],
         'stepId': step['id'],
         'quantity': ?quantity,
@@ -1734,6 +1711,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           taskId: current?['completedAt'] != null ? task['id'] : null,
         );
       }
+      return success;
     }
   }
 
@@ -1743,13 +1721,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         (step['settings']?['quantitySpec']?['decimalPlaces'] as num?)
             ?.toInt() ??
         0;
-    final controller = TextEditingController();
+    var quantityText = '';
     final result = await showAppFormSheet<num>(
       context: context,
       builder: (dialog) => AppSheetPanel(
         title: Text('${step['title']} · 실제 수량'),
-        content: TextField(
-          controller: controller,
+        content: TextFormField(
+          initialValue: quantityText,
+          onChanged: (value) => quantityText = value,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
@@ -1767,14 +1746,13 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           PressBounce(
             child: FilledButton(
               onPressed: () =>
-                  Navigator.pop(dialog, num.tryParse(controller.text.trim())),
+                  Navigator.pop(dialog, num.tryParse(quantityText.trim())),
               child: const Text('완료'),
             ),
           ),
         ],
       ),
     );
-    controller.dispose();
     if (result == null) return null;
     if (result <= 0 ||
         result > 100000 ||

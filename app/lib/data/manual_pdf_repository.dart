@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../domain/manual_print.dart';
+import '../domain/manual_media_repository.dart';
 import '../state/operations_controller.dart';
 
 class ManualPdfRepository {
@@ -31,6 +32,15 @@ class ManualPdfRepository {
       author: 'tap2work',
     );
     final labels = printLabels[options.locale]!;
+    final privatePhotoLabel =
+        const {
+          'ko': '매장 사진은 앱에서 확인해 주세요.',
+          'en': 'View the store photo in the app.',
+          'vi': 'Xem ảnh của cửa hàng trong ứng dụng.',
+          'zh-Hans': '请在应用中查看门店照片。',
+          'ja': '店舗の写真はアプリで確認してください。',
+        }[options.locale] ??
+        'View the store photo in the app.';
     final groups = <String, List<Json>>{};
     for (final source in sources) {
       groups
@@ -308,7 +318,7 @@ class ManualPdfRepository {
                     for (final key in ['sourceUrl', 'imageUrl', 'videoUrl'])
                       if (text(step[key]).isNotEmpty)
                         ...paragraphs(
-                          '${labels[14]}: ${text(step[key])}',
+                          '${labels[14]}: ${isManualMediaReference(text(step[key])) ? privatePhotoLabel : text(step[key])}',
                           size: 8,
                           color: PdfColors.grey700,
                         ),

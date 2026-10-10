@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TAP Work · 01 웰컴 위치 비교</title>
+<style>
+@font-face{font-family:Pretendard;src:url('PretendardVariable.ttf')}*{box-sizing:border-box}
+:root{color-scheme:dark;--bg:#101112;--surface:#181a1c;--control:#222528;--ink:#f0f2f4;--muted:#a0a7af;--green:#46c69b;--coral:#ff9986;--primary:#007d73}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 16px/1.6 Pretendard,system-ui,sans-serif}button,select{font:inherit;color:inherit;min-height:48px;border:0;border-radius:12px;background:var(--control);padding:12px 16px;cursor:pointer}button:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:4px}button.primary{background:var(--primary);min-height:56px;width:100%}button.text{background:transparent;color:var(--muted)}button:disabled{opacity:.45;cursor:default}button[aria-pressed=true]{background:#15372e;color:var(--green)}h1{font-size:24px;line-height:1.4;margin:12px 0}h2{font-size:24px;line-height:1.45;margin:12px 0}h3{font-size:18px;margin:0 0 12px}p{margin:8px 0 16px}.muted{color:var(--muted);font-size:13px}.green{color:var(--green)}.coral{color:var(--coral)}.shell{max-width:1060px;padding:32px 24px;margin:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,390px);gap:48px;align-items:start}.eyebrow{font-size:13px;color:var(--green)}.review-controls{display:flex;gap:8px;margin:24px 0 16px}.review-controls button{flex:1}label{display:block;color:var(--muted);font-size:13px;margin:16px 0 8px}select{width:100%}.note{padding:16px;background:var(--surface);border-radius:16px;margin-top:24px}.note p{margin:8px 0}.phone{border:1px solid #34383b;border-radius:28px;overflow:hidden;background:var(--bg);box-shadow:0 16px 50px #0005}.header{padding:20px 24px;display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #25282b}.brand{font-weight:700;color:var(--green);font-size:18px}.main{padding:24px;min-height:580px}.tag{display:inline-flex;font-size:13px;padding:4px 8px;border-radius:8px;background:var(--control);color:var(--muted)}.card{padding:20px;border-radius:20px;background:var(--surface);margin:16px 0}.principle{border-left:3px solid var(--green);padding-left:16px;margin:24px 0}.list{padding:0;margin:0;list-style:none}.list li{padding:12px 0;border-bottom:1px solid #2c3033}.list li:last-child{border-bottom:0}.actions{display:grid;gap:8px;margin-top:24px}.nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:12px 8px 16px;border-top:1px solid #25282b;color:var(--muted);font-size:13px;text-align:center}.nav span{padding:8px 0}.nav .selected{color:var(--green)}details{margin:12px 0}summary{cursor:pointer;min-height:48px;display:flex;align-items:center;color:var(--green)}.welcome-mini{margin:0 0 24px}.status{margin-top:16px;min-height:26px;font-size:13px;color:var(--green)}.read-status{font-size:13px;color:var(--muted)}.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.warning{color:var(--coral);font-size:13px}.review-footer{max-width:1060px;margin:0 auto;padding:0 24px 32px;color:var(--muted);font-size:13px}[hidden]{display:none!important}
+@media(max-width:760px){.shell{grid-template-columns:minmax(0,1fr);gap:24px;padding:24px 16px}.phone{max-width:390px;width:100%;margin:auto}.main{min-height:0;padding:24px}.review-controls{margin:16px 0}.review-footer{padding:0 16px 24px}}
+@media(prefers-reduced-motion:no-preference){button:active{transform:scale(.98)}}
+</style>
+</head>
+<body>
+<main class="shell">
+<section aria-label="검토할 내용">
+<div class="eyebrow">검토 01 / 7 · 첫 근무 진입</div>
+<h1>웰컴을 어디에서 보여줄까요?</h1>
+<p>매장의 분위기와 일하는 원칙을 먼저 이해하고, 오늘 할 일로 자연스럽게 이어지는지 확인해요.</p>
+<div class="review-controls" role="group" aria-label="웰컴 위치 비교">
+<button id="variantA" aria-pressed="true">A · 별도 웰컴</button>
+<button id="variantB" aria-pressed="false">B · 업무 위 카드</button>
+</div>
+<p id="variantDescription" class="muted">A안: 첫 화면을 웰컴에 집중해요. 확인하거나 바로 업무로 넘어갈 수 있어요.</p>
+<label for="scenario">이 상황에서 체험하기</label>
+<select id="scenario"><option value="first">첫 근무</option><option value="normal">다음 근무 · 확인한 내용</option><option value="changed">사장님이 지정한 중요 변경</option></select>
+<button id="reset" class="text" style="width:100%;margin-top:8px">처음부터 다시 체험</button>
+<div class="note"><strong>눌러보면서 확인할 것</strong><p class="muted">① 웰컴을 확인하거나 건너뛰어 보세요.<br>② 업무 ON을 눌러 안내를 시작해 보세요.<br>③ 아래 기록에서 웰컴 확인과 업무 안내 상태를 비교하세요.</p><p class="muted">A는 환영과 맥락 전달에 집중해요.<br>B는 오늘 업무를 같은 화면에서 바로 볼 수 있어요.</p></div>
+<div class="note" aria-label="체험 기록"><strong>체험 기록</strong><div id="audit" class="muted" aria-live="polite"></div></div>
+</section>
+<section class="phone" aria-label="신입 크루 화면 예시">
+<header class="header"><span class="brand">TAP Work</span><span class="muted">예시 식당 · 주방 보조</span></header>
+<div class="main" id="phoneContent"></div>
+<nav class="nav" aria-label="주요 메뉴 표시"><span class="selected">업무</span><span>매뉴얼</span><span>근무표</span><span>우리매장</span></nav>
+</section>
+</main>
+<div class="review-footer">선택 전 검토용 시안 · 가상 매장 · 이 화면의 버튼은 체험 상태만 바꿔요. 실제 매장에 저장되지 않아요.</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const state={variant:'A',scenario:'first',screen:'welcome',ack:false,on:false,expanded:false};
+const initial=()=>{state.ack=state.scenario==='normal';state.on=false;state.expanded=false;state.screen=state.variant==='A'&&state.scenario!=='normal'?'welcome':'work';render();};
+function welcomeBody(){return `<div class="principle"><strong>모르면 바로 물어봐요.<br>급해도 확인하고 움직여요.</strong><p class="muted">신입에게 혼자 판단하라고 맡기지 않아요.<br>도움이 필요하면 버디를 불러주세요.</p></div><ul class="list"><li><strong>오늘은 세척 구역부터</strong><div class="muted">반납 식기와 깨끗한 식기의 자리를 익혀요.</div></li><li><strong>도움은 담당 버디에게</strong><div class="muted">버디 이름과 도움 요청 방법은 매장에서 정해요.</div></li><li><strong>사용법을 모르면 먼저 확인</strong><div class="muted">처음 사용하는 장비는 담당자와 함께 확인해요.</div></li></ul><details><summary>주요 장소와 자세한 안내</summary><p class="muted">반납대: 세척 구역 입구<br>건조대: 세척 구역 안쪽<br>개인 물품: 직원 보관함<br>가상 위치 예시예요.</p></details>`;}
+function render(){
+ $('variantA').setAttribute('aria-pressed',String(state.variant==='A'));$('variantB').setAttribute('aria-pressed',String(state.variant==='B'));
+ $('variantDescription').textContent=state.variant==='A'?'A안: 첫 화면을 웰컴에 집중해요. 확인하거나 바로 업무로 넘어갈 수 있어요.':'B안: 업무 위 웰컴 카드를 펼쳐 읽어요. 오늘 할 일도 같은 화면에서 보여요.';
+ const changed=state.scenario==='changed';let html='';
+ if(state.screen==='welcome'){
+  html=`<span class="tag">${changed?'중요 변경 · 다시 확인':'첫 근무 · 환영해요'}</span><h2>${changed?'달라진 안내를 확인해요':'우리 매장에 오신 걸 환영해요'}</h2>${changed?'<div class="card"><strong>도움 요청 방법이 바뀌었어요</strong><p class="muted">급한 도움이 필요하면 가까운 담당자를 먼저 불러주세요.</p></div>':''}${welcomeBody()}<div class="actions"><button id="ack" class="primary">${changed?'변경 내용을 확인했어요':'웰컴 내용을 확인했어요'}</button><button id="skip" class="text">바로 업무 보기</button></div>`;
+ }else{
+  if(state.variant==='B')html+=`<div class="card welcome-mini"><div class="row"><strong>${changed?'중요 변경 안내':'우리 매장 웰컴'}</strong><span class="read-status">${state.ack?'확인함':'확인 전'}</span></div>${changed?'<p class="warning">도움 요청 방법이 바뀌었어요.</p>':''}<details id="welcomeDetails" ${state.expanded?'open':''}><summary>${state.ack?'웰컴 다시 보기':'분위기·일하는 원칙 보기'}</summary>${welcomeBody()}<button id="ack" class="primary">${changed?'변경 내용을 확인했어요':'웰컴 내용을 확인했어요'}</button></details></div>`;
+  else html+=`<div class="row"><span class="read-status">웰컴 · ${state.ack?'확인함':'확인 전'}</span><button id="reopen" class="text">${changed&&!state.ack?'변경 안내 보기':'다시 보기'}</button></div>`;
+  html+=`<div class="row" style="margin-top:16px"><h2>오늘 할 일</h2><span class="tag">${state.on?'안내 ON':'안내 OFF'}</span></div><p class="muted">주방 보조 · 오픈 준비</p><button id="toggleOn" class="primary">${state.on?'업무 안내 끄기':'업무 ON · 안내 시작'}</button>${!state.on?'<p class="muted" style="margin-top:8px">오늘 업무를 따라가는 안내를 시작해요.</p>':''}<div class="card"><div class="eyebrow">지금 · 오픈 전</div><h3 style="margin-top:8px">세척 구역 준비</h3><p class="muted">반납대와 건조대 위치를 확인해요.</p><span class="tag">실제 업무 체크 0 / 3</span></div><div class="card"><div class="muted">다음</div><strong>영업 전 주의사항 확인</strong><p class="muted" style="margin-bottom:0">사장님이 고른 공통·주방 안내</p></div><p class="muted">상세 매뉴얼과 수행 체크는 다음 검토에서 체험해요.</p>`;
+ }
+ $('phoneContent').innerHTML=html;
+ $('audit').textContent=`웰컴: ${state.ack?'확인함':'확인 전'} · 업무 안내: ${state.on?'ON':'OFF'} · 실제 수행 체크: 0/3`;
+ if($('ack'))$('ack').onclick=()=>{state.ack=true;state.screen='work';state.expanded=false;render();};
+ if($('skip'))$('skip').onclick=()=>{state.screen='work';render();};
+ if($('reopen'))$('reopen').onclick=()=>{state.screen='welcome';render();};
+ if($('toggleOn'))$('toggleOn').onclick=()=>{const d=$('welcomeDetails');state.expanded=!!d?.open;state.on=!state.on;render();};
+ if($('welcomeDetails'))$('welcomeDetails').ontoggle=e=>{state.expanded=e.target.open;};
+}
+$('variantA').onclick=()=>{state.variant='A';initial();};$('variantB').onclick=()=>{state.variant='B';initial();};
+$('scenario').onchange=e=>{state.scenario=e.target.value;initial();};$('reset').onclick=initial;
+render();
+</script>
+</body>
+</html>

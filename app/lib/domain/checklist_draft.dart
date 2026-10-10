@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'manual_media_repository.dart';
 
 typedef ChecklistJson = Map<String, dynamic>;
 const checklistFolderLimit = 30;
@@ -35,6 +36,7 @@ String? checklistTaskIssue(ChecklistJson task) {
       final value = step[field] ?? '';
       if (value is! String) return '영상·사진 링크를 확인해 주세요.';
       if (value.isEmpty) continue;
+      if (field == 'imageUrl' && isManualMediaReference(value)) continue;
       final uri = Uri.tryParse(value);
       if (value.length > 2000 ||
           uri == null ||

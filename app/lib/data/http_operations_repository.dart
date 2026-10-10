@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../domain/operations_repository.dart';
+import '../domain/manual_media_repository.dart';
 
 /// Reads public samples or the existing demo/cloud snapshot API.
 /// Provider webhooks belong on the server, never in this client adapter.
-class HttpOperationsRepository implements OperationsRepository {
+class HttpOperationsRepository
+    implements OperationsRepository, ManualMediaRepository {
   HttpOperationsRepository({
     http.Client? client,
     required this.endpoint,
@@ -125,4 +128,93 @@ class HttpOperationsRepository implements OperationsRepository {
 
   @override
   void close() => _client.close();
+
+  Uri _mediaEndpoint(String media, String workspaceId) => endpoint.replace(
+    queryParameters: {
+      ...endpoint.queryParameters,
+      'media': media,
+      'workspace': workspaceId,
+    },
+  );
+
+  void _requireMediaSession() {
+    if (readOnly || accessToken == null) {
+      throw const ManualMediaException('사진 등록은 로그인한 매장에서 사용할 수 있어요.');
+    }
+  }
+
+  Never _mediaFailure(http.Response response) {
+    String message = '사진을 저장하거나 불러오지 못했어요. 다시 시도해 주세요.';
+    try {
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
+      if (body is Map && body['error'] is String) {
+        message = body['error'] as String;
+      }
+    } catch (_) {
+      /* Preserve a useful error for non-JSON proxy responses. */
+    }
+    throw ManualMediaException(message);
+  }
+
+  @override
+  Future<String> uploadManualPhoto({
+    required String actorId,
+    required String workspaceId,
+    required Uint8List bytes,
+  }) async {
+    _requireMediaSession();
+    if (bytes.isEmpty || bytes.length > 250000) {
+      throw const ManualMediaException('사진 용량을 줄인 뒤 다시 시도해 주세요.');
+    }
+    final response = await _client
+        .post(
+          _mediaEndpoint('upload', workspaceId),
+          headers: {
+            ...await _headers(actorId, null),
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'workspaceId': workspaceId,
+            'photo': 'data:image/jpeg;base64,${base64Encode(bytes)}',
+          }),
+        )
+        .timeout(const Duration(seconds: 30));
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      _mediaFailure(response);
+    }
+    final body = jsonDecode(utf8.decode(response.bodyBytes));
+    final reference = body is Map ? body['reference'] : null;
+    if (reference is! String ||
+        manualMediaWorkspace(reference) != workspaceId) {
+      throw const ManualMediaException('사진 저장 응답을 확인하지 못했어요. 다시 시도해 주세요.');
+    }
+    return reference;
+  }
+
+  @override
+  Future<Uint8List> loadManualPhoto({
+    required String actorId,
+    required String workspaceId,
+    required String reference,
+  }) async {
+    _requireMediaSession();
+    if (manualMediaWorkspace(reference) != workspaceId) {
+      throw const ManualMediaException('다른 매장의 사진을 불러올 수 없어요.');
+    }
+    final response = await _client
+        .get(
+          _mediaEndpoint(reference, workspaceId),
+          headers: await _headers(actorId, null),
+        )
+        .timeout(const Duration(seconds: 15));
+    if (response.statusCode != 200) _mediaFailure(response);
+    if (response.headers['content-type']?.split(';').first != 'image/jpeg' ||
+        response.bodyBytes.length > 250000 ||
+        response.bodyBytes.length < 4 ||
+        response.bodyBytes[0] != 0xff ||
+        response.bodyBytes[1] != 0xd8) {
+      throw const ManualMediaException('사진 파일을 확인하지 못했어요.');
+    }
+    return response.bodyBytes;
+  }
 }

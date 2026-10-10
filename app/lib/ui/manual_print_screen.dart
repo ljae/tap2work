@@ -26,26 +26,37 @@ class ManualPrintScreen extends StatefulWidget {
 
 class _ManualPrintScreenState extends State<ManualPrintScreen> {
   late final repository = widget.repository ?? ManualPdfRepository();
-  late final actor = widget.ops.actorId;
-  late final workspace = widget.ops.data?['workspaceId'];
-  late Json snapshot = jsonDecode(jsonEncode(widget.ops.data ?? {})) as Json;
-  late List<Json> sources = manualPrintSources(snapshot)
-      .where(
-        (s) => widget.recipes
-            ? (s['menuManualId'] != null)
-            : (s['menuManualId'] == null),
-      )
-      .toList();
-  late final selected = sources
-      .where(
-        (s) => widget.templateId != null
-            ? s['id'] == widget.templateId
-            : widget.folderId != null
-            ? s['folderId'] == widget.folderId
-            : true,
-      )
-      .map((s) => s['id'] as String)
-      .toSet();
+  late final String actor;
+  late final Object? workspace;
+  late Json snapshot;
+  late List<Json> sources;
+  late final Set<String> selected;
+
+  @override
+  void initState() {
+    super.initState();
+    actor = widget.ops.actorId;
+    workspace = widget.ops.data?['workspaceId'];
+    snapshot = jsonDecode(jsonEncode(widget.ops.data ?? {})) as Json;
+    sources = manualPrintSources(snapshot)
+        .where(
+          (s) => widget.recipes
+              ? (s['menuManualId'] != null)
+              : (s['menuManualId'] == null),
+        )
+        .toList();
+    selected = sources
+        .where(
+          (s) => widget.templateId != null
+              ? s['id'] == widget.templateId
+              : widget.folderId != null
+              ? s['folderId'] == widget.folderId
+              : true,
+        )
+        .map((s) => s['id'] as String)
+        .toSet();
+  }
+
   String locale = 'ko',
       groupBy = 'part',
       format = 'both',

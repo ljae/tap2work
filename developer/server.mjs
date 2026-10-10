@@ -1,3 +1,4 @@
+import {stripForeignBackupPhotos} from './manual_media.mjs';
 import http from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
@@ -52,12 +53,15 @@ export function createConsoleServer({ stateFile = path.join(root, 'docs/project-
       }
       if (!local && !(route === '/api/operations' && publicOrigins.length)) throw new StoreError('로컬 주소로 접속해 주세요.', 403);
       if (route.startsWith('/api/')) {
+        if (route === '/api/operations' && url.searchParams.has('media')) throw new StoreError('샘플에서는 비공개 사진 저장소를 사용할 수 없어요. 로그인한 매장에서 등록해 주세요.', 501);
         if (route === '/api/operations' && req.method === 'GET') {
           return json(res, 200, { ...await operations.snapshot(req.headers['x-demo-actor'] || 'owner', Object.fromEntries(url.searchParams)), demoToken: token });
         }
         if (route === '/api/operations' && req.method === 'POST') {
           if ((origin && origin !== `http://${host}` && !sharedOrigin) || req.headers['x-demo-token'] !== token) throw new StoreError('매장 화면을 새로고침해 주세요.', 403);
-          return json(res, 200, { ...await operations.mutate(req.headers['x-demo-actor'], await body(req, 2 * 1024 * 1024)), demoToken: token });
+          const input = await body(req, 2 * 1024 * 1024);
+          const restoredPhotosOmitted = stripForeignBackupPhotos(input, null);
+          return json(res, 200, { ...await operations.mutate(req.headers['x-demo-actor'], input), ...(restoredPhotosOmitted ? {restoredPhotosOmitted} : {}), demoToken: token });
         }
         if (req.method === 'GET' && route === '/api/session') return json(res, 200, { token });
         if (req.method === 'GET' && route === '/api/project') return json(res, 200, await store.read());

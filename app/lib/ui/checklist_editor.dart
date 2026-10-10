@@ -3,9 +3,13 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../domain/checklist_draft.dart';
+import '../domain/optimized_photo.dart';
+import '../domain/manual_media_repository.dart';
 import '../state/operations_controller.dart';
 import 'checklist_library.dart';
 import 'components.dart';
+import 'photo_registration.dart';
+import 'place_guide.dart';
 
 List<Json> _rows(dynamic value) => (value as List? ?? []).cast<Json>();
 Json _copy(Json value) => jsonDecode(jsonEncode(value)) as Json;
@@ -884,10 +888,12 @@ class _GroupSheetState extends State<_GroupSheet> {
 Future<Json?> editManualTaskContent(
   BuildContext context,
   Json step,
-  String groupTitle,
-) => showAppSheet<Json>(
+  String groupTitle, {
+  OperationsController? ops,
+}) => showAppSheet<Json>(
   context,
-  builder: (_) => _ActivityEditor(step: _copy(step), groupTitle: groupTitle),
+  builder: (_) =>
+      _ActivityEditor(step: _copy(step), groupTitle: groupTitle, ops: ops),
 );
 
 class ManualTaskEditor extends StatefulWidget {
@@ -988,6 +994,7 @@ class _ManualTaskEditorState extends State<ManualTaskEditor> {
       );
     }
     return _ActivityEditor(
+      ops: widget.ops,
       step: {
         ..._copy(sourceStep!),
         'title': sourceStep!['manualTitle'] ?? sourceStep!['title'],
@@ -1010,12 +1017,14 @@ class _ActivityEditor extends StatefulWidget {
     this.onSave,
     this.previewOnly = false,
     this.catalogLinked = false,
+    this.ops,
   });
   final Json step;
   final String groupTitle;
   final Future<String?> Function(Json draft)? onSave;
   final bool previewOnly;
   final bool catalogLinked;
+  final OperationsController? ops;
   @override
   State<_ActivityEditor> createState() => _ActivityEditorState();
 }
@@ -1024,21 +1033,64 @@ class _ActivityEditorState extends State<_ActivityEditor> {
   late final Json step = widget.step;
   late final String original = jsonEncode(widget.step);
   bool applying = false, saving = false;
+  bool convertingPhoto = false;
+  OptimizedPhoto? pendingPhoto;
+  late final String? openingPhotoActor;
+  late final Object? openingPhotoWorkspace,
+      openingPhotoRevision,
+      openingPhotoStep;
+  @override
+  void initState() {
+    super.initState();
+    openingPhotoActor = widget.ops?.actorId;
+    openingPhotoWorkspace = widget.ops?.data?['workspaceId'];
+    openingPhotoRevision = widget.ops?.data?['revision'];
+    openingPhotoStep = widget.step['id'];
+  }
+
+  bool get photoScopeCurrent =>
+      widget.ops != null &&
+      widget.ops!.actorId == openingPhotoActor &&
+      widget.ops!.data?['workspaceId'] == openingPhotoWorkspace &&
+      widget.ops!.canEditTasks;
   String? issue;
-  bool get dirty => jsonEncode(step) != original;
+  bool get dirty => pendingPhoto != null || jsonEncode(step) != original;
 
   Future<void> submit() async {
+    if (saving || convertingPhoto) return;
     final problem = checklistStepIssue(step);
     if (problem != null) {
       setState(() => issue = problem);
       return;
     }
-    if (widget.onSave != null) {
+    if (pendingPhoto != null || widget.onSave != null) {
       setState(() {
         saving = true;
         issue = null;
       });
-      final failure = await widget.onSave!(step);
+      String? failure;
+      try {
+        if (pendingPhoto != null) {
+          if (!photoScopeCurrent ||
+              widget.ops!.data?['revision'] != openingPhotoRevision) {
+            throw const ManualMediaException(
+              '매장 또는 매뉴얼이 변경됐어요. 최신 내용을 다시 열어 주세요.',
+            );
+          }
+          final reference = await widget.ops!.uploadManualPhoto(
+            pendingPhoto!.bytes,
+          );
+          if (!mounted) return;
+          if (!photoScopeCurrent) {
+            throw const ManualMediaException('매장이 변경됐어요. 다시 열어 주세요.');
+          }
+          step['imageUrl'] = reference;
+          pendingPhoto = null;
+        }
+        failure = await widget.onSave?.call(step);
+      } catch (error) {
+        failure = '$error';
+      }
       if (!mounted) return;
       setState(() => saving = false);
       if (failure != null) {
@@ -1080,9 +1132,9 @@ class _ActivityEditorState extends State<_ActivityEditor> {
 
   @override
   Widget build(BuildContext context) => PopScope(
-    canPop: applying || (!saving && !dirty),
+    canPop: applying || (!saving && !convertingPhoto && !dirty),
     onPopInvokedWithResult: (didPop, result) async {
-      if (didPop || saving) return;
+      if (didPop || saving || convertingPhoto) return;
       final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
@@ -1171,9 +1223,44 @@ class _ActivityEditorState extends State<_ActivityEditor> {
                 ),
                 AppFormSection(
                   title: '참고 자료',
-                  description: '사진이나 영상이 있으면 HTTPS 링크를 넣어 주세요.',
+                  description: '사진으로 위치와 완료 모습을 보여 주세요.',
                   children: [
-                    field('imageUrl', '사진 HTTPS 링크 (선택)'),
+                    if (widget.ops != null)
+                      PhotoRegistrationField(
+                        value: step['imageUrl'] ?? '',
+                        pending: pendingPhoto,
+                        scopeKey: (
+                          openingPhotoActor,
+                          openingPhotoWorkspace,
+                          openingPhotoStep,
+                        ),
+                        isScopeCurrent: () => photoScopeCurrent,
+                        enabled:
+                            !saving &&
+                            widget.ops!.cloud &&
+                            !widget.ops!.readOnly,
+                        previewBuilder: (value) =>
+                            placePhoto(value, ops: widget.ops),
+                        onBusyChanged: (value) {
+                          if (mounted) setState(() => convertingPhoto = value);
+                        },
+                        onChanged: (photo) => setState(() {
+                          pendingPhoto = photo;
+                          issue = null;
+                        }),
+                        onRemove: () => setState(() {
+                          pendingPhoto = null;
+                          step['imageUrl'] = '';
+                        }),
+                      ),
+                    if (widget.ops != null && !widget.ops!.cloud)
+                      const Text(
+                        '촬영한 사진 등록은 로그인한 매장에서 사용할 수 있어요.',
+                        style: AppText.caption,
+                      ),
+                    if (pendingPhoto == null &&
+                        !isManualMediaReference(step['imageUrl'] ?? ''))
+                      field('imageUrl', '사진 HTTPS 링크 (선택)'),
                     field('videoUrl', '영상 HTTPS 링크 (선택)'),
                     field('sourceUrl', '공식 사진 가이드 HTTPS 링크 (선택)'),
                   ],
@@ -1200,7 +1287,7 @@ class _ActivityEditorState extends State<_ActivityEditor> {
               ),
             ),
           FilledButton(
-            onPressed: saving ? null : submit,
+            onPressed: saving || convertingPhoto ? null : submit,
             child: Text(
               saving
                   ? '저장 중…'

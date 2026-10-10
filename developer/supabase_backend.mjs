@@ -1,3 +1,4 @@
+import { createManualMediaHandler, validateManualMediaScope, stripForeignBackupPhotos } from './manual_media.mjs';
 import { applyStoreSetup, storeSetupCatalog } from './store_setup.mjs';
 import {DatabaseCatalogRepository} from './catalog_repository.mjs';
 import { OperationsStore, seedOperations, emptyOperations } from './operations.mjs';
@@ -6,7 +7,7 @@ import { ensureStaff } from './staff.mjs';
 import { StoreError } from './store.mjs';
 
 // Both Edge Functions and Node tests use this handler; demo actor headers are ignored.
-export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.work', 'https://www.tap2.work'], fetcher = fetch, clock = () => new Date(), sectionStorage = false, requireSocialIdentity = false, catalogDatabase = false, catalogRepository = null }) {
+export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.work', 'https://www.tap2.work'], fetcher = fetch, clock = () => new Date(), sectionStorage = false, requireSocialIdentity = false, catalogDatabase = false, catalogRepository = null, manualMediaEnabled = false }) {
   if (!url || !serviceKey) throw new Error('Supabase server configuration is missing');
   const headers = { apikey: serviceKey, ...(serviceKey.startsWith('eyJ') ? { Authorization: `Bearer ${serviceKey}` } : {}), 'Content-Type': 'application/json' };
   async function rest(path, options = {}) {
@@ -14,6 +15,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
     if (!response.ok) throw new StoreError('클라우드 저장소를 준비하지 못했어요. 관리자에게 연결 상태를 확인해 주세요.', 503);
     return response.status === 204 ? null : response.json();
   }
+  const media = createManualMediaHandler({ url, headers, rest, fetcher, sectionStorage });
   const catalogs = catalogRepository ?? (catalogDatabase ? new DatabaseCatalogRepository(rest) : null);
   return async request => {
     const origin = request.headers.get('origin');
@@ -33,6 +35,8 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       if (!/^[\da-f-]{36}$/i.test(user.id ?? '')) throw new StoreError('사용자를 확인하지 못했어요.', 401);
       if (requireSocialIdentity && !user.identities?.some(i => ['apple','google'].includes(i.provider))) throw new StoreError('Apple 또는 Google로 다시 로그인해 주세요.', 403);
       const query = new URL(request.url).searchParams;
+      if (query.get('media') === 'upload' && !manualMediaEnabled) throw new StoreError('사진 저장소를 준비 중이에요. 잠시 후 다시 시도해 주세요.',503);
+      if (query.has('media')) return await media({ request, user, query, cors });
       const catalogSnapshot = catalogs ? await catalogs.readPublished() : null;
       const catalogMatches = !catalogSnapshot || query.get('catalogRevision') === String(catalogSnapshot.revision);
       let input;
@@ -105,6 +109,8 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       if (request.method === 'POST' && !createdWorkspace && !selectedWorkspace && (document?.workspaces?.length ?? memberships.length) > 1) throw new StoreError('매장을 선택한 뒤 다시 저장해 주세요.',409);
       const member = selectedWorkspace && !sectionStorage ? memberships.find(m=>m.workspace_id===selectedWorkspace) : memberships[0];
       if (!member) throw new StoreError('매장 권한이 없어요.', 403);
+      const restoredPhotosOmitted = stripForeignBackupPhotos(input, member.workspace_id);
+      if (input) validateManualMediaScope(input, member.workspace_id);
       const actor = { id: user.id, name: member.display_name, role: member.role, label: {owner:'사장님',manager:'매니저',cook:'조리 담당',crew:'크루'}[member.role] };
       let original = document?.payload;
       const employeeMode = query.get('view') === 'employee';
@@ -136,7 +142,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       let result;
       if (request.method === 'GET' || createdWorkspace) result = await store.snapshot(user.id, Object.fromEntries(query));
       else result = await store.mutate(user.id, input);
-      return reply(200, { ...result, storeSetupCatalog: storeSetupCatalog(catalogSnapshot?.release), ...(catalogSnapshot?{catalogRevision:catalogSnapshot.revision,catalogReleaseId:catalogSnapshot.release.releaseId}:{}), canSwitchEmployee: member.role === 'owner', employeeMode, workspaceId: member.workspace_id, ...(document?.workspaces ? {workspaces: document.workspaces.map(w=>w.id===member.workspace_id?{...w,name:result.store?.name ?? w.name}:w)} : {}), ...(sectionStorage ? {syncWindow: document.window} : {}) });
+      return reply(200, { ...result, ...(restoredPhotosOmitted ? {restoredPhotosOmitted} : {}), storeSetupCatalog: storeSetupCatalog(catalogSnapshot?.release), ...(catalogSnapshot?{catalogRevision:catalogSnapshot.revision,catalogReleaseId:catalogSnapshot.release.releaseId}:{}), canSwitchEmployee: member.role === 'owner', employeeMode, workspaceId: member.workspace_id, ...(document?.workspaces ? {workspaces: document.workspaces.map(w=>w.id===member.workspace_id?{...w,name:result.store?.name ?? w.name}:w)} : {}), ...(sectionStorage ? {syncWindow: document.window} : {}) });
     } catch (error) {
       return reply(error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : '요청을 처리하지 못했어요. 다시 시도해 주세요.' });
     }

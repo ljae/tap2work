@@ -17,3 +17,8 @@ entrypoint = "./functions/public-login/index.ts"
 [functions.catalog-admin]
 verify_jwt = false
 entrypoint = "./functions/catalog-admin/index.ts"
+
+[functions.manual-media-cleanup]
+# Short-lived HMAC bearer is verified with the Vault/Edge secret; no user JWT.
+verify_jwt = false
+entrypoint = "./functions/manual-media-cleanup/index.ts"

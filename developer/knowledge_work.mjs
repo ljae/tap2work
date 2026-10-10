@@ -12,10 +12,11 @@ export function knowledgeFields(value) {
     if (!Array.isArray(v) || v.length>max || v.some(x=>typeof x!=='string'||!x.trim()||x.length>100)) fail('매뉴얼 연결을 확인해 주세요.');
     return [...new Set(v)];
   };
+  if (value.useCase != null && !['training','routine','periodic','startup'].includes(value.useCase)) fail('매뉴얼 용도를 확인해 주세요.');
   const use=value.suggestedUse??'reference';
   if (!['reference','routine','event'].includes(use)) fail('권장 사용 방법을 확인해 주세요.');
   if (value.eventKind != null && !eventKinds.includes(value.eventKind)) fail('작업 종류를 확인해 주세요.');
-  return {scope:value.scope,topics:array(value.topics??[]),menuNames:array(value.menuNames??[]),ingredientNames:array(value.ingredientNames??[]),requiresBreak:value.requiresBreak===true,suggestedUse:use,eventKind:value.eventKind??null,safetyReviewRequired:value.safetyReviewRequired===true,supersededBy:array(value.supersededBy??[])};
+  return {...(value.useCase?{useCase:value.useCase}:{}),scope:value.scope,topics:array(value.topics??[]),menuNames:array(value.menuNames??[]),ingredientNames:array(value.ingredientNames??[]),requiresBreak:value.requiresBreak===true,suggestedUse:use,eventKind:value.eventKind??null,safetyReviewRequired:value.safetyReviewRequired===true,supersededBy:array(value.supersededBy??[])};
 }
 export function usageFields(value) {
   if (value.usage == null) return {};

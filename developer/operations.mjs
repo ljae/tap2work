@@ -23,7 +23,7 @@ import { ensurePreparedItems, ensurePreparationTaps, consumePreparedForTask, fin
 import { seedSales, salesDashboard } from './sales.mjs';
 import { ensureLayout, validateLayout } from './layout.mjs';
 import { ensureStaff, staffView, mutateStaff } from './staff.mjs';
-import { ensureChecklists, saveChecklists, checklistLibrary, checklistSlots, checklistRoles, libraryTemplates, reopenStep, mediaLink, manualTags } from './checklists.mjs';
+import { ensureChecklists, saveChecklists, checklistLibrary, checklistSlots, checklistRoles, libraryTemplates, reopenStep, mediaLink, manualImageLink, manualTags } from './checklists.mjs';
 import { saveStoreProfile, saveHiringDraft } from './store_profile.mjs';
 import { saveTapSettings, repeatsOn, taskSettings, canCompleteStep, completeStepIssue, bulkCompleteIssue } from './task_settings.mjs';
 import { recommendedTaps, importRecommendedTaps } from './work_recommendations.mjs';
@@ -583,7 +583,7 @@ export class OperationsStore {
           if (!step || step.completedAt) fail('아직 완료하지 않은 오늘 Task만 편집할 수 있어요.', 409);
           assertContentOnly(input);
           const manual = text(input.manual, '매뉴얼', 700);
-          const videoUrl = mediaLink(input.videoUrl), imageUrl = mediaLink(input.imageUrl), sourceUrl = mediaLink(input.sourceUrl ?? step.sourceUrl), tags = manualTags(input.tags ?? step.tags);
+          const videoUrl = mediaLink(input.videoUrl), imageUrl = manualImageLink(input.imageUrl), sourceUrl = mediaLink(input.sourceUrl ?? step.sourceUrl), tags = manualTags(input.tags ?? step.tags);
           step.manualHistory ??= [];
           step.manualHistory.push({ manual: step.manual, tags: step.tags ?? [], videoUrl: step.videoUrl ?? '', imageUrl: step.imageUrl ?? '', sourceUrl: step.sourceUrl ?? '', at: iso(now), actor: who });
           Object.assign(step, { manual, videoUrl, imageUrl, sourceUrl, tags });

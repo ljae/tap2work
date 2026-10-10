@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import '../data/checklist_backup_repository.dart';
+import '../domain/manual_media_repository.dart';
 import 'components.dart';
 
 class ChecklistBackupScreen extends StatefulWidget {
@@ -22,6 +23,15 @@ class _ChecklistBackupScreenState extends State<ChecklistBackupScreen> {
   Json? preview;
   int? previewRevision;
   bool busy = false;
+  int get photosToRegister => (preview?['templates'] as List? ?? [])
+      .expand((t) => t['steps'] as List)
+      .where((s) {
+        final value = s['imageUrl'];
+        if (value is! String) return false;
+        final photoWorkspace = manualMediaWorkspace(value);
+        return photoWorkspace != null && photoWorkspace != workspace;
+      })
+      .length;
   String operationId = 'restore-${DateTime.now().microsecondsSinceEpoch}';
   @override
   void initState() {
@@ -106,7 +116,7 @@ class _ChecklistBackupScreenState extends State<ChecklistBackupScreen> {
         padding: const EdgeInsets.all(24),
         children: [
           const Information(
-            '개인화·자체 작성 TAP과 Task·매뉴얼·운영 규칙을 백업해요. 공용 연결 TAP과 업무 수행·출퇴근·급여 기록은 제외해요. 사진·영상은 파일 대신 링크로 보관해요.',
+            '개인화·자체 작성 TAP과 Task·매뉴얼·운영 규칙을 백업해요. 공용 연결 TAP과 업무 수행·출퇴근·급여 기록은 제외해요. 사진·영상 파일은 백업에 포함하지 않아요. 다른 매장에서는 등록 사진을 다시 올려 주세요.',
           ),
           const SizedBox(height: 16),
           Text('백업 대상 $count개 TAP', style: AppText.section),
@@ -169,6 +179,10 @@ class _ChecklistBackupScreenState extends State<ChecklistBackupScreen> {
                 style: AppText.caption,
               ),
             const SizedBox(height: 12),
+            if (photosToRegister > 0)
+              Information(
+                '다른 매장에 등록된 사진 $photosToRegister개는 가져오지 않아요. 내용은 복원하고 사진은 이 매장에서 다시 등록해 주세요.',
+              ),
             const Information(
               '현재 목록은 유지하고 개인화 사본으로 추가해요. 파트·시간대·크루·장소는 다시 연결하고 사용을 켜 주세요. 기존 업무 기록은 바뀌지 않아요.',
             ),
@@ -176,6 +190,7 @@ class _ChecklistBackupScreenState extends State<ChecklistBackupScreen> {
               onPressed: busy || !valid
                   ? null
                   : () => run(() async {
+                      final removedPhotos = photosToRegister;
                       final ok = await widget.ops
                           .act('restore_checklist_backup', {
                             'revision': previewRevision,
@@ -186,7 +201,9 @@ class _ChecklistBackupScreenState extends State<ChecklistBackupScreen> {
                         setState(() {
                           if (ok) {
                             preview = null;
-                            message = '개인화 사본으로 추가했어요. TAP 설정을 확인해 주세요.';
+                            message = removedPhotos == 0
+                                ? '개인화 사본으로 추가했어요. TAP 설정을 확인해 주세요.'
+                                : '내용을 복원했어요. 사진 $removedPhotos개를 다시 등록하고 TAP 설정을 확인해 주세요.';
                           } else {
                             error = widget.ops.error;
                           }

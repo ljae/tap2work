@@ -428,7 +428,7 @@ E06 로딩 시각화 후속: 기존 초기화/매장 조회 상태 → TapWaterL
 | S61 | knowledge.supersededBy → 새 구성 적용 → replace_mixed_break | 명시적 가져오기, 기존 원본 보관, 진행/완료 기록 유지 | knowledge_work.test.mjs |
 | S62 | settings.knowledgeIds → 연결할 참고 매뉴얼 → save_tap_settings | 실행 knowledgeSnapshots 버전 고정, 업무에서 참고 펼치기 | knowledge_work.test.mjs |
 | S63 | workEvent/workIssue → 이상·수행 불가 / 조치 결과 → flag_work_issue/resolve_work_issue | 담당자 이상 기록, 관리자 조치, 미해결 완료 금지 | knowledge_work.test.mjs |
-| S64 | manualCatalog.knowledge.scope → 마켓 분류 칩 → search(scope) | 업종 공통/외식 공통/공정·보관/메뉴별 필터, 옛 혼합 TAP 신규 추천 제외 | manual_market_discovery_test.dart |
+| S64 | manualCatalog.knowledge.useCase + 기존 scope 대체 분류 → 마켓 용도 칩 → search(useCase) | 직원교육/매장 루틴/정기관리 탐색; 업무·업종 추가 필터. 실행 주기를 변경하지 않음 | manual_market_discovery_test.dart; 10/10 기존 초안 분류 데이터·콘텐츠 검수는 별도 |
 
 
 ## 로그인 화면 표시·연결 상태 · 2026-10-09
@@ -469,5 +469,17 @@ E06 로딩 시각화 후속: 기존 초기화/매장 조회 상태 → TapWaterL
 | ID | 설정/원본 경로 | 입력 UI와 액션 | 저장 후 소비 화면·파생 값 | 검증 기준 |
 | --- | --- | --- | --- | --- |
 | S65 | store.manualSetup.conditions/places; 기존 workplace.days/breaks/parts | 신규 등록 ManualConditions / 우리매장 매장 특성·공통 장소 → save_manual_setup | composeManual → 매뉴얼 검색·새 업무, sharedPlaces → 동일 zone 상세. 시작/완료 보존 | place_manual_setup.test.mjs, place_manual_setup_test.dart |
-| S66 | zones[id].floor/area/description/photo/mapped | 공간·장비/매뉴얼 구성/준비품 → 공통 PlaceEditor → save_place | 장소 검색·층 목록·작업/재고 위치; 같은 ID를 선택 배치도에 연결 | place_manual_setup.test.mjs, floor_plan_test.dart |
+| S66 | zones[id].floor/area/description/photo/mapped | 공간·장비 → PlaceEditor → 촬영/앨범·자동 변환 → cloud media upload → save_place(revision) | 장소/업무 사진. 로그인 매장은 비공개 참조, 로컬 장소 데모는 최적화 dataURL. 저장 실패·매장 변경 시 기존 값/초안 보호 | place_manual_setup.test.mjs, photo_registration_test.dart, place_photo_editor_test.dart, manual_media_repository_test.dart |
 | S67 | taskTemplates.manualCustomization | 매뉴얼 내용 편집 액션의 contentHash 비교 → modified/created | manualSearch·TAP 카드·상세 코랄 텍스트/아이콘; 조건/장소 수정만으로 배지 없음 | place_manual_setup.test.mjs, place_manual_setup_test.dart |
+
+
+## 2026-10-10 행동 안내·사진 등록 구현
+
+| ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
+| --- | --- | --- | --- |
+| S68 | tasks[].steps snapshot → Task 열기 → ManualActionSlides → complete_step/reopen_step | 설명·사진·체크 같은 행동. 탐색만으로 완료 없음; 저장 성공 뒤 다음 장, 마지막/되돌리기 유지. 기존 측정·이상·순서·권한 검사 유지 | manual_action_slides_test.dart, tap_workspace_test.dart |
+| S69 | 촬영/앨범 → PhotoRegistrationField → 자동 JPEG 최적화 → uploadManualPhoto → imageUrl/photo 참조 저장 | 매뉴얼 편집/save_manual_tap, 실행 바로 수정/save_step_manual, 장소/save_place. 각 opening revision 유지, scope 변경/실패 보존. 업로드는 완료 체크 아님 | photo_optimizer_test.dart, manual_media_repository_test.dart, developer/test/manual_media.test.mjs |
+| S70 | private image reference → loadManualPhoto → 인증 JPEG → placePhoto | 같은 매장 멤버 읽기. 기존 외부 HTTPS·장소 dataURL 호환. 사장/권한 매니저만 업로드, 공용 카탈로그에 매장 private ref 금지 | manual_media.test.mjs, manual_media_repository_test.dart |
+| S71 | checklistBackup.templates[].steps[].imageUrl → 복원 미리보기·제외 사진 수 → restore_checklist_backup | 다른 매장 비공개 사진은 제외하고 본문 복원·재등록 안내. 같은 매장 참조와 외부 링크 유지 | manual_media.test.mjs, manual_media_backup_test.dart |
+
+S15의 Task 열기는 S68 통합 행동 화면을 사용한다. 매뉴얼 원본 편집 S12/S22와 실제 생성 실행의 완료는 구분한다. S46의 다른 매장 사진 복원은 S71을 따른다. 배포 전 Storage bucket/삭제 정리 경로 준비·활성화가 필요하며 소스 구현만으로 운영 업로드가 활성화되지 않는다.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 269,
+  "revision": 278,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1161,6 +1161,136 @@
       "source": "사용자 후속 지시 · 2026-10-10",
       "updatedAt": "2026-10-09T15:11:42.584838+00:00",
       "implementation": "stable revision2 / 08a4e0571bd73be229fe8ef551544b3ffa1c35e74b12ed572a0c1bfdd4074667 /109개. 구 초안 API의 knowledge 누락은 최종 draft revision2로 정정하고 catalog-admin 재배포."
+    },
+    {
+      "id": "D-109",
+      "category": "매뉴얼·직원교육·운영 루틴",
+      "title": "직원교육·반복 운영 중심 상세 매뉴얼과 마켓 분류 단순화",
+      "status": "confirmed",
+      "decision": "최초 업장 개설 업무를 중심 범위에서 제외하고 직원교육·일상 운영의 세부 체크리스트와 매뉴얼을 중심으로 구성한다. 업장 유지에 필요한 정기 주요 업무를 포함하고 매장 특성에 맞게 수정해 바로 쓸 수 있을 만큼 상세화한다. 마켓 분류와 복잡한 선택 UI를 재검증·개선한다.",
+      "previous": "109개 공용 원본에 최초 등록·법적 확인·일상 루틴과 여러 탐색 축이 혼재. 외식 공통 일부는 2~3개 짧은 단계.",
+      "next": "교육·일상 루틴·정기 유지관리 중심 요구 확정. UI 용도 선택/좁혀보기와 useCase 메타데이터는 구현 초안, 상세18개84단계는 아직 미적용.",
+      "reason": "사용자 2026-10-10 상세 매뉴얼/마켓 개선 지시. 이후 자리 비움으로 투두 MD 인계를 요청하여 구현 중단.",
+      "source": "사용자 요청 · 2026-10-10",
+      "updatedAt": "2026-10-10T02:51:21.638459+00:00",
+      "implementation": "진행 중. docs/MANUAL_ROUTINE_TODO_2026-10-10.md 및 MANUAL_ROUTINE_CONTENT_DRAFT_2026-10-10.md 참조. 테스트·콘텐츠 발행·배포 미실시."
+    },
+    {
+      "id": "D-110",
+      "category": "매뉴얼·신입 업무 내비게이션",
+      "title": "웰컴·시간별 체크·선택 리마인드와 수동 업무 안내",
+      "status": "confirmed",
+      "decision": "외식 공통+설거지·주방 보조의 상세 본보기부터 웰컴·영업 전 선택형 모션 리마인드·시간별 체크·딥다운 매뉴얼을 연결한다. 업무 ON은 크루 수동 안내이며 출퇴근과 별도다. 일반 업무 본인 체크, 핵심 업무 버디 확인; 버디 부재 시 본인이 사유를 적어 최종 완료하고 버디 확인과 구별한다. 사장님이 공통·파트별 리마인드 묶음을 고르고 크루는 한 번에 확인한다. 사장님·권한 있는 매니저가 매장 공통본을 수정한다. 웰컴은 첫 근무·사장님 지정 중요 변경 시 재확인을 요청하되 업무 진입은 허용한다. 매뉴얼·시간별 체크 우선, Android PiP/iPhone 잠금화면·Dynamic Island 및 명시적으로 켠 이어폰 듣기·반복·일시정지는 병렬 실험한다.",
+      "previous": "D-109 상세화 요구와 미완성 마켓/콘텐츠 초안. 공유 웰컴·버디·안내 세션·네이티브 제공 범위 미정.",
+      "next": "사용자 C01–C07/C09–C11 확정. 총괄+작업자3명의 단계별 계획과 대표 하루·검증 경계 작성. 상세 API/스키마·미답변 정책은 proposed.",
+      "reason": "사용자가 신입 업무 내비게이션 방향의 상세 매뉴얼 고도화 계획·에이전트 협업·의사결정 질의를 요청하고 답했다.",
+      "source": "docs/MANUAL_NAVIGATION_WORK_PLAN_2026-10-10.md",
+      "updatedAt": "2026-10-10T06:45:13.843006+00:00",
+      "implementation": "계획·감사만 완료. 기존5개 코드 초안과18개84절차는 미검증·미적용. 신규 앱/API/DB/네이티브 구현·배포 없음."
+    },
+    {
+      "id": "D-111",
+      "category": "공용 매뉴얼·매장 업데이트 정책",
+      "title": "공용 개선 사전 비교 후 사장님의 TAP별 선택 적용",
+      "status": "confirmed",
+      "decision": "공용 본보기 개선을 먼저 보고 사장님이 TAP별로 선택 적용한다. 매장 수정과 충돌하면 확인 후 교체한다. 현재 적용본·업데이트 후보·매장 수정본을 구별하고 개인화·과거 확인·이미 생성된 모든 실행을 보존한다.",
+      "previous": "D-081 현재 구현: 미수정 연결 TAP 자동 갱신, 직접 편집 시 TAP 개인화 분리. D-105~107 새 정책은 미정.",
+      "next": "사장님의 개선 비교·TAP별 선택 적용으로 변경 확정(C08/C12). 코드 이관 전에는 기존 자동 갱신 런타임 유지.",
+      "reason": "사용자가 개선 내용을 먼저 보고 선택 적용하고 TAP별 선택·매장 수정 충돌 확인 후 교체를 명시 선택했다.",
+      "source": "docs/MANUAL_NAVIGATION_WORK_PLAN_2026-10-10.md",
+      "updatedAt": "2026-10-10T06:45:13.843006+00:00",
+      "implementation": "미구현. 자동 갱신 중지·적용 버전 고정·구 앱 호환·충돌·모든 생성 실행 보존을 검증한 뒤 전환한다. 공용 DB 발행과 매장 적용은 별도."
+    },
+    {
+      "id": "D-112",
+      "category": "매뉴얼·단계별 검토·웰컴",
+      "title": "작은 시안을 하나씩 검증하고 별도 웰컴 화면 선택",
+      "status": "confirmed",
+      "decision": "주요 내용마다 저비용 시안을 먼저 보여주고 하나씩 검증·질의·반영한다. 첫 검토에서 A 별도 웰컴 화면을 선택했다. 첫 근무·중요 변경 시 별도 화면, 평소 다시보기이며 확인 대기 중에도 업무 진입은 허용한다.",
+      "previous": "전체 고도화 계획 C01–C12 확정, 웰컴의 구체 위치는 미정.",
+      "next": "7회차 단계별 검토, 01 별도 웰컴 위치 확정. 상세 문구/다음 업무 딥다운은 후속 시안 검토.",
+      "reason": "사용자가 빠르고 적은 비용의 주요내용별 검증을 요청하고 A/B 체험 뒤 A를 선택했다.",
+      "source": "docs/MANUAL_NAVIGATION_REVIEW_SEQUENCE_2026-10-10.md",
+      "updatedAt": "2026-10-10T07:32:58.138678+00:00",
+      "implementation": "독립 HTML 시안·브라우저 검증만 완료. Flutter/API/DB 기능 변경·배포 미실시."
+    },
+    {
+      "id": "D-113",
+      "category": "매뉴얼·체크리스트·실행 UI",
+      "title": "행동·설명·사진·체크 통합 슬라이드와 완료 후 자동 다음 이동",
+      "status": "confirmed",
+      "decision": "핵심 행동·자세한 설명·사진 링크/첨부·수행 체크를 한 화면에 담고 좌우로 다음 행동을 탐색한다. 완료 체크를 누르면 다음 행동으로 자동 이동한다. 체크 없이 슬라이드 탐색도 가능하며 탐색과 사진 보기는 완료를 만들지 않는다. 마지막 행동은 완료 상태를 표시하고 되돌리기는 이동하지 않는다. 반납/건조 식기의 종류, 잔반 배출처와 사진, 세척용 싱크대 막힘 예방 내용을 포함한다.",
+      "previous": "02 최초 시안은 행동 목록에서 별도 상세 화면으로 왕복. 후속 사용자는 체크와 넘기기 별도 조작을 선택했으나 아직 canonical에 기록하기 전 수정했다.",
+      "next": "같은 행동의 설명·사진·체크 통합, 완료 체크 한 번으로 다음 행동 자동 이동. 생산 앱에서는 저장 성공 이후 이동하며 실패 시 현재 행동과 입력 보존.",
+      "reason": "사용자가 체크리스트와 매뉴얼을 한몸으로 요청했고 두 번 조작의 피로를 줄이기 위해 자동 다음 이동으로 명시 수정했다.",
+      "source": "docs/MANUAL_NAVIGATION_REVIEW_SEQUENCE_2026-10-10.md",
+      "updatedAt": "2026-10-10T09:44:37.749670+00:00",
+      "implementation": "후속 실제 Flutter TapWorkspace→ManualActionSlides 연결, 저장 성공 후 자동 이동·탐색 분리·실패/되돌리기/마지막·권한/순서/측정/이상 보호·사진 확대 구현. 로컬 전체 Flutter428/서버312·웹 빌드 통과. 운영 배포/현장 검증 전."
+    },
+    {
+      "id": "D-114",
+      "category": "매뉴얼·장소 사진·저장",
+      "title": "바로 촬영과 업로드 전 적정 화질 자동 최적화",
+      "status": "confirmed",
+      "decision": "가능하면 휴대폰에서 바로 사진을 찍어 등록한다. 업로드 전에 사진을 적정 크기·화질로 자동 변환해 Storage 부담을 줄이며 고화질 원본 보관을 기본으로 하지 않는다. 사진의 위치·식기 종류·글자 표시는 읽을 수 있도록 검토한다.",
+      "previous": "장소사진350KB 초과거절·dataURL/HTTPS 저장, 시안은8MB 파일 원본의 임시URL표시.",
+      "next": "촬영 우선/앨범 대안, 자동 방향·크기·JPEG변환, 변환본만 업로드 목표.1280px/150KB목표·250KB상한은 proposed 기술값이며 실제사진/기기 검증 후 조정.",
+      "reason": "사용자가 고화질이 필요 없고 Storage 부담 없는 변환 업로드와 바로 촬영을 명시 요청했다.",
+      "source": "docs/MANUAL_NAVIGATION_REVIEW_SEQUENCE_2026-10-10.md",
+      "updatedAt": "2026-10-10T09:44:37.749670+00:00",
+      "implementation": "Flutter 촬영/앨범·방향/크기/JPEG 변환·메타데이터 제거·초안/업로드 참조 재시도와 authenticated private Storage API/migration/삭제 정리 소스 구현. 기본 upload 비활성. migration·operations/account배포·정리 스케줄·실기기 카메라/HEIC/가독성은 미실시."
+    },
+    {
+      "id": "D-115",
+      "category": "개발 실행·에이전트 협업",
+      "title": "역할별 모델 에이전트로 매뉴얼·사진 첫 구현 진행",
+      "status": "confirmed",
+      "decision": "사용자 요청에 따라 총괄 Codex+GPT-6.1 Sol 화면·사진 담당2명+GPT-6 Astra 데이터/권한 담당1명으로 실제 구현과 독립 검토를 진행한다. 작업 파일 소유를 나누고 충돌·제품 결정은 질의한다.",
+      "previous": "전체 작업 계획과 독립 HTML 시안 검토. 신규 Flutter/서버 구현 전.",
+      "next": "행동 슬라이드·촬영/최적화·비공개 사진 저장 소스 첫 묶음 로컬 구현/검증. 전체 웰컴·시간 안내·버디·원본 선택 적용·리마인드·PiP/음성은 후속.",
+      "reason": "사용자가 각 역할에 맞는 AI 모델로 agent구성을 하고 업무를 진행하며 의사결정이 필요하면 질의하도록 요청했다.",
+      "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md",
+      "updatedAt": "2026-10-10T09:44:37.749670+00:00",
+      "implementation": "실제3작업 에이전트 협업, 사진 저장/버전/실패 독립 검토와 통합 테스트 완료. 지속 자동 실행 서비스·운영 배포를 만들거나 켜지 않았다."
+    },
+    {
+      "id": "D-116",
+      "category": "설거지·반복 업무 확인 시점",
+      "title": "시작 준비·교대·마감 체크와 영업 중 필요 시 안내",
+      "status": "confirmed",
+      "decision": "설거지처럼 반복되는 업무는 시작 준비·교대·마감 때 체크한다. 영업 중에는 필요할 때 안내를 열고 식기마다 또는 일정 간격마다 체크를 요구하지 않는다.",
+      "previous": "반복 작업의 체크 빈도 미정; 시안4장 행동은 시간 연결 없는 예시.",
+      "next": "후속 시간별 안내/콘텐츠 배정의 기준으로 사용. 현재 기존 매장 TAP 일정은 자동 일괄 변경하지 않는다.",
+      "reason": "사용자가 질의에서 시작 준비·교대·마감 때 체크, 영업 중에는 필요할 때 안내 열기를 선택했다.",
+      "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md",
+      "updatedAt": "2026-10-10T09:44:37.749670+00:00",
+      "implementation": "정책·작업 계획 반영. 구체 시간표/교대 연결 엔진 및 모든 카탈로그 적용은 후속."
+    },
+    {
+      "id": "D-117",
+      "category": "비공개 사진·매뉴얼 백업 복원",
+      "title": "다른 매장 복원은 본문 유지와 사진 재등록",
+      "status": "confirmed",
+      "decision": "다른 매장으로 매뉴얼을 복원하면 내용은 유지하고 해당 매장의 비공개 사진은 새 매장에서 다시 등록한다. 제외할 사진 수를 복원 전에 안내한다. 같은 매장 사진 참조와 기존 외부 HTTPS 링크는 유지한다.",
+      "previous": "사진은 외부 링크 중심이었으며 비공개 사진의 다른 매장 복원 정책은 미정.",
+      "next": "인증된 대상 매장 scope에서 백업의 외부 매장 private image 참조만 제거하고 내용 복원. 다른 저장 액션은 외부 매장 참조 거절.",
+      "reason": "비공개 저장 전환의 충돌 지점을 질의했고 사용자가 내용 복원·사진 재등록을 선택했다.",
+      "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md",
+      "updatedAt": "2026-10-10T09:44:37.749670+00:00",
+      "implementation": "Flutter 미리보기 제외 수/재등록 안내, cloud 복원 참조 정리와 결과 수, 같은매장/다른매장 테스트 구현. 운영 배포 전."
+    },
+    {
+      "id": "D-118",
+      "category": "웹 우선 배포·사진 활성화",
+      "title": "웹 사진 등록 먼저 활성화, 네이티브 호환은 다음 업데이트",
+      "status": "confirmed",
+      "decision": "사용자 요청에 따라 통합 행동 슬라이드와 최적화 비공개 사진 등록을 웹에 먼저 배포·활성화한다. 현재 심사 중인 구버전 네이티브는 새 비공개 사진 표시·관련 편집에 제한이 있음을 질의했고 사용자가 웹 선행을 선택했다. 네이티브 호환은 다음 업데이트로 진행한다.",
+      "previous": "비공개 사진 업로드 기본 비활성, 운영 bucket·예약 삭제 처리 미배포. 웹/네이티브 활성화 순서 미정.",
+      "next": "Storage·권한·삭제 예약과 API 검증 후 웹 활성화. 네이티브 업데이트는 후속이며 이번 웹 배포를 네이티브 배포로 보고하지 않는다.",
+      "reason": "사용자가 개선 완료 후 웹앱 우선 배포를 요청하고 호환성 충돌 질문에 웹 먼저 활성화를 선택했다.",
+      "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md",
+      "updatedAt": "2026-10-10T09:56:56.943076+00:00",
+      "implementation": "운영 private bucket/삭제 outbox+managed cron과 operations/account/cleanup Edge 배포, 합성 사진 비공개 접근·HMAC 예약 삭제 왕복 확인 후 업로드 활성화. 웹 프런트 빌드·배포 진행 중."
     }
   ],
   "milestones": [
@@ -1355,6 +1485,12 @@
       "title": "단계형 매장 등록·설정 통합·업종별 매뉴얼",
       "status": "done",
       "description": "로컬 구현과 분석·서버/위젯/Edge/웹 빌드 검증 완료. 실제 앱/API 배포 및 네이티브 실기기 검증은 별도이며 이번 작업에서는 수행하지 않았다."
+    },
+    {
+      "id": "M-033",
+      "title": "신입 크루 매뉴얼·시간별 업무 내비게이션 고도화",
+      "status": "in_progress",
+      "description": "행동 슬라이드·촬영/최적화·비공개 사진 소스 첫 묶음 구현/검증. Flutter428/서버312·분석·UI관계64·웹 빌드 통과. 전체 웰컴/시간/버디/원본선택/리마인드/PiP음성·18/84콘텐츠 적용은 후속. 운영 활성화·배포·실기기 촬영 미실시."
     }
   ],
   "history": [
@@ -8115,7 +8251,200 @@
         "Immutable IARC/history rows and authentication/developer-account identities keep their actual prior addresses; no ownership transfer or identity change",
         "New versions pending review; previously installed native versions require an update to receive embedded contact change"
       ]
+    },
+    {
+      "at": "2026-10-10T02:51:21.638459+00:00",
+      "type": "implementation-progress",
+      "title": "Save employee-training and routine manual work-in-progress handoff",
+      "detail": "User requested employee training/daily routines/periodic maintenance focus, excluding initial business setup, detailed reusable content and simpler market categories. Inspected109-entry catalog; drafted5 source-file changes and18 manuals/84 steps. User then requested stopping for an MD todo handoff; saved durable content draft and ordered todo list. SOURCE/current/taxonomy/production DB unchanged.",
+      "verification": [
+        "Handoff paths and draft counts checked; current source snapshots saved locally without credentials."
+      ],
+      "limitations": [
+        "No Flutter analysis/format/tests, Node tests or visual verification for current code changes.",
+        "No content integration, release generation, commit, deployment, DB publication or native build/upload.",
+        "Old market UI/count/hash tests require intentional updates; useCase metadata not yet assigned in source catalog."
+      ]
+    },
+    {
+      "at": "2026-10-10T06:45:13.843006+00:00",
+      "type": "planning",
+      "title": "Plan newcomer work navigation with agent review and twelve user decisions",
+      "detail": "Integrated Oct10 TODO and18/84 draft into P0–P6 plan and parallel native experiment, coordinator+3 worker ownership, detailed first-day sample, contracts, test gates and questions. Three read-only agents audited content, delivery and official platform documentation. Found84 placeholder IDs,700-character manual limit, absent source useCase metadata and early account-to-crew/buddy linkage dependency. Recorded C01–C12 including reasoned self-completion when buddy absent and owner-controlled TAP updates.",
+      "previous": {
+        "catalogUpdate": "Unmodified linked TAP auto-sync; new update policy undecided",
+        "manualPlan": "Five untested source drafts and18/84 unapplied content handoff"
+      },
+      "next": {
+        "catalogUpdate": "Owner previews and selects TAP application; conflicts require explicit replacement. Confirmed target, unimplemented.",
+        "manualPlan": "docs/MANUAL_NAVIGATION_WORK_PLAN_2026-10-10.md"
+      },
+      "reason": "User requested detailed work plan considering Oct10 plans/TODO, agent coworking and decision questions; subsequent replies confirmed twelve choices.",
+      "verification": [
+        "Read canonical revision270, source and required project/design documents; three read-only agent audits completed",
+        "Checked12 confirmed-answer rows, three local plan links and four continuity links",
+        "Final canonical JSON/unique IDs/revision271, all12 decision rows, new-plan local links and six changed-document whitespace checks passed; scoped git diff --check passed."
+      ],
+      "limitations": [
+        "Planning/docs only; no app/API/DB implementation, feature tests, content integration, commit, deployment or native build/device verification",
+        "Existing five source drafts remain untested and18/84 content unapplied; production/native status not live rechecked",
+        "Platform research is not device verification or approval of restaurant-use suitability",
+        "BACKEND_WATCH_HANDOFF.md absent; historical B-01 not treated as a current reproduced failure",
+        "Schedule/priority/buddy assignment/offline/device choices remain proposed; unrelated changes and all previous history preserved",
+        "First inline history updater failed Python source encoding before any writes; retried with explicit UTF-8 source declaration"
+      ],
+      "source": "docs/MANUAL_NAVIGATION_WORK_PLAN_2026-10-10.md"
+    },
+    {
+      "at": "2026-10-10T07:32:58.138678+00:00",
+      "type": "design-review",
+      "title": "Validate lightweight welcome A/B prototype and confirm separate welcome page",
+      "detail": "Prepared a seven-round one-topic-at-a-time review workflow, with a dependency-free welcome prototype using existing Pretendard. Five browser behavior checks preserve separate acknowledgement/work-ON/completion states. User selected A separate welcome screen. Served only isolated static preview on localhost8767 and handed Ego space6 to user.",
+      "verification": [
+        "Ego actual clicks: A acknowledgement leaves guidanceOFF/check0of3; ON leaves check0of3; B acknowledgement; unacknowledged important change allowsON; normal shift supports reread",
+        "320/390/1200px: no horizontal overflow, visible buttons minimum49.59px",
+        "390px approximate1.5x body/caption text: no horizontal overflow; A/B desktop screenshots visually inspected",
+        "New local documentation links and canonical JSON checked; scoped whitespace diff check follows"
+      ],
+      "limitations": [
+        "Isolated HTML prototype only; no Flutter tests/native lifecycle/accessibility certification/field observation",
+        "No app/API/production DB changes, publication or external deployment; actual manual checks intentionally reserved for review02",
+        "Sandbox server/browser launch failed initially; approved outside-sandbox invocation succeeded",
+        "A/B layout confirmed only; subsequent decision topics remain pending; no paid image/video generation or additional agents invoked"
+      ],
+      "source": "docs/MANUAL_NAVIGATION_REVIEW_SEQUENCE_2026-10-10.md"
+    },
+    {
+      "at": "2026-10-10T08:19:57.211387+00:00",
+      "type": "design-review",
+      "title": "Show drilldown manual and compare three action checks versus one whole-work check",
+      "detail": "At user request prepared review02 for one ordinary dishwashing-area preparation TAP. Reused previous styles and Pretendard. Same short summary and deeper preparation/method/example/criteria content in both variants; compares three core-action checks with one whole-work completion. One choice question pending. Existing Ego space6 resumed and handed back to user.",
+      "verification": [
+        "Actual browser clicks: reading does not complete, detail roundtrip retains1of3, A complete/undo, B read/complete/undo passed",
+        "320/390/1200px no horizontal overflow, visible buttons minimum48px",
+        "390px detail body/caption1.5x approximation no overflow; list and detail screenshots visually inspected",
+        "Local preview HTTP200 and documentation links checked; script syntax and scoped diff check follow"
+      ],
+      "limitations": [
+        "Independent HTML preview only, not Flutter/server/field verification; exact materials/equipment/location are fictional configuration examples",
+        "No app/API/DB changes, public catalog publication or deployment",
+        "Check granularity remains proposed until user answers; actual buddy flow reserved for review04"
+      ],
+      "source": "docs/MANUAL_NAVIGATION_REVIEW_SEQUENCE_2026-10-10.md"
+    },
+    {
+      "at": "2026-10-10T09:07:11.300434+00:00",
+      "type": "design-review",
+      "title": "Unify manual photos and checks in action slides; auto-advance on completion",
+      "detail": "Replaced review02 separate-detail flow with four integrated action slides for food scraping/disposal, dish return sorting, sink strainer/drain check, and clean dish drying. Added per-action local image fixture/HTTPS URL preview and enlargement, touch swipe and fixed completion footer. Latest user correction supersedes separate check/navigation: completion auto-advances; browsing stays independent; last completion and undo remain on current slide.",
+      "previous": "Separate list/detail prototype; subsequently proposed separate check/navigation",
+      "next": "Integrated action/manual/photo/check slide; completion triggers next action",
+      "reason": "User requested combined checklist/manual and specifically corrected double interaction fatigue.",
+      "verification": [
+        "Browser actual touch swipe without completion, per-action check persistence/undo, photo viewing independent, local attachment scoped per action and removed test fixture, invalid photo URL rejected",
+        "320/390/1200px no horizontal overflow, visible buttons minimum48px;390px enlarged text approximation scrolls within slide without overflow; desktop screenshots inspected",
+        "Final automatic flow: browsing remains0of4; first check advances1to2 with1of4; last completion stays4of4 and reports all completed; undo stays with3of4",
+        "JavaScript syntax check and scoped documentation whitespace checks passed"
+      ],
+      "limitations": [
+        "Independent HTML preview only; no Flutter/API/DB changes, publication, deployment or actual-store validation",
+        "No actual store photos supplied; labeled diagrams used, logo file used only as attachment test and removed. Prototype file8MB limit does not change production350KB place-photo contract",
+        "NYC DEP source checked for general grease/drain principle; foreign law/equipment rules not represented as Korean requirements. Store disposal classifications and exact places remain configuration inputs",
+        "Initial browser next-button visibility check failed at short desktop viewport; adjusted viewport-fitting phone and fixed completion footer, rerun passed",
+        "Existing server was already running; duplicate restart failed address-in-use and existing serverHTTP200 was verified. Canonical update deferred by interrupted prior turn, preserved previous history"
+      ],
+      "source": "docs/MANUAL_NAVIGATION_REVIEW_SEQUENCE_2026-10-10.md"
+    },
+    {
+      "at": "2026-10-10T09:16:45.503349+00:00",
+      "type": "design-review",
+      "title": "Add capture-first automatic photo optimization to integrated manual prototype",
+      "detail": "Audited existing place photo contract: client rejects over350KB, server accepts dataURL/HTTPS within total inline limit. Added camera request and gallery alternatives plus browser decode/resizing/JPEG encoding before preview, action-pinned conversion jobs and latest-job checks. Documented storage-reference/upload/cleanup/version-preservation implementation boundary.",
+      "verification": [
+        "Browser synthetic3200x2400 label->1280x960 JPEG13960bytes; high-detail2400x1600->800x533 JPEG164897bytes",
+        "Small100x80 image not enlarged; corrupt file rejected;capture=environment present",
+        "Actual input file selection converted178KB prototype PNG to100KB JPEG and displayed metrics; test photo removed",
+        "JavaScript syntax clean; scoped diff whitespace check follows"
+      ],
+      "limitations": [
+        "No actual mobile camera,HEIC,EXIF/GPS metadata validation or real-store readability test; exact dimensions/byte targets remain proposed",
+        "No Flutter/API/production Storage upload or schema change. Existing place350KB/inline limits retained",
+        "Prototype external HTTPS photo links remain direct previews, not automatically imported/compressed/uploaded",
+        "Synthetic fixture reduction is not a measured real-phone compression-rate guarantee"
+      ],
+      "source": "docs/MANUAL_NAVIGATION_REVIEW_SEQUENCE_2026-10-10.md"
+    },
+    {
+      "at": "2026-10-10T09:44:37.749670+00:00",
+      "type": "implementation-progress",
+      "title": "Implement integrated manual action slides and optimized private photo pipeline with role-specific model agents",
+      "detail": "User authorized role/model agent implementation. Coordinator integrated GPT-6.1 Sol action UI and photo client, GPT-6 Astra private media/storage/erasure contracts, actual task-entry slides, capture/gallery JPEG optimization, authenticated immutable refs, revision-pinned saves, retry reference reuse, scoped backup restore and PDF private-photo app notice. User confirmed periodic-work check moments and cross-store photo re-registration. Existing unrelated dirty work preserved.",
+      "previous": {
+        "implementation": "HTML review only; production photos size-reject/dataURL/HTTPS; separate manual detail",
+        "checkCadence": "Unresolved recurring dishwashing check frequency",
+        "crossStorePhotos": "Unresolved private photo backup policy"
+      },
+      "next": {
+        "implementation": "Locally verified Flutter/API/migration first increment; private upload defaults disabled before operational setup",
+        "checkCadence": "Preparation/handover/close checks; in-service guide on demand",
+        "crossStorePhotos": "Restore text and re-register foreign private photos"
+      },
+      "reason": "User requested model-specific agents, implementation and questions at conflicts; two policy questions answered.",
+      "verification": [
+        "flutter analyze: no issues",
+        "flutter test:428/428 passed (final sequential run)",
+        "npm run test:console:312/312 passed",
+        "npm run check passed, including64UI/settings links and manual route",
+        "npm run test:edge passed; authenticated media JPEG Buffer-free Deno smoke passed",
+        "Isolated PGlite media migration test passed: private250KB/JPEG bucket, restrictive RLS, deletion queue transaction commit/rollback",
+        "flutter test tool/manual_navigation_review.dart passed;12widget captures at320/390/1200px and3901.5text;320/390/large-text images inspected",
+        "npm run build:app final build/web succeeded59.0seconds; web only, not native",
+        "iOS Info.plist syntax passed; git diff --check passed"
+      ],
+      "limitations": [
+        "No production DB/Storage creation/upload, function/site/native deployment, scheduler configuration or private upload activation. Requires migration+operations/account deploy+cleanup schedule before TAP2WORK_MANUAL_MEDIA_ENABLED=true",
+        "No real-device camera/HEIC/restaurant readability, native build or actual-browser validation this increment; photos in captures are fictional diagrams",
+        "Welcome/work-ON/timing/buddy/catalog-selective-update/reminders/PiP/audio and18manual84stepcontent integration remain future phases. Existing store schedules not rewritten",
+        "Unlinked upload garbage collection for existing workspaces and private image PDF embedding are not implemented; historical attachments preserved and PDF directs to app",
+        "Initial intermediate compile/lint and fixture failures resolved. First full Flutter run413passed6failed:4stale market expectations plus2shader asset failures while web build ran concurrently; corrected tests and sequential final run passed428",
+        "Earlier npm check:ui-links failed stale S64 scope matcher from pre-existing Oct10 WIP; updated documented useCase source/control relationship and final64links passed",
+        "No exact token cost or performance claim; models explicitly selected per user request. Existing history and unrelated modifications retained"
+      ],
+      "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md"
+    },
+    {
+      "at": "2026-10-10T09:56:56.943076+00:00",
+      "type": "decision",
+      "title": "Confirm web-first private photo activation with next-update native compatibility",
+      "detail": "User explicitly authorized improvement and web deployment, then selected activation on web despite older native photo display/editor limitations. Do not request deployment approval again. Backend preparation and release verification are in progress.",
+      "previous": "Private uploads disabled; web/native activation order unresolved.",
+      "next": "Web first; compatible native update later.",
+      "reason": "Explicit user answer to rollout conflict.",
+      "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md"
+    },
+    {
+      "at": "2026-10-10T10:01:26.183816+00:00",
+      "type": "implementation-progress",
+      "title": "Prepare and activate private media backend for user-approved web-first release",
+      "detail": "Added web Blob cleanup and no plugin predecode, eager print scope capture, managed deletion cleanup Edge with short-lived HMAC and due-only cron. Applied only two new media migrations; deployed operations v56, account v5, manual-media-cleanup v1. Provisioned matching Vault/Edge secret without logging it, enabled postgres five-minute cron and private upload flag. Synthetic Storage fixture only; no production employee/store/catalog changes. Isolated release checkout from origin/main preserves original dirty tree.",
+      "verification": [
+        "Flutter analyze no issues; full Flutter432 passed,2 browser-only skips; Chrome photo tests2 passed separately",
+        "Node317/317 passed in both working and isolated release trees; npm check and64UI links passed",
+        "Edge smoke and both PGlite media SQL harnesses passed (hosted scheduling primitives stubbed locally)",
+        "Production Storage private/JPEG/250000bytes configuration and Vault anon/authenticated deny verified",
+        "Synthetic JPEG upload/service-read byte equality, public/anon refusal; actual pg_net-to-Edge HMAC cleanup200, photo deletion, retry tombstone update; synthetic fixture removed",
+        "Cleanup unauthenticated401/authenticated200, application operations/account unauthenticated401; flag enabled hash verified",
+        "Git diff --check passed"
+      ],
+      "limitations": [
+        "Web frontend deployment still in progress at this entry; native build/upload not performed",
+        "No authenticated end-user production media upload, real phone camera/HEIC or restaurant readability test. Service-key synthetic fixture is not end-user auth verification",
+        "Initial provisioning script assumed JSON for empty successful secrets response; corrected. Enabled-flag check initially used digest instead of API value hash field; corrected and passed without logging secrets",
+        "D109 catalog use-case metadata rollout remains incomplete: current stable sources have no explicit training metadata; startup-only legal/permits fallback needs separate classification/content review",
+        "Welcome/work-ON/timing/buddy/selective source updates/reminders/PiP/audio remain later phases; unlinked existing-workspace photo GC and embedded PDF photos remain future work"
+      ],
+      "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md"
     }
   ],
-  "updatedAt": "2026-10-10T02:27:24.420283+00:00"
+  "updatedAt": "2026-10-10T10:01:26.183816+00:00"
 }

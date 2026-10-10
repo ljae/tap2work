@@ -1,6 +1,8 @@
 import { createCloudHandler } from '../../../developer/supabase_backend.mjs';
 
 Deno.serve(createCloudHandler({
+  // Enable only after private bucket/erasure migration, account deploy and cleanup scheduling.
+  manualMediaEnabled: Deno.env.get('TAP2WORK_MANUAL_MEDIA_ENABLED') === 'true',
   sectionStorage: true,
   catalogDatabase: true,
   requireSocialIdentity: true,

@@ -57,7 +57,7 @@ export function syncManualCatalog(state,now,catalog=release){
  }
  return changed;
 }
-export function catalogView(state,catalog=release){return {...catalog,entries:catalog.entries.map(source=>({...presentSource(source),installed:Object.entries(state.catalogLinks??{}).filter(([id,l])=>l.sourceId===source.sourceId&&l.mode!=='removed'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)).map(([templateId,l])=>({templateId,mode:l.mode,releaseId:l.releaseId}))}))};}
+export function catalogView(state,catalog=release){return {...catalog,entries:catalog.entries.filter(source=>source.knowledge?.useCase!=='startup').map(source=>({...presentSource(source),installed:Object.entries(state.catalogLinks??{}).filter(([id,l])=>l.sourceId===source.sourceId&&l.mode!=='removed'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)).map(([templateId,l])=>({templateId,mode:l.mode,releaseId:l.releaseId}))}))};}
 function addTemplates(state,drafts){
  const checked=validateChecklists({folders:state.checklistFolders,templates:[...state.taskTemplates,...drafts]},state);
  const ids=new Set(drafts.map(t=>t.id));
@@ -141,13 +141,13 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
    drafts.forEach((draft,i)=>{
     const actual=state.taskTemplates.find(t=>t.id===draft.id),source=additions[i];
     actual.knowledge=structuredClone(source.knowledge);
-    actual.settings.usage=input.enableOperations && source.kind!=='legal' && !source.knowledge?.safetyReviewRequired && !source.knowledge?.supersededBy?.length && !['reference','event'].includes(source.knowledge?.suggestedUse)?'routine':'reference';
+    actual.settings.usage=input.enableOperations && source.kind!=='legal' && !['training','periodic','startup'].includes(source.knowledge?.useCase) && !source.knowledge?.safetyReviewRequired && !source.knowledge?.supersededBy?.length && !['reference','event'].includes(source.knowledge?.suggestedUse)?'routine':'reference';
     (state.catalogLinks??={})[draft.id]={mode:'linked',sourceId:source.sourceId,releaseId:catalog.releaseId,contentHash:contentHash(actual),importedAt:at};
 
    });
    if(input.enableOperations)for(const source of sources.filter(s=>s.kind!=='legal')){
     const template=state.taskTemplates.find(t=>!t.archivedAt&&state.catalogLinks?.[t.id]?.mode==='linked'&&state.catalogLinks[t.id].sourceId===source.sourceId);
-    if(template && !source.knowledge?.safetyReviewRequired && !source.knowledge?.supersededBy?.length && source.knowledge?.suggestedUse!=='reference' && source.knowledge?.suggestedUse!=='event')saveTapSettings(state,{templateId:template.id,assignmentScopeVersion:2,settings:{...taskSettings(template),enabled:true}},now);
+    if(template && !['training','periodic','startup'].includes(source.knowledge?.useCase) && !source.knowledge?.safetyReviewRequired && !source.knowledge?.supersededBy?.length && source.knowledge?.suggestedUse!=='reference' && source.knowledge?.suggestedUse!=='event')saveTapSettings(state,{templateId:template.id,assignmentScopeVersion:2,settings:{...taskSettings(template),enabled:true}},now);
    }
    state.manualBusinessProfile={industryId:input.industryId,specialization:input.specialization.trim(),configuredAt:at,releaseId:catalog.releaseId};
    return drafts.map(t=>t.id);

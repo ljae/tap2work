@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>매뉴얼과 장소 안내에 사용할 사진을 촬영해요.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>매뉴얼과 장소 안내에 사용할 사진을 선택해요.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict><key>CFBundleURLSchemes</key><array><string>$(GOOGLE_REVERSED_CLIENT_ID)</string></array></dict>

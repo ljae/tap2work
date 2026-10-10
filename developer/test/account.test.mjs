@@ -13,6 +13,7 @@ function fixture({role='crew',ownerCount=1,revoker=async()=>{}, conflict=false, 
    calls.push({url,options});
    if(url.endsWith('/user'))return Response.json(user,{status:unauthorized?401:200});
    if(url.endsWith('tap2work_account_context'))return Response.json(context);
+   if(url.includes('/tap2work_media_deletions?'))return Response.json([]);
    if(url.endsWith('tap2work_erase_account'))return Response.json(conflict?{conflict:true}:{deleted:true});
    throw Error('Unexpected request');
  }});
@@ -29,7 +30,7 @@ test('sole owner requires confirmation; user identity is never caller-controlled
  assert.equal((await f.request({action:'delete_account',confirmationToken:p.confirmationToken})).status,400);
  assert.equal((await f.request({action:'delete_account',userId:'other'})).status,400);
  const r=await f.request({action:'delete_account',confirmationToken:p.confirmationToken,confirmWorkspaceDeletion:true});assert.equal(r.status,200);
- const body=JSON.parse(f.calls.at(-1).options.body);assert.equal(body.p_user_id,uid);assert.equal(body.p_delete_workspace,true);assert.equal(body.p_sanitized_payload,null);
+ const body=JSON.parse(f.calls.find(c=>c.url.endsWith('tap2work_erase_account')).options.body);assert.equal(body.p_user_id,uid);assert.equal(body.p_delete_workspace,true);assert.equal(body.p_sanitized_payload,null);
 });
 test('stale preview and SQL conflict never report success',async()=>{
  const f=fixture();const p=await (await f.request({action:'preview_delete'})).json();f.context.scope.revision++;
@@ -39,7 +40,7 @@ test('stale preview and SQL conflict never report success',async()=>{
 });
 test('crew deletes own personal data while keeping store; Apple failure prevents DB erasure',async()=>{
  const f=fixture();const p=await (await f.request({action:'preview_delete'})).json();assert.equal((await f.request({action:'delete_account',confirmationToken:p.confirmationToken})).status,200);
- const body=JSON.parse(f.calls.at(-1).options.body);assert.equal(body.p_delete_workspace,false);assert.deepEqual(body.p_sanitized_payload.attendance,[]);
+ const body=JSON.parse(f.calls.find(c=>c.url.endsWith('tap2work_erase_account')).options.body);assert.equal(body.p_delete_workspace,false);assert.deepEqual(body.p_sanitized_payload.attendance,[]);
  const g=fixture({revoker:async()=>{throw Error('private provider details');}});const q=await (await g.request({action:'preview_delete'})).json();const failed=await g.request({action:'delete_account',confirmationToken:q.confirmationToken});assert.equal(failed.status,500);assert.ok(!(await failed.text()).includes('private'));assert.ok(!g.calls.some(c=>c.url.endsWith('tap2work_erase_account')));
 });
 test('untrusted origin is refused before authentication',async()=>{const f=fixture();assert.equal((await f.request({action:'preview_delete'},{Origin:'https://attacker.invalid'})).status,403);assert.equal(f.calls.length,0);});
@@ -86,5 +87,5 @@ test('multi-store deletion previews every store and scrubs only surviving stores
  const preview=await(await f.request({action:'preview_delete'})).json();
  assert.equal(preview.workspaces.length,2);assert.equal(preview.workspaces[0].destroysWorkspace,true);assert.equal(preview.workspaces[1].destroysWorkspace,false);
  assert.equal((await f.request({action:'delete_account',confirmationToken:preview.confirmationToken,confirmWorkspaceDeletion:true})).status,200);
- const sent=JSON.parse(f.calls.at(-1).options.body);assert.deepEqual(Object.keys(sent.p_sanitized_payload),['shared']);assert.deepEqual(sent.p_sanitized_payload.shared.attendance,[]);
+ const sent=JSON.parse(f.calls.find(c=>c.url.endsWith('tap2work_erase_account')).options.body);assert.deepEqual(Object.keys(sent.p_sanitized_payload),['shared']);assert.deepEqual(sent.p_sanitized_payload.shared.attendance,[]);
 });

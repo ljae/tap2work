@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -33,6 +34,7 @@ Json printFixture() {
 class FakePdf extends ManualPdfRepository {
   int generated = 0, saved = 0, printed = 0;
   List<Json>? selected;
+  Json? snapshotUsed;
   ManualPrintOptions? options;
   @override
   Future<Uint8List> generate(
@@ -41,6 +43,7 @@ class FakePdf extends ManualPdfRepository {
     ManualPrintOptions options,
   ) async {
     generated++;
+    snapshotUsed = snapshot;
     selected = sources;
     this.options = options;
     return Uint8List.fromList('%PDF-1.7'.codeUnits);
@@ -56,6 +59,19 @@ class FakePdf extends ManualPdfRepository {
   Future<bool> printPdf(Uint8List bytes, String name) async {
     printed++;
     return true;
+  }
+}
+
+class DeferredPdf extends FakePdf {
+  final pending = Completer<Uint8List>();
+  @override
+  Future<Uint8List> generate(
+    Json snapshot,
+    List<Json> sources,
+    ManualPrintOptions options,
+  ) async {
+    await super.generate(snapshot, sources, options);
+    return pending.future;
   }
 }
 
@@ -244,6 +260,80 @@ void main() {
     expect(button.onPressed, isNull);
     expect(repo.saved, 0);
   });
+  for (final scope in ['workspace', 'account']) {
+    testWidgets(
+      'switching $scope before first PDF generation blocks old content',
+      (tester) async {
+        final data = printFixture()..['workspaceId'] = 'print-store-one';
+        final ops = OperationsController(
+          client: MockClient((_) async => response(data)),
+        );
+        addTearDown(ops.dispose);
+        final repo = FakePdf();
+        await mount(tester, ops, repository: repo);
+        if (scope == 'workspace') {
+          ops.data!['workspaceId'] = 'print-store-two';
+        } else {
+          ops.actorId = 'crew';
+        }
+        ops.notifyListeners();
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('print-select-a')), findsNothing);
+        expect(
+          tester
+              .widget<FilledButton>(
+                find.byKey(const ValueKey('manual-print-generate')),
+              )
+              .onPressed,
+          isNull,
+        );
+        expect(repo.generated, 0);
+        expect(repo.saved, 0);
+        expect(repo.printed, 0);
+      },
+    );
+  }
+  testWidgets('PDF generation uses a deep copy of the opening snapshot', (
+    tester,
+  ) async {
+    final ops = OperationsController(
+      client: MockClient((_) async => response(printFixture())),
+    );
+    addTearDown(ops.dispose);
+    final repo = FakePdf();
+    await mount(tester, ops, repository: repo);
+    ops.data!['revision'] = 99;
+    ops.data!['taskTemplates'][0]['title'] = '나중에 수정한 제목';
+    ops.data!['taskTemplates'][0]['steps'][0]['manual'] = '나중에 수정한 방법';
+    await tester.tap(find.byKey(const ValueKey('manual-print-generate')));
+    await tester.pumpAndSettle();
+    expect(repo.snapshotUsed?['revision'], 2);
+    expect(repo.selected!.first['title'], '위생 TAP');
+    expect(repo.selected!.first['steps'][0]['manual'], '손 씻기 상세 매뉴얼');
+  });
+  testWidgets(
+    'a PDF finishing after a workspace change is not offered for output',
+    (tester) async {
+      final data = printFixture()..['workspaceId'] = 'print-store-one';
+      final ops = OperationsController(
+        client: MockClient((_) async => response(data)),
+      );
+      addTearDown(ops.dispose);
+      final repo = DeferredPdf();
+      await mount(tester, ops, repository: repo);
+      await tester.tap(find.byKey(const ValueKey('manual-print-generate')));
+      await tester.pump();
+      expect(repo.generated, 1);
+      ops.data!['workspaceId'] = 'print-store-two';
+      ops.notifyListeners();
+      repo.pending.complete(Uint8List.fromList('%PDF-1.7'.codeUnits));
+      await tester.pumpAndSettle();
+      expect(find.text('PDF 저장'), findsNothing);
+      expect(find.text('미리보기'), findsNothing);
+      expect(repo.saved, 0);
+      expect(repo.printed, 0);
+    },
+  );
   testWidgets(
     'generates actual five-language PDFs with bilingual content and long pagination',
     (tester) async {

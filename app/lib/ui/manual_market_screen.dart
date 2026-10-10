@@ -30,7 +30,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
   final search = TextEditingController();
   final specialization = TextEditingController();
   bool replaceExisting = false, enableOperations = false;
-  String? industry, kind, scope, error;
+  String? industry, useCase, purpose, error;
   bool saving = false, reviewing = false;
   final operationId = 'import-${DateTime.now().microsecondsSinceEpoch}';
 
@@ -68,7 +68,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
               .where(
                 (e) =>
                     collections.contains(e['collectionId']) &&
-                    (e['knowledge']?['supersededBy'] as List? ?? []).isEmpty &&
+                    catalog.discoverable(e) &&
                     e['kind'] != 'legal' &&
                     !catalog.linked(e),
               )
@@ -144,6 +144,53 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
     }
   });
 
+  Future<void> openFilters() async {
+    var nextIndustry = industry;
+    var nextPurpose = purpose;
+    final applied = await showAppSheet<bool>(context, builder: (c) =>
+      StatefulBuilder(builder: (c, change) => AppEditorScaffold(
+        title: '업무·업종 좁혀보기',
+        footer: AppSheetFooter(children: [
+          TextButton(onPressed: () => change(() {
+            nextIndustry = null;
+            nextPurpose = null;
+          }), child: const Text('분류 초기화')),
+          FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('선택 적용')),
+        ]),
+        body: ListView(padding: const EdgeInsets.all(24), children: [
+          AppPicker<String>(
+            label: '업무 종류', value: nextPurpose ?? '',
+            items: [
+              const DropdownMenuItem(value: '', child: Text('모든 업무')),
+              for (final item in catalog.purposes.where((p) => catalog.search(useCase: useCase).any((e) => e['purposeId'] == p['id'])))
+                DropdownMenuItem(value: item['id'] as String, child: Text(item['name'])),
+            ],
+            onChanged: (v) => change(() => nextPurpose = v == '' ? null : v),
+          ),
+          const SizedBox(height: 24),
+          AppPicker<String>(
+            key: const ValueKey('market-industry'),
+            label: '업종', value: nextIndustry ?? '',
+            items: [
+              const DropdownMenuItem(value: '', child: Text('모든 업종')),
+              for (final item in catalog.industries)
+                DropdownMenuItem(value: item['id'] as String, child: Text(item['name'])),
+            ],
+            onChanged: (v) => change(() => nextIndustry = v == '' ? null : v),
+          ),
+          const SizedBox(height: 16),
+          const Text('업종을 고르면 공통 매뉴얼도 함께 보여요.', style: AppText.caption),
+        ]),
+      )),
+    );
+    if (applied == true && mounted) {
+      setState(() {
+        industry = nextIndustry;
+        purpose = nextPurpose;
+      });
+    }
+  }
+
   Future<void> openSource(String value) async {
     final uri = Uri.tryParse(value);
     bool opened = false;
@@ -182,7 +229,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
           ),
           title: Text(entry['title'], style: AppText.body),
           subtitle: Text(
-            '${legal ? '법적 기준 확인' : entry['collectionName']} · ${steps.length}개 항목${linked ? ' · 가져옴' : ''}',
+            '${ManualMarketCatalog.useCases[catalog.useCaseOf(entry)] ?? '매장 루틴'} · ${steps.length}개 항목${linked ? ' · 가져옴' : ''}',
             style: AppText.caption,
           ),
           children: [
@@ -261,25 +308,22 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
   @override
   Widget build(BuildContext context) {
     final results = catalog.search(
-      scope: scope,
+      useCase: useCase,
+      purpose: purpose,
       query: search.text,
       industry: industry,
-      kind: kind,
+
     );
     final basket = catalog.entries
         .where((e) => selected.contains(e['sourceId']))
         .toList();
     final groups = <String, List<Json>>{};
     for (final entry in results) {
-      final name = industry != null || kind != null || search.text.isNotEmpty
-          ? catalog.purposeName(entry)
-          : catalog.industryName(catalog.industryIds(entry).first);
+      final name = catalog.purposeName(entry);
       groups.putIfAbsent(name, () => []).add(entry);
     }
-    final narrowed = industry != null || kind != null || search.text.isNotEmpty;
-    final order = (narrowed ? catalog.purposes : catalog.industries)
-        .map((item) => item['name'])
-        .toList();
+    final narrowed = industry != null || useCase != null || purpose != null || search.text.isNotEmpty;
+    final order = catalog.purposes.map((item) => item['name']).toList();
     final orderedGroups = groups.entries.toList()
       ..sort((a, b) => order.indexOf(a.key).compareTo(order.indexOf(b.key)));
     return AppEditorScaffold(
@@ -348,9 +392,9 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                         : (v) => setState(() => replaceExisting = v),
                   ),
                   SwitchListTile(
-                    title: const Text('선택한 운영 업무를 매일 사용'),
+                    title: const Text('매일 하는 루틴을 업무에 연결'),
                     subtitle: const Text(
-                      '법적 기준은 참고용으로 보관해요. 업무별 시간·담당·주기는 구성 후 조정할 수 있어요.',
+                      '교육·정기관리는 참고용으로 담아요. 필요한 항목의 담당·주기는 가져온 뒤 정해 주세요.',
                     ),
                     value: enableOperations,
                     onChanged: saving
@@ -438,7 +482,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   controller: search,
                   decoration: InputDecoration(
                     labelText: '내 업종이나 필요한 업무 검색',
-                    hintText: '예: 카페, 예약, 근로계약, 청소',
+                    hintText: '예: 손 씻기, 홀 마감, 냉장고 청소',
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: search.text.isEmpty
                         ? null
@@ -451,65 +495,30 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   onChanged: (_) => setState(() {}),
                 ),
                 const SizedBox(height: 16),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      for (final item in <String, String>{
-                        '': '전체',
-                        'universal': '업종 공통',
-                        'food': '외식 공통',
-                        'process': '공정·보관',
-                        'menu': '메뉴·업종별',
-                      }.entries)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(item.value),
-                            selected: (scope ?? '') == item.key,
-                            onSelected: (_) => setState(
-                              () => scope = item.key.isEmpty ? null : item.key,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                OutlinedButton.icon(
-                  key: const ValueKey('market-industry'),
-                  onPressed: () async {
-                    final value = await showAppSheet<String>(
-                      context,
-                      builder: (c) => AppEditorScaffold(
-                        title: '업종 선택',
-                        body: ListView(
-                          children: [
-                            ListTile(
-                              title: const Text('모든 업종 둘러보기'),
-                              selected: industry == null,
-                              onTap: () => Navigator.pop(c, ''),
-                            ),
-                            for (final item in catalog.industries)
-                              ListTile(
-                                title: Text(item['name']),
-                                subtitle: Text(
-                                  (item['keywords'] as List? ?? []).join(' · '),
-                                ),
-                                selected: industry == item['id'],
-                                onTap: () =>
-                                    Navigator.pop(c, item['id'] as String),
-                              ),
-                          ],
-                        ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final item in {'': '전체', ...ManualMarketCatalog.useCases}.entries)
+                      ChoiceChip(
+                        label: Text(item.value),
+                        selected: (useCase ?? '') == item.key,
+                        onSelected: (_) => setState(() {
+                          useCase = item.key.isEmpty ? null : item.key;
+                          purpose = null;
+                        }),
                       ),
-                    );
-                    if (value != null && mounted) {
-                      setState(() => industry = value.isEmpty ? null : value);
-                    }
-                  },
-                  icon: const Icon(Icons.storefront_outlined),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  key: const ValueKey('market-filters'),
+                  onPressed: openFilters,
+                  icon: const Icon(Icons.tune, size: 18),
                   label: Text(
-                    '업종 · ${industry == null ? '모든 업종 둘러보기' : catalog.industryName(industry!)}',
+                    industry == null && purpose == null
+                        ? '업무·업종 좁혀보기'
+                        : '${purpose == null ? '모든 업무' : catalog.purposes.where((p) => p['id'] == purpose).firstOrNull?['name'] ?? '모든 업무'} · ${industry == null ? '모든 업종' : catalog.industryName(industry!)}',
                   ),
                 ),
                 if (widget.setup)
@@ -538,39 +547,6 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     label: const Text('공통 기본 운영 7개 담기'),
                   ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    for (final option in const {
-                      '': '전체',
-                      'legal': '법적 기준',
-                      'operation': '운영 업무',
-                    }.entries)
-                      ChoiceChip(
-                        label: Text(option.value),
-                        selected: (kind ?? '') == option.key,
-                        onSelected: (_) => setState(
-                          () => kind = option.key.isEmpty ? null : option.key,
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  industry == null
-                      ? '업종별로 찾고, 필요한 것만 담으세요.'
-                      : '선택한 업종과 업종 공통 항목을 함께 보여드려요.',
-                  style: AppText.caption,
-                ),
-                if (kind == 'legal')
-                  const Padding(
-                    padding: EdgeInsets.only(top: 8),
-                    child: Text(
-                      '업종·인원·시설에 따라 적용 기준이 달라요. 항목을 펼쳐 대상과 공식 출처를 확인하세요.',
-                      style: AppText.caption,
-                    ),
-                  ),
                 Row(
                   children: [
                     Expanded(
@@ -604,20 +580,21 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     '공용 목록을 불러오지 못했어요. 매뉴얼 목록을 새로고침하고 다시 열어 주세요.',
                   )
                 else if (results.isEmpty) ...[
-                  const Information('조건에 맞는 항목이 없어요. 다른 검색어나 업종 공통 업무를 살펴보세요.'),
+                  const Information('조건에 맞는 매뉴얼이 없어요. 검색어나 분류를 바꿔 보세요.'),
                   TextButton(
                     onPressed: () => setState(() {
                       search.clear();
-                      industry = 'all';
-                      kind = null;
+                      industry = null;
+                      useCase = null;
+                      purpose = null;
                     }),
-                    child: const Text('공통 업무 보기'),
+                    child: const Text('검색·분류 초기화'),
                   ),
                 ],
                 for (final group in orderedGroups)
                   ExpansionTile(
                     key: ValueKey(
-                      'market-group-${industry ?? ''}-${kind ?? ''}-${search.text}-${group.key}',
+                      'market-group-${industry ?? ''}-${useCase ?? ''}-${purpose ?? ''}-${search.text}-${group.key}',
                     ),
                     initiallyExpanded: narrowed || groups.length == 1,
                     tilePadding: EdgeInsets.zero,

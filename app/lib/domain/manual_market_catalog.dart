@@ -19,6 +19,15 @@ class ManualMarketCatalog {
           .cast<Json>();
   List<String> industryIds(Json entry) =>
       (entry['industryIds'] as List? ?? ['all']).cast<String>();
+  static const useCases = {
+    'training': '직원교육',
+    'routine': '매장 루틴',
+    'periodic': '정기관리',
+  };
+  String useCaseOf(Json entry) => entry['knowledge']?['useCase'] ??
+      (entry['kind'] == 'legal' ? 'periodic' : 'routine');
+  bool discoverable(Json entry) => useCaseOf(entry) != 'startup' &&
+      (entry['knowledge']?['supersededBy'] as List? ?? []).isEmpty;
   String scopeOf(Json entry) =>
       entry['knowledge']?['scope'] ??
       (entry['collectionId'] == 'common'
@@ -40,14 +49,16 @@ class ManualMarketCatalog {
     String? industry,
     String? kind,
     String? scope,
+    String? useCase,
+    String? purpose,
   }) {
     String normalize(String s) =>
         s.toLowerCase().replaceAll(RegExp(r'\s+'), '');
     final words = query.trim().split(RegExp(r'\s+')).map(normalize);
     return entries.where((entry) {
-      if ((entry['knowledge']?['supersededBy'] as List? ?? []).isNotEmpty) {
-        return false;
-      }
+      if (!discoverable(entry)) return false;
+      if (useCase != null && useCaseOf(entry) != useCase) return false;
+      if (purpose != null && entry['purposeId'] != purpose) return false;
       if (scope != null && scopeOf(entry) != scope) return false;
       final ids = industryIds(entry);
       if (industry != null && !ids.contains(industry) && !ids.contains('all')) {

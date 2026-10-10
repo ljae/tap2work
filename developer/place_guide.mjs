@@ -1,8 +1,10 @@
+import { parseManualMediaReference } from './manual_media_reference.mjs';
 import { StoreError } from './store.mjs';
 const fail=m=>{throw new StoreError(m,400);};
 const str=(v,max,required=false)=>{if(typeof v!=='string'||v.length>max||required&&!v.trim())fail('장소 이름과 설명을 확인해 주세요.');return v.trim();};
 export function placePhoto(value){
  if(value==null||value==='')return '';
+ if(parseManualMediaReference(value))return value;
  if(typeof value!=='string'||value.length>500000)fail('사진은 350KB 이내로 선택해 주세요.');
  if(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value))return value;
  try{const u=new URL(value);if(u.protocol==='https:'&&!u.username&&!u.password)return value;}catch{}

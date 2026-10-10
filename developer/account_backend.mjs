@@ -1,3 +1,4 @@
+import {cleanupDeletedWorkspaceMedia} from './manual_media_cleanup.mjs';
 import {StoreError} from './store.mjs';
 import {eraseMemberData} from './account_erasure.mjs';
 import {revokeApple} from './apple_revoke.mjs';
@@ -53,7 +54,14 @@ export function createAccountHandler({url, serviceKey, apple, fetcher=fetch, app
       const result=await rpc('tap2work_erase_account',{p_user_id:user.id,p_expected_scope:scope,p_sanitized_payload:sanitized,p_delete_workspace:destroysWorkspace});
       if(result?.conflict)throw new StoreError('동료가 먼저 수정했어요. 삭제 범위를 다시 확인해 주세요.',409);
       if(result?.deleted!==true)throw new StoreError('계정 삭제를 완료하지 못했어요.',503);
-      return reply(200,{deleted:true});
+      let mediaCleanupPending = false;
+      if (destroysWorkspace) {
+        try {
+          const cleanup = await cleanupDeletedWorkspaceMedia({url,headers:serverHeaders,fetcher,workspaceIds:scopes.filter(destroys).map(s=>s.workspaceId)});
+          mediaCleanupPending = cleanup.pending;
+        } catch { mediaCleanupPending = true; }
+      }
+      return reply(200,{deleted:true,...(mediaCleanupPending?{mediaCleanupPending:true}:{})});
     } catch(error) {
       return reply(error instanceof StoreError?error.status:500,{error:error instanceof StoreError?error.message:'계정 삭제를 처리하지 못했어요. 다시 시도해 주세요.'});
     }

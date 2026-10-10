@@ -1,4 +1,5 @@
 import 'manual_setup_screen.dart';
+import 'place_guide.dart';
 import 'manual_work_screen.dart';
 import 'manual_print_screen.dart';
 import 'manual_tap_editor.dart';
@@ -1058,11 +1059,11 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             const SizedBox(height: 20),
             Information(selected['tip']),
           ],
-          for (final link in {
-            'imageUrl': '사진',
-            'videoUrl': '영상',
-            'sourceUrl': '참고 자료',
-          }.entries)
+          if ('${selected['imageUrl'] ?? ''}'.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            placePhoto(selected['imageUrl'], ops: ops),
+          ],
+          for (final link in {'videoUrl': '영상', 'sourceUrl': '참고 자료'}.entries)
             if ('${selected[link.key] ?? ''}'.isNotEmpty)
               PressBounce(
                 child: TextButton.icon(

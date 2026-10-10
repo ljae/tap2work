@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 import '../data/http_operations_repository.dart';
 import '../domain/operations_repository.dart';
+import '../domain/manual_media_repository.dart';
 export '../domain/operations_repository.dart' show Json;
 
 /// Public preview, local demo, or verified Supabase workspace transport.
@@ -77,6 +79,58 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   bool get isLeader => ['owner', 'manager'].contains(actor['role']);
   bool get canEditTasks => isLeader && data?['canEditTasks'] != false;
   bool get isOwner => actor['role'] == 'owner';
+
+  Future<String> uploadManualPhoto(Uint8List bytes) async {
+    final repository = _repository;
+    final openingActor = actorId;
+    final openingWorkspace = data?['workspaceId'] as String?;
+    if (_disposed ||
+        readOnly ||
+        !cloud ||
+        !canEditTasks ||
+        openingWorkspace == null ||
+        repository is! ManualMediaRepository) {
+      throw const ManualMediaException('사진 등록은 편집 권한이 있는 로그인 매장에서 사용할 수 있어요.');
+    }
+    final result = await (repository as ManualMediaRepository)
+        .uploadManualPhoto(
+          actorId: openingActor,
+          workspaceId: openingWorkspace,
+          bytes: bytes,
+        );
+    if (_disposed ||
+        openingActor != actorId ||
+        openingWorkspace != data?['workspaceId'] ||
+        !canEditTasks) {
+      throw const ManualMediaException('권한 또는 매장이 변경됐어요. 다시 열어 주세요.');
+    }
+    return result;
+  }
+
+  Future<Uint8List> loadManualPhoto(String reference) async {
+    final repository = _repository;
+    final openingActor = actorId;
+    final openingWorkspace = data?['workspaceId'] as String?;
+    if (_disposed ||
+        readOnly ||
+        !cloud ||
+        openingWorkspace == null ||
+        repository is! ManualMediaRepository ||
+        manualMediaWorkspace(reference) != openingWorkspace) {
+      throw const ManualMediaException('이 매장에서 사진을 불러올 수 없어요.');
+    }
+    final result = await (repository as ManualMediaRepository).loadManualPhoto(
+      actorId: openingActor,
+      workspaceId: openingWorkspace,
+      reference: reference,
+    );
+    if (_disposed ||
+        openingActor != actorId ||
+        openingWorkspace != data?['workspaceId']) {
+      throw const ManualMediaException('매장이 변경됐어요. 사진을 다시 열어 주세요.');
+    }
+    return result;
+  }
 
   Future<void> start() async {
     if (!_observing) {

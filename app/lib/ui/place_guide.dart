@@ -1,16 +1,23 @@
 import 'dart:convert';
-import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import '../data/photo_capture_service.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import 'photo_registration.dart';
 
-Widget placePhoto(String value) {
+Widget placePhoto(String value, {OperationsController? ops}) {
   Widget fallback(BuildContext context, Object error, StackTrace? stack) =>
       const Padding(
         padding: EdgeInsets.all(16),
         child: Text('사진을 불러오지 못했어요. 위치 설명을 확인해 주세요.'),
       );
   if (value.isEmpty) return const SizedBox.shrink();
+  if (value.startsWith('tap2work-media:')) {
+    return ops == null
+        ? const Text('사진을 불러오려면 매장에 로그인해 주세요.')
+        : _PrivatePlacePhoto(value: value, ops: ops);
+  }
   try {
     final image = value.startsWith('data:')
         ? Image.memory(
@@ -29,6 +36,87 @@ Widget placePhoto(String value) {
   } catch (_) {
     return const Text('사진을 확인해 주세요.');
   }
+}
+
+class _PrivatePlacePhoto extends StatefulWidget {
+  const _PrivatePlacePhoto({required this.value, required this.ops});
+  final String value;
+  final OperationsController ops;
+  @override
+  State<_PrivatePlacePhoto> createState() => _PrivatePlacePhotoState();
+}
+
+class _PrivatePlacePhotoState extends State<_PrivatePlacePhoto> {
+  Future<Uint8List>? bytes;
+  String? actor, workspace;
+  void load() {
+    actor = widget.ops.actorId;
+    workspace = widget.ops.workspaceId ?? widget.ops.data?['workspaceId'];
+    bytes = widget.ops.loadManualPhoto(widget.value);
+  }
+
+  void changed() {
+    final nextWorkspace =
+        widget.ops.workspaceId ?? widget.ops.data?['workspaceId'];
+    if (mounted &&
+        (actor != widget.ops.actorId || workspace != nextWorkspace)) {
+      setState(load);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.ops.addListener(changed);
+    load();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PrivatePlacePhoto oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.ops != widget.ops) {
+      oldWidget.ops.removeListener(changed);
+      widget.ops.addListener(changed);
+    }
+    if (oldWidget.value != widget.value || oldWidget.ops != widget.ops) load();
+  }
+
+  @override
+  void dispose() {
+    widget.ops.removeListener(changed);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<Uint8List>(
+    key: ValueKey((widget.value, actor, workspace)),
+    future: bytes,
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('사진을 불러오지 못했어요. 위치 설명을 확인해 주세요.'),
+        );
+      }
+      if (!snapshot.hasData) {
+        return const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('사진을 불러오고 있어요…'),
+        );
+      }
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 300),
+          child: Image.memory(
+            snapshot.data!,
+            fit: BoxFit.contain,
+            errorBuilder: (_, _, _) => const Text('사진을 불러오지 못했어요.'),
+          ),
+        ),
+      );
+    },
+  );
 }
 
 String placeAddress(Json p) => [
@@ -53,7 +141,7 @@ Future<void> openPlace(
             Text(p['name'], style: AppText.title),
             Text(placeAddress(p), style: AppText.caption),
             const SizedBox(height: 16),
-            placePhoto(p['photo'] ?? ''),
+            placePhoto(p['photo'] ?? '', ops: ops),
             const SizedBox(height: 16),
             Text(p['description'] ?? ''),
             for (final i in ops.rows('items').where((i) => i['zone'] == id))
@@ -171,9 +259,15 @@ class _PlaceGuideState extends State<PlaceGuide> {
 }
 
 class PlaceEditor extends StatefulWidget {
-  const PlaceEditor({super.key, required this.ops, this.place});
+  const PlaceEditor({
+    super.key,
+    required this.ops,
+    this.place,
+    this.photoService,
+  });
   final OperationsController ops;
   final Json? place;
+  final PhotoCaptureService? photoService;
   @override
   State<PlaceEditor> createState() => _PlaceEditorState();
 }
@@ -185,13 +279,25 @@ class _PlaceEditorState extends State<PlaceEditor> {
       note = TextEditingController(text: widget.place?['description'] ?? '');
   late String kind = widget.place?['kind'] ?? 'storage',
       photo = widget.place?['photo'] ?? '';
-  late final revision = widget.ops.data?['revision'],
-      actor = widget.ops.actorId,
-      workspace = widget.ops.data?['workspaceId'];
+  late final Object? revision, workspace;
+  late final String actor;
   late final id =
       widget.place?['id'] ?? 'place-${DateTime.now().microsecondsSinceEpoch}';
   String? error;
   bool busy = false;
+  bool photoBusy = false;
+  OptimizedPhoto? pendingPhoto;
+  @override
+  void initState() {
+    super.initState();
+    revision = widget.ops.data?['revision'];
+    actor = widget.ops.actorId;
+    workspace = widget.ops.workspaceId ?? widget.ops.data?['workspaceId'];
+  }
+
+  bool get scopeCurrent =>
+      widget.ops.actorId == actor &&
+      (widget.ops.workspaceId ?? widget.ops.data?['workspaceId']) == workspace;
   late int seats = widget.place?['kind'] == 'table'
       ? widget.place!['seats']
       : 4;
@@ -200,6 +306,7 @@ class _PlaceEditorState extends State<PlaceEditor> {
       floor.text != (widget.place?['floor'] ?? '') ||
       area.text != (widget.place?['area'] ?? '') ||
       note.text != (widget.place?['description'] ?? '') ||
+      pendingPhoto != null ||
       photo != (widget.place?['photo'] ?? '') ||
       kind != (widget.place?['kind'] ?? 'storage');
   Future<void> leave() async {
@@ -235,34 +342,43 @@ class _PlaceEditorState extends State<PlaceEditor> {
     super.dispose();
   }
 
-  Future<void> pick() async {
-    final f = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
-      withData: true,
-    );
-    if (!mounted || f == null) return;
-    final file = f.files.single;
-    if (file.bytes == null || file.size > 350000) {
-      setState(() => error = '350KB 이내 JPG·PNG·WebP 사진을 선택해 주세요.');
-      return;
-    }
-    final ext = file.extension?.toLowerCase();
-    setState(() {
-      photo =
-          'data:image/${ext == 'jpg' ? 'jpeg' : ext};base64,${base64Encode(file.bytes!)}';
-      error = null;
-    });
-  }
-
   Future<void> save() async {
-    if (busy) return;
-    if (widget.ops.actorId != actor ||
-        widget.ops.data?['workspaceId'] != workspace) {
+    if (busy || photoBusy) return;
+    if (!scopeCurrent) {
       setState(() => error = '매장이 바뀌었어요. 다시 열어 주세요.');
       return;
     }
     setState(() => busy = true);
+    var savedPhoto = photo;
+    try {
+      if (pendingPhoto != null) {
+        savedPhoto = widget.ops.cloud
+            ? await widget.ops.uploadManualPhoto(pendingPhoto!.bytes)
+            : pendingPhoto!.dataUrl;
+      }
+      if (!mounted) return;
+      if (!scopeCurrent) {
+        setState(() {
+          busy = false;
+          error = '매장이 바뀌었어요. 다시 열어 주세요.';
+        });
+        return;
+      }
+      // Keep this uploaded candidate on the draft when the following CAS save
+      // fails. Retry uses the same object instead of creating another upload.
+      setState(() {
+        photo = savedPhoto;
+        pendingPhoto = null;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          busy = false;
+          error = e.toString();
+        });
+      }
+      return;
+    }
     final ok = await widget.ops.act('save_place', {
       'revision': revision,
       'place': {
@@ -272,7 +388,7 @@ class _PlaceEditorState extends State<PlaceEditor> {
         'area': area.text,
         'description': note.text,
         'kind': kind,
-        'photo': photo,
+        'photo': savedPhoto,
         'seats': seats,
       },
     });
@@ -298,8 +414,16 @@ class _PlaceEditorState extends State<PlaceEditor> {
       onClose: leave,
       footer: AppSheetFooter(
         children: [
+          if (error != null)
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                error!,
+                style: AppText.caption.copyWith(color: AppColors.accent),
+              ),
+            ),
           FilledButton(
-            onPressed: busy ? null : save,
+            onPressed: busy || photoBusy ? null : save,
             child: Text(busy ? '저장 중…' : '장소 저장'),
           ),
         ],
@@ -352,19 +476,24 @@ class _PlaceEditorState extends State<PlaceEditor> {
             ),
           ),
           const SizedBox(height: 16),
-          placePhoto(photo),
-          TextButton.icon(
-            onPressed: busy ? null : pick,
-            icon: const Icon(Icons.add_photo_alternate_outlined),
-            label: const Text('사진 선택 · 350KB 이내'),
+          PhotoRegistrationField(
+            value: photo,
+            pending: pendingPhoto,
+            scopeKey: (actor, workspace, id),
+            isScopeCurrent: () => scopeCurrent,
+            enabled: !busy,
+            service: widget.photoService,
+            previewBuilder: (value) => placePhoto(value, ops: widget.ops),
+            onBusyChanged: (value) => setState(() => photoBusy = value),
+            onChanged: (value) => setState(() {
+              pendingPhoto = value;
+              error = null;
+            }),
+            onRemove: () => setState(() {
+              photo = '';
+              pendingPhoto = null;
+            }),
           ),
-          if (photo.isNotEmpty)
-            TextButton(
-              onPressed: () => setState(() => photo = ''),
-              child: const Text('사진 제거'),
-            ),
-          if (error != null)
-            Text(error!, style: const TextStyle(color: AppColors.accent)),
           const SizedBox(height: 16),
 
           const SizedBox(height: 16),

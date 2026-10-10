@@ -5,6 +5,10 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S68','app/lib/ui/tap_workspace.dart','ManualActionSlides(','app/lib/ui/manual_action_slides.dart','onToggle'],
+  ['S69','app/lib/ui/checklist_editor.dart','uploadManualPhoto','app/lib/state/operations_controller.dart','uploadManualPhoto'],
+  ['S70','app/lib/ui/place_guide.dart','loadManualPhoto','app/lib/data/http_operations_repository.dart','loadManualPhoto'],
+  ['S71','app/lib/ui/checklist_backup_screen.dart','photosToRegister','developer/manual_media_reference.mjs','tap2work-media:'],
   ['S65','app/lib/ui/manual_setup_screen.dart',"'save_manual_setup'",'developer/operations.mjs',"case 'save_manual_setup'"],
   ['S66','app/lib/ui/place_guide.dart',"'save_place'",'developer/operations.mjs',"case 'save_place'"],
   ['S67','app/lib/ui/tap_card.dart','ManualCustomizationBadge','developer/operations.mjs','manualCustomization'],
@@ -13,7 +17,7 @@ const contracts = [
   ['S61','app/lib/ui/manual_work_screen.dart',"'replace_mixed_break'",'developer/manual_market.mjs','replaceMixedBreak'],
   ['S62','app/lib/ui/tap_settings_screen.dart','knowledgeIds','developer/operations.mjs','knowledgeSnapshots(state,template)'],
   ['S63','app/lib/ui/tap_workspace.dart',"'flag_work_issue'",'developer/operations.mjs',"case 'flag_work_issue'"],
-  ['S64','app/lib/ui/manual_market_screen.dart','scope: scope','app/lib/domain/manual_market_catalog.dart','scopeOf(entry)'],
+  ['S64','app/lib/ui/manual_market_screen.dart','useCase: useCase','app/lib/domain/manual_market_catalog.dart','useCaseOf(entry)'],
   ['S57','app/lib/ui/address_search.dart','StoreAddressField','developer/store_profile.mjs','addressSelection'],
   ['S58','app/lib/ui/store_setup_screen.dart',"'menuIds': menuIds.toList()",'developer/store_bundle.mjs','applyStoreBundle'],
   ['S55', 'app/lib/ui/store_setup_screen.dart', "'businessTypeId': typeId", 'developer/store_setup.mjs', 'applyStoreSetup'],

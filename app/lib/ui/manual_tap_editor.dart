@@ -85,6 +85,7 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
               'title': steps[index]['manualTitle'] ?? steps[index]['title'],
             },
       title.text,
+      ops: widget.ops,
     );
     if (result != null && mounted) {
       setState(() {

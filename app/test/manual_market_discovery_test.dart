@@ -35,9 +35,13 @@ void main() {
           find.widgetWithText(TextField, '우리 사업장 특성'),
           '고기집 · 뼈찜',
         );
+        await tester.tap(find.byKey(const ValueKey('market-filters')));
+        await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('market-industry')));
         await tester.pumpAndSettle();
         await tester.tap(find.text('음식·음료').last);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('선택 적용'));
         await tester.pumpAndSettle();
         await tester.ensureVisible(
           find.byKey(const ValueKey('market-starter')),
@@ -50,7 +54,7 @@ void main() {
           find.widgetWithText(SwitchListTile, '기존 운영 매뉴얼을 새 구성으로 교체'),
         );
         await tester.tap(
-          find.widgetWithText(SwitchListTile, '선택한 운영 업무를 매일 사용'),
+          find.widgetWithText(SwitchListTile, '매일 하는 루틴을 업무에 연결'),
         );
         await tester.tap(find.text('선택한 7개로 구성하기'));
         await tester.pumpAndSettle();
@@ -59,7 +63,18 @@ void main() {
         expect(sent?['specialization'], '고기집 · 뼈찜');
         expect(sent?['replaceExisting'], true);
         expect(sent?['enableOperations'], true);
-        expect(sent?['sourceIds'], hasLength(7));
+        expect(
+          sent?['sourceIds'],
+          unorderedEquals([
+            'business/opening',
+            'business/service',
+            'business/inventory',
+            'business/cleaning',
+            'business/safety',
+            'business/people',
+            'business/closing',
+          ]),
+        );
         expect(tester.takeException(), isNull);
       },
     );
@@ -111,7 +126,7 @@ void main() {
     },
   );
   testWidgets(
-    'industry picker and legal filter batch import into an existing group',
+    'industry picker and periodic use case import six legal sources into existing group',
     (tester) async {
       final data = market.fixture()..['manualCatalog'] = release();
       Json? sent;
@@ -123,11 +138,15 @@ void main() {
       );
       addTearDown(ops.dispose);
       await market.mount(tester, ops, ManualMarketScreen(ops: ops), width: 390);
+      await tester.tap(find.byKey(const ValueKey('market-filters')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('market-industry')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('미용·뷰티').last);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('법적 기준'));
+      await tester.tap(find.text('선택 적용'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('정기관리'));
       await tester.pumpAndSettle();
       expect(find.text('6개 항목'), findsWidgets);
       await tester.tap(find.text('이 결과 담기'));
@@ -140,7 +159,15 @@ void main() {
       await tester.pumpAndSettle();
       expect(sent?['folderMode'], 'existing');
       expect(sent?['folderId'], 'general');
-      expect(sent?['sourceIds'], hasLength(6));
+      expect(
+        sent?['sourceIds'],
+        unorderedEquals(
+          ManualMarketCatalog(release())
+              .search(industry: 'beauty', kind: 'legal')
+              .map((entry) => entry['sourceId'])
+              .toList(),
+        ),
+      );
       expect(tester.takeException(), isNull);
     },
   );
@@ -237,10 +264,27 @@ void main() {
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), '없는검색결과123');
       await tester.pumpAndSettle();
-      expect(find.text('공통 업무 보기'), findsOneWidget);
-      await tester.ensureVisible(find.text('공통 업무 보기'));
-      await tester.tap(find.text('공통 업무 보기'));
+      expect(find.text('검색·분류 초기화'), findsOneWidget);
+      await tester.ensureVisible(find.text('검색·분류 초기화'));
+      await tester.tap(find.text('검색·분류 초기화'));
       await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        isEmpty,
+      );
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, '전체'))
+            .selected,
+        isTrue,
+      );
+      expect(find.byKey(const ValueKey('market-filters')), findsOneWidget);
+      await tester.enterText(find.byType(TextField), '근로계약');
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('market-legal/employment')),
+        findsOneWidget,
+      );
       expect(find.byType(Checkbox), findsWidgets);
       expect(tester.takeException(), isNull);
     },
