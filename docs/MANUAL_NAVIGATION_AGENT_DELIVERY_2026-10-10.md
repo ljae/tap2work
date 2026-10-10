@@ -86,3 +86,12 @@
 운영 준비 검증: Flutter432통과/브라우저 전용2개는 별도Chrome2통과, Node317통과, 정적 분석/64UI링크/Edge/PGlite2종 통과. operations v56, account v5, cleanup v1 및 활성 cron/flag 확인. 비밀 설정 성공 응답의 빈 본문, digest 응답 필드명 가정은 검증 스크립트에서 수정했다. D109 직원교육/정기관리 분류의 stable 메타데이터 보완은 별도 후속이며 이번 사진 출시로 콘텐츠 정비가 완료된 것은 아니다.
 
 첫 웹 Actions38043540444(2488fd0)는 실제 로컬 웹 사진 검증 중 중단했다. 로컬 Flutter3.41.2의 기존 생성 entrypoint/플러그인 등록 캐시에 ImagePicker가 빠져 있었으며 독립 작업 폴더의 새 빌드에서는 정상 등록됐다. root의 생성 캐시만 .local로 이동하고 native 빌드 산출물은 보존했다. 실제 플러그인을 쓰는 Chrome DOM 검사3개와 체험 재진입 체크 유지/클라우드 새로고침 회귀17개가 통과했다. PUBLIC_REVIEW의 pause/resume은 이미 받은 체험 데이터를 자동 초기화하지 않으며 수동 새로고침·역할 변경·초기 로딩은 유지한다.
+
+
+## 2026-10-10 웹 배포 완료
+
+https://tap2.work/ — 코드 `135f8ef6739c8d4a96703d28a3fe616c2dbf742a`, [Actions38044078051](https://github.com/ljae/tap2work/actions/runs/38044078051) build/deploy 성공. Flutter435통과/브라우저전용3skip, 별도Chrome3통과, Node317통과, 분석·UI64·Edge·SQL 통과. 공개 index/버전 bootstrap/main/owner샘플/정책/계정삭제/주소검색7파일이 CI artifact SHA256과 일치한다. 실제 공개 Flutter 화면도 브라우저에서 열었고 Ego space6에 결과 페이지를 남겼다.
+
+별도 새 빌드에서 실제 `image/*,capture=environment` 파일 선택→합성 사진 자동변환→미리보기와 체크→자동 다음→이전 완료 상태 유지까지 확인했다. 합성 사진 초안은 저장하지 않고 버렸다. 실제 폰 카메라·HEIC·운영 사용자 인증 사진 업로드·현장 사용성 검증은 별도이며 native 빌드/업로드도 하지 않았다. 구버전 native private 사진 표시/일부 편집 제한은 사용자 D-118에 따라 다음 업데이트 대상이다.
+
+운영 Storage/삭제 outbox/cron/operations/account/cleanup Edge와 업로드 활성화 완료. 자동 cron 실행 성공도 확인했다. 실제 크루/매장 일정/공용 카탈로그를 변경하지 않았다. 전체 웰컴·시간 안내·버디·원본 선택 업데이트·리마인드·PiP/음성 및18/84콘텐츠는 후속이며 M-033은 in_progress다. 검증 산출물: `.local/manual-navigation-deployment/public-verification.json`, `backend-verification.json`, `ci.log`; 배포 작업 폴더 `.local/manual-navigation-web-release`. 원래 작업 폴더의 미커밋 변경은 보존했다.

@@ -193,3 +193,12 @@ Web deployed: b19d775 / Actions 37771127850 succeeded. Initial inline SVG and Fl
 
 
 2026-10-10 D-118 후속: 사용자가 웹 선행 사진 활성화를 선택했다. Storage/삭제 outbox+managed cron 및 operations/account/cleanup Edge를 배포하고 합성 사진의 실제 비공개 접근·예약 정리 왕복을 검증했다. 웹 배포 진행 중이며 최종 history가 기준이다. 구버전 네이티브의 새 private 사진 표시/일부 편집 제한은 다음 업데이트 대상이다. 웹 Blob 회수/중복 디코딩 방지, 인쇄 snapshot scope 초기화를 추가했다. 기존 전체 내비게이션 로드맵은 여전히 후속.
+
+
+## 2026-10-10 웹 배포 완료
+
+https://tap2.work/ — 코드 `135f8ef6739c8d4a96703d28a3fe616c2dbf742a`, [Actions38044078051](https://github.com/ljae/tap2work/actions/runs/38044078051) build/deploy 성공. Flutter435통과/브라우저전용3skip, 별도Chrome3통과, Node317통과, 분석·UI64·Edge·SQL 통과. 공개 index/버전 bootstrap/main/owner샘플/정책/계정삭제/주소검색7파일이 CI artifact SHA256과 일치한다. 실제 공개 Flutter 화면도 브라우저에서 열었고 Ego space6에 결과 페이지를 남겼다.
+
+별도 새 빌드에서 실제 `image/*,capture=environment` 파일 선택→합성 사진 자동변환→미리보기와 체크→자동 다음→이전 완료 상태 유지까지 확인했다. 합성 사진 초안은 저장하지 않고 버렸다. 실제 폰 카메라·HEIC·운영 사용자 인증 사진 업로드·현장 사용성 검증은 별도이며 native 빌드/업로드도 하지 않았다. 구버전 native private 사진 표시/일부 편집 제한은 사용자 D-118에 따라 다음 업데이트 대상이다.
+
+운영 Storage/삭제 outbox/cron/operations/account/cleanup Edge와 업로드 활성화 완료. 자동 cron 실행 성공도 확인했다. 실제 크루/매장 일정/공용 카탈로그를 변경하지 않았다. 전체 웰컴·시간 안내·버디·원본 선택 업데이트·리마인드·PiP/음성 및18/84콘텐츠는 후속이며 M-033은 in_progress다. 검증 산출물: `.local/manual-navigation-deployment/public-verification.json`, `backend-verification.json`, `ci.log`; 배포 작업 폴더 `.local/manual-navigation-web-release`. 원래 작업 폴더의 미커밋 변경은 보존했다.

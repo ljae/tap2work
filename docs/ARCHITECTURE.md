@@ -658,3 +658,5 @@ Tap2workApp ThemeData는 VisualDensity.standard를 명시해 데스크톱 compac
 예약 삭제는 manual-media-cleanup Edge와 pg_cron/pg_net을 사용한다. 삭제 tombstone이 있을 때만 5분 주기로 Edge를 호출한다. Vault/Edge 전용 비밀키의 5분 HMAC을 요청마다 만들며 재사용 가능한 비밀키를 HTTP 큐에 넣지 않는다. 삭제된 매장의 immutable prefix만 제한된 작업량으로 처리하며 현재 매장 사진·기존 업무 참조는 보존한다.
 
 운영 bucket 비공개/250000byte/JPEG, 삭제 큐와 cron을 구성했다. 합성 사진의 실제 Storage 업로드·서비스 권한 조회·public/anon 거절, pg_net→Edge HMAC→삭제→tombstone 재예약 왕복을 검증했고 합성 fixture를 제거했다. 실제 크루 데이터·일정·카탈로그는 수정하지 않았다. 운영 사용자의 인증된 업로드/실기기 카메라·HEIC를 확인한 것은 아니다. 웹 프런트 배포 결과는 아래 후속 기록을 따른다.
+
+2026-10-10 최종 운영 상태: 위 사진/삭제 계약과 웹 화면은135f8ef/Actions38044078051로 배포·활성화됐다. public7파일 해시와 브라우저 렌더를 확인했다. root generated Flutter web cache의 오래된 plugin registry는 .local로 옮겼으며 이후 빌드는 새 entrypoint를 생성한다. 네이티브 호환과 전체 내비게이션 로드맵은 별도 후속이다.

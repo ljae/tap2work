@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 279,
+  "revision": 280,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1224,8 +1224,8 @@
       "next": "같은 행동의 설명·사진·체크 통합, 완료 체크 한 번으로 다음 행동 자동 이동. 생산 앱에서는 저장 성공 이후 이동하며 실패 시 현재 행동과 입력 보존.",
       "reason": "사용자가 체크리스트와 매뉴얼을 한몸으로 요청했고 두 번 조작의 피로를 줄이기 위해 자동 다음 이동으로 명시 수정했다.",
       "source": "docs/MANUAL_NAVIGATION_REVIEW_SEQUENCE_2026-10-10.md",
-      "updatedAt": "2026-10-10T09:44:37.749670+00:00",
-      "implementation": "후속 실제 Flutter TapWorkspace→ManualActionSlides 연결, 저장 성공 후 자동 이동·탐색 분리·실패/되돌리기/마지막·권한/순서/측정/이상 보호·사진 확대 구현. 로컬 전체 Flutter428/서버312·웹 빌드 통과. 운영 배포/현장 검증 전."
+      "updatedAt": "2026-10-10T10:19:44.985543+00:00",
+      "implementation": "웹135f8ef/Actions38044078051 배포 완료. 실제 행동 슬라이드·저장 성공 뒤 자동 이동/탐색/되돌리기와 읽기 전용 체험 상태 유지 검증. 실제 브라우저·390px 화면 확인; 현장 크루 사용성 검증은 후속."
     },
     {
       "id": "D-114",
@@ -1237,8 +1237,8 @@
       "next": "촬영 우선/앨범 대안, 자동 방향·크기·JPEG변환, 변환본만 업로드 목표.1280px/150KB목표·250KB상한은 proposed 기술값이며 실제사진/기기 검증 후 조정.",
       "reason": "사용자가 고화질이 필요 없고 Storage 부담 없는 변환 업로드와 바로 촬영을 명시 요청했다.",
       "source": "docs/MANUAL_NAVIGATION_REVIEW_SEQUENCE_2026-10-10.md",
-      "updatedAt": "2026-10-10T09:44:37.749670+00:00",
-      "implementation": "Flutter 촬영/앨범·방향/크기/JPEG 변환·메타데이터 제거·초안/업로드 참조 재시도와 authenticated private Storage API/migration/삭제 정리 소스 구현. 기본 upload 비활성. migration·operations/account배포·정리 스케줄·실기기 카메라/HEIC/가독성은 미실시."
+      "updatedAt": "2026-10-10T10:19:44.985543+00:00",
+      "implementation": "웹 촬영 우선/앨범·JPEG 최적화·메타데이터 제거·Blob 회수·비공개 사진 참조 저장 배포 및 업로드 활성화. 운영 bucket/outbox/cron/operations/account/cleanup Edge 구성과 합성 Storage 비공개 접근·예약 삭제 왕복 검증. 실제 브라우저 파일 선택/변환 미리보기 확인. 실제 폰 카메라·HEIC 및 운영 사용자 인증 업로드는 미검증."
     },
     {
       "id": "D-115",
@@ -1250,8 +1250,8 @@
       "next": "행동 슬라이드·촬영/최적화·비공개 사진 저장 소스 첫 묶음 로컬 구현/검증. 전체 웰컴·시간 안내·버디·원본 선택 적용·리마인드·PiP/음성은 후속.",
       "reason": "사용자가 각 역할에 맞는 AI 모델로 agent구성을 하고 업무를 진행하며 의사결정이 필요하면 질의하도록 요청했다.",
       "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md",
-      "updatedAt": "2026-10-10T09:44:37.749670+00:00",
-      "implementation": "실제3작업 에이전트 협업, 사진 저장/버전/실패 독립 검토와 통합 테스트 완료. 지속 자동 실행 서비스·운영 배포를 만들거나 켜지 않았다."
+      "updatedAt": "2026-10-10T10:19:44.985543+00:00",
+      "implementation": "총괄+GPT-6.1 Sol 화면/사진+GPT-6 Astra 데이터 협업으로 첫 매뉴얼/사진 웹 묶음 배포. 독립 검토·회귀 검증·새 빌드·공개 파일 해시 확인 완료. AI 에이전트 상시 자동 운영은 만들지 않았다."
     },
     {
       "id": "D-116",
@@ -1276,8 +1276,8 @@
       "next": "인증된 대상 매장 scope에서 백업의 외부 매장 private image 참조만 제거하고 내용 복원. 다른 저장 액션은 외부 매장 참조 거절.",
       "reason": "비공개 저장 전환의 충돌 지점을 질의했고 사용자가 내용 복원·사진 재등록을 선택했다.",
       "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md",
-      "updatedAt": "2026-10-10T09:44:37.749670+00:00",
-      "implementation": "Flutter 미리보기 제외 수/재등록 안내, cloud 복원 참조 정리와 결과 수, 같은매장/다른매장 테스트 구현. 운영 배포 전."
+      "updatedAt": "2026-10-10T10:19:44.985543+00:00",
+      "implementation": "다른 매장 복원 전 제외 사진 수/재등록 안내와 cloud 참조 정리 배포. 같은 매장 참조·외부HTTPS 유지, 본문 복원 테스트 통과. 실제 운영 매장의 백업을 복원해 검증한 것은 아니다."
     },
     {
       "id": "D-118",
@@ -1289,8 +1289,8 @@
       "next": "Storage·권한·삭제 예약과 API 검증 후 웹 활성화. 네이티브 업데이트는 후속이며 이번 웹 배포를 네이티브 배포로 보고하지 않는다.",
       "reason": "사용자가 개선 완료 후 웹앱 우선 배포를 요청하고 호환성 충돌 질문에 웹 먼저 활성화를 선택했다.",
       "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md",
-      "updatedAt": "2026-10-10T09:56:56.943076+00:00",
-      "implementation": "운영 private bucket/삭제 outbox+managed cron과 operations/account/cleanup Edge 배포, 합성 사진 비공개 접근·HMAC 예약 삭제 왕복 확인 후 업로드 활성화. 웹 프런트 빌드·배포 진행 중."
+      "updatedAt": "2026-10-10T10:19:44.985543+00:00",
+      "implementation": "웹 https://tap2.work/ 배포 완료(code135f8ef6739c8d4a96703d28a3fe616c2dbf742a,Actions38044078051). 업로드 활성화/운영 삭제 스케줄 확인. 네이티브 새 private 사진 호환은 다음 업데이트; 이번에는 native 빌드/업로드하지 않았다."
     }
   ],
   "milestones": [
@@ -1490,7 +1490,7 @@
       "id": "M-033",
       "title": "신입 크루 매뉴얼·시간별 업무 내비게이션 고도화",
       "status": "in_progress",
-      "description": "행동 슬라이드·촬영/최적화·비공개 사진 소스 첫 묶음 구현/검증. Flutter428/서버312·분석·UI관계64·웹 빌드 통과. 전체 웰컴/시간/버디/원본선택/리마인드/PiP음성·18/84콘텐츠 적용은 후속. 운영 활성화·배포·실기기 촬영 미실시."
+      "description": "행동 슬라이드·촬영/최적화·비공개 사진 첫 묶음 웹 배포 완료(135f8ef/Actions38044078051). Flutter435/서버317/별도Chrome3·분석·UI64·SQL/Edge 통과, 공개7파일 해시 일치. 전체 웰컴/시간/버디/원본선택/리마인드/PiP음성·18/84콘텐츠 적용은 후속. 네이티브 호환·실기기/현장 검증 미완료."
     }
   ],
   "history": [
@@ -8461,7 +8461,32 @@
         "Browser automation initially missed a partially occluded control; photo failure was subsequently visible in UI. No production photo/user data used."
       ],
       "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md"
+    },
+    {
+      "at": "2026-10-10T10:19:44.985543+00:00",
+      "type": "deployment",
+      "title": "Deploy and verify integrated manual actions and optimized private photos on web",
+      "detail": "User-authorized web-first release completed at https://tap2.work/. Code135f8ef6739c8d4a96703d28a3fe616c2dbf742a, Actions38044078051 build/deploy success. Public index, versioned bootstrap/main, freshly seeded owner sample, privacy, deletion and address-search files all HTTP200 and SHA256 match downloaded CI artifact. Browser opened rendered public Flutter app; result retained in Ego space6. Backend media upload enabled, private bucket and postgres five-minute due-only HMAC cleanup active. Earlier cancelled web run never deployed.",
+      "previous": "First implementation local only; photo backend disabled and web release pending.",
+      "next": "First manual/photo increment live on web; native compatibility and broader navigation roadmap remain in progress.",
+      "reason": "User requested improvement completion and web deployment, then explicitly selected web-first photo activation.",
+      "verification": [
+        "CI Flutter435 passed,3 browser-only skips; separate Chrome3/3 including actual plugin DOM; full Flutter analysis clean",
+        "CI Node317/317, npm check/UI64, Edge smoke, content-catalog SQL and both media SQL harnesses passed",
+        "Fresh isolated release web build58.7seconds, actual browser rear-camera-intent file chooser(image/*,capture=environment)→synthetic image optimize→preview success; draft discarded without saving",
+        "Actual browser action completion auto-advance and previous completed state retained across reactivation; mobile390logicalpx raw viewport capture inspected",
+        "Production synthetic Storage upload/read byte equality, public/anon refusal, pg_net HMAC cleanup200/photo removal/tombstone update; fixtures removed; automatic cron runs succeeded",
+        "Public7files matched CI artifact SHA256; private credential scan passed; rendered https://tap2.work/ verified"
+      ],
+      "limitations": [
+        "Native build/upload and real-device camera/HEIC/restaurant readability tests not performed. Old native cannot display new private photo refs and has related editor limits as accepted in D-118",
+        "Production end-user authenticated media-upload flow not exercised; service-key synthetic Storage/cleanup validation is distinct from end-user authorization tests",
+        "Welcome/work-ON/timing/buddy/selective source updates/reminders/PiP/audio remain planned. Existing store schedules, employees and public content release were not rewritten",
+        "Existing-workspace unattached upload GC and private image embedding in PDFs remain future work. D109 training/startup metadata completion remains separate followup",
+        "Root stale generated Flutter web cache was isolated without deleting native build artifacts; source and previous unrelated dirty work retained"
+      ],
+      "source": "docs/MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md"
     }
   ],
-  "updatedAt": "2026-10-10T10:10:59.940438+00:00"
+  "updatedAt": "2026-10-10T10:19:44.985543+00:00"
 }
