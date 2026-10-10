@@ -34,7 +34,7 @@ class StorePreparationStatus {
     hasAssignments = coverage.covered > 0;
     hasManuals = rows('taskTemplates').any((t) => t['archivedAt'] == null);
     hasTodayTasks = rows('tasks').any((t) => t['archivedAt'] == null);
-    menusToReview = rows('menus')
+    menusToReview = rows('catalogMenus')
         .where(
           (m) =>
               m['archivedAt'] == null &&

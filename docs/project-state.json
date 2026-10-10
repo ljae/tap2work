@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 288,
+  "revision": 289,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -8670,7 +8670,13 @@
       "type": "verification",
       "title": "Audit TODO final integration checks passed; Sol low deployment handoff",
       "detail": "Final complete Node372 passed; complete Flutter545 passed/3web-only skipped. Initial full Flutter failed a photo editor fixture that lacked its supposedly edited place; fixture now models the real row and verifies safe rebase of an unrelated revision while reusing the uploaded photo. Additional manual-setup polling regression passed; source init fixes capture base/identity at opening. Independent review also found stock-count completion bypass, explicit-null place unlink, open-issue retirement and report/photo permission mismatch; fixed and regression checks passed. Analysis no issues; UI75 links/syntax/Edge/prepared7x990 translation validation and actual isolated PGlite invitation/CAS/access-revocation SQL passed. After complete run added guarded example installation to prevent an open editor installing into a different newly selected workspace; related tests/analysis are recorded in final deployment check. No private user identifiers or credentials added to versioned source. Actual deployment and native build/submit now delegated to GPT-6.1 Sol low, with new invitation migration before operations, then web and native builds. Real dual-user authentication, camera/HEIC/native-speaker review, external transmission/payments remain unperformed. Existing root dirty work preserved; source change set reviewed for safe synchronization."
+    },
+    {
+      "at": "2026-10-10T14:32:25.023118+00:00",
+      "type": "deployment",
+      "title": "Audit TODO released; live readiness projection correction identified",
+      "detail": "Sol low deployed cc60ecb5bcfd273f73ae933a9b5615fe73e1228d, Pages38058986995 SUCCESS. Actual CI546Flutter passed/3web-only skipped, Node372 passed, analysis0/UI75/Edge/SQL/prepared translations passed;14 public files HTTP200/SHA256 equal actual CI artifact and credential scan passed. New invitation migration applied before operations v60 ACTIVE/anon401/private media true/runtime paid translation off. iOS12 VALID and WAITING_FOR_REVIEW/AFTER_APPROVAL, previous11cancel COMPLETE, reviewer login/contact/notes exactly preserved, internal test group linked. Android11 validated/review committed, actual internal+alpha tracks completed with existing countries/testers. Native physical installation/camera/OAuth and second-account acceptance not tested. Ego Lite fresh task verified target account privately, actual authenticated Audit Kitchen GET200 revision27, seven quantity_unknown starter items and one sufficient counted item; real invitation manager screen lists the existing fictional crew with7-day explanation. Live our-store readiness correctly showed basic4/4 plus actual28800needed/2040covered minutes and7inventory warnings, but missed one menu warning because client consumed menus instead of server catalogMenus. Corrected client source and real-projection fixture; also replaced obsolete demo/QR subtitle on authenticated invite entry. Related11 Flutter tests passed. Sol low will deploy this tiny follow-up web and next native numbers iOS13/Android12; no additional backend/schema/catalog change required. Account identifiers, tokens, exact private workspace data and invite codes absent from versioned history."
     }
   ],
-  "updatedAt": "2026-10-10T14:15:41.701124+00:00"
+  "updatedAt": "2026-10-10T14:32:25.023118+00:00"
 }

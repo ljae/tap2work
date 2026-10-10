@@ -982,8 +982,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
         ),
         actionCard(
           CupertinoIcons.person_add,
-          '크루 초대',
-          '코드 · QR 체험',
+          ops.cloud ? context.t('invite.manageTitle') : '크루 초대',
+          ops.cloud ? context.t('invite.managementEntry') : '코드 · QR 체험',
           () => openWorkplace('invite'),
         ),
         actionCard(

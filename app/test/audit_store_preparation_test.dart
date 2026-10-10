@@ -71,7 +71,7 @@ Json preparationFixture() => {
       'status': 'planned',
     },
   ],
-  'menus': [
+  'catalogMenus': [
     {'id': 'starter', 'price': 0, 'setupNeedsReview': true},
     {'id': 'free', 'price': 0, 'setupNeedsReview': false},
     {'id': 'archived', 'price': 0, 'archivedAt': '2026-10-01'},
@@ -85,6 +85,14 @@ Json preparationFixture() => {
 };
 
 void main() {
+  test('readiness consumes the actual owner API catalogMenus projection', () {
+    final data = preparationFixture();
+    data['menus'] = <Json>[
+      {'id': 'wrong-old-key', 'price': 1, 'setupNeedsReview': false},
+    ];
+    expect(StorePreparationStatus(data).menusToReview, 1);
+  });
+
   testWidgets(
     'cloud invite entry uses authenticated invitation screen, demo remains separate',
     (tester) async {
