@@ -1,4 +1,14 @@
 import 'dart:typed_data';
+import 'operations_repository.dart';
+
+abstract interface class TaskIssueMediaRepository {
+  Future<Json> uploadWorkIssuePhoto({
+    required String actorId,
+    required String workspaceId,
+    required String taskId,
+    required Uint8List bytes,
+  });
+}
 
 /// Optional authenticated transport; media does not replace an operations snapshot.
 abstract interface class ManualMediaRepository {

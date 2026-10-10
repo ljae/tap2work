@@ -16,6 +16,9 @@ import 'tap_card.dart';
 import 'manual_action_slides.dart';
 import 'manual_action_editor.dart';
 import 'place_guide.dart';
+import 'linked_place_guide.dart';
+import 'work_issue_editor.dart';
+import 'action_failure_text.dart';
 
 /// TAP그룹 folders filter the TAP board; each TAP opens its Task.
 /// Existing IDs, role checks and completion APIs remain the source of truth.
@@ -453,7 +456,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 label: Text(context.t('work.backList')),
               ),
             ),
-            PageHeading('', task['title'], ''),
+            PageHeading(
+              '',
+              manualDisplayText(
+                context,
+                task['title'],
+                translations: ops.data?['manualContentTranslations'],
+                templateId: task['templateId'],
+              ),
+              '',
+            ),
           ],
           if (task != null &&
               (task['customer_memo'] ?? '').toString().isNotEmpty)
@@ -480,7 +492,10 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               children: [
                 Text(
                   task != null
-                      ? 'Task · ${done(task)}/${total(task)} 완료'
+                      ? context.t(
+                          'manual.progress',
+                          args: {'done': done(task), 'total': total(task)},
+                        )
                       : 'TAP · ${folder == null ? '전체 업무' : '${folder['name']} 그룹'}',
                   style: const TextStyle(
                     fontSize: 13,
@@ -1008,7 +1023,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       if (ok) {
         celebrate(taskId: task['id']);
       }
-      if (!ok && mounted) notice(ops.error ?? '완료하지 못했어요.');
+      if (!ok && mounted) notice(actionFailureText(context, ops));
     }
   }
 
@@ -1075,7 +1090,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     if (ok && targetStatus == 'done') {
       celebrate(taskId: task['id']);
     }
-    if (!ok && mounted) notice(ops.error ?? '이동하지 못했어요.');
+    if (!ok && mounted) notice(actionFailureText(context, ops));
   }
 
   Future<int?> _preparedQuantity(Json task) async {
@@ -1147,7 +1162,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     if (ok) {
       celebrate(taskId: task['id']);
     }
-    if (!ok && mounted) notice(ops.error ?? '준비 수량을 기록하지 못했어요.');
+    if (!ok && mounted) notice(actionFailureText(context, ops));
   }
 
   Widget _draggable({
@@ -1306,7 +1321,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                   'taskId': task['id'],
                   'stepIds': ids,
                 });
-                if (!ok && mounted) notice(ops.error ?? '순서를 저장하지 못했어요.');
+                if (!ok && mounted) notice(actionFailureText(context, ops));
               }
             },
             children: [
@@ -1337,40 +1352,84 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   }
 
   Future<void> workIssue(Json task, bool resolve) async {
+    if (!resolve) {
+      await showAppFormSheet<void>(
+        context: context,
+        builder: (_) => WorkIssueEditor(ops: ops, task: task),
+      );
+      return;
+    }
+    final actor = ops.actorId, workspace = ops.data?['workspaceId'];
     var input = '';
+    var severity = 'blocked';
     final reason = await showAppDialog<String>(
       context: context,
-      builder: (c) => AlertDialog(
-        title: Text(resolve ? '조치 결과 기록' : '이상·수행 불가 기록'),
-        content: TextFormField(
-          initialValue: input,
-          onChanged: (value) => input = value,
-          maxLines: 4,
-          maxLength: 500,
-          decoration: const InputDecoration(labelText: '상태와 조치'),
+      builder: (c) => StatefulBuilder(
+        builder: (c, update) => AlertDialog(
+          title: Text(context.t(resolve ? 'issue.resolve' : 'issue.report')),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!resolve)
+                DropdownButtonFormField<String>(
+                  initialValue: severity,
+                  items: [
+                    DropdownMenuItem(
+                      value: 'blocked',
+                      child: Text(context.t('issue.blocked')),
+                    ),
+                    DropdownMenuItem(
+                      value: 'note',
+                      child: Text(context.t('issue.note')),
+                    ),
+                  ],
+                  onChanged: (v) => update(() => severity = v!),
+                ),
+              TextFormField(
+                initialValue: input,
+                onChanged: (value) => input = value,
+                maxLines: 4,
+                maxLength: 500,
+                decoration: InputDecoration(
+                  labelText: context.t('issue.reason'),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(c),
+              child: Text(context.t('common.cancel')),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (input.trim().isNotEmpty) {
+                  Navigator.pop(c, input.trim());
+                }
+              },
+              child: Text(context.t('issue.record')),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c),
-            child: const Text('취소'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (input.trim().isNotEmpty) {
-                Navigator.pop(c, input.trim());
-              }
-            },
-            child: const Text('기록'),
-          ),
-        ],
       ),
     );
-    if (reason == null || !mounted) return;
+    if (reason == null ||
+        !mounted ||
+        actor != ops.actorId ||
+        workspace != ops.data?['workspaceId']) {
+      return;
+    }
     final ok = await ops.act(
       resolve ? 'resolve_work_issue' : 'flag_work_issue',
-      {'taskId': task['id'], 'reason': reason},
+      {
+        'taskId': task['id'],
+        'reason': reason,
+        if (!resolve) 'severity': severity,
+      },
     );
-    if (mounted) notice(ok ? '기록했어요' : ops.error ?? '저장하지 못했어요');
+    if (mounted) {
+      notice(ok ? context.t('issue.saved') : actionFailureText(context, ops));
+    }
   }
 
   Widget _actionPhoto(Json step) {
@@ -1379,7 +1438,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Semantics(
-          label: '${step['title']} 사진',
+          label: '${step['title']} ${context.t('manual.photo')}',
           image: true,
           child: placePhoto(value, ops: ops),
         ),
@@ -1394,16 +1453,16 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               showAppSheet<void>(
                 context,
                 builder: (_) => AppEditorScaffold(
-                  title: '사진 · ${step['title']}',
+                  title: '${context.t('manual.photo')} · ${step['title']}',
                   body: ListenableBuilder(
                     listenable: ops,
                     builder: (context, _) =>
                         actor != ops.actorId ||
                             workspace != ops.data?['workspaceId'] ||
                             day != ops.data?['day']
-                        ? const Padding(
-                            padding: EdgeInsets.all(24),
-                            child: Information('업무가 변경됐어요. 다시 열어 주세요.'),
+                        ? Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Information(context.t('manual.changedTask')),
                           )
                         : Center(
                             child: InteractiveViewer(
@@ -1453,26 +1512,38 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           ],
         ),
       ),
+      if (step['linkedPlace'] is Map)
+        LinkedPlaceGuide(
+          ops: ops,
+          place: Map<String, dynamic>.from(step['linkedPlace']),
+        ),
       if ((step['imageUrl'] ?? '').toString().isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: AppSpacing.medium),
           child: _actionPhoto(step),
         ),
+      if (task['workIssue']?['photo'] is String)
+        placePhoto(task['workIssue']['photo'], ops: ops),
       if (task['workIssue'] != null)
         Information(
-          '이상 기록 · ${task['workIssue']['reason']}\n${task['workIssue']['resolution'] ?? '조치 확인 전 완료할 수 없어요.'}',
+          '${context.t('issue.report')} · ${task['workIssue']['reason']}\n${task['workIssue']['resolution'] ?? (task['workIssue']['blocksCompletion'] == false ? context.t('issue.note') : context.t('work.issueBlocked'))}',
         ),
-      if (task['workEvent'] != null && task['completedAt'] == null)
+      if (task['completedAt'] == null || task['workIssue']?['status'] == 'open')
         Wrap(
           children: [
             TextButton(
-              onPressed: ops.readOnly ? null : () => workIssue(task, false),
-              child: const Text('이상·수행 불가'),
+              onPressed:
+                  ops.readOnly ||
+                      task['completedAt'] != null ||
+                      (task['canComplete'] != true && !ops.canEditTasks)
+                  ? null
+                  : () => workIssue(task, false),
+              child: Text(context.t('issue.report')),
             ),
             if (ops.canEditTasks && task['workIssue']?['status'] == 'open')
               TextButton(
                 onPressed: ops.readOnly ? null : () => workIssue(task, true),
-                child: const Text('조치 결과 기록'),
+                child: Text(context.t('issue.resolve')),
               ),
           ],
         ),
@@ -1527,7 +1598,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                     ? context.t('manual.openVideo')
                     : field == 'imageUrl'
                     ? context.t('manual.openPhoto')
-                    : '공식 사진 가이드 열기',
+                    : context.t('photo.officialGuide'),
               ),
               onPressed: () async {
                 final uri = Uri.tryParse(step[field]);
@@ -1557,7 +1628,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     if (currentTask == null ||
         currentStep == null ||
         currentStep['completedAt'] != step['completedAt']) {
-      notice('업무가 변경됐어요. 현재 카드를 다시 확인해 주세요.');
+      notice(context.t('manual.changedTask'));
       return false;
     }
     task = currentTask;
@@ -1567,8 +1638,10 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     final openingDay = ops.data?['day'];
     final openingRevision = ops.data?['revision'];
     final checked = step['completedAt'] != null;
-    if (!checked && task['workIssue']?['status'] == 'open') {
-      notice('조치 확인 전 완료할 수 없어요.');
+    if (!checked &&
+        task['workIssue']?['status'] == 'open' &&
+        task['workIssue']?['blocksCompletion'] != false) {
+      notice(context.t('work.issueBlocked'));
       return false;
     }
     final sequence = steps(task);
@@ -1578,7 +1651,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         sequence
             .take(currentIndex < 0 ? 0 : currentIndex)
             .any((s) => s['completedAt'] == null)) {
-      notice('앞의 행동을 먼저 완료해 주세요.');
+      notice(context.t('work.sequence'));
       return false;
     }
     if (checked && task['preparedOutputMovementId'] != null) {
@@ -1586,12 +1659,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       return false;
     }
     if (!checked && (step['canComplete'] ?? task['canComplete']) != true) {
-      notice('${role(task)} 담당 Tap이에요. 담당자나 사장님·매니저가 확인해요.');
+      notice(context.t('work.blocked'));
       return false;
     }
     if (checked) {
       if (!ops.canEditTasks && step['completedBy']?['id'] != ops.actor['id']) {
-        notice('확인한 본인이나 사장님·매니저만 되돌릴 수 있어요.');
+        notice(context.t('work.undoRestricted'));
         return false;
       }
       final confirmed = await showAppDialog<bool>(
@@ -1736,7 +1809,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         'quantity': ?quantity,
         'evidence': ?evidence,
       });
-      if (mounted && !success) notice(ops.error ?? '변경하지 못했어요.');
+      if (mounted && !success) notice(actionFailureText(context, ops));
       if (mounted && success && !checked) {
         final current = ops
             .rows('tasks')

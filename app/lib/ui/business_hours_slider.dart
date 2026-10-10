@@ -37,6 +37,28 @@ List<int> shiftBoundaries(int start, int end, int count) {
   return [...result, end];
 }
 
+/// Changing only the outside hours must not move an existing valid shift cut.
+/// Return null when the old cuts cannot fit, so the editor can show the impact
+/// before saving a replacement. Clock times after midnight stay on this day.
+List<int>? retainedShiftBoundaries(
+  int start,
+  int end,
+  List<Map<String, dynamic>> bands,
+) {
+  if (bands.isEmpty || end - start < bands.length * 30) return null;
+  final cuts = <int>[start];
+  for (var i = 0; i < bands.length - 1; i++) {
+    if (bands[i]['end'] != bands[i + 1]['start']) return null;
+    var cut = hoursMinute(bands[i]['end'] as String);
+    if (cut <= start) cut += 1440;
+    if (cut < cuts.last + 30 || cut > end - (bands.length - i - 1) * 30) {
+      return null;
+    }
+    cuts.add(cut);
+  }
+  return [...cuts, end];
+}
+
 class BusinessHoursSlider extends StatelessWidget {
   const BusinessHoursSlider({
     super.key,

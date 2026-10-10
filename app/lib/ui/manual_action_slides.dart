@@ -102,7 +102,8 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
       }
       return null;
     }
-    if (task['workIssue']?['status'] == 'open') {
+    if (task['workIssue']?['status'] == 'open' &&
+        task['workIssue']?['blocksCompletion'] != false) {
       return context.t('work.issueBlocked');
     }
     if ((step['canComplete'] ?? task['canComplete']) != true) {

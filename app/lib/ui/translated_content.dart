@@ -85,13 +85,23 @@ class _TranslatedContentState extends State<TranslatedContent> {
   Future<void> _load(int request) async {
     final actor = widget.ops.actorId;
     final workspace = widget.ops.data?['workspaceId'];
-    final displayFields = ['title', 'manual', 'tip', 'body']
-        .where(
-          (key) =>
-              widget.source[key] is String &&
-              (widget.source[key] as String).trim().isNotEmpty,
-        )
-        .toList();
+    final displayFields =
+        [
+              'title',
+              'manual',
+              'tip',
+              'body',
+              'name',
+              'floor',
+              'area',
+              'description',
+            ]
+            .where(
+              (key) =>
+                  widget.source[key] is String &&
+                  (widget.source[key] as String).trim().isNotEmpty,
+            )
+            .toList();
     final overlay = <String, dynamic>{};
     final store = widget.ops.data?['manualContentTranslations'];
     String? templateId = widget.entityId;
@@ -101,9 +111,16 @@ class _TranslatedContentState extends State<TranslatedContent> {
           .where((t) => t['id'] == widget.entityId)
           .firstOrNull?['templateId'];
     }
-    final languageRows = widget.kind == 'welcome'
-        ? store?['welcome']?[language]
-        : store?['manuals']?[templateId]?[language];
+    dynamic languageRows;
+    if (widget.kind == 'welcome') {
+      languageRows = store?['welcome']?[language];
+    } else if (widget.kind == 'place') {
+      final places = store?['places'];
+      final place = places?[widget.entityId];
+      languageRows = place?[language];
+    } else {
+      languageRows = store?['manuals']?[templateId]?[language];
+    }
     final cells = widget.stepId == null
         ? languageRows
         : languageRows?['steps']?[widget.stepId];
@@ -132,6 +149,7 @@ class _TranslatedContentState extends State<TranslatedContent> {
     // Paid translation is opt-in deployment capability, disabled for this
     // release. Prepared dictionaries and registered edits need no API call.
     if (overlay.length < displayFields.length &&
+        widget.kind != 'place' &&
         widget.ops.data?['translationRuntimeEnabled'] == true) {
       try {
         final result = await widget.ops.translateContent(
@@ -207,7 +225,9 @@ class _TranslatedContentState extends State<TranslatedContent> {
               if (!loading &&
                   widget.ops.canEditTasks &&
                   !widget.ops.readOnly &&
-                  (widget.kind == 'welcome' || widget.kind == 'manual'))
+                  (widget.kind == 'welcome' ||
+                      widget.kind == 'manual' ||
+                      widget.kind == 'place'))
                 TextButton(
                   onPressed: () async {
                     await showAppFormSheet<void>(

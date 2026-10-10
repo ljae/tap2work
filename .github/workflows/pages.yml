@@ -37,6 +37,7 @@ jobs:
       - run: node scripts/test-manual-media-sql.mjs --pglite-module=/tmp/tap2work-sql-tests/node_modules/@electric-sql/pglite/dist/index.js
       - run: node scripts/test-manual-media-schedule-sql.mjs --pglite-module=/tmp/tap2work-sql-tests/node_modules/@electric-sql/pglite/dist/index.js
       - run: node scripts/test-content-translation-sql.mjs --pglite-module=/tmp/tap2work-sql-tests/node_modules/@electric-sql/pglite/dist/index.js
+      - run: node scripts/test-crew-invitations-sql.mjs --pglite-module=/tmp/tap2work-sql-tests/node_modules/@electric-sql/pglite/dist/index.js
       - run: flutter pub get --enforce-lockfile
         working-directory: app
       - run: flutter analyze

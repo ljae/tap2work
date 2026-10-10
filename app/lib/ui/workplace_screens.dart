@@ -1,5 +1,6 @@
 import 'weekday_scope_selector.dart';
 import 'business_hours_slider.dart';
+import 'crew_invitation_screen.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -7,6 +8,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../state/operations_controller.dart';
+import '../domain/store_preparation.dart';
+import '../l10n/app_localizations.dart';
 import 'components.dart';
 
 /// All hours entry points use the same draft, validation and save flow.
@@ -121,9 +124,12 @@ class StorePreparation extends StatefulWidget {
     required this.onPeople,
     required this.onTasks,
     required this.onSchedule,
+    this.onMenus,
+    this.onInventory,
   });
   final OperationsController ops;
   final VoidCallback onHours, onPeople, onTasks, onSchedule;
+  final VoidCallback? onMenus, onInventory;
   @override
   State<StorePreparation> createState() => _StorePreparationState();
 }
@@ -133,36 +139,67 @@ class _StorePreparationState extends State<StorePreparation> {
   @override
   Widget build(BuildContext context) {
     final ops = widget.ops;
+    final status = StorePreparationStatus(ops.data ?? {});
     final checks = [
       (
-        title: '영업시간 설정',
-        done:
-            ops.data?['store']?['profile']?['hours'] != null ||
-            (ops.data?['workplace']?['days'] as Map? ?? {}).isNotEmpty,
+        title: context.t('setup.hours'),
+        done: status.hasHours,
         icon: CupertinoIcons.clock,
         tap: widget.onHours,
       ),
       (
-        title: '크루 준비',
-        done: ops
-            .rows('tappers')
-            .where((p) => p['active'] == true && p['rank'] != 'owner')
-            .isNotEmpty,
+        title: context.t('setup.crew'),
+        done: status.hasCrew,
         icon: CupertinoIcons.person_add,
         tap: widget.onPeople,
       ),
       (
-        title: '할일 준비',
-        done: ops.rows('tasks').isNotEmpty,
+        title: context.t('setup.tasks'),
+        done: status.hasManuals || status.hasTodayTasks,
         icon: CupertinoIcons.checkmark_alt_circle,
         tap: widget.onTasks,
       ),
       (
-        title: '근무 배정',
-        done: ops.rows('staffShifts').isNotEmpty,
+        title: context.t('setup.schedule'),
+        done: status.hasAssignments,
         icon: CupertinoIcons.calendar,
         tap: widget.onSchedule,
       ),
+    ];
+    final next = <({String title, VoidCallback? tap})>[
+      if (!status.hasHours)
+        (title: context.t('setup.hours'), tap: widget.onHours),
+      if (!status.hasCrew)
+        (title: context.t('setup.noCrew'), tap: widget.onPeople),
+      if (status.neededMinutes > status.coveredMinutes)
+        (
+          title: context.t(
+            'setup.coverage',
+            args: {
+              'needed': status.neededMinutes,
+              'covered': status.coveredMinutes,
+            },
+          ),
+          tap: widget.onSchedule,
+        ),
+      if (!status.hasTodayTasks)
+        (title: context.t('setup.noTasks'), tap: widget.onTasks),
+      if (status.menusToReview > 0)
+        (
+          title: context.t(
+            'setup.menuReview',
+            args: {'count': status.menusToReview},
+          ),
+          tap: widget.onMenus,
+        ),
+      if (status.inventoryToReview > 0)
+        (
+          title: context.t(
+            'setup.inventoryReview',
+            args: {'count': status.inventoryToReview},
+          ),
+          tap: widget.onInventory,
+        ),
     ];
     return Surface(
       child: Column(
@@ -172,7 +209,13 @@ class _StorePreparationState extends State<StorePreparation> {
             children: [
               Expanded(
                 child: Text(
-                  '매장 준비  ${checks.where((c) => c.done).length}/4',
+                  context.t(
+                    'setup.basicTitle',
+                    args: {
+                      'done': checks.where((c) => c.done).length,
+                      'total': checks.length,
+                    },
+                  ),
                   style: AppText.body.copyWith(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -186,7 +229,7 @@ class _StorePreparationState extends State<StorePreparation> {
             ],
           ),
           if (!collapsed) ...[
-            const Text('하나씩 준비하고, 함께 시작해요.', style: AppText.caption),
+            Text(context.t('setup.nonBlocking'), style: AppText.caption),
             const SizedBox(height: 8),
             for (final check in checks)
               SettingRow(
@@ -202,6 +245,16 @@ class _StorePreparationState extends State<StorePreparation> {
                   size: 22,
                 ),
               ),
+            if (next.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(context.t('setup.remaining'), style: AppText.section),
+              for (final item in next.take(3))
+                SettingRow(
+                  title: item.title,
+                  onTap: item.tap,
+                  color: AppColors.accent,
+                ),
+            ],
           ],
         ],
       ),
@@ -397,6 +450,18 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   late bool useClosedDays = days.values.any((rows) => (rows as List).isEmpty);
   final Map<int, List<Json>> openDayDrafts = {};
   final Map<int, Json> openBreakDrafts = {};
+  // Only automatic reflow needs an impact confirmation. Manual cut changes
+  // remain explicit edits, and valid cuts survive outside-hours changes.
+  final Map<int, List<Json>> reflowedHours = {};
+
+  String hoursSummary(List<Json> rows) =>
+      rows.map((b) => '${b['start']}–${b['end']}').join(' / ');
+
+  List<String> get hoursReflowImpact => [
+    for (final entry in reflowedHours.entries)
+      if ((days['${entry.key}'] as List).isNotEmpty)
+        '${dayNames[entry.key - 1]}요일: ${hoursSummary(entry.value)}\n→ ${hoursSummary((days['${entry.key}'] as List).cast<Json>().where((b) => b['custom'] != true).toList())}',
+  ];
 
   List<Json> reopenedDay(int day) =>
       openDayDrafts.remove(day) ??
@@ -578,6 +643,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       if (ok) {
         revision = ops.data!['revision'];
         dirty = false;
+        if (action == 'save_workplace_hours') reflowedHours.clear();
       } else {
         error = '${ops.error}\n입력한 내용은 그대로 남아 있어요.';
       }
@@ -767,10 +833,17 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       final base = rows.where((b) => b['custom'] != true).toList();
       final bands = base.isEmpty ? rows : base;
       if (end - start < bands.length * 30) continue;
+      if (bands.length > 3) continue;
+      final retained = retainedShiftBoundaries(start, end, bands);
       final cuts = boundaries?.length == bands.length + 1
           ? boundaries!
-          : shiftBoundaries(start, end, bands.length.clamp(1, 3));
-      if (bands.length > 3) continue;
+          : retained ?? shiftBoundaries(start, end, bands.length.clamp(1, 3));
+      if (boundaries == null && retained == null) {
+        reflowedHours.putIfAbsent(
+          d,
+          () => (jsonDecode(jsonEncode(bands)) as List).cast<Json>(),
+        );
+      }
       for (var i = 0; i < bands.length; i++) {
         bands[i]['start'] = _time(cuts[i]);
         bands[i]['end'] = _time(cuts[i + 1]);
@@ -1306,12 +1379,19 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
               'schedule': ('근무표 편집', '근무 배정과 패턴을 바꿔요'),
               'stock': ('재고 기입', '수량을 세어 기록해요'),
               'orders': ('발주·입고 기입', '발주와 입고를 기록해요'),
+              if (role == 'manager')
+                'crew': (
+                  context.t('permission.crewInvite'),
+                  context.t('permission.crewInviteHelp'),
+                ),
             }.entries)
               SettingRow(
                 title: e.value.$1,
                 subtitle: e.value.$2,
                 trailing: Switch(
-                  value: current[e.key] != false,
+                  value: e.key == 'crew'
+                      ? current[e.key] == true
+                      : current[e.key] != false,
                   onChanged: (v) => update(() {
                     restrictions[role] = {...current, e.key: v};
                   }),
@@ -1543,6 +1623,31 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       case 'verification':
         await save('save_attendance_preferences', {'method': attendanceMethod});
       case 'hours':
+        final impact = hoursReflowImpact;
+        if (impact.isNotEmpty) {
+          final accepted = await showAppDialog<bool>(
+            context: context,
+            builder: (c) => AlertDialog(
+              title: Text(context.t('hours.reflowTitle')),
+              content: SingleChildScrollView(
+                child: Text(
+                  '${context.t('hours.reflowHelp')}\n\n${impact.join('\n\n')}',
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(c, false),
+                  child: Text(context.t('hours.reflowBack')),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(c, true),
+                  child: Text(context.t('hours.reflowSave')),
+                ),
+              ],
+            ),
+          );
+          if (accepted != true || !mounted) return;
+        }
         await save('save_workplace_hours', {
           'days': days,
           'breaks': breaks,
@@ -1573,116 +1678,128 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   }
 
   @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: !dirty && !saving,
-    onPopInvokedWithResult: (didPop, _) {
-      if (!didPop) close();
-    },
-    child: AppEditorScaffold(
-      title: titles[widget.section] ?? '매장 설정',
-      footer: hasSaveFooter
-          ? AppSheetFooter(
-              children: [
-                if (widget.section == 'hours' && hoursStep == 1)
-                  const Text(
-                    '저장하면 선택·변경한 요일의 오늘 이후 근무표에 기간 제한 없이 적용해요. 기존 미세 조정·개별 배정·배정 삭제는 초기화돼요. 이후 날짜별로 별도 설정하면 해당 날짜에 우선 적용돼요. 출퇴근 이력과 승인·대기 중인 변경 신청은 유지돼요.',
-                    style: AppText.caption,
-                  ),
-                if (error != null)
-                  Text(
-                    error!,
-                    style: AppText.caption.copyWith(color: AppColors.accent),
-                  ),
-                FilledButton(
-                  onPressed: widget.section == 'hours' && hoursStep < 1
-                      ? (saving ? null : () => setState(() => hoursStep++))
-                      : editable
-                      ? saveSection
-                      : null,
-                  child: Text(
-                    saving
-                        ? '저장 중…'
-                        : widget.section == 'hours'
-                        ? (hoursStep < 1 ? '다음 단계' : '일주일 설정 저장')
-                        : '저장',
-                  ),
-                ),
-              ],
-            )
-          : null,
-      onClose: close,
-      body: Column(
-        children: [
-          if (widget.section == 'hours')
-            Row(
-              children: [
-                for (var i = 0; i < 2; i++)
-                  Expanded(
-                    flex: 1,
-                    child: Semantics(
-                      selected: hoursStep == i,
-                      child: TextButton(
-                        onPressed: saving
-                            ? null
-                            : () => setState(() => hoursStep = i),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          foregroundColor: hoursStep == i
-                              ? AppColors.green
-                              : AppColors.muted,
-                          shape: const RoundedRectangleBorder(),
-                          backgroundColor: hoursStep == i
-                              ? AppColors.lime
-                              : Colors.transparent,
-                          minimumSize: const Size(0, 56),
+  Widget build(BuildContext context) => widget.section == 'invite' && ops.cloud
+      ? CrewInvitationScreen(ops: ops, management: true)
+      : PopScope(
+          canPop: !dirty && !saving,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) close();
+          },
+          child: AppEditorScaffold(
+            title: titles[widget.section] ?? '매장 설정',
+            footer: hasSaveFooter
+                ? AppSheetFooter(
+                    children: [
+                      if (widget.section == 'hours' && hoursStep == 1)
+                        const Text(
+                          '저장하면 선택·변경한 요일의 오늘 이후 근무표에 기간 제한 없이 적용해요. 기존 미세 조정·개별 배정·배정 삭제는 초기화돼요. 이후 날짜별로 별도 설정하면 해당 날짜에 우선 적용돼요. 출퇴근 이력과 승인·대기 중인 변경 신청은 유지돼요.',
+                          style: AppText.caption,
                         ),
+                      if (error != null)
+                        Text(
+                          error!,
+                          style: AppText.caption.copyWith(
+                            color: AppColors.accent,
+                          ),
+                        ),
+                      FilledButton(
+                        onPressed: widget.section == 'hours' && hoursStep < 1
+                            ? (saving
+                                  ? null
+                                  : () => setState(() => hoursStep++))
+                            : editable
+                            ? saveSection
+                            : null,
                         child: Text(
-                          ['영업시간 설정', '인원 배치'][i],
-                          textAlign: TextAlign.center,
+                          saving
+                              ? '저장 중…'
+                              : widget.section == 'hours'
+                              ? (hoursStep < 1 ? '다음 단계' : '일주일 설정 저장')
+                              : '저장',
                         ),
+                      ),
+                    ],
+                  )
+                : null,
+            onClose: close,
+            body: Column(
+              children: [
+                if (widget.section == 'hours')
+                  Row(
+                    children: [
+                      for (var i = 0; i < 2; i++)
+                        Expanded(
+                          flex: 1,
+                          child: Semantics(
+                            selected: hoursStep == i,
+                            child: TextButton(
+                              onPressed: saving
+                                  ? null
+                                  : () => setState(() => hoursStep = i),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                foregroundColor: hoursStep == i
+                                    ? AppColors.green
+                                    : AppColors.muted,
+                                shape: const RoundedRectangleBorder(),
+                                backgroundColor: hoursStep == i
+                                    ? AppColors.lime
+                                    : Colors.transparent,
+                                minimumSize: const Size(0, 56),
+                              ),
+                              child: Text(
+                                ['영업시간 설정', '인원 배치'][i],
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: appEditorWidth,
+                      ),
+                      child: ListView(
+                        padding: const EdgeInsets.all(24),
+                        children: [
+                          if (ops.readOnly)
+                            const Padding(
+                              padding: EdgeInsets.only(bottom: 16),
+                              child: Information(
+                                '미리보기 · 편집을 살펴볼 수 있지만 저장하지 않아요.',
+                              ),
+                            ),
+                          ...switch (widget.section) {
+                            'order-system' => orderSystem(),
+                            'parts' => partEditor(),
+                            'hours' => hours(),
+                            'permissions' => permissions(),
+                            'person' => person(),
+                            'invite' => invite(),
+                            'verification' => verification(),
+                            _ => [
+                              const Information(
+                                '문서 보관은 보안 저장소 연결 후 사용할 수 있어요. 실제 보건증을 체험 매장에 올리지 마세요.',
+                              ),
+                            ],
+                          },
+                          if (error != null && !hasSaveFooter)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Information(error!),
+                            ),
+                        ],
                       ),
                     ),
                   ),
+                ),
               ],
             ),
-          Expanded(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: appEditorWidth),
-                child: ListView(
-                  padding: const EdgeInsets.all(24),
-                  children: [
-                    if (ops.readOnly)
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 16),
-                        child: Information('미리보기 · 편집을 살펴볼 수 있지만 저장하지 않아요.'),
-                      ),
-                    ...switch (widget.section) {
-                      'order-system' => orderSystem(),
-                      'parts' => partEditor(),
-                      'hours' => hours(),
-                      'permissions' => permissions(),
-                      'person' => person(),
-                      'invite' => invite(),
-                      'verification' => verification(),
-                      _ => [
-                        const Information(
-                          '문서 보관은 보안 저장소 연결 후 사용할 수 있어요. 실제 보건증을 체험 매장에 올리지 마세요.',
-                        ),
-                      ],
-                    },
-                    if (error != null && !hasSaveFooter)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: Information(error!),
-                      ),
-                  ],
-                ),
-              ),
-            ),
           ),
-        ],
-      ),
-    ),
-  );
+        );
 }

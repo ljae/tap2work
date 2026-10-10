@@ -8,6 +8,11 @@ const slot = (map,key) => { if (!Object.hasOwn(map,key) || !map[key]) Object.def
 function sourceContent(state, source) {
   if (!source || typeof source !== 'object' || Array.isArray(source) || Object.keys(source).some(k => !['kind','id'].includes(k))) fail('번역할 원문을 선택해 주세요.');
   if (source.kind === 'welcome' && source.id == null) { const welcome=welcomeContent(state); return {title:welcome.title,body:welcome.body}; }
+  if (source.kind === 'place' && typeof source.id === 'string') {
+    const place=(state.zones??[]).find(row=>row.id===source.id);
+    if(!place)fail('장소를 찾지 못했어요.',404);
+    return Object.fromEntries(['name','floor','area','description'].map(field=>[field,place[field]??'']));
+  }
   if (source.kind !== 'manual' || typeof source.id !== 'string') fail('번역할 매뉴얼을 선택해 주세요.');
   const template=(state.taskTemplates??[]).find(row=>row.id===source.id&&!row.archivedAt);
   if (!template) fail('매뉴얼을 찾지 못했어요.',404);
@@ -20,7 +25,7 @@ function sourceField(content,row) {
     if (!step) fail('원문 단계가 바뀌었어요. 다시 열어 주세요.',409);
     return step[row.field];
   }
-  if (!['title','body'].includes(row.field) || typeof content[row.field] !== 'string') fail('번역할 항목을 확인해 주세요.');
+  if (!['title','body','name','floor','area','description'].includes(row.field) || typeof content[row.field] !== 'string') fail('번역할 항목을 확인해 주세요.');
   return content[row.field];
 }
 export function saveManualTranslation(state,input,actor,now) {
@@ -42,21 +47,21 @@ export function saveManualTranslation(state,input,actor,now) {
   const store=state.manualContentTranslations??={manuals:{},welcome:{}};
   let target;
   if(input.source.kind==='welcome')target=slot(store.welcome??={},input.locale);
-  else {const manual=slot(store.manuals??={},input.source.id);target=slot(manual,input.locale);}
+  else {const manual=slot(input.source.kind==='place' ? store.places??={} : store.manuals??={},input.source.id);target=slot(manual,input.locale);}
   for(const update of updates) {
     if(update.stepId==null)target[update.field]=update.cell;
     else {const step=slot(target.steps??={},update.stepId);step[update.field]=update.cell;}
   }
 }
 export function manualTranslationView(state) {
-  const result={manuals:{},welcome:{}};
+  const result={manuals:{},welcome:{},places:{}};
   const project=(saved,content)=>{
     const locales={};
     for(const [locale,translation] of Object.entries(saved??{})) {
       if(!supportedLocales.includes(locale))continue;
       const view={};
       const cell=(saved,text)=>saved&&typeof saved.text==='string'?{sourceHash:saved.sourceHash,sourceText:saved.sourceText,text:saved.text,current:saved.sourceHash===hash(text)&&saved.sourceText===text}:null;
-      for(const field of ['title','body'])if(typeof content[field]==='string'&&translation[field])view[field]=cell(translation[field],content[field]);
+      for(const field of ['title','body','name','floor','area','description'])if(typeof content[field]==='string'&&translation[field])view[field]=cell(translation[field],content[field]);
       for(const step of content.steps??[])for(const field of ['title','manual','tip']) {
         const value=cell(translation.steps?.[step.id]?.[field],step[field]);
         if(value)slot(view.steps??={},step.id)[field]=value;
@@ -68,5 +73,6 @@ export function manualTranslationView(state) {
   const store=state.manualContentTranslations??{};
   result.welcome=project(store.welcome,sourceContent(state,{kind:'welcome'}));
   for(const template of state.taskTemplates??[])if(!template.archivedAt&&store.manuals?.[template.id])Object.defineProperty(result.manuals,template.id,{value:project(store.manuals[template.id],sourceContent(state,{kind:'manual',id:template.id})),enumerable:true});
+  for(const place of state.zones??[])if(store.places?.[place.id])Object.defineProperty(result.places,place.id,{value:project(store.places[place.id],sourceContent(state,{kind:'place',id:place.id})),enumerable:true});
   return result;
 }

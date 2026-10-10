@@ -45,7 +45,7 @@ function fixture({ role = 'owner', allowed = true, sectionStorage = false, membe
     method: body === undefined ? 'GET' : 'POST', headers: { Authorization: 'Bearer user', 'Content-Type': 'application/json', ...headers },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   }));
-  return { request, calls, objects, handler };
+  return { request, calls, objects, handler, raw:()=>state };
 }
 test('optimized JPEG upload is authenticated, private, immutable and returns a stable reference', async () => {
   const f = fixture();
@@ -191,4 +191,19 @@ test('local demo explicitly rejects cloud media routes without pretending to aut
   const response = await fetch(`${base}/api/operations?media=upload`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-demo-actor': 'owner' }, body: JSON.stringify({ workspaceId: 'store-a', photo }) });
   assert.equal(response.status, 501);
   assert.match((await response.json()).error, /샘플/);
+});
+
+test('crew issue photo is task-bound and receipt cannot attach to a different task or become a manual upload',async()=>{
+ const f=fixture({role:'crew'});const view=await(await f.request('workspace=store-a')).json();
+ const state=f.raw();state.tappers.find(p=>p.rank==='crew').actorId=uid;
+ const task={id:'photo-issue-task',date:'2026-10-10',kind:'routine',title:'가상 담당 업무',requiredRole:'all',partId:null,steps:[{id:'s',title:'사진 확인',manual:'매장 위치 확인',tip:''}],settings:{assignment:{mode:'anyone'}}};state.tasks.push(task);
+ const upload=await f.request('media=upload',{workspaceId:'store-a',purpose:'work_issue',taskId:task.id,photo});assert.equal(upload.status,201,await upload.clone().text());
+ const result=await upload.json();assert.equal(typeof result.receipt,'string');
+ let current=await(await f.request('workspace=store-a')).json();
+ const valid={action:'flag_work_issue',revision:current.revision,taskId:task.id,reason:'사진으로 현장 확인 요청',severity:'note',photo:result.reference,photoReceipt:result.receipt};
+ const wrong=await f.request('workspace=store-a',{...valid,taskId:'different-task'});assert.equal(wrong.status,403);
+ const accepted=await f.request('workspace=store-a',valid);assert.equal(accepted.status,200,await accepted.clone().text());assert.equal(f.raw().tasks.find(t=>t.id===task.id).workIssue.photo,result.reference);
+ assert.equal((await f.request('media=upload',{workspaceId:'store-a',photo})).status,403);
+ f.raw().workplace.restrictions.crew={complete:false};
+ assert.equal((await f.request('media=upload',{workspaceId:'store-a',purpose:'work_issue',taskId:task.id,photo})).status,403);
 });

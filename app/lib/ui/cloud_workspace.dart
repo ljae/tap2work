@@ -1,4 +1,5 @@
 import 'store_setup_screen.dart';
+import '../l10n/app_localizations.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,6 +16,8 @@ import '../state/operations_controller.dart';
 import '../state/work_controller.dart';
 import '../state/app_locale_controller.dart';
 import 'components.dart';
+import '../data/pending_crew_invitation.dart';
+import 'crew_invitation_screen.dart';
 
 class CloudWorkspace extends StatefulWidget {
   const CloudWorkspace({
@@ -38,6 +41,7 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   String? userId;
   bool preview = false;
   String? localeScope, lastServerLocale;
+  String? pendingInvitation;
   late final auth = AuthRepository(widget.client);
   bool isSocialUser(User? user) =>
       user?.identities?.any(
@@ -48,6 +52,7 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
   @override
   void initState() {
     super.initState();
+    pendingInvitation = readPendingCrewInvitation();
     userId = isSocialUser(widget.client.auth.currentUser)
         ? widget.client.auth.currentUser?.id
         : null;
@@ -171,6 +176,17 @@ class _CloudWorkspaceState extends State<CloudWorkspace> {
                 },
               ),
             )
+          : pendingInvitation != null
+          ? Builder(
+              builder: (context) => CrewInvitationScreen(
+                ops: ops,
+                initialCode: pendingInvitation,
+                onFinished: () {
+                  clearPendingCrewInvitation();
+                  setState(() => pendingInvitation = null);
+                },
+              ),
+            )
           : ops.data?['needsWorkspace'] == true
           ? Builder(
               builder: (context) => _WorkspaceSetup(
@@ -218,6 +234,16 @@ class _WorkspaceSetup extends StatelessWidget {
                       : () => openStoreSetup(context, ops),
                   child: const Text('새 매장 등록'),
                 ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: ops.busy
+                    ? null
+                    : () => showAppSheet(
+                        context,
+                        builder: (_) => CrewInvitationScreen(ops: ops),
+                      ),
+                child: Text(context.t('invite.joinCode')),
               ),
               const SizedBox(height: 12),
               PressBounce(

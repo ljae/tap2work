@@ -22,7 +22,16 @@ Map<String, String> parseManualTranslationImport(
   final imported = <String, String>{};
   for (final value in decoded['fields'] as List) {
     if (value is! Map ||
-        !['title', 'manual', 'tip', 'body'].contains(value['field']) ||
+        ![
+          'title',
+          'manual',
+          'tip',
+          'body',
+          'name',
+          'floor',
+          'area',
+          'description',
+        ].contains(value['field']) ||
         source[value['field']] is! String ||
         (source[value['field']] as String).trim().isEmpty ||
         value['stepId'] != stepId ||

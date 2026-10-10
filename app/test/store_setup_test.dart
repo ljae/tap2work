@@ -141,7 +141,7 @@ void main() {
           await t.pumpAndSettle();
           expect(writes[1], writes[0]);
         }
-        expect(find.text('매장 준비가 끝났어요'), findsOneWidget);
+        expect(find.text('기본 등록을 마쳤어요'), findsOneWidget);
         final setup = writes.singleWhere(
           (w) => identical(w, writes.first),
         )['setup'];

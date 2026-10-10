@@ -519,7 +519,7 @@ void main() {
             )['steps'][0]['completedAt'],
         isNull,
       );
-      expect(find.textContaining('담당 Tap이에요'), findsOneWidget);
+      expect(find.textContaining('담당자나 사장님·매니저가 확인해요.'), findsOneWidget);
     },
   );
 

@@ -83,7 +83,7 @@ void main() {
     service.next.complete(fixture());
     await t.pump();
     expect(changed, isNull);
-    expect(find.textContaining('항목이 바뀌었어요'), findsOneWidget);
+    expect(find.textContaining('다시 열어 주세요'), findsOneWidget);
   });
 
   testWidgets('remove supersedes conversion job and cannot restore photo', (

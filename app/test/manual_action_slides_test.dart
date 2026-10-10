@@ -224,11 +224,18 @@ void main() {
       expect(tester.widget<FilledButton>(check).onPressed, isNull);
       await tester.tap(previous);
       await tester.pumpAndSettle();
-      taskOf(data)['workIssue'] = {'status': 'open', 'reason': '도구를 찾을 수 없어요.'};
+      taskOf(data)['workIssue'] = <String, dynamic>{
+        'status': 'open',
+        'reason': '도구를 찾을 수 없어요.',
+      };
       await ops.refresh();
       await tester.pumpAndSettle();
       expect(find.text('조치 확인 전 완료할 수 없어요.'), findsWidgets);
       expect(tester.widget<FilledButton>(check).onPressed, isNull);
+      taskOf(data)['workIssue']['blocksCompletion'] = false;
+      await ops.refresh();
+      await tester.pumpAndSettle();
+      expect(tester.widget<FilledButton>(check).onPressed, isNotNull);
       taskOf(data).remove('workIssue');
       taskOf(data)['canComplete'] = false;
       await ops.refresh();

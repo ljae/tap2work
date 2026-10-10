@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 286,
+  "revision": 288,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1354,6 +1354,71 @@
       "source": "사용자 대화 2026-10-10",
       "updatedAt": "2026-10-10T11:28:23.958364+00:00",
       "implementation": "Web live at tap2.work (36bf8a7 / Actions38047892523); operations v58 ACTIVE. iOS11 VALID and WAITING_FOR_REVIEW / AFTER_APPROVAL; Android10 internal and alpha tracks completed via review commit. Device installation/OAuth/camera testing and native-speaker review not performed."
+    },
+    {
+      "id": "D-124",
+      "category": "실제 크루 계정 연결",
+      "title": "기존 크루 지정·7일 일회용 초대와 관리자의 연결 해제",
+      "status": "confirmed",
+      "previous": "체험용 초대 코드와 명부만 존재",
+      "next": "사장님·크루 초대 관리 권한을 명시적으로 받은 매니저가 기존 크루를 지정해 7일 유효한 일회용 링크/코드를 생성한다. 로그인한 본인이 매장·크루 정보를 확인하여 수락하고 잘못 연결하면 관리자가 연결을 해제한다.",
+      "decision": "사장님·크루 초대 관리 권한을 명시적으로 받은 매니저가 기존 크루를 지정해 7일 유효한 일회용 링크/코드를 생성한다. 로그인한 본인이 매장·크루 정보를 확인하여 수락하고 잘못 연결하면 관리자가 연결을 해제한다.",
+      "reason": "사용자가 개선 TODO 진행 중 제시한 의사결정 질문에서 해당 방식을 선택했다.",
+      "source": "사용자 대화 2026-10-10",
+      "updatedAt": "2026-10-10T14:12:21.351770+00:00",
+      "implementation": "7일 일회용 초대·직책/만료/취소 재검사·멤버십 연결·해제/퇴사/직책 변경의 원자적 접근 회수 구현. 매니저는 기존 권한 범위의 일반 크루/조리만 연결, 사장님 연결/소유권 이전은 제외. 실제 다른 사용자 로그인 수락은 미검증. 배포는 검증 후 Sol low 담당, 현재 준비 중."
+    },
+    {
+      "id": "D-125",
+      "category": "업무 이상 보고",
+      "title": "수행 불가만 완료 차단, 단순 주의는 기록 후 진행",
+      "status": "confirmed",
+      "previous": "workEvent 작업만 이상 보고·모든 미해결 이상 차단",
+      "next": "일반 업무에도 이상 보고를 제공한다. 수행 불가는 해결 전 완료를 차단하고 단순 주의는 기록 후 진행할 수 있다. 기존 권한을 가진 사장님·매니저가 조치 내용을 남기며 미해결 기록은 영업일 변경 후에도 공유한다.",
+      "decision": "일반 업무에도 이상 보고를 제공한다. 수행 불가는 해결 전 완료를 차단하고 단순 주의는 기록 후 진행할 수 있다. 기존 권한을 가진 사장님·매니저가 조치 내용을 남기며 미해결 기록은 영업일 변경 후에도 공유한다.",
+      "reason": "사용자가 개선 TODO 진행 중 제시한 의사결정 질문에서 해당 방식을 선택했다.",
+      "source": "사용자 대화 2026-10-10",
+      "updatedAt": "2026-10-10T14:12:21.351770+00:00",
+      "implementation": "task workIssue severity=blocked|note, blocksCompletion, actor/time/history와 고정 요청 ID 멱등 구현. 체크·일괄·상태 이동·준비품 완성·재고 확인의 완료 우회 방지, 과거 미해결 조회/리더 해결 지원. 배포는 검증 후 Sol low 담당, 현재 준비 중."
+    },
+    {
+      "id": "D-126",
+      "category": "매장 준비 표시",
+      "title": "기본 등록과 남은 운영 설정을 구분",
+      "status": "confirmed",
+      "previous": "일부 데이터 존재만으로 매장 준비 4/4 표시",
+      "next": "기본 등록과 남은 운영 설정을 따로 표시하되 업무 진입은 허용한다. 다음에 필요한 운영 설정을 가까이에서 열 수 있도록 안내한다.",
+      "decision": "기본 등록과 남은 운영 설정을 따로 표시하되 업무 진입은 허용한다. 다음에 필요한 운영 설정을 가까이에서 열 수 있도록 안내한다.",
+      "reason": "사용자가 개선 TODO 진행 중 제시한 의사결정 질문에서 해당 방식을 선택했다.",
+      "source": "사용자 대화 2026-10-10",
+      "updatedAt": "2026-10-10T14:12:21.351770+00:00",
+      "implementation": "앞으로 7일 활성 크루의 필요 인원×시간 대비 배정률, 메뉴/재고 미확인 기준과 최대3개 다음 설정 진입을 구현. 임의 필수 입력 게이트 없음. 배포는 검증 후 Sol low 담당, 현재 준비 중."
+    },
+    {
+      "id": "D-127",
+      "category": "이상 보고 사진 권한",
+      "title": "일반 크루는 담당 업무 이상 사진에 한정",
+      "status": "confirmed",
+      "previous": "매뉴얼 편집 권한자만 사진 업로드",
+      "next": "일반 크루도 해당 매장의 담당 업무에서 촬영·선택한 사진을 최적화해 이상 보고에 첨부할 수 있다. 일반 매뉴얼·장소 사진 편집 권한은 기존 범위를 유지한다.",
+      "decision": "일반 크루도 해당 매장의 담당 업무에서 촬영·선택한 사진을 최적화해 이상 보고에 첨부할 수 있다. 일반 매뉴얼·장소 사진 편집 권한은 기존 범위를 유지한다.",
+      "reason": "사용자가 개선 TODO 진행 중 제시한 의사결정 질문에서 해당 방식을 선택했다.",
+      "source": "사용자 대화 2026-10-10",
+      "updatedAt": "2026-10-10T14:12:21.351770+00:00",
+      "implementation": "purpose=work_issue의 현재 업무 완료 권한 검증, 업로드 후 재검증, user/workspace/task/reference/expiry에 묶인 서명 receipt와 기존 비공개 최적화 JPEG를 사용. 실제 카메라/HEIC는 미검증. 배포는 검증 후 Sol low 담당, 현재 준비 중."
+    },
+    {
+      "id": "D-128",
+      "category": "발주 입고 기록",
+      "title": "부분 입고 수량과 남은 입고를 구분",
+      "status": "confirmed",
+      "previous": "전량 도착 확인만 지원",
+      "next": "일부 수량만 도착하면 받은 만큼 재고에 반영하고 나머지는 입고 대기로 남긴다. 전량 수령 시에만 입고 완료하며 발주 기준 확인 기한은 유지한다.",
+      "decision": "일부 수량만 도착하면 받은 만큼 재고에 반영하고 나머지는 입고 대기로 남긴다. 전량 수령 시에만 입고 완료하며 발주 기준 확인 기한은 유지한다.",
+      "reason": "사용자가 개선 TODO 진행 중 제시한 의사결정 질문에서 해당 방식을 선택했다.",
+      "source": "사용자 대화 2026-10-10",
+      "updatedAt": "2026-10-10T14:12:21.351770+00:00",
+      "implementation": "receivedQuantity 누적과 receiptHistory, receiptId 기반 동일 요청 재시도 멱등 및 초과 수량 원자 거절 구현. 기존 요청은 남은 전량 입고로 호환. 응답 불명 대기는 화면 세션 메모리이며 앱 재시작 영속화는 후속. 배포는 검증 후 Sol low 담당, 현재 준비 중."
     }
   ],
   "milestones": [
@@ -8593,7 +8658,19 @@
       "type": "verification",
       "title": "Restaurant owner and new-crew audit; standalone conflict fixed and deployed",
       "detail": "User authorized account settings reset, complex restaurant setup via Ego Lite and owner/new-crew agent audit, then specifically approved initial conflict fix/deployment before continuing. Backed up and reset 5 sole-owned workspaces with guarded scope; authentication preserved. No account identifiers, employee data or credentials in versioned output. JSON.stringify knowledge comparison misclassified JSONB key reorder as catalog changes and caused read-time revision churn/self-conflict. Changed to structural equality; 2 regressions failed before/passed after. Node335, JavaScript check, UI69, authenticated Deno Edge and direct node:util compatibility passed. Sol low deployed c16536307ca7b29cf4365dacde37df4b792304dc, operations v59 ACTIVE, anon401, paid translation disabled and private media setting preserved. No schema change/web/native rebuild. Live new-store welcome save succeeded; 3 authenticated GETs returned200 with revision3 stable. Ego Lite set up fictional Audit Kitchen: dine-in/takeaway/delivery, selfbar/heaters, six business days/two shifts/four parts, VN/vi fictional crew and six-day assignment, common welcome and waste location, six places on two floors, three menus, eight ingredients. Final snapshot revision26: one authenticated member/two roster entries,30manuals/18storedtasks;16tasks in visible daily board. One action check persisted and auto-advanced, browsing did not complete other steps. Synthetic diagram1600x1000PNG uploaded through browser and stored private1280x800JPEG29917bytes; no real-camera/HEIC test. Demo order10 after count3 kept stock3 until receipt13; check deadline unchanged. Monthly payroll start1/no rounding/5plus configured; order board enabled with external connection not_connected. No actual wages, attendance, supplier transmission or messages. Found additional actual issues: closing-only edit resets shift boundary, ready4/4 despite gaps, partial Vietnamese labels, welcome skip twice after important edit, uncounted draft stock treated as low, null location label, and new table floor lost on reedit causing layout400. Layout draft captured privately then cancelled; all six places remain unmapped. Only A01 fixed; A02-A20 with evidence, priorities, acceptance criteria and proposed decisions in RESTAURANT_OWNER_CREW_AUDIT_TODO_2026-10-10.md. Actual second crew authentication, effective role permissions, partial receipt, external POS/delivery, physical device and native-speaker checks not completed. Existing dirty source preserved; documentation references must not be interpreted as all settings complete."
+    },
+    {
+      "at": "2026-10-10T14:12:21.351770+00:00",
+      "type": "implementation",
+      "title": "Audit TODO implementation: reliable editing, real crew links, issue guidance and partial receipts",
+      "detail": "User requested proceeding with audit TODO and explicitly selected D-124~128 policies. Implemented in isolated audit-todo-release worktree without overwriting existing root dirty source. A02/A03 three-way field merges on crew/profile/welcome/manual setup/place forms, typed revision conflict, failed input preservation and idempotent crew creation. A04 service-only hashed 7-day one-use invitations with explicit authenticated recipient preview/acceptance, administrator unlink; dedicated SQL CAS synchronizes role/deactivation with membership, preserves historic actors and forbids owner transfer. A05 routine blocked/note reports with assigned-work optimized private photos, signed photo receipts, report replay, all completion-path guards and unresolved historical issue review. A06/A16 eight-language worker errors/photos/header counters; A07 exact-source free place translations/import/original; A08 photo retry and identity races. A09 opt-in four dishwashing examples plus return/waste/wash/dry shared place bindings and inline photo/guidance; no invented site photos, no automatic task enablement, new custom example translations need direct registration. A10/A14 basic registration versus headcount/time coverage and up to3 next settings. A15 valid shift boundary preservation and invalid-boundary confirmation; A17 displayed important welcome scope; A18/A19 inventory unknown vs actual shortage, guarded orders and location labels; A20 floor/metadata preservation on item reedit. A11/A12/A13 synthetic server/UI contracts covered business-day/pay privacy/inventory deadlines/order history; partial receipts add received quantities, batch histories and idempotent request identity. Initial tests found an outdated conflict-message expectation and photo fixture absent from snapshot; fixed meaningful fixture/contracts. Node372 passed, syntax/UI75 links/Edge/prepared7x990 translations and isolated invitation SQL passed, analysis no issues. Initial full Flutter542 passed/3web-only skipped/1photo-fixture failure; fixture fixed and relevant9 passed, additional manual-setup polling race passed. Final full Flutter rerun and deployment still pending at this entry. Live two-account authentication, native cameras/HEIC, native-speaker review, actual supplier transmission or wage payment not performed. Paid translation remains off. Source and architecture/UI relation docs updated; all prior history preserved."
+    },
+    {
+      "at": "2026-10-10T14:15:41.701124+00:00",
+      "type": "verification",
+      "title": "Audit TODO final integration checks passed; Sol low deployment handoff",
+      "detail": "Final complete Node372 passed; complete Flutter545 passed/3web-only skipped. Initial full Flutter failed a photo editor fixture that lacked its supposedly edited place; fixture now models the real row and verifies safe rebase of an unrelated revision while reusing the uploaded photo. Additional manual-setup polling regression passed; source init fixes capture base/identity at opening. Independent review also found stock-count completion bypass, explicit-null place unlink, open-issue retirement and report/photo permission mismatch; fixed and regression checks passed. Analysis no issues; UI75 links/syntax/Edge/prepared7x990 translation validation and actual isolated PGlite invitation/CAS/access-revocation SQL passed. After complete run added guarded example installation to prevent an open editor installing into a different newly selected workspace; related tests/analysis are recorded in final deployment check. No private user identifiers or credentials added to versioned source. Actual deployment and native build/submit now delegated to GPT-6.1 Sol low, with new invitation migration before operations, then web and native builds. Real dual-user authentication, camera/HEIC/native-speaker review, external transmission/payments remain unperformed. Existing root dirty work preserved; source change set reviewed for safe synchronization."
     }
   ],
-  "updatedAt": "2026-10-10T13:27:56.323428+00:00"
+  "updatedAt": "2026-10-10T14:15:41.701124+00:00"
 }

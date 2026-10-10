@@ -30,7 +30,7 @@ test('five print locales, content completeness, stale revision, and permissions 
  for(const locale of ['en','vi','zh-Hans','ja']){const x=fixture();const v=await x.view();const result=await x.store.mutate(x.actor.id,body(v,locale));assert.ok(result.manualPrintTemplates[0].translations[locale]);}
  const x=fixture(),v=await x.view();
  for(const patch of [{locale:'xx'},{steps:[]},{steps:[{id:'s1',title:'A',manual:'',tip:''}]},{steps:[{id:'unknown',title:'A',manual:'B',tip:'C'}]},{title:'x'.repeat(101)}])await assert.rejects(()=>x.store.mutate(x.actor.id,{...body(v),...patch}));
- await assert.rejects(()=>x.store.mutate(x.actor.id,{...body(v),revision:v.revision-1}),/먼저 업데이트/);
+ await assert.rejects(()=>x.store.mutate(x.actor.id,{...body(v),revision:v.revision-1}),{status:409,code:'REVISION_CONFLICT'});
  for(const [role,restricted] of [['cook',false],['manager',true]]){const y=fixture(role,restricted),v=await y.view();await assert.rejects(()=>y.store.mutate(y.actor.id,body(v)),e=>e.status===403);}
 });
 test('source identity excludes layout and policies but includes manual aliases and links; archived manuals not exposed',()=>{

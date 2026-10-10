@@ -1,4 +1,8 @@
 import { manualTranslationView, saveManualTranslation } from './manual_content_translations.mjs';
+import { canReportWorkIssue } from './work_issue_media.mjs';
+import { receiptReplay, receiveInventoryOrder } from './inventory_receipts.mjs';
+import { addDishwashingExample } from './dishwashing_example.mjs';
+import { inventoryReadiness } from './inventory_readiness.mjs';
 import { nationalityOptions } from './countries.mjs';
 import { guidanceView, mutateGuidance, readableTemplates } from './common_guidance.mjs';
 import { contentHash } from './manual_catalog_schema.mjs';
@@ -25,7 +29,7 @@ import { ensureOrderTaps, syncOrderFromTap } from './order_taps.mjs';
 import { ensurePreparedItems, ensurePreparationTaps, consumePreparedForTask, finishPreparation, savePreparedItem, countPreparedItem } from './prepared_items.mjs';
 import { seedSales, salesDashboard } from './sales.mjs';
 import { ensureLayout, validateLayout } from './layout.mjs';
-import { ensureStaff, staffView, mutateStaff } from './staff.mjs';
+import { crewCreationReplay, ensureStaff, staffView, mutateStaff } from './staff.mjs';
 import { ensureChecklists, saveChecklists, checklistLibrary, checklistSlots, checklistRoles, libraryTemplates, reopenStep, mediaLink, manualImageLink, manualTags } from './checklists.mjs';
 import { saveStoreProfile, saveHiringDraft } from './store_profile.mjs';
 import { saveTapSettings, repeatsOn, taskSettings, canCompleteStep, completeStepIssue, bulkCompleteIssue } from './task_settings.mjs';
@@ -41,7 +45,7 @@ function manualSearchIndex(state) {
       const key = `${sourceTemplateId}/${sourceStepId}`;
       if (rows.has(key)) continue;
       rows.set(key, {
-        manualCustomization:task.manualCustomization??null, sharedPlaces:task.sharedPlaces??[], zone:task.zone??null, id: key, taskId: template ? null : task.id, stepId: step.id,
+        linkedPlace:step.linkedPlace??null, manualCustomization:task.manualCustomization??null, sharedPlaces:task.sharedPlaces??[], zone:task.zone??null, id: key, taskId: template ? null : task.id, stepId: step.id,
         tapTitle: task.manualTitle ?? task.title, title: step.manualTitle ?? step.title,
         folderId: task.folderId ?? 'general',
         folderName: state.checklistFolders.find(folder => folder.id === task.folderId)?.name ?? '기본 업무',
@@ -247,6 +251,14 @@ export function emptyOperations(now = new Date(), ownerId, ownerName = '사장�
 }
 
 function allowed(actor, task, state) { const permission = state && assignmentPermission(state, actor, task); if (permission != null) return permission; return ['owner', 'manager'].includes(actor.role) || (Object.hasOwn(task, 'partId') ? task.partId == null || actor.partIds?.includes(task.partId) : task.requiredRole === 'all' || task.requiredRole === actor.role); }
+function issueRequestReplay(state,input,actor) {
+  if(input.action !== 'flag_work_issue' || !input.requestId) return false;
+  const task=state.tasks.find(t=>t.id===input.taskId);
+  const issue=task && [task.workIssue,...(task.workIssueHistory??[])].filter(Boolean).find(row=>row.requestId===input.requestId);
+  if(!issue) return false;
+  if(!canReportWorkIssue(state,actor,task,input.stepId??null,true) || issue.actor?.id!==actor.id || issue.reason!==input.reason?.trim() || (issue.severity??'blocked')!==(input.severity??'blocked') || (issue.photo??'')!==(input.photo??'') || (issue.stepId??null)!==(input.stepId??null)) throw new StoreError('같은 이상 보고 요청의 내용이 달라요. 저장된 기록을 먼저 확인해 주세요.',409,'ISSUE_REQUEST_CHANGED');
+  return true;
+}
 function leadership(actor) { if (!['owner', 'manager'].includes(actor.role)) fail('사장님 또는 매니저가 처리할 수 있어요.', 403); }
 function stockReview(item) {
   if (!item.lastOrderedAt) return null;
@@ -355,6 +367,7 @@ export class OperationsStore {
     result.rosterTemplates = rosterTemplates(state);
     result.orderBoardEnabled = state.store?.profile?.orderSystem?.enabled === true;
     result.actor = actor;
+    result.canManageCrewInvites = actor.role === 'owner' || (actor.role === 'manager' && state.workplace?.restrictions?.manager?.crew === true);
     result.canEditSchedule = ['owner','manager'].includes(actor.role) && (actor.role === 'owner' || state.workplace?.restrictions?.[actor.role]?.schedule !== false);
     result.canEditTasks = ['owner', 'manager'].includes(actor.role) && (actor.role === 'owner' || state.workplace?.restrictions?.[actor.role]?.tasks !== false);
     result.serverTime = iso(this.clock());
@@ -368,8 +381,9 @@ export class OperationsStore {
     result.items = result.items.filter(item => !item.archivedAt);
     if (actor.role !== 'owner') result.activity = result.activity.filter(entry =>
       entry.kind !== 'pay' && !/^(?:급여 지급 기록|추가보수) [\d,]+원(?:$|\s)/.test(entry.message));
-    result.tasks = result.tasks.filter(task => !task.supersededAt && !task.archivedAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day || task.workEvent && !task.completedAt));
+    result.tasks = result.tasks.filter(task => task.workIssue?.status === 'open' || (!task.supersededAt && !task.archivedAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day || task.workEvent && !task.completedAt)));
     for (const item of result.items) {
+      Object.assign(item, inventoryReadiness(item));
       const review = stockReview(item);
       const task = review && state.tasks.find(task => task.id === review.id);
       item.reviewDueAt = review?.dueAt ?? null;
@@ -385,8 +399,9 @@ export class OperationsStore {
       if (task.assignmentView.mode === 'legacy') delete task.assignmentView;
       delete task.assignmentSnapshot;
       for (const step of task.steps ?? []) { step.assignmentView = assignmentView(state, task, step, actor, assignments); if (step.assignmentView.mode === 'legacy') delete step.assignmentView; delete step.assignmentSnapshot; }
-      task.canComplete = completionEnabled && !task.completedAt && (task.steps?.length ? task.steps.some(step => !step.completedAt && canCompleteStep(actor, task, step, state, assignments)) || tapOnly(task) && task.settings?.completionPolicy?.kind === 'quantity' && task.steps.every(step => step.completedAt) && task.steps.every(step => canCompleteStep(actor, task, step, state, assignments)) : allowed(actor, task, state));
-      if (task.steps) for (const step of task.steps) step.canComplete = completionEnabled && !step.completedAt && canCompleteStep(actor, task, step, state, assignments);
+      const currentCompletionDate = !task.archivedAt && !task.supersededAt && (task.kind !== 'routine' || task.workEvent || task.date === state.day);
+      task.canComplete = currentCompletionDate && completionEnabled && !task.completedAt && (task.steps?.length ? task.steps.some(step => !step.completedAt && canCompleteStep(actor, task, step, state, assignments)) || tapOnly(task) && task.settings?.completionPolicy?.kind === 'quantity' && task.steps.every(step => step.completedAt) && task.steps.every(step => canCompleteStep(actor, task, step, state, assignments)) : allowed(actor, task, state));
+      if (task.steps) for (const step of task.steps) step.canComplete = currentCompletionDate && completionEnabled && !step.completedAt && canCompleteStep(actor, task, step, state, assignments);
       if (task.kind === 'routine') {
         const index = state.taskTemplates.findIndex(row => row.id === task.templateId);
         const current = state.taskTemplates[index];
@@ -438,9 +453,12 @@ export class OperationsStore {
       actor = actorWithParts(state, actor);
       checkWorkplacePermission(state, actor, input.action);
       if (this.trustedActor && input.action === 'setup_shared_employee') fail('로그인한 본인 계정으로 공통 업무를 이용해 주세요.', 403);
+      if (receiptReplay(state,input,actor)) return this.#view(state,actor);
+      if (issueRequestReplay(state,input,actor)) return this.#view(state,actor);
+      if (crewCreationReplay(state,input,actor)) return this.#view(state,actor);
       if (eventReplay(state,input,actor)) return this.#view(state,actor);
       if (manualMarketReplay(state,input,actor)) return this.#view(state,actor);
-      if (input.revision !== state.revision) fail('다른 동료가 먼저 업데이트했어요. 최신 내용을 확인하고 다시 눌러 주세요.', 409);
+      if (input.revision !== state.revision) throw new StoreError('최신 내용과 차이가 있어 저장하지 못했어요. 입력한 내용을 확인하고 다시 저장해 주세요.', 409, 'REVISION_CONFLICT');
       const scheduleDates = scheduleRange(input);
       const who = { id: actor.id, name: actor.name, role: actor.label };
       const activity = (message, kind) => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message, ...(kind ? { kind } : {}) });
@@ -448,6 +466,7 @@ export class OperationsStore {
       const previousTemplates = structuredClone(state.taskTemplates);
       switch (input.action) {
         case 'save_manual_translation': saveManualTranslation(state,input,actor,now); break;
+        case 'add_dishwashing_example': { leadership(actor); if(addDishwashingExample(state,actor,now)) activity('설거지 본보기 추가 · 현장 내용과 업무 시간은 매장 확인 후 연결'); break; }
         case 'start_blank_from_sample': {
           if (!this.trustedActor || actor.role !== 'owner') fail('클라우드 매장 사장님만 시작 방식을 바꿀 수 있어요.', 403);
           if (state.store?.setup === 'blank' || state.store?.setup === 'configured' || state.sales?.source !== 'sample' || state.sampleArchive) fail('샘플 매장 상태를 확인해 주세요.', 409);
@@ -500,10 +519,10 @@ export class OperationsStore {
           if (!Number.isInteger(input.reviewDays) || input.reviewDays < 1 || input.reviewDays > 90) fail('발주 후 확인 일수는 1~90일로 정해 주세요.');
           if (old && state.orders.some(order => order.status === 'ordered' && order.lines.some(line => line.itemId === old.id)) && (old.unit !== unit || old.supplier !== supplier)) fail('입고 대기 중에는 단위와 공급처를 바꿀 수 없어요.', 409);
           const editable = { name, unit, supplier, emoji, zone, minimum, orderQuantity, price: input.price, reviewDays: input.reviewDays };
-          if (old) Object.assign(old, editable, {setupNeedsReview:false});
+          if (old) Object.assign(old, editable, {quantityNeedsConfirmation:!inventoryReadiness(old).quantityConfirmed,setupNeedsReview:false});
           else {
             if (state.items.length >= 500) fail('재료는 최대 500개까지 등록할 수 있어요.');
-            state.items.push({ id: randomUUID(), ...editable, quantity: 0, lastOrderedAt: null, lastCheckedAt: null });
+            state.items.push({ id: randomUUID(), ...editable, quantity: 0, quantityNeedsConfirmation: true, lastOrderedAt: null, lastCheckedAt: null });
           }
           activity(`재료 ${old ? '수정' : '등록'} · ${name}`); break;
         }
@@ -549,6 +568,7 @@ export class OperationsStore {
         case 'complete_preparation': {
           const task = state.tasks.find(t => t.id === input.taskId && t.preparedItemId && !t.archivedAt && t.date === state.day);
           if (!task) fail('준비 Tap을 찾지 못했어요.', 404);
+          if (task.workIssue?.status==='open' && task.workIssue.blocksCompletion!==false) throw new StoreError('수행 불가 기록의 조치를 먼저 확인해 주세요.',409,'WORK_ISSUE_BLOCKED');
           if (task.supersededAt || task.completedAt || !(task.steps?.length ? task.steps.filter(s => !s.completedAt).every(s => canCompleteStep(actor, task, s, state)) : allowed(actor, task, state))) fail('준비 Tap 상태와 담당자를 확인해 주세요.', 409);
           finishPreparation(state, task, input.quantity, now, who);
           for (const step of task.steps) if (!step.completedAt) { snapshotAssignments(state, task, step); step.completedAt = iso(now); step.completedBy = who; }
@@ -674,9 +694,9 @@ export class OperationsStore {
         }
         case 'flag_work_issue':
         case 'resolve_work_issue': {
-          const task=state.tasks.find(t=>t.id===input.taskId&&t.workEvent&&!t.archivedAt&&!t.completedAt);
+          const task=state.tasks.find(t=>t.id===input.taskId&&(input.action==='resolve_work_issue'||(!t.archivedAt&&!t.supersededAt&&!t.completedAt))&&(input.action==='resolve_work_issue'||t.workEvent||t.date===state.day));
           if(!task) fail('진행 중인 작업을 확인해 주세요.',404);
-          if(!allowed(actor,task,state)) fail('담당 업무를 확인해 주세요.',403);
+          if(input.action!=='resolve_work_issue'&&!canReportWorkIssue(state,actor,task,input.stepId)) fail('담당 업무를 확인해 주세요.',403);
           if(typeof input.reason!=='string'||!input.reason.trim()||input.reason.length>500) fail('상태와 조치를 500자 이내로 적어 주세요.');
           if(input.action==='resolve_work_issue') {
             leadership(actor);
@@ -684,7 +704,11 @@ export class OperationsStore {
             task.workIssue={...task.workIssue,status:'resolved',resolution:input.reason.trim(),resolvedAt:iso(now),resolvedBy:who};
           } else {
             (task.workIssueHistory??=[]).push(...(task.workIssue?[structuredClone(task.workIssue)]:[]));
-            task.workIssue={status:'open',reason:input.reason.trim(),at:iso(now),actor:who};
+            if(input.requestId != null && !/^[a-zA-Z0-9-]{8,100}$/.test(input.requestId)) fail('이상 보고 요청을 확인해 주세요.');
+            if (!['blocked','note'].includes(input.severity ?? 'blocked')) fail('이상 기록의 종류를 확인해 주세요.');
+            if (input.stepId != null && !task.steps?.some(s => s.id === input.stepId)) fail('행동을 확인해 주세요.');
+            if (task.workIssue?.status === 'open' && task.workIssue.blocksCompletion !== false) fail('기존 수행 불가 기록의 조치를 먼저 확인해 주세요.',409);
+            task.workIssue={status:'open',requestId:input.requestId??null,severity:input.severity??'blocked',blocksCompletion:input.severity!=='note',stepId:input.stepId??null,photo:input.photo?manualImageLink(input.photo):'',reason:input.reason.trim(),at:iso(now),actor:who};
           }
           activity('작업 이상·조치 기록');break;
         }
@@ -729,7 +753,7 @@ export class OperationsStore {
           if (task.archivedAt) fail('업무가 변경되었어요. 최신 카드를 확인해 주세요.', 409);
           if (task.supersededAt || new Date(task.dueAt) > now) fail('발주 기준 확인 예정일이 바뀌었어요. 최신 업무를 확인해 주세요.', 409);
           if (task.kind === 'routine' && !task.workEvent && task.date !== state.day) fail('오늘 업무를 다시 확인해 주세요.', 409);
-          if(task.workIssue?.status==='open') fail('이상 기록의 조치를 먼저 확인해 주세요.',409);
+          if(task.workIssue?.status==='open'&&task.workIssue.blocksCompletion!==false) throw new StoreError('수행 불가 기록의 조치를 먼저 확인해 주세요.',409,'WORK_ISSUE_BLOCKED');
           if (task.completedAt) fail(`${task.completedBy.name}님이 이미 확인했어요.`, 409);
           const selectedStep = input.action === 'complete_step' ? task.steps?.find(step => step.id === input.stepId) : null;
           if (!(selectedStep ? canCompleteStep(actor, task, selectedStep, state) : task.steps?.length ? task.steps.filter(s => !s.completedAt).every(s => canCompleteStep(actor, task, s, state)) : allowed(actor, task, state))) fail('이 업무의 담당 직급이 아니에요. 매니저에게 알려 주세요.', 403);
@@ -777,6 +801,7 @@ export class OperationsStore {
           for (const task of moving) {
           if (!(task.steps?.length ? task.steps.some(s => canCompleteStep(actor, task, s, state)) : allowed(actor, task, state))) fail('이 Tap의 담당자가 아니에요.', 403);
           if (input.status === 'done' && !task.completedAt) {
+            if(task.workIssue?.status==='open' && task.workIssue.blocksCompletion!==false) throw new StoreError('수행 불가 기록의 조치를 먼저 확인해 주세요.',409,'WORK_ISSUE_BLOCKED');
             const issue = bulkCompleteIssue(actor, task, state, input.quantity);
             if (issue) fail(issue, issue.includes('담당') ? 403 : 409);
             for (const step of task.steps ?? []) if (!step.completedAt) { snapshotAssignments(state, task, step); step.completedAt = iso(now); step.completedBy = who; step.completionSource = 'tap_bulk'; }
@@ -820,8 +845,8 @@ export class OperationsStore {
           activity('TAP그룹 순서 변경'); break;
         }
         case 'check_stock': {
-          const item = itemFor(input.itemId); item.quantity = amount(input.quantity); item.lastCheckedAt = iso(now); item.checkedBy = who;
-          for (const task of state.tasks.filter(task => task.itemId === item.id && !task.completedAt && !task.supersededAt && new Date(task.dueAt) <= now)) { snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who; }
+          const item = itemFor(input.itemId); item.quantity = amount(input.quantity); item.quantityNeedsConfirmation = false; item.lastCheckedAt = iso(now); item.checkedBy = who;
+          for (const task of state.tasks.filter(task => task.itemId === item.id && !task.completedAt && !task.supersededAt && !(task.workIssue?.status==='open' && task.workIssue.blocksCompletion!==false) && new Date(task.dueAt) <= now)) { snapshotAssignments(state, task); task.completedAt = iso(now); task.completedBy = who; }
           activity(`${item.name} 재고 ${item.quantity}${item.unit} 확인`); break;
         }
         case 'place_order': {
@@ -830,7 +855,7 @@ export class OperationsStore {
           if (input.lines.some(line => !line || typeof line !== 'object')) fail('발주 항목을 확인해 주세요.');
           if (new Set(input.lines.map(line => line.itemId)).size !== input.lines.length) fail('같은 재료가 중복되었어요.');
           const lines = input.lines.map(line => {
-            const item = itemFor(line.itemId); const quantity = amount(line.quantity); if (quantity <= 0) fail('발주 수량은 0보다 커야 해요.');
+            const item = itemFor(line.itemId); if (!inventoryReadiness(item).orderReady) throw new StoreError('재료의 실물 수량과 발주 기준·공급처를 먼저 확인해 주세요.',409,'INVENTORY_NOT_READY'); const quantity = amount(line.quantity); if (quantity <= 0) fail('발주 수량은 0보다 커야 해요.');
             if (state.orders.some(order => order.status === 'ordered' && order.lines.some(line => line.itemId === item.id))) fail(`${item.name}은 이미 입고 대기 중이에요.`, 409);
             return { itemId: item.id, name: item.name, unit: item.unit, supplier: item.supplier, quantity, price: item.price };
           });
@@ -840,12 +865,8 @@ export class OperationsStore {
           activity(`데모 발주 ${lines.length}개 재료 · 실제 전송 없음`); break;
         }
         case 'receive_order': {
-          leadership(actor); const order = state.orders.find(order => order.id === input.orderId);
-          if (!order) fail('발주 내역이 없어요.', 404);
-          if (order.status !== 'ordered') fail('이미 입고 확인된 발주예요.', 409);
-          order.status = 'received'; order.receivedAt = iso(now); order.receivedBy = who;
-          for (const line of order.lines) itemFor(line.itemId).quantity += line.quantity;
-          activity(`${order.id} 입고 확인 · 재고 반영`); break;
+          const order = receiveInventoryOrder(state,input,actor,now);
+          activity(`${order.id} ${order.status==='received'?'전량':'부분'} 입고 확인 · 받은 수량만 재고 반영`); break;
         }
         case 'request_restock': { const item = itemFor(input.itemId); item.restockRequestedBy = who; activity(`${item.name} 보충 요청`); break; }
         case 'review_policy': {

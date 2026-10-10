@@ -104,7 +104,7 @@ export function createConsoleServer({ stateFile = path.join(root, 'docs/project-
       res.end(req.method === 'HEAD' ? '' : content);
     } catch (error) {
       if (error.code === 'ENOENT') return json(res, 404, { error: '파일이 없습니다. Flutter 미리보기는 npm run build:app 실행 후 사용할 수 있어요.' });
-      json(res, error.status || 500, { error: error instanceof StoreError ? error.message : '처리하지 못했어요. 파일은 유지되며 서버 로그를 확인해 주세요.' });
+      json(res, error.status || 500, { error: error instanceof StoreError ? error.message : '처리하지 못했어요. 파일은 유지되며 서버 로그를 확인해 주세요.', ...(error instanceof StoreError && error.code ? {code:error.code} : {}) });
       if (!(error instanceof StoreError)) console.error(error);
     }
   });

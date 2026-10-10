@@ -40,7 +40,16 @@ class _ManualTranslationEditorState extends State<ManualTranslationEditor> {
   }
 
   late final fields = <String, TextEditingController>{
-    for (final field in ['title', 'manual', 'tip', 'body'])
+    for (final field in [
+      'title',
+      'manual',
+      'tip',
+      'body',
+      'name',
+      'floor',
+      'area',
+      'description',
+    ])
       if (widget.source[field] is String &&
           (widget.source[field] as String).trim().isNotEmpty)
         field: TextEditingController(text: '${widget.initial[field] ?? ''}'),

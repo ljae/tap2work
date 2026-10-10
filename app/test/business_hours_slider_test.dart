@@ -113,6 +113,10 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('일주일 설정 저장'));
         await tester.pumpAndSettle();
+        if (find.text('변경 확인 후 저장').evaluate().isNotEmpty) {
+          await tester.tap(find.text('변경 확인 후 저장'));
+          await tester.pumpAndSettle();
+        }
         for (final day in ['1', '2', '3', '4', '5', '6']) {
           expect(written!['days'][day].first['start'], '19:00');
           expect(written!['days'][day].last['end'], '10:00');

@@ -1,3 +1,4 @@
+import { assertIssuePhotoPermission, issuePhotoReceipt } from './work_issue_media.mjs';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
 import { manualMediaPrefix, parseManualMediaReference } from './manual_media_reference.mjs';
@@ -110,7 +111,7 @@ export function validateOptimizedJpeg(photo) {
   invalid();
 }
 
-export function createManualMediaHandler({ url, headers, rest, fetcher, sectionStorage }) {
+export function createManualMediaHandler({ url, headers, rest, fetcher, sectionStorage, signingKey = headers.apikey, clock = () => new Date() }) {
   return async ({ request, user, query, cors }) => {
     const upload = request.method === 'POST' && query.get('media') === 'upload';
     if (!upload && request.method !== 'GET') fail('지원하지 않는 사진 요청이에요.', 405);
@@ -129,12 +130,22 @@ export function createManualMediaHandler({ url, headers, rest, fetcher, sectionS
     const member = members.find(m => m.workspace_id === workspaceId);
     if (!member) fail('이 매장 사진에 접근할 권한이 없어요.', 403);
     if (upload) {
-      if (query.get('view') === 'employee' || !['owner', 'manager'].includes(member.role)) fail('사장님 또는 권한 있는 매니저만 사진을 등록할 수 있어요.', 403);
-      if (member.role === 'manager') {
-        const document = sectionStorage
-          ? await rest('rpc/tap2work_read_workspace', { method: 'POST', body: JSON.stringify({ p_user_id: user.id, p_workspace_id: workspaceId, p_revision: null, p_window: null, p_role: null }) })
-          : { payload: (await rest(`tap2work_state?workspace_id=eq.${workspaceId}&select=payload`))[0]?.payload };
-        if (document.forbidden || !document.payload || document.payload.workplace?.restrictions?.manager?.tasks === false) fail('사장님이 이 직책의 매뉴얼 편집 권한을 껐어요.', 403);
+      const issue = input.purpose === 'work_issue';
+      if (input.purpose != null && !issue) fail('사진 사용 목적을 확인해 주세요.');
+      const readDocument = async () => sectionStorage
+        ? await rest('rpc/tap2work_read_workspace', { method:'POST', body:JSON.stringify({p_user_id:user.id,p_workspace_id:workspaceId,p_revision:null,p_window:null,p_role:null}) })
+        : {payload:(await rest(`tap2work_state?workspace_id=eq.${workspaceId}&select=payload`))[0]?.payload};
+      if (issue) {
+        if(typeof input.taskId !== 'string' || input.taskId.length>300) fail('담당 업무를 확인해 주세요.');
+        const document = await readDocument();
+        if(document.forbidden || !document.payload) fail('매장 접근이 변경됐어요.',403);
+        assertIssuePhotoPermission(document.payload,member,user.id,input.taskId,clock());
+      } else {
+        if (query.get('view') === 'employee' || !['owner','manager'].includes(member.role)) fail('사장님 또는 권한 있는 매니저만 사진을 등록할 수 있어요.',403);
+        if (member.role === 'manager') {
+          const document = await readDocument();
+          if(document.forbidden || !document.payload || document.payload.workplace?.restrictions?.manager?.tasks === false) fail('사장님이 이 직책의 매뉴얼 편집 권한을 껐어요.',403);
+        }
       }
       const photo = validateOptimizedJpeg(input.photo);
       const path = `${workspaceId}/${randomUUID()}.jpg`;
@@ -146,7 +157,11 @@ export function createManualMediaHandler({ url, headers, rest, fetcher, sectionS
       // the upload, compensate immediately, and rely on retained workspace
       // deletion tombstones if this process/compensation fails.
       const currentMembers = await rest(`tap2work_members?user_id=eq.${user.id}&workspace_id=eq.${workspaceId}&select=workspace_id,role`);
-      if (!currentMembers.some(m => m.workspace_id === workspaceId)) {
+      let stillAllowed = currentMembers.some(m => m.workspace_id === workspaceId && m.role === member.role);
+      if (stillAllowed && issue) {
+        try { const document = await readDocument(); assertIssuePhotoPermission(document.payload,currentMembers.find(m=>m.workspace_id===workspaceId),user.id,input.taskId,clock()); } catch { stillAllowed = false; }
+      }
+      if (!stillAllowed) {
         try {
           await fetcher(`${url}/storage/v1/object/${manualMediaBucket}`, { method: 'DELETE', headers, body: JSON.stringify({ prefixes: [path] }) });
         } catch { /* durable workspace erasure worker retries removed stores */ }
@@ -154,7 +169,7 @@ export function createManualMediaHandler({ url, headers, rest, fetcher, sectionS
       }
       // Attachment uses the existing state revision/CAS; failed attachment must
       // never delete this immutable object, which another/history reference may use.
-      return new Response(JSON.stringify({ reference: `${manualMediaPrefix}${path}`, contentType: 'image/jpeg', bytes: photo.bytes.length, width: photo.width, height: photo.height }), { status: 201, headers: cors });
+      return new Response(JSON.stringify({ reference: `${manualMediaPrefix}${path}`, ...(issue ? {receipt:issuePhotoReceipt({userId:user.id,workspaceId,taskId:input.taskId,reference:`${manualMediaPrefix}${path}`},signingKey,clock())} : {}), contentType: 'image/jpeg', bytes: photo.bytes.length, width: photo.width, height: photo.height }), { status: 201, headers: cors });
     }
     const photo = parseManualMediaReference(query.get('media'));
     if (!photo) fail('사진 참조를 확인해 주세요.');

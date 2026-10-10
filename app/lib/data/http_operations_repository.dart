@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../domain/operations_repository.dart';
 import '../domain/manual_media_repository.dart';
 import '../domain/content_translation_repository.dart';
+import '../domain/crew_invitation_repository.dart';
 
 /// Reads public samples or the existing demo/cloud snapshot API.
 /// Provider webhooks belong on the server, never in this client adapter.
@@ -11,6 +12,8 @@ class HttpOperationsRepository
     implements
         OperationsRepository,
         ManualMediaRepository,
+        TaskIssueMediaRepository,
+        CrewInvitationRepository,
         ContentTranslationRepository {
   HttpOperationsRepository({
     http.Client? client,
@@ -134,6 +137,30 @@ class HttpOperationsRepository
   void close() => _client.close();
 
   @override
+  Future<OperationsResult> crewInvitation({
+    required String actorId,
+    required Json values,
+  }) async {
+    if (readOnly || accessToken == null) {
+      throw StateError('로그인한 매장에서 초대를 사용할 수 있어요.');
+    }
+    return _decode(
+      await _client
+          .post(
+            endpoint.replace(
+              queryParameters: {...endpoint.queryParameters, 'invite': 'crew'},
+            ),
+            headers: {
+              ...await _headers(actorId, null),
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(values),
+          )
+          .timeout(const Duration(seconds: 15)),
+    );
+  }
+
+  @override
   Future<Json> translateContent({
     required String actorId,
     required String workspaceId,
@@ -229,6 +256,46 @@ class HttpOperationsRepository
       throw const ManualMediaException('사진 저장 응답을 확인하지 못했어요. 다시 시도해 주세요.');
     }
     return reference;
+  }
+
+  @override
+  Future<Json> uploadWorkIssuePhoto({
+    required String actorId,
+    required String workspaceId,
+    required String taskId,
+    required Uint8List bytes,
+  }) async {
+    _requireMediaSession();
+    if (bytes.isEmpty || bytes.length > 250000) {
+      throw const ManualMediaException('사진 용량을 줄인 뒤 다시 시도해 주세요.');
+    }
+    final response = await _client
+        .post(
+          _mediaEndpoint('upload', workspaceId),
+          headers: {
+            ...await _headers(actorId, null),
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'workspaceId': workspaceId,
+            'purpose': 'work_issue',
+            'taskId': taskId,
+            'photo': 'data:image/jpeg;base64,${base64Encode(bytes)}',
+          }),
+        )
+        .timeout(const Duration(seconds: 30));
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      _mediaFailure(response);
+    }
+    final body = jsonDecode(utf8.decode(response.bodyBytes));
+    if (body is! Map ||
+        body['reference'] is! String ||
+        manualMediaWorkspace(body['reference']) != workspaceId ||
+        body['receipt'] is! String ||
+        (body['receipt'] as String).isEmpty) {
+      throw const ManualMediaException('사진 저장 응답을 확인하지 못했어요. 다시 시도해 주세요.');
+    }
+    return {'reference': body['reference'], 'receipt': body['receipt']};
   }
 
   @override

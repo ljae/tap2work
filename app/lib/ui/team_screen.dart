@@ -1,4 +1,8 @@
 import '../l10n/app_localizations.dart';
+import 'dart:math';
+import '../domain/edit_conflict.dart';
+import 'edit_conflict_dialog.dart';
+import 'crew_invitation_screen.dart';
 import 'time_wheel.dart';
 import 'payroll_settings_screen.dart';
 import 'workplace_screens.dart';
@@ -82,6 +86,13 @@ class _TeamScreenState extends State<TeamScreen> {
   }
 
   Future<void> editCrew([Json? current]) async {
+    final openingSnapshot = copyEditSnapshot(ops.data ?? {});
+    final openingActor = ops.actorId;
+    final openingWorkspace = ops.workspaceId;
+    final creationRequestId = List.generate(
+      24,
+      (_) => Random.secure().nextInt(256).toRadixString(16).padLeft(2, '0'),
+    ).join();
     final nickname = TextEditingController(text: current?['nickname'] ?? '');
     final rate = TextEditingController(
       text: '${current?['hourlyWon'] ?? 10320}',
@@ -94,172 +105,254 @@ class _TeamScreenState extends State<TeamScreen> {
     final nationalityOptions = ops.rows('nationalityOptions');
     final period = current?['payPeriod'] as String? ?? 'monthly';
     var employment = current?['employmentType'] as String? ?? '시간알바';
+    var saving = false;
+    var leaving = false;
+    String? saveError;
+    String signature() =>
+        '${nickname.text}|${rate.text}|${kakao.text}|${phone.text}|$rank|$nationality|$guideLocale|$employment';
+    final initialSignature = signature();
     Future<dynamic>? sheetClosed;
-    final saved = await showAppFormSheet<Json>(
+    await showAppFormSheet<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, update) {
           sheetClosed =
               (ModalRoute.of(context) as TransitionRoute<dynamic>?)?.completed;
-          return AppSheetPanel(
-            title: Text(
-              widget.payOnly
-                  ? '인건비 설정'
-                  : current == null
-                  ? '크루 등록'
-                  : '크루 수정',
-            ),
-            content: SizedBox(
-              width: 430,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 20,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (!widget.payOnly)
-                      TextField(
-                        controller: nickname,
-                        onChanged: (_) => update(() {}),
-                        decoration: const InputDecoration(labelText: '별칭(이름)'),
-                      ),
-                    if (!widget.payOnly) ...[
-                      InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: context.t('crew.nationality'),
-                        ),
-                        child: TextButton.icon(
-                          key: const ValueKey('crew-nationality'),
-                          onPressed: () async {
-                            final selected = await pickNationality(
-                              nationalityOptions,
-                              nationality,
-                            );
-                            if (selected != null && context.mounted) {
-                              update(() => nationality = selected);
-                            }
-                          },
-                          icon: const Icon(Icons.public),
-                          label: Text(
-                            '${nationalityOptions.where((c) => c['code'] == nationality).firstOrNull?['name'] ?? context.t('crew.select')}',
-                          ),
-                        ),
-                      ),
-                      AppPicker<String>(
-                        key: const ValueKey('crew-guide-language'),
-                        label: context.t('crew.guideLanguage'),
-                        value: guideLocale,
-                        items: appLanguageNames.entries
-                            .map(
-                              (language) => DropdownMenuItem<String>(
-                                value: language.key,
-                                child: Text(language.value),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) => update(() => guideLocale = value),
-                      ),
-                      Text(
-                        context.t('crew.languageIndependent'),
-                        style: AppText.caption,
-                      ),
-                    ],
-                    if (!widget.payOnly)
-                      AppPicker<String>(
-                        label: '직급',
-                        value: rank,
-                        items: _ranks.entries
-                            .map(
-                              (e) => DropdownMenuItem(
-                                value: e.key,
-                                child: Text(e.value),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (v) => update(() => rank = v!),
-                      ),
-                    if (!widget.payOnly)
-                      AppPicker<String>(
-                        label: '고용형태',
-                        value: employment,
-                        items: ['정규직', '시간알바', '정규알바']
-                            .map(
-                              (v) => DropdownMenuItem(value: v, child: Text(v)),
-                            )
-                            .toList(),
-                        onChanged: (v) => update(() => employment = v!),
-                      ),
-                    if (!widget.payOnly)
-                      const Text(
-                        '파트·시간대는 등록 후 크루 배정에서 설정해요.',
-                        style: AppText.caption,
-                      ),
-                    if (widget.payOnly)
-                      TextField(
-                        controller: rate,
-                        onChanged: (_) => update(() {}),
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: '시급 · 원'),
-                      ),
-                    if (widget.payOnly)
-                      TextButton(
-                        onPressed: () => showAppSheet(
-                          context,
-                          builder: (_) => PayrollSettingsScreen(ops: ops),
-                        ),
-                        child: const Text('매장 정산 설정'),
-                      ),
-                    if (!widget.payOnly)
-                      TextField(
-                        controller: kakao,
-                        decoration: const InputDecoration(
-                          labelText: '카카오톡 HTTPS 링크 · 선택',
-                        ),
-                      ),
-                    if (!widget.payOnly)
-                      TextField(
-                        controller: phone,
-                        keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          labelText: '전화번호 · 선택',
-                        ),
-                      ),
+          Future<void> cancel() async {
+            if (saving) return;
+            if (signature() != initialSignature) {
+              final discard = await showAppDialog<bool>(
+                context: context,
+                builder: (dialog) => AlertDialog(
+                  title: const Text('입력한 내용을 버릴까요?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialog, false),
+                      child: const Text('계속 편집'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialog, true),
+                      child: const Text('입력 버리기'),
+                    ),
                   ],
                 ),
+              );
+              if (discard != true || !context.mounted) return;
+            }
+            update(() => leaving = true);
+            Navigator.pop(context);
+          }
+
+          return PopScope(
+            canPop: leaving,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) cancel();
+            },
+            child: AppSheetPanel(
+              title: Text(
+                widget.payOnly
+                    ? '인건비 설정'
+                    : current == null
+                    ? '크루 등록'
+                    : '크루 수정',
               ),
+              content: AbsorbPointer(
+                absorbing: saving,
+                child: SizedBox(
+                  width: 430,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 20,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (saveError != null)
+                          Information('$saveError\n입력한 내용은 남아 있어요.'),
+                        if (!widget.payOnly)
+                          TextField(
+                            controller: nickname,
+                            onChanged: (_) => update(() {}),
+                            decoration: const InputDecoration(
+                              labelText: '별칭(이름)',
+                            ),
+                          ),
+                        if (!widget.payOnly) ...[
+                          InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: context.t('crew.nationality'),
+                            ),
+                            child: TextButton.icon(
+                              key: const ValueKey('crew-nationality'),
+                              onPressed: () async {
+                                final selected = await pickNationality(
+                                  nationalityOptions,
+                                  nationality,
+                                );
+                                if (selected != null && context.mounted) {
+                                  update(() => nationality = selected);
+                                }
+                              },
+                              icon: const Icon(Icons.public),
+                              label: Text(
+                                '${nationalityOptions.where((c) => c['code'] == nationality).firstOrNull?['name'] ?? context.t('crew.select')}',
+                              ),
+                            ),
+                          ),
+                          AppPicker<String>(
+                            key: const ValueKey('crew-guide-language'),
+                            label: context.t('crew.guideLanguage'),
+                            value: guideLocale,
+                            items: appLanguageNames.entries
+                                .map(
+                                  (language) => DropdownMenuItem<String>(
+                                    value: language.key,
+                                    child: Text(language.value),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) =>
+                                update(() => guideLocale = value),
+                          ),
+                          Text(
+                            context.t('crew.languageIndependent'),
+                            style: AppText.caption,
+                          ),
+                        ],
+                        if (!widget.payOnly)
+                          AppPicker<String>(
+                            label: '직급',
+                            value: rank,
+                            items: _ranks.entries
+                                .map(
+                                  (e) => DropdownMenuItem(
+                                    value: e.key,
+                                    child: Text(e.value),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (v) => update(() => rank = v!),
+                          ),
+                        if (!widget.payOnly)
+                          AppPicker<String>(
+                            label: '고용형태',
+                            value: employment,
+                            items: ['정규직', '시간알바', '정규알바']
+                                .map(
+                                  (v) => DropdownMenuItem(
+                                    value: v,
+                                    child: Text(v),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (v) => update(() => employment = v!),
+                          ),
+                        if (!widget.payOnly)
+                          const Text(
+                            '파트·시간대는 등록 후 크루 배정에서 설정해요.',
+                            style: AppText.caption,
+                          ),
+                        if (widget.payOnly)
+                          TextField(
+                            controller: rate,
+                            onChanged: (_) => update(() {}),
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: '시급 · 원',
+                            ),
+                          ),
+                        if (widget.payOnly)
+                          TextButton(
+                            onPressed: () => showAppSheet(
+                              context,
+                              builder: (_) => PayrollSettingsScreen(ops: ops),
+                            ),
+                            child: const Text('매장 정산 설정'),
+                          ),
+                        if (!widget.payOnly)
+                          TextField(
+                            controller: kakao,
+                            decoration: const InputDecoration(
+                              labelText: '카카오톡 HTTPS 링크 · 선택',
+                            ),
+                          ),
+                        if (!widget.payOnly)
+                          TextField(
+                            controller: phone,
+                            keyboardType: TextInputType.phone,
+                            decoration: const InputDecoration(
+                              labelText: '전화번호 · 선택',
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                PressBounce(
+                  child: TextButton(
+                    onPressed: saving ? null : cancel,
+                    child: const Text('취소'),
+                  ),
+                ),
+                PressBounce(
+                  child: FilledButton(
+                    onPressed:
+                        saving ||
+                            nickname.text.trim().isEmpty ||
+                            (!widget.payOnly &&
+                                (nationality == null || guideLocale == null)) ||
+                            int.tryParse(rate.text) == null
+                        ? null
+                        : () async {
+                            if (saving) return;
+                            update(() {
+                              saving = true;
+                              saveError = null;
+                            });
+                            final ok = await ops.saveDraft(
+                              'save_tapper',
+                              {
+                                if (current != null) 'id': current['id'],
+                                if (current == null)
+                                  'creationRequestId': creationRequestId,
+                                'nickname': nickname.text.trim(),
+                                if (!widget.payOnly) 'nationality': nationality,
+                                if (!widget.payOnly) 'guideLocale': guideLocale,
+                                'rank': rank,
+                                'employmentType': employment,
+                                'hourlyWon': int.parse(rate.text),
+                                'payPeriod': period,
+                                'kakaoUrl': kakao.text.trim(),
+                                'phone': phone.text.trim(),
+                                'active': current?['active'] ?? true,
+                              },
+                              baseSnapshot: openingSnapshot,
+                              openingActor: openingActor,
+                              openingWorkspace: openingWorkspace,
+                              resolve: (conflicts) => context.mounted
+                                  ? showEditConflictDialog(
+                                      context,
+                                      conflicts,
+                                      ops: ops,
+                                    )
+                                  : Future.value(
+                                      EditConflictChoice.keepEditing,
+                                    ),
+                            );
+                            if (!context.mounted) return;
+                            update(() {
+                              saving = false;
+                              saveError = ok ? null : ops.error;
+                              leaving = ok;
+                            });
+                            if (ok) Navigator.pop(context);
+                          },
+                    child: Text(saving ? '저장 중…' : '저장'),
+                  ),
+                ),
+              ],
             ),
-            actions: [
-              PressBounce(
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('취소'),
-                ),
-              ),
-              PressBounce(
-                child: FilledButton(
-                  onPressed:
-                      nickname.text.trim().isEmpty ||
-                          (!widget.payOnly &&
-                              (nationality == null || guideLocale == null)) ||
-                          int.tryParse(rate.text) == null
-                      ? null
-                      : () => Navigator.pop(context, {
-                          if (current != null) 'id': current['id'],
-                          'nickname': nickname.text.trim(),
-                          if (!widget.payOnly) 'nationality': nationality,
-                          if (!widget.payOnly) 'guideLocale': guideLocale,
-                          'rank': rank,
-                          'employmentType': employment,
-                          'hourlyWon': int.parse(rate.text),
-                          'payPeriod': period,
-                          'kakaoUrl': kakao.text.trim(),
-                          'phone': phone.text.trim(),
-                          'active': true,
-                        }),
-                  child: const Text('저장'),
-                ),
-              ),
-            ],
           );
         },
       ),
@@ -269,7 +362,6 @@ class _TeamScreenState extends State<TeamScreen> {
     rate.dispose();
     kakao.dispose();
     phone.dispose();
-    if (saved != null) await action('save_tapper', saved);
   }
 
   Future<void> editShift(Json tapper) async {
@@ -804,14 +896,28 @@ class _TeamScreenState extends State<TeamScreen> {
                 label: const Text('크루 등록'),
               ),
             ),
-          if (!widget.payOnly && ops.isOwner)
+          if (!widget.payOnly && ops.canManageCrewInvites)
             TextButton.icon(
               onPressed: () => showAppSheet(
                 context,
-                builder: (_) => WorkplaceSettings(ops: ops, section: 'invite'),
+                builder: (_) => ops.cloud
+                    ? CrewInvitationScreen(ops: ops, management: true)
+                    : WorkplaceSettings(ops: ops, section: 'invite'),
               ),
               icon: const Icon(CupertinoIcons.qrcode),
-              label: const Text('코드·QR로 초대'),
+              label: Text(
+                context.t(
+                  ops.cloud ? 'invite.managementEntry' : 'invite.demoEntry',
+                ),
+              ),
+            ),
+          if (!widget.payOnly && ops.cloud)
+            TextButton(
+              onPressed: () => showAppSheet(
+                context,
+                builder: (_) => CrewInvitationScreen(ops: ops),
+              ),
+              child: Text(context.t('invite.joinOther')),
             ),
           const SizedBox(height: 12),
           if (!widget.payOnly)

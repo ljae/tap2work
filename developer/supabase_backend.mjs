@@ -1,4 +1,6 @@
 import { createContentTranslationHandler } from './content_translation.mjs';
+import { verifyIssuePhotoReceipt } from './work_issue_media.mjs';
+import { createCrewInvitationHandler } from './crew_invitation.mjs';
 import { createManualMediaHandler, validateManualMediaScope, stripForeignBackupPhotos } from './manual_media.mjs';
 import { applyStoreSetup, storeSetupCatalog } from './store_setup.mjs';
 import {DatabaseCatalogRepository} from './catalog_repository.mjs';
@@ -16,8 +18,9 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
     if (!response.ok) throw new StoreError('클라우드 저장소를 준비하지 못했어요. 관리자에게 연결 상태를 확인해 주세요.', 503);
     return response.status === 204 ? null : response.json();
   }
-  const media = createManualMediaHandler({ url, headers, rest, fetcher, sectionStorage });
+  const media = createManualMediaHandler({ url, headers, rest, fetcher, sectionStorage, signingKey: serviceKey, clock });
   const translate = createContentTranslationHandler({ rest, sectionStorage, fetcher, apiKey: translationApiKey, enabled: translationEnabled, clock });
+  const invitations = createCrewInvitationHandler({rest});
   const catalogs = catalogRepository ?? (catalogDatabase ? new DatabaseCatalogRepository(rest) : null);
   return async request => {
     const origin = request.headers.get('origin');
@@ -37,6 +40,10 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       if (!/^[\da-f-]{36}$/i.test(user.id ?? '')) throw new StoreError('사용자를 확인하지 못했어요.', 401);
       if (requireSocialIdentity && !user.identities?.some(i => ['apple','google'].includes(i.provider))) throw new StoreError('Apple 또는 Google로 다시 로그인해 주세요.', 403);
       const query = new URL(request.url).searchParams;
+      if(query.has('invite')){
+        if(query.get('invite')!=='crew'||!sectionStorage)throw new StoreError('초대 연결을 사용할 수 없어요.',400);
+        return reply(200,await invitations({request,user}));
+      }
       if (query.has('translate')) {
         if (query.get('translate') !== 'content') throw new StoreError('번역 요청을 확인해 주세요.');
         return await translate({ request, user, cors });
@@ -117,6 +124,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       if (!member) throw new StoreError('매장 권한이 없어요.', 403);
       const restoredPhotosOmitted = stripForeignBackupPhotos(input, member.workspace_id);
       if (input) validateManualMediaScope(input, member.workspace_id);
+      if(input?.action==='flag_work_issue' && input.photo) verifyIssuePhotoReceipt(input,user.id,member.workspace_id,serviceKey,clock());
       const actor = { id: user.id, name: member.display_name, role: member.role, label: {owner:'사장님',manager:'매니저',cook:'조리 담당',crew:'크루'}[member.role] };
       let original = document?.payload;
       const employeeMode = false; // Legacy view queries never replace authenticated identity.
@@ -129,12 +137,14 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
         },
         async save(state, revision) {
           const patch = sectionStorage ? sectionPatch(original, state) : null;
-          const saved = await rest(sectionStorage ? 'rpc/tap2work_patch_state' : 'rpc/tap2work_save_state', { method:'POST', body:JSON.stringify({
+          const crewAccessEdit = sectionStorage && input?.action === 'save_tapper';
+          const saved = await rest(sectionStorage ? (crewAccessEdit ? 'rpc/tap2work_patch_crew_state' : 'rpc/tap2work_patch_state') : 'rpc/tap2work_save_state', { method:'POST', body:JSON.stringify({
             p_workspace_id:member.workspace_id, p_expected_revision:revision,
+            ...(crewAccessEdit ? {p_user_id:user.id} : {}),
             ...(sectionStorage ? {p_changes:patch.changes,p_removed:patch.removed} : {p_payload:state}),
           }) });
           if (saved && sectionStorage) original = structuredClone(state);
-          if (!saved) throw new StoreError('동료가 먼저 수정했어요. 새로고침 후 다시 시도해 주세요.', 409);
+          if (!saved) throw new StoreError('최신 내용과 차이가 있어 저장하지 못했어요. 입력한 내용은 유지했어요.', 409, 'REVISION_CONFLICT');
         },
       };
       const store = new OperationsStore(null, clock, { persistence, actor, ...(catalogSnapshot?{catalog:catalogSnapshot.release,catalogRevision:catalogSnapshot.revision}:{}) });
@@ -143,7 +153,7 @@ export function createCloudHandler({ url, serviceKey, origins = ['https://tap2.w
       else result = await store.mutate(user.id, input);
       return reply(200, { ...result, ...(restoredPhotosOmitted ? {restoredPhotosOmitted} : {}), storeSetupCatalog: storeSetupCatalog(catalogSnapshot?.release), ...(catalogSnapshot?{catalogRevision:catalogSnapshot.revision,catalogReleaseId:catalogSnapshot.release.releaseId}:{}), canSwitchEmployee: false, employeeMode, workspaceId: member.workspace_id, ...(document?.workspaces ? {workspaces: document.workspaces.map(w=>w.id===member.workspace_id?{...w,name:result.store?.name ?? w.name}:w)} : {}), ...(sectionStorage ? {syncWindow: document.window} : {}) });
     } catch (error) {
-      return reply(error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : '요청을 처리하지 못했어요. 다시 시도해 주세요.' });
+      return reply(error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : '요청을 처리하지 못했어요. 다시 시도해 주세요.', ...(error instanceof StoreError && error.code ? {code:error.code} : {}) });
     }
   };
 }

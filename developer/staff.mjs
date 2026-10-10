@@ -6,8 +6,26 @@ import { mutateCrewPattern } from './crew_patterns.mjs';
 import { payrollSettings, savePayrollSettings, settlementPeriod, roundedWorkMinutes } from './payroll_settings.mjs';
 import { validatePart, crewPartIds, partForLegacy } from './parts.mjs';
 import { laborView, weekOf } from './labor.mjs';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { StoreError } from './store.mjs';
+
+function crewCreationHash(input) {
+  const fields = ['nickname','rank','employmentType','hourlyWon','payPeriod','kakaoUrl','phone','active','nationality','guideLocale','partIds','duties'];
+  const value = Object.fromEntries(fields.filter(key=>input[key]!==undefined).map(key=>[key,typeof input[key]==='string'?input[key].trim():input[key]]));
+  return createHash('sha256').update(JSON.stringify(value)).digest('hex');
+}
+
+// Run after permission checks and before the global revision comparison. A lost
+// successful response must not create a second person or overwrite later edits.
+export function crewCreationReplay(state, input, actor) {
+  if (input.action!=='save_tapper' || input.id || input.creationRequestId==null) return false;
+  if(actor.role!=='owner') throw new StoreError('사장님만 크루를 등록할 수 있어요.',403);
+  if(typeof input.creationRequestId!=='string'||!/^[a-zA-Z0-9-]{16,80}$/.test(input.creationRequestId)) throw new StoreError('등록 요청을 다시 확인해 주세요.');
+  const row=state.tappers.find(t=>t.creationRequestId===input.creationRequestId);
+  if(!row) return false;
+  if(row.creationActorId!==actor.id || row.creationFingerprint!==crewCreationHash(input)) throw new StoreError('이미 처리한 등록 요청의 내용이 달라요. 등록된 크루를 열어 수정해 주세요.',409,'CREATE_REQUEST_MISMATCH');
+  return true;
+}
 
 const fail = (message, status = 400) => { throw new StoreError(message, status); };
 const dateKst = value => new Date(new Date(value).getTime() + 9 * 3600000).toISOString().slice(0, 10);
@@ -149,8 +167,10 @@ export function mutateStaff(state, input, actor, now, who, activity) {
 
     case 'save_tapper': {
       if (!owner) fail('사장님만 직원 정보를 바꿀 수 있어요.', 403);
+      if(crewCreationReplay(state,input,actor)) return true;
       const row = input.id ? state.tappers.find(t => t.id === input.id) : null;
       if (input.id && !row) fail('크루를 찾지 못했어요.', 404);
+      if (row?.actorId && ((row.rank==='owner' && (input.rank!=='owner'||input.active===false)) || (row.rank!=='owner' && input.rank==='owner'))) fail('연결된 계정의 사장님 권한은 크루 편집에서 바꿀 수 없어요.');
       if ((!row || Object.hasOwn(input,'nationality')) && !validNationality(input.nationality)) fail('국적을 선택해 주세요.');
       if ((!row || Object.hasOwn(input,'guideLocale')) && !supportedLocales.includes(input.guideLocale)) fail('안내에 사용할 언어를 별도로 선택해 주세요.');
       if (!roles.includes(input.rank) || !periods.includes(input.payPeriod)) fail('직급과 급여방식을 확인해 주세요.');
@@ -176,7 +196,10 @@ export function mutateStaff(state, input, actor, now, who, activity) {
         state.actorPreferences ??= {};
         state.actorPreferences[row.actorId] = { ...state.actorPreferences[row.actorId], locale: input.guideLocale };
       }
-      if (row) Object.assign(row, next); else state.tappers.push({ id: randomUUID(), ...(input.partIds === undefined && input.duties === undefined ? {workProfile: {partIds: [], bands: []}} : {}), ...next });
+      if (row) {
+        Object.assign(row, next);
+        if(!next.active && row.actorId){delete row.actorId;delete row.connectedAt;row.disconnectedAt=iso(now);}
+      } else state.tappers.push({ id: randomUUID(), ...(input.creationRequestId?{creationRequestId:input.creationRequestId,creationActorId:actor.id,creationFingerprint:crewCreationHash(input)}:{}), ...(input.partIds === undefined && input.duties === undefined ? {workProfile: {partIds: [], bands: []}} : {}), ...next });
       activity(`${next.nickname} 크루 정보 저장`); return true;
     }
     case 'delete_staff_shift': {
@@ -317,6 +340,9 @@ export function staffView(state, actor, now) {
     const monthAdjustments = state.payAdjustments.filter(a => a.tapperId === t.id && a.date >= periodStart(day, 'monthly') && a.date <= day).reduce((n, a) => n + a.amountWon, 0);
     const view = { ...t, plannedMinutes, actualMinutes, weeklyActualMinutes, payPeriodStart: start,
       attendanceState: state.attendance.filter(e => e.tapperId === t.id && !e.voidedAt).at(-1)?.type ?? 'off_duty' };
+    delete view.creationFingerprint;
+    delete view.creationActorId;
+    if(!owner) delete view.creationRequestId;
     if (owner) Object.assign(view, { payPeriod:policy.configured?policy.cycle:t.payPeriod, payPeriodEnd:period?.end, settledMinutes, adjustments, paid, gross, remaining: gross - paid, monthlyGross: Math.round(monthlyMinutes * t.hourlyWon / 60) + monthAdjustments });
     else { delete view.hourlyWon; delete view.payPeriod; delete view.payPeriodStart; delete view.kakaoUrl; delete view.phone; }
     if (!owner && t.actorId !== actor.id) { delete view.nationality; delete view.guideLocale; delete view.preferences; }

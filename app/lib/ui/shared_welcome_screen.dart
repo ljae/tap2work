@@ -1,4 +1,6 @@
 import 'dart:convert';
+import '../domain/edit_conflict.dart';
+import 'edit_conflict_dialog.dart';
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../state/operations_controller.dart';
@@ -9,18 +11,26 @@ Future<void> openSharedWelcome(
   BuildContext context,
   OperationsController ops, {
   VoidCallback? onWork,
+  ValueChanged<Json>? onPresented,
 }) => Navigator.of(context).push<void>(
   AppPageRoute<void>(
-    builder: (_) => SharedWelcomeScreen(ops: ops, onWork: onWork),
+    builder: (_) =>
+        SharedWelcomeScreen(ops: ops, onWork: onWork, onPresented: onPresented),
   ),
 );
 
 /// Everyone reads the same store document. Acknowledgements belong to the
 /// authenticated actor and are separate from shared work completion.
 class SharedWelcomeScreen extends StatefulWidget {
-  const SharedWelcomeScreen({super.key, required this.ops, this.onWork});
+  const SharedWelcomeScreen({
+    super.key,
+    required this.ops,
+    this.onWork,
+    this.onPresented,
+  });
   final OperationsController ops;
   final VoidCallback? onWork;
+  final ValueChanged<Json>? onPresented;
   @override
   State<SharedWelcomeScreen> createState() => _SharedWelcomeScreenState();
 }
@@ -71,6 +81,12 @@ class _SharedWelcomeScreenState extends State<SharedWelcomeScreen> {
     builder: (context, _) {
       final document = valid ? (widget.ops.data?['welcome'] as Json?) : null;
       final needsAck = widget.ops.data?['welcomeNeedsAcknowledgment'] == true;
+      if (document != null && (ModalRoute.of(context)?.isCurrent ?? true)) {
+        final shown = Map<String, dynamic>.from(document);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && valid) widget.onPresented?.call(shown);
+        });
+      }
       return PopScope(
         canPop: !saving,
         child: AppEditorScaffold(
@@ -194,7 +210,7 @@ class SharedWelcomeEditor extends StatefulWidget {
 class _SharedWelcomeEditorState extends State<SharedWelcomeEditor> {
   late final String actor;
   late final Object? workspace, revision;
-  late final Json original;
+  late final Json original, openingSnapshot;
   late final TextEditingController title, body;
   late String sourceLocale;
   bool important = false, saving = false, leaving = false;
@@ -205,6 +221,7 @@ class _SharedWelcomeEditorState extends State<SharedWelcomeEditor> {
     actor = widget.ops.actorId;
     workspace = widget.ops.data?['workspaceId'];
     revision = widget.ops.data?['revision'];
+    openingSnapshot = copyEditSnapshot(widget.ops.data!);
     original = jsonDecode(jsonEncode(widget.welcome)) as Json;
     title = TextEditingController(text: original['title'] ?? '');
     body = TextEditingController(text: original['body'] ?? '');
@@ -272,11 +289,23 @@ class _SharedWelcomeEditorState extends State<SharedWelcomeEditor> {
       saving = true;
       error = null;
     });
-    final ok = await widget.ops.act('save_welcome', {
-      'revision': revision,
-      'welcome': {'title': heading, 'body': text, 'sourceLocale': sourceLocale},
-      'important': important,
-    });
+    final ok = await widget.ops.saveDraft(
+      'save_welcome',
+      {
+        'welcome': {
+          'title': heading,
+          'body': text,
+          'sourceLocale': sourceLocale,
+        },
+        'important': important,
+      },
+      baseSnapshot: openingSnapshot,
+      openingActor: actor,
+      openingWorkspace: workspace as String?,
+      resolve: (conflicts) => mounted
+          ? showEditConflictDialog(context, conflicts, ops: widget.ops)
+          : Future.value(EditConflictChoice.keepEditing),
+    );
     if (!mounted) return;
     setState(() {
       saving = false;

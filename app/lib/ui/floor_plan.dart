@@ -941,7 +941,9 @@ class _LayoutEditorState extends State<_LayoutEditor> {
         result['floor'] = widget.floor;
         zones.add(result);
       } else {
-        zones[zones.indexOf(item)] = result;
+        // The item editor owns geometry/name, not floor/photo/place metadata.
+        // This also keeps the floor on a new, not-yet-persisted draft table.
+        zones[zones.indexOf(item)] = {...item, ...result};
       }
       selected = result['id'];
       dirty = true;
@@ -1416,6 +1418,7 @@ class _ItemDialogState extends State<_ItemDialog> {
               return;
             }
             Navigator.pop(context, <String, dynamic>{
+              ...?widget.item,
               'id':
                   widget.item?['id'] ??
                   'layout-${DateTime.now().microsecondsSinceEpoch}',

@@ -1,4 +1,8 @@
 import 'dart:convert';
+import '../domain/edit_conflict.dart';
+import 'edit_conflict_dialog.dart';
+import '../l10n/app_localizations.dart';
+import 'translated_content.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../data/photo_capture_service.dart';
@@ -8,14 +12,14 @@ import 'photo_registration.dart';
 
 Widget placePhoto(String value, {OperationsController? ops}) {
   Widget fallback(BuildContext context, Object error, StackTrace? stack) =>
-      const Padding(
-        padding: EdgeInsets.all(16),
-        child: Text('사진을 불러오지 못했어요. 위치 설명을 확인해 주세요.'),
+      Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(context.t('photo.loadFailed')),
       );
   if (value.isEmpty) return const SizedBox.shrink();
   if (value.startsWith('tap2work-media:')) {
     return ops == null
-        ? const Text('사진을 불러오려면 매장에 로그인해 주세요.')
+        ? Builder(builder: (context) => Text(context.t('photo.loginRequired')))
         : _PrivatePlacePhoto(value: value, ops: ops);
   }
   try {
@@ -25,7 +29,7 @@ Widget placePhoto(String value, {OperationsController? ops}) {
             fit: BoxFit.contain,
             errorBuilder: fallback,
           )
-        : Image.network(value, fit: BoxFit.contain, errorBuilder: fallback);
+        : _ExternalPlacePhoto(value: value);
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: ConstrainedBox(
@@ -34,8 +38,40 @@ Widget placePhoto(String value, {OperationsController? ops}) {
       ),
     );
   } catch (_) {
-    return const Text('사진을 확인해 주세요.');
+    return Builder(builder: (context) => Text(context.t('photo.loadFailed')));
   }
+}
+
+class _ExternalPlacePhoto extends StatefulWidget {
+  const _ExternalPlacePhoto({required this.value});
+  final String value;
+  @override
+  State<_ExternalPlacePhoto> createState() => _ExternalPlacePhotoState();
+}
+
+class _ExternalPlacePhotoState extends State<_ExternalPlacePhoto> {
+  int attempt = 0;
+  @override
+  Widget build(BuildContext context) => Image.network(
+    widget.value,
+    key: ValueKey((widget.value, attempt)),
+    fit: BoxFit.contain,
+    errorBuilder: (_, _, _) => Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Text(context.t('photo.loadFailed')),
+          TextButton(
+            onPressed: () async {
+              await NetworkImage(widget.value).evict();
+              if (mounted) setState(() => attempt++);
+            },
+            child: Text(context.t('common.retry')),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _PrivatePlacePhoto extends StatefulWidget {
@@ -49,15 +85,30 @@ class _PrivatePlacePhoto extends StatefulWidget {
 class _PrivatePlacePhotoState extends State<_PrivatePlacePhoto> {
   Future<Uint8List>? bytes;
   String? actor, workspace;
+  Widget failure(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      children: [
+        Text(context.t('photo.loadFailed')),
+        TextButton(
+          onPressed: () => setState(load),
+          child: Text(context.t('common.retry')),
+        ),
+      ],
+    ),
+  );
   void load() {
     actor = widget.ops.actorId;
-    workspace = widget.ops.workspaceId ?? widget.ops.data?['workspaceId'];
+    workspace = widget.ops.data?['workspaceId'] ?? widget.ops.workspaceId;
     bytes = widget.ops.loadManualPhoto(widget.value);
+    // Observe errors immediately, including a request retired before a rebuild.
+    // FutureBuilder still receives the failure and shows its retry action.
+    bytes!.ignore();
   }
 
   void changed() {
     final nextWorkspace =
-        widget.ops.workspaceId ?? widget.ops.data?['workspaceId'];
+        widget.ops.data?['workspaceId'] ?? widget.ops.workspaceId;
     if (mounted &&
         (actor != widget.ops.actorId || workspace != nextWorkspace)) {
       setState(load);
@@ -93,15 +144,12 @@ class _PrivatePlacePhotoState extends State<_PrivatePlacePhoto> {
     future: bytes,
     builder: (context, snapshot) {
       if (snapshot.hasError) {
-        return const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('사진을 불러오지 못했어요. 위치 설명을 확인해 주세요.'),
-        );
+        return failure(context);
       }
       if (!snapshot.hasData) {
-        return const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('사진을 불러오고 있어요…'),
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(context.t('photo.loading')),
         );
       }
       return ClipRRect(
@@ -111,12 +159,32 @@ class _PrivatePlacePhotoState extends State<_PrivatePlacePhoto> {
           child: Image.memory(
             snapshot.data!,
             fit: BoxFit.contain,
-            errorBuilder: (_, _, _) => const Text('사진을 불러오지 못했어요.'),
+            errorBuilder: (_, _, _) => failure(context),
           ),
         ),
       );
     },
   );
+}
+
+/// Translate presentation fields only; location references always keep source IDs.
+Json displayedPlace(
+  BuildContext context,
+  OperationsController ops,
+  Json source,
+) {
+  final language = AppStrings.of(context).languageTag;
+  if (language == 'ko') return source;
+  final cells = ops
+      .data?['manualContentTranslations']?['places']?[source['id']]?[language];
+  return {
+    ...source,
+    for (final field in ['name', 'floor', 'area', 'description'])
+      if (cells?[field] is Map &&
+          cells[field]['sourceText'] == source[field] &&
+          cells[field]['text'] is String)
+        field: cells[field]['text'],
+  };
 }
 
 String placeAddress(Json p) => [
@@ -130,37 +198,61 @@ Future<void> openPlace(
 ) async {
   final p = ops.rows('zones').where((p) => p['id'] == id).firstOrNull;
   if (p == null) return;
+  final actor = ops.actorId, workspace = ops.data?['workspaceId'];
   await showAppSheet<void>(
     context,
-    builder: (_) => SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(p['name'], style: AppText.title),
-            Text(placeAddress(p), style: AppText.caption),
-            const SizedBox(height: 16),
-            placePhoto(p['photo'] ?? '', ops: ops),
-            const SizedBox(height: 16),
-            Text(p['description'] ?? ''),
-            for (final i in ops.rows('items').where((i) => i['zone'] == id))
-              ListTile(
-                leading: const Icon(Icons.inventory_2_outlined),
-                title: Text(i['name']),
+    builder: (_) => ListenableBuilder(
+      listenable: ops,
+      builder: (context, _) =>
+          actor != ops.actorId || workspace != ops.data?['workspaceId']
+          ? Padding(
+              padding: const EdgeInsets.all(24),
+              child: Information(context.t('welcome.scopeChanged')),
+            )
+          : SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TranslatedContent(
+                      ops: ops,
+                      kind: 'place',
+                      entityId: id,
+                      source: p,
+                      builder: (context, shown) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(shown['name'], style: AppText.title),
+                          Text(placeAddress(shown), style: AppText.caption),
+                          const SizedBox(height: 16),
+                          Text(shown['description'] ?? ''),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    placePhoto(p['photo'] ?? '', ops: ops),
+                    const SizedBox(height: 16),
+
+                    for (final i
+                        in ops.rows('items').where((i) => i['zone'] == id))
+                      ListTile(
+                        leading: const Icon(Icons.inventory_2_outlined),
+                        title: Text(i['name']),
+                      ),
+                    if (ops.isLeader)
+                      TextButton.icon(
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          await editPlace(context, ops, p);
+                        },
+                        icon: const Icon(Icons.edit_outlined),
+                        label: Text(context.t('place.edit')),
+                      ),
+                  ],
+                ),
               ),
-            if (ops.isLeader)
-              TextButton.icon(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await editPlace(context, ops, p);
-                },
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text('장소 안내 수정'),
-              ),
-          ],
-        ),
-      ),
+            ),
     ),
   );
 }
@@ -214,7 +306,15 @@ class _PlaceGuideState extends State<PlaceGuide> {
           children: [
             for (final f in floors)
               ChoiceChip(
-                label: Text(f),
+                label: Text(
+                  f == '전체'
+                      ? context.t('common.all')
+                      : displayedPlace(
+                          context,
+                          widget.ops,
+                          places.firstWhere((p) => p['floor'] == f),
+                        )['floor'],
+                ),
                 selected: floor == f,
                 onSelected: (_) => setState(() => floor = f),
               ),
@@ -241,11 +341,11 @@ class _PlaceGuideState extends State<PlaceGuide> {
                   ? Icons.photo_outlined
                   : Icons.place_outlined,
             ),
-            title: Text(p['name']),
+            title: Text(displayedPlace(context, widget.ops, p)['name']),
             subtitle: Text(
               [
-                placeAddress(p),
-                p['description'] ?? '',
+                placeAddress(displayedPlace(context, widget.ops, p)),
+                displayedPlace(context, widget.ops, p)['description'] ?? '',
               ].where((s) => s.isNotEmpty).join('\n'),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -273,6 +373,7 @@ class PlaceEditor extends StatefulWidget {
 }
 
 class _PlaceEditorState extends State<PlaceEditor> {
+  late final Json openingSnapshot;
   late final name = TextEditingController(text: widget.place?['name'] ?? ''),
       floor = TextEditingController(text: widget.place?['floor'] ?? ''),
       area = TextEditingController(text: widget.place?['area'] ?? ''),
@@ -290,14 +391,15 @@ class _PlaceEditorState extends State<PlaceEditor> {
   @override
   void initState() {
     super.initState();
+    openingSnapshot = copyEditSnapshot(widget.ops.data!);
     revision = widget.ops.data?['revision'];
     actor = widget.ops.actorId;
-    workspace = widget.ops.workspaceId ?? widget.ops.data?['workspaceId'];
+    workspace = widget.ops.data?['workspaceId'] ?? widget.ops.workspaceId;
   }
 
   bool get scopeCurrent =>
       widget.ops.actorId == actor &&
-      (widget.ops.workspaceId ?? widget.ops.data?['workspaceId']) == workspace;
+      (widget.ops.data?['workspaceId'] ?? widget.ops.workspaceId) == workspace;
   late int seats = widget.place?['kind'] == 'table'
       ? widget.place!['seats']
       : 4;
@@ -379,19 +481,28 @@ class _PlaceEditorState extends State<PlaceEditor> {
       }
       return;
     }
-    final ok = await widget.ops.act('save_place', {
-      'revision': revision,
-      'place': {
-        'id': id,
-        'name': name.text,
-        'floor': floor.text,
-        'area': area.text,
-        'description': note.text,
-        'kind': kind,
-        'photo': savedPhoto,
-        'seats': seats,
+    final ok = await widget.ops.saveDraft(
+      'save_place',
+      {
+        'editingExisting': widget.place != null,
+        'place': {
+          'id': id,
+          'name': name.text,
+          'floor': floor.text,
+          'area': area.text,
+          'description': note.text,
+          'kind': kind,
+          'photo': savedPhoto,
+          'seats': seats,
+        },
       },
-    });
+      baseSnapshot: openingSnapshot,
+      openingActor: actor,
+      openingWorkspace: workspace as String?,
+      resolve: (conflicts) => mounted
+          ? showEditConflictDialog(context, conflicts, ops: widget.ops)
+          : Future.value(EditConflictChoice.keepEditing),
+    );
     if (!mounted) return;
     if (ok) {
       Navigator.pop(context);

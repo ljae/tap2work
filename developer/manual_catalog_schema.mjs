@@ -7,7 +7,7 @@ const text=(v,max,label)=>typeof v==='string'&&v.trim()&&v.length<=max?v.trim():
 const optional=(v,max)=>v==null?'':typeof v==='string'&&v.length<=max?v.trim():fail('Invalid content');
 const id=v=>/^[a-zA-Z0-9][a-zA-Z0-9_/-]{0,99}$/.test(v??'')?v:fail('Invalid source ID');
 export const contentFields=['id','title','manualTitle','manual','tip','tags','imageUrl','videoUrl','sourceUrl'];
-export function stepContent(s){return {id:s.id,title:s.title,...(s.manualTitle?{manualTitle:s.manualTitle}:{}),manual:s.manual,tip:s.tip??'',tags:s.tags??[],imageUrl:s.imageUrl??'',videoUrl:s.videoUrl??'',sourceUrl:s.sourceUrl??''};}
+export function stepContent(s){return {...(s.placeKey?{placeKey:s.placeKey}:{}),id:s.id,title:s.title,...(s.manualTitle?{manualTitle:s.manualTitle}:{}),manual:s.manual,tip:s.tip??'',tags:s.tags??[],imageUrl:s.imageUrl??'',videoUrl:s.videoUrl??'',sourceUrl:s.sourceUrl??''};}
 export function templateContent(t){return {title:t.title,...(t.manualTitle?{manualTitle:t.manualTitle}:{}),emoji:t.emoji??'📝',steps:(t.steps??[]).map(stepContent)};}
 export const contentHash=t=>createHash('sha256').update(JSON.stringify(templateContent(t))).digest('hex');
 export function validateCatalog(entries,catalogTaxonomy=taxonomy){

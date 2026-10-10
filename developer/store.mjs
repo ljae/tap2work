@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 
 export const statuses = ['confirmed', 'proposed', 'deferred', 'superseded'];
 export class StoreError extends Error {
-  constructor(message, status = 400) { super(message); this.status = status; }
+  constructor(message, status = 400, code = null) { super(message); this.status = status; if (code) this.code = code; }
 }
 function required(value, label, max = 6000) {
   if (typeof value !== 'string' || !value.trim() || value.length > max) {

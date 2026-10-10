@@ -24,6 +24,18 @@ Future<OperationsController> mountPlacePhoto(
     accessToken: () async => 'fixture-session',
   );
   addTearDown(ops.dispose);
+  repository.snapshot['zones'] = <Json>[
+    {
+      'id': 'place-a',
+      'name': '건조 선반',
+      'kind': 'storage',
+      'floor': '',
+      'area': '',
+      'description': '',
+      'photo': 'https://example.com/old.jpg',
+      'seats': 0,
+    },
+  ];
   await ops.refresh();
   await t.pumpWidget(
     MaterialApp(
@@ -63,7 +75,7 @@ Future<OperationsController> mountPlacePhoto(
 
 void main() {
   testWidgets(
-    'place pins opening revision before upload and reuses uploaded reference on failed save',
+    'place preserves opening fields, safely rebases an unrelated revision and reuses uploaded reference on failure',
     (t) async {
       final repository = MediaEditorRepository()..failSave = true;
       final ops = await mountPlacePhoto(t, repository);
@@ -86,7 +98,7 @@ void main() {
       await t.tap(find.text('장소 저장'));
       await t.pumpAndSettle();
       expect(repository.uploads, 1);
-      expect(repository.writes.single['revision'], 23);
+      expect(repository.writes.single['revision'], 24);
       expect(repository.writes.single['action'], 'save_place');
       expect(repository.writes.single['place']['photo'], mediaReference);
       final draft = t.widget<PhotoRegistrationField>(
@@ -98,7 +110,7 @@ void main() {
       await t.tap(find.text('장소 저장'));
       await t.pumpAndSettle();
       expect(repository.uploads, 1);
-      expect(repository.writes.last['revision'], 23);
+      expect(repository.writes.last['revision'], 24);
     },
   );
 

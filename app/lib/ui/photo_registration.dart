@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../data/photo_capture_service.dart';
 import 'components.dart';
 
@@ -49,17 +50,13 @@ class _PhotoRegistrationFieldState extends State<PhotoRegistrationField> {
       final photo = await service.pick(source);
       if (!mounted || job != currentJob) return;
       if (widget.scopeKey != scope || !widget.isScopeCurrent()) {
-        setState(() => error = '편집 중인 매장이나 항목이 바뀌었어요. 다시 열어 주세요.');
+        setState(() => error = context.t('welcome.scopeChanged'));
         return;
       }
       if (photo != null) widget.onChanged(photo);
     } catch (e) {
       if (mounted && job == currentJob && widget.scopeKey == scope) {
-        setState(
-          () => error = e is PhotoException
-              ? e.message
-              : '사진을 가져오지 못했어요. 다시 시도해 주세요.',
-        );
+        setState(() => error = context.t('photo.pickFailed'));
       }
     } finally {
       if (mounted && job == currentJob) {
@@ -106,8 +103,7 @@ class _PhotoRegistrationFieldState extends State<PhotoRegistrationField> {
                 widget.value,
                 height: 240,
                 fit: BoxFit.contain,
-                errorBuilder: (_, _, _) =>
-                    const Text('사진을 불러오지 못했어요. 다시 선택해 주세요.'),
+                errorBuilder: (_, _, _) => Text(context.t('photo.loadFailed')),
               ),
         if (hasPhoto) const SizedBox(height: 16),
         if (service.supportsCamera)
@@ -116,24 +112,24 @@ class _PhotoRegistrationFieldState extends State<PhotoRegistrationField> {
                 ? null
                 : () => pick(PhotoSource.camera),
             icon: const Icon(Icons.camera_alt_outlined),
-            label: Text(hasPhoto ? '다시 사진 찍기' : '바로 사진 찍기'),
+            label: Text(context.t(hasPhoto ? 'photo.retake' : 'photo.take')),
           ),
         TextButton.icon(
           onPressed: !widget.enabled || busy
               ? null
               : () => pick(PhotoSource.gallery),
           icon: const Icon(Icons.photo_library_outlined),
-          label: const Text('앨범에서 선택'),
+          label: Text(context.t('photo.gallery')),
         ),
         if (busy)
           Semantics(
             liveRegion: true,
-            child: const Text('사진을 준비하고 있어요…', style: AppText.caption),
+            child: Text(context.t('photo.loading'), style: AppText.caption),
           ),
         if (hasPhoto)
           TextButton(
             onPressed: widget.enabled ? remove : null,
-            child: const Text('사진 제거'),
+            child: Text(context.t('photo.remove')),
           ),
         if (error != null)
           Semantics(

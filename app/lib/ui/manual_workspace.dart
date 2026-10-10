@@ -3,6 +3,7 @@ import '../l10n/app_localizations.dart';
 import 'translated_content.dart';
 import 'manual_setup_screen.dart';
 import 'place_guide.dart';
+import 'linked_place_guide.dart';
 import 'manual_work_screen.dart';
 import 'manual_print_screen.dart';
 import 'manual_tap_editor.dart';
@@ -1102,6 +1103,11 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               ],
             ),
           ),
+          if (selected['linkedPlace'] is Map)
+            LinkedPlaceGuide(
+              ops: ops,
+              place: Map<String, dynamic>.from(selected['linkedPlace']),
+            ),
           if ('${selected['imageUrl'] ?? ''}'.isNotEmpty) ...[
             const SizedBox(height: 16),
             placePhoto(selected['imageUrl'], ops: ops),

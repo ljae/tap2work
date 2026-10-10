@@ -8,6 +8,8 @@ import '../data/http_operations_repository.dart';
 import '../domain/operations_repository.dart';
 import '../domain/manual_media_repository.dart';
 import '../domain/content_translation_repository.dart';
+import '../domain/edit_conflict.dart';
+import '../domain/crew_invitation_repository.dart';
 export '../domain/operations_repository.dart' show Json;
 
 /// Public preview, local demo, or verified Supabase workspace transport.
@@ -55,6 +57,7 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   String actorId = 'owner';
   String? error;
   Json? actionFailure;
+  final Set<String> _uncertainCreations = {};
   bool busy = false;
   bool _refreshing = false;
   bool _disposed = false;
@@ -80,6 +83,70 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   bool get isLeader => ['owner', 'manager'].contains(actor['role']);
   bool get canEditTasks => isLeader && data?['canEditTasks'] != false;
   bool get isOwner => actor['role'] == 'owner';
+  bool get canManageCrewInvites =>
+      isOwner || data?['canManageCrewInvites'] == true;
+
+  Future<Json> crewInvitation(String action, Json values) async {
+    final repository = _repository;
+    if (readOnly ||
+        !cloud ||
+        repository is! CrewInvitationRepository ||
+        _disposed ||
+        busy) {
+      throw StateError('로그인한 매장에서 잠시 후 다시 시도해 주세요.');
+    }
+    final openingActor = actorId, openingWorkspace = workspaceId;
+    busy = true;
+    _generation++;
+    _refreshing = false;
+    _emit();
+    Json? result;
+    try {
+      final response = await (repository as CrewInvitationRepository)
+          .crewInvitation(
+            actorId: openingActor,
+            values: {
+              ...values,
+              'action': action,
+              if (!['preview', 'accept'].contains(action))
+                'workspaceId': openingWorkspace,
+              if (['create', 'revoke', 'unlink'].contains(action))
+                'revision': data?['revision'],
+            },
+          );
+      if (_disposed ||
+          actorId != openingActor ||
+          workspaceId != openingWorkspace) {
+        throw StateError('매장 또는 계정이 변경됐어요. 다시 열어 주세요.');
+      }
+      if (response.statusCode != 200) {
+        throw StateError(
+          response.data['error'] as String? ?? '초대 상태를 확인하지 못했어요.',
+        );
+      }
+      result = response.data;
+    } finally {
+      busy = false;
+      _emit();
+    }
+    if (action == 'accept' &&
+        result['accepted'] == true &&
+        result['workspaceId'] is String) {
+      workspaceId = result['workspaceId'];
+      data = null;
+      _generation++;
+      // Let the accepting screen clear its pending code before workspace-keyed
+      // navigation is rebuilt by the next snapshot.
+      unawaited(
+        Future<void>(() async {
+          await refresh(force: true);
+        }),
+      );
+    } else if (['create', 'revoke', 'unlink'].contains(action)) {
+      await refresh(force: true);
+    }
+    return result;
+  }
 
   // In-flight deduplication is scoped to identity, store, content and language.
   // Completed results live in the server's source-hash cache, not this snapshot.
@@ -173,6 +240,34 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
         openingActor != actorId ||
         openingWorkspace != data?['workspaceId']) {
       throw const ManualMediaException('매장이 변경됐어요. 사진을 다시 열어 주세요.');
+    }
+    return result;
+  }
+
+  Future<Json> uploadWorkIssuePhoto(Uint8List bytes, String taskId) async {
+    final repository = _repository;
+    final openingActor = actorId;
+    final openingWorkspace = data?['workspaceId'] as String?;
+    final openingSelection = workspaceId;
+    if (_disposed ||
+        readOnly ||
+        !cloud ||
+        openingWorkspace == null ||
+        repository is! TaskIssueMediaRepository) {
+      throw const ManualMediaException('로그인한 매장의 담당 업무에서 사진을 등록해 주세요.');
+    }
+    final result = await (repository as TaskIssueMediaRepository)
+        .uploadWorkIssuePhoto(
+          actorId: openingActor,
+          workspaceId: openingWorkspace,
+          taskId: taskId,
+          bytes: bytes,
+        );
+    if (_disposed ||
+        openingActor != actorId ||
+        openingSelection != workspaceId ||
+        openingWorkspace != data?['workspaceId']) {
+      throw const ManualMediaException('매장 또는 계정이 변경됐어요. 다시 열어 주세요.');
     }
     return result;
   }
@@ -308,6 +403,97 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  /// Editors opt in with the snapshot that actually populated their fields.
+  /// Other actions retain their existing CAS behavior, with no blind retries.
+  Future<bool> saveDraft(
+    String action,
+    Json request, {
+    required Json baseSnapshot,
+    required String openingActor,
+    required String? openingWorkspace,
+    required Future<EditConflictChoice> Function(List<EditFieldConflict>)
+    resolve,
+  }) async {
+    bool sameScope() =>
+        !_disposed &&
+        actorId == openingActor &&
+        workspaceId == openingWorkspace;
+    bool rejectScope() {
+      error = '매장 또는 권한이 변경됐어요. 입력은 유지했으니 원래 매장에서 다시 열어 주세요.';
+      _emit();
+      return false;
+    }
+
+    if (!sameScope()) return rejectScope();
+    if (busy || readOnly || data == null) return false;
+    final creationId = request['creationRequestId'] as String?;
+    if (creationId != null && _uncertainCreations.contains(creationId)) {
+      await refresh(force: true);
+      if (!sameScope()) return rejectScope();
+      if (error != null) return false;
+    }
+    final original = editorDraftValues(action, request);
+    final base = editProjection(action, request, baseSnapshot);
+    if (base == null) {
+      error = '편집할 항목이 없어졌어요. 입력은 유지했으니 최신 목록을 확인해 주세요.';
+      _emit();
+      return false;
+    }
+    for (var attempt = 0; attempt < 2; attempt++) {
+      if (!sameScope()) return rejectScope();
+      final latestSnapshot = copyEditSnapshot(data!);
+      final latest = editProjection(action, request, latestSnapshot);
+      if (latest == null) {
+        error = '편집할 항목이 없어졌어요. 입력한 내용은 유지했어요.';
+        _emit();
+        return false;
+      }
+      // An ambiguous create may already have committed. Never create a second
+      // person or overwrite that record when resolving its unknown response.
+      if (creationId != null && latest.isNotEmpty) {
+        if (sameEditValue(latest, original)) {
+          _uncertainCreations.remove(creationId);
+          return true;
+        }
+        error = '이 등록은 이미 저장됐어요. 목록에서 등록된 크루를 열어 수정해 주세요. 입력한 내용은 유지했어요.';
+        _emit();
+        return false;
+      }
+      var merged = mergeEdit(base, latest, original);
+      if (merged.conflicts.isNotEmpty) {
+        final choice = await resolve(merged.conflicts);
+        if (!sameScope()) return rejectScope();
+        if (choice == EditConflictChoice.keepEditing) return false;
+        // User approval refers to the values they just reviewed, not a later
+        // snapshot. Re-evaluate if a poll changed it while the dialog was open.
+        if (data?['revision'] != latestSnapshot['revision']) {
+          error = '확인하는 동안 최신 내용이 다시 바뀌었어요. 입력은 유지했으니 다시 저장해 주세요.';
+          _emit();
+          return false;
+        }
+        merged = mergeEdit(base, latest, original, choice: choice);
+      }
+      final values = editorMergedRequest(action, request, merged.values);
+      final ok = await act(action, {
+        ...values,
+        'revision': latestSnapshot['revision'],
+      });
+      if (!sameScope()) return rejectScope();
+      if (ok) {
+        if (creationId != null) _uncertainCreations.remove(creationId);
+        return true;
+      }
+      if (creationId != null &&
+          actionFailure?['code'] == 'WRITE_RESULT_UNKNOWN') {
+        _uncertainCreations.add(creationId);
+      }
+      if (actionFailure?['code'] != 'REVISION_CONFLICT') return false;
+    }
+    error = '최신 내용이 다시 바뀌어 저장하지 못했어요. 입력한 내용은 유지했으니 다시 확인해 주세요.';
+    _emit();
+    return false;
+  }
+
   Future<bool> act(String action, Json values) async {
     actionFailure = null;
     if (readOnly) {
@@ -321,6 +507,8 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
     busy = true;
     error = null;
     _generation++;
+    final openingActor = actorId;
+    final openingWorkspace = workspaceId;
     _refreshing = false;
     _emit();
     var success = false;
@@ -340,6 +528,12 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
         },
       );
       if (_disposed) return false;
+      if (actorId != openingActor || workspaceId != openingWorkspace) {
+        busy = false;
+        error = '매장 또는 권한이 변경됐어요. 저장 결과는 원래 매장에서 확인해 주세요.';
+        _emit();
+        return false;
+      }
       final body = response.data;
       if (response.statusCode == 200) {
         if (action == 'create_workspace') {
@@ -354,9 +548,18 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
       } else {
         actionFailure = body;
         failure = body['error'] as String? ?? '저장하지 못했어요.';
+        // Compatibility with an older server during a rolling deployment.
+        if (response.statusCode == 409 &&
+            (body['code'] == 'REVISION_CONFLICT' ||
+                failure == '다른 동료가 먼저 업데이트했어요. 최신 내용을 확인하고 다시 눌러 주세요.' ||
+                failure == '동료가 먼저 수정했어요. 새로고침 후 다시 시도해 주세요.')) {
+          actionFailure = {...body, 'code': 'REVISION_CONFLICT'};
+          failure = '최신 내용과 차이가 있어 저장하지 못했어요. 입력한 내용은 유지했어요.';
+        }
         conflict = response.statusCode == 409 || response.statusCode == 403;
       }
     } catch (_) {
+      actionFailure = {'code': 'WRITE_RESULT_UNKNOWN'};
       failure = '저장 결과를 확인하지 못했어요. 새로고침으로 내역을 확인한 뒤 다시 시도해 주세요.';
     }
     busy = false;

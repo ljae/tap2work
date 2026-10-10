@@ -1,11 +1,13 @@
 import 'manual_setup_screen.dart';
+import '../l10n/app_localizations.dart';
+import 'team_screen.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
 import 'address_search.dart';
 import 'time_wheel.dart';
-import 'workplace_screens.dart' show SettingRow;
+import 'workplace_screens.dart' show SettingRow, openWorkplaceHours;
 
 const storeServiceModes = {'hall': '홀', 'takeout': '포장', 'delivery': '배달'};
 // Shared labels for the existing advanced settings summary.
@@ -678,7 +680,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
       },
       child: AppEditorScaffold(
         title: completed
-            ? '매장 준비가 끝났어요'
+            ? context.t('setup.completeTitle')
             : current.startsWith('counts-')
             ? '파트마다 몇 명이 필요한가요?'
             : titles[current]!,
@@ -701,9 +703,27 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
                 const SizedBox(height: 24),
                 Text(name.text.trim(), style: AppText.title),
                 const SizedBox(height: 16),
-                const Text(
-                  '매장 설정을 저장했어요. 크루를 등록하고 인원 배치를 연결하면 근무표를 준비할 수 있어요.',
+                Text(context.t('setup.nextHelp')),
+                const SizedBox(height: 16),
+                SettingRow(
+                  title: context.t('setup.crew'),
+                  onTap: () => showAppSheet(
+                    context,
+                    builder: (_) => AppEditorScaffold(
+                      title: context.t('setup.crew'),
+                      body: SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: TeamScreen(operations: widget.ops),
+                      ),
+                    ),
+                  ),
                 ),
+                SettingRow(
+                  title: context.t('setup.schedule'),
+                  onTap: () =>
+                      openWorkplaceHours(context, widget.ops, staffing: true),
+                ),
+                Text(context.t('setup.nonBlocking'), style: AppText.caption),
               ] else if (!available) ...[
                 const Information('등록에 필요한 업종 목록을 불러오지 못했어요.'),
                 TextButton(

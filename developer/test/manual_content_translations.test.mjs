@@ -39,3 +39,16 @@ test('translation save uses normal operation CAS and shared read without changin
  assert.deepEqual(view.tasks.map(t=>[t.id,t.completedAt,(t.steps??[]).map(s=>[s.id,s.completedAt])]),before);
  await assert.rejects(store.mutate(null,payload),{status:409});
 });
+test('place translations keep identities and media private, invalidate only changed source fields',()=>{
+ const state=fixture();state.zones=[{id:'sink',name:'세척대',floor:'1층',area:'주방',description:'잔반은 통에',photo:'tap2work-media:private'}];
+ const payload={source:{kind:'place',id:'sink'},locale:'vi',fields:[field('name','세척대','Bồn rửa'),field('description','잔반은 통에','Bỏ thức ăn thừa vào thùng')]};
+ saveManualTranslation(state,payload,owner,now);
+ assert.equal(manualTranslationView(state).places.sink.vi.name.current,true);
+ state.zones[0].description='잔반통 위치 변경';
+ const view=manualTranslationView(state).places.sink.vi;
+ assert.equal(view.description.current,false);assert.equal(view.name.current,true);
+ assert.equal(view.photo,undefined);assert.equal(state.zones[0].id,'sink');
+ assert.throws(()=>saveManualTranslation(state,payload,owner,now),{status:409});
+ assert.throws(()=>saveManualTranslation(state,{...payload,fields:[field('photo','tap2work-media:private','https://example.com/photo')]},owner,now),{status:400});
+ assert.throws(()=>saveManualTranslation(state,payload,{id:'crew',role:'crew'},now),{status:403});
+});

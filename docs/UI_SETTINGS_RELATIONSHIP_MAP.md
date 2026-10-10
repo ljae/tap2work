@@ -498,3 +498,19 @@ S72~74는 D-119~122의 구현 대상이다. 실제 수행한 검증과 배포 �
 | S76 | nationalityOptions + tappers.nationality/guideLocale → 크루 등록의 검색형 국적·독립 언어 선택 → save_tapper | 신규 필수, 기존 미입력 추정 없음. 개인 직접 언어 우선. 국적은 사장님/본인만 표시 | crew_nationality.test.mjs, attendance_history_test.dart |
 
 최신 D-121 변경: S74의 유료 runtime 호출은 비활성화했다. 먼저 공용 사전 번역과 S75 매장 등록 번역을 사용하고 없는/바뀐 필드에는 원문과 번역 필요를 표시한다.
+
+
+## 2026-10-10 운영 감사 후 개선
+
+| ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
+| --- | --- | --- | --- |
+| S77 | 편집 시작 snapshot + 최신값 + 초안 → 충돌 비교/계속 편집·최신값·내 입력 → saveDraft / 기존 저장 액션 | 무관 변경 1회 안전 재시도, 동일 필드 명시 선택, 실패 입력 유지, 매장/계정 전환 차단. 크루 등록 고정 creationRequestId 멱등 | audit_conflict_recovery_test.dart, audit_crew_creation.test.mjs |
+| S78 | 등록 크루 ID + 서버 canManageCrewInvites → 크루별 초대·연결 해제 / 로그인 후 매장·크루 확인·수락 → operations?invite=crew / tap2work_crew_invitation | 7일·1회·해시 저장, 매니저 crew 권한 명시 ON, 소유권 승격 금지, 해제/퇴사 접근 회수와 과거 기록 보존 | crew_invitation.test.mjs, test-crew-invitations-sql.mjs |
+| S79 | active task + workIssue → 수행 불가/단순 주의·사유·선택 촬영 → flag_work_issue / resolve_work_issue / scoped media upload | 수행 불가만 완료 차단; 주의는 기록 후 진행, 전날 미해결 조회·리더 조치 유지. 사진 서명은 actor/workspace/task/ref에 고정, 일반 매뉴얼 업로드 권한 확대 없음 | audit_routine_inventory.test.mjs, audit_operations_contracts.test.mjs, work_issue_editor_test.dart |
+| S80 | rosterTemplates + 활성 크루 + 날짜별 배정 / 메뉴가격·재고 준비값 → 기본 설정과 최대3 다음 운영 설정 → 기존 근무·메뉴·재고 진입 | 앞으로7일 필요 인원×시간 대비 실제 배정률, 일부 존재만으로 운영 완료 선언하지 않음, 업무 진입 허용 | audit_store_preparation_test.dart |
+| S82 | orders.lines.receivedQuantity/receiptHistory → 받은 수량 입력(0 기본)·남은 수량·담당자/시각 → receive_order(receiptId,lines) | 실제 수령분만 재고 증가, 남은 수량은 ordered 유지, 전량만 received. 같은 요청은 멱등, 주문 기준 점검일 유지 | audit_partial_receipts.test.mjs, audit_partial_receipts_test.dart |
+| S81 | store.manualSetup.places.return/waste/wash/dry + 본보기 없음 → 5개 공통 장소 선택 / 설거지 본보기 추가 → save_manual_setup / add_dishwashing_example | 시작·교대·마감3개와 영업 중 참고1개; 장소·사진을 행동에 투영, 현장 검수 후 기존 시간/파트 설정에 연결. 자동 활성화·기존 업무 교체 없음 | audit_dishwashing_example.test.mjs |
+
+S03/S34의 외곽 영업시간 수정은 유효한 기존 교대 경계를 유지하고 유지 불가능한 변경은 저장 전 시각 비교를 보여준다. S18의 배치 항목 재편집은 기존 층/사진/구역 메타데이터와 새 편집 필드를 병합하고 다른 층 수정 차단을 유지한다. S07에는 매니저 탭 전용 `restrictions.manager.crew` 초대 권한이 기본 OFF로 추가되었다.
+
+S70 사진 읽기는 같은 화면에서 다시 불러오며 매장·계정 변경의 늦은 결과를 폐기한다. S72 웰컴은 실제 화면에 표시된 중요 버전을 기록하므로 편집 후 한 번의 업무 진입으로 닫고, 건너뛰기를 확인 이력으로 만들지 않는다. S75의 직접 번역 등록/가져오기는 kind=place의 name/floor/area/description까지 확장되고 원문이 바뀐 필드만 다시 번역을 요청한다. S54/S55 신규 등록의 완료 문구는 기본 등록에 한정하며 크루·인원 배치로 바로 이어진다. S16 재고는 수량 미확인/발주 기준 미확인/실제 부족을 구분하고 미확인 재료는 자동 발주함 대상에서 제외한다. 발주일 기준 점검 기한은 유지한다.

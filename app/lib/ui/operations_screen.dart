@@ -1,3 +1,5 @@
+import 'dart:math';
+import '../domain/inventory_readiness.dart';
 import 'manual_setup_screen.dart';
 import 'store_setup_screen.dart';
 import 'water_search.dart';
@@ -110,13 +112,21 @@ class _OperationsScreenState extends State<OperationsScreen> {
 
   Future<void> openWelcome({VoidCallback? closeDetail}) async {
     if (welcomeOpen || !mounted || ops.data == null) return;
-    final scope = welcomeScope;
-    if (scope != null) presentedWelcomes.add(scope);
+    final openingActor = ops.actorId;
+    final openingWorkspace = ops.data?['workspaceId'];
     welcomeOpen = true;
     try {
       await openSharedWelcome(
         context,
         ops,
+        onPresented: (document) {
+          if (ops.actorId == openingActor &&
+              ops.data?['workspaceId'] == openingWorkspace) {
+            presentedWelcomes.add(
+              '$openingActor/$openingWorkspace/${document['importantRevision']}',
+            );
+          }
+        },
         onWork: () {
           closeDetail?.call();
           if (mounted) {
@@ -378,10 +388,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
   final Map<String, double> cart = {};
   Json? item(String id) =>
       ops.rows('items').where((i) => i['id'] == id).firstOrNull;
-  String zoneName(String id) =>
+  String zoneName(String? id) =>
       ops.rows('zones').where((z) => z['id'] == id).firstOrNull?['name']
           as String? ??
-      id;
+      context.t(
+        id == null || id.isEmpty
+            ? 'inventory.locationUnset'
+            : 'inventory.locationUnavailable',
+      );
   bool pending(String id) => ops
       .rows('orders')
       .any(
@@ -397,7 +411,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
       .rows('items')
       .where(
         (i) =>
-            (i['quantity'] as num) <= (i['minimum'] as num) &&
+            InventoryReadiness(i).status == 'low' &&
+            InventoryReadiness(i).orderReady &&
             !pending(i['id']),
       )
       .toList();
@@ -877,6 +892,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
             }
           },
           onSchedule: () => updateView(() => tab = 2),
+          onMenus: () =>
+              showAppSheet(context, builder: (_) => CatalogEditor(ops: ops)),
+          onInventory: () => openStoreDetail('inventory'),
         ),
         gap(16),
       ],
@@ -1289,11 +1307,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
               children: [
                 badge(
                   pending(i['id'])
-                      ? '입고 기다리는 중'
-                      : (i['quantity'] as num) <= (i['minimum'] as num)
-                      ? '보충 확인'
-                      : '여유 있어요',
-                  color: (i['quantity'] as num) <= (i['minimum'] as num)
+                      ? context.t('inventory.awaitingReceipt')
+                      : context.t('inventory.${InventoryReadiness(i).status}'),
+                  color: InventoryReadiness(i).status == 'low'
                       ? const Color(0xFF392E20)
                       : AppColors.lime,
                 ),
@@ -1332,7 +1348,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 ),
                 if (ops.isLeader)
                   FilledButton.tonal(
-                    onPressed: pending(i['id'])
+                    onPressed:
+                        pending(i['id']) || !InventoryReadiness(i).orderReady
                         ? null
                         : () => updateView(() {
                             if (cart.containsKey(i['id'])) {
@@ -1382,8 +1399,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
             gap(9),
             Text(
               (order['lines'] as List)
-                  .map((l) => '${l['name']} ${qty(l['quantity'])}${l['unit']}')
-                  .join(' · '),
+                  .map(
+                    (l) =>
+                        '${l['name']} · ${context.t('receipt.progress', args: {'received': qty(receivedQuantity(order, l)), 'ordered': qty(l['quantity']), 'unit': l['unit'], 'remaining': qty((l['quantity'] as num) - receivedQuantity(order, l))})}',
+                  )
+                  .join('\n'),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             gap(8),
@@ -1396,12 +1416,28 @@ class _OperationsScreenState extends State<OperationsScreen> {
               small(
                 '${order['receivedBy']['name']}님이 ${time(order['receivedAt'])} 입고 확인',
               ),
+            for (final receipt in (order['receiptHistory'] as List? ?? []))
+              small(
+                context.t(
+                  'receipt.batch',
+                  args: {
+                    'name': receipt['receivedBy']['name'],
+                    'time': time(receipt['receivedAt']),
+                    'quantity': (receipt['lines'] as List)
+                        .map(
+                          (line) =>
+                              '${line['name']} ${qty(line['quantity'])}${line['unit']}',
+                        )
+                        .join(' · '),
+                  },
+                ),
+              ),
             if (ops.isLeader && order['status'] == 'ordered') ...[
               gap(10),
               PressBounce(
                 child: OutlinedButton(
                   onPressed: ops.busy ? null : () => receiveOrder(order),
-                  child: const Text('입고 확인하고 재고 반영'),
+                  child: Text(context.t('receipt.save')),
                 ),
               ),
             ],
@@ -1638,7 +1674,12 @@ class _OperationsScreenState extends State<OperationsScreen> {
 
   Future<void> reviewOrder() async {
     final entries = cart.entries
-        .where((e) => item(e.key) != null && !pending(e.key))
+        .where(
+          (e) =>
+              item(e.key) != null &&
+              InventoryReadiness(item(e.key)!).orderReady &&
+              !pending(e.key),
+        )
         .toList();
     if (entries.isEmpty) {
       updateView(cart.clear);
@@ -1704,22 +1745,196 @@ class _OperationsScreenState extends State<OperationsScreen> {
     }
   }
 
+  // Keep an uncertain submission across closing/reopening this screen's dialog.
+  // Its identity and quantities must not change until the server confirms it.
+  final pendingReceipts = <String, Json>{};
+  num receivedQuantity(Json order, dynamic line) =>
+      line['receivedQuantity'] as num? ??
+      (order['status'] == 'received' ? line['quantity'] as num : 0);
+
   Future<void> receiveOrder(Json order) async {
-    final result = await formDialog(
-      '재료가 모두 도착했나요?',
-      [
-        small('확인하면 아래 수량이 재고에 반영돼요. 중복 입고는 처리하지 않아요.'),
-        gap(),
-        Text(
-          (order['lines'] as List)
-              .map((l) => '${l['name']} ${qty(l['quantity'])}${l['unit']}')
-              .join('\n'),
-        ),
-      ],
-      () => {'orderId': order['id']},
-      confirm: '입고 확인',
+    final identity = '${ops.workspaceId}/${ops.actorId}/${order['id']}';
+    final openingActor = ops.actorId;
+    final openingWorkspace = ops.workspaceId;
+    final lines = (order['lines'] as List).cast<Json>();
+    final controllers = <String, TextEditingController>{};
+    final pending = pendingReceipts[identity];
+    for (final line in lines) {
+      final prior = (pending?['lines'] as List? ?? [])
+          .where((value) => value['itemId'] == line['itemId'])
+          .firstOrNull;
+      controllers[line['itemId']] = TextEditingController(
+        text: qty(prior?['quantity'] ?? 0),
+      );
+    }
+    bool saving = false;
+    String? failure;
+    final route = DialogRoute<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, update) {
+          final locked = pendingReceipts.containsKey(identity);
+          return PopScope(
+            canPop: !saving,
+            child: AlertDialog(
+              title: Text(context.t('receipt.title')),
+              content: SizedBox(
+                width: 400,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      small(
+                        context.t(
+                          locked ? 'receipt.retryHelp' : 'receipt.help',
+                        ),
+                      ),
+                      gap(),
+                      for (final line in lines)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: TextField(
+                            key: ValueKey('receipt-${line['itemId']}'),
+                            controller: controllers[line['itemId']],
+                            enabled: !saving && !locked,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: context.t(
+                                'receipt.quantity',
+                                args: {
+                                  'name': line['name'],
+                                  'unit': line['unit'],
+                                },
+                              ),
+                              helperText: context.t(
+                                'receipt.limit',
+                                args: {
+                                  'remaining': qty(
+                                    (line['quantity'] as num) -
+                                        receivedQuantity(order, line),
+                                  ),
+                                  'unit': line['unit'],
+                                },
+                              ),
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      if (failure != null)
+                        Text(
+                          failure!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: saving ? null : () => Navigator.pop(dialogContext),
+                  child: Text(context.t('common.close')),
+                ),
+                FilledButton(
+                  onPressed: saving || ops.readOnly
+                      ? null
+                      : () async {
+                          if (ops.actorId != openingActor ||
+                              ops.workspaceId != openingWorkspace) {
+                            Navigator.pop(dialogContext);
+                            return;
+                          }
+                          Json? request = pendingReceipts[identity];
+                          if (request == null) {
+                            final received = <Json>[];
+                            for (final line in lines) {
+                              final value = double.tryParse(
+                                controllers[line['itemId']]!.text,
+                              );
+                              final remaining =
+                                  (line['quantity'] as num) -
+                                  receivedQuantity(order, line);
+                              if (value == null ||
+                                  !value.isFinite ||
+                                  value < 0 ||
+                                  value > 100000 ||
+                                  value > remaining + 1e-10) {
+                                update(
+                                  () => failure = context.t('receipt.invalid'),
+                                );
+                                return;
+                              }
+                              received.add({
+                                'itemId': line['itemId'],
+                                'quantity': value,
+                              });
+                            }
+                            if (!received.any(
+                              (line) => (line['quantity'] as num) > 0,
+                            )) {
+                              update(
+                                () => failure = context.t('receipt.invalid'),
+                              );
+                              return;
+                            }
+                            request = {
+                              'orderId': order['id'],
+                              'receiptId': List.generate(
+                                16,
+                                (_) => Random.secure()
+                                    .nextInt(256)
+                                    .toRadixString(16)
+                                    .padLeft(2, '0'),
+                              ).join(),
+                              'lines': received,
+                            };
+                            pendingReceipts[identity] = request;
+                          }
+                          update(() {
+                            saving = true;
+                            failure = null;
+                          });
+                          final success = await ops.act(
+                            'receive_order',
+                            request,
+                          );
+                          if (!dialogContext.mounted) return;
+                          if (success) {
+                            pendingReceipts.remove(identity);
+                            Navigator.pop(dialogContext);
+                          } else {
+                            // Only an unknown response requires preserving the exact
+                            // submitted body. A definite rejection is safe to edit.
+                            if (!locked &&
+                                ops.actionFailure?['code'] !=
+                                    'WRITE_RESULT_UNKNOWN') {
+                              pendingReceipts.remove(identity);
+                            }
+                            update(() {
+                              saving = false;
+                              failure =
+                                  ops.error ?? context.t('store.saveFailed');
+                            });
+                          }
+                        },
+                  child: Text(
+                    context.t(locked ? 'receipt.retry' : 'receipt.save'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
-    if (result != null) await act('receive_order', result);
+    await Navigator.of(context).push(route);
+    await route.completed;
+    for (final controller in controllers.values) {
+      controller.dispose();
+    }
   }
 
   Future<void> changeShift(Json shift) async {

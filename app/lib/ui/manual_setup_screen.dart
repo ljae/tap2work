@@ -1,4 +1,7 @@
 import 'dart:convert';
+import '../domain/edit_conflict.dart';
+import 'edit_conflict_dialog.dart';
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -53,18 +56,27 @@ class ManualSetupScreen extends StatefulWidget {
 }
 
 class _ManualSetupScreenState extends State<ManualSetupScreen> {
-  late final Json conditions = {
-        ...(widget.ops.data?['store']?['manualSetup']?['conditions'] as Json? ??
-            {}),
-      },
-      places = {
-        ...(widget.ops.data?['store']?['manualSetup']?['places'] as Json? ??
-            {}),
-      };
-  late int revision = widget.ops.data?['revision'] ?? 0;
-  late final actor = widget.ops.actorId,
-      workspace = widget.ops.data?['workspaceId'];
-  late final original = jsonEncode(widget.ops.data?['store']?['manualSetup']);
+  late final Json conditions, places, openingSnapshot;
+  late final String actor, original;
+  late final Object? workspace;
+  late int revision;
+  @override
+  void initState() {
+    super.initState();
+    openingSnapshot = copyEditSnapshot(widget.ops.data!);
+    actor = widget.ops.actorId;
+    workspace = widget.ops.workspaceId;
+    revision = openingSnapshot['revision'] ?? 0;
+    conditions = {
+      ...(openingSnapshot['store']?['manualSetup']?['conditions'] as Json? ??
+          {}),
+    };
+    places = {
+      ...(openingSnapshot['store']?['manualSetup']?['places'] as Json? ?? {}),
+    };
+    original = jsonEncode(openingSnapshot['store']?['manualSetup']);
+  }
+
   Future<void> leave() async {
     if (busy) return;
     final discard =
@@ -99,10 +111,18 @@ class _ManualSetupScreenState extends State<ManualSetupScreen> {
       return;
     }
     setState(() => busy = true);
-    final ok = await widget.ops.act('save_manual_setup', {
-      'revision': revision,
-      'setup': {'conditions': conditions, 'places': places},
-    });
+    final ok = await widget.ops.saveDraft(
+      'save_manual_setup',
+      {
+        'setup': {'conditions': conditions, 'places': places},
+      },
+      baseSnapshot: openingSnapshot,
+      openingActor: actor,
+      openingWorkspace: workspace as String?,
+      resolve: (conflicts) => mounted
+          ? showEditConflictDialog(context, conflicts, ops: widget.ops)
+          : Future.value(EditConflictChoice.keepEditing),
+    );
     if (!mounted) return;
     if (ok) {
       Navigator.pop(context);
@@ -146,8 +166,11 @@ class _ManualSetupScreenState extends State<ManualSetupScreen> {
           const Text('여러 업무에서 함께 쓰는 장소', style: AppText.section),
           const SizedBox(height: 16),
           for (final e in {
-            'waste': '폐기물 배출 장소',
-            'supplies': '비품 보관 장소',
+            'return': context.t('setup.returnPlace'),
+            'waste': context.t('setup.wastePlace'),
+            'wash': context.t('setup.washPlace'),
+            'dry': context.t('setup.dryPlace'),
+            'supplies': context.t('setup.suppliesPlace'),
           }.entries)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
@@ -157,15 +180,15 @@ class _ManualSetupScreenState extends State<ManualSetupScreen> {
                 isExpanded: true,
                 decoration: InputDecoration(labelText: e.value),
                 items: [
-                  const DropdownMenuItem<String>(
+                  DropdownMenuItem<String>(
                     value: null,
-                    child: Text('나중에 연결'),
+                    child: Text(context.t('setup.connectLater')),
                   ),
                   for (final p in widget.ops.rows('zones'))
                     DropdownMenuItem<String>(
                       value: p['id'],
                       child: Text(
-                        '${p['name']} ${placeAddress(p)}',
+                        '${displayedPlace(context, widget.ops, p)['name']} ${placeAddress(displayedPlace(context, widget.ops, p))}',
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -199,6 +222,43 @@ class _ManualSetupScreenState extends State<ManualSetupScreen> {
             icon: const Icon(Icons.add_location_alt_outlined),
             label: const Text('장소 등록'),
           ),
+          if (widget.ops.data?['dishwashingExampleVersion'] != 1) ...[
+            TextButton.icon(
+              key: const ValueKey('add-dishwashing-example'),
+              onPressed:
+                  busy ||
+                      changed ||
+                      widget.ops.readOnly ||
+                      !widget.ops.canEditTasks
+                  ? null
+                  : () async {
+                      if (actor != widget.ops.actorId ||
+                          workspace != widget.ops.workspaceId) {
+                        setState(
+                          () => error = context.t('welcome.scopeChanged'),
+                        );
+                        return;
+                      }
+                      setState(() => busy = true);
+                      final ok = await widget.ops.act(
+                        'add_dishwashing_example',
+                        {'revision': widget.ops.data?['revision']},
+                      );
+                      if (!mounted) return;
+                      setState(() {
+                        busy = false;
+                        revision = widget.ops.data?['revision'] ?? revision;
+                        error = ok ? null : widget.ops.error;
+                      });
+                    },
+              icon: const Icon(Icons.menu_book_outlined),
+              label: Text(context.t('setup.dishwashingExample')),
+            ),
+            Information(
+              context.t(changed ? 'setup.saveFirst' : 'setup.exampleHelp'),
+            ),
+          ] else
+            Information(context.t('setup.exampleAdded')),
           const Information(
             '영업시간·브레이크·파트는 기존 매장 설정을 사용해요. 연결한 장소의 이름과 설명은 한 곳에서 수정해요.',
           ),
@@ -273,13 +333,15 @@ class SharedPlaceLinks extends StatelessWidget {
         TextButton.icon(
           onPressed: () => openPlace(context, ops, row['zone']),
           icon: const Icon(Icons.place_outlined),
-          label: const Text('작업 장소 보기'),
+          label: Text(context.t('place.workLocation')),
         ),
       for (final p in (row['sharedPlaces'] as List? ?? []).cast<Json>())
         TextButton.icon(
           onPressed: () => openPlace(context, ops, p['zoneId']),
           icon: const Icon(Icons.link),
-          label: Text('${p['label']} · ${p['name']}'),
+          label: Text(
+            '${p['label']} · ${displayedPlace(context, ops, ops.rows('zones').where((z) => z['id'] == p['zoneId']).firstOrNull ?? p)['name']}',
+          ),
         ),
     ],
   );

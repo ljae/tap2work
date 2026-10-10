@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import '../domain/edit_conflict.dart';
+import 'edit_conflict_dialog.dart';
 
 /// Store settings use a local draft and the revision from the opening snapshot.
 class StoreProfileScreen extends StatefulWidget {
@@ -21,6 +23,7 @@ class StoreProfileScreen extends StatefulWidget {
 
 class _StoreProfileScreenState extends State<StoreProfileScreen> {
   late final int openingRevision;
+  late final Json openingSnapshot;
   late final String openingActor;
   late final TextEditingController name;
   late final TextEditingController note;
@@ -83,6 +86,7 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     super.initState();
     section = widget.initialSection;
     openingWorkspace = widget.ops.workspaceId;
+    openingSnapshot = copyEditSnapshot(widget.ops.data ?? {});
     final store = widget.ops.data?['store'] as Json? ?? {};
     openingRevision = widget.ops.data?['revision'] as int? ?? 0;
     openingActor = widget.ops.actorId;
@@ -238,11 +242,16 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
       saving = true;
       error = null;
     });
-    final ok = await widget.ops.act('save_store_profile', {
-      'revision': openingRevision,
-      'section': section,
-      'values': values,
-    });
+    final ok = await widget.ops.saveDraft(
+      'save_store_profile',
+      {'section': section, 'values': values},
+      baseSnapshot: openingSnapshot,
+      openingActor: openingActor,
+      openingWorkspace: openingWorkspace as String?,
+      resolve: (conflicts) => mounted
+          ? showEditConflictDialog(context, conflicts, ops: widget.ops)
+          : Future.value(EditConflictChoice.keepEditing),
+    );
     if (!mounted) return;
     setState(() {
       saving = false;
@@ -561,7 +570,9 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
                   child: Information('$error\n입력 중인 내용은 남아 있어요.'),
                 ),
               if (widget.ops.data?['revision'] != openingRevision)
-                const Information('다른 변경이 저장됐어요. 이 화면을 다시 열어 최신 설정을 확인해 주세요.'),
+                const Information(
+                  '새로 저장된 내용이 있어요. 저장할 때 내 입력과 비교하고, 같은 항목이 바뀌었으면 선택할 수 있어요.',
+                ),
               const SizedBox(height: 16),
             ],
           ),

@@ -5,6 +5,12 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S82','app/lib/ui/operations_screen.dart', "'receiptId'",'developer/inventory_receipts.mjs','receiveInventoryOrder'],
+  ['S77','app/lib/state/operations_controller.dart','saveDraft(', 'developer/operations.mjs', 'REVISION_CONFLICT'],
+  ['S78','app/lib/ui/crew_invitation_screen.dart','CrewInvitationScreen','developer/crew_invitation.mjs','tap2work_crew_invitation'],
+  ['S79','app/lib/ui/work_issue_editor.dart', "'flag_work_issue'",'developer/operations.mjs', "case 'flag_work_issue'"],
+  ['S80','app/lib/ui/workplace_screens.dart','StorePreparation','app/lib/domain/store_preparation.dart','StorePreparationStatus'],
+  ['S81','app/lib/ui/manual_setup_screen.dart', "'add_dishwashing_example'",'developer/operations.mjs', "case 'add_dishwashing_example'"],
   ['S72','app/lib/ui/shared_welcome_screen.dart',"'ack_welcome'",'developer/common_guidance.mjs',"'ack_welcome'"],
   ['S73','app/lib/ui/cloud_workspace.dart',"'save_language_preference'",'developer/common_guidance.mjs',"'save_language_preference'"],
   ['S74','app/lib/ui/translated_content.dart','BundledManualTranslations.load','app/lib/data/bundled_manual_translations.dart','assets/manual_translations/'],
