@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 289,
+  "revision": 290,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1365,8 +1365,8 @@
       "decision": "사장님·크루 초대 관리 권한을 명시적으로 받은 매니저가 기존 크루를 지정해 7일 유효한 일회용 링크/코드를 생성한다. 로그인한 본인이 매장·크루 정보를 확인하여 수락하고 잘못 연결하면 관리자가 연결을 해제한다.",
       "reason": "사용자가 개선 TODO 진행 중 제시한 의사결정 질문에서 해당 방식을 선택했다.",
       "source": "사용자 대화 2026-10-10",
-      "updatedAt": "2026-10-10T14:12:21.351770+00:00",
-      "implementation": "7일 일회용 초대·직책/만료/취소 재검사·멤버십 연결·해제/퇴사/직책 변경의 원자적 접근 회수 구현. 매니저는 기존 권한 범위의 일반 크루/조리만 연결, 사장님 연결/소유권 이전은 제외. 실제 다른 사용자 로그인 수락은 미검증. 배포는 검증 후 Sol low 담당, 현재 준비 중."
+      "updatedAt": "2026-10-10T14:58:45.503125+00:00",
+      "implementation": "7일 일회용 초대·직책/만료/취소 재검사·멤버십 연결·해제/퇴사/직책 변경의 원자적 접근 회수 구현. 매니저는 기존 권한 범위의 일반 크루/조리만 연결, 사장님 연결/소유권 이전은 제외. 실제 다른 사용자 로그인 수락은 미검증. Sol low 배포 완료: 웹20e9437/Pages38060150185, operations60·초대SQL, iOS13 VALID·심사 대기·승인 후 자동 출시, Android12 내부·Alpha 제출. 실제 별도 계정 수락·기기 설치/촬영은 미검증."
     },
     {
       "id": "D-125",
@@ -1378,8 +1378,8 @@
       "decision": "일반 업무에도 이상 보고를 제공한다. 수행 불가는 해결 전 완료를 차단하고 단순 주의는 기록 후 진행할 수 있다. 기존 권한을 가진 사장님·매니저가 조치 내용을 남기며 미해결 기록은 영업일 변경 후에도 공유한다.",
       "reason": "사용자가 개선 TODO 진행 중 제시한 의사결정 질문에서 해당 방식을 선택했다.",
       "source": "사용자 대화 2026-10-10",
-      "updatedAt": "2026-10-10T14:12:21.351770+00:00",
-      "implementation": "task workIssue severity=blocked|note, blocksCompletion, actor/time/history와 고정 요청 ID 멱등 구현. 체크·일괄·상태 이동·준비품 완성·재고 확인의 완료 우회 방지, 과거 미해결 조회/리더 해결 지원. 배포는 검증 후 Sol low 담당, 현재 준비 중."
+      "updatedAt": "2026-10-10T14:58:45.503125+00:00",
+      "implementation": "task workIssue severity=blocked|note, blocksCompletion, actor/time/history와 고정 요청 ID 멱등 구현. 체크·일괄·상태 이동·준비품 완성·재고 확인의 완료 우회 방지, 과거 미해결 조회/리더 해결 지원. Sol low 배포 완료: 웹20e9437/Pages38060150185, operations60·초대SQL, iOS13 VALID·심사 대기·승인 후 자동 출시, Android12 내부·Alpha 제출. 실제 별도 계정 수락·기기 설치/촬영은 미검증."
     },
     {
       "id": "D-126",
@@ -1391,8 +1391,8 @@
       "decision": "기본 등록과 남은 운영 설정을 따로 표시하되 업무 진입은 허용한다. 다음에 필요한 운영 설정을 가까이에서 열 수 있도록 안내한다.",
       "reason": "사용자가 개선 TODO 진행 중 제시한 의사결정 질문에서 해당 방식을 선택했다.",
       "source": "사용자 대화 2026-10-10",
-      "updatedAt": "2026-10-10T14:12:21.351770+00:00",
-      "implementation": "앞으로 7일 활성 크루의 필요 인원×시간 대비 배정률, 메뉴/재고 미확인 기준과 최대3개 다음 설정 진입을 구현. 임의 필수 입력 게이트 없음. 배포는 검증 후 Sol low 담당, 현재 준비 중."
+      "updatedAt": "2026-10-10T14:58:45.503125+00:00",
+      "implementation": "앞으로 7일 활성 크루의 필요 인원×시간 대비 배정률, 메뉴/재고 미확인 기준과 최대3개 다음 설정 진입을 구현. 임의 필수 입력 게이트 없음. Sol low 배포 완료: 웹20e9437/Pages38060150185, operations60·초대SQL, iOS13 VALID·심사 대기·승인 후 자동 출시, Android12 내부·Alpha 제출. 실제 별도 계정 수락·기기 설치/촬영은 미검증."
     },
     {
       "id": "D-127",
@@ -1404,8 +1404,8 @@
       "decision": "일반 크루도 해당 매장의 담당 업무에서 촬영·선택한 사진을 최적화해 이상 보고에 첨부할 수 있다. 일반 매뉴얼·장소 사진 편집 권한은 기존 범위를 유지한다.",
       "reason": "사용자가 개선 TODO 진행 중 제시한 의사결정 질문에서 해당 방식을 선택했다.",
       "source": "사용자 대화 2026-10-10",
-      "updatedAt": "2026-10-10T14:12:21.351770+00:00",
-      "implementation": "purpose=work_issue의 현재 업무 완료 권한 검증, 업로드 후 재검증, user/workspace/task/reference/expiry에 묶인 서명 receipt와 기존 비공개 최적화 JPEG를 사용. 실제 카메라/HEIC는 미검증. 배포는 검증 후 Sol low 담당, 현재 준비 중."
+      "updatedAt": "2026-10-10T14:58:45.503125+00:00",
+      "implementation": "purpose=work_issue의 현재 업무 완료 권한 검증, 업로드 후 재검증, user/workspace/task/reference/expiry에 묶인 서명 receipt와 기존 비공개 최적화 JPEG를 사용. 실제 카메라/HEIC는 미검증. Sol low 배포 완료: 웹20e9437/Pages38060150185, operations60·초대SQL, iOS13 VALID·심사 대기·승인 후 자동 출시, Android12 내부·Alpha 제출. 실제 별도 계정 수락·기기 설치/촬영은 미검증."
     },
     {
       "id": "D-128",
@@ -1417,8 +1417,8 @@
       "decision": "일부 수량만 도착하면 받은 만큼 재고에 반영하고 나머지는 입고 대기로 남긴다. 전량 수령 시에만 입고 완료하며 발주 기준 확인 기한은 유지한다.",
       "reason": "사용자가 개선 TODO 진행 중 제시한 의사결정 질문에서 해당 방식을 선택했다.",
       "source": "사용자 대화 2026-10-10",
-      "updatedAt": "2026-10-10T14:12:21.351770+00:00",
-      "implementation": "receivedQuantity 누적과 receiptHistory, receiptId 기반 동일 요청 재시도 멱등 및 초과 수량 원자 거절 구현. 기존 요청은 남은 전량 입고로 호환. 응답 불명 대기는 화면 세션 메모리이며 앱 재시작 영속화는 후속. 배포는 검증 후 Sol low 담당, 현재 준비 중."
+      "updatedAt": "2026-10-10T14:58:45.503125+00:00",
+      "implementation": "receivedQuantity 누적과 receiptHistory, receiptId 기반 동일 요청 재시도 멱등 및 초과 수량 원자 거절 구현. 기존 요청은 남은 전량 입고로 호환. 응답 불명 대기는 화면 세션 메모리이며 앱 재시작 영속화는 후속. Sol low 배포 완료: 웹20e9437/Pages38060150185, operations60·초대SQL, iOS13 VALID·심사 대기·승인 후 자동 출시, Android12 내부·Alpha 제출. 실제 별도 계정 수락·기기 설치/촬영은 미검증."
     }
   ],
   "milestones": [
@@ -8676,7 +8676,13 @@
       "type": "deployment",
       "title": "Audit TODO released; live readiness projection correction identified",
       "detail": "Sol low deployed cc60ecb5bcfd273f73ae933a9b5615fe73e1228d, Pages38058986995 SUCCESS. Actual CI546Flutter passed/3web-only skipped, Node372 passed, analysis0/UI75/Edge/SQL/prepared translations passed;14 public files HTTP200/SHA256 equal actual CI artifact and credential scan passed. New invitation migration applied before operations v60 ACTIVE/anon401/private media true/runtime paid translation off. iOS12 VALID and WAITING_FOR_REVIEW/AFTER_APPROVAL, previous11cancel COMPLETE, reviewer login/contact/notes exactly preserved, internal test group linked. Android11 validated/review committed, actual internal+alpha tracks completed with existing countries/testers. Native physical installation/camera/OAuth and second-account acceptance not tested. Ego Lite fresh task verified target account privately, actual authenticated Audit Kitchen GET200 revision27, seven quantity_unknown starter items and one sufficient counted item; real invitation manager screen lists the existing fictional crew with7-day explanation. Live our-store readiness correctly showed basic4/4 plus actual28800needed/2040covered minutes and7inventory warnings, but missed one menu warning because client consumed menus instead of server catalogMenus. Corrected client source and real-projection fixture; also replaced obsolete demo/QR subtitle on authenticated invite entry. Related11 Flutter tests passed. Sol low will deploy this tiny follow-up web and next native numbers iOS13/Android12; no additional backend/schema/catalog change required. Account identifiers, tokens, exact private workspace data and invite codes absent from versioned history."
+    },
+    {
+      "at": "2026-10-10T14:58:45.503125+00:00",
+      "type": "deployment",
+      "title": "Audit TODO final web/native deployment and live fictional-store verification completed",
+      "detail": "Sol low final code20e9437e84083276156ee059ee2e71a26b1e816d / Pages38060150185 build+deploy SUCCESS. Actual CI547Flutter passed/3web-only skipped, Node372, analysis0/UI75/Edge/allSQL/prepared7x990 translations passed. All14live public files HTTP200 and SHA256 equal actual CI artifact; credential scan passed. operations60 ACTIVE with private media true/paidGooglefalse; invitation SQL retained, no unnecessary second backend/schema/catalog deployment. iOS1.0.0(13) signed IPA46100236bytes SHA2561c2a3dbd306ed8278c663c2611124210ee7cc3990bccb7adad627bd466af9dae, uploaded/VALID, TAP Work Internal linked; current submission/version WAITING_FOR_REVIEW, AFTER_APPROVAL. Previous12 cancellation completed; direct reviewGET briefly404 after CANCELING, read-only review list confirmed COMPLETE and editableDEVELOPER_REJECTED state, guarded retry13 succeeded. Reviewer login/contact/notes exactly unchanged. Android1.0.0(12) AAB71496735bytes SHA256d42c8050cbcb2207d1a4bd7a9677097123efb9644a66bcb7217bf612d766a4a4, sameTAPsigner/jarsigner/7assets verified; upload/validation/automaticreview commit and actualinternal+alpha tracks completed; country/tester settings unchanged. Ego Lite authenticated fictional Audit Kitchen: real invitation screen lists existing fictionalcrew; final UI shows actual menu1/inventory7/coverage warnings and corrected invite entry. Original failed layout draft restored via authenticated browserAPI, then a NEW secondtable added/reedited/saved through actualUI. GETrevision29 verified floor1/x4/y6/two tables, otherfloor2places andprivatephoto preserved. BrowserAPI explicitly corrected fictional weekends to10-16/16-02, retainingweekdays/crew IDs/headcounts and existingpart-time reset policy. Fictional stock13 stayed13 on a new DEMOorder2; partialreceipt1 gave14/ordered/onehistory, identical ID+oldrevision replay leftquantity/history/revision unchanged, remainingreceipt1 gave15/received/twohistories. Exact latest-order deadline unchanged throughout receipts. Bound return/waste/wash/dry commonplaces and installed4opt-in dishwashing examples/13actions,2private linked photo projections; no automatic task enablement or fabricated work completion. Last workflowrevision35. No supplier transmission, messages, wages or clock events performed. Newtemplate translations still require directregistration; paidruntime remainsoff. Final optional browserreopen stopped because EgoTaskSpace9 disappeared; did not create replacement or circumvent user/browsercontrol. Live two-person invite acceptance, physical device/OAuth/camera/HEIC/native-speaker checks and restart-persistent pendingreceipt drafts remain unperformed. Versioned docs contain no account identifiers/credentials/privateworkspacepayloads; existing unrelated root dirty work preserved and reviewed source synced."
     }
   ],
-  "updatedAt": "2026-10-10T14:32:25.023118+00:00"
+  "updatedAt": "2026-10-10T14:58:45.503125+00:00"
 }
