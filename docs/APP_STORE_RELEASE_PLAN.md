@@ -112,3 +112,39 @@ iOS TestFlight: 기존 앱 6819216931의 1.0.0 (6), build 04527d8d-1cb2-4b26-b27
 ## 2026-10-07 최신 배포
 
 웹 [Actions37627371108](https://github.com/ljae/tap2work/actions/runs/37627371108) 성공 및 실제 파일 일치 확인. iOS 1.0.0 빌드7 VALID·IN_BETA_TESTING·기존내부그룹연결. 빌드6 심사 취소 후 빌드7 제출 `e035efd1-228e-46d5-a3a9-1ba374346f33` WAITING_FOR_REVIEW, 승인 후 자동 출시 유지. Android 1.0.0 (7) 기존 내부트랙 Active / Available to internal testers 확인. Flutter 분석/전체368 tests·Node263·Edge smoke·CI SQL 통과. 실기기 설치·OAuth·삭제 및 Apple 승인은 미완료.
+
+
+## 2026-10-10 업로드 후속 확인
+
+iOS 1.0.0 빌드9 업로드·심사 제출 기록을 복구했다. 2026-10-10T01:29:19Z Apple API 직접 조회에서 빌드 VALID, 버전/제출 WAITING_FOR_REVIEW, AFTER_APPROVAL을 확인했다. 제출 ID는 `1850439a-effd-4cc8-837d-eedf2283b8d3`다. Apple 브라우저 로그인 세션 만료와 별개로 API 조회는 성공했다.
+
+Android 1.0.0 (8) 내부 테스트 및 한국어 스토어 아이콘·그래픽·휴대폰 스크린샷4개는 어제 로컬 업로드 결과에서 committed를 확인했다. Google Play의 앱 액세스·대상 연령·데이터 보안·카테고리/연락처와 비공개 테스트 준비를 이어서 진행 중이다. 실제 테스터 참여/기기 로그인/삭제와 운영 출시 완료를 뜻하지 않는다. 후속 결과는 최신 project-state history를 따른다.
+
+후속 결과: Play Business·광고 ID 미사용 저장, 연락처 확인, 데이터 보안 초안 저장. 내부8 active, Alpha 비활성/발행 없음. 심사용 저장·편집 접근 방법 부재 및 Aside 연결 끊김으로 앱 액세스→대상 연령→데이터 보안 제출과 Alpha 저장은 미완료다. 데이터 보안13항목 초안의 기기ID/주소록/진단 수집 여부는 소스 근거가 없어 제출 전 재검토·정정해야 한다. 현재 초안을 최종 검증된 선언으로 간주하지 않는다. 재연결 시 기존8번 번들을 사용한다.
+
+
+## Ego Lite 비공개 테스트 후속 · 2026-10-10
+
+사용자가44명 Alpha 비공개 테스트 출시를 선택했다. Alpha 크몽(doply)44명 선택 저장 확인, 아직 no releases/inactive. 내부8은 Active/Available이며 기존1명 계정으로 참여 수락→tester/다운로드 링크를 확인했다. 다운로드는 Not Found로 실제 설치 미검증.18세 이상 대상과 데이터보안11종(기존 초안 Contacts/Device IDs 제거)을 심사 대기 변경으로 저장했다. Diagnostics는 공개 방침의 제공자 요청/오류 로그에 근거하며 SDK 분석/충돌 수집을 주장하지 않는다.
+
+현재 저장된 앱 액세스 No는 실제 로그인 계약과 맞지 않는다. Yes 수정은 심사용 접근 상세 없이는 저장되지 않아 미완료. 사용자가 안전한 심사용 계정 설정을 제공해야 한다. 국가 South Korea 클릭 후 Save ref 오류/사용자 제어권 전환으로 국가 저장 미확인. 기존8 빌드 Alpha 연결/제출도 미완료. Ego space2를 사용자가 제어 중이므로 명시적 재개 전 takeover하지 않는다. `.local/native-release-20261010/ego-play-followup.json` 참조.
+
+
+## Alpha 심사 제출 완료 · 2026-10-10
+
+사용자가 심사용 정보를 콘솔에 입력하고 후속 진행을 지시했다. 계정/비밀번호 입력 여부만 확인하고 값을 출력·문서화하지 않았다. Google 로그인 절차를 보완해 restricted access로 저장했다. 대한민국 국가 설정 저장, 기존 library 빌드8(1.0.0, minAPI24/targetSDK36) 연결과 한국어 출시 노트 구성으로 Ready to release를 확인했다.
+
+Alpha 크몽(doply)44명 목록·국가·트랙 활성화·전체 rollout·스토어/정책을 포함한13개 변경을 제출했다. 2026-10-10T02:05:02Z 콘솔은13 changes sent for review 및 Changes in review다. Managed publishing off이므로 승인 후 반영되지만 현재 승인/설치 가능 완료를 뜻하지 않는다. 참여 링크: https://play.google.com/apps/testing/com.tab2work.tab2work .44명은 목록 수이며 실제 opt-in 수가 아니다.
+
+실기기 Google로그인/MFA·저장/삭제 및 테스터 설치는 미검증. 앞서 내부 다운로드404는 이번에 재검증하지 않았다. 새 업로드/빌드/iOS 변경/제3자 메시지는 없음. `.local/native-release-20261010/alpha-submission.json`에 credential-free 결과를 저장했다.
+
+
+## 문의 이메일 통일·신규 네이티브 심사 · 2026-10-10
+
+앱 관련 운영 문의 주소는 `tap2work.dev@gmail.com`으로 통일했다. Play 스토어 공개 연락처/IARC, App Store 심사 연락처와 한국어·영어 소개, Google OAuth 사용자지원/개발자 연락처를 저장·재확인했다. 인증 계정·심사용 로그인·공급자 연락처 및 불변 과거 이력은 용도가 달라 보존했다. Google 지원 주소 선택에만 필요한 `roles/oauthconfig.editor`를 TAP Work 프로젝트에 새 주소 계정으로 부여했다. 소유자/다른 앱/DB 권한은 변경하지 않았다.
+
+웹 a35827b / Actions38016182177 성공. 실제 개인정보·계정삭제·웹 번들 정책JSON은 원문 SHA256과 일치하며2026-10-10 새 이메일을 사용한다. 앱 분석/관련12테스트/UI60 및 전체CI 통과.
+
+iOS1.0.0 빌드10 VALID, 새 제출 `6ae1246d-c14d-4249-ac79-01bacb052f47` WAITING_FOR_REVIEW/AFTER_APPROVAL. 이전9 심사취소 후 교체하며, 비동기 취소 중 첫409는 취소완료 확인 후 재시도로 해결했다. 기존 TAP Work Internal 그룹에10을 연결했다. Android1.0.0(9)은 내부 Available to internal testers, Alpha Changes in review. 기존44명 목록/대한민국 설정을 유지하며API 자동심사제출 계약에 맞춰 commit했다. 초기 수동대기 query400은해당edit삭제후정정/재시도로해결했다.
+
+두서명산출물의내장개인정보JSON이새원문과바이트일치한다. 기존설치본은업데이트가필요하며, 실제기기로그인/삭제/설치·이메일배달·심사승인은미검증이다. 산출물은 `.local/native-release-20261010/{email-web-verification,apple-contact,google-contact,android9-email-result,ios10-email-submission,ios10-beta}.json`.

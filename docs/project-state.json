@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 263,
+  "revision": 269,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -972,7 +972,7 @@
       "category": "인증·개인정보",
       "title": "Apple·Google 개인 로그인과 본인 계정 삭제",
       "status": "confirmed",
-      "decision": "공용 로그인 UI를 Apple·Google 개인 로그인으로 대체한다. iOS는 두 SDK 네이티브, Android Google은 SDK/Apple은 웹 OAuth, 웹은 OAuth. 운영자 OpenEdu, 개인정보 문의 esther.runstrict@gmail.com. 로그인 전 및 내 계정에 방침을 제공하고 본인 확인·최신 삭제 범위 확인 후 계정을 삭제한다. 유일한 사장님은 최종 확인 후 매장 전체와 모든 크루의 해당 매장 접근도 함께 삭제한다. 다른 크루 로그인 계정은 유지한다. 다중 사장님은 남은 사장님에게 생성자 FK를 이관해 매장을 유지한다. Apple 연결 해제는 서버가 수행한다.",
+      "decision": "공용 로그인 UI를 Apple·Google 개인 로그인으로 대체한다. iOS는 두 SDK 네이티브, Android Google은 SDK/Apple은 웹 OAuth, 웹은 OAuth. 운영자 OpenEdu, 개인정보 문의 tap2work.dev@gmail.com. 로그인 전 및 내 계정에 방침을 제공하고 본인 확인·최신 삭제 범위 확인 후 계정을 삭제한다. 유일한 사장님은 최종 확인 후 매장 전체와 모든 크루의 해당 매장 접근도 함께 삭제한다. 다른 크루 로그인 계정은 유지한다. 다중 사장님은 남은 사장님에게 생성자 FK를 이관해 매장을 유지한다. Apple 연결 해제는 서버가 수행한다.",
       "previous": "D-054 고정 공용 계정 진입; SSO·개인정보·삭제 후속 계획",
       "next": "개인 소셜 인증, OpenEdu 개인정보처리방침, 본인 삭제 API와 명시적 매장 삭제 확인",
       "reason": "사용자의 네이티브 로그인/개인정보/삭제 구현 요청과 운영자·이메일·유일 사장님 삭제 범위 답변.",
@@ -7988,7 +7988,134 @@
         "Existing customized/store manuals and started work preserved; optional replacement uses explicit existing app action"
       ],
       "source": "docs/MANUAL_SPACE_RELEASE_2026-10-09.md"
+    },
+    {
+      "at": "2026-10-10T01:33:40.289744+00:00",
+      "type": "verification",
+      "title": "Recover native upload handoff and verify iOS build 9 review status",
+      "detail": "Recovered interrupted 2026-10-10 native release logs: iOS build9 uploaded and submitted; Android version8 internal release and Korean listing assets committed. Current read-only Apple API confirms build9 VALID, version and submission WAITING_FOR_REVIEW, AFTER_APPROVAL. Continuing Google Play setup at user request.",
+      "verification": [
+        ".local/native-release-20261010/ios-live-status.json: live Apple API checked 2026-10-10T01:29:19.108Z",
+        ".local/native-release-20261010/ios-submission.json: submission1850439a-effd-4cc8-837d-eedf2283b8d3",
+        ".local/native-release-20261010/play-internal-result.json: version8 committed; upload bundle SHA256 recorded",
+        ".local/native-release-20261010/play-listing-result.json: Korean icon, feature graphic and four screenshots committed"
+      ],
+      "limitations": [
+        "Google Play declarations/closed test preparation still in progress; no production access claim",
+        "Live device installation, OAuth and deletion not verified",
+        "Browser Apple session expired; live status verified through existing API credentials without exposing them"
+      ]
+    },
+    {
+      "at": "2026-10-10T01:43:18.034031+00:00",
+      "type": "verification",
+      "title": "Continue Play declarations after native upload; record reviewer and browser blockers",
+      "detail": "Aside session reported Business category and Advertising ID No saved, contact verified, Data safety draft saved. Internal1.0.0(8) active; Alpha inactive/no release,1 internal tester and0 closed opt-ins. No bundle changes, Apple submission changes or third-party messages.",
+      "verification": [
+        "Read-only Apple API: build9 VALID, WAITING_FOR_REVIEW, AFTER_APPROVAL",
+        "Aside live Play session FJEo884xyiMrrx8D: saved category/Advertising ID; draft and track inspected",
+        "Local status script syntax and scoped documentation diff check passed"
+      ],
+      "limitations": [
+        "Full authenticated reviewer access missing; sample only read-only. App access/audience/declaration chain incomplete. User asked for existing safe authentication setup.",
+        "Data safety13-type draft requires correction/review: no source evidence found for Device IDs/address-book Contacts/diagnostics SDK collection; must not submit as final.",
+        "Browser disconnected before Alpha tester save; reconnect failed profileu0 not connected. No closed release submitted or production eligibility claim.",
+        "No Flutter/source changes or new native build; device OAuth/deletion not verified"
+      ],
+      "source": ".local/native-release-20261010/follow-up-report.md"
+    },
+    {
+      "at": "2026-10-10T01:57:42.463186+00:00",
+      "type": "verification",
+      "title": "Ego Play setup: save audience and corrected data safety; verify internal opt-in; Alpha user-control pause",
+      "detail": "User confirmed44-person Alpha release scope. Existing Alpha44 list saved, internal list1 selected and build8 active. Accepted existing owner internal invite and verified tester status; download link Not Found. Saved18+ target age and11-type Data safety declaration after removing unsupported Contacts/Device IDs. Alpha country save unverified after user took browser control.",
+      "verification": [
+        "Live console internal8 Active/Available to internal testers",
+        "Live Alpha list 크몽(doply)44 selected; no release",
+        "Target audience and Data safety Change saved messages",
+        "Official Google Play Data safety definitions and testing help inspected in Ego",
+        "No source app changes; no new Flutter/native verification required"
+      ],
+      "limitations": [
+        "Valid full reviewer access; current saved No restriction inaccurate, attempted Yes unsaved because requires details",
+        "Alpha country save confirmation",
+        "Connect existing bundle8 and prepare/review release",
+        "Submit changes after reviewer access verified",
+        "Verify Play download/install and device OAuth/deletion",
+        "Browser user-control hard stop obeyed; no takeover until user resumes",
+        "Data safety saved, not submitted/approved; no actual installation or OAuth claim"
+      ],
+      "source": ".local/native-release-20261010/ego-play-followup.json"
+    },
+    {
+      "at": "2026-10-10T02:05:28.813842+00:00",
+      "type": "deployment",
+      "title": "Submit Android build8 Alpha closed test and13 changes for Google review",
+      "detail": "User supplied reviewer access in Play Console and authorized continuing44-person closed-test release. Verified populated credentials without printing/exporting values; added Google sign-in instructions and saved restricted-access declaration. Saved South Korea country, reused existing library bundle8 (1.0.0, minAPI24/target36), Korean release notes and full Alpha rollout. Submitted13 changes including listing, declarations, country/track/testers and release. Console confirmed13 changes sent for review / Changes in review; managed publishing off.",
+      "verification": [
+        "Ego Lite space2: Ready to release with bundle8; countries/testers setup complete",
+        "Publishing overview: Alpha8 full rollout, South Korea, 크몽(doply)44-list configuration included",
+        "Restricted access declaration corrected and Google instructions saved; no credentials exported",
+        "Submission confirmation13 changes sent for review and Changes in review",
+        ".local/native-release-20261010/alpha-submission.json; browser task finished keeping result page"
+      ],
+      "limitations": [
+        "Google approval and actual44-person participation/installation pending",
+        "Reviewer Google login, potential MFA and native authenticated editing/deletion not tested on device",
+        "Earlier internal download link Not Found not reverified this turn",
+        "No production access claim; selected list count is not opted-in count",
+        "No third-party messages, new bundle upload, new native build or iOS submission changes"
+      ]
+    },
+    {
+      "at": "2026-10-10T02:21:46.953277+00:00",
+      "type": "decision-change",
+      "title": "Use dedicated TAP Work contact email across app, web, stores and OAuth",
+      "previous": {
+        "D-093": "공용 로그인 UI를 Apple·Google 개인 로그인으로 대체한다. iOS는 두 SDK 네이티브, Android Google은 SDK/Apple은 웹 OAuth, 웹은 OAuth. 운영자 OpenEdu, 개인정보 문의 esther.runstrict@gmail.com. 로그인 전 및 내 계정에 방침을 제공하고 본인 확인·최신 삭제 범위 확인 후 계정을 삭제한다. 유일한 사장님은 최종 확인 후 매장 전체와 모든 크루의 해당 매장 접근도 함께 삭제한다. 다른 크루 로그인 계정은 유지한다. 다중 사장님은 남은 사장님에게 생성자 FK를 이관해 매장을 유지한다. Apple 연결 해제는 서버가 수행한다."
+      },
+      "next": {
+        "D-093": "공용 로그인 UI를 Apple·Google 개인 로그인으로 대체한다. iOS는 두 SDK 네이티브, Android Google은 SDK/Apple은 웹 OAuth, 웹은 OAuth. 운영자 OpenEdu, 개인정보 문의 tap2work.dev@gmail.com. 로그인 전 및 내 계정에 방침을 제공하고 본인 확인·최신 삭제 범위 확인 후 계정을 삭제한다. 유일한 사장님은 최종 확인 후 매장 전체와 모든 크루의 해당 매장 접근도 함께 삭제한다. 다른 크루 로그인 계정은 유지한다. 다중 사장님은 남은 사장님에게 생성자 FK를 이관해 매장을 유지한다. Apple 연결 해제는 서버가 수행한다."
+      },
+      "reason": "User explicitly requested all app-related email addresses use tap2work.dev@gmail.com. Operational contact fields changed; authenticated identities, reviewer login credentials, vendor contacts and immutable history are separate.",
+      "verification": [
+        "Google Play support Save and publish confirmed; IARC contact edited",
+        "App Store API read-back: review contact and ko/en-US descriptions changed; reviewer login preserved",
+        "OAuth support/developer contact saved and read-back verified; dedicated account granted roles/oauthconfig.editor on TAP Work project only",
+        "Flutter analyze clean,12 account/login tests passed,UI60 passed",
+        "Web a35827b / Actions38016182177 success; live privacy/deletion/bundled policy SHA256 exact source match",
+        "iOS10 signed IPA built; embedded contact/policy bytes verified; upload and Android9 build in progress"
+      ],
+      "limitations": [
+        "Native upload/processing/review replacement not yet complete; follow latest history",
+        "No real-device OAuth, deletion or email delivery test; existing auth/provider identities and source-author/vendor emails preserved"
+      ]
+    },
+    {
+      "at": "2026-10-10T02:27:24.420283+00:00",
+      "type": "deployment",
+      "title": "Deploy dedicated contact email to web and native review builds",
+      "detail": "Completed tap2work.dev@gmail.com operational contact update: app policy/button, public privacy/deletion pages, Play store/IARC, Google OAuth support/developer, App Store contact and ko/en-US descriptions. Web a35827b Actions38016182177 passed. Signed iOS10 and Android9 artifacts contain exact updated policy. Android9 committed to internal/Alpha, internal available and Alpha in review. iOS9 review cancellation completed, iOS10 submitted WAITING_FOR_REVIEW/AFTER_APPROVAL and linked to existing internal TestFlight group. Login/reviewer identities, vendor contact, historical decisions retained.",
+      "verification": [
+        "Flutter analysis clean;12 relevant account/login tests passed;UI60 passed",
+        "Complete web CI analysis/Flutter/Node/Edge/SQL/build/deploy success",
+        "Public privacy/deletion/bundled policy bytes match source, new contact and policy2026-10-10 verified",
+        ".local/native-release-20261010/email-web-verification.json",
+        ".local/native-release-20261010/apple-contact.json and google-contact.json",
+        "Native artifact policy byte matches; correct Android upload certificate verified",
+        "Android9 publisher validate/commit; Ego internal9 Available to internal testers and Alpha9 Changes in review",
+        "iOS10 VALID / submission6ae1246d-c14d-4249-ac79-01bacb052f47 WAITING_FOR_REVIEW; existing TAP Work Internal linked",
+        "Scoped git diff --check passed"
+      ],
+      "limitations": [
+        "Initial Android commit rejected changesNotSentForReview flag because account auto-submits; rolled back edit and retried permitted default successfully",
+        "Initial iOS build relation409 during asynchronous review cancellation; waited for DEVELOPER_REJECTED and retried successfully",
+        "Apple pre-existing minimumiOS13 warning90068 remains; successful signed build/upload",
+        "Review approval, real-device OAuth/installation/deletion and email delivery not verified",
+        "Immutable IARC/history rows and authentication/developer-account identities keep their actual prior addresses; no ownership transfer or identity change",
+        "New versions pending review; previously installed native versions require an update to receive embedded contact change"
+      ]
     }
   ],
-  "updatedAt": "2026-10-09T15:11:42.584838+00:00"
+  "updatedAt": "2026-10-10T02:27:24.420283+00:00"
 }

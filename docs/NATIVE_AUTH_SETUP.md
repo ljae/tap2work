@@ -123,3 +123,8 @@ App Store 개인정보 응답 및 Google Play Data safety는 실제 활성화한
 ## Android Play 내부 테스트 인증 · 2026-10-06
 
 Google Cloud `tap-work-510711`에 Android OAuth `TAP Work Android Play`를 생성했다. 패키지 `com.tab2work.tab2work`, Play 앱 서명 SHA-1 `31:11:E6:0D:52:C3:6C:46:79:73:DC:57:AD:18:0A:B1:FD:9A:C9:AF`, 공개 client ID `897277058675-5sgcvm2ahsc2rmj2l17ku83vpbsh10a7.apps.googleusercontent.com`이다. 기존 Web/server client를 serverClientId로 사용하는 계약은 유지한다. 내부 테스트 설치본의 Google 로그인 실제 검증은 남아 있으며 설정 전파에 시간이 걸릴 수 있다. 업로드 키 SHA-1과 Play 배포용 서명은 서로 다르다.
+
+
+## 문의 이메일 통일 · 2026-10-10
+
+앱·개인정보/삭제 안내·Play 스토어/IARC·App Store 심사 연락처 및 한국어/영어 설명·Google OAuth 사용자지원/개발자 연락처는 `tap2work.dev@gmail.com`을 사용한다. 기존 계정 식별자·심사용 로그인·공급자 개인정보 연락처는 문의 주소와 별개다. Google 지원 주소 선택을 위해 해당 계정에 TAP Work 프로젝트의 `roles/oauthconfig.editor`만 부여하고 기존 소유자는 보존했다. 새 계정으로 브랜딩 저장과 지원/개발자 주소 확인을 완료했다. 위의 이전 로그인 계정만 선택 가능했다는 설명은 과거 상태다.

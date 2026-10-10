@@ -1,3 +1,11 @@
+2026-10-10 최신: 문의메일 tap2work.dev@gmail.com으로소스/웹/Play·IARC/ASC ko,en-US·심사연락처/Google OAuth지원·개발자통일. 웹 a35827b Actions38016182177 성공·실제정책SHA일치. 새iOS10 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL·내부그룹연결, Android9 내부available/Alpha inreview. 이전심사용로그인/계정소유자/공급자·불변이력은보존. D-093 갱신, 검증/초기400·409복구는최신history. `.local/native-release-20261010/` 이메일후속JSON참조.
+
+2026-10-10 최신 완료: 사용자가심사용정보입력후재개. restricted access/Google절차저장, KR국가·기존Android8 Alpha·크몽(doply)44목록을연결하고13변경심사제출. Changes in review/managed publishing off 확인(02:05Z). 승인/실기기/MFA/실제opt-in미검증. `.local/native-release-20261010/alpha-submission.json` 참조. 이하blocked상태는이후속에서해결(실기기검증제외).
+
+2026-10-10 Ego 후속: 사용자44명 Alpha 출시 선택.18+·데이터보안11종 정정 저장(심사 미제출), 내부8 active/기존1명 opt-in완료·다운로드404. Alpha44목록저장/no release, KR국가저장미확인, 앱액세스No오류는심사용상세부재로수정미저장. Ego space2 사용자제어 hard stop; 명시재개전 takeover금지. `.local/native-release-20261010/ego-play-followup.json` 참조.
+
+2026-10-10 네이티브 후속: iOS9 API 확인 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL, Android8 내부 active. Play Business·광고ID 미사용 저장, 데이터보안 초안만 저장. 심사용 인증 편집 접근 미제공/브라우저 연결 끊김으로 audience/declaration/Alpha 미완료. 데이터보안13종 초안 중 기기ID/주소록/진단은 소스 근거 재검토·정정 전 제출 금지. `.local/native-release-20261010/follow-up-report.md` 참조. 재업로드/Apple심사 취소 불필요.
+
 2026-10-10 완료: 웹 c8c96a9 / Actions37948946797 성공, operations·catalog-admin 배포 및 운영 stable109개(revision2) 발행. 사용자가 추가 동의 없이 반영을 명시하여 이번 발행은 DB 관리자 직접 작업으로 기록했다. 독립 검토 계정을 가장하거나 승인 이력을 생성하지 않았다. 새 원본 업데이트 정책은 미정으로 유지한다.
 
 2026-10-09 구현 후속: 사용자 일괄 적용·웹 배포 요청으로 매뉴얼 조건 구성/공통 장소/수정 배지와 공간·장비 목록/선택 층별 배치도를 구현했다. MANUAL_SPACE_RELEASE_2026-10-09.md의 계약과 한계를 따른다. 후보109개 DB 초안 저장/지정 계정 reviewer 등록 완료, 인증된 독립 검토·stable 발행은 아직 미완료. 아래 연구 당시 proposed/미구현은 이 후속 구현 범위에서 갱신되며 새 업데이트 정책은 여전히 미정이다.
