@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 284,
+  "revision": 285,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1302,8 +1302,8 @@
       "next": "사장님과 크루가 동일한 웰컴·업무·매뉴얼·진행 기록을 보고 수정만 기존 권한으로 구분한다. 실제 로그인 신원을 크루로 바꾸지 않는다. 비공개 급여·매출 권한은 유지한다.",
       "reason": "사용자가 모두 파트너로서 같은 화면에서 현재 진행을 공유하도록 요청.",
       "source": "사용자 대화 2026-10-10",
-      "updatedAt": "2026-10-10T10:37:02.190520+00:00",
-      "implementation": "Core shared workflows implemented and verified. 109 manuals plus welcome: 990 strings in each of 7 foreign languages (AI draft, no native-speaker review). Operations v58 live; web/iOS/Android release in progress."
+      "updatedAt": "2026-10-10T11:28:23.958364+00:00",
+      "implementation": "Web live at tap2.work (36bf8a7 / Actions38047892523); operations v58 ACTIVE. iOS11 VALID and WAITING_FOR_REVIEW / AFTER_APPROVAL; Android10 internal and alpha tracks completed via review commit. Device installation/OAuth/camera testing and native-speaker review not performed."
     },
     {
       "id": "D-120",
@@ -1315,8 +1315,8 @@
       "next": "한국어·영어·베트남어·중국어 간체·일본어·태국어·네팔어·인도네시아어 UI를 제공하고 개인 선택을 저장한다. 언어 변경은 업무 ID/한국 시간 경계를 바꾸지 않는다.",
       "reason": "사용자가 기존5언어에 태국어·네팔어·인도네시아어를 추가 선택.",
       "source": "사용자 대화 2026-10-10",
-      "updatedAt": "2026-10-10T10:37:02.190520+00:00",
-      "implementation": "Core shared workflows implemented and verified. 109 manuals plus welcome: 990 strings in each of 7 foreign languages (AI draft, no native-speaker review). Operations v58 live; web/iOS/Android release in progress."
+      "updatedAt": "2026-10-10T11:28:23.958364+00:00",
+      "implementation": "Web live at tap2.work (36bf8a7 / Actions38047892523); operations v58 ACTIVE. iOS11 VALID and WAITING_FOR_REVIEW / AFTER_APPROVAL; Android10 internal and alpha tracks completed via review commit. Device installation/OAuth/camera testing and native-speaker review not performed. Core shared workflows support 8 languages; some deep inventory/sales/admin labels remain Korean."
     },
     {
       "id": "D-121",
@@ -1328,8 +1328,8 @@
       "next": "기존 공용 매뉴얼을 7개 외국어로 미리 번역하여 한국어와 함께 제공한다. 유료 실시간 Google 번역 활성화는 보류한다. 매장 수정으로 바뀐 항목만 번역 필요 표시하고 번역문 직접 등록·JSON 가져오기를 제공한다. 변하지 않은 항목의 번역은 재사용하고 원문 보기와 같은 업무 기록을 유지한다.",
       "reason": "활성 결제 계정 부재 확인 후 사용자가 기존 매뉴얼 사전 번역과 변경 부분 직접 등록·가져오기를 선택.",
       "source": "사용자 대화 2026-10-10",
-      "updatedAt": "2026-10-10T10:52:39.649085+00:00",
-      "implementation": "Core shared workflows implemented and verified. 109 manuals plus welcome: 990 strings in each of 7 foreign languages (AI draft, no native-speaker review). Operations v58 live; web/iOS/Android release in progress."
+      "updatedAt": "2026-10-10T11:28:23.958364+00:00",
+      "implementation": "Web live at tap2.work (36bf8a7 / Actions38047892523); operations v58 ACTIVE. iOS11 VALID and WAITING_FOR_REVIEW / AFTER_APPROVAL; Android10 internal and alpha tracks completed via review commit. Device installation/OAuth/camera testing and native-speaker review not performed. 109 public manuals plus default welcome: 990 strings x 7 foreign languages, ai-draft. Manual field edits invalidate only changed translations. Runtime paid Google translation stays disabled."
     },
     {
       "id": "D-122",
@@ -1341,8 +1341,8 @@
       "next": "개선 및 검증 후 웹과 iOS/Android를 배포·스토어 제출한다. 배포 담당은 Sol low 모델. 스토어 심사 완료와 제출 완료는 구분한다.",
       "reason": "사용자가 전체 개선 후 웹 및 앱 배포와 배포 모델 sol low를 명시.",
       "source": "사용자 대화 2026-10-10",
-      "updatedAt": "2026-10-10T10:37:02.190520+00:00",
-      "implementation": "진행 중. 이 결정 기록은 구현·배포 완료를 의미하지 않는다."
+      "updatedAt": "2026-10-10T11:28:23.958364+00:00",
+      "implementation": "Web live at tap2.work (36bf8a7 / Actions38047892523); operations v58 ACTIVE. iOS11 VALID and WAITING_FOR_REVIEW / AFTER_APPROVAL; Android10 internal and alpha tracks completed via review commit. Device installation/OAuth/camera testing and native-speaker review not performed."
     },
     {
       "id": "D-123",
@@ -1352,8 +1352,8 @@
       "decision": "새 크루 등록 시 ISO 국적을 필수로 받고 안내 언어는 별도로 선택한다. 국적으로 언어·권한을 결정하지 않는다. 기존 크루의 미입력 국적은 임의 추정하지 않는다. 개인이 직접 선택한 언어를 우선하며 국적은 사장님·본인에게만 노출한다.",
       "reason": "사용자가 국적 필수 입력·안내 언어 별도 선택을 확정.",
       "source": "사용자 대화 2026-10-10",
-      "updatedAt": "2026-10-10T10:52:39.649085+00:00",
-      "implementation": "Core shared workflows implemented and verified. 109 manuals plus welcome: 990 strings in each of 7 foreign languages (AI draft, no native-speaker review). Operations v58 live; web/iOS/Android release in progress."
+      "updatedAt": "2026-10-10T11:28:23.958364+00:00",
+      "implementation": "Web live at tap2.work (36bf8a7 / Actions38047892523); operations v58 ACTIVE. iOS11 VALID and WAITING_FOR_REVIEW / AFTER_APPROVAL; Android10 internal and alpha tracks completed via review commit. Device installation/OAuth/camera testing and native-speaker review not performed."
     }
   ],
   "milestones": [
@@ -1529,13 +1529,13 @@
       "id": "M-029",
       "title": "iOS App Store 출시와 매장 구독",
       "status": "in_progress",
-      "description": "TAP Work 새 브랜딩, 개인 소셜 로그인·개인정보·계정 삭제 로컬 구현. Flutter 분석/관련 테스트, Node 214, 격리 SQL, 웹 및 iOS 시뮬레이터 빌드 검증. Google OAuth 클라이언트·Apple provider/키 설정, 서버 이관/배포, 실기기 E2E와 서명·App Store 제출은 미완료. 구독 연동·가격·유료 기능은 후속."
+      "description": "Social login, account deletion/privacy, production APIs and signed native submissions implemented. Latest iOS11 VALID / WAITING_FOR_REVIEW / AFTER_APPROVAL, Android10 internal+alpha API completed. App Store approval, physical-device end-to-end validation, subscriptions/pricing/paid entitlements remain follow-up."
     },
     {
       "id": "M-030",
       "title": "DB 공용 매뉴얼·체크리스트와 지속 콘텐츠 팀",
       "status": "in_progress",
-      "description": "DB/서버·웹 운영 전환·검토/발행 API·5역할 팀 구현/검증 완료. 지정 공급자 권한 등록. 독립 검토 계정·실제 첫 연구/콘텐츠 발행·주기/현장피드백 단계는 후속."
+      "description": "Database catalog and server/web publication flow deployed. User-authorized 109-manual stable catalog published; independent reviewer operation and ongoing field-effect evaluation remain follow-up. Prepared translations do not imply independent human review."
     },
     {
       "id": "M-031",
@@ -1547,13 +1547,19 @@
       "id": "M-032",
       "title": "단계형 매장 등록·설정 통합·업종별 매뉴얼",
       "status": "done",
-      "description": "로컬 구현과 분석·서버/위젯/Edge/웹 빌드 검증 완료. 실제 앱/API 배포 및 네이티브 실기기 검증은 별도이며 이번 작업에서는 수행하지 않았다."
+      "description": "Store setup/settings/manual implementation is deployed on web and included in signed iOS11/Android10 submissions. Physical-device validation remains separate."
     },
     {
       "id": "M-033",
       "title": "신입 크루 매뉴얼·시간별 업무 내비게이션 고도화",
       "status": "in_progress",
-      "description": "행동 슬라이드·촬영/최적화·비공개 사진 첫 묶음 웹 배포 완료(135f8ef/Actions38044078051). Flutter435/서버317/별도Chrome3·분석·UI64·SQL/Edge 통과, 공개7파일 해시 일치. 전체 웰컴/시간/버디/원본선택/리마인드/PiP음성·18/84콘텐츠 적용은 후속. 네이티브 호환·실기기/현장 검증 미완료."
+      "description": "Action slides, complete-and-advance, optimized/private photos and shared welcome/common partner screens deployed on web and included in signed iOS11/Android10. Timed guidance, buddy exception flow, template update selection, reminder motion, PiP/audio and remaining detailed draft-content rollout are separate unfinished phases; physical-device/field validation not performed."
+    },
+    {
+      "id": "M-034",
+      "title": "Shared partner workflows, prepared multilingual manuals and native release submission",
+      "status": "complete",
+      "description": "Web live at tap2.work (36bf8a7 / Actions38047892523); operations v58 ACTIVE. iOS11 VALID and WAITING_FOR_REVIEW / AFTER_APPROVAL; Android10 internal and alpha tracks completed via review commit. Device installation/OAuth/camera testing and native-speaker review not performed. Required nationality and independent guide language, source-bound direct/imported translations, and 6930 prepared strings deployed. Store approval is not claimed."
     }
   ],
   "history": [
@@ -8575,7 +8581,13 @@
       "type": "verification",
       "title": "Shared partner workflows and 7-language prepared manuals verified; Sol low release handoff",
       "detail": "990 source strings x 7 foreign languages = 6930 prepared translations. Exact source coverage, numeric tokens, placeholders and catalog release metadata passed. Flutter 500 passed / 3 web-only skipped; analyze no issues; Node 333 passed; UI links 69; authenticated Edge and translation SQL passed. Includes 21 multilingual cases with actual font metrics, eight languages at 320px/1.5 scale, long text/fixed footer, original toggle, stable completion IDs, source invalidation, language/store/actor races, translated search and actual EN/VI asset loads. Initial Korean label/date regressions and test async/pump failures fixed and retested. Audited isolated source copied without unrelated RESEARCH or existing root dirty work. Sol low handles web, iOS11 and Android10 build/upload/submission. Some deep inventory/sales/admin labels remain Korean; native-speaker and real-device review not performed."
+    },
+    {
+      "at": "2026-10-10T11:28:23.958364+00:00",
+      "type": "deployment",
+      "title": "Sol low web and native release completed; iOS review pending",
+      "detail": "GPT-6.1 Sol low deployed isolated commit36bf8a7a4abc41a726c013177aca93eb7fbfacea. Pages Actions38047892523 SUCCESS; 14 live files HTTP200 and SHA256 equal actual CI artifact, including all7 translation bundles; private credential scan passed. Operationsv58 ACTIVE/anon401/runtimeGooglefalse. iOS1.0.0(11) signed IPA45945145bytes SHA256fa861820c3b8a462259a415d8cc5da4859a7b060015cfc141b986792fe3e2a4d, uploaded/VALID; previous10 submission cancellation COMPLETE before11 replacement; review/version WAITING_FOR_REVIEW, AFTER_APPROVAL, same internal test group preserved. Android1.0.0(10) signed AAB71155493bytes SHA256432c706220f4aaf61ecb141ec74ace538d2fff73e5fb62e3f2c4e374e9a1d9ea, existing TAP signer matches; upload/validate/automatic-review commit succeeded, internal+alpha live API completed/version10, countries/testers untouched. iOS Podfile.lock adds only required image_picker_ios registration/checksum and is preserved. Review login/contact values compared unchanged; only feature notes appended. No Google billing/key/API activation. Local and CI500Flutter tests passed;3web-onlyskipped; Node333, analysis0, UI69, 7x990translation validator, SQL/Edge passed. Existing nonblocking iOS April2027 deployment-target warning and dependency Java8 warnings recorded privately. No native device install/OAuth/camera/HEIC/voice or native-speaker verification; browser7 stayed user-controlled, space2 untouched; Apple exact privacy datatype list not rechecked. Some deep administrative labels remain Korean. Evidence .local/shared-operations-deployment; no production credentials or employee data copied to versioned history."
     }
   ],
-  "updatedAt": "2026-10-10T11:16:59.901121+00:00"
+  "updatedAt": "2026-10-10T11:28:23.958364+00:00"
 }
