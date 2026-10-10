@@ -1,3 +1,9 @@
+## 2026-10-10 JSONB 정규화 안정성과 운영 감사
+
+`developer/manual_market.mjs`는 공용 매뉴얼 `knowledge`의 동등성을 `node:util`의 `isDeepStrictEqual`로 판별한다. PostgreSQL JSONB 왕복에서 객체 키 순서가 바뀌어도 같은 내용이면 정규화 변경으로 처리하거나 workspace revision을 올리지 않는다. 배열 순서와 실제 값 변경은 계속 구별하며 기존 revision 기반 동시 수정 거절을 유지한다. `developer/test/manual_catalog_jsonb.test.mjs`는 JSONB 형태로 키가 재배열된 조회/웰컴 저장의 안정성과 실제 카탈로그 변경·오래된 revision 거절을 검사한다. operations v59에 배포했고 기존 스키마/권한 계약은 변경하지 않았다.
+
+[사장님·신입 크루 운영 감사](RESTAURANT_OWNER_CREW_AUDIT_TODO_2026-10-10.md)의 A02~A20은 후속 작업이다. 특히 배치 항목 재편집에서 새 테이블의 floor가 유실되는 클라이언트 버그(A20)는 미수정이며, 다른 층 편집을 거절하는 서버 검증을 해제해서 우회하지 않는다. 실초대·계정 연결이 없어 명부상 크루 등록을 별도 인증 멤버의 공유 업무 검증으로 간주하지 않는다.
+
 ## 2026-10-10 행동 안내·사진 저장 구현
 
 [에이전트 실행 문서](MANUAL_NAVIGATION_AGENT_DELIVERY_2026-10-10.md). `ManualActionSlides`는 기존 task/step ID 순서와 매장·크루·날짜를 고정해 읽는다. 설명·사진·수행 체크는 같은 화면이며 기존 완료 API의 성공 이후만 다음 행동으로 이동한다. 스와이프·사진 열람은 기록을 만들지 않는다. 기존 수량/관찰/미해결 이상·직책·순서 제한을 유지한다. 별도 지식/완료 엔진은 만들지 않는다.
