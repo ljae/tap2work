@@ -79,3 +79,15 @@ test('batch with an invalid pending ID commits nothing and stale revisions canno
  await assert.rejects(x.store.mutate('owner',{action:'register_starter_manuals',revision:view.revision,reviewed:true,starterVersion:1,ids:['phone-service']}),{status:409});
  assert.equal(x.raw().taskTemplates.length,1);
 });
+
+
+test('starter registration preserves purpose-only store folders without requiring a legacy general folder',async()=>{
+ const x=fixture();
+ x.raw().checklistFolders=[{id:'existing-service',name:'기존 응대'}];
+ const view=await x.act('register_owner_selection',{reviewed:true,starterVersion:1,starterIds:['phone-service','food-hall-open'],pendingIds:[]});
+ assert.equal(view.taskTemplates.length,2);
+ assert.ok(view.manualSearch.some(t=>t.title.includes('전화 받기')));
+ assert.ok(x.raw().checklistFolders.some(f=>f.id==='existing-service'));
+ assert.equal(x.raw().checklistFolders.some(f=>f.id==='general'),false);
+ assert.equal(view.ownerWorkflow.candidates.some(t=>t.id==='food-hall-open'),false);
+});

@@ -75,7 +75,10 @@ export function mutateOwnerWorkflow(state,input,actor,now,catalog) {
     const existing=e.sourceId?state.taskTemplates.find(t=>!t.archivedAt&&state.catalogLinks?.[t.id]?.sourceId===e.sourceId):null;
     const t={id:existing?.id??`owner-${randomUUID()}`,starterId:e.id,title:e.title,emoji:e.emoji,folderId,slot:e.slot,requiredRole:'all',partId:null,zone:null,steps:structuredClone(e.steps),sourceIds:[],assignmentScopeVersion:2,version:(existing?.version??0)+1};
     if(existing)t.steps=t.steps.map((step,i)=>({...step,id:existing.steps[i]?.id??step.id}));
-    const checked=validateChecklists({folders:state.checklistFolders,templates:[...state.taskTemplates.filter(row=>row!==existing),t]},state).templates.at(-1);
+    // Validate the proposed manual, not the unrelated legacy library. Existing stores
+    // may have purpose folders without the legacy editor's mandatory general folder.
+    const validationFolders=[{id:'general',name:'기본 업무'},state.checklistFolders.find(f=>f.id===folderId)];
+    const checked=validateChecklists({folders:validationFolders,templates:[t]},state).templates[0];
     Object.assign(t,checked,{starterId:e.id,registration:structuredClone(registration),knowledge:{scope:'store',topics:[],menuNames:[],ingredientNames:[],suggestedUse:e.usage,useCase:e.recurrence.mode==='daily'?(e.usage==='routine'?'routine':'training'):'periodic'},generationNotBeforeBusinessDate:existing?shiftDate(state.day,1):state.day});
     const bands=[...new Map(Object.values(workplaceBandDays(state,{includeHours:true})).flat().filter(b=>(b.headcounts?.[e.partId]??0)>0).map(b=>[b.id,b])).values()];
     // Keep existing crews and hours. Roster-based ownership is resolved at execution time.
