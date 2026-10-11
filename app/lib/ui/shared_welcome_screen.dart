@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import 'country_flag.dart';
 import 'translated_content.dart';
 
 Future<void> openSharedWelcome(
@@ -586,7 +587,7 @@ class _SharedWelcomeEditorState extends State<SharedWelcomeEditor> {
                         for (final language in appLanguageNames.entries)
                           DropdownMenuItem(
                             value: language.key,
-                            child: Text(language.value),
+                            child: LanguageLabel(languageTag: language.key),
                           ),
                       ],
                       onChanged: (value) {

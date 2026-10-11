@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 299,
+  "revision": 302,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1444,6 +1444,31 @@
       "source": "User conversation 2026-10-11 and three explicit question replies",
       "updatedAt": "2026-10-11T11:17:58.423335+00:00",
       "implementation": "Web3c041ba/Actions38134098649 success;16public SHA256 matches. operations63 ACTIVE/serverd566d5d purpose-only folder registration fix. iOS15 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL/internal group; Android14 internal+alpha committed/actual tracks completed. CI Flutter559/3browser-onlyskip,analysis0,Node380; finalserver381/7regression,UI78,Edge pass. Sol6.1 iPhone17Pro iOS26.5 native23.975s synthetic readOnly touch demo. Actual owner session in fictional store: hall-open reviewed/registered, default tomorrow settings saved and persisted across reload, today14todo/2done preserved. Store approval/physical device/newOAuth/profile not tested. Details OWNER_WORKFLOW_RELEASE_2026-10-11.md."
+    },
+    {
+      "id": "D-131",
+      "category": "Manual research execution",
+      "title": "Parallel Ego Lite research with scoped smaller-model agents",
+      "status": "confirmed",
+      "previous": "Ego Lite playbook and Luna medium/low with selective Sol review were recommendations; no pilot research run.",
+      "next": "Run the recommended configuration as parallel agents, starting with telephone service, hall opening and periodic equipment inspection; Luna medium research/drafts, Luna low evidence-preserving formatting, Sol6.1 medium selective conflict/safety review.",
+      "decision": "User explicitly requested the recommended model configuration as parallel agents.",
+      "reason": "User message after playbook delivery. Existing manual owner-review registration policy remains unchanged.",
+      "source": "User conversation 2026-10-11",
+      "updatedAt": "2026-10-11T11:41:01.853699+00:00",
+      "implementation": "Completed three parallel research agents (configured gpt-6-luna medium), formatter (gpt-6-luna low) and selective independent reviewer (gpt-6.1-sol medium). One Ego Lite TaskSpace11 with assigned pages. Three topics/15 existing steps preserved;5 external source bodies used,3 metadata/unread pages excluded as evidence,4 internal references separate. Six reviewer corrections applied; IDs/order/claim-source refs/JSON/100-700-400 limits verified. Missing equipment research-only flag corrected; self-reported source access/search count limits retained. Drafts only, no production/catalog/manual-registration writes. See MANUAL_RESEARCH_PILOT_2026-10-11.md; actual store/model policies and human approval remain outstanding."
+    },
+    {
+      "id": "D-132",
+      "category": "Search and language UX",
+      "title": "Unified manuals and recipes search with flag language controls",
+      "status": "confirmed",
+      "previous": "Manual search label; manual destination used a separate non-recipe search filter; languages available in account menu and login without flags.",
+      "next": "All four destinations use the same manual/recipe search results. Direct header flag opens native-name language picker; nationality choices and permitted crew cards show bundled country flags. Central language label/flag catalog.",
+      "decision": "User requested integrated search, nationality/language flags and easier language changes; explicitly requested a suitable smaller model for subsequent web/app deployment.",
+      "source": "User conversation 2026-10-11",
+      "updatedAt": "2026-10-11T13:08:23.818398+00:00",
+      "implementation": "Implemented and locally verified: Flutter analysis clean;85 relevant widget tests;22 nationality/catalog/checklist server tests;78 UI relationship checks. 249 offline flags,8 languages,320px/1.5 text switching,recipe name/body search across4 destinations. Existing locale save/privacy/manual registration contracts preserved. Deployment assigned next to gpt-6-luna; not yet deployed."
     }
   ],
   "milestones": [
@@ -8767,7 +8792,25 @@
       "type": "verification",
       "title": "Owner workflow and unified design deployed; real store folder regression fixed",
       "detail": "Web3c041ba/Actions38134098649 success;16public SHA256 matches. operations63 ACTIVE/serverd566d5d purpose-only folder registration fix. iOS15 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL/internal group; Android14 internal+alpha committed/actual tracks completed. CI Flutter559/3browser-onlyskip,analysis0,Node380; finalserver381/7regression,UI78,Edge pass. Sol6.1 iPhone17Pro iOS26.5 native23.975s synthetic readOnly touch demo. Actual owner session in fictional store: hall-open reviewed/registered, default tomorrow settings saved and persisted across reload, today14todo/2done preserved. Store approval/physical device/newOAuth/profile not tested. Details OWNER_WORKFLOW_RELEASE_2026-10-11.md. Failed first Android build (internal disk full) rebuilt using external generated cache; original preserved. Actual browser search typing was not verified due Flutter focus; no false claim of completed keyword search. User manual research method delivered with scoped evidence workflow and copyable prompt; recommended model remains proposal."
+    },
+    {
+      "at": "2026-10-11T11:31:10.453537+00:00",
+      "type": "decision",
+      "title": "Parallel small-model research pilot authorized and started",
+      "detail": "D131 records explicit user selection of recommended agent setup. Three topic agents are running. Root preserves existing dirty tree, shared browser space has per-agent pages, sources and claims must be actual public observations. Changes are research drafts until later owner confirmation; no lower-model results yet claimed complete."
+    },
+    {
+      "at": "2026-10-11T11:41:01.853699+00:00",
+      "type": "verification",
+      "title": "Parallel Ego Lite smaller-model pilot completed and integrated",
+      "detail": "D131 implemented: three Luna medium topic agents + Luna low formatting + Sol6.1 medium selective review. 3 topics/15 actions;5 used public bodies;6 safety/clarity corrections. Structural validation passed after adding missing equipment productionChanges=false metadata. Counts/model selection provenance/approximate timestamps/unread sources/initial search overrun documented honestly; no cost or quality benchmark claimed. Research artifacts in .local/manual-research/parallel-pilot-20261011, readable delivery docs/MANUAL_RESEARCH_PILOT_2026-10-11.md. No operational app/DB/manual registration/deployment changes; no human approval inferred."
+    },
+    {
+      "at": "2026-10-11T13:08:23.818398+00:00",
+      "type": "verification",
+      "title": "Unified manual/recipe search and country/language flags verified",
+      "detail": "D132:85 Flutter tests pass, analysis0,22 relevant server tests,78 UI links. Initial search test exposed recipes excluded in ManualWorkspace; shared results builder now retains directory state while applying global search. Initial test matcher counted both editable query and result; corrected to result Text. One local runner stopped and rerun successfully. 249 original Twemoji PNG assets bundled with CC BY4.0 attribution. No server API/operational data changes. Web/native release pending smaller-model deployment."
     }
   ],
-  "updatedAt": "2026-10-11T11:17:58.423335+00:00"
+  "updatedAt": "2026-10-11T13:08:23.818398+00:00"
 }

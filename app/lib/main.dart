@@ -1,5 +1,6 @@
 import 'l10n/manual_text_scope.dart';
 import 'dart:async';
+import 'package:flutter/services.dart';
 import 'l10n/app_localizations.dart';
 import 'state/app_locale_controller.dart';
 import 'data/photo_capture_service.dart';
@@ -19,6 +20,11 @@ import 'ui/app_loading_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks([
+      'Twemoji flags',
+    ], await rootBundle.loadString('assets/flags/LICENSE.txt'));
+  });
   unawaited(PhotoCaptureService().discardLostData());
   unawaited(AppLocaleController.instance.initialize());
   runApp(const AppStartup());

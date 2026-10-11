@@ -64,6 +64,7 @@ class _WaterSearchState extends State<WaterSearch> {
       textInputAction: TextInputAction.search,
       decoration: InputDecoration(
         hintText: context.t('manual.search'),
+        hintMaxLines: 3,
         hintStyle: AppText.body.copyWith(color: AppColors.muted),
         prefixIcon: const Icon(
           CupertinoIcons.search,

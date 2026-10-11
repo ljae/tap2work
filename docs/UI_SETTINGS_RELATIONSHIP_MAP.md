@@ -267,7 +267,7 @@ S27 주간은 `ScheduleController.selected` → 전체 폭 7일 선택 → 선�
 | ID | 원본 → 컨트롤 → 액션 | 소비 | 검증 |
 |---|---|---|---|
 | S03 | workplace.days.headcounts/crewIds → 교대×파트 테이블의 배정/필요 인원·크루 셀 클릭 → 인원/크루 다이얼로그 적용 → save_workplace_hours | 선택 요일 초안 후 최종 원자 저장, 미래 기본 배정 유지; 취소는 셀 값 보존 | default_staffing_test.dart, business_hours_slider_test.dart |
-| E05 | manualSearch/manualQuery → 상단 녹색 매뉴얼 검색창 한 개 → onChanged/검색 지우기 | 4개 메뉴 공통 검색; 기존 녹색 상태 띠 및 본문 중복 검색 제거; 서버 쓰기 없음 | menu_layout_test.dart, ui_ux_audit_test.dart, operations_test.dart |
+| E05 | manualSearch/manualQuery (등록 매뉴얼+레시피) → 상단 매뉴얼·레시피 통합 검색 → onChanged/검색 지우기 | 4개 메뉴 공통 검색; 기존 녹색 상태 띠 및 본문 중복 검색 제거; 서버 쓰기 없음 | menu_layout_test.dart, ui_ux_audit_test.dart, operations_test.dart |
 | S27 | ScheduleController.selected/slots → 투명 날짜/파트 머리글·왼쪽 30분 시각/눈금 | 시간축만 짧은 선, 본문 격자선 없음. 기존 편집/배정 API 유지 | schedule_workflow_test.dart, calendar_test.dart |
 
 ## 출퇴근 이력·크루 등록 후 배정 · 2026-10-04 최신
@@ -489,13 +489,13 @@ S15의 Task 열기는 S68 통합 행동 화면을 사용한다. 매뉴얼 원본
 | ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
 | --- | --- | --- | --- |
 | S72 | store welcome + own welcomeAcknowledgment + projected zones → 강조 웰컴/중요 변경/장소 펼치기/다시 보기/확인 → save_welcome / ack_welcome | 모든 역할 동일 본문, 편집만 canEditTasks. 첫 사용·중요 변경 재확인, 업무 진입 비차단. 다른 사람의 확인 이력 대신 작성 금지 | shared_welcome_test.dart, common_guidance.test.mjs |
-| S73 | 개인 locale → AppLanguageButton → selectLanguage / save_language_preference | 8언어 UI, 본인 계정·매장 선택 저장. ID·완료 기록·한국 날짜 경계 유지. 기존 다른 언어 인쇄 계약 독립 | app_locale_test.dart |
+| S73 | 개인 locale + appLanguageNames/appLanguageCountries → 상단 국기 바로가기·로그인 AppLanguageButton → openAppLanguagePicker / selectLanguage / save_language_preference | 8언어 UI, 본인 계정·매장 선택 저장. ID·완료 기록·한국 날짜 경계 유지. 기존 다른 언어 인쇄 계약 독립 | app_locale_test.dart, language_controls_test.dart, header_test.dart |
 | S74 | 현재 원문 + targetLocale → TranslatedContent → 공용 사전 번역/매장 번역 → 원문 보기 | 정확한 원문 일치 시 자동 표시. 바뀐 항목만 원문과 번역 필요. 외부 유료 runtime 비활성, operations snapshot/완료 상태 불변 | translated_content_test.dart, content_translation_repository_test.dart |
 
 S72~74는 D-119~122의 구현 대상이다. 실제 수행한 검증과 배포 여부는 project-state.json 최신 history를 확인한다.
 
 | S75 | taskTemplates/welcome 원문 + manualContentTranslations → 번역 등록/양식 복사/JSON 가져오기 → save_manual_translation | 현재 언어·정확한 원문·opening revision 검증, 바뀐 필드만 번역 필요. 공용 사전 번역은 자산에서 읽고 외부 유료 호출 없음 | manual_content_translations.test.mjs, translated_content_test.dart, manual_translation_editor_test.dart |
-| S76 | nationalityOptions + tappers.nationality/guideLocale → 크루 등록의 검색형 국적·독립 언어 선택 → save_tapper | 신규 필수, 기존 미입력 추정 없음. 개인 직접 언어 우선. 국적은 사장님/본인만 표시 | crew_nationality.test.mjs, attendance_history_test.dart |
+| S76 | nationalityOptions + tappers.nationality/guideLocale → 크루 등록의 국기+국가명 검색형 국적·국기+모국어 이름 선택 → save_tapper | 신규 필수, 기존 미입력 추정 없음. 개인 직접 언어 우선. 국적은 서버가 허용한 사장님/본인에게만 카드에 국기+국가명 표시 | crew_nationality.test.mjs, attendance_history_test.dart |
 
 최신 D-121 변경: S74의 유료 runtime 호출은 비활성화했다. 먼저 공용 사전 번역과 S75 매장 등록 번역을 사용하고 없는/바뀐 필드에는 원문과 번역 필요를 표시한다.
 

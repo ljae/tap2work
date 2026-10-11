@@ -60,6 +60,14 @@ void main() {
             'manual': '손을 씻어요.',
             'tags': <String>[],
           },
+          {
+            'id': 'recipe/rice',
+            'menuManualId': 'rice',
+            'title': '볶음밥',
+            'tapTitle': '볶음밥 조리',
+            'manual': '쪽파를 준비한 뒤 볶아요.',
+            'tags': ['밥'],
+          },
         ];
         final ops = OperationsController(
           readOnly: true,
@@ -116,6 +124,19 @@ void main() {
           await tester.enterText(search, '손');
           await tester.pumpAndSettle();
           expect(find.text('손 씻기'), findsWidgets);
+          await tester.enterText(search, '쪽파');
+          await tester.pumpAndSettle();
+          expect(
+            find.byWidgetPredicate((w) => w is Text && w.data == '볶음밥'),
+            findsOneWidget,
+          );
+          expect(find.text('손 씻기'), findsNothing);
+          await tester.enterText(search, '볶음밥');
+          await tester.pumpAndSettle();
+          expect(
+            find.byWidgetPredicate((w) => w is Text && w.data == '볶음밥'),
+            findsOneWidget,
+          );
           expect(tester.takeException(), isNull);
         }
       },

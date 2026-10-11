@@ -70,7 +70,7 @@ class WorkspaceMenu extends StatelessWidget {
         ),
       ],
       child: Container(
-        width: (MediaQuery.sizeOf(context).width - 180).clamp(100.0, 200.0),
+        width: (MediaQuery.sizeOf(context).width - 236).clamp(84.0, 200.0),
         height: 48,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(

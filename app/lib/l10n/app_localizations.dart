@@ -25,6 +25,18 @@ const appLanguageNames = {
   'ne': 'नेपाली',
   'id': 'Bahasa Indonesia',
 };
+// Representative flags are visual language cues, never crew nationality.
+// Edit display names above and flag associations here for every language control.
+const appLanguageCountries = {
+  'ko': 'KR',
+  'en': 'US',
+  'vi': 'VN',
+  'zh-Hans': 'CN',
+  'ja': 'JP',
+  'th': 'TH',
+  'ne': 'NP',
+  'id': 'ID',
+};
 const appFontFallbacks = [
   'NotoSansThai',
   'NotoSansDevanagari',

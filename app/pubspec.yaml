@@ -90,6 +90,7 @@ flutter:
       fonts:
         - asset: assets/fonts/app/NotoSansDevanagari-Variable.ttf
   assets:
+    - assets/flags/
     - assets/manual_translations/
     - assets/legal/privacy.json
     - assets/fonts/print/

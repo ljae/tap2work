@@ -29,10 +29,12 @@ class ManualWorkspace extends StatefulWidget {
     required this.ops,
     required this.query,
     this.onClearSearch,
+    this.searchResultsBuilder,
   });
   final OperationsController ops;
   final String query;
   final VoidCallback? onClearSearch;
+  final WidgetBuilder? searchResultsBuilder;
   @override
   State<ManualWorkspace> createState() => _ManualWorkspaceState();
 }
@@ -1448,6 +1450,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   Widget build(BuildContext context) {
     sync();
     if (!ops.canEditTasks) editing = false;
+    // Keep the directory draft/selection mounted while global search is open.
+    if (widget.query.trim().isNotEmpty && widget.searchResultsBuilder != null) {
+      return widget.searchResultsBuilder!(context);
+    }
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1240),

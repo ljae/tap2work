@@ -340,7 +340,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               ),
                             ),
                             Text(
-                              'TAP · ${row['tapTitle']}',
+                              "${context.t(row['menuManualId'] != null ? 'manual.recipes' : 'nav.manual')} · ${row['tapTitle']}",
                               style: const TextStyle(
                                 color: AppColors.muted,
                                 fontSize: 13,
@@ -467,7 +467,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
           ? AppLoadingScreen(error: ops.error, onRetry: () => ops.refresh())
           : Scaffold(
               appBar: BrandHeader(
-                compact: ops.cloud && MediaQuery.sizeOf(context).width < 480,
+                compact: ops.cloud && MediaQuery.sizeOf(context).width < 600,
                 action: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -475,6 +475,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       WorkspaceMenu(ops: ops, onWelcome: () => openWelcome()),
                       const SizedBox(width: 8),
                     ],
+                    const AppLanguageButton(compact: true),
+                    const SizedBox(width: 8),
                     PopupMenuButton<String>(
                       popUpAnimationStyle: AppMotion.dialogStyle(context),
                       key: const ValueKey('header-account-menu'),
@@ -727,6 +729,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                   ? ManualWorkspace(
                                       ops: ops,
                                       query: manualQuery,
+                                      searchResultsBuilder: (_) =>
+                                          manualResultList(),
                                       onClearSearch: () => updateView(() {
                                         manualSearch.clear();
                                         manualQuery = '';

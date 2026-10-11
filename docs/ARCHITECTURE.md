@@ -1,3 +1,9 @@
+## 2026-10-11 통합 검색·국기 언어 컨트롤
+
+상단 검색은 기존 manualSearch projection에서 등록 매뉴얼과 menuManualId 레시피의 제목/태그/본문을 함께 검색하며 결과 종류를 표시한다. 서버 인덱스·등록 승인·권한·ID 계약은 유지한다. CountryFlag는 ISO 국적249개의 번들 PNG를 사용한다. Twemoji 고정 소스/CC BY4.0 고지는 assets/flags/LICENSE.txt와 앱 LicenseRegistry에 포함한다. appLanguageNames/appLanguageCountries가 공통 표시 카탈로그이며 LanguageLabel이 크루/웰컴 편집 언어 선택에 재사용된다. 영어 대표 국기는 US이며 국적과 독립이다. 미입력은 지구본, 서버가 미투영한 국적은 카드에서 표시하지 않는다.
+
+상단 AppLanguageButton(compact:true) → 기존 openAppLanguagePicker → AppLocaleController.selectLanguage → 기존 계정별 저장/remote preference 경로다. 빠른 선택·계정 전환·오류 계약을 유지한다. 새 API는 없으며 작은 cloud 헤더는600px 아래 워드마크를 접고 매장/언어/계정48px 조작을 유지한다.
+
 ## 2026-10-10 운영 감사 후 구현 계약
 
 최신 사용자 결정 D-124~128과 [개선 TODO](RESTAURANT_OWNER_CREW_AUDIT_TODO_2026-10-10.md)를 따른다. 아래는 구현 계약이며 운영 배포/실기기 검증은 최신 이력으로 확인한다.

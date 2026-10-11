@@ -1,3 +1,7 @@
+2026-10-11 최신 후속: D132 통합 검색·국기/언어 바로가기 구현 완료. Flutter85/analysis0·서버22·UI78 검증. `docs/SEARCH_LANGUAGE_RELEASE_2026-10-11.md` 참조. 사용자가 후속 웹/앱 배포를 적합한 낮은 모델로 지정하여 gpt-6-luna에 배포를 위임한다. 이 기록 시점 배포 대기.
+
+2026-10-11 매뉴얼 병렬 조사 파일럿 완료: D131 사용자선택, Luna medium3개·Luna low정리·Sol6.1 medium선택검토. Ego공간11/pages분리, 전화6/홀5/설비4단계·외부본문5건·검토교정6건·ID/근거연결/분량검사통과. MANUAL_RESEARCH_PILOT_2026-10-11.md 및 .local/manual-research/parallel-pilot-20261011/ 참조. 사장님검토용초안이며운영등록·DB·코드·배포없음. 제조사모델/매장정책미확인, 비용·정확도비교실험미수행.
+
 2026-10-11 최종 배포 완료: 웹3c041ba/Actions38134098649·공개16파일hash일치, operations63/서버d566d5d, iOS15VALID/WAITING_FOR_REVIEW·Android14internal+alpha completed. CI Flutter559/3skip·analysis0·최종Node381·UI78/Edge통과. 실제 사장님 세션의 가상매장 홀오픈 등록·내일부터 기본설정저장·새로고침예약유지, 오늘14/2보존. 목적폴더만 있는 매장 등록오류 수정. Sol6.1 native24초 readOnly 시연, 연구방법서 완성. 상세 OWNER_WORKFLOW_RELEASE_2026-10-11.md 및 .local/owner-workflow/. 저모델 실제조사·실기기·스토어승인 미수행. Rootdirty보존.
 
 2026-10-11 사장님 운영 준비 구현/검증: D130, owner_workflow + recurrence +24매뉴얼110행동. Flutter558/3skip·analysis0·Node380·UI78·Edge 통과. Rootdirty보존, .local/owner-release 격리배포 준비. 실제배포·Sol시뮬레이터 아직진행중. 사용자는 추가로 Ego Lite 저비용모델 조사방법서 요청: MANUAL_RESEARCH_PLAYBOOK_EGO_LITE.md (Luna medium 권고, 사용자 모델선택/현장조사완료 아님). 상세매뉴얼 OWNER_OPERATIONS_MANUAL_2026-10-11.md.

@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
+import 'country_flag.dart';
 
 const _ranks = {'owner': '사장', 'manager': '매니저', 'crew': '크루'};
 const _periods = {'monthly': '월급', 'weekly': '주급', 'daily': '일급'};
@@ -69,6 +70,9 @@ class _TeamScreenState extends State<TeamScreen> {
                       ),
                     ))
                       ListTile(
+                        leading: CountryFlag(
+                          countryCode: country['code'] as String?,
+                        ),
                         title: Text('${country['name']}'),
                         subtitle: Text('${country['code']}'),
                         selected: country['code'] == selected,
@@ -192,7 +196,7 @@ class _TeamScreenState extends State<TeamScreen> {
                                   update(() => nationality = selected);
                                 }
                               },
-                              icon: const Icon(Icons.public),
+                              icon: CountryFlag(countryCode: nationality),
                               label: Text(
                                 '${nationalityOptions.where((c) => c['code'] == nationality).firstOrNull?['name'] ?? context.t('crew.select')}',
                               ),
@@ -206,7 +210,9 @@ class _TeamScreenState extends State<TeamScreen> {
                                 .map(
                                   (language) => DropdownMenuItem<String>(
                                     value: language.key,
-                                    child: Text(language.value),
+                                    child: LanguageLabel(
+                                      languageTag: language.key,
+                                    ),
                                   ),
                                 )
                                 .toList(),
@@ -601,6 +607,24 @@ class _TeamScreenState extends State<TeamScreen> {
                     '${_ranks[person['rank']] ?? '크루'} · ${labels.isEmpty ? '전체 파트' : labels}',
                     style: AppText.caption,
                   ),
+                  if (person['nationality'] is String) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        CountryFlag(
+                          countryCode: person['nationality'] as String,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${ops.rows('nationalityOptions').where((c) => c['code'] == person['nationality']).firstOrNull?['name'] ?? person['nationality']}',
+                            style: AppText.caption,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
