@@ -19,7 +19,7 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="작은 매장의 직원·업무·재고·발주와 첫 근무를 함께 연결하는 TAP Work.">
-  <meta name="theme-color" content="#101112">
+  <meta name="theme-color" content="#171c1c">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -37,12 +37,12 @@
 </head>
 <body>
   <style>
-    html, body { margin: 0; background: #101112; color: #f0f2f4; }
-    #app-boot { position: fixed; inset: 0; z-index: 9999; overflow:auto; display: grid; place-items: center; align-items: safe center; padding: 32px; background: #101112; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; transition: opacity 240ms ease-out; }
+    html, body { margin: 0; background: #171c1c; color: #f2f5ef; }
+    #app-boot { position: fixed; inset: 0; z-index: 9999; overflow:auto; display: grid; place-items: center; align-items: safe center; padding: 32px; background: #171c1c; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; transition: opacity 240ms ease-out; }
     #app-boot.leaving { opacity: 0; pointer-events: none; }
     .boot-content { width: min(100%, 360px); text-align: center; }
     #boot-title { font-size: 18px; line-height: 1.4; margin: 0 0 12px; }
-    #boot-message { color: #a0a7af; font-size: 14px; line-height: 1.6; margin: 0; }
+    #boot-message { color: #adbab4; font-size: 14px; line-height: 1.6; margin: 0; }
     .boot-track { width:min(240px, 100%, 55svh); aspect-ratio:8 / 9; margin:0 auto; }
     .boot-track svg { display:block; width:100%; height:100%; }
     .boot-content:has(#boot-retry[hidden]) .boot-status { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
@@ -65,18 +65,18 @@
       <div class="boot-track" aria-hidden="true">
         <svg viewBox="0 0 160 180" width="160" height="180" focusable="false">
           <defs><clipPath id="water-cup"><path d="M43 82H117L108 145Q106 159 94 159H66Q54 159 52 145Z"/></clipPath></defs>
-          <path d="M131 23H99Q77 23 77 48H91Q91 37 103 37H131" fill="none" stroke="#a0a7af" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M40 166H120" stroke="#2b2e32" stroke-width="3" stroke-linecap="round"/>
+          <path d="M131 23H99Q77 23 77 48H91Q91 37 103 37H131" fill="none" stroke="#adbab4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M40 166H120" stroke="#3a4742" stroke-width="3" stroke-linecap="round"/>
           <g clip-path="url(#water-cup)">
-            <path d="M43 82H117L108 145Q106 159 94 159H66Q54 159 52 145Z" fill="#46c69b" opacity=".06"/>
+            <path d="M43 82H117L108 145Q106 159 94 159H66Q54 159 52 145Z" fill="#79e2ba" opacity=".06"/>
             <g class="water-loop"><g class="water-fill">
-              <path d="M40 92Q60 87 80 92T120 92V170H40Z" fill="#46c69b" opacity=".8"/>
+              <path d="M40 92Q60 87 80 92T120 92V170H40Z" fill="#79e2ba" opacity=".8"/>
               <circle cx="93" cy="110" r="3" fill="white" opacity=".55"/><circle cx="84" cy="121" r="2" fill="white" opacity=".4"/>
             </g></g>
           </g>
-          <path d="M43 82H117L108 145Q106 159 94 159H66Q54 159 52 145Z" fill="none" stroke="#a0a7af" stroke-width="5" stroke-linejoin="round"/>
-          <path d="M57 101L61 131" stroke="#a0a7af" opacity=".5" stroke-width="3" stroke-linecap="round"/>
-          <g class="water-loop" fill="#46c69b"><rect class="water-drop" x="82" y="50" width="4" height="7" rx="3"/><rect class="water-drop second" x="82" y="50" width="4" height="7" rx="3"/></g>
+          <path d="M43 82H117L108 145Q106 159 94 159H66Q54 159 52 145Z" fill="none" stroke="#adbab4" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M57 101L61 131" stroke="#adbab4" opacity=".5" stroke-width="3" stroke-linecap="round"/>
+          <g class="water-loop" fill="#79e2ba"><rect class="water-drop" x="82" y="50" width="4" height="7" rx="3"/><rect class="water-drop second" x="82" y="50" width="4" height="7" rx="3"/></g>
         </svg>
       </div>
       <div class="boot-status" role="status" aria-live="polite">
