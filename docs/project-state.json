@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 294,
+  "revision": 298,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1419,6 +1419,31 @@
       "source": "사용자 대화 2026-10-10",
       "updatedAt": "2026-10-10T14:58:45.503125+00:00",
       "implementation": "receivedQuantity 누적과 receiptHistory, receiptId 기반 동일 요청 재시도 멱등 및 초과 수량 원자 거절 구현. 기존 요청은 남은 전량 입고로 호환. 응답 불명 대기는 화면 세션 메모리이며 앱 재시작 영속화는 후속. Sol low 배포 완료: 웹20e9437/Pages38060150185, operations60·초대SQL, iOS13 VALID·심사 대기·승인 후 자동 출시, Android12 내부·Alpha 제출. 실제 별도 계정 수락·기기 설치/촬영은 미검증."
+    },
+    {
+      "id": "D-129",
+      "category": "Common UI design",
+      "title": "Unified app redesign and GPT-6.1 Sol iOS simulator demonstration",
+      "status": "confirmed",
+      "previous": "Existing dark canvas #101112, mixed teal/white/green controls,0.95 press and plain hour/minute wheels.",
+      "next": "Redesign the entire app consistently for younger adults, including motion, loading, transitions, brightness and time controls; demonstrate on Apple simulator with GPT-6.1 Sol.",
+      "decision": "Redesign the entire app consistently for younger adults, including motion, loading, transitions, brightness and time controls; demonstrate on Apple simulator with GPT-6.1 Sol.",
+      "reason": "Explicit user request 2026-10-11. Work Studio exact colors/timings are implementation choices, not a claim of separate user design review approval.",
+      "source": "User conversation 2026-10-11",
+      "updatedAt": "2026-10-11T09:46:25.673488+00:00",
+      "implementation": "Implemented in local Flutter source. Final554Flutter pass/3browser-onlyskips,analysis0,UI75,Node20;21responsive screenshots at320/390/1200 including1.5x text. Requested GPT-6.1 Sol built/installed/executed iPhone17Pro iOS26.5 simulator with36.4967s actual touch video. Native findings fixed: full-page editor SafeArea top and time sheet preferredHeight680. No new web/store deployment; physicaldevice/Androidnative/frameprofile/native-speaker review not performed."
+    },
+    {
+      "id": "D-130",
+      "category": "Owner workflow",
+      "title": "Reviewed manuals, recurring work and tomorrow planning",
+      "status": "confirmed",
+      "previous": "Market imports immediately searchable; daily/weekly recurrence; tomorrow changes not staged through an owner preparation flow.",
+      "next": "Owner reviews and batch-registers selected manuals before crew search/work. Routine daily/periodic tasks generate by schedule; closed-day periodic tasks move to next open day. Tomorrow edits apply to subsequent recurrences by default. Detailed small-restaurant best-practice proposals precede fine settings.",
+      "decision": "User explicitly selected reviewed batch registration, next-open holiday handling, and edits to all future repetitions.",
+      "source": "User conversation 2026-10-11 and three explicit question replies",
+      "updatedAt": "2026-10-11T10:41:31.321441+00:00",
+      "implementation": "Implemented locally: 24 manuals/110 actions, owner registration gate, default daily/weekly/monthly recurrence, tomorrow projection and staged settings. Flutter558passed/3browser-onlyskips, finalanalysis0, newwidget4passed at320/390/1200 large text, Node380passed, UI78links and Edge passed. Native demonstration and web/app deployment in progress."
     }
   ],
   "milestones": [
@@ -8684,29 +8709,53 @@
       "detail": "Sol low final code20e9437e84083276156ee059ee2e71a26b1e816d / Pages38060150185 build+deploy SUCCESS. Actual CI547Flutter passed/3web-only skipped, Node372, analysis0/UI75/Edge/allSQL/prepared7x990 translations passed. All14live public files HTTP200 and SHA256 equal actual CI artifact; credential scan passed. operations60 ACTIVE with private media true/paidGooglefalse; invitation SQL retained, no unnecessary second backend/schema/catalog deployment. iOS1.0.0(13) signed IPA46100236bytes SHA2561c2a3dbd306ed8278c663c2611124210ee7cc3990bccb7adad627bd466af9dae, uploaded/VALID, TAP Work Internal linked; current submission/version WAITING_FOR_REVIEW, AFTER_APPROVAL. Previous12 cancellation completed; direct reviewGET briefly404 after CANCELING, read-only review list confirmed COMPLETE and editableDEVELOPER_REJECTED state, guarded retry13 succeeded. Reviewer login/contact/notes exactly unchanged. Android1.0.0(12) AAB71496735bytes SHA256d42c8050cbcb2207d1a4bd7a9677097123efb9644a66bcb7217bf612d766a4a4, sameTAPsigner/jarsigner/7assets verified; upload/validation/automaticreview commit and actualinternal+alpha tracks completed; country/tester settings unchanged. Ego Lite authenticated fictional Audit Kitchen: real invitation screen lists existing fictionalcrew; final UI shows actual menu1/inventory7/coverage warnings and corrected invite entry. Original failed layout draft restored via authenticated browserAPI, then a NEW secondtable added/reedited/saved through actualUI. GETrevision29 verified floor1/x4/y6/two tables, otherfloor2places andprivatephoto preserved. BrowserAPI explicitly corrected fictional weekends to10-16/16-02, retainingweekdays/crew IDs/headcounts and existingpart-time reset policy. Fictional stock13 stayed13 on a new DEMOorder2; partialreceipt1 gave14/ordered/onehistory, identical ID+oldrevision replay leftquantity/history/revision unchanged, remainingreceipt1 gave15/received/twohistories. Exact latest-order deadline unchanged throughout receipts. Bound return/waste/wash/dry commonplaces and installed4opt-in dishwashing examples/13actions,2private linked photo projections; no automatic task enablement or fabricated work completion. Last workflowrevision35. No supplier transmission, messages, wages or clock events performed. Newtemplate translations still require directregistration; paidruntime remainsoff. Final optional browserreopen stopped because EgoTaskSpace9 disappeared; did not create replacement or circumvent user/browsercontrol. Live two-person invite acceptance, physical device/OAuth/camera/HEIC/native-speaker checks and restart-persistent pendingreceipt drafts remain unperformed. Versioned docs contain no account identifiers/credentials/privateworkspacepayloads; existing unrelated root dirty work preserved and reviewed source synced."
     },
     {
-      "at": "2026-10-11T01:53:36.142175+00:00",
+      "at": "2026-10-11T01:53:36.128029+00:00",
       "type": "development",
       "title": "Welcoming screen hierarchy and important guidance improved",
       "detail": "User requested welcome visual quality above the earlier prototype and web/iOS/Android deployment. SharedWelcomeScreen now highlights unchanged store title/body in a green welcome card, uses icon+text states for first confirmation/important changes/reopening, presents three localized work principles, and expands actual projected places with floor/area/description. Preserves authenticated own acknowledgement, CAS, nonblocking work entry and exact-source prepared translations. Flutter analysis initially clean; related46 Flutter tests,6 phone/desktop screen captures,75 UI links and4 common guidance Node tests passed. The initial new expanded-place test tapped before layout settled; corrected real scroll/pump then confirmed success. Web/native release in progress; no deployed or physically tested status claimed. Existing dirty work preserved in original workspace; release based on f39c19f with only this change."
     },
     {
-      "at": "2026-10-11T02:03:56.409254+00:00",
+      "at": "2026-10-11T02:05:05.333213+00:00",
       "type": "development",
-      "title": "Live welcome verified; fix stale web font asset cache",
-      "detail": "First web7af7ed8 / Pages38103369082 build+deploy success; actualCI548Flutter/3web-onlyskip,Node372,analysis0/UI75/SQL/Edge/prepared translations pass;14 public filesHTTP200 and CIartifact SHA identical. Live390px welcome confirmed but old cached MaterialIcons16624B differed from new17548B and omitted waving-hand glyph. Add deterministic complete-asset hash path and explicitly pass assetBase engine config to initializeEngine;8 relevant Node tests pass. Follow-up web release pending. Native code unaffected: iOS14 IPA uploaded andVALID, existing13review cancellation/new14 submission in progress; Android13 internal+alpha committed and actualtracks completed, sameuploadsigner/verifiedjar. No account/operational data changed."
+      "title": "Live welcome verified; stale web icon asset cache corrected",
+      "detail": "Web7af7ed8/Pages38103369082 succeeded; CI548Flutter/3web-onlyskip,Node372,analysis0/UI75/allSQL/Edge passed;14 actualpublic file SHA matched CIartifact. Live390px welcome showed a missing newglyph: cachedMaterialIcons16624B differs from fresh17548B. Deterministic completeasset content hash path with explicit initializeEngine engineConfig preserves oldassets and forces newfonts/manifests. Primary Flutter AssetManager source requires assetBase + assets/; targeted test first failed missing nested FontManifest and then passed after directory fix. Eight webstartup/cache tests pass; latestweb df48e5f queued. Native source unchanged: iOS14 IPA uploaded/VALID, old13review cancellation finished at editableDEVELOPER_REJECTED while listCANCELING; guarded retry14 inprogress. Android13 internal+alpha actualtracks completed; same uploadsigner and verifiedjar. No account data or work completions changed."
     },
     {
-      "at": "2026-10-11T02:06:54.288404+00:00",
+      "at": "2026-10-11T02:06:54.277997+00:00",
       "type": "verification",
       "title": "Native welcome releases submitted; stabilize existing cron timestamp test",
       "detail": "iOS1.0.0(14) VALID/internalgroup linked/WAITING_FOR_REVIEW/AFTER_APPROVAL, reviewer details exactly preserved. Initial old13review cancellation remainedCANCELING beyond90sec, but editableDEVELOPER_REJECTED allowed guarded14 retry; actualnewreviewWAITING/oldCOMPLETE confirmed. Android1.0.0(13) internal+alpha actualtracks completed, originalsigner retained. Webcache follow-up df48e5f/Pages38103958286 failed on existing manual_media_cleanup_backend timestamp test: a future31sec MAC prepared before loop crosses a real-second boundary and becomes allowed30sec. Pin test clock/token timestamps and explicitly test allowed300old/30future; production handler/auth rules unchanged, no backend deployment. Follow-up web remains pending; original7af7ed8 release stays live."
     },
     {
-      "at": "2026-10-11T02:15:33.906824+00:00",
+      "at": "2026-10-11T02:15:33.892895+00:00",
       "type": "deployment",
       "title": "Welcome emphasis released on web and submitted to both native stores",
       "detail": "Final web55286ddaf5ae3c676f8f240eab9f4769e6232868 / Pages38104099298 build+deploy SUCCESS. ActualCI548Flutter passed/3browser-onlyskipped,Node374,analysis0/UI75/allSQL/Edge/prepared translations passed. All16public files HTTP200 and SHA256 match actualCIartifact, privatecredential scan passed. Same previously cached390px browser now requests assets.f759b505f3ef07742e31/assets/FontManifest and newMaterialIcons; actualwelcome waving-hand glyph restored and storebody/ownack retained. iOS1.0.0(14) signedIPA46112255bytes,uploadedVALID,internalTAP Work group linked,WAITING_FOR_REVIEW/AFTER_APPROVAL; old13reviewCOMPLETE and reviewercredentials/contact/notes exactly preserved. Android1.0.0(13) signedAAB71527663bytes,jarverified/samepreviousuploadcertificate; uploaded/validated/committed and actualinternal+alpha version13completed, existingcountry/testers retained. Initialwebcache follow-up CI failed from existing future31second test crossing clock boundary; pinned test clock and explicit300old/30future accepted boundary test, actualproductionauth unchanged. Cancelled149b044CI and faileddf48e5fCI were not published. No backend/catalog/schema/operationaldata changes. Physicalinstallation/OAuth/camera/HEIC/native-speaker review not performed. Native source is welcome7af7ed8; subsequent changes are webassetversioning and test/docs only. Originaldirtytree preserved; evidence .local/welcome-deployment/release-summary.json and final-public-verification.json."
+    },
+    {
+      "at": "2026-10-11T09:46:25.673488+00:00",
+      "type": "implementation",
+      "title": "Work Studio unified app design implemented; verification in progress",
+      "detail": "Preserved pre-existing dirty tree; touched source snapshots at .local/studio-redesign/before. Brighter charcoal surfaces, mint actions/navigation, coral attention,0.975press/220release/260content/340sheet. Time preview and +/-30min share draft, explicit apply and existing parent CAS save.37focused+4newtests passed;21responsive captures passed;20relevant server tests passed;UI75 passed. FullFlutter/native simulator/finalanalysis pending. GPT-6.1 Sol explicitly requested and delegated for actual iOS demonstration. No production data changes/deployment."
+    },
+    {
+      "at": "2026-10-11T09:52:10.068849+00:00",
+      "type": "verification",
+      "title": "Work Studio redesign verified and demonstrated by GPT-6.1 Sol on iOS simulator",
+      "detail": "FinalFlutter554passed/3browser-onlyskipped;analysis0;UI75links;relevantNode20passed;21responsive screenshots320/390/1200 and1.5x passed after native fixes. Firstwhole run551passed/3skip/1oldvisualexpectation failed for completedcard surface; updated intendedpaper token assertion and finalfullrerun passed. Initial analyzer warnings fixed. Sol6.1 actualnative debugbuild/install/run on iPhone17Pro iOS26.5;lastXcode26.6s,toolanalysis0. Actualpointer fourtabs,+/-30min09:00->09:30->09:00,hourwheeldrag09:00->11:00. Nativefound topstatusbar overlap and hiddenquicktimecontrols fixed in sharedAppEditorScaffold SafeArea and preferredHeight680;native/regression rechecked.36.4967sH2641206x2622video andnativecaptures in .local/studio-redesign/simulator. Syntheticpublicfixture only;GET-onlylocalhost3197/POST405,operationalHTTP mocked/readOnly. Native tool initially had missingwelcome fixture and duplicatekeylookup;syntheticwelcome+typedkeys/physicaltouch corrected. No operationaldatawrites/auth/backend/newweborstoredeployment. Physicaldevices,Androidnative,release/profileperformance,nativespeaker review not performed. Allprior dirty work preserved;tasksourcebackup/diff/source-manifest retained."
+    },
+    {
+      "at": "2026-10-11T10:41:31.321441+00:00",
+      "type": "decision",
+      "title": "Owner workflow choices confirmed",
+      "detail": "Recorded three explicit user answers; preserve existing operational records and use current shared template/execution/roster contracts. Implementation and verification in progress."
+    },
+    {
+      "at": "2026-10-11T10:54:06.571240+00:00",
+      "type": "verification",
+      "title": "Owner workflow verified; Ego Lite small-model research method documented",
+      "detail": "Server380 passed; Flutter558 passed/3browser-onlyskip; finalanalysis0 and final4ownerwidgettests passed; UI78/Edge passed. Initial tests required new owner approval fixtures; footer Expanded collapsed owner body and was fixed. Monthly/closed-date rollover, registration/search/print/event gates, future settings snapshots, invalid/stale transaction checks covered. User requested lower-model Ego Lite research method; docs/MANUAL_RESEARCH_PLAYBOOK_EGO_LITE.md provides scoped research, evidence/claims, draft artifacts, quality gates and copyable prompt. GPT6Luna medium recommended with selective Sol review, not claimed user selection or completed field research. Model page directly viewed with Ego Lite space10 p2. Deployment/native demo ongoing."
     }
   ],
-  "updatedAt": "2026-10-11T02:15:33.906824+00:00"
+  "updatedAt": "2026-10-11T10:54:06.571240+00:00"
 }

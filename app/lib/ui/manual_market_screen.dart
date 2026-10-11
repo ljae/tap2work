@@ -126,8 +126,8 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
         SnackBar(
           content: Text(
             widget.setup
-                ? '사업장 매뉴얼을 구성했어요. 메뉴·레시피에서 매장 기준을 채워 주세요.'
-                : '매뉴얼에 담았어요. 실제 업무로 쓸 항목만 사용을 켜 주세요.',
+                ? '검토 대기에 담았어요. 운영 준비에서 사장님이 확인해 주세요.'
+                : '검토 대기에 담았어요. 운영 준비에서 사장님이 확인하면 등록돼요.',
           ),
         ),
       );
@@ -147,41 +147,69 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
   Future<void> openFilters() async {
     var nextIndustry = industry;
     var nextPurpose = purpose;
-    final applied = await showAppSheet<bool>(context, builder: (c) =>
-      StatefulBuilder(builder: (c, change) => AppEditorScaffold(
-        title: '업무·업종 좁혀보기',
-        footer: AppSheetFooter(children: [
-          TextButton(onPressed: () => change(() {
-            nextIndustry = null;
-            nextPurpose = null;
-          }), child: const Text('분류 초기화')),
-          FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('선택 적용')),
-        ]),
-        body: ListView(padding: const EdgeInsets.all(24), children: [
-          AppPicker<String>(
-            label: '업무 종류', value: nextPurpose ?? '',
-            items: [
-              const DropdownMenuItem(value: '', child: Text('모든 업무')),
-              for (final item in catalog.purposes.where((p) => catalog.search(useCase: useCase).any((e) => e['purposeId'] == p['id'])))
-                DropdownMenuItem(value: item['id'] as String, child: Text(item['name'])),
+    final applied = await showAppSheet<bool>(
+      context,
+      builder: (c) => StatefulBuilder(
+        builder: (c, change) => AppEditorScaffold(
+          title: '업무·업종 좁혀보기',
+          footer: AppSheetFooter(
+            children: [
+              TextButton(
+                onPressed: () => change(() {
+                  nextIndustry = null;
+                  nextPurpose = null;
+                }),
+                child: const Text('분류 초기화'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(c, true),
+                child: const Text('선택 적용'),
+              ),
             ],
-            onChanged: (v) => change(() => nextPurpose = v == '' ? null : v),
           ),
-          const SizedBox(height: 24),
-          AppPicker<String>(
-            key: const ValueKey('market-industry'),
-            label: '업종', value: nextIndustry ?? '',
-            items: [
-              const DropdownMenuItem(value: '', child: Text('모든 업종')),
-              for (final item in catalog.industries)
-                DropdownMenuItem(value: item['id'] as String, child: Text(item['name'])),
+          body: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              AppPicker<String>(
+                label: '업무 종류',
+                value: nextPurpose ?? '',
+                items: [
+                  const DropdownMenuItem(value: '', child: Text('모든 업무')),
+                  for (final item in catalog.purposes.where(
+                    (p) => catalog
+                        .search(useCase: useCase)
+                        .any((e) => e['purposeId'] == p['id']),
+                  ))
+                    DropdownMenuItem(
+                      value: item['id'] as String,
+                      child: Text(item['name']),
+                    ),
+                ],
+                onChanged: (v) =>
+                    change(() => nextPurpose = v == '' ? null : v),
+              ),
+              const SizedBox(height: 24),
+              AppPicker<String>(
+                key: const ValueKey('market-industry'),
+                label: '업종',
+                value: nextIndustry ?? '',
+                items: [
+                  const DropdownMenuItem(value: '', child: Text('모든 업종')),
+                  for (final item in catalog.industries)
+                    DropdownMenuItem(
+                      value: item['id'] as String,
+                      child: Text(item['name']),
+                    ),
+                ],
+                onChanged: (v) =>
+                    change(() => nextIndustry = v == '' ? null : v),
+              ),
+              const SizedBox(height: 16),
+              const Text('업종을 고르면 공통 매뉴얼도 함께 보여요.', style: AppText.caption),
             ],
-            onChanged: (v) => change(() => nextIndustry = v == '' ? null : v),
           ),
-          const SizedBox(height: 16),
-          const Text('업종을 고르면 공통 매뉴얼도 함께 보여요.', style: AppText.caption),
-        ]),
-      )),
+        ),
+      ),
     );
     if (applied == true && mounted) {
       setState(() {
@@ -312,7 +340,6 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
       purpose: purpose,
       query: search.text,
       industry: industry,
-
     );
     final basket = catalog.entries
         .where((e) => selected.contains(e['sourceId']))
@@ -322,7 +349,11 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
       final name = catalog.purposeName(entry);
       groups.putIfAbsent(name, () => []).add(entry);
     }
-    final narrowed = industry != null || useCase != null || purpose != null || search.text.isNotEmpty;
+    final narrowed =
+        industry != null ||
+        useCase != null ||
+        purpose != null ||
+        search.text.isNotEmpty;
     final order = catalog.purposes.map((item) => item['name']).toList();
     final orderedGroups = groups.entries.toList()
       ..sort((a, b) => order.indexOf(a.key).compareTo(order.indexOf(b.key)));
@@ -499,7 +530,10 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    for (final item in {'': '전체', ...ManualMarketCatalog.useCases}.entries)
+                    for (final item in {
+                      '': '전체',
+                      ...ManualMarketCatalog.useCases,
+                    }.entries)
                       ChoiceChip(
                         label: Text(item.value),
                         selected: (useCase ?? '') == item.key,

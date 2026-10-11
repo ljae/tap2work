@@ -253,7 +253,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
           radius: 16,
           backgroundColor: work.approved.contains(item.id)
               ? AppColors.lime
-              : const Color(0xFF222528),
+              : AppColors.elevated,
           child: work.approved.contains(item.id)
               ? const Icon(Icons.check, size: 18)
               : Text(

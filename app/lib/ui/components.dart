@@ -311,7 +311,7 @@ class FloatingMenu extends StatelessWidget {
   Widget build(BuildContext context) => SafeArea(
     top: false,
     child: Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Center(
         widthFactor: 1,
         heightFactor: 1,
@@ -321,80 +321,105 @@ class FloatingMenu extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.surface,
               border: Border.all(color: AppColors.line),
-              borderRadius: BorderRadius.circular(22),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x1C193B3A),
-                  blurRadius: 24,
-                  offset: Offset(0, 8),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(26),
+              boxShadow: appCardShadow,
             ),
             child: Padding(
-              padding: const EdgeInsets.all(5),
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (var i = 0; i < items.length; i++)
-                      Expanded(
-                        child: Semantics(
-                          selected: i == selectedIndex,
-                          button: true,
-                          child: PressBounce(
-                            child: InkWell(
-                              key: ValueKey('floating-menu-$i'),
-                              onTap: () => onSelected(i),
-                              borderRadius: BorderRadius.circular(17),
-                              child: AnimatedContainer(
-                                duration: AppMotion.duration(
-                                  context,
-                                  AppMotion.quick,
-                                ),
-                                curve: AppMotion.enterCurve,
-                                constraints: const BoxConstraints(
-                                  minHeight: 60,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: i == selectedIndex
-                                      ? AppColors.lime
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(17),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      items[i].icon,
-                                      size: 21,
-                                      color: i == selectedIndex
-                                          ? AppColors.ink
-                                          : AppColors.muted,
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      items[i].label,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: i == selectedIndex
-                                            ? AppColors.ink
-                                            : AppColors.muted,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+              padding: const EdgeInsets.all(6),
+              child: Stack(
+                children: [
+                  if (items.isNotEmpty)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: AnimatedAlign(
+                          key: const ValueKey('navigation-indicator'),
+                          alignment: Alignment(
+                            items.length == 1
+                                ? 0
+                                : -1 + 2 * selectedIndex / (items.length - 1),
+                            0,
+                          ),
+                          duration: AppMotion.duration(
+                            context,
+                            AppMotion.content,
+                          ),
+                          curve: AppMotion.enterCurve,
+                          child: FractionallySizedBox(
+                            widthFactor: 1 / items.length,
+                            heightFactor: 1,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: AppColors.green,
+                                borderRadius: BorderRadius.circular(20),
                               ),
                             ),
                           ),
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (var i = 0; i < items.length; i++)
+                          Expanded(
+                            child: Semantics(
+                              selected: i == selectedIndex,
+                              button: true,
+                              child: PressBounce(
+                                child: InkWell(
+                                  key: ValueKey('floating-menu-$i'),
+                                  onTap: () => onSelected(i),
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Container(
+                                    constraints: const BoxConstraints(
+                                      minHeight: 60,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 2,
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        AnimatedScale(
+                                          scale: i == selectedIndex ? 1.06 : 1,
+                                          duration: AppMotion.duration(
+                                            context,
+                                            AppMotion.quick,
+                                          ),
+                                          curve: AppMotion.enterCurve,
+                                          child: Icon(
+                                            items[i].icon,
+                                            size: 21,
+                                            color: i == selectedIndex
+                                                ? AppColors.paper
+                                                : AppColors.muted,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          items[i].label,
+                                          textAlign: TextAlign.center,
+                                          style: AppText.caption.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            color: i == selectedIndex
+                                                ? AppColors.paper
+                                                : AppColors.muted,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

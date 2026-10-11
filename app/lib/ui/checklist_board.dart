@@ -265,7 +265,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Surface(
         padding: EdgeInsets.zero,
-        color: complete ? const Color(0xFF222528) : AppColors.surface,
+        color: complete ? AppColors.elevated : AppColors.surface,
         child: Column(
           children: [
             InkWell(
@@ -502,7 +502,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Surface(
         padding: const EdgeInsets.all(16),
-        color: complete ? const Color(0xFF222528) : AppColors.surface,
+        color: complete ? AppColors.elevated : AppColors.surface,
         child: Row(
           children: [
             const Icon(

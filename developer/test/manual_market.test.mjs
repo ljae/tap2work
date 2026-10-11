@@ -12,7 +12,7 @@ function fixture(role='owner'){
  const actor={id:role==='owner'?'owner-1':`${role}-1`,role,name:'테스트'};
  const store=new OperationsStore(null,()=>now,{actor,persistence:{read:async()=>structuredClone(state),save:async(next,revision)=>{assert.equal(revision,state.revision);state=structuredClone(next);}}});
  const act=async(action,values={})=>store.mutate(actor.id,{action,revision:(await store.snapshot(actor.id)).revision,...values});
- const importTap=(operationId='import-0001')=>act('import_market_taps',{operationId,releaseId:manualCatalog.releaseId,folderId:'general',sourceIds:[manualCatalog.entries[0].sourceId]});
+ const importTap=async(operationId='import-0001')=>{await act('import_market_taps',{operationId,releaseId:manualCatalog.releaseId,folderId:'general',sourceIds:[manualCatalog.entries[0].sourceId]});return act('register_owner_manuals',{ids:state.taskTemplates.filter(t=>t.registration?.status==='pending').map(t=>t.id),reviewed:true});};
  return {store,actor,act,importTap,raw:()=>state,nextDay:()=>now=new Date(now.getTime()+86400000)};
 }
 const imported=x=>x.raw().taskTemplates.find(t=>x.raw().catalogLinks?.[t.id]?.mode==='linked');
@@ -30,11 +30,12 @@ test('market import links immutable content, disables work and retries exactly o
  await assert.rejects(()=>x.importTap('import-0002'),{status:400});
  assert.equal(view.catalogOperations,undefined);assert.equal(view.catalogHistory,undefined);
 });
-test('automatic public update changes definition and manual together, retaining policy and execution snapshots',async()=>{
+test('legacy automatic public update changes definition and manual together, retaining policy and execution snapshots',async()=>{
  const x=fixture();await x.importTap();let t=imported(x);
  await x.act('save_tap_settings',{templateId:t.id,assignmentScopeVersion:2,settings:{...t.settings,enabled:true,enforceSequence:true}});
  t=imported(x);assert.ok(x.raw().tasks.length);
  const executions=structuredClone(x.raw().tasks),settings=structuredClone(t.settings),folders=structuredClone(x.raw().checklistFolders);
+ delete t.registration; // A pre-approval legacy store retains its prior update contract.
  const next=structuredClone(manualCatalog);next.releaseId='public-v2';next.entries[0].title='업데이트한 TAP';next.entries[0].steps[0].manual='업데이트한 매뉴얼';
  const old=structuredClone(x.raw());
  assert.equal(syncManualCatalog(x.raw(),new Date('2026-10-04T09:00:00Z'),next),true);

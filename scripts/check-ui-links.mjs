@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S83','app/lib/ui/owner_workflow_screen.dart',"'register_owner_selection'",'developer/owner_workflow.mjs',"'register_owner_selection'"],
+  ['S84','app/lib/ui/tap_settings_screen.dart',"'schedule_tap_settings'",'developer/owner_workflow.mjs','scheduledSettings'],
+  ['S85','app/lib/ui/tap_settings_screen.dart',"'monthDay'",'developer/work_recurrence.mjs','recurringOn'],
   ['S82','app/lib/ui/operations_screen.dart', "'receiptId'",'developer/inventory_receipts.mjs','receiveInventoryOrder'],
   ['S77','app/lib/state/operations_controller.dart','saveDraft(', 'developer/operations.mjs', 'REVISION_CONFLICT'],
   ['S78','app/lib/ui/crew_invitation_screen.dart','CrewInvitationScreen','developer/crew_invitation.mjs','tap2work_crew_invitation'],

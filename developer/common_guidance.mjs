@@ -38,7 +38,7 @@ export function mutateGuidance(state, input, actor, now) {
 // stay behind their existing permission projections.
 export function readableTemplates(templates) {
   const pick = (row, keys) => Object.fromEntries(keys.filter(key => row[key] !== undefined).map(key => [key, structuredClone(row[key])]));
-  return templates.filter(row => !row.archivedAt).map(row => ({
+  return templates.filter(row => !row.archivedAt && row.registration?.status!=='pending').map(row => ({
     ...pick(row, ['id', 'title', 'manualTitle', 'emoji', 'folderId', 'zone', 'partId', 'version', 'manualCustomization', 'sourceLocale', 'knowledge', 'menuManualId']),
     settings: pick(row.settings ?? {}, ['usage', 'enabled', 'type']),
     steps: (row.steps ?? []).map(step => pick(step, ['id', 'title', 'manualTitle', 'manual', 'tip', 'tags', 'imageUrl', 'videoUrl', 'sourceUrl', 'contentRevision'])),

@@ -1,3 +1,4 @@
+import 'owner_workflow_screen.dart';
 import 'dart:math';
 import '../domain/inventory_readiness.dart';
 import 'manual_setup_screen.dart';
@@ -489,7 +490,18 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         ops.cloud ? 'store.account' : 'store.accountPreview',
                       ),
                       onSelected: (id) async {
-                        if (id == 'account') {
+                        if (id == 'owner-workflow') {
+                          final destination = await openOwnerWorkflow(
+                            context,
+                            ops,
+                          );
+                          if (mounted && destination != null) {
+                            updateView(() {
+                              tab = destination == 'manual' ? 1 : 0;
+                              manualQuery = '';
+                            });
+                          }
+                        } else if (id == 'account') {
                           await widget.onAccountPressed?.call(context);
                         } else if (id == 'welcome') {
                           await openWelcome();
@@ -508,6 +520,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         }
                       },
                       itemBuilder: (_) => [
+                        if (ops.actor['role'] == 'owner')
+                          const PopupMenuItem(
+                            value: 'owner-workflow',
+                            child: Text('운영 준비 · 내일 미리보기'),
+                          ),
                         PopupMenuItem<String>(
                           key: const ValueKey('header-language-menu'),
                           value: 'language',
@@ -607,6 +624,29 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                   ),
                                 ),
                               ],
+                            ),
+                          if (tab == 0 &&
+                              manualQuery.trim().isEmpty &&
+                              ops.actor['role'] == 'owner' &&
+                              ops.data?['ownerWorkflow'] != null)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton.icon(
+                                icon: const Icon(Icons.auto_awesome_outlined),
+                                label: const Text('운영 준비 · 내일 미리보기'),
+                                onPressed: () async {
+                                  final destination = await openOwnerWorkflow(
+                                    context,
+                                    ops,
+                                  );
+                                  if (mounted && destination != null) {
+                                    updateView(() {
+                                      tab = destination == 'manual' ? 1 : 0;
+                                      manualQuery = '';
+                                    });
+                                  }
+                                },
+                              ),
                             ),
                           if (tab == 0 && manualQuery.trim().isEmpty)
                             Padding(
@@ -1125,7 +1165,15 @@ class _OperationsScreenState extends State<OperationsScreen> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(icon, size: 21, color: AppColors.green),
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: AppColors.lime,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(icon, size: 21, color: AppColors.green),
+                  ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(

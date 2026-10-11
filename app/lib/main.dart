@@ -234,10 +234,11 @@ class Tap2workApp extends StatelessWidget {
           filledButtonTheme: FilledButtonThemeData(
             style: FilledButton.styleFrom(
               minimumSize: const Size(48, 56),
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.white,
+              backgroundColor: AppColors.green,
+              foregroundColor: AppColors.paper,
+              textStyle: AppText.body.copyWith(fontWeight: FontWeight.w700),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppShape.control),
               ),
             ),
           ),
@@ -247,7 +248,7 @@ class Tap2workApp extends StatelessWidget {
               foregroundColor: AppColors.green,
               side: const BorderSide(color: AppColors.controlLine),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppShape.control),
               ),
             ),
           ),
@@ -262,7 +263,7 @@ class Tap2workApp extends StatelessWidget {
               (states) => IconThemeData(
                 size: 25,
                 color: states.contains(WidgetState.selected)
-                    ? AppColors.accent
+                    ? AppColors.green
                     : AppColors.muted,
               ),
             ),
@@ -286,15 +287,15 @@ class Tap2workApp extends StatelessWidget {
               vertical: 16,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppShape.control),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppShape.control),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppShape.control),
               borderSide: const BorderSide(color: AppColors.green, width: 2),
             ),
           ),
@@ -321,7 +322,7 @@ class Tap2workApp extends StatelessWidget {
           popupMenuTheme: PopupMenuThemeData(
             color: AppColors.surface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppShape.control),
             ),
           ),
           dialogTheme: DialogThemeData(
@@ -345,12 +346,12 @@ class Tap2workApp extends StatelessWidget {
               side: const WidgetStatePropertyAll(BorderSide.none),
               backgroundColor: WidgetStateProperty.resolveWith(
                 (states) => states.contains(WidgetState.selected)
-                    ? AppColors.ink
+                    ? AppColors.lime
                     : AppColors.surface,
               ),
               foregroundColor: WidgetStateProperty.resolveWith(
                 (states) => states.contains(WidgetState.selected)
-                    ? AppColors.paper
+                    ? AppColors.green
                     : AppColors.muted,
               ),
               padding: const WidgetStatePropertyAll(
@@ -366,7 +367,7 @@ class Tap2workApp extends StatelessWidget {
             ),
             trackColor: WidgetStateProperty.resolveWith(
               (states) => states.contains(WidgetState.selected)
-                  ? AppColors.ink
+                  ? AppColors.green
                   : AppColors.elevated,
             ),
           ),

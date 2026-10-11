@@ -77,8 +77,8 @@
 | 항목 | 기준 |
 |---|---|
 | 서체 | 번들 Pretendard. 화면 제목 24/Bold, 섹션 18/Bold, 본문 16/Medium, 보조 13/Regular |
-| 색 | 배경 `#101112`, 카드 `#181A1C`, 컨트롤 `#222528`, 본문 `#F0F2F4`, 보조 `#A0A7AF` |
-| 강조 | 주요 버튼 `#007D73`, 초록 `#46C69B`, 코랄 `#FF9986`. 상태 의미 없이 색을 늘리지 않는다. |
+| 색 | 배경 `#171C1C`, 카드 `#232B2A`, 컨트롤 `#303B38`, 본문 `#F2F5EF`, 보조 `#ADBAB4` |
+| 강조 | 주요 버튼 `#087568`, 초록 `#79E2BA`, 코랄 `#FFA28E`. 상태 의미 없이 색을 늘리지 않는다. |
 | 여백 | 화면 좌우 24, 독립 섹션 32, 일반 관계 간격 8/16/24. 폼 섹션 안 입력 간격 20 |
 | 카드 | 모서리 16–20, 공통 약한 그림자. 포커스·선택·드롭 대상은 구분 가능하게 표시 |
 | 편집 시트 | 상단 모서리 28. `appEditorWidth=688`, 기본 좌우 24를 뺀 입력·footer 폭 640 |
@@ -377,3 +377,16 @@ Ego Lite 실제 화면 검수를 바탕으로 로그인 소개의 비조작 기�
 
 
 2026-10-11 웰컴: 실제 매장 원문을 초록 gradient/20px 카드에 표시한다. 본인 미확인·중요 변경·확인 후 다시 보기는 문자+아이콘으로 구분하고 중요 변경만 코랄 표면을 사용한다. 공통 세 가지 원칙은 아이콘과 짧은 제목/설명, 실제 등록 장소는 접힌 읽기 영역이다. 24sp 제목·16sp 본문·13sp 보조·24px 여백·고정 하단 확인/업무 진입을 유지하고 확대 글자는 본문 스크롤로 수용한다.
+
+
+## Work Studio update (2026-10-11; supersedes earlier visual timings)
+
+The current user requested a full coherent redesign and GPT-6.1 Sol iOS simulator review. See [implementation and evidence](STUDIO_REDESIGN_2026-10-11.md). AppColors is the palette source; brighter charcoal surfaces use mint primary buttons with dark text, mint selected switches and a moving mint navigation capsule. Coral remains attention/change, with explicit labels. This changes app colors, not device brightness.
+
+AppShape: controls14, cards20, sheets28. Press0.975/80ms, release220ms easeOutCubic; content260ms/6px, sheet340/220ms. Reduced motion is immediate. Keep current content only and do not replay transitions for polling. Existing Pretendard/fallbacks, four destinations, wrapping type, 48px targets and fixed keyboard-safe form actions remain.
+
+Shared time sheet: large tabular HH:mm draft, labeled hour/minute wheels, +/-30min controls. 24-hour half-hour steps and midnight wrap; apply returns the draft, cancel returns null. Final persistence belongs to the existing form. Large text/short screens scroll the body with actions fixed. All eight fixed-label locales are covered.
+
+Loading retains actual readiness/retry/error state, uses a quiet mint ambient surface and1800ms skeleton, disabled under reduced motion/TickerMode. No fabricated progress or artificial delay. Task lane icons distinguish outstanding/coral and completed/mint; existing assignee color semantics are retained. Store links use42px mint icon containers.
+
+2026-10-11 사장님 운영 준비: 기본 제안은 검토 전 자동 선택하지 않는다. 본문 검토→선택→일괄 등록과 저장 성공→반영 위치→내일 미리보기를 분리한다. 미리보기는 실제 수행 체크를 만들지 않는다. 반복 변경은 ‘내일부터 앞으로’ 범위를 표시하고 담당 공석을 숨기지 않는다. 기존 영업시간·크루·완료 기록을 보존하며 상세 설정은 선택 진입한다. 공통 카드·시트·짧은 콘텐츠 전환과 동작 줄이기를 재사용한다.

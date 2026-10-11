@@ -444,10 +444,10 @@ class _MapCanvasState extends State<_MapCanvas> {
                                     padding: const EdgeInsets.all(2),
                                     child: Material(
                                       color: z['kind'] == 'area'
-                                          ? const Color(0xFF222528)
+                                          ? AppColors.elevated
                                           : z['kind'] == 'table'
                                           ? const Color(0xFF293748)
-                                          : const Color(0xFF222528),
+                                          : AppColors.elevated,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(
                                           z['kind'] == 'table' ? 10 : 4,

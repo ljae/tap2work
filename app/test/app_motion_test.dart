@@ -37,7 +37,7 @@ void main() {
       expect(scale, findsOneWidget); // no nested bounce
       final gesture = await tester.startGesture(tester.getCenter(button));
       await tester.pump(const Duration(milliseconds: 100));
-      expect(tester.widget<AnimatedScale>(scale).scale, .95);
+      expect(tester.widget<AnimatedScale>(scale).scale, AppMotion.pressedScale);
       await gesture.cancel();
       await tester.pumpAndSettle();
       expect(taps, 0);
@@ -45,7 +45,7 @@ void main() {
       await tester.pump();
       await tester.sendKeyDownEvent(LogicalKeyboardKey.space);
       await tester.pump(const Duration(milliseconds: 40));
-      expect(tester.widget<AnimatedScale>(scale).scale, .95);
+      expect(tester.widget<AnimatedScale>(scale).scale, AppMotion.pressedScale);
       await tester.sendKeyUpEvent(LogicalKeyboardKey.space);
       await tester.pumpAndSettle();
       expect(taps, 1);

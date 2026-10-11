@@ -1,3 +1,4 @@
+import {recurringOn} from './work_recurrence.mjs';
 import { composeManual } from './manual_setup.mjs';
 import { StoreError } from './store.mjs';
 import { assignmentOccurrences } from './work_assignments.mjs';
@@ -32,18 +33,18 @@ export function breakOn(state,date) {
 }
 export function workEligibility(state,t,date) {
   const s=t.settings??{};
+  if (t.registration?.status==='pending') return ['pending','사장님 검토 후 매뉴얼에 등록돼요'];
   if (t.archivedAt) return ['archived','보관된 매뉴얼이에요'];
   if (s.usage==='reference') return ['reference','필요할 때 보는 매뉴얼이에요'];
   if (s.enabled===false) return ['unclassified','업무 연결 방법을 선택해 주세요'];
   if (!t.steps?.length) return ['incomplete','확인할 행동을 추가해 주세요'];
   if (t.knowledge?.safetyReviewRequired && !s.operatingStandard?.trim()) return ['incomplete','제품·공정에 맞는 매장 기준을 입력해 주세요'];
-  if ((s.knowledgeIds??[]).some(id=>!state.taskTemplates.some(k=>k.id===id&&!k.archivedAt))) return ['incomplete','연결된 참고 매뉴얼을 다시 확인해 주세요'];
+  if ((s.knowledgeIds??[]).some(id=>!state.taskTemplates.some(k=>k.id===id&&!k.archivedAt&&k.registration?.status!=='pending'))) return ['incomplete','연결된 참고 매뉴얼을 다시 확인해 주세요'];
   if (s.usage==='event') return ['event','작업을 시작할 때 체크리스트가 만들어져요'];
   if (t.menuManualId) return ['reference','메뉴 조리 시 참고하는 매뉴얼이에요'];
   if (t.generationNotBeforeBusinessDate>date) return ['waiting','적용 시작일을 기다리고 있어요'];
   if ((t.knowledge?.requiresBreak || t.slot==='브레이크')&&!breakOn(state,date)) return ['waiting','오늘은 브레이크 타임이 없어요'];
-  const weekday=new Date(`${date}T12:00:00+09:00`).getUTCDay()||7;
-  if (s.recurrence?.mode==='weekly'&&!s.recurrence.weekdays.includes(weekday)) return ['waiting','선택한 반복 요일에 생성돼요'];
+  if (!recurringOn(state,t,date)) return ['waiting','선택한 반복 일정의 영업일에 생성돼요'];
   if (!assignmentOccurrences(state,t,date).length) return ['incomplete','오늘 적용할 파트·시간대를 확인해 주세요'];
   return ['ready','오늘 업무에 연결돼요'];
 }
@@ -65,6 +66,7 @@ export function eventReplay(state,input,actor) {
 export function startManualWork(state,input,actor,now) {
   if (!/^[a-zA-Z0-9-]{8,100}$/.test(input.requestId??'')) fail('작업 요청 ID를 확인해 주세요.');
   const original=state.taskTemplates.find(t=>t.id===input.templateId&&!t.archivedAt);
+  if(original?.registration?.status==='pending')fail('사장님이 매뉴얼을 확인한 뒤 등록해 주세요.');
   const t=original?composeManual(state,original):null;
   if (!t) fail('매뉴얼을 찾지 못했어요.');
   const [code,label]=workEligibility(state,t,businessDate(state,now));
@@ -72,7 +74,7 @@ export function startManualWork(state,input,actor,now) {
   if (typeof input.subject!=='string'||!input.subject.trim()||input.subject.trim().length>80) fail('제품·배치 또는 로트 이름을 80자 이내로 적어 주세요.');
   const assignment=t.settings?.assignment;
   if (assignment?.mode==='scheduled') fail('작업할 때 확인하는 업무는 담당 크루 또는 직접 맡기를 선택해 주세요.');
-  const linked=(t.settings.knowledgeIds??[]).map(id=>state.taskTemplates.find(k=>k.id===id&&!k.archivedAt));
+  const linked=(t.settings.knowledgeIds??[]).map(id=>state.taskTemplates.find(k=>k.id===id&&!k.archivedAt&&k.registration?.status!=='pending'));
   if (linked.some(x=>!x)) fail('연결된 매뉴얼을 다시 확인해 주세요.');
   state.tasks.push({...structuredClone(t),id:`event-${input.requestId}`,templateId:t.id,kind:'routine',date:businessDate(state,now),dueAt:now.toISOString(),boardStatus:'todo',completedAt:null,completedBy:null,
     title:`${t.title} · ${input.subject.trim()}`,knowledgeSnapshots:linked.map(k=>({id:k.id,version:k.version,title:k.title,steps:structuredClone(k.steps)})),
@@ -82,5 +84,5 @@ export function startManualWork(state,input,actor,now) {
 }
 
 export function knowledgeSnapshots(state,t) {
-  return (t.settings?.knowledgeIds??[]).map(id=>state.taskTemplates.find(k=>k.id===id&&!k.archivedAt)).filter(Boolean).map(k=>({id:k.id,version:k.version,title:k.title,steps:structuredClone(k.steps)}));
+  return (t.settings?.knowledgeIds??[]).map(id=>state.taskTemplates.find(k=>k.id===id&&!k.archivedAt&&k.registration?.status!=='pending')).filter(Boolean).map(k=>({id:k.id,version:k.version,title:k.title,steps:structuredClone(k.steps)}));
 }

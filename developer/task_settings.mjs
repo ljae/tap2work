@@ -1,3 +1,4 @@
+import {validateRecurrence, scheduledOn, recurringOn} from './work_recurrence.mjs';
 import {usageFields} from './knowledge_work.mjs';
 import { tapOnly, assertContentOnly, convertPolicy, validateQuantity } from './tap_policy.mjs';
 import { validateAssignment, assignmentPermission } from './work_assignments.mjs';
@@ -31,12 +32,9 @@ export function stepSettings(step) {
 export function validateTaskSettings(value, state) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) fail('TAP 설정을 확인해 주세요.');
   if (!workTypes.includes(value.type)) fail('업무 유형을 선택해 주세요.');
-  const recurrence = value.recurrence;
-  if (!recurrence || !['daily', 'weekly'].includes(recurrence.mode) || !Array.isArray(recurrence.weekdays)) fail('반복 요일을 확인해 주세요.');
-  const weekdays = recurrence.weekdays.map(day => integer(day, 1, 7, '요일'));
-  if (new Set(weekdays).size !== weekdays.length || (recurrence.mode === 'weekly' && !weekdays.length)) fail('반복 요일을 하나 이상 선택해 주세요.');
+  const recurrence = validateRecurrence(value.recurrence);
   return { ...usageFields(value), ...(Object.hasOwn(value, 'assignment') ? {assignment: validateAssignment(value.assignment, state)} : {}), type: value.type, enabled: bool(value.enabled, '업무 사용 여부'),
-    recurrence: { mode: recurrence.mode, weekdays: recurrence.mode === 'weekly' ? weekdays : [] },
+    recurrence,
     allowBulkComplete: bool(value.allowBulkComplete, '일괄 완료'),
     enforceSequence: bool(value.enforceSequence, '순서대로 수행') };
 }
@@ -129,12 +127,10 @@ export function saveTapSettings(state, input, now = new Date()) {
   return template;
 }
 
-export function repeatsOn(template, date) {
-  const settings = taskSettings(template);
-  if (!settings.enabled || settings.usage==='reference' || settings.usage==='event') return false;
-  if (settings.recurrence.mode === 'daily') return true;
-  const day = new Date(`${date}T12:00:00+09:00`).getUTCDay();
-  return settings.recurrence.weekdays.includes(day === 0 ? 7 : day);
+export function repeatsOn(template, date, state) {
+  const settings=taskSettings(template);
+  if(template.registration?.status==='pending'||!settings.enabled||['reference','event'].includes(settings.usage))return false;
+  return state?recurringOn(state,template,date):scheduledOn(settings.recurrence,date);
 }
 
 export function canCompleteStep(actor, task, step, state, context) {

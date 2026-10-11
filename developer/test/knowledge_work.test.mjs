@@ -9,7 +9,7 @@ function fixture(){
  const actor={id:'owner',name:'사장님',role:'owner'};
  const store=new OperationsStore(null,()=>date,{actor,persistence:{read:async()=>structuredClone(state),save:async next=>{state=structuredClone(next);}}});
  const act=async(action,input={})=>{const view=await store.snapshot();return store.mutate('owner',{action,revision:view.revision,...input});};
- const importSource=async source=>{await act('import_market_taps',{sourceIds:[source],releaseId:manualCatalog.releaseId,operationId:`import-${source.replaceAll('/','-')}`,folderMode:'purpose'});return state.taskTemplates.find(t=>state.catalogLinks[t.id]?.sourceId===source);};
+ const importSource=async source=>{await act('import_market_taps',{sourceIds:[source],releaseId:manualCatalog.releaseId,operationId:`import-${source.replaceAll('/','-')}`,folderMode:'purpose'});const t=state.taskTemplates.find(t=>state.catalogLinks[t.id]?.sourceId===source);await act('register_owner_manuals',{ids:[t.id],reviewed:true});return t;};
  return {store,act,importSource,raw:()=>state,next:()=>date=new Date(date.getTime()+86400000)};
 }
 test('common break is menu/time independent and old mixed source has replacements',()=>{

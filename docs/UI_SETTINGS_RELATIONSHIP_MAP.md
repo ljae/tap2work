@@ -514,3 +514,22 @@ S72~74는 D-119~122의 구현 대상이다. 실제 수행한 검증과 배포 �
 S03/S34의 외곽 영업시간 수정은 유효한 기존 교대 경계를 유지하고 유지 불가능한 변경은 저장 전 시각 비교를 보여준다. S18의 배치 항목 재편집은 기존 층/사진/구역 메타데이터와 새 편집 필드를 병합하고 다른 층 수정 차단을 유지한다. S07에는 매니저 탭 전용 `restrictions.manager.crew` 초대 권한이 기본 OFF로 추가되었다.
 
 S70 사진 읽기는 같은 화면에서 다시 불러오며 매장·계정 변경의 늦은 결과를 폐기한다. S72 웰컴은 실제 화면에 표시된 중요 버전을 기록하므로 편집 후 한 번의 업무 진입으로 닫고, 건너뛰기를 확인 이력으로 만들지 않는다. S75의 직접 번역 등록/가져오기는 kind=place의 name/floor/area/description까지 확장되고 원문이 바뀐 필드만 다시 번역을 요청한다. S54/S55 신규 등록의 완료 문구는 기본 등록에 한정하며 크루·인원 배치로 바로 이어진다. S16 재고는 수량 미확인/발주 기준 미확인/실제 부족을 구분하고 미확인 재료는 자동 발주함 대상에서 제외한다. 발주일 기준 점검 기한은 유지한다.
+
+
+## Work Studio controls - 2026-10-11
+
+| Existing link | Source -> control -> action | Consumer / saved effect | Verification |
+| --- | --- | --- | --- |
+| E05/U02 | Current tab -> moving mint capsule/shared press and content motion -> existing onSelected | Four destinations, same IDs/permissions/selected semantics. No persistence or replay on polling. Reduced motion snaps. | app_motion_test.dart, studio_design_test.dart, menu_layout_test.dart |
+| S03/S04/S05/S13 | Existing HH:mm -> showTimeWheel draft preview, hour/minute wheels and +/-30min -> apply returns String | AppTimeField/business hours/breaks/shifts/roster parent drafts. Cancel null. Parent retains final save/revision and business-day domain calculation. | business_hours_test.dart, business_hours_slider_test.dart, time_band_editor_test.dart, studio_design_test.dart, workplace.test.mjs |
+| E06 | Actual initialization/read state -> charcoal/mint TAP Water and1800ms skeleton -> success/error/retry | Reduced motion/TickerMode disable decoration. No fake progress or persistence. Web/PWA launch palette matches. | startup_and_sheet_test.dart, tap_water_loading_test.dart, startup.test.mjs |
+
+## 2026-10-11 사장님 운영 준비
+
+| ID | Source → control | Action / saved effect | Consumer / verification |
+|---|---|---|---|
+| S83 | 업무/계정 메뉴·매뉴얼 → 운영 준비 → 본문 검토·선택 → 확인 후 일괄 등록 | `register_owner_selection` → 사장님 권한·revision·검토 선택 검증, `registration` 기록; 공용 가져오기는 pending | 매뉴얼 검색·크루 readableTemplates·인쇄·자동/이벤트 업무는 등록 전 제외. 기본 식당24/110 제안은 확인 후 매장 사본으로 등록; 기존 같은 source는 보완하고 기존 실행 보존. owner_workflow tests |
+| S84 | 운영 준비 → 내일 준비 → 담당·반복 일정 변경 | `schedule_tap_settings`, `scheduledSettings.effectiveFrom` → 다음 영업 기준 날짜부터 반복 설정 적용 | `ownerWorkflow.plans` 읽기 투영; 오늘 task/완료 기록 불변, 다음 생성부터 적용. 담당 공석 명시. 설정 저장 성공 후 재투영 |
+| S85 | TAP 설정 → 매일/매주/매월·날짜 | `recurrence.monthDay`, `holidayPolicy=next_open` | `work_recurrence.mjs`를 미리보기·실행 생성이 공유. 짧은 달 말일, 연속 휴무 다음 영업일, 동일일 중복 합침. 재고 발주 기준 주기와 독립 |
+
+반영 확인은 짧은 AppContentTransition과 명시적 ‘매뉴얼에서 보기/오늘 업무에서 보기/내일 담당 확인’으로 제공한다. reduced motion에서는 움직임을 줄인다. 세부 설정 진입을 강제하지 않는다. 이미 등록된 기존 매뉴얼의 승인 이력을 소급해서 만들지 않는다.

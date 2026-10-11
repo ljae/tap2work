@@ -1,3 +1,5 @@
+import {ownerWorkflowView,mutateOwnerWorkflow,registeredManual} from './owner_workflow.mjs';
+import {effectiveTemplate} from './work_recurrence.mjs';
 import { manualTranslationView, saveManualTranslation } from './manual_content_translations.mjs';
 import { canReportWorkIssue } from './work_issue_media.mjs';
 import { receiptReplay, receiveInventoryOrder } from './inventory_receipts.mjs';
@@ -62,7 +64,7 @@ function manualSearchIndex(state) {
       });
     }
   };
-  for (const template of state.taskTemplates ?? []) if (!template.archivedAt && (template.folderId !== 'order-work' || template.menuManualId)) add(template, true);
+  for (const template of state.taskTemplates ?? []) if (registeredManual(template) && !template.archivedAt && (template.folderId !== 'order-work' || template.menuManualId)) add(template, true);
   for (const task of state.tasks ?? []) if (task.steps?.length && !task.orderId && task.folderId !== 'order-work' && !task.archivedAt && !task.supersededAt && task.date === state.day) add(task, false);
   return [...rows.values()];
 }
@@ -291,7 +293,8 @@ function ensureDueTasks(state, now, catalog = manualCatalog, catalogRevision = n
   if (ensureOrderTaps(state, now)) changed = true;
   if (ensurePreparationTaps(state, now)) changed = true;
   for (const template of state.taskTemplates) {
-    if (workEligibility(state,template,date)[0]!=='ready' || template.archivedAt || template.generationNotBeforeBusinessDate > date || template.menuManualId || template.steps.length === 0 || !repeatsOn(template, date)) continue;
+    if(template.scheduledSettings?.effectiveFrom<=date){Object.assign(template,effectiveTemplate(template,date));delete template.scheduledSettings;changed=true;}
+    if (workEligibility(state,template,date)[0]!=='ready' || template.archivedAt || template.generationNotBeforeBusinessDate > date || template.menuManualId || template.steps.length === 0 || !repeatsOn(template, date, state)) continue;
     const existing = state.tasks.filter(task => task.templateId === template.id && task.date === date && !task.archivedAt);
     // Settings changes leave started/completed snapshots alone, including their band set.
     if (existing.some(task => task.timeBandId == null && task.version !== template.version && (task.completedAt || task.boardStatus === 'processing' || task.steps?.some(s => s.completedAt)))) continue;
@@ -424,6 +427,7 @@ export class OperationsStore {
     }
     result.checklistLibrary = checklistLibrary;
     if (result.canEditTasks) {result.storeSetupCatalog=storeSetupCatalog(this.catalog);result.manualCatalog=catalogView(state,this.catalog);result.catalogLinks=structuredClone(state.catalogLinks??{});result.checklistBackup=checklistBackup(state);}
+    if(actor.role==='owner') result.ownerWorkflow=ownerWorkflowView(state,actor,this.catalog);
     result.manualSearch = manualSearchIndex(state);
     result.manualPrintTemplates = manualPrintView(state);
     if (['owner', 'manager'].includes(actor.role)) result.recommendedTaps = recommendedTaps(state);
@@ -909,7 +913,7 @@ export class OperationsStore {
           state.layout.updatedAt = iso(now); state.layout.updatedBy = who;
           activity(`${zone.name} 위치 안내 업데이트`); break;
         }
-        default: if (!mutateGuidance(state,input,actor,now) && !mutateManualMarket(state,input,actor,now,this.catalog) && !mutateWorkplace(state, input, actor, now, activity, Boolean(this.trustedActor)) && !mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
+        default: if (!mutateOwnerWorkflow(state,input,actor,now,this.catalog) && !mutateGuidance(state,input,actor,now) && !mutateManualMarket(state,input,actor,now,this.catalog) && !mutateWorkplace(state, input, actor, now, activity, Boolean(this.trustedActor)) && !mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
       }
       if (['move_tap', 'complete_task', 'complete_step', 'reopen_step'].includes(input.action)) syncOrderFromTap(state, input.taskId);
       if (['move_tap', 'complete_task', 'complete_step'].includes(input.action)) {

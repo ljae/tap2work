@@ -76,7 +76,7 @@ void main() {
       );
       expect(
         tester.widget<AnimatedContainer>(animation).transform!.entry(0, 0),
-        .95,
+        AppMotion.pressedScale,
       );
       await gesture.cancel();
       await tester.pumpAndSettle();

@@ -63,7 +63,23 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: TapWaterLoading(animate: !failed)),
+        Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  (failed ? AppColors.accent : AppColors.green).withValues(
+                    alpha: .1,
+                  ),
+                  AppColors.paper,
+                ],
+              ),
+            ),
+            child: TapWaterLoading(animate: !failed),
+          ),
+        ),
         const SizedBox(height: 20),
         Semantics(
           liveRegion: true,

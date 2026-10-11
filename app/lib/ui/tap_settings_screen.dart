@@ -13,9 +13,13 @@ class TapSettingsScreen extends StatefulWidget {
     this.initialTemplateId,
     this.initialStepId,
     this.initialTimeBandId,
+    this.effectiveFrom,
   });
   final OperationsController ops;
-  final String? initialTemplateId, initialStepId, initialTimeBandId;
+  final String? initialTemplateId,
+      initialStepId,
+      initialTimeBandId,
+      effectiveFrom;
   @override
   State<TapSettingsScreen> createState() => _TapSettingsScreenState();
 }
@@ -55,6 +59,12 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
     super.initState();
     revision = widget.ops.data?['revision'] as int? ?? 0;
     openingActor = widget.ops.actorId;
+    if (widget.effectiveFrom != null) {
+      for (final row in templates) {
+        final scheduled = row['scheduledSettings'] as Json?;
+        if (scheduled != null) row['settings'] = scheduled['settings'];
+      }
+    }
     selectedId = templates.any((row) => row['id'] == widget.initialTemplateId)
         ? widget.initialTemplateId
         : templates.firstOrNull?['id'];
@@ -152,6 +162,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
     if (saving || openingActor != widget.ops.actorId) return;
     final task = template;
     final recurrence = settings['recurrence'] as Json;
+    recurrence['holidayPolicy'] = 'next_open';
     if (settings['usage'] != 'event' &&
         settings['usage'] != 'reference' &&
         recurrence['mode'] == 'weekly' &&
@@ -182,14 +193,20 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
       saving = true;
       error = null;
     });
-    final ok = await widget.ops.act('save_tap_settings', {
-      'revision': revision,
-      'templateId': task['id'],
-      'settings': settings,
-      'assignmentScopeVersion': 2,
-      'acknowledgeLegacyPolicy': acknowledgeLegacy,
-      'zone': task['zone'],
-    });
+    final ok = await widget.ops.act(
+      widget.effectiveFrom == null
+          ? 'save_tap_settings'
+          : 'schedule_tap_settings',
+      {
+        if (widget.effectiveFrom != null) 'effectiveFrom': widget.effectiveFrom,
+        'revision': revision,
+        'templateId': task['id'],
+        'settings': settings,
+        'assignmentScopeVersion': 2,
+        'acknowledgeLegacyPolicy': acknowledgeLegacy,
+        'zone': task['zone'],
+      },
+    );
     if (!mounted) return;
     setState(() {
       saving = false;
@@ -398,7 +415,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               (step) => step['id'] == widget.initialStepId,
             ))) {
       return AppEditorScaffold(
-        title: 'TAP 설정',
+        title: widget.effectiveFrom == null ? 'TAP 설정' : '내일부터 반복 업무 변경',
         body: Center(
           child: Information(
             widget.initialTemplateId == null
@@ -419,7 +436,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
       },
       child: AppEditorScaffold(
         onClose: close,
-        title: 'TAP 설정',
+        title: widget.effectiveFrom == null ? 'TAP 설정' : '내일부터 반복 업무 변경',
         footer: AppSheetFooter(
           children: [
             if (error != null) Information('$error\n입력 중인 내용은 남아 있어요.'),
@@ -606,15 +623,39 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                     AppSegmented<String>(
                       segments: const [
                         ButtonSegment(value: 'daily', label: Text('매일')),
-                        ButtonSegment(value: 'weekly', label: Text('요일 선택')),
+                        ButtonSegment(value: 'weekly', label: Text('매주')),
+                        ButtonSegment(value: 'monthly', label: Text('매월')),
                       ],
                       selected: {recurrence['mode'] ?? 'daily'},
                       onSelectionChanged: (v) => update(() {
                         recurrence['mode'] = v.first;
+                        recurrence['holidayPolicy'] = 'next_open';
+                        if (v.first == 'monthly') recurrence['monthDay'] ??= 1;
                         recurrence['weekdays'] = v.first == 'daily'
                             ? <int>[]
                             : [1];
                       }),
+                    ),
+                    if (widget.effectiveFrom != null)
+                      Information(
+                        '${widget.effectiveFrom}부터 앞으로 반복되는 업무에 적용돼요. 오늘 진행·완료 기록은 유지돼요.',
+                      ),
+                    if (recurrence['mode'] == 'monthly')
+                      AppPicker<int>(
+                        label: '매월 날짜',
+                        value: recurrence['monthDay'] as int? ?? 1,
+                        items: List.generate(
+                          31,
+                          (i) => DropdownMenuItem(
+                            value: i + 1,
+                            child: Text('${i + 1}일'),
+                          ),
+                        ),
+                        onChanged: (v) =>
+                            update(() => recurrence['monthDay'] = v),
+                      ),
+                    const Information(
+                      '휴무일의 정기 업무는 다음 영업일로 넘어가요. 없는 날짜는 그달 마지막 날을 기준으로 해요.',
                     ),
                     if (recurrence['mode'] == 'weekly')
                       Wrap(

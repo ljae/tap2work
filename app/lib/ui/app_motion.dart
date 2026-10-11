@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 abstract final class AppMotion {
   static const completion = Duration(milliseconds: 440);
   static const completionHold = Duration(milliseconds: 520);
+  static const pressedScale = .975;
   static const press = Duration(milliseconds: 80);
-  static const release = Duration(milliseconds: 260);
+  static const release = Duration(milliseconds: 220);
   static const editWiggle = Duration(milliseconds: 180);
   static const editWiggleRadians = .016;
   static const quick = Duration(milliseconds: 160);
-  static const content = Duration(milliseconds: 240);
-  static const sheet = Duration(milliseconds: 360);
+  static const content = Duration(milliseconds: 260);
+  static const sheet = Duration(milliseconds: 340);
   static const exit = Duration(milliseconds: 220);
   static const enterCurve = Curves.easeOutCubic;
   static const exitCurve = Curves.easeInCubic;
@@ -61,9 +62,9 @@ abstract final class AppMotion {
         states.contains(WidgetState.pressed) &&
         !states.contains(WidgetState.disabled);
     return AnimatedScale(
-      scale: pressed && !reduced(context) ? .95 : 1,
+      scale: pressed && !reduced(context) ? pressedScale : 1,
       duration: duration(context, pressed ? press : release),
-      curve: pressed ? Curves.easeOut : Curves.easeOutBack,
+      curve: pressed ? Curves.easeOut : enterCurve,
       child: child,
     );
   }
@@ -175,9 +176,9 @@ class _AppContentTransitionState extends State<AppContentTransition>
           ? 1.0
           : AppMotion.enterCurve.transform(controller.value);
       return Opacity(
-        opacity: .3 + .7 * value,
+        opacity: .55 + .45 * value,
         child: Transform.translate(
-          offset: Offset(0, 10 * (1 - value)),
+          offset: Offset(0, 6 * (1 - value)),
           child: child,
         ),
       );

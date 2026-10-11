@@ -17,12 +17,12 @@ docs/UI_UX_GUIDELINES.md와 최신 확정 결정을 먼저 확인한다.
 Flutter 앱 tap2work의 UI를 다음 공통 규칙으로 구현한다.
 
 1. 모든 텍스트는 앱에 번들된 Pretendard를 사용한다. 화면 제목은 24sp/Bold,
-   본문은 16sp/Medium, 설명은 13sp/Regular를 사용한다. 기본 글자는 #F0F2F4이다.
+   본문은 16sp/Medium, 설명은 13sp/Regular를 사용한다. 기본 글자는 #F2F5EF이다.
    글자 확대 설정을 존중하며 읽기 어려워지도록 글자를 축소하지 않는다.
 2. 화면 좌우 여백은 24 logical px, 독립된 세로 섹션 사이 여백은 32px다.
    카드 내부와 컨트롤 사이 간격은 내용의 관계에 따라 8/16/24px를 사용한다.
    넓은 화면에는 최대 폭을 적용한다. 표·트리는 내부에서 가로 스크롤할 수 있다.
-3. 앱 배경은 #101112, 기본 콘텐츠 카드는 #181A1C, 컨트롤은 #222528이다. 카드 모서리는 16–20px,
+3. 앱 배경은 #171C1C, 기본 콘텐츠 카드는 #232B2A, 컨트롤은 #303B38이다. 카드 모서리는 16–20px,
    일반 카드에는 테두리를 두지 않고 검정 4%·blur 20의 가벼운 그림자를 쓴다.
    선택·포커스·드래그 대상 등 실제 상태를 나타내는 선은 유지한다.
 4. 강조색은 tap2work의 초록·코랄을 다크 배경에 맞춰 유지하고 주요 버튼은 청록을 쓴다. 토스 로고·브랜드는 사용하지 않는다.
@@ -37,7 +37,7 @@ Flutter 앱 tap2work의 UI를 다음 공통 규칙으로 구현한다.
 7. 데이터 최초 로딩에는 shimmer 패키지의 회색 스켈레톤을 사용한다.
    실제 목록 행과 같은 원형 아이콘 자리·제목·보조 텍스트 두 줄을 배치한다.
    로딩 실패는 다시 시도, 빈 결과는 빈 상태로 표시한다. 동작 줄이기에서는 정지한다.
-8. 버튼은 PressBounce로 감싼다. 누르면 0.95배, 놓으면 부드러운 복원 곡선을 쓴다.
+8. 버튼은 PressBounce로 감싼다. 누르면 0.975배, 놓으면 부드러운 복원 곡선을 쓴다.
    기존 버튼의 클릭·키보드·접근성·비활성 처리를 유지한다. 스크롤·취소 시 복원한다.
    터치 이벤트를 가로채지 않도록 Listener와 AnimatedContainer를 사용한다.
 9. 주요 화면 이동에는 AppPageRoute(CupertinoPageRoute)를 사용한다.
@@ -98,3 +98,14 @@ Flutter 3.41.2에서 사용 가능한 `shimmer` 3.0.0을 잠금 파일과 함께
 2026-10-09 미니멀 검수 최신: 비조작 로그인 소개는 보조 문구, 상단 동작48px/일반 본문색/선택 초록, AppToolbarScroll로 가로 도구의 숨은 범위 표시. 업무 목록 위 중복28px 간격 제거, 좁은 카드 손잡이는 보조줄로 이동, 내용/매뉴얼 열기 유지. 우리매장 설정 카드 내부16px. 단일 도구 행·네 메뉴·저장 흐름 유지. Ego Lite에서 실제 웹을 재검수한다.
 
 후속: 손잡이는 보조 정보가 있는 카드에만 다음 줄로 배치해 빈 행을 만들지 않는다. 날짜는 같은 연도·월 반복을 줄이며 툴팁에 전체 값을 보존한다. VisualDensity.standard를 앱에 명시해 웹/데스크톱도48px/56px 버튼 크기를 지킨다. 전수 Flutter 회귀와 Ego Lite의 실제 렌더 크기를 확인한다.
+
+
+## Work Studio update (2026-10-11; supersedes earlier visual timings)
+
+The current user requested a full coherent redesign and GPT-6.1 Sol iOS simulator review. See [implementation and evidence](STUDIO_REDESIGN_2026-10-11.md). AppColors is the palette source; brighter charcoal surfaces use mint primary buttons with dark text, mint selected switches and a moving mint navigation capsule. Coral remains attention/change, with explicit labels. This changes app colors, not device brightness.
+
+AppShape: controls14, cards20, sheets28. Press0.975/80ms, release220ms easeOutCubic; content260ms/6px, sheet340/220ms. Reduced motion is immediate. Keep current content only and do not replay transitions for polling. Existing Pretendard/fallbacks, four destinations, wrapping type, 48px targets and fixed keyboard-safe form actions remain.
+
+Shared time sheet: large tabular HH:mm draft, labeled hour/minute wheels, +/-30min controls. 24-hour half-hour steps and midnight wrap; apply returns the draft, cancel returns null. Final persistence belongs to the existing form. Large text/short screens scroll the body with actions fixed. All eight fixed-label locales are covered.
+
+Loading retains actual readiness/retry/error state, uses a quiet mint ambient surface and1800ms skeleton, disabled under reduced motion/TickerMode. No fabricated progress or artificial delay. Task lane icons distinguish outstanding/coral and completed/mint; existing assignee color semantics are retained. Store links use42px mint icon containers.

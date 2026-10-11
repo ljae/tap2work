@@ -40,6 +40,10 @@ export function syncManualCatalog(state,now,catalog=release){
   const template=state.taskTemplates.find(t=>t.id===id&&!t.archivedAt);
   if(!source||!template)continue;
   const hash=contentHash(source);
+  if(template.registration?.status==='registered' && (hash!==link.contentHash || !isDeepStrictEqual(template.knowledge,source.knowledge))) {
+   if(link.availableReleaseId!==catalog.releaseId){link.availableReleaseId=catalog.releaseId;changed=true;}
+   continue;
+  }
   if(hash===link.contentHash){
    // JSONB reorders object keys; unchanged metadata must not advance revision.
    if(!isDeepStrictEqual(template.knowledge,source.knowledge)){template.knowledge=structuredClone(source.knowledge);changed=true;}
@@ -63,7 +67,7 @@ export function catalogView(state,catalog=release){return {...catalog,entries:ca
 function addTemplates(state,drafts){
  const checked=validateChecklists({folders:state.checklistFolders,templates:[...state.taskTemplates,...drafts]},state);
  const ids=new Set(drafts.map(t=>t.id));
- state.taskTemplates.push(...checked.templates.filter(t=>ids.has(t.id)).map(t=>({...t,version:1,settings:blankSettings()})));
+ state.taskTemplates.push(...checked.templates.filter(t=>ids.has(t.id)).map(t=>({...t,version:1,registration:{status:'pending'},settings:blankSettings()})));
 }
 export function checklistBackup(state){
  const templates=state.taskTemplates.filter(t=>!t.archivedAt && state.catalogLinks?.[t.id]?.mode!=='linked').map(t=>({

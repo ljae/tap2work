@@ -1,3 +1,4 @@
+import 'owner_workflow_screen.dart';
 import '../l10n/manual_text_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'translated_content.dart';
@@ -1460,6 +1461,18 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   header(),
+                  if (ops.actor['role'] == 'owner' &&
+                      ops.data?['ownerWorkflow'] != null)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () => openOwnerWorkflow(context, ops),
+                        icon: const Icon(Icons.fact_check_outlined),
+                        label: Text(
+                          '사장님 검토 · 등록 대기 ${(ops.data?['ownerWorkflow']?['pending'] as List? ?? []).length}개',
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 4),
                   Row(
                     children: [

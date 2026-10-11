@@ -61,11 +61,11 @@ class _PressBounceState extends State<PressBounce> {
         duration: reduce
             ? Duration.zero
             : (pressed ? AppMotion.press : AppMotion.release),
-        curve: pressed ? Curves.easeOut : Curves.easeOutBack,
+        curve: pressed ? Curves.easeOut : AppMotion.enterCurve,
         transformAlignment: Alignment.center,
         transform: Matrix4.diagonal3Values(
-          pressed && enabled && !reduce ? .95 : 1,
-          pressed && enabled && !reduce ? .95 : 1,
+          pressed && enabled && !reduce ? AppMotion.pressedScale : 1,
+          pressed && enabled && !reduce ? AppMotion.pressedScale : 1,
           1,
         ),
         child: child,
@@ -171,7 +171,7 @@ class AppEditorScaffold extends StatelessWidget {
         ? null
         : SafeArea(top: false, child: footer!),
     body: SafeArea(
-      top: false,
+      top: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -413,7 +413,7 @@ class WorkspaceSkeleton extends StatelessWidget {
     final rows = ListView.separated(
       padding: const EdgeInsets.all(24),
       itemCount: 4,
-      separatorBuilder: (_, _) => const SizedBox(height: 32),
+      separatorBuilder: (_, _) => const SizedBox(height: 16),
       itemBuilder: (_, _) => Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -421,15 +421,17 @@ class WorkspaceSkeleton extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Shimmer.fromColors(
-          enabled: !MediaQuery.disableAnimationsOf(context),
-          baseColor: const Color(0xFF222528),
-          highlightColor: const Color(0xFF34383D),
-          period: const Duration(milliseconds: 1500),
+          enabled:
+              !AppMotion.reduced(context) &&
+              TickerMode.valuesOf(context).enabled,
+          baseColor: AppColors.elevated,
+          highlightColor: AppColors.line,
+          period: const Duration(milliseconds: 1800),
           child: Row(
             children: [
               const CircleAvatar(
                 radius: 22,
-                backgroundColor: Color(0xFF222528),
+                backgroundColor: AppColors.elevated,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -439,7 +441,7 @@ class WorkspaceSkeleton extends StatelessWidget {
                     Container(
                       height: 16,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF222528),
+                        color: AppColors.elevated,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -449,7 +451,7 @@ class WorkspaceSkeleton extends StatelessWidget {
                       child: Container(
                         height: 13,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF222528),
+                          color: AppColors.elevated,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),

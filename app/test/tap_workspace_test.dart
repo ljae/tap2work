@@ -116,7 +116,7 @@ void main() {
       final complete = await surface(4);
       expect(empty, AppColors.surface);
       expect(partial, AppColors.surface);
-      expect(complete, AppColors.elevated);
+      expect(complete, AppColors.paper);
     },
   );
   testWidgets('phone TAP controls keep drag, check and open separate', (

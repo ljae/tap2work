@@ -38,6 +38,7 @@ test('explicit null clears optional dishwashing place while omitted new fields r
 test('configuration changes retain an open routine exception and its displayed action snapshot',async()=>{
  const x=fixture();const {manualCatalog}=await import('../manual_market.mjs');
  let view=await x.act('import_market_taps',{sourceIds:['food/hall-open'],releaseId:manualCatalog.releaseId,operationId:'issue-composition-123',folderMode:'purpose'});let t=view.taskTemplates[0];
+ await x.act('register_owner_manuals',{ids:[t.id],reviewed:true});
  view=await x.act('save_tap_settings',{templateId:t.id,assignmentScopeVersion:2,settings:{...t.settings,usage:'routine',enabled:true,assignment:{mode:'anyone'}}});const task=view.tasks.find(v=>v.templateId===t.id);assert.ok(task);
  await x.act('flag_work_issue',{taskId:task.id,reason:'사용하기 어려운 구역',severity:'blocked'});const original=structuredClone(x.raw().tasks.find(t=>t.id===task.id).steps);
  view=await x.act('save_manual_setup',{setup:{conditions:{selfbar:false}}});assert.ok(view.tasks.find(t=>t.id===task.id));assert.deepEqual(x.raw().tasks.find(t=>t.id===task.id).steps,original);

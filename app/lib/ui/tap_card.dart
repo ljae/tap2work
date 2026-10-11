@@ -49,7 +49,7 @@ class TapCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = total == 0 ? 0.0 : (done / total).clamp(0.0, 1.0);
     final complete = checked || (total > 0 && done == total);
-    final tint = accentColor ?? AppColors.accent;
+    final tint = accentColor ?? AppColors.green;
     final largeText = MediaQuery.textScalerOf(context).scale(16) > 20;
     final openLabel = level.toLowerCase() == 'task'
         ? context.t('work.openManual')
@@ -64,13 +64,13 @@ class TapCard extends StatelessWidget {
             (constraints.maxWidth < 360 || largeText);
         return Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppShape.card),
             boxShadow: appCardShadow,
           ),
           child: Material(
-            color: complete ? const Color(0xFF222528) : AppColors.surface,
+            color: complete ? AppColors.paper : AppColors.surface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppShape.card),
               side: BorderSide(
                 color: selected ? tint : Colors.transparent,
                 width: selected ? 2 : 0,
@@ -84,7 +84,7 @@ class TapCard extends StatelessWidget {
                     child: FractionallySizedBox(
                       alignment: Alignment.centerLeft,
                       widthFactor: progress,
-                      child: ColoredBox(color: tint.withValues(alpha: .18)),
+                      child: ColoredBox(color: tint.withValues(alpha: .07)),
                     ),
                   ),
                 Padding(

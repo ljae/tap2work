@@ -649,7 +649,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         card: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: complete ? const Color(0xFF222528) : AppColors.surface,
+            color: complete ? AppColors.elevated : AppColors.surface,
             gradient: complete
                 ? null
                 : LinearGradient(
@@ -883,11 +883,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: candidates.isNotEmpty
-                          ? const Color(0xFF392622)
+                          ? AppColors.accentSoft
                           : rejected.isNotEmpty
-                          ? const Color(0xFF392622)
-                          : const Color(0xFF222528),
-                      borderRadius: BorderRadius.circular(14),
+                          ? AppColors.accentSoft
+                          : AppColors.surface.withValues(alpha: .45),
+                      borderRadius: BorderRadius.circular(AppShape.card),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -896,15 +896,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                           padding: const EdgeInsets.fromLTRB(4, 2, 4, 14),
                           child: Row(
                             children: [
-                              Container(
-                                width: 7,
-                                height: 7,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: lane == '완료'
-                                      ? AppColors.ink
-                                      : AppColors.muted,
-                                ),
+                              Icon(
+                                lane == '완료'
+                                    ? CupertinoIcons.checkmark_circle_fill
+                                    : CupertinoIcons.circle_lefthalf_fill,
+                                size: 18,
+                                color: lane == '완료'
+                                    ? AppColors.green
+                                    : AppColors.accent,
                               ),
                               const SizedBox(width: 8),
                               Expanded(
