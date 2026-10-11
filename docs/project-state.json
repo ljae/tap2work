@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 302,
+  "revision": 303,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1467,8 +1467,8 @@
       "next": "All four destinations use the same manual/recipe search results. Direct header flag opens native-name language picker; nationality choices and permitted crew cards show bundled country flags. Central language label/flag catalog.",
       "decision": "User requested integrated search, nationality/language flags and easier language changes; explicitly requested a suitable smaller model for subsequent web/app deployment.",
       "source": "User conversation 2026-10-11",
-      "updatedAt": "2026-10-11T13:08:23.818398+00:00",
-      "implementation": "Implemented and locally verified: Flutter analysis clean;85 relevant widget tests;22 nationality/catalog/checklist server tests;78 UI relationship checks. 249 offline flags,8 languages,320px/1.5 text switching,recipe name/body search across4 destinations. Existing locale save/privacy/manual registration contracts preserved. Deployment assigned next to gpt-6-luna; not yet deployed."
+      "updatedAt": "2026-10-11T13:19:42.830824+00:00",
+      "implementation": "Implemented and deployed by gpt-6-luna medium: web674ea84339c50d3b14ea490ab66cae6398f02f8a / Pages38142070476 success,256 public hashes match including249flags. FullCI Flutter568 pass/3browser skips,analysis0,server381. iOS1.0.0(16) VALID/internalTestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL. Android1.0.0(15) internal+alpha completed,production empty. Parent390px realweb verified flag picker/language selection and reload persistence, restored Korean and closed EgoSpace12. Live keyword automation limitation retained; 4-destination search tested in Flutter. See SEARCH_LANGUAGE_RELEASE_2026-10-11.md."
     }
   ],
   "milestones": [
@@ -8810,7 +8810,13 @@
       "type": "verification",
       "title": "Unified manual/recipe search and country/language flags verified",
       "detail": "D132:85 Flutter tests pass, analysis0,22 relevant server tests,78 UI links. Initial search test exposed recipes excluded in ManualWorkspace; shared results builder now retains directory state while applying global search. Initial test matcher counted both editable query and result; corrected to result Text. One local runner stopped and rerun successfully. 249 original Twemoji PNG assets bundled with CC BY4.0 attribution. No server API/operational data changes. Web/native release pending smaller-model deployment."
+    },
+    {
+      "at": "2026-10-11T13:19:42.830824+00:00",
+      "type": "verification",
+      "title": "Smaller-model web and native release completed for search/language UX",
+      "detail": "Implemented and deployed by gpt-6-luna medium: web674ea84339c50d3b14ea490ab66cae6398f02f8a / Pages38142070476 success,256 public hashes match including249flags. FullCI Flutter568 pass/3browser skips,analysis0,server381. iOS1.0.0(16) VALID/internalTestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL. Android1.0.0(15) internal+alpha completed,production empty. Parent390px realweb verified flag picker/language selection and reload persistence, restored Korean and closed EgoSpace12. Live keyword automation limitation retained; 4-destination search tested in Flutter. See SEARCH_LANGUAGE_RELEASE_2026-10-11.md."
     }
   ],
-  "updatedAt": "2026-10-11T13:08:23.818398+00:00"
+  "updatedAt": "2026-10-11T13:19:42.830824+00:00"
 }

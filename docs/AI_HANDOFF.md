@@ -1,4 +1,4 @@
-2026-10-11 최신 후속: D132 통합 검색·국기/언어 바로가기 구현 완료. Flutter85/analysis0·서버22·UI78 검증. `docs/SEARCH_LANGUAGE_RELEASE_2026-10-11.md` 참조. 사용자가 후속 웹/앱 배포를 적합한 낮은 모델로 지정하여 gpt-6-luna에 배포를 위임한다. 이 기록 시점 배포 대기.
+2026-10-11 최신 완료: D132 통합 검색·국기/언어 바로가기 구현 및 GPT-6 Luna 배포 완료. 웹674ea84 / Actions38142070476 성공(Flutter568·3skip/서버381/analysis0, 공개256개SHA일치), iOS16 심사대기·내부TestFlight, Android15 internal/alpha completed·production없음. 실제390px 국기 선택/언어 저장·재접속·한국어 복원 확인. 검색 입력 브라우저 자동화 한계는 유지하며 네 탭 검색은 widget 검증. `docs/SEARCH_LANGUAGE_RELEASE_2026-10-11.md` 참조.
 
 2026-10-11 매뉴얼 병렬 조사 파일럿 완료: D131 사용자선택, Luna medium3개·Luna low정리·Sol6.1 medium선택검토. Ego공간11/pages분리, 전화6/홀5/설비4단계·외부본문5건·검토교정6건·ID/근거연결/분량검사통과. MANUAL_RESEARCH_PILOT_2026-10-11.md 및 .local/manual-research/parallel-pilot-20261011/ 참조. 사장님검토용초안이며운영등록·DB·코드·배포없음. 제조사모델/매장정책미확인, 비용·정확도비교실험미수행.
 
