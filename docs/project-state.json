@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 298,
+  "revision": 299,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1430,8 +1430,8 @@
       "decision": "Redesign the entire app consistently for younger adults, including motion, loading, transitions, brightness and time controls; demonstrate on Apple simulator with GPT-6.1 Sol.",
       "reason": "Explicit user request 2026-10-11. Work Studio exact colors/timings are implementation choices, not a claim of separate user design review approval.",
       "source": "User conversation 2026-10-11",
-      "updatedAt": "2026-10-11T09:46:25.673488+00:00",
-      "implementation": "Implemented in local Flutter source. Final554Flutter pass/3browser-onlyskips,analysis0,UI75,Node20;21responsive screenshots at320/390/1200 including1.5x text. Requested GPT-6.1 Sol built/installed/executed iPhone17Pro iOS26.5 simulator with36.4967s actual touch video. Native findings fixed: full-page editor SafeArea top and time sheet preferredHeight680. No new web/store deployment; physicaldevice/Androidnative/frameprofile/native-speaker review not performed."
+      "updatedAt": "2026-10-11T11:17:58.423335+00:00",
+      "implementation": "Web3c041ba/Actions38134098649 success;16public SHA256 matches. operations63 ACTIVE/serverd566d5d purpose-only folder registration fix. iOS15 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL/internal group; Android14 internal+alpha committed/actual tracks completed. CI Flutter559/3browser-onlyskip,analysis0,Node380; finalserver381/7regression,UI78,Edge pass. Sol6.1 iPhone17Pro iOS26.5 native23.975s synthetic readOnly touch demo. Actual owner session in fictional store: hall-open reviewed/registered, default tomorrow settings saved and persisted across reload, today14todo/2done preserved. Store approval/physical device/newOAuth/profile not tested. Details OWNER_WORKFLOW_RELEASE_2026-10-11.md."
     },
     {
       "id": "D-130",
@@ -1442,8 +1442,8 @@
       "next": "Owner reviews and batch-registers selected manuals before crew search/work. Routine daily/periodic tasks generate by schedule; closed-day periodic tasks move to next open day. Tomorrow edits apply to subsequent recurrences by default. Detailed small-restaurant best-practice proposals precede fine settings.",
       "decision": "User explicitly selected reviewed batch registration, next-open holiday handling, and edits to all future repetitions.",
       "source": "User conversation 2026-10-11 and three explicit question replies",
-      "updatedAt": "2026-10-11T10:41:31.321441+00:00",
-      "implementation": "Implemented locally: 24 manuals/110 actions, owner registration gate, default daily/weekly/monthly recurrence, tomorrow projection and staged settings. Flutter558passed/3browser-onlyskips, finalanalysis0, newwidget4passed at320/390/1200 large text, Node380passed, UI78links and Edge passed. Native demonstration and web/app deployment in progress."
+      "updatedAt": "2026-10-11T11:17:58.423335+00:00",
+      "implementation": "Web3c041ba/Actions38134098649 success;16public SHA256 matches. operations63 ACTIVE/serverd566d5d purpose-only folder registration fix. iOS15 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL/internal group; Android14 internal+alpha committed/actual tracks completed. CI Flutter559/3browser-onlyskip,analysis0,Node380; finalserver381/7regression,UI78,Edge pass. Sol6.1 iPhone17Pro iOS26.5 native23.975s synthetic readOnly touch demo. Actual owner session in fictional store: hall-open reviewed/registered, default tomorrow settings saved and persisted across reload, today14todo/2done preserved. Store approval/physical device/newOAuth/profile not tested. Details OWNER_WORKFLOW_RELEASE_2026-10-11.md."
     }
   ],
   "milestones": [
@@ -1650,6 +1650,12 @@
       "title": "Shared partner workflows, prepared multilingual manuals and native release submission",
       "status": "complete",
       "description": "Web live at tap2.work (36bf8a7 / Actions38047892523); operations v58 ACTIVE. iOS11 VALID and WAITING_FOR_REVIEW / AFTER_APPROVAL; Android10 internal and alpha tracks completed via review commit. Device installation/OAuth/camera testing and native-speaker review not performed. Required nationality and independent guide language, source-bound direct/imported translations, and 6930 prepared strings deployed. Store approval is not claimed."
+    },
+    {
+      "id": "M-035",
+      "title": "사장님 매뉴얼 검토·내일 업무 및 공통 디자인 배포",
+      "status": "complete",
+      "description": "Web3c041ba/Actions38134098649 success;16public SHA256 matches. operations63 ACTIVE/serverd566d5d purpose-only folder registration fix. iOS15 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL/internal group; Android14 internal+alpha committed/actual tracks completed. CI Flutter559/3browser-onlyskip,analysis0,Node380; finalserver381/7regression,UI78,Edge pass. Sol6.1 iPhone17Pro iOS26.5 native23.975s synthetic readOnly touch demo. Actual owner session in fictional store: hall-open reviewed/registered, default tomorrow settings saved and persisted across reload, today14todo/2done preserved. Store approval/physical device/newOAuth/profile not tested. Details OWNER_WORKFLOW_RELEASE_2026-10-11.md. Lower-model research execution remains future work; only requested playbook/recommendation delivered."
     }
   ],
   "history": [
@@ -8755,7 +8761,13 @@
       "type": "verification",
       "title": "Owner workflow verified; Ego Lite small-model research method documented",
       "detail": "Server380 passed; Flutter558 passed/3browser-onlyskip; finalanalysis0 and final4ownerwidgettests passed; UI78/Edge passed. Initial tests required new owner approval fixtures; footer Expanded collapsed owner body and was fixed. Monthly/closed-date rollover, registration/search/print/event gates, future settings snapshots, invalid/stale transaction checks covered. User requested lower-model Ego Lite research method; docs/MANUAL_RESEARCH_PLAYBOOK_EGO_LITE.md provides scoped research, evidence/claims, draft artifacts, quality gates and copyable prompt. GPT6Luna medium recommended with selective Sol review, not claimed user selection or completed field research. Model page directly viewed with Ego Lite space10 p2. Deployment/native demo ongoing."
+    },
+    {
+      "at": "2026-10-11T11:17:58.423335+00:00",
+      "type": "verification",
+      "title": "Owner workflow and unified design deployed; real store folder regression fixed",
+      "detail": "Web3c041ba/Actions38134098649 success;16public SHA256 matches. operations63 ACTIVE/serverd566d5d purpose-only folder registration fix. iOS15 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL/internal group; Android14 internal+alpha committed/actual tracks completed. CI Flutter559/3browser-onlyskip,analysis0,Node380; finalserver381/7regression,UI78,Edge pass. Sol6.1 iPhone17Pro iOS26.5 native23.975s synthetic readOnly touch demo. Actual owner session in fictional store: hall-open reviewed/registered, default tomorrow settings saved and persisted across reload, today14todo/2done preserved. Store approval/physical device/newOAuth/profile not tested. Details OWNER_WORKFLOW_RELEASE_2026-10-11.md. Failed first Android build (internal disk full) rebuilt using external generated cache; original preserved. Actual browser search typing was not verified due Flutter focus; no false claim of completed keyword search. User manual research method delivered with scoped evidence workflow and copyable prompt; recommended model remains proposal."
     }
   ],
-  "updatedAt": "2026-10-11T10:54:06.571240+00:00"
+  "updatedAt": "2026-10-11T11:17:58.423335+00:00"
 }
