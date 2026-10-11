@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
 import 'package:tap2work/state/operations_controller.dart';
 import 'package:tap2work/ui/owner_workflow_screen.dart';
+import 'package:tap2work/ui/tap_settings_screen.dart';
 import 'manual_workspace_test.dart' show directoryData;
 import 'manual_market_test.dart' show mount;
 import 'operations_test.dart' show response;
@@ -74,6 +75,28 @@ void main() {
       expect(writes.single['reviewed'], true);
       expect(writes.single['starterIds'], ['phone']);
       expect(find.text('설정은 여기에 반영돼요'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'tomorrow settings describe future scope and never promise a today change',
+    (tester) async {
+      final state = data();
+      final ops = OperationsController(
+        client: MockClient((r) async => response(state)),
+      );
+      addTearDown(ops.dispose);
+      await mount(
+        tester,
+        ops,
+        TapSettingsScreen(
+          ops: ops,
+          initialTemplateId: state['taskTemplates'][0]['id'],
+          effectiveFrom: '2026-10-12',
+        ),
+      );
+      expect(find.text('내일부터 반복 업무 변경'), findsOneWidget);
+      expect(find.textContaining('오늘 업무와 진행·완료 기록은 그대로'), findsOneWidget);
+      expect(find.textContaining('담당 변경은 오늘 아직'), findsNothing);
     },
   );
   for (final width in [320.0, 390.0, 1200.0]) {

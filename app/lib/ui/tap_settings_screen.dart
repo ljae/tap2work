@@ -27,6 +27,7 @@ class TapSettingsScreen extends StatefulWidget {
 class _TapSettingsScreenState extends State<TapSettingsScreen> {
   late final int revision;
   late final String openingActor;
+  late final Object? openingWorkspace;
   late final List<Json> templates =
       (jsonDecode(jsonEncode(widget.ops.rows('taskTemplates'))) as List)
           .cast<Json>()
@@ -59,6 +60,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
     super.initState();
     revision = widget.ops.data?['revision'] as int? ?? 0;
     openingActor = widget.ops.actorId;
+    openingWorkspace = widget.ops.data?['workspaceId'];
     if (widget.effectiveFrom != null) {
       for (final row in templates) {
         final scheduled = row['scheduledSettings'] as Json?;
@@ -159,7 +161,12 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
   }
 
   Future<void> save() async {
-    if (saving || openingActor != widget.ops.actorId) return;
+    if (saving) return;
+    if (openingActor != widget.ops.actorId ||
+        openingWorkspace != widget.ops.data?['workspaceId']) {
+      setState(() => error = '매장 또는 권한이 변경됐어요. 화면을 다시 열어 주세요.');
+      return;
+    }
     final task = template;
     final recurrence = settings['recurrence'] as Json;
     recurrence['holidayPolicy'] = 'next_open';
@@ -221,7 +228,12 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
   }
 
   Future<void> splitLegacy() async {
-    if (saving || openingActor != widget.ops.actorId) return;
+    if (saving) return;
+    if (openingActor != widget.ops.actorId ||
+        openingWorkspace != widget.ops.data?['workspaceId']) {
+      setState(() => error = '매장 또는 권한이 변경됐어요. 화면을 다시 열어 주세요.');
+      return;
+    }
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
@@ -455,8 +467,10 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                const Information(
-                  '담당 변경은 오늘 아직 시작하지 않은 업무에도 적용돼요. 진행 중·완료 업무는 유지하고, 나머지 규칙은 다음 업무부터 적용해요.',
+                Information(
+                  widget.effectiveFrom != null
+                      ? '${widget.effectiveFrom}부터 앞으로 반복되는 업무에 적용돼요. 오늘 업무와 진행·완료 기록은 그대로 유지해요.'
+                      : '담당 변경은 오늘 아직 시작하지 않은 업무에도 적용돼요. 진행 중·완료 업무는 유지하고, 나머지 규칙은 다음 업무부터 적용해요.',
                 ),
                 if (widget.ops.readOnly)
                   const Information('공개 미리보기에서는 설정을 저장하지 않아요.'),
