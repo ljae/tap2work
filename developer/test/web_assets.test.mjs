@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { versionWebAssets } from '../../scripts/version-web-assets.mjs';
@@ -9,7 +9,9 @@ async function fixture(t, main, bootstrapExtra = '') {
   const directory = await mkdtemp(join(tmpdir(), 'tap2work-assets-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   await writeFile(join(directory, 'main.dart.js'), main);
-  await writeFile(join(directory, 'flutter_bootstrap.js'), `_flutter.buildConfig={"builds":[{"mainJsPath":"main.dart.js"}]};${bootstrapExtra}`);
+  await mkdir(join(directory, 'assets'));
+  await writeFile(join(directory, 'assets', 'FontManifest.json'), 'font manifest');
+  await writeFile(join(directory, 'flutter_bootstrap.js'), `_flutter.buildConfig={"builds":[{"mainJsPath":"main.dart.js"}]};const engineConfig = { canvasKitBaseUrl: 'canvaskit/' };_flutter.loader.load({config: engineConfig});${bootstrapExtra}`);
   await writeFile(join(directory, 'index.html'), '<base href="/app/"><link href="main.dart.js" rel="preload"><script src="flutter_bootstrap.js"></script>');
   return directory;
 }
@@ -29,6 +31,21 @@ test('a main-only release invalidates HTML, loader and entrypoint together', asy
   assert.ok(loader.includes(`"mainJsPath":"${newNames.mainName}"`));
   assert.equal(await readFile(join(next, newNames.mainName), 'utf8'), 'new app');
   assert.equal(await readFile(join(next, 'main.dart.js'), 'utf8'), 'new app');
+});
+
+test('a font-only change versions the complete asset base and loader', async t => {
+  const directory = await fixture(t, 'unchanged app');
+  const before = await versionWebAssets(directory);
+  await writeFile(join(directory, 'assets', 'FontManifest.json'), 'new font manifest');
+  const after = await versionWebAssets(directory);
+  assert.equal(before.mainName, after.mainName);
+  assert.notEqual(before.assetBase, after.assetBase);
+  assert.notEqual(before.bootstrapName, after.bootstrapName);
+  const loader = await readFile(join(directory, after.bootstrapName), 'utf8');
+  assert.ok(loader.includes(`assetBase: '${after.assetBase}'`));
+  assert.equal(await readFile(join(directory, after.assetBase, 'FontManifest.json'), 'utf8'), 'new font manifest');
+  assert.equal(await readFile(join(directory, before.assetBase, 'FontManifest.json'), 'utf8'), 'font manifest');
+  assert.equal(await readFile(join(directory, 'assets', 'FontManifest.json'), 'utf8'), 'new font manifest');
 });
 
 test('identical builds are deterministic and loader-only changes invalidate HTML', async t => {

@@ -699,3 +699,6 @@ Flutter `AppStrings`/`AppLocaleController`는 ko/en/vi/zh-Hans/ja/th/ne/id를 �
 ## 2026-10-11 웰컴 강조 화면
 
 SharedWelcomeScreen은 동일 welcome.title/body를 초록 환영 카드로 표시하고 본인 확인 이력에 따라 첫 확인/중요 변경/다시 보기 상태를 아이콘과 문자로 구분한다. 중요 변경은 코랄 안내이며 실제 변경 차이를 추정하지 않는다. 공통 질문·장비 확인·실제 수행 후 체크 원칙은 8언어 UI 안내다. 서버에 투영된 zones의 이름·층·구역·설명을 펼쳐 읽으며 위치/버디를 생성하지 않는다. 확인/건너뛰기·save_welcome/ack_welcome·CAS·원문/등록 번역 계약은 유지한다.
+
+
+2026-10-11 웹 자산 캐시 보정: main/bootstrap뿐 아니라 전체 Flutter assets 트리의 경로+내용 해시로 assets.<hash>/를 생성한다. engineConfig.assetBase를 loader와 initializeEngine 양쪽에 전달해 글꼴/AssetManifest/번역 자산이 같은 배포본을 사용한다. 기존 assets/는 캐시된 구 문서의 호환 경로로 유지한다. 운영 데이터·.local은 포함하지 않는다. 공개 브라우저에서 캐시된 MaterialIcons 16624B와 새17548B의 실제 SHA 차이/환영 아이콘 누락을 재현했다.

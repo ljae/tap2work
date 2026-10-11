@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 291,
+  "revision": 292,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -8688,7 +8688,13 @@
       "type": "development",
       "title": "Welcoming screen hierarchy and important guidance improved",
       "detail": "User requested welcome visual quality above the earlier prototype and web/iOS/Android deployment. SharedWelcomeScreen now highlights unchanged store title/body in a green welcome card, uses icon+text states for first confirmation/important changes/reopening, presents three localized work principles, and expands actual projected places with floor/area/description. Preserves authenticated own acknowledgement, CAS, nonblocking work entry and exact-source prepared translations. Flutter analysis initially clean; related46 Flutter tests,6 phone/desktop screen captures,75 UI links and4 common guidance Node tests passed. The initial new expanded-place test tapped before layout settled; corrected real scroll/pump then confirmed success. Web/native release in progress; no deployed or physically tested status claimed. Existing dirty work preserved in original workspace; release based on f39c19f with only this change."
+    },
+    {
+      "at": "2026-10-11T02:03:56.409254+00:00",
+      "type": "development",
+      "title": "Live welcome verified; fix stale web font asset cache",
+      "detail": "First web7af7ed8 / Pages38103369082 build+deploy success; actualCI548Flutter/3web-onlyskip,Node372,analysis0/UI75/SQL/Edge/prepared translations pass;14 public filesHTTP200 and CIartifact SHA identical. Live390px welcome confirmed but old cached MaterialIcons16624B differed from new17548B and omitted waving-hand glyph. Add deterministic complete-asset hash path and explicitly pass assetBase engine config to initializeEngine;8 relevant Node tests pass. Follow-up web release pending. Native code unaffected: iOS14 IPA uploaded andVALID, existing13review cancellation/new14 submission in progress; Android13 internal+alpha committed and actualtracks completed, sameuploadsigner/verifiedjar. No account/operational data changed."
     }
   ],
-  "updatedAt": "2026-10-11T01:53:36.142175+00:00"
+  "updatedAt": "2026-10-11T02:03:56.409254+00:00"
 }
