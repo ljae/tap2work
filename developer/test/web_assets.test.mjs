@@ -43,8 +43,8 @@ test('a font-only change versions the complete asset base and loader', async t =
   assert.notEqual(before.bootstrapName, after.bootstrapName);
   const loader = await readFile(join(directory, after.bootstrapName), 'utf8');
   assert.ok(loader.includes(`assetBase: '${after.assetBase}'`));
-  assert.equal(await readFile(join(directory, after.assetBase, 'FontManifest.json'), 'utf8'), 'new font manifest');
-  assert.equal(await readFile(join(directory, before.assetBase, 'FontManifest.json'), 'utf8'), 'font manifest');
+  assert.equal(await readFile(join(directory, after.assetBase, 'assets', 'FontManifest.json'), 'utf8'), 'new font manifest');
+  assert.equal(await readFile(join(directory, before.assetBase, 'assets', 'FontManifest.json'), 'utf8'), 'font manifest');
   assert.equal(await readFile(join(directory, 'assets', 'FontManifest.json'), 'utf8'), 'new font manifest');
 });
 

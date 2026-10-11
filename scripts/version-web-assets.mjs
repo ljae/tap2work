@@ -38,7 +38,8 @@ export async function versionWebAssets(directory) {
   }
   const mainName = `main.${digest(main)}.dart.js`;
   const assetBase = `assets.${await assetRevision(directory)}/`;
-  await cp(join(directory, 'assets'), join(directory, assetBase), { recursive: true });
+  // Flutter appends assets/ to assetBase when resolving a logical asset key.
+  await cp(join(directory, 'assets'), join(directory, assetBase, 'assets'), { recursive: true });
   const versionedBootstrap = bootstrap
     .replaceAll('"mainJsPath":"main.dart.js"', `"mainJsPath":"${mainName}"`)
     .replace(loaderConfig, `const engineConfig = { canvasKitBaseUrl: 'canvaskit/', assetBase: '${assetBase}' };`);
