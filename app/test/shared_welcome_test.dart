@@ -87,6 +87,55 @@ Future<void> mountShared(
 }
 
 void main() {
+  testWidgets(
+    'important update and registered places stay readable without writes',
+    (tester) async {
+      final data = welcomeData(actor: 'crew');
+      data['welcomeAcknowledgment'] = {'importantRevision': 1};
+      data['welcome']['importantRevision'] = 2;
+      data['zones'] = [
+        {
+          'id': 'wash',
+          'name': '세척 구역',
+          'floor': '1층',
+          'area': '주방 안쪽',
+          'description': '반납대 오른쪽',
+        },
+      ];
+      var writes = 0;
+      final ops = OperationsController(
+        accessToken: () async => 'session',
+        client: MockClient((r) async {
+          if (r.method == 'POST') writes++;
+          return response(data);
+        }),
+      );
+      addTearDown(ops.dispose);
+      await mountShared(tester, ops, width: 320, scale: 2);
+      expect(find.text('중요 안내가 바뀌었어요'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('shared-welcome-places')),
+        250,
+        scrollable: find
+            .descendant(
+              of: find.byType(SharedWelcomeScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.ensureVisible(find.text('주요 장소와 찾는 방법'));
+    await tester.pumpAndSettle();
+      await tester.tap(find.text('주요 장소와 찾는 방법'));
+      await tester.pumpAndSettle();
+      expect(find.text('세척 구역'), findsOneWidget);
+      expect(find.text('1층 · 주방 안쪽'), findsOneWidget);
+      expect(find.text('반납대 오른쪽'), findsOneWidget);
+      expect(writes, 0);
+      expect(data['welcomeNeedsAcknowledgment'], isTrue);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   test(
     'static store resources cover eight locales with matching placeholders',
     () {
@@ -137,6 +186,18 @@ void main() {
         expect(find.byType(SharedWelcomeScreen), findsOneWidget);
         expect(find.text('우리 매장의 함께 일하는 기준'), findsOneWidget);
         expect(find.text('도구와 장소를 확인하고, 어려운 일이 있으면 함께 확인해요.'), findsOneWidget);
+        if (actor == 'owner') {
+          await tester.scrollUntilVisible(
+            find.byKey(const ValueKey('shared-welcome-edit')),
+            250,
+            scrollable: find
+                .descendant(
+                  of: find.byType(SharedWelcomeScreen),
+                  matching: find.byType(Scrollable),
+                )
+                .first,
+          );
+        }
         expect(
           find.byKey(const ValueKey('shared-welcome-edit')),
           actor == 'owner' ? findsOneWidget : findsNothing,
@@ -261,6 +322,16 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountShared(tester, ops);
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('shared-welcome-edit')),
+        250,
+        scrollable: find
+            .descendant(
+              of: find.byType(SharedWelcomeScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       await tester.tap(find.byKey(const ValueKey('shared-welcome-edit')));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -308,6 +379,16 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountShared(tester, ops);
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('shared-welcome-edit')),
+        250,
+        scrollable: find
+            .descendant(
+              of: find.byType(SharedWelcomeScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       await tester.tap(find.byKey(const ValueKey('shared-welcome-edit')));
       await tester.pumpAndSettle();
       await tester.enterText(

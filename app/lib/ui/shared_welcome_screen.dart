@@ -81,6 +81,8 @@ class _SharedWelcomeScreenState extends State<SharedWelcomeScreen> {
     builder: (context, _) {
       final document = valid ? (widget.ops.data?['welcome'] as Json?) : null;
       final needsAck = widget.ops.data?['welcomeNeedsAcknowledgment'] == true;
+      final changed =
+          needsAck && widget.ops.data?['welcomeAcknowledgment'] != null;
       if (document != null && (ModalRoute.of(context)?.isCurrent ?? true)) {
         final shown = Map<String, dynamic>.from(document);
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -102,36 +104,75 @@ class _SharedWelcomeScreenState extends State<SharedWelcomeScreen> {
               : ListView(
                   padding: const EdgeInsets.all(AppSpacing.large),
                   children: [
-                    Text(context.t('welcome.shared'), style: AppText.caption),
-                    const SizedBox(height: AppSpacing.medium),
+                    _WelcomeStatus(needsAck: needsAck, changed: changed),
+                    const SizedBox(height: AppSpacing.large),
                     TranslatedContent(
                       ops: widget.ops,
                       kind: 'welcome',
                       source: document,
-                      builder: (context, displayed) => Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            '${displayed['title'] ?? ''}',
-                            key: const ValueKey('shared-welcome-title'),
-                            style: AppText.title,
+                      builder: (context, displayed) => Container(
+                        key: const ValueKey('shared-welcome-introduction'),
+                        padding: const EdgeInsets.all(AppSpacing.large),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [AppColors.lime, AppColors.surface],
                           ),
-                          const SizedBox(height: AppSpacing.large),
-                          SelectableText(
-                            '${displayed['body'] ?? ''}',
-                            key: const ValueKey('shared-welcome-body'),
-                            style: AppText.body,
-                          ),
-                        ],
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.green.withValues(alpha: .12),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(
+                                  Icons.waving_hand_outlined,
+                                  color: AppColors.green,
+                                  size: 32,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.large),
+                            Text(
+                              '${displayed['title'] ?? ''}',
+                              key: const ValueKey('shared-welcome-title'),
+                              style: AppText.title.copyWith(
+                                color: AppColors.green,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.large),
+                            SelectableText(
+                              '${displayed['body'] ?? ''}',
+                              key: const ValueKey('shared-welcome-body'),
+                              style: AppText.body,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.section),
-                    Text(
-                      context.t(
-                        needsAck ? 'welcome.pending' : 'welcome.acknowledged',
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        context.t('welcome.remember'),
+                        style: AppText.section,
                       ),
-                      style: AppText.caption,
                     ),
+                    const SizedBox(height: AppSpacing.medium),
+                    const _WelcomePrinciples(),
+                    if (widget.ops.rows('zones').isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.large),
+                      _WelcomePlaces(places: widget.ops.rows('zones')),
+                    ],
+                    const SizedBox(height: AppSpacing.large),
+                    Text(context.t('welcome.shared'), style: AppText.caption),
                     if (widget.ops.canEditTasks) ...[
                       const SizedBox(height: AppSpacing.medium),
                       PressBounce(
@@ -192,6 +233,187 @@ class _SharedWelcomeScreenState extends State<SharedWelcomeScreen> {
         ),
       );
     },
+  );
+}
+
+class _WelcomeStatus extends StatelessWidget {
+  const _WelcomeStatus({required this.needsAck, required this.changed});
+  final bool needsAck, changed;
+  @override
+  Widget build(BuildContext context) {
+    final color = changed ? AppColors.accent : AppColors.green;
+    return Container(
+      key: const ValueKey('shared-welcome-status'),
+      padding: const EdgeInsets.all(AppSpacing.medium),
+      decoration: BoxDecoration(
+        color: changed ? AppColors.accentSoft : AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            changed
+                ? Icons.campaign_outlined
+                : needsAck
+                ? Icons.auto_awesome_outlined
+                : Icons.check_circle_outline,
+            color: color,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.t(
+                    changed
+                        ? 'welcome.changed'
+                        : needsAck
+                        ? 'welcome.firstLook'
+                        : 'welcome.readAgain',
+                  ),
+                  style: AppText.body.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  context.t(
+                    needsAck ? 'welcome.pending' : 'welcome.acknowledged',
+                  ),
+                  style: AppText.caption,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WelcomePrinciples extends StatelessWidget {
+  const _WelcomePrinciples();
+  @override
+  Widget build(BuildContext context) => Container(
+    key: const ValueKey('shared-welcome-principles'),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    padding: const EdgeInsets.all(AppSpacing.medium),
+    child: Column(
+      children: [
+        for (final (index, icon, title, detail) in [
+          (1, Icons.chat_bubble_outline, 'welcome.ask', 'welcome.askDetail'),
+          (
+            2,
+            Icons.health_and_safety_outlined,
+            'welcome.together',
+            'welcome.togetherDetail',
+          ),
+          (
+            3,
+            Icons.fact_check_outlined,
+            'welcome.realCheck',
+            'welcome.realCheckDetail',
+          ),
+        ]) ...[
+          if (index > 1)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.medium),
+              child: Divider(height: 1, color: AppColors.line),
+            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.accentSoft,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: AppColors.accent, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.t(title),
+                      style: AppText.body.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(context.t(detail), style: AppText.caption),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    ),
+  );
+}
+
+class _WelcomePlaces extends StatelessWidget {
+  const _WelcomePlaces({required this.places});
+  final List<Json> places;
+  @override
+  Widget build(BuildContext context) => Container(
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: ExpansionTile(
+      key: const ValueKey('shared-welcome-places'),
+      leading: const Icon(Icons.place_outlined, color: AppColors.green),
+      title: Text(context.t('welcome.places'), style: AppText.body),
+      iconColor: AppColors.green,
+      collapsedIconColor: AppColors.muted,
+      shape: const Border(),
+      collapsedShape: const Border(),
+      tilePadding: const EdgeInsets.all(AppSpacing.medium),
+      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      children: [
+        for (final place in places)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${place['name'] ?? ''}', style: AppText.body),
+                  if ([
+                    place['floor'],
+                    place['area'],
+                  ].any((s) => s is String && s.isNotEmpty))
+                    Text(
+                      [place['floor'], place['area']]
+                          .whereType<String>()
+                          .where((s) => s.isNotEmpty)
+                          .join(' · '),
+                      style: AppText.caption,
+                    ),
+                  if ('${place['description'] ?? place['notes'] ?? ''}'
+                      .isNotEmpty)
+                    Text(
+                      '${place['description'] ?? place['notes']}',
+                      style: AppText.caption,
+                    ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    ),
   );
 }
 

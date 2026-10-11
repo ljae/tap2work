@@ -694,3 +694,8 @@ Flutter `AppStrings`/`AppLocaleController`는 ko/en/vi/zh-Hans/ja/th/ne/id를 �
 후속 사용자 선택으로 위의 실시간 Google 자동 번역 활성화는 보류한다. 공용109매뉴얼+기본웰컴의 정확한 원문 문자열에 대응하는7언어 JSON을 `app/assets/manual_translations/`에 묶고 `BundledManualTranslations`/`PreparedManualScope`/`TranslatedContent`에서 사용한다. 기존 DB 캐시 migration은 보존하되 운영 Edge의 runtime provider는 false다. 매장 수정본은 `manualContentTranslations`의 매뉴얼 ID/언어/단계/필드별 `{sourceHash,sourceText,text,updatedAt,updatedBy}`로 저장한다. 공유 snapshot은 sourceHash/sourceText/text/current만 투영한다. `save_manual_translation`은 기존 revision과 각 sourceText를 검증해 입력/JSON 가져오기를 원자 반영한다. 바뀐 필드만 원문 표시하고 나머지는 기존 번역을 재사용한다. 운영 비용과 검증 계획은 `SHARED_PARTNER_LANGUAGE_RELEASE_2026-10-10.md`를 따른다.
 
 `save_tapper` 신규 등록은 nationality(249개 ISO 코드)와 guideLocale(8개 BCP47)을 필수로 받는다. 기존 레코드의 미입력 값은 보존한다. 사장님 snapshot에만 localized nationalityOptions를 제공하고 nationality는 owner/self만 조회한다. 개인 actorPreferences.locale이 등록 언어보다 우선이며 국적에서 언어·권한을 추론하지 않는다.
+
+
+## 2026-10-11 웰컴 강조 화면
+
+SharedWelcomeScreen은 동일 welcome.title/body를 초록 환영 카드로 표시하고 본인 확인 이력에 따라 첫 확인/중요 변경/다시 보기 상태를 아이콘과 문자로 구분한다. 중요 변경은 코랄 안내이며 실제 변경 차이를 추정하지 않는다. 공통 질문·장비 확인·실제 수행 후 체크 원칙은 8언어 UI 안내다. 서버에 투영된 zones의 이름·층·구역·설명을 펼쳐 읽으며 위치/버디를 생성하지 않는다. 확인/건너뛰기·save_welcome/ack_welcome·CAS·원문/등록 번역 계약은 유지한다.

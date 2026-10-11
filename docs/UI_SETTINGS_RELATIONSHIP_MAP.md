@@ -488,7 +488,7 @@ S15의 Task 열기는 S68 통합 행동 화면을 사용한다. 매뉴얼 원본
 
 | ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
 | --- | --- | --- | --- |
-| S72 | store welcome + own welcomeAcknowledgment → 별도 웰컴/다시 보기/확인 → save_welcome / ack_welcome | 모든 역할 동일 본문, 편집만 canEditTasks. 첫 사용·중요 변경 재확인, 업무 진입 비차단. 다른 사람의 확인 이력 대신 작성 금지 | shared_welcome_test.dart, common_guidance.test.mjs |
+| S72 | store welcome + own welcomeAcknowledgment + projected zones → 강조 웰컴/중요 변경/장소 펼치기/다시 보기/확인 → save_welcome / ack_welcome | 모든 역할 동일 본문, 편집만 canEditTasks. 첫 사용·중요 변경 재확인, 업무 진입 비차단. 다른 사람의 확인 이력 대신 작성 금지 | shared_welcome_test.dart, common_guidance.test.mjs |
 | S73 | 개인 locale → AppLanguageButton → selectLanguage / save_language_preference | 8언어 UI, 본인 계정·매장 선택 저장. ID·완료 기록·한국 날짜 경계 유지. 기존 다른 언어 인쇄 계약 독립 | app_locale_test.dart |
 | S74 | 현재 원문 + targetLocale → TranslatedContent → 공용 사전 번역/매장 번역 → 원문 보기 | 정확한 원문 일치 시 자동 표시. 바뀐 항목만 원문과 번역 필요. 외부 유료 runtime 비활성, operations snapshot/완료 상태 불변 | translated_content_test.dart, content_translation_repository_test.dart |
 

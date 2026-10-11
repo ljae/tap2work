@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 290,
+  "revision": 291,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -8682,7 +8682,13 @@
       "type": "deployment",
       "title": "Audit TODO final web/native deployment and live fictional-store verification completed",
       "detail": "Sol low final code20e9437e84083276156ee059ee2e71a26b1e816d / Pages38060150185 build+deploy SUCCESS. Actual CI547Flutter passed/3web-only skipped, Node372, analysis0/UI75/Edge/allSQL/prepared7x990 translations passed. All14live public files HTTP200 and SHA256 equal actual CI artifact; credential scan passed. operations60 ACTIVE with private media true/paidGooglefalse; invitation SQL retained, no unnecessary second backend/schema/catalog deployment. iOS1.0.0(13) signed IPA46100236bytes SHA2561c2a3dbd306ed8278c663c2611124210ee7cc3990bccb7adad627bd466af9dae, uploaded/VALID, TAP Work Internal linked; current submission/version WAITING_FOR_REVIEW, AFTER_APPROVAL. Previous12 cancellation completed; direct reviewGET briefly404 after CANCELING, read-only review list confirmed COMPLETE and editableDEVELOPER_REJECTED state, guarded retry13 succeeded. Reviewer login/contact/notes exactly unchanged. Android1.0.0(12) AAB71496735bytes SHA256d42c8050cbcb2207d1a4bd7a9677097123efb9644a66bcb7217bf612d766a4a4, sameTAPsigner/jarsigner/7assets verified; upload/validation/automaticreview commit and actualinternal+alpha tracks completed; country/tester settings unchanged. Ego Lite authenticated fictional Audit Kitchen: real invitation screen lists existing fictionalcrew; final UI shows actual menu1/inventory7/coverage warnings and corrected invite entry. Original failed layout draft restored via authenticated browserAPI, then a NEW secondtable added/reedited/saved through actualUI. GETrevision29 verified floor1/x4/y6/two tables, otherfloor2places andprivatephoto preserved. BrowserAPI explicitly corrected fictional weekends to10-16/16-02, retainingweekdays/crew IDs/headcounts and existingpart-time reset policy. Fictional stock13 stayed13 on a new DEMOorder2; partialreceipt1 gave14/ordered/onehistory, identical ID+oldrevision replay leftquantity/history/revision unchanged, remainingreceipt1 gave15/received/twohistories. Exact latest-order deadline unchanged throughout receipts. Bound return/waste/wash/dry commonplaces and installed4opt-in dishwashing examples/13actions,2private linked photo projections; no automatic task enablement or fabricated work completion. Last workflowrevision35. No supplier transmission, messages, wages or clock events performed. Newtemplate translations still require directregistration; paidruntime remainsoff. Final optional browserreopen stopped because EgoTaskSpace9 disappeared; did not create replacement or circumvent user/browsercontrol. Live two-person invite acceptance, physical device/OAuth/camera/HEIC/native-speaker checks and restart-persistent pendingreceipt drafts remain unperformed. Versioned docs contain no account identifiers/credentials/privateworkspacepayloads; existing unrelated root dirty work preserved and reviewed source synced."
+    },
+    {
+      "at": "2026-10-11T01:53:36.142175+00:00",
+      "type": "development",
+      "title": "Welcoming screen hierarchy and important guidance improved",
+      "detail": "User requested welcome visual quality above the earlier prototype and web/iOS/Android deployment. SharedWelcomeScreen now highlights unchanged store title/body in a green welcome card, uses icon+text states for first confirmation/important changes/reopening, presents three localized work principles, and expands actual projected places with floor/area/description. Preserves authenticated own acknowledgement, CAS, nonblocking work entry and exact-source prepared translations. Flutter analysis initially clean; related46 Flutter tests,6 phone/desktop screen captures,75 UI links and4 common guidance Node tests passed. The initial new expanded-place test tapped before layout settled; corrected real scroll/pump then confirmed success. Web/native release in progress; no deployed or physically tested status claimed. Existing dirty work preserved in original workspace; release based on f39c19f with only this change."
     }
   ],
-  "updatedAt": "2026-10-10T14:58:45.503125+00:00"
+  "updatedAt": "2026-10-11T01:53:36.142175+00:00"
 }
