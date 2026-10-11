@@ -14,13 +14,22 @@ function fixture(options = {}) {
   return { calls, handler, request };
 }
 test('dedicated cron bearer is required; user, anon and server credentials cannot substitute', async () => {
-  const f = fixture();
-  for (const authorization of ['', 'Bearer user-jwt', 'Bearer publishable-key', 'Bearer sb_secret_server', `Bearer ${token}`, sign('b'.repeat(43)), sign(token, Math.floor(Date.now()/1000)-301), sign(token, Math.floor(Date.now()/1000)+31)]) {
+  const now = 1_790_000_000;
+  const f = fixture({ clock: () => now * 1000 });
+  for (const authorization of ['', 'Bearer user-jwt', 'Bearer publishable-key', 'Bearer sb_secret_server', `Bearer ${token}`, sign('b'.repeat(43), now), sign(token, now-301), sign(token, now+31)]) {
     assert.equal((await f.request({}, { Authorization: authorization })).status, 401);
   }
   assert.equal(f.calls.length, 0);
   assert.equal((await fixture({ cleanupSecret: undefined }).request()).status, 503);
   assert.equal((await fixture({ cleanupSecret: 'weak' }).request()).status, 503);
+});
+test('cron signature time boundaries accept exactly 300 seconds old and 30 seconds ahead', async () => {
+  const now = 1_790_000_000;
+  const f = fixture({ clock: () => now * 1000 });
+  for (const stamp of [now-300, now+30]) {
+    assert.equal((await f.request({}, { Authorization: sign(token, stamp) })).status, 200);
+  }
+  assert.equal(f.calls.length, 2);
 });
 test('cron can invoke only an empty-body fixed-scope cleanup with bounded deadline', async () => {
   const f = fixture();

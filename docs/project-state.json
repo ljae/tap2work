@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 292,
+  "revision": 293,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -8694,7 +8694,13 @@
       "type": "development",
       "title": "Live welcome verified; fix stale web font asset cache",
       "detail": "First web7af7ed8 / Pages38103369082 build+deploy success; actualCI548Flutter/3web-onlyskip,Node372,analysis0/UI75/SQL/Edge/prepared translations pass;14 public filesHTTP200 and CIartifact SHA identical. Live390px welcome confirmed but old cached MaterialIcons16624B differed from new17548B and omitted waving-hand glyph. Add deterministic complete-asset hash path and explicitly pass assetBase engine config to initializeEngine;8 relevant Node tests pass. Follow-up web release pending. Native code unaffected: iOS14 IPA uploaded andVALID, existing13review cancellation/new14 submission in progress; Android13 internal+alpha committed and actualtracks completed, sameuploadsigner/verifiedjar. No account/operational data changed."
+    },
+    {
+      "at": "2026-10-11T02:06:54.288404+00:00",
+      "type": "verification",
+      "title": "Native welcome releases submitted; stabilize existing cron timestamp test",
+      "detail": "iOS1.0.0(14) VALID/internalgroup linked/WAITING_FOR_REVIEW/AFTER_APPROVAL, reviewer details exactly preserved. Initial old13review cancellation remainedCANCELING beyond90sec, but editableDEVELOPER_REJECTED allowed guarded14 retry; actualnewreviewWAITING/oldCOMPLETE confirmed. Android1.0.0(13) internal+alpha actualtracks completed, originalsigner retained. Webcache follow-up df48e5f/Pages38103958286 failed on existing manual_media_cleanup_backend timestamp test: a future31sec MAC prepared before loop crosses a real-second boundary and becomes allowed30sec. Pin test clock/token timestamps and explicitly test allowed300old/30future; production handler/auth rules unchanged, no backend deployment. Follow-up web remains pending; original7af7ed8 release stays live."
     }
   ],
-  "updatedAt": "2026-10-11T02:03:56.409254+00:00"
+  "updatedAt": "2026-10-11T02:06:54.288404+00:00"
 }
