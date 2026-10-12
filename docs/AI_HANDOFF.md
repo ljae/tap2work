@@ -1,3 +1,7 @@
+## 2026-10-12 Folder/part localization deployed; manual-model redesign in progress
+
+[FOLDER_PART_LOCALIZATION_2026-10-12.md](FOLDER_PART_LOCALIZATION_2026-10-12.md): web0126782/CI38255526952, iOS20WAITING_FOR_REVIEW, Android19test tracks verified. Next user requirement: first setup / periodic / routine / recipe organization, detailed synthetic-store market example, hierarchy and motion redesign. See [implementation scope](MANUAL_OPERATING_MODEL_REDESIGN_2026-10-12.md). Protect the user-designated account with private execution configuration; do not put its email into source/history. Cleanup of other-account manual/task data is authorized where needed, not mandatory.
+
 2026-10-12 다국어 AI 검토/최종배포 완료: 사용자 AI추가검토+ai-draft배포 선택. 웹b5bcfe7/Actions38241794392성공·262publicSHA일치, iOS19VALID/내부TestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL, Android18internal+alpha completed·production없음. CI587/3skip·analysis0·Node381·UI78/Edge/5SQL/7x1357통과. 실웹390px Thai로그인/업무보조/운영준비확인. native초기Google공개define누락/콜백미설정은 최종4값/AOT/CFURL검증으로복구, 원본키인증서보존. docs/LOCALIZATION_RELEASE_2026-10-12.md 및 NATIVE_AUTH_SETUP.md 새필수확인 참조. 원어민·실기기·실계정native로그인미검증. 기존dirty/운영데이터보존; .local/localization-release 검증본, rootHEAD만으로복원하지않음.
 
 2026-10-12 상세 다국어 보완 로컬 완료: UI59파일/고정1764행, 기본 운영24매뉴얼110행동+첫근무6안내 포함7언어각1357원문. Flutter578통과/3browser skip·analysis0·Node381·JS/UI78·번역숫자/변수 통과. docs/LOCALIZATION_COMPLETION_2026-10-12.md 참조. ai-draft/원어민·실브라우저·실기기·빌드/배포 미수행. 기존 dirty/운영 데이터 보존.

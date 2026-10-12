@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 309,
+  "revision": 311,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -8864,7 +8864,19 @@
       "type": "implementation",
       "title": "Translate folder and part display names after user reports remaining omissions",
       "detail": "Previous release preserved store-authored folder/part names verbatim. User now requests their translation: add30 exact built-in name rows in8languages; shared display helper applies ID-specific current name translation, built-in row, prepared dictionary/source. Source names/IDs and rename inputs remain intact. Extend save_manual_translation source.kind folder/part and name only, same revision/sourceText CAS; parts owner-only, folders task-editor permission; sanitized view invalidates renamed/deleted names. Folder edit menu and saved-part translation controls reuse existing editor. Node383pass/UI79pass/analysis0, focused47pass before two additional regression tests; full verification and redeployment in progress. AI-draft/native-speaker review incomplete retained; existing root work preserved."
+    },
+    {
+      "at": "2026-10-12T13:33:22.848000+00:00",
+      "type": "requirement",
+      "title": "Manual categories, detailed fictional store market example and manual-task hierarchy redesign",
+      "detail": "User requires first setup, periodic management, routine work, recipes and related reference categories; staff daily checklists primarily routine, other categories usually references or scheduled work. Separate recipe/menu method from daily checks. Add detailed synthetic store manual to market as depth/organization example, clearly fictional, selectable import without automatic work activation. Redesign folder→TAP→task→manual content hierarchy and motion using existing Flutter/navigation/tokens; protect user-designated account manual/task/completion data, cleanup of other-account manual/tasks authorized where needed. Protected identifier stays private outside source/history. Product intent confirmed; technical schema/classification/migration/UI choices and actual verification in progress. See MANUAL_OPERATING_MODEL_REDESIGN_2026-10-12.md. Prior folder/part translation release0126782/CI38255526952 and native20/19 deployment in progress."
+    },
+    {
+      "at": "2026-10-12T13:42:46.565007+00:00",
+      "type": "verification",
+      "title": "Folder/part translation release verified; manual-model redesign continues",
+      "detail": "0126782574413d874cdb5d3876fd6a9c00431c1b/Pages38255526952 success; CIFlutter591pass/3skip,analysis0,Node383,UI79,JS/Edge/5SQL/7x1357translation checks pass. Public262SHA256 match. Builtin30names/8languages; ID-specific custom translations with source/CAS and parts owner-only. Anonymous390px Thai work/manual folder/part verified. iOS20VALID/internalTestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL,reviewdetails preserved. Android19internal+alpha completed,beta/production empty; existing signer+7asset bytes matched, platform-required public login configuration and iOS callback verified. Android unused iOS client tree-shaken. Initial fixture/compiler checks corrected; interrupted parallel builds/tests retried sequentially; final CI authoritative. iOS submission old19metadata constant corrected from actual20API. AI-draft/human review incomplete. New manual category/example/UX goal in progress; protected account identifier private. FOLDER_PART_LOCALIZATION_2026-10-12.md."
     }
   ],
-  "updatedAt": "2026-10-12T13:16:52.175697+00:00"
+  "updatedAt": "2026-10-12T13:42:46.565007+00:00"
 }
