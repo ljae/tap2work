@@ -187,7 +187,7 @@ class _WorkIssueEditorState extends State<WorkIssueEditor> {
         ),
         footer: AppSheetFooter(
           children: [
-            if (error != null) Information(error!),
+            if (error != null) Information(context.t(error!)),
             if (!current) Information(context.t('welcome.scopeChanged')),
             FilledButton(
               onPressed:

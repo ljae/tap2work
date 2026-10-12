@@ -366,8 +366,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                 ),
                               ),
                             if ('${row['sourceUrl'] ?? ''}'.isNotEmpty)
-                              const Text(
-                                '사진·상세 설명 보기 · 공식 가이드',
+                              Text(
+                                context.t('ui.audit407'),
                                 style: TextStyle(
                                   color: AppColors.green,
                                   fontSize: 13,
@@ -523,9 +523,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       },
                       itemBuilder: (_) => [
                         if (ops.actor['role'] == 'owner')
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'owner-workflow',
-                            child: Text('운영 준비 · 내일 미리보기'),
+                            child: Text(context.t('ui.audit408')),
                           ),
                         PopupMenuItem<String>(
                           key: const ValueKey('header-language-menu'),
@@ -579,19 +579,39 @@ class _OperationsScreenState extends State<OperationsScreen> {
                           ),
                           PopupMenuItem(
                             value: 'owner',
-                            child: Text('서연 · ${context.t('store.owner')}'),
+                            child: Text(
+                              context.t(
+                                'ui.audit982',
+                                args: {'p0': context.t('store.owner')},
+                              ),
+                            ),
                           ),
                           PopupMenuItem(
                             value: 'manager',
-                            child: Text('민지 · ${context.t('store.manager')}'),
+                            child: Text(
+                              context.t(
+                                'ui.audit983',
+                                args: {'p0': context.t('store.manager')},
+                              ),
+                            ),
                           ),
                           PopupMenuItem(
                             value: 'cook',
-                            child: Text('현우 · ${context.t('store.cook')}'),
+                            child: Text(
+                              context.t(
+                                'ui.audit984',
+                                args: {'p0': context.t('store.cook')},
+                              ),
+                            ),
                           ),
                           PopupMenuItem(
                             value: 'crew',
-                            child: Text('지우 · ${context.t('store.crew')}'),
+                            child: Text(
+                              context.t(
+                                'ui.audit985',
+                                args: {'p0': context.t('store.crew')},
+                              ),
+                            ),
                           ),
                         ],
                       ],
@@ -635,7 +655,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               alignment: Alignment.centerRight,
                               child: TextButton.icon(
                                 icon: const Icon(Icons.auto_awesome_outlined),
-                                label: const Text('운영 준비 · 내일 미리보기'),
+                                label: Text(context.t('ui.audit408')),
                                 onPressed: () async {
                                   final destination = await openOwnerWorkflow(
                                     context,
@@ -896,7 +916,19 @@ class _OperationsScreenState extends State<OperationsScreen> {
           .toList();
       if (bands.isNotEmpty) {
         hours.add(
-          '${bands.first['start']}–${'${bands.last['end']}'.compareTo('${bands.first['start']}') < 0 ? '다음 날 ' : ''}${bands.last['end']} · ${bands.length}교대',
+          context.t(
+            'ui.audit2122',
+            args: {
+              'p0': bands.first['start'],
+              'p1':
+                  '${bands.last['end']}'.compareTo('${bands.first['start']}') <
+                      0
+                  ? '다음 날 '
+                  : '',
+              'p2': bands.last['end'],
+              'p3': bands.length,
+            },
+          ),
         );
       }
     }
@@ -1092,10 +1124,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
         ),
       if (ops.isLeader &&
           (pos['enabled'] == true || delivery['enabled'] == true)) ...[
-        title('설정에 맞는 업무'),
-        const Information(
-          '사용 중인 주문 도구에 맞춰 접수·포장·전달 확인 업무를 살펴보세요. 가져올 양식은 직접 선택할 수 있어요.',
-        ),
+        title(context.t('ui.audit1183')),
+        Information(context.t('ui.audit409')),
         PressBounce(
           child: OutlinedButton.icon(
             onPressed: () => showAppSheet(
@@ -1103,7 +1133,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
               builder: (_) => RecommendedTapsScreen(ops: ops),
             ),
             icon: const Icon(CupertinoIcons.list_bullet),
-            label: const Text('업무 양식 미리보기·선택'),
+            label: Text(context.t('ui.audit410')),
           ),
         ),
       ],
@@ -1208,12 +1238,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
   List<Widget> overviewHistory() => [
     if (ops.isOwner && ops.data?['privateSummary']?['note'] != null) ...[
       gap(),
-      title('매장 기록'),
+      title(context.t('ui.audit1184')),
       Text('${ops.data!['privateSummary']['note']}'),
     ],
     title(context.t('store.sharedUpdates')),
-    if (ops.rows('activity').isEmpty)
-      const Information('아직 새 소식이 없어요. 재고나 할 일을 확인하면 누가 했는지 이곳에 남아요.'),
+    if (ops.rows('activity').isEmpty) Information(context.t('ui.audit411')),
     for (final event in ops.rows('activity').take(4))
       Padding(
         padding: const EdgeInsets.only(bottom: 14),
@@ -1264,7 +1293,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                     builder: (_) => CatalogEditor(ops: ops),
                   ),
             icon: const Icon(Icons.edit_outlined),
-            label: const Text('재료·메뉴 편집'),
+            label: Text(context.t('ui.audit412')),
           ),
         ),
       ),
@@ -1275,11 +1304,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '보충 확인 ${lowStock.length}개 · 담은 재료 ${cart.length}개',
+              context.t(
+                'ui.audit986',
+                args: {'p0': lowStock.length, 'p1': cart.length},
+              ),
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             ),
             gap(8),
-            small('공급처별로 나눠 정리해요. 결제·문자·카카오 전송은 없는 체험이에요.'),
+            small(context.t('ui.audit1185')),
             gap(12),
             Wrap(
               spacing: 8,
@@ -1295,13 +1327,15 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                   .toDouble();
                             }
                           }),
-                    child: const Text('부족한 재료 담기'),
+                    child: Text(context.t('ui.audit413')),
                   ),
                 ),
                 PressBounce(
                   child: FilledButton(
                     onPressed: cart.isEmpty || ops.busy ? null : reviewOrder,
-                    child: Text('발주함 보기 (${cart.length})'),
+                    child: Text(
+                      context.t('ui.audit987', args: {'p0': cart.length}),
+                    ),
                   ),
                 ),
               ],
@@ -1311,7 +1345,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
       ),
       gap(18),
     ] else ...[
-      const Information('재고 수량 확인과 보충 요청은 누구나 할 수 있어요. 발주는 사장님·매니저가 확인해요.'),
+      Information(context.t('ui.audit414')),
       gap(),
     ],
     for (final i in ops.rows('items')) ...[
@@ -1367,7 +1401,10 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 ),
                 if (i['restockRequestedBy'] != null)
                   badge(
-                    '${i['restockRequestedBy']['name']}님 보충 요청',
+                    context.t(
+                      'ui.audit2123',
+                      args: {'p0': i['restockRequestedBy']['name']},
+                    ),
                     color: AppColors.paper,
                   ),
               ],
@@ -1375,17 +1412,36 @@ class _OperationsScreenState extends State<OperationsScreen> {
             gap(8),
             small(
               i['checkedBy'] == null
-                  ? '아직 실물 수량을 확인하지 않았어요'
-                  : '${i['checkedBy']['name']}님 · ${time(i['lastCheckedAt'])} 수량 확인',
+                  ? context.t('ui.audit1186')
+                  : context.t(
+                      'ui.audit1187',
+                      args: {
+                        'p0': i['checkedBy']['name'],
+                        'p1': time(i['lastCheckedAt']),
+                      },
+                    ),
             ),
             small(
-              '기준 ${qty(i['minimum'])}${i['unit']} 이하 · 발주 ${i['reviewDays']}일 후 확인',
+              context.t(
+                'ui.audit1188',
+                args: {
+                  'p0': qty(i['minimum']),
+                  'p1': i['unit'],
+                  'p2': i['reviewDays'],
+                },
+              ),
             ),
             if (i['lastOrderedAt'] != null)
               small(
                 i['reviewState'] == 'completed'
-                    ? '이번 발주 확인 완료 · ${i['reviewCompletedBy']?['name'] ?? ''}님 ${time(i['reviewCompletedAt'])}'
-                    : '확인 예정 ${nextCheck(i)} · 중간에 수량을 확인해도 날짜는 유지돼요',
+                    ? context.t(
+                        'ui.audit1189',
+                        args: {
+                          'p0': i['reviewCompletedBy']?['name'] ?? '',
+                          'p1': time(i['reviewCompletedAt']),
+                        },
+                      )
+                    : context.t('ui.audit1190', args: {'p0': nextCheck(i)}),
               ),
             gap(10),
             Wrap(
@@ -1395,7 +1451,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 PressBounce(
                   child: OutlinedButton(
                     onPressed: ops.busy ? null : () => checkStock(i),
-                    child: const Text('수량 확인'),
+                    child: Text(context.t('ui.audit415')),
                   ),
                 ),
                 if (ops.isLeader)
@@ -1412,7 +1468,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
                             }
                           }),
                     child: Text(
-                      cart.containsKey(i['id']) ? '담았어요 ✓' : '발주함 담기',
+                      cart.containsKey(i['id'])
+                          ? context.t('ui.audit988')
+                          : context.t('ui.audit989'),
                     ),
                   )
                 else
@@ -1421,14 +1479,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       onPressed: ops.busy || i['restockRequestedBy'] != null
                           ? null
                           : () => act('request_restock', {'itemId': i['id']}),
-                      child: const Text('보충 요청'),
+                      child: Text(context.t('ui.audit416')),
                     ),
                   ),
                 if (ops.isLeader)
                   PressBounce(
                     child: TextButton(
                       onPressed: ops.busy ? null : () => reviewPolicy(i),
-                      child: const Text('확인 기준'),
+                      child: Text(context.t('ui.audit417')),
                     ),
                   ),
               ],
@@ -1438,9 +1496,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
       ),
       gap(12),
     ],
-    title('발주와 입고 내역'),
-    if (ops.rows('orders').isEmpty)
-      const Information('아직 발주 내역이 없어요. 발주함에서 수량을 확인한 뒤 한 번에 데모 발주해 보세요.'),
+    title(context.t('ui.audit1191')),
+    if (ops.rows('orders').isEmpty) Information(context.t('ui.audit418')),
     for (final order in ops.rows('orders').take(10)) ...[
       Surface(
         padding: const EdgeInsets.all(17),
@@ -1460,13 +1517,27 @@ class _OperationsScreenState extends State<OperationsScreen> {
             ),
             gap(8),
             small(
-              '${order['placedBy']['name']}님 · ${time(order['createdAt'])}',
+              context.t(
+                'ui.audit998',
+                args: {
+                  'p0': order['placedBy']['name'],
+                  'p1': time(order['createdAt']),
+                },
+              ),
             ),
             if (order['total'] != null)
-              small('예시 금액 ${money(order['total'])}원 · 실제 청구 없음'),
+              small(
+                context.t('ui.audit1192', args: {'p0': money(order['total'])}),
+              ),
             if (order['receivedBy'] != null)
               small(
-                '${order['receivedBy']['name']}님이 ${time(order['receivedAt'])} 입고 확인',
+                context.t(
+                  'ui.audit1193',
+                  args: {
+                    'p0': order['receivedBy']['name'],
+                    'p1': time(order['receivedAt']),
+                  },
+                ),
               ),
             for (final receipt in (order['receiptHistory'] as List? ?? []))
               small(
@@ -1509,10 +1580,10 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 
   List<Widget> team() => [
-    const PageHeading(
+    PageHeading(
       'OUR LITTLE TEAM',
-      '서로의 빈자리를 알아요 🤝',
-      '근무와 공석은 함께, 개인 사유와 급여는 비공개로.',
+      context.t('ui.audit419'),
+      context.t('ui.audit420'),
     ),
     Surface(
       color: const Color(0xFF392E20),
@@ -1520,11 +1591,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '오늘 공석 ${gaps.length}곳',
+            context.t('ui.audit990', args: {'p0': gaps.length}),
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           gap(7),
-          small('대체 가능 표시만으로 근무가 확정되지는 않아요. 사장님·매니저 확인 후 함께 반영돼요.'),
+          small(context.t('ui.audit1194')),
         ],
       ),
     ),
@@ -1566,8 +1637,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
               gap(12),
               small(
                 shift['covering'] == null
-                    ? '아직 대체 근무자가 없어요'
-                    : '✓ ${shift['covering']['name']}님이 이 시간을 함께해요',
+                    ? context.t('ui.audit1195')
+                    : context.t(
+                        'ui.audit1196',
+                        args: {'p0': shift['covering']['name']},
+                      ),
               ),
               if (shift['covering'] == null) ...[
                 gap(8),
@@ -1585,20 +1659,30 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                 )
                         ? null
                         : () => act('offer_cover', {'shiftId': shift['id']}),
-                    child: const Text('저 이 시간 가능해요 🙋'),
+                    child: Text(context.t('ui.audit421')),
                   ),
                 ),
               ],
             ],
             if (shift['updatedBy'] != null)
               small(
-                '${shift['updatedBy']['name']}님이 ${time(shift['updatedAt'])} 변경',
+                context.t(
+                  'ui.audit1197',
+                  args: {
+                    'p0': shift['updatedBy']['name'],
+                    'p1': time(shift['updatedAt']),
+                  },
+                ),
               ),
             if (ops.isLeader)
               PressBounce(
                 child: TextButton(
                   onPressed: ops.busy ? null : () => changeShift(shift),
-                  child: Text(shift['status'] == '휴가' ? '근무로 변경' : '휴가로 변경'),
+                  child: Text(
+                    shift['status'] == context.t('ui.audit991')
+                        ? context.t('ui.audit992')
+                        : context.t('ui.audit993'),
+                  ),
                 ),
               ),
           ],
@@ -1607,9 +1691,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
       gap(10),
     ],
     if (ops.isLeader) ...[
-      title('🙋 대체 근무 확인'),
+      title(context.t('ui.audit1198')),
       if (!ops.rows('coverRequests').any((r) => r['status'] == 'pending'))
-        const Information('확인을 기다리는 신청이 없어요.'),
+        Information(context.t('ui.audit422')),
       for (final request
           in ops.rows('coverRequests').where((r) => r['status'] == 'pending'))
         Padding(
@@ -1618,9 +1702,22 @@ class _OperationsScreenState extends State<OperationsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${request['actor']['name']}님이 가능해요'),
+                Text(
+                  context.t(
+                    'ui.audit994',
+                    args: {'p0': request['actor']['name']},
+                  ),
+                ),
                 small(
-                  '${ops.rows('shifts').where((s) => s['id'] == request['shiftId']).first['time']} · 근무 가능 여부를 확인해 주세요',
+                  context.t(
+                    'ui.audit1199',
+                    args: {
+                      'p0': ops
+                          .rows('shifts')
+                          .where((s) => s['id'] == request['shiftId'])
+                          .first['time'],
+                    },
+                  ),
                 ),
                 gap(8),
                 PressBounce(
@@ -1629,7 +1726,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         ? null
                         : () =>
                               act('assign_cover', {'requestId': request['id']}),
-                    child: const Text('대체 근무 확정'),
+                    child: Text(context.t('ui.audit423')),
                   ),
                 ),
               ],
@@ -1638,9 +1735,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         ),
     ],
     gap(),
-    const Information(
-      '함께 보기: 이름·담당·근무 시간·휴가 여부·대체 근무\n비공개: 휴가 사유·급여·사장님 메모\n지금은 샘플 근무표이며 급여·근태·법정 서류는 연동 전이에요.',
-    ),
+    Information(context.t('ui.audit424')),
   ];
 
   List<Widget> floorPlan() => [FloorPlanView(operations: ops)];
@@ -1648,7 +1743,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   Future<void> checkStock(Json i, {String? taskId}) async {
     final controller = TextEditingController(text: qty(i['quantity']));
     final values = await formDialog(
-      '실제로 몇 ${i['unit']} 있나요?',
+      context.t('ui.audit2124', args: {'p0': i['unit']}),
       [
         small('${i['name']} · ${zoneName(i['zone'])}'),
         gap(),
@@ -1656,12 +1751,12 @@ class _OperationsScreenState extends State<OperationsScreen> {
           controller: controller,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
-            labelText: '현재 수량 (${i['unit']})',
+            labelText: context.t('ui.audit995', args: {'p0': i['unit']}),
             border: const OutlineInputBorder(),
           ),
         ),
         gap(),
-        small('${ops.actor['name']}님이 확인한 기록으로 함께 보여요.'),
+        small(context.t('ui.audit1200', args: {'p0': ops.actor['name']})),
       ],
       () {
         final value = double.tryParse(controller.text);
@@ -1685,22 +1780,20 @@ class _OperationsScreenState extends State<OperationsScreen> {
     final values = await formDialog(
       '재고 확인 기준',
       [
-        small(
-          '${i['name']} · 마지막 발주일에서 정해진 일수 뒤 한 번 확인해요. 중간 수량 확인은 예정일을 미루지 않아요.',
-        ),
+        small(context.t('ui.audit1201', args: {'p0': i['name']})),
         gap(),
         TextField(
           controller: days,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: '발주 며칠 후 확인할까요? (1~90일)',
-          ),
+          decoration: InputDecoration(labelText: context.t('ui.audit425')),
         ),
         gap(),
         TextField(
           controller: minimum,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(labelText: '보충 기준 (${i['unit']} 이하)'),
+          decoration: InputDecoration(
+            labelText: context.t('ui.audit996', args: {'p0': i['unit']}),
+          ),
         ),
       ],
       () {
@@ -1746,9 +1839,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     final values = await formDialog(
       '모아서 데모 발주',
       [
-        const Information(
-          '실제 공급처로 전송하거나 결제하지 않아요. 발주 기록만 생성하며 입고 확인 전에는 재고가 늘지 않아요.',
-        ),
+        Information(context.t('ui.audit426')),
         gap(),
         for (final supplier in suppliers) ...[
           title(supplier),
@@ -1765,13 +1856,16 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 decoration: InputDecoration(
                   labelText:
                       '${item(e.key)!['name']} (${item(e.key)!['unit']})',
-                  helperText: '단가 ${money(item(e.key)!['price'])}원 · 예시',
+                  helperText: context.t(
+                    'ui.audit997',
+                    args: {'p0': money(item(e.key)!['price'])},
+                  ),
                   border: const OutlineInputBorder(),
                 ),
               ),
             ),
         ],
-        small('선택한 모든 공급처의 항목을 한 번에 기록해요.'),
+        small(context.t('ui.audit1203')),
       ],
       () {
         final lines = <Json>[];
@@ -1787,7 +1881,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         }
         return {'lines': lines};
       },
-      confirm: '한 번에 데모 발주',
+      confirm: context.t('ui.audit1202'),
     );
     if (values != null && await act('place_order', values) && mounted) {
       updateView(cart.clear);
@@ -1992,16 +2086,19 @@ class _OperationsScreenState extends State<OperationsScreen> {
   Future<void> changeShift(Json shift) async {
     final status = shift['status'] == '휴가' ? '근무' : '휴가';
     final result = await formDialog(
-      '$status로 변경할까요?',
+      context.t('ui.audit2125', args: {'p0': status}),
       [
-        Text('${shift['person']}님 · ${shift['time']}'),
-        gap(),
-        small(
-          '이 변경은 모두에게 보여요. 기존 대체 배정·대기 신청은 해제되므로 팀과 먼저 확인해 주세요. 개인 휴가 사유는 입력하지 않아요.',
+        Text(
+          context.t(
+            'ui.audit998',
+            args: {'p0': shift['person'], 'p1': shift['time']},
+          ),
         ),
+        gap(),
+        small(context.t('ui.audit1205')),
       ],
       () => {'shiftId': shift['id'], 'status': status},
-      confirm: '팀에 반영',
+      confirm: context.t('ui.audit1204'),
     );
     if (result != null) await act('update_shift', result);
   }
@@ -2045,7 +2142,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
             PressBounce(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('닫기'),
+                child: Text(context.t('ui.audit83')),
               ),
             ),
             PressBounce(
@@ -2055,7 +2152,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                     : () {
                         final values = collect();
                         if (values == null) {
-                          update(() => validation = '이름이나 수량의 입력 범위를 확인해 주세요.');
+                          update(() => validation = context.t('ui.audit1277'));
                         } else {
                           Navigator.pop(context, {
                             ...values,
@@ -2063,7 +2160,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                           });
                         }
                       },
-                child: Text(ops.readOnly ? '미리보기 · 저장 불가' : confirm),
+                child: Text(ops.readOnly ? context.t('ui.audit999') : confirm),
               ),
             ),
           ],

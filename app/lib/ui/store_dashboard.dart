@@ -250,9 +250,20 @@ class _StoreDashboardState extends State<StoreDashboard> {
         spacing: 12,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          note('${report['startDay']} ~ ${report['endDay']} · 한국 시간'),
           note(
-            '${dashboard['source'] == 'sample' ? '샘플 주문' : '주문 연동 전'} · POS 미연동 · ${_clock(dashboard['asOf'])} 집계',
+            context.t(
+              'ui.audit2109',
+              args: {'p0': report['startDay'], 'p1': report['endDay']},
+            ),
+          ),
+          note(
+            context.t(
+              'ui.audit2110',
+              args: {
+                'p0': dashboard['source'] == 'sample' ? '샘플 주문' : '주문 연동 전',
+                'p1': _clock(dashboard['asOf']),
+              },
+            ),
           ),
           IconButton(
             tooltip: context.t('store.refreshStats'),
@@ -267,24 +278,52 @@ class _StoreDashboardState extends State<StoreDashboard> {
           metric(
             money ? '순매출' : '전체 주문',
             money
-                ? '${_number(summary['revenue'])}원'
-                : '${summary['orderCount']}건',
+                ? context.t(
+                    'ui.audit959',
+                    args: {'p0': _number(summary['revenue'])},
+                  )
+                : context.t(
+                    'ui.audit1179',
+                    args: {'p0': summary['orderCount']},
+                  ),
             money ? '결제 금액 − 할인 − 환불' : '취소 주문 제외',
             dark: true,
           ),
           metric(
             money ? '주문 건수' : '처리 중 주문',
-            money ? '${summary['orderCount']}건' : '${summary['activeCount']}건',
-            money ? '취소 ${summary['cancelledCount']}건 별도' : '선택 기간·채널 기준',
+            money
+                ? context.t('ui.audit1179', args: {'p0': summary['orderCount']})
+                : context.t(
+                    'ui.audit1179',
+                    args: {'p0': summary['activeCount']},
+                  ),
+            money
+                ? context.t(
+                    'ui.audit2111',
+                    args: {'p0': summary['cancelledCount']},
+                  )
+                : '선택 기간·채널 기준',
           ),
           metric(
             money ? '평균 결제액' : '완료 주문',
             money
-                ? '${_number(summary['average'])}원'
-                : '${report['statuses']['완료']}건',
-            money ? '순매출 ÷ 결제 주문 ${summary['paidCount']}건' : '선택 기간·채널 기준',
+                ? context.t(
+                    'ui.audit959',
+                    args: {'p0': _number(summary['average'])},
+                  )
+                : context.t(
+                    'ui.audit1179',
+                    args: {'p0': report['statuses']['완료']},
+                  ),
+            money
+                ? context.t('ui.audit2112', args: {'p0': summary['paidCount']})
+                : '선택 기간·채널 기준',
           ),
-          metric('처리 중 주문', '${summary['activeCount']}건', '접수 · 조리 중 · 준비 완료'),
+          metric(
+            '처리 중 주문',
+            context.t('ui.audit1179', args: {'p0': summary['activeCount']}),
+            '접수 · 조리 중 · 준비 완료',
+          ),
         ],
         minWidth: 250 * MediaQuery.textScalerOf(context).scale(24) / 24,
         mobileMinWidth: 135 * MediaQuery.textScalerOf(context).scale(24) / 24,
@@ -294,7 +333,14 @@ class _StoreDashboardState extends State<StoreDashboard> {
         Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: note(
-            '결제 정가 ${_number(summary['gross'])}원  −  할인 ${_number(summary['discount'])}원  −  환불 ${_number(summary['refund'])}원\n취소·미결제 제외 · 주문 접수일 기준 · 부가세/배달 수수료 정산 전 샘플 집계',
+            context.t(
+              'ui.audit2113',
+              args: {
+                'p0': _number(summary['gross']),
+                'p1': _number(summary['discount']),
+                'p2': _number(summary['refund']),
+              },
+            ),
           ),
         ),
       LayoutBuilder(
@@ -395,7 +441,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
         children: [
           heading(
             money ? '메뉴별 매출 · 주문' : '메뉴별 주문',
-            '전체 ${all.length}개 메뉴 · 주문 없는 메뉴도 함께 보여요.',
+            context.t('ui.audit2114', args: {'p0': all.length}),
           ),
           TextField(
             onChanged: (value) => setState(() => query = value),
@@ -474,8 +520,14 @@ class _StoreDashboardState extends State<StoreDashboard> {
                       const SizedBox(width: 6),
                       Text(
                         money
-                            ? '${_number(menu['revenue'])}원'
-                            : '${menu['orderedQuantity']}개',
+                            ? context.t(
+                                'ui.audit959',
+                                args: {'p0': _number(menu['revenue'])},
+                              )
+                            : context.t(
+                                'ui.audit960',
+                                args: {'p0': menu['orderedQuantity']},
+                              ),
                         style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 13,
@@ -497,12 +549,17 @@ class _StoreDashboardState extends State<StoreDashboard> {
                   ),
                   space(6),
                   note(
-                    '주문 ${menu['orderedQuantity']}개 · 처리 중 ${menu['pendingQuantity']}개${money ? ' · 매출 비중 ${total == 0 ? '0' : ((menu['revenue'] as num) / total * 100).toStringAsFixed(1)}%' : ''}',
+                    '주문 ${menu['orderedQuantity']}개 · 처리 중 ${menu['pendingQuantity']}개${money ? context.t('ui.audit2116', args: {'p0': total == 0 ? '0' : ((menu['revenue'] as num) / total * 100).toStringAsFixed(1)}) : ''}',
                   ),
                 ],
               ),
             ),
-          note('주문 수량은 취소 제외, 미결제 포함${money ? '. 매출은 할인·환불 반영' : ''}.'),
+          note(
+            context.t(
+              'ui.audit2117',
+              args: {'p0': money ? '. 매출은 할인·환불 반영' : ''},
+            ),
+          ),
         ],
       ),
     );
@@ -577,7 +634,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
                                 PressBounce(
                                   child: TextButton(
                                     onPressed: () => Navigator.pop(context),
-                                    child: const Text('확인'),
+                                    child: Text(context.t('ui.audit226')),
                                   ),
                                 ),
                               ],
@@ -610,14 +667,36 @@ class _StoreDashboardState extends State<StoreDashboard> {
                     '${order['channel']}${order['platform'] == null ? '' : ' · 🛵 ${order['platform']}'}${order['table'] == null ? '' : ' · ${order['table']}'}',
                   ),
                   note(
-                    '${_clock(order['createdAt'])} 접수 · 경과 ${order['elapsedMinutes']}분',
+                    context.t(
+                      'ui.audit2118',
+                      args: {
+                        'p0': _clock(order['createdAt']),
+                        'p1': order['elapsedMinutes'],
+                      },
+                    ),
                   ),
                   if (order['targetMinutes'] is int)
                     note(
                       (order['elapsedMinutes'] as int) >
                               (order['targetMinutes'] as int)
-                          ? '목표 ${order['targetMinutes']}분(가상) · ${(order['elapsedMinutes'] as int) - (order['targetMinutes'] as int)}분 초과'
-                          : '목표 ${order['targetMinutes']}분(가상) · ${(order['targetMinutes'] as int) - (order['elapsedMinutes'] as int)}분 남음',
+                          ? context.t(
+                              'ui.audit2119',
+                              args: {
+                                'p0': order['targetMinutes'],
+                                'p1':
+                                    (order['elapsedMinutes'] as int) -
+                                    (order['targetMinutes'] as int),
+                              },
+                            )
+                          : context.t(
+                              'ui.audit2120',
+                              args: {
+                                'p0': order['targetMinutes'],
+                                'p1':
+                                    (order['targetMinutes'] as int) -
+                                    (order['elapsedMinutes'] as int),
+                              },
+                            ),
                     ),
                   space(8),
                   for (final line in order['lines'] as List)
@@ -652,7 +731,13 @@ class _StoreDashboardState extends State<StoreDashboard> {
             money ? '시간대별 매출' : '시간대별 주문',
             maximum == 0
                 ? '선택한 기간에 집계된 주문이 없어요.'
-                : '${peak['hour']}시에 가장 많았어요 · ${days == 1 ? '오늘' : '7일 합산'}',
+                : context.t(
+                    'ui.audit2121',
+                    args: {
+                      'p0': peak['hour'],
+                      'p1': days == 1 ? '오늘' : '7일 합산',
+                    },
+                  ),
           ),
           SizedBox(
             height: 112,
@@ -662,11 +747,32 @@ class _StoreDashboardState extends State<StoreDashboard> {
                 for (final hour in hours)
                   Expanded(
                     child: Tooltip(
-                      message:
-                          '${hour['hour']}시 · ${money ? '${_number(hour[field])}원' : '${hour[field]}건'}',
+                      message: context.t(
+                        'ui.audit961',
+                        args: {
+                          'p0': hour['hour'],
+                          'p1': money
+                              ? context.t(
+                                  'ui.audit959',
+                                  args: {'p0': _number(hour[field])},
+                                )
+                              : context.t(
+                                  'ui.audit1179',
+                                  args: {'p0': hour[field]},
+                                ),
+                        },
+                      ),
                       child: Semantics(
-                        label:
-                            '${hour['hour']}시 ${_number(hour[field])}${money ? '원' : '건'}',
+                        label: context.t(
+                          'ui.audit962',
+                          args: {
+                            'p0': hour['hour'],
+                            'p1': _number(hour[field]),
+                            'p2': money
+                                ? context.t('ui.audit1180')
+                                : context.t('ui.audit1181'),
+                          },
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           child: Container(
@@ -688,40 +794,40 @@ class _StoreDashboardState extends State<StoreDashboard> {
             ),
           ),
           space(8),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(
-                  '00시',
+                  context.t('ui.audit963'),
                   textAlign: TextAlign.center,
                   style: AppText.caption,
                 ),
               ),
               Expanded(
                 child: Text(
-                  '06시',
+                  context.t('ui.audit964'),
                   textAlign: TextAlign.center,
                   style: AppText.caption,
                 ),
               ),
               Expanded(
                 child: Text(
-                  '12시',
+                  context.t('ui.audit965'),
                   textAlign: TextAlign.center,
                   style: AppText.caption,
                 ),
               ),
               Expanded(
                 child: Text(
-                  '18시',
+                  context.t('ui.audit966'),
                   textAlign: TextAlign.center,
                   style: AppText.caption,
                 ),
               ),
               Expanded(
                 child: Text(
-                  '23시',
+                  context.t('ui.audit967'),
                   textAlign: TextAlign.center,
                   style: AppText.caption,
                 ),
@@ -819,7 +925,7 @@ class _StoreDashboardState extends State<StoreDashboard> {
         tile(
           Icons.inventory_2_outlined,
           '부족 재료',
-          '${low.length}개',
+          context.t('ui.audit960', args: {'p0': low.length}),
           low.isEmpty
               ? '최소 수량 이하 재료 없음'
               : low.map((i) => i['name']).join(' · '),

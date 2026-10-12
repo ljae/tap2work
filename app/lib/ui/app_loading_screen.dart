@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'components.dart';
@@ -84,15 +85,14 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> {
         Semantics(
           liveRegion: true,
           child: Text(
-            failed ? '매장을 불러오지 못했어요' : widget.title,
+            failed ? context.t('ui.audit1065') : widget.title,
             textAlign: TextAlign.center,
             style: AppText.section,
           ),
         ),
         const SizedBox(height: 12),
         Text(
-          widget.error ??
-              (slow ? '연결이 조금 늦어지고 있어요. 잠시 기다리거나 다시 시도해 주세요.' : widget.message),
+          widget.error ?? (slow ? context.t('ui.audit1066') : widget.message),
           textAlign: TextAlign.center,
           style: AppText.caption,
         ),
@@ -102,7 +102,7 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> {
           FilledButton.icon(
             onPressed: widget.onRetry,
             icon: const Icon(Icons.refresh),
-            label: const Text('다시 시도'),
+            label: Text(context.t('ui.audit473')),
           ),
         ],
       ],

@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -117,7 +118,7 @@ class _ManualPrintScreenState extends State<ManualPrintScreen> {
       if (mounted && valid) setState(() => bytes = result);
     } catch (_) {
       if (mounted) {
-        setState(() => error = 'PDF를 만들지 못했어요. 선택 항목을 줄이거나 다시 시도해 주세요.');
+        setState(() => error = context.t('ui.audit1265'));
       }
     }
     if (mounted) setState(() => busy = false);
@@ -138,13 +139,13 @@ class _ManualPrintScreenState extends State<ManualPrintScreen> {
       if (mounted && valid) {
         setState(
           () => message = ok
-              ? (print ? '인쇄 대화상자를 열었어요.' : 'PDF 저장·공유 창을 열었어요.')
-              : '취소됐어요. PDF는 다시 열 수 있어요.',
+              ? (print ? context.t('ui.audit1556') : context.t('ui.audit1557'))
+              : context.t('ui.audit1558'),
         );
       }
     } catch (_) {
       if (mounted) {
-        setState(() => error = '파일을 열지 못했어요. PDF 저장으로 내려받아 인쇄해 주세요.');
+        setState(() => error = context.t('ui.audit1266'));
       }
     }
     if (mounted) setState(() => busy = false);
@@ -205,19 +206,25 @@ class _ManualPrintScreenState extends State<ManualPrintScreen> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: widget.ops,
     builder: (context, _) => AppEditorScaffold(
-      title: '매뉴얼 인쇄·PDF',
-      subtitle: widget.recipes ? '메뉴·레시피 인쇄' : '장소·파트별 체크리스트와 매뉴얼',
+      title: context.t('ui.audit876'),
+      subtitle: widget.recipes
+          ? context.t('ui.audit877')
+          : context.t('ui.audit878'),
       footer: AppSheetFooter(
         children: [
-          if (!valid) const Information('매장 또는 계정이 변경됐어요. 닫고 다시 열어 주세요.'),
-          if (error != null) Information(error!),
+          if (!valid) Information(context.t('ui.audit327')),
+          if (error != null) Information(context.t(error!)),
           if (message != null) Text(message!, style: AppText.caption),
           if (bytes == null)
             FilledButton.icon(
               key: const ValueKey('manual-print-generate'),
               onPressed: busy || !valid || chosen.isEmpty ? null : generate,
               icon: const Icon(Icons.picture_as_pdf_outlined),
-              label: Text(busy ? 'PDF 만드는 중…' : '선택 ${chosen.length}개 PDF 만들기'),
+              label: Text(
+                busy
+                    ? context.t('ui.audit879')
+                    : context.t('ui.audit880', args: {'p0': chosen.length}),
+              ),
             )
           else
             Wrap(
@@ -227,12 +234,12 @@ class _ManualPrintScreenState extends State<ManualPrintScreen> {
                 FilledButton.icon(
                   onPressed: busy || !valid ? null : () => output(false),
                   icon: const Icon(Icons.download_outlined),
-                  label: const Text('PDF 저장'),
+                  label: Text(context.t('ui.audit328')),
                 ),
                 OutlinedButton.icon(
                   onPressed: busy || !valid ? null : () => output(true),
                   icon: const Icon(Icons.print_outlined),
-                  label: const Text('인쇄'),
+                  label: Text(context.t('ui.audit329')),
                 ),
                 TextButton(
                   onPressed: busy || !valid
@@ -240,12 +247,16 @@ class _ManualPrintScreenState extends State<ManualPrintScreen> {
                       : () => showAppSheet(
                           context,
                           builder: (_) => Scaffold(
-                            appBar: AppBar(title: const Text('인쇄 미리보기')),
+                            appBar: AppBar(
+                              title: Text(context.t('ui.audit330')),
+                            ),
                             body: ListenableBuilder(
                               listenable: widget.ops,
                               builder: (_, _) => !valid
-                                  ? const Center(
-                                      child: Information('매장 또는 계정이 변경됐어요.'),
+                                  ? Center(
+                                      child: Information(
+                                        context.t('ui.audit881'),
+                                      ),
                                     )
                                   : PdfPreview(
                                       build: (_) async => bytes!,
@@ -258,52 +269,59 @@ class _ManualPrintScreenState extends State<ManualPrintScreen> {
                             ),
                           ),
                         ),
-                  child: const Text('미리보기'),
+                  child: Text(context.t('ui.audit331')),
                 ),
               ],
             ),
         ],
       ),
       body: !valid
-          ? const Center(child: Information('매장 또는 계정이 변경됐어요. 닫고 다시 열어 주세요.'))
+          ? Center(child: Information(context.t('ui.audit327')))
           : ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                picker('출력 양식', format, {
-                  'both': '체크리스트 + 상세 매뉴얼',
-                  'checklist': '체크리스트 · 체크칸과 메모',
-                  'manual': '상세 매뉴얼 · 방법과 주의사항',
+                picker(context.t('ui.audit1163'), format, {
+                  'both': context.t('ui.audit1164'),
+                  'checklist': context.t('ui.audit1165'),
+                  'manual': context.t('ui.audit1166'),
                 }, (v) => format = v),
                 picker(
-                  '묶는 기준',
+                  context.t('ui.audit1167'),
                   groupBy,
-                  {'part': '파트별', 'zone': '장소별', 'folder': '폴더별'},
+                  {
+                    'part': context.t('ui.audit1168'),
+                    'zone': context.t('ui.audit1169'),
+                    'folder': context.t('ui.audit1170'),
+                  },
                   (v) {
                     groupBy = v;
                     filter = '';
                   },
                 ),
-                picker('인쇄 언어', locale, printLanguages, (v) => locale = v),
+                picker(
+                  context.t('ui.audit1171'),
+                  locale,
+                  printLanguages,
+                  (v) => locale = v,
+                ),
                 if (locale != 'ko') ...[
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('한국어 원문 함께 표시'),
+                    title: Text(context.t('ui.audit332')),
                     value: bilingual,
                     onChanged: busy ? null : (v) => change(() => bilingual = v),
                   ),
-                  const Information(
-                    '번역이 없거나 원문이 바뀐 항목은 한국어 원문과 번역 필요 표시로 출력해요. 번역은 직접 등록·검토하며 자동 번역하지 않아요.',
-                  ),
+                  Information(context.t('ui.audit333')),
                   const SizedBox(height: 16),
                 ],
-                picker('용지', paper, {
-                  'a4': 'A4 · 기본 인쇄',
-                  'a5': 'A5 · 작은 안내서',
+                picker(context.t('ui.audit1172'), paper, {
+                  'a4': context.t('ui.audit1173'),
+                  'a5': context.t('ui.audit1174'),
                 }, (v) => paper = v),
-                const Text('출력할 TAP', style: AppText.section),
+                Text(context.t('ui.audit334'), style: AppText.section),
                 const SizedBox(height: 12),
-                picker('대상 필터', filter, {
-                  '': '전체',
+                picker(context.t('ui.audit1175'), filter, {
+                  '': context.t('ui.audit656'),
                   for (final s in sources)
                     (printGroupId(s, groupBy).isEmpty
                         ? '__unassigned'
@@ -316,8 +334,8 @@ class _ManualPrintScreenState extends State<ManualPrintScreen> {
                 }, (v) => filter = v),
                 TextField(
                   key: const ValueKey('manual-print-search'),
-                  decoration: const InputDecoration(
-                    labelText: 'TAP 검색',
+                  decoration: InputDecoration(
+                    labelText: context.t('ui.audit335'),
                     prefixIcon: Icon(Icons.search),
                   ),
                   onChanged: (v) => setState(() => query = v),
@@ -332,7 +350,7 @@ class _ManualPrintScreenState extends State<ManualPrintScreen> {
                                 visible.map((s) => s['id'] as String),
                               ),
                             ),
-                      child: const Text('보이는 항목 선택'),
+                      child: Text(context.t('ui.audit336')),
                     ),
                     TextButton(
                       onPressed: busy
@@ -342,16 +360,24 @@ class _ManualPrintScreenState extends State<ManualPrintScreen> {
                                 visible.map((s) => s['id']),
                               ),
                             ),
-                      child: const Text('보이는 항목 해제'),
+                      child: Text(context.t('ui.audit337')),
                     ),
                   ],
                 ),
                 Text(
-                  '선택 ${chosen.length}개 · Task ${chosen.fold<int>(0, (n, s) => n + printRows(s['steps']).length)}개',
+                  context.t(
+                    'ui.audit882',
+                    args: {
+                      'p0': chosen.length,
+                      'p1': chosen.fold<int>(
+                        0,
+                        (n, s) => n + printRows(s['steps']).length,
+                      ),
+                    },
+                  ),
                   style: AppText.caption,
                 ),
-                if (sources.isEmpty)
-                  const Information('출력할 매뉴얼이 없어요. 매뉴얼을 먼저 추가해 주세요.'),
+                if (sources.isEmpty) Information(context.t('ui.audit338')),
                 for (final s in visible)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -380,16 +406,13 @@ class _ManualPrintScreenState extends State<ManualPrintScreen> {
                             onPressed: busy || !valid || widget.ops.readOnly
                                 ? null
                                 : () => translate(s),
-                            child: const Text('번역 등록·검토'),
+                            child: Text(context.t('ui.audit339')),
                           ),
                         ),
                     ],
                   ),
                 const SizedBox(height: 16),
-                const Text(
-                  '인쇄본의 체크는 앱의 업무 완료에 반영되지 않아요. PDF는 선택 시점의 저장된 내용으로 만들어요.',
-                  style: AppText.caption,
-                ),
+                Text(context.t('ui.audit340'), style: AppText.caption),
               ],
             ),
     ),
@@ -466,7 +489,7 @@ class _ManualPrintTranslationScreenState
                     s[k].toString().trim().isEmpty,
               )),
         )) {
-      setState(() => error = '원문이 있는 제목·방법·주의사항의 번역을 모두 입력해 주세요.');
+      setState(() => error = context.t('ui.audit1267'));
       return;
     }
     setState(() {
@@ -493,7 +516,7 @@ class _ManualPrintTranslationScreenState
     } else {
       setState(() {
         saving = false;
-        error = widget.ops.error ?? '번역을 저장하지 못했어요.';
+        error = widget.ops.error ?? context.t('ui.audit1268');
       });
     }
   }
@@ -504,15 +527,15 @@ class _ManualPrintTranslationScreenState
       final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('번역 수정을 버릴까요?'),
+          title: Text(context.t('ui.audit341')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('계속 작성'),
+              child: Text(context.t('ui.audit342')),
             ),
             TextButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('버리기'),
+              child: Text(context.t('ui.audit289')),
             ),
           ],
         ),
@@ -559,10 +582,8 @@ class _ManualPrintTranslationScreenState
     listenable: widget.ops,
     builder: (_, _) => !valid
         ? Scaffold(
-            appBar: AppBar(title: const Text('번역')),
-            body: const Center(
-              child: Information('편집 권한 또는 매장이 변경됐어요. 닫고 다시 열어 주세요.'),
-            ),
+            appBar: AppBar(title: Text(context.t('ui.audit343'))),
+            body: Center(child: Information(context.t('ui.audit883'))),
           )
         : PopScope(
             canPop: leaving || (!dirty && !saving),
@@ -570,27 +591,38 @@ class _ManualPrintTranslationScreenState
               if (!didPop) close();
             },
             child: AppEditorScaffold(
-              title: '${printLanguages[widget.locale]} 번역',
+              title: context.t(
+                'ui.audit884',
+                args: {'p0': printLanguages[widget.locale]},
+              ),
               onClose: close,
               footer: AppSheetFooter(
                 children: [
-                  if (error != null) Information(error!),
+                  if (error != null) Information(context.t(error!)),
                   FilledButton(
                     onPressed: saving ? null : save,
-                    child: Text(saving ? '저장 중…' : '검토한 번역 저장'),
+                    child: Text(
+                      saving
+                          ? context.t('ui.audit532')
+                          : context.t('ui.audit885'),
+                    ),
                   ),
                 ],
               ),
               body: ListView(
                 padding: const EdgeInsets.all(24),
                 children: [
-                  const Information(
-                    '아래 원문과 뜻·수치·주의사항을 대조해 주세요. 저장한 번역은 매장 인쇄본에서 함께 사용하며 한국어 원문은 바꾸지 않아요.',
-                  ),
+                  Information(context.t('ui.audit344')),
                   const SizedBox(height: 20),
-                  Text('원문 · ${widget.source['title']}', style: AppText.body),
+                  Text(
+                    context.t(
+                      'ui.audit886',
+                      args: {'p0': widget.source['title']},
+                    ),
+                    style: AppText.body,
+                  ),
                   const SizedBox(height: 8),
-                  field('TAP 이름 번역', title, (v) => title = v),
+                  field(context.t('ui.audit1563'), title, (v) => title = v),
                   for (final (index, source) in printRows(
                     widget.source['steps'],
                   ).indexed) ...[
@@ -600,24 +632,27 @@ class _ManualPrintTranslationScreenState
                     ),
                     const SizedBox(height: 8),
                     field(
-                      'Task 이름 번역',
+                      context.t('ui.audit1564'),
                       steps[index]['title'],
                       (v) => steps[index]['title'] = v,
                     ),
                     Text(source['manual'] ?? '', style: AppText.body),
                     const SizedBox(height: 8),
                     field(
-                      '진행 방법 번역',
+                      context.t('ui.audit1565'),
                       steps[index]['manual'],
                       (v) => steps[index]['manual'] = v,
                       lines: 3,
                       max: 3000,
                     ),
                     if ((source['tip'] ?? '').toString().isNotEmpty) ...[
-                      Text('주의 · ${source['tip']}', style: AppText.caption),
+                      Text(
+                        context.t('ui.audit887', args: {'p0': source['tip']}),
+                        style: AppText.caption,
+                      ),
                       const SizedBox(height: 8),
                       field(
-                        '주의사항 번역',
+                        context.t('ui.audit1566'),
                         steps[index]['tip'],
                         (v) => steps[index]['tip'] = v,
                         lines: 2,

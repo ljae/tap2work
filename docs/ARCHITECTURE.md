@@ -727,3 +727,10 @@ Native verification follow-up: AppEditorScaffold now honors top SafeArea on full
 `work_recurrence.mjs` handles daily/weekly/monthly dates and opt-in `holidayPolicy=next_open`; new default proposals and edited recurrence use this policy. Missing monthly dates clamp to month end; closed date overrides and consecutive closed dates roll to the next opening, coalescing into one checklist. No retrospective mass generation. Existing inventory latest-order review deadlines remain independent. `ownerWorkflow.plans` projects tomorrow without adding task/completion records. `schedule_tap_settings` validates via existing TAP settings rules against a copy and stages settings on the template, effective tomorrow and all future recurrences. Generation promotes the settings on that business date; existing started/completed snapshots are retained. Settings/assignment and manual content continue to share TAP identity and existing completion engine.
 
 Flutter `OwnerWorkflowScreen` provides review → saved effects → tomorrow planning. Existing `TapSettingsScreen` edits planned settings; `ManualTapEditor` edits future manual source content. Immediate content edits update manual search immediately but do not rewrite already generated tasks. The screen pins workspace/actor, requires explicit review before selection and retains server errors. Work/settings and navigation effects use shared motion, card and footer components.
+
+
+## 2026-10-12 고정 UI·기본 운영 제안 번역 보완
+
+`AppStrings`는 기존 세 번역표에 `supplemental_messages.dart`를 더해 상세 설정·편집·피드백/접근성 문구를 8언어로 표시한다. 한국어 고정 라벨의 정확한 source lookup은 enum 표시용이며 알 수 없는 원문은 유지한다. nullable 표시 변수도 기존 문자열 보간과 같은 방식으로 치환한다. 업무 연결 진단은 `localizedWorkStatus`에서 서버 원인 문구 또는 scheduled.executionIds 개수를 번역하며 상태 코드는 번역하지 않는다.
+
+공용109개 원본+웰컴에 기존 owner_starter_content.json의24매뉴얼110행동과 첫 근무6개 안내의 누락 필드를 사전 번역으로 보완한다. 번들에는 catalogReleaseId와 함께 ownerStarterVersion / firstShiftGuideVersion을 기록한다. 운영 준비 목록·검색·검토·내일 제목과 첫 근무 안내는 PreparedManualScope를 소비한다. 원문 ID·검토 fingerprint·사진·완료·등록 동작을 변경하지 않는다. check-manual-translations.mjs는 세 원본 묶음의 정확한 source keys와 숫자·변수를 검사한다. 번역 상태는 ai-draft이며 원어민 확인은 별도다. 실시간 유료 번역은 계속 비활성화한다.

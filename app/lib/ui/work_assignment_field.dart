@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -65,15 +66,15 @@ class WorkAssignmentField extends StatelessWidget {
     void change(String key, dynamic v) => onChanged({...current, key: v});
     return LayoutBuilder(
       builder: (context, box) => AppFormSection(
-        title: '업무 담당',
+        title: context.t('ui.audit1045'),
         children: [
           AppPillField<String>(
             key: ValueKey('assignment-mode-$inherit-$mode'),
             initialValue: mode,
-            decoration: const InputDecoration(labelText: '담당 방식'),
+            decoration: InputDecoration(labelText: context.t('ui.audit453')),
             items: [
               for (final e in modes.entries)
-                DropdownMenuItem(value: e.key, child: Text(e.value)),
+                DropdownMenuItem(value: e.key, child: Text(context.t(e.value))),
             ],
             onChanged: (v) {
               if (v != null) {
@@ -92,7 +93,7 @@ class WorkAssignmentField extends StatelessWidget {
               initialValue: parts.any((p) => p['id'] == current['partId'])
                   ? current['partId']
                   : null,
-              decoration: const InputDecoration(labelText: '담당 파트'),
+              decoration: InputDecoration(labelText: context.t('ui.audit39')),
               items: [
                 for (final p in parts)
                   DropdownMenuItem(
@@ -106,9 +107,8 @@ class WorkAssignmentField extends StatelessWidget {
                 'timeBandIds': <String>[],
               }),
             ),
-            const Text('시간대 · 여러 개 선택 가능', style: AppText.caption),
-            if (bands.isEmpty)
-              const Information('영업시간 설정에서 시간대를 저장한 뒤 연결해 주세요.'),
+            Text(context.t('ui.audit454'), style: AppText.caption),
+            if (bands.isEmpty) Information(context.t('ui.audit455')),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -117,7 +117,31 @@ class WorkAssignmentField extends StatelessWidget {
                   FilterChip(
                     label: _AssignmentLabel(
                       box.maxWidth,
-                      "${b['name']} ${b['partTimes']?[current['partId']]?['start'] ?? b['start']}–${b['partTimes']?[current['partId']]?['end'] ?? b['end']} · ${(b['weekdays'] as List).map((d) => ['월', '화', '수', '목', '금', '토', '일'][(d as int) - 1]).join('·')} (요일별 조정 가능)",
+                      context.t(
+                        'ui.audit2131',
+                        args: {
+                          'p0': b['name'],
+                          'p1':
+                              b['partTimes']?[current['partId']]?['start'] ??
+                              b['start'],
+                          'p2':
+                              b['partTimes']?[current['partId']]?['end'] ??
+                              b['end'],
+                          'p3': (b['weekdays'] as List)
+                              .map(
+                                (d) => [
+                                  '월',
+                                  '화',
+                                  '수',
+                                  '목',
+                                  '금',
+                                  '토',
+                                  '일',
+                                ][(d as int) - 1],
+                              )
+                              .join('·'),
+                        },
+                      ),
                     ),
                     selected: ids.contains(b['id']),
                     onSelected: (selected) {
@@ -129,19 +153,16 @@ class WorkAssignmentField extends StatelessWidget {
               ],
             ),
             if (ids.any((id) => !bands.any((b) => b['id'] == id))) ...[
-              const Information('선택한 파트에서 사용할 수 없는 시간대가 있어요.'),
+              Information(context.t('ui.audit456')),
               TextButton(
                 onPressed: () => change(
                   'timeBandIds',
                   ids.where((id) => bands.any((b) => b['id'] == id)).toList(),
                 ),
-                child: const Text('사용할 수 없는 연결 해제'),
+                child: Text(context.t('ui.audit457')),
               ),
             ],
-            const Text(
-              '시간대마다 공동 업무를 만들어요. 실제 근무자를 담당자로 표시하며 같은 파트의 다른 크루도 지원 완료할 수 있어요.',
-              style: AppText.caption,
-            ),
+            Text(context.t('ui.audit458'), style: AppText.caption),
           ],
           if (mode == 'crew') ...[
             Wrap(
@@ -166,20 +187,14 @@ class WorkAssignmentField extends StatelessWidget {
                   ),
               ],
             ),
-            const Text('선택한 크루가 함께 맡고 한 명이 완료하면 끝나요.', style: AppText.caption),
+            Text(context.t('ui.audit459'), style: AppText.caption),
           ],
           if (mode == 'anyone')
-            const Text(
-              '매장 영업일 경계부터 다음 경계까지 근무가 배정된 크루의 공용 업무예요. 휴무만 있는 크루는 제외해요.',
-              style: AppText.caption,
-            ),
+            Text(context.t('ui.audit460'), style: AppText.caption),
           if (mode == 'legacy')
-            const Text(
-              '시간대에 연결하지 않은 기존 업무예요. 기존 파트의 완료 기준을 유지해요.',
-              style: AppText.caption,
-            ),
+            Text(context.t('ui.audit461'), style: AppText.caption),
           if (mode == 'inherit')
-            const Text('이 Task는 TAP의 담당 방식을 따라요.', style: AppText.caption),
+            Text(context.t('ui.audit462'), style: AppText.caption),
         ],
       ),
     );

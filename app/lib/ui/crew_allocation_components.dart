@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../domain/crew_allocation.dart';
 import 'components.dart';
@@ -8,7 +9,7 @@ class CrewHoursBadge extends StatelessWidget {
   final CrewHoursSummary hours;
   @override
   Widget build(BuildContext context) => Tooltip(
-    message: hours.hint ?? '선택 주 기본 배정 시간 · 휴게 미반영',
+    message: hours.hint ?? context.t('ui.audit281'),
     child: Container(
       constraints: const BoxConstraints(minWidth: 88),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

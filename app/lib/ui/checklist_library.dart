@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../domain/checklist_draft.dart';
 import '../state/operations_controller.dart';
@@ -39,23 +40,23 @@ Future<void> showChecklistLibrary(
           ),
           child: Column(
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
                 child: Text(
-                  '업종별 기본 체크리스트',
+                  context.t('ui.audit1052'),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                 ),
               ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text('필요한 그룹만 골라 가져오세요. 이미 수정한 그룹은 그대로 유지해요.'),
+                child: Text(context.t('ui.audit1053')),
               ),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: TextField(
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     prefixIcon: Icon(Icons.search),
-                    labelText: '업종·그룹 검색',
+                    labelText: context.t('ui.audit471'),
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (v) => update(() => query = v.trim()),
@@ -78,14 +79,25 @@ Future<void> showChecklistLibrary(
                         key: ValueKey('industry-${industry['id']}'),
                         title: Text(industry['name']),
                         subtitle: Text(
-                          '${_rows(industry['tasks']).length}개 그룹 · ${industry['basis'] ?? '출처를 참고한 운영 제안'}',
+                          context.t(
+                            'ui.audit1054',
+                            args: {
+                              'p0': _rows(industry['tasks']).length,
+                              'p1':
+                                  industry['basis'] ??
+                                  context.t('ui.audit1229'),
+                            },
+                          ),
                         ),
                         children: [
                           for (final task in _rows(industry['tasks']))
                             ExpansionTile(
                               key: ValueKey(libraryTaskId(industry, task)),
                               leading: Checkbox(
-                                semanticLabel: '${task['title']} 가져오기',
+                                semanticLabel: context.t(
+                                  'ui.audit1055',
+                                  args: {'p0': task['title']},
+                                ),
                                 value: selections[industry['id']]!.contains(
                                   task['id'],
                                 ),
@@ -116,8 +128,14 @@ Future<void> showChecklistLibrary(
                                           t['id'] ==
                                           libraryTaskId(industry, task),
                                     )
-                                    ? '이미 목록에 있어요 · 수정 내용 유지'
-                                    : '${task['slot']} · ${_rows(task['steps']).length}개 활동 · 눌러서 매뉴얼 보기',
+                                    ? context.t('ui.audit1056')
+                                    : context.t(
+                                        'ui.audit1057',
+                                        args: {
+                                          'p0': task['slot'],
+                                          'p1': _rows(task['steps']).length,
+                                        },
+                                      ),
                               ),
                               childrenPadding: const EdgeInsets.all(16),
                               children: [
@@ -178,7 +196,13 @@ Future<void> showChecklistLibrary(
                                           },
                                     icon: const Icon(Icons.add),
                                     label: Text(
-                                      '선택한 ${selections[industry['id']]!.length}개 그룹 가져오기',
+                                      context.t(
+                                        'ui.audit1058',
+                                        args: {
+                                          'p0': selections[industry['id']]!
+                                              .length,
+                                        },
+                                      ),
                                     ),
                                   ),
                                 ),

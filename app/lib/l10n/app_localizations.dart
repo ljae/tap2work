@@ -1,4 +1,5 @@
 import 'store_messages.dart';
+import 'supplemental_messages.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../domain/locale_policy.dart';
@@ -44,17 +45,24 @@ const appFontFallbacks = [
   'NotoSansJP',
 ];
 
+final _supplementalSourceKeys = {
+  for (final entry in supplementalMessageRows.entries)
+    entry.value.first: entry.key,
+};
+
 class AppStrings {
   AppStrings(String? tag) : languageTag = LocalePolicy.effectiveLanguage(tag);
   final String languageTag;
   static const delegate = _AppStringsDelegate();
   static AppStrings of(BuildContext context) =>
       Localizations.of<AppStrings>(context, AppStrings) ?? AppStrings('ko');
-  String text(String key, [Map<String, Object> params = const {}]) {
+  String text(String key, [Map<String, Object?> params = const {}]) {
     final row =
         appMessageRows[key] ??
         workflowMessageRows[key] ??
         storeMessageRows[key] ??
+        supplementalMessageRows[key] ??
+        supplementalMessageRows[_supplementalSourceKeys[key]] ??
         storeMessageRows[storeMessageAliases[key]] ??
         appMessageRows[appMessageAliases[key]];
     final index = LocalePolicy.supportedLanguages.toList().indexOf(languageTag);
@@ -67,7 +75,7 @@ class AppStrings {
 }
 
 extension AppTranslations on BuildContext {
-  String t(String key, {Map<String, Object> args = const {}}) =>
+  String t(String key, {Map<String, Object?> args = const {}}) =>
       AppStrings.of(this).text(key, args);
 }
 
@@ -82,4 +90,15 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
       SynchronousFuture(AppStrings(locale.toLanguageTag()));
   @override
   bool shouldReload(covariant LocalizationsDelegate<AppStrings> old) => false;
+}
+
+/// Localizes the server diagnosis without using a display label as a status code.
+String localizedWorkStatus(BuildContext context, Map<String, dynamic>? status) {
+  if (status?['code'] == 'scheduled') {
+    return context.t(
+      'workStatus.message16',
+      args: {'p0': (status?['executionIds'] as List? ?? []).length},
+    );
+  }
+  return context.t('${status?['label'] ?? '사용 방법을 확인해 주세요'}');
 }

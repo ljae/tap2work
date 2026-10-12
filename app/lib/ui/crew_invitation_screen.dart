@@ -348,7 +348,10 @@ class _CrewInvitationScreenState extends State<CrewInvitationScreen> {
             ),
           ],
         ],
-        if (error != null) ...[const SizedBox(height: 16), Information(error!)],
+        if (error != null) ...[
+          const SizedBox(height: 16),
+          Information(context.t(error!)),
+        ],
       ],
     ),
   );

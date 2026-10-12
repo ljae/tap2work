@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../data/photo_capture_service.dart';
@@ -79,16 +80,16 @@ class _ManualActionEditorState extends State<ManualActionEditor> {
         await showAppDialog<bool>(
               context: context,
               builder: (c) => AlertDialog(
-                title: const Text('매뉴얼 편집을 취소할까요?'),
-                content: const Text('아직 저장하지 않은 내용이 있어요.'),
+                title: Text(context.t('ui.audit42')),
+                content: Text(context.t('ui.audit43')),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(c, false),
-                    child: const Text('계속 수정'),
+                    child: Text(context.t('ui.audit179')),
                   ),
                   FilledButton(
                     onPressed: () => Navigator.pop(c, true),
-                    child: const Text('변경 버리기'),
+                    child: Text(context.t('ui.audit22')),
                   ),
                 ],
               ),
@@ -122,16 +123,16 @@ class _ManualActionEditorState extends State<ManualActionEditor> {
     final source = Uri.tryParse(payload['sourceUrl']);
     if ((payload['sourceUrl'] as String).isNotEmpty &&
         (source?.scheme != 'https' || source?.host.isEmpty != false)) {
-      problem = '공식 사진 가이드는 HTTPS 링크를 입력해 주세요.';
+      problem = context.t('ui.audit1492');
     }
     if (tags.length > 20 || tags.any((tag) => tag.length > 30)) {
-      problem = '연관어는 최대 20개, 각 30자 이내로 입력해 주세요.';
+      problem = context.t('ui.audit1493');
     }
     if (!scopeCurrent || !currentStepEditable) {
-      problem = '매장·권한 또는 업무가 변경됐어요. 다시 열어 주세요.';
+      problem = context.t('ui.audit1494');
     }
     if (widget.ops.data?['revision'] != revision) {
-      problem = '다른 변경이 저장됐어요. 최신 매뉴얼을 다시 열어 주세요.';
+      problem = context.t('ui.audit1402');
     }
     if (problem != null) {
       setState(() => failure = problem);
@@ -160,7 +161,7 @@ class _ManualActionEditorState extends State<ManualActionEditor> {
         setState(() => leaving = true);
         Navigator.pop(context);
       } else {
-        setState(() => failure = widget.ops.error ?? '저장하지 못했어요. 다시 시도해 주세요.');
+        setState(() => failure = widget.ops.error ?? context.t('ui.audit1139'));
       }
     } catch (error) {
       if (mounted) setState(() => failure = '$error');
@@ -191,7 +192,7 @@ class _ManualActionEditorState extends State<ManualActionEditor> {
       if (!didPop) close();
     },
     child: AppEditorScaffold(
-      title: '매뉴얼 편집',
+      title: context.t('ui.audit41'),
       subtitle: widget.step['title'],
       onClose: close,
       body: AbsorbPointer(
@@ -199,7 +200,7 @@ class _ManualActionEditorState extends State<ManualActionEditor> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.large),
           children: [
-            field('manual', '방법과 완료 기준', lines: 3, limit: 700),
+            field('manual', context.t('ui.audit1136'), lines: 3, limit: 700),
             const SizedBox(height: 20),
             PhotoRegistrationField(
               value: draft['imageUrl'],
@@ -231,23 +232,17 @@ class _ManualActionEditorState extends State<ManualActionEditor> {
               }),
             ),
             if (!widget.ops.cloud)
-              const Text(
-                '촬영한 사진 등록은 로그인한 매장에서 사용할 수 있어요.',
-                style: AppText.caption,
-              ),
+              Text(context.t('ui.audit47'), style: AppText.caption),
             if (pending == null && !isManualMediaReference(draft['imageUrl']))
-              field('imageUrl', '사진 HTTPS 링크 (선택)'),
+              field('imageUrl', context.t('ui.audit1108')),
             const SizedBox(height: 20),
-            field('videoUrl', '영상 HTTPS 링크 (선택)'),
+            field('videoUrl', context.t('ui.audit1109')),
             const SizedBox(height: 20),
-            field('sourceUrl', '공식 사진 가이드 HTTPS 링크 (선택)'),
+            field('sourceUrl', context.t('ui.audit1110')),
             const SizedBox(height: 20),
-            field('tags', '#연관어 · 쉼표로 구분'),
+            field('tags', context.t('ui.audit1137')),
             const SizedBox(height: 16),
-            const Text(
-              '연결된 기본 레시피도 갱신해 다음 주문에 사용해요. 완료 기록은 유지돼요.',
-              style: AppText.caption,
-            ),
+            Text(context.t('ui.audit235'), style: AppText.caption),
           ],
         ),
       ),
@@ -264,7 +259,9 @@ class _ManualActionEditorState extends State<ManualActionEditor> {
           PressBounce(
             child: FilledButton(
               onPressed: saving || converting ? null : save,
-              child: Text(saving ? '저장 중…' : '저장'),
+              child: Text(
+                saving ? context.t('ui.audit532') : context.t('ui.audit51'),
+              ),
             ),
           ),
         ],

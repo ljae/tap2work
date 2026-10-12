@@ -300,7 +300,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     if (view != null) {
       final label =
           view['timeBandName'] ??
-          (view['mode'] == 'anyone' ? '오늘 근무 크루' : '담당');
+          (view['mode'] == 'anyone'
+              ? context.t('ui.audit1279')
+              : context.t('ui.audit893'));
       final partName = storeParts(
         ops,
       ).where((p) => p['id'] == view['partId']).firstOrNull?['name'];
@@ -409,9 +411,25 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     final targetText = target == null
         ? ''
         : elapsed > target
-        ? ' · 목표 $target분(가상) · ${elapsed - target}분 초과'
-        : ' · 목표 $target분(가상) · ${target - elapsed}분 남음';
-    return '${korean.month}/${korean.day} $clock 접수 · ${completed ? '완료까지 ' : ''}경과 $elapsed분$targetText';
+        ? context.t(
+            'ui.audit2067',
+            args: {'p0': target, 'p1': elapsed - target},
+          )
+        : context.t(
+            'ui.audit2068',
+            args: {'p0': target, 'p1': target - elapsed},
+          );
+    return context.t(
+      'ui.audit2126',
+      args: {
+        'p0': korean.month,
+        'p1': korean.day,
+        'p2': clock,
+        'p3': completed ? '완료까지 ' : '',
+        'p4': elapsed,
+        'p5': targetText,
+      },
+    );
   }
 
   void navigate({String? folder, String? task}) {
@@ -471,7 +489,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               (task['customer_memo'] ?? '').toString().isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Information('요청사항 · ${task['customer_memo']}'),
+              child: Information(
+                context.t('ui.audit1022', args: {'p0': task['customer_memo']}),
+              ),
             ),
           if (task == null && !ops.canEditTasks)
             FilterChip(
@@ -496,7 +516,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                           'manual.progress',
                           args: {'done': done(task), 'total': total(task)},
                         )
-                      : 'TAP · ${folder == null ? '전체 업무' : '${folder['name']} 그룹'}',
+                      : 'TAP · ${folder == null ? '전체 업무' : context.t('ui.audit2127', args: {'p0': folder['name']})}',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -504,8 +524,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                   ),
                 ),
                 if (ops.readOnly)
-                  const Text(
-                    '체험 · 저장 안 됨',
+                  Text(
+                    context.t('ui.audit431'),
                     style: TextStyle(fontSize: 13, color: AppColors.muted),
                   ),
               ],
@@ -701,7 +721,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 ),
               _draggable(
                 data: first['id'],
-                feedback: Material(child: Text('주문 ${first['orderNumber']}')),
+                feedback: Material(
+                  child: Text(
+                    context.t(
+                      'ui.audit1023',
+                      args: {'p0': first['orderNumber']},
+                    ),
+                  ),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
                   child: Column(
@@ -711,7 +738,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                         children: [
                           Expanded(
                             child: Text(
-                              '주문 ${first['orderNumber']} · ${first['orderChannel']} · ${members.length} 메뉴',
+                              context.t(
+                                'ui.audit1024',
+                                args: {
+                                  'p0': first['orderNumber'],
+                                  'p1': first['orderChannel'],
+                                  'p2': members.length,
+                                },
+                              ),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: groupText,
@@ -720,7 +754,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                           ),
                           if (request.isNotEmpty)
                             IconButton(
-                              tooltip: '요청사항 보기',
+                              tooltip: context.t('ui.audit1025'),
                               icon: Icon(
                                 CupertinoIcons.exclamationmark_bubble,
                                 color: AppColors.accent,
@@ -728,13 +762,13 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                               onPressed: () => showAppFormSheet<void>(
                                 context: context,
                                 builder: (_) => AppSheetPanel(
-                                  title: const Text('주문 요청사항'),
+                                  title: Text(context.t('ui.audit432')),
                                   content: Text(request),
                                   actions: [
                                     PressBounce(
                                       child: TextButton(
                                         onPressed: () => Navigator.pop(context),
-                                        child: const Text('확인'),
+                                        child: Text(context.t('ui.audit226')),
                                       ),
                                     ),
                                   ],
@@ -744,24 +778,24 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                           PopupMenuButton<String>(
                             popUpAnimationStyle: AppMotion.dialogStyle(context),
                             iconColor: groupText,
-                            tooltip: '주문 그룹 이동',
+                            tooltip: context.t('ui.audit1026'),
                             onSelected: (value) =>
                                 _moveTap(first, folderOf(first), value),
                             itemBuilder: (_) => [
                               if (complete)
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'todo',
-                                  child: Text('전체 다시 열기'),
+                                  child: Text(context.t('ui.audit1027')),
                                 ),
                               if (!complete)
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'processing',
-                                  child: Text('전체 조리 시작'),
+                                  child: Text(context.t('ui.audit1028')),
                                 ),
                               if (!complete)
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'done',
-                                  child: Text('전체 완료'),
+                                  child: Text(context.t('ui.audit1029')),
                                 ),
                             ],
                           ),
@@ -852,7 +886,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       final moving = movingTask(id);
       final next = moving == null ? null : targetStatus(moving, lane);
       if (moving == null || next == null) {
-        notice('이 열에는 놓을 수 없어요.');
+        notice(context.t('ui.audit1210'));
         return;
       }
       _moveTap(moving, folderOf(moving), next, beforeTaskId: before);
@@ -1041,14 +1075,14 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     if (task['preparedOutputMovementId'] != null &&
         targetStatus != 'done' &&
         targetStatus != 'keep') {
-      notice('완성 수량이 반영된 Tap은 되돌릴 수 없어요. 실제 수량 보정을 사용해 주세요.');
+      notice(context.t('ui.audit1211'));
       return;
     }
     final ownCompleted =
         task['completedAt'] != null &&
         task['completedBy']?['id'] == ops.actor['id'];
     if (!ops.canEditTasks && task['canComplete'] != true && !ownCompleted) {
-      notice('담당 Tap만 이동할 수 있어요.');
+      notice(context.t('ui.audit1212'));
       return;
     }
     if (ops.readOnly) {
@@ -1101,17 +1135,25 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     final result = await showAppFormSheet<int>(
       context: context,
       builder: (dialog) => AppSheetPanel(
-        title: Text('${item?['name'] ?? task['title']} 완성 수량'),
+        title: Text(
+          context.t(
+            'ui.audit1030',
+            args: {'p0': item?['name'] ?? task['title']},
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('실제로 완성해 보관한 수량만 입력하세요.'),
+            Text(context.t('ui.audit433')),
             TextFormField(
               initialValue: quantityText,
               onChanged: (value) => quantityText = value,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: '완성 수량 · ${item?['unit'] ?? '개'}',
+                labelText: context.t(
+                  'ui.audit1031',
+                  args: {'p0': item?['unit'] ?? context.t('ui.audit1213')},
+                ),
               ),
             ),
           ],
@@ -1120,22 +1162,22 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           PressBounce(
             child: TextButton(
               onPressed: () => Navigator.pop(dialog),
-              child: const Text('취소'),
+              child: Text(context.t('ui.audit33')),
             ),
           ),
           PressBounce(
             child: FilledButton(
               onPressed: () =>
                   Navigator.pop(dialog, int.tryParse(quantityText)),
-              child: const Text('완료'),
+              child: Text(context.t('ui.audit434')),
             ),
           ),
         ],
       ),
     );
-    if (result == null) return null;
+    if (result == null || !mounted) return null;
     if (result < 1 || result > 100000) {
-      notice('실제 완성 수량은 1~100,000으로 입력해 주세요.');
+      notice(context.t('ui.audit1214'));
       return null;
     }
     return result;
@@ -1192,7 +1234,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           children: [
             ChoiceChip(
               chipAnimationStyle: AppMotion.chipStyle(context),
-              label: const Text('전체 파트'),
+              label: Text(context.t('ui.audit370')),
               selected: selectedPart == null,
               onSelected: (_) => setState(() => localPart = null),
             ),
@@ -1218,12 +1260,18 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         all.firstOrNull;
     String subtitleFor(Json step) {
       if (step['completedAt'] != null) {
-        return '${step['completedBy']?['name'] ?? ''} · ${stampOf(step['completedAt'])} 확인';
+        return context.t(
+          'ui.audit2128',
+          args: {
+            'p0': step['completedBy']?['name'] ?? '',
+            'p1': stampOf(step['completedAt']),
+          },
+        );
       }
       final settings = step['settings'] as Json? ?? {};
       if (settings['completionKind'] == 'quantity') {
         final spec = settings['quantitySpec'] as Json? ?? {};
-        return '실제 수량 입력 · ${spec['unit'] ?? ''}';
+        return context.t('ui.audit2129', args: {'p0': spec['unit'] ?? ''});
       }
       return '';
     }
@@ -1265,7 +1313,10 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           if (hasAssigned(step)) assigneeLabel(step),
           if (step['settings']?['estimatedMinutes'] is int &&
               step['settings']['estimatedMinutes'] > 0)
-            '약 ${step['settings']['estimatedMinutes']}분',
+            context.t(
+              'ui.audit2130',
+              args: {'p0': step['settings']['estimatedMinutes']},
+            ),
         ].where((text) => text.isNotEmpty).join(' · '),
 
         sequence: index + 1,
@@ -1314,7 +1365,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                       previewStepOrder['${ops.actorId}/${ops.data?['day']}/${task['id']}'] =
                           ids,
                 );
-                notice('체험 순서만 바꿨어요. 저장되지 않아요.');
+                notice(context.t('ui.audit1215'));
               } else {
                 final ok = await ops.act('reorder_small_taps', {
                   'taskId': task['id'],
@@ -1344,7 +1395,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             onPressed: ops.busy || ops.readOnly || task['canComplete'] != true
                 ? null
                 : () => _checkMenu(task),
-            child: const Text('TAP 완성 수량 입력'),
+            child: Text(context.t('ui.audit435')),
           ),
       ],
     );
@@ -1548,7 +1599,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         ),
       for (final ref in (task['knowledgeSnapshots'] as List? ?? []))
         ExpansionTile(
-          title: Text('참고 · ${ref['title']}'),
+          title: Text(context.t('ui.audit1032', args: {'p0': ref['title']})),
           children: [
             for (final item in (ref['steps'] as List? ?? []))
               ListTile(
@@ -1558,7 +1609,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           ],
         ),
       if (step['evidence'] != null)
-        Text('확인 기록 · ${step['evidence']['value']}'),
+        Text(
+          context.t('ui.audit1033', args: {'p0': step['evidence']['value']}),
+        ),
       if ((step['tags'] as List? ?? []).isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: 10),
@@ -1608,10 +1661,10 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                         mode: LaunchMode.externalApplication,
                       ) &&
                       mounted) {
-                    notice('링크를 열지 못했어요.');
+                    notice(context.t('ui.audit1216'));
                   }
                 } catch (_) {
-                  if (mounted) notice('링크를 열지 못했어요.');
+                  if (mounted) notice(context.t('ui.audit1216'));
                 }
               },
             ),
@@ -1654,7 +1707,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       return false;
     }
     if (checked && task['preparedOutputMovementId'] != null) {
-      notice('완성 수량이 반영된 Tap은 되돌릴 수 없어요. 실제 수량 보정을 사용해 주세요.');
+      notice(context.t('ui.audit1211'));
       return false;
     }
     if (!checked && (step['canComplete'] ?? task['canComplete']) != true) {
@@ -1669,19 +1722,19 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       final confirmed = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('완료를 되돌릴까요?'),
+          title: Text(context.t('ui.audit436')),
           content: Text(step['title']),
           actions: [
             PressBounce(
               child: TextButton(
                 onPressed: () => Navigator.pop(c, false),
-                child: const Text('취소'),
+                child: Text(context.t('ui.audit33')),
               ),
             ),
             PressBounce(
               child: FilledButton(
                 onPressed: () => Navigator.pop(c, true),
-                child: const Text('되돌리기'),
+                child: Text(context.t('ui.audit220')),
               ),
             ),
           ],
@@ -1697,7 +1750,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     }
     if (ops.readOnly) {
       if (checked && step['preview'] != true) {
-        notice('기존 확인 기록은 공개 미리보기에서 변경할 수 없어요.');
+        notice(context.t('ui.audit1217'));
         return false;
       }
       if (!checked &&
@@ -1760,7 +1813,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         evidence = await showAppDialog<String>(
           context: context,
           builder: (c) => AlertDialog(
-            title: Text('${step['title']} · 기록'),
+            title: Text(context.t('ui.audit1034', args: {'p0': step['title']})),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1771,8 +1824,8 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                     onChanged: (value) => input = value,
                     maxLength: 500,
                     maxLines: 4,
-                    decoration: const InputDecoration(
-                      labelText: '실제 시간·온도·상태와 조치',
+                    decoration: InputDecoration(
+                      labelText: context.t('ui.audit437'),
                     ),
                   ),
                 ],
@@ -1781,7 +1834,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(c),
-                child: const Text('취소'),
+                child: Text(context.t('ui.audit33')),
               ),
               FilledButton(
                 onPressed: () {
@@ -1789,7 +1842,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                     Navigator.pop(c, input.trim());
                   }
                 },
-                child: const Text('기록하고 완료'),
+                child: Text(context.t('ui.audit438')),
               ),
             ],
           ),
@@ -1833,35 +1886,37 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     final result = await showAppFormSheet<num>(
       context: context,
       builder: (dialog) => AppSheetPanel(
-        title: Text('${step['title']} · 실제 수량'),
+        title: Text(context.t('ui.audit1035', args: {'p0': step['title']})),
         content: TextFormField(
           initialValue: quantityText,
           onChanged: (value) => quantityText = value,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
-            labelText: '실제 수량 · $unit',
-            helperText: places == 0 ? '정수로 입력' : '소수 $places자리까지',
+            labelText: context.t('ui.audit1036', args: {'p0': unit}),
+            helperText: places == 0
+                ? context.t('ui.audit1037')
+                : context.t('ui.audit1038', args: {'p0': places}),
           ),
         ),
         actions: [
           PressBounce(
             child: TextButton(
               onPressed: () => Navigator.pop(dialog),
-              child: const Text('취소'),
+              child: Text(context.t('ui.audit33')),
             ),
           ),
           PressBounce(
             child: FilledButton(
               onPressed: () =>
                   Navigator.pop(dialog, num.tryParse(quantityText.trim())),
-              child: const Text('완료'),
+              child: Text(context.t('ui.audit434')),
             ),
           ),
         ],
       ),
     );
-    if (result == null) return null;
+    if (result == null || !mounted) return null;
     if (result <= 0 ||
         result > 100000 ||
         result *
@@ -1877,7 +1932,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                         ? 10
                         : 100))
                 .round()) {
-      notice('실제 수량을 확인해 주세요.');
+      notice(context.t('ui.audit1218'));
       return null;
     }
     return result;

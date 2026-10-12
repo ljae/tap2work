@@ -228,7 +228,7 @@ class _ManualTranslationEditorState extends State<ManualTranslationEditor> {
       ),
       footer: AppSheetFooter(
         children: [
-          if (error != null) Information(error!),
+          if (error != null) Information(context.t(error!)),
           if (!valid) Information(context.t('welcome.scopeChanged')),
           FilledButton(
             onPressed:

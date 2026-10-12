@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 /// Product motion tokens; inspired by Toss UX, not official Toss timings.
@@ -219,6 +220,7 @@ class AppLinearProgress extends StatelessWidget {
     duration: AppMotion.duration(context, AppMotion.content),
     curve: AppMotion.enterCurve,
     builder: (context, animated, _) => _loadingSemantics(
+      context,
       value,
       LinearProgressIndicator(
         value: value == null
@@ -228,7 +230,8 @@ class AppLinearProgress extends StatelessWidget {
         color: color,
         backgroundColor: backgroundColor,
         borderRadius: borderRadius,
-        semanticsLabel: semanticsLabel ?? (value == null ? '처리 중' : null),
+        semanticsLabel:
+            semanticsLabel ?? (value == null ? context.t('ui.audit737') : null),
         semanticsValue: value == null ? null : '${(value! * 100).round()}',
       ),
     ),
@@ -252,6 +255,7 @@ class AppCircularProgress extends StatelessWidget {
     duration: AppMotion.duration(context, AppMotion.content),
     curve: AppMotion.enterCurve,
     builder: (context, animated, _) => _loadingSemantics(
+      context,
       value,
       CircularProgressIndicator(
         value: value == null
@@ -260,16 +264,19 @@ class AppCircularProgress extends StatelessWidget {
         strokeWidth: strokeWidth,
         color: color,
         backgroundColor: backgroundColor,
-        semanticsLabel: value == null ? '처리 중' : '진행률',
+        semanticsLabel: value == null
+            ? context.t('ui.audit737')
+            : context.t('ui.audit1132'),
         semanticsValue: value == null ? null : '${(value! * 100).round()}',
       ),
     ),
   );
 }
 
-Widget _loadingSemantics(double? value, Widget child) => value == null
+Widget _loadingSemantics(BuildContext context, double? value, Widget child) =>
+    value == null
     ? Semantics(
-        label: '처리 중',
+        label: context.t('ui.audit737'),
         liveRegion: true,
         child: ExcludeSemantics(child: child),
       )

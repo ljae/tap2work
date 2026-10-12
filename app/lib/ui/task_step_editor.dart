@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -49,7 +50,7 @@ class _TaskStepEditorState extends State<TaskStepEditor> {
   Future<void> save() async {
     if (saving || !form.currentState!.validate()) return;
     if (actor != widget.ops.actorId || !widget.ops.canEditTasks) {
-      setState(() => error = '편집 권한이 변경됐어요. 내용을 복사한 뒤 다시 열어 주세요.');
+      setState(() => error = context.t('ui.audit1274'));
       return;
     }
     setState(() {
@@ -75,7 +76,7 @@ class _TaskStepEditorState extends State<TaskStepEditor> {
     }
     setState(() {
       saving = false;
-      error = widget.ops.error ?? '저장하지 못했어요. 입력 내용을 복사한 뒤 최신 업무에서 다시 시도해 주세요.';
+      error = widget.ops.error ?? context.t('ui.audit1275');
     });
   }
 
@@ -87,7 +88,10 @@ class _TaskStepEditorState extends State<TaskStepEditor> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(stepId == null ? 'Task 추가' : 'Task 수정', style: AppText.title),
+          Text(
+            stepId == null ? context.t('ui.audit31') : context.t('ui.audit970'),
+            style: AppText.title,
+          ),
           const SizedBox(height: 16),
           TextFormField(
             key: const ValueKey('task-step-title'),
@@ -97,9 +101,10 @@ class _TaskStepEditorState extends State<TaskStepEditor> {
             maxLength: 100,
             minLines: 1,
             maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Task 내용'),
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Task 내용을 입력해 주세요.' : null,
+            decoration: InputDecoration(labelText: context.t('ui.audit398')),
+            validator: (v) => v == null || v.trim().isEmpty
+                ? context.t('ui.audit1638')
+                : null,
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -109,20 +114,21 @@ class _TaskStepEditorState extends State<TaskStepEditor> {
             maxLength: 700,
             minLines: 2,
             maxLines: 8,
-            decoration: const InputDecoration(labelText: '매뉴얼 · 방법과 완료 기준'),
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? '방법과 완료 기준을 입력해 주세요.' : null,
+            decoration: InputDecoration(labelText: context.t('ui.audit399')),
+            validator: (v) => v == null || v.trim().isEmpty
+                ? context.t('ui.audit1639')
+                : null,
           ),
           const SizedBox(height: 8),
           Text(
             widget.ops.readOnly
-                ? '체험 변경 · 새로고침하면 사라져요.'
-                : '오늘 이 미완료 Task와 연결된 기본 양식에 반영해요. 원본 양식이 없는 주문 Task는 오늘 업무에만 반영해요.',
+                ? context.t('ui.audit971')
+                : context.t('ui.audit972'),
             style: AppText.caption,
           ),
           if (error != null) ...[
             const SizedBox(height: 8),
-            Information(error!),
+            Information(context.t(error!)),
           ],
           const SizedBox(height: 16),
           Wrap(
@@ -132,13 +138,15 @@ class _TaskStepEditorState extends State<TaskStepEditor> {
               PressBounce(
                 child: TextButton(
                   onPressed: saving ? null : widget.onClose,
-                  child: const Text('취소'),
+                  child: Text(context.t('ui.audit33')),
                 ),
               ),
               PressBounce(
                 child: FilledButton(
                   onPressed: saving || widget.ops.busy ? null : save,
-                  child: Text(saving ? '저장 중…' : '저장'),
+                  child: Text(
+                    saving ? context.t('ui.audit532') : context.t('ui.audit51'),
+                  ),
                 ),
               ),
             ],

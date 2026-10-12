@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
@@ -465,7 +466,7 @@ class WorkspaceSkeleton extends StatelessWidget {
       ),
     );
     return Semantics(
-      label: '매장 정보 불러오는 중',
+      label: context.t('ui.audit1080'),
       liveRegion: true,
       child: ExcludeSemantics(child: RepaintBoundary(child: rows)),
     );

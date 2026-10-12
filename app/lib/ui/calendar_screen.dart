@@ -96,7 +96,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         selectedSlot = null;
       }
     });
-    notice(ok ? '근무표에 저장했어요.' : ops.error ?? '저장하지 못했어요. 다시 시도해 주세요.');
+    notice(
+      ok ? context.t('ui.audit1138') : ops.error ?? context.t('ui.audit1139'),
+    );
     return ok;
   }
 
@@ -228,7 +230,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         });
     if (mounted) {
       if (ok) setState(() => selectedSlot = null);
-      notice(ok ? '이름을 변경했어요.' : ops.error ?? '저장하지 못했어요.');
+      notice(
+        ok ? context.t('ui.audit1140') : ops.error ?? context.t('ui.audit760'),
+      );
     }
   }
 
@@ -239,11 +243,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final yes = await showAppDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('근무 삭제'),
+        title: Text(context.t('ui.audit236')),
         content: Text(
           slot.shiftId == null
-              ? '이 날짜의 필요 슬롯만 삭제해요. 기본 영업시간은 유지됩니다.'
-              : '선택한 근무 배정을 해제해요. 출퇴근 기록은 유지됩니다.',
+              ? context.t('ui.audit747')
+              : context.t('ui.audit748'),
         ),
         actions: [
           TextButton(
@@ -266,7 +270,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
     if (mounted) {
       if (ok) setState(() => selectedSlot = null);
-      notice(ok ? '근무표에 반영했어요.' : ops.error ?? '삭제하지 못했어요.');
+      notice(
+        ok ? context.t('ui.audit759') : ops.error ?? context.t('ui.audit1141'),
+      );
     }
   }
 
@@ -340,9 +346,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (requests.any(
       (r) => r['shiftId'] == slot.shiftId && r['status'] == 'pending',
     )) {
-      return ' · 변경 신청 중';
+      return context.t('ui.audit1379');
     }
-    if (current?['replacementForRequestId'] != null) return ' · 대체 배정';
+    if (current?['replacementForRequestId'] != null) {
+      return context.t('ui.audit1380');
+    }
     final approval = requests
         .where(
           (r) =>
@@ -350,7 +358,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               r['status'] == 'approved',
         )
         .firstOrNull;
-    if (approval != null) return ' · 승인 반영';
+    if (approval != null) return context.t('ui.audit1381');
     return '';
   }
 
@@ -408,7 +416,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             bottom: 0,
             height: 32,
             child: Semantics(
-              label: '종료 시간 높이 조절',
+              label: context.t('ui.audit749'),
               button: true,
               child: MouseRegion(
                 cursor: SystemMouseCursors.resizeUpDown,
@@ -498,7 +506,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
   final vertical = ScrollController();
   List<String> get weekdays {
     if (AppStrings.of(context).languageTag == 'ko') {
-      return const ['월', '화', '수', '목', '금', '토', '일'];
+      return [
+        context.t('ui.audit523'),
+        context.t('ui.audit524'),
+        context.t('ui.audit525'),
+        context.t('ui.audit526'),
+        context.t('ui.audit527'),
+        context.t('ui.audit528'),
+        context.t('ui.audit529'),
+      ];
     }
     final names = MaterialLocalizations.of(context).narrowWeekdays;
     return [...names.skip(1), names.first];
@@ -550,7 +566,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('${part.name} 근무', style: AppText.title),
+              child: Text(
+                context.t('ui.audit750', args: {'p0': part.name}),
+                style: AppText.title,
+              ),
             ),
             for (final slot in slots)
               ListTile(
@@ -612,12 +631,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    slot.shiftId == null ? '크루 추가 배정' : '${slot.name} 근무 조정',
+                    slot.shiftId == null
+                        ? context.t('ui.audit751')
+                        : context.t('ui.audit752', args: {'p0': slot.name}),
                     style: AppText.title,
                   ),
                   const SizedBox(height: 16),
                   AppPicker<String>(
-                    label: '담당 파트',
+                    label: context.t('ui.audit39'),
                     value: partId,
                     items: [
                       for (final part in model.parts.where(
@@ -634,14 +655,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                   const SizedBox(height: 16),
                   AppPicker<int>(
-                    label: '시작 날짜',
+                    label: context.t('ui.audit753'),
                     value: dayOffset,
                     items: [
                       DropdownMenuItem(value: 0, child: Text(slot.date)),
                       DropdownMenuItem(
                         value: 1,
                         child: Text(
-                          '${rosterDate(DateTime.parse(slot.date).add(const Duration(days: 1)))} · 다음 날',
+                          context.t(
+                            'ui.audit754',
+                            args: {
+                              'p0': rosterDate(
+                                DateTime.parse(
+                                  slot.date,
+                                ).add(const Duration(days: 1)),
+                              ),
+                            },
+                          ),
                         ),
                       ),
                     ],
@@ -651,32 +681,35 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                   const SizedBox(height: 16),
                   AppTimeField(
-                    label: '시작 시간',
+                    label: context.t('ui.audit755'),
                     value: start,
 
                     onChanged: (v) => update(() => start = v),
                   ),
                   const SizedBox(height: 16),
                   AppTimeField(
-                    label: '종료 시간',
+                    label: context.t('ui.audit756'),
                     value: end,
 
                     onChanged: (v) => update(() => end = v),
                   ),
                   if (end.compareTo(start) < 0)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(top: 8),
-                      child: Text('종료는 다음 날이에요.', style: AppText.caption),
+                      child: Text(
+                        context.t('ui.audit317'),
+                        style: AppText.caption,
+                      ),
                     ),
                   const SizedBox(height: 16),
                   AppPicker<String>(
-                    label: '담당 크루',
+                    label: context.t('ui.audit757'),
                     value: crewId,
                     items: [
                       if (slot.shiftId == null && !slot.vacancy)
-                        const DropdownMenuItem(
+                        DropdownMenuItem(
                           value: null,
-                          child: Text('미배정 · 시간만 저장'),
+                          child: Text(context.t('ui.audit758')),
                         ),
                       for (final person in crew)
                         DropdownMenuItem(
@@ -687,7 +720,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     onChanged: (v) => update(() => crewId = v),
                   ),
                   if (crew.isEmpty)
-                    const Text('이 파트에 배정 가능한 크루가 없어요.', style: AppText.caption),
+                    Text(context.t('ui.audit237'), style: AppText.caption),
                 ],
               ),
             ),
@@ -701,7 +734,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   'date': slot.date,
                   'partId': partId,
                 }),
-                child: const Text('영업시간으로 되돌리기'),
+                child: Text(context.t('ui.audit238')),
               ),
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -747,7 +780,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final ok = await ops.act(action, {...result, 'revision': revision});
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ok ? '근무표에 반영했어요.' : ops.error ?? '저장하지 못했어요.')),
+        SnackBar(
+          content: Text(
+            ok
+                ? context.t('ui.audit759')
+                : ops.error ?? context.t('ui.audit760'),
+          ),
+        ),
       );
     }
   }
@@ -775,7 +814,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       context: context,
       builder: (c) => StatefulBuilder(
         builder: (c, update) => AppEditorScaffold(
-          title: '$date 영업일 변경',
+          title: context.t('ui.audit761', args: {'p0': date}),
           onClose: () => Navigator.pop(c),
           footer: AppSheetFooter(
             children: [
@@ -789,10 +828,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             (mode == 'reset' && exception == null)) {
                           update(
                             () => error = mode == 'reset'
-                                ? '이미 기본 일정이에요. 변경하지 않았어요.'
+                                ? context.t('ui.audit1251')
                                 : currentlyOpen
-                                ? '이미 영업일이에요. 변경하지 않았어요.'
-                                : '이미 휴무일이에요. 변경하지 않았어요.',
+                                ? context.t('ui.audit1252')
+                                : context.t('ui.audit1253'),
                           );
                           return;
                         }
@@ -813,14 +852,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           error = ops.error;
                         });
                       },
-                child: Text(saving ? '저장 중…' : '일정 저장'),
+                child: Text(
+                  saving ? context.t('ui.audit532') : context.t('ui.audit762'),
+                ),
               ),
             ],
           ),
           body: ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              const Text('이 날짜만 변경해요. 정기 휴무일은 유지돼요.', style: AppText.caption),
+              Text(context.t('ui.audit239'), style: AppText.caption),
               for (final option in {
                 'closed': '추가 휴무일 지정',
                 'open': '추가 영업일 지정',
@@ -845,7 +886,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         }),
                 ),
               if (mode == 'open') ...[
-                const Text('시간·크루 배정을 참고할 요일', style: AppText.caption),
+                Text(context.t('ui.audit240'), style: AppText.caption),
                 Wrap(
                   spacing: 8,
                   children: [
@@ -859,19 +900,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ),
                   ],
                 ),
-                const Text(
-                  '저장 후 인원 배치에 저장한 기본 크루 배정이 반영돼요.',
-                  style: AppText.caption,
-                ),
+                Text(context.t('ui.audit241'), style: AppText.caption),
               ],
               if (mode == 'closed')
-                const Text(
-                  '아직 시작하지 않은 배정은 해제돼요. 승인·출퇴근·신청 기록이 있는 날은 변경을 멈추고 알려드려요.',
-                  style: AppText.caption,
-                ),
+                Text(context.t('ui.audit242'), style: AppText.caption),
               if (mode == 'reset')
-                const Text('인원 배치의 기본 크루 배정을 반영해요.', style: AppText.caption),
-              if (error != null) Information(error!),
+                Text(context.t('ui.audit243'), style: AppText.caption),
+              if (error != null) Information(context.t(error!)),
             ],
           ),
         ),
@@ -932,8 +967,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           ),
                           Text(
                             isClosedDay(day)
-                                ? (model.isPast(day) ? '휴일' : '휴무')
-                                : (model.isPast(day) ? '업무' : '영업'),
+                                ? (model.isPast(day)
+                                      ? context.t('ui.audit531')
+                                      : context.t('ui.audit668'))
+                                : (model.isPast(day)
+                                      ? context.t('ui.audit763')
+                                      : context.t('ui.audit764')),
                             style: AppText.caption,
                             maxLines: 1,
                           ),
@@ -1016,13 +1055,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       const SizedBox(height: 16),
       if (isClosedDay(model.selected))
-        const SizedBox(
+        SizedBox(
           key: ValueKey('roster-closed-day'),
           width: double.infinity,
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 32),
             child: Text(
-              '휴무일',
+              context.t('ui.audit250'),
               textAlign: TextAlign.center,
               style: AppText.section,
             ),
@@ -1077,7 +1116,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           .rows('tappers')
                           .where((p) => p['id'] == session.crewId)
                           .firstOrNull?['nickname'] ??
-                      '크루',
+                      context.t('ui.audit765'),
                   style: AppText.body,
                 ),
                 if (!session.hasClockIn)
@@ -1124,8 +1163,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget timeline(double availableWidth, {bool slivers = false}) {
     final parts = model.visibleParts;
     if (parts.isEmpty) {
-      const empty = Information('우리매장 → 파트 관리에서 파트를 추가해 주세요.');
-      return slivers ? const SliverToBoxAdapter(child: empty) : empty;
+      final empty = Information(context.t('ui.audit766'));
+      return slivers ? SliverToBoxAdapter(child: empty) : empty;
     }
     final days = [model.selected];
     final all = [for (final day in days) ...displayedSlots(day)];
@@ -1264,7 +1303,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         Expanded(
                           child: Text(
                             m % 60 == 0
-                                ? '${m >= 1440 ? '+' : ''}${m ~/ 60 % 24}시'
+                                ? context.t(
+                                    'ui.audit767',
+                                    args: {
+                                      'p0': m >= 1440 ? '+' : '',
+                                      'p1': m ~/ 60 % 24,
+                                    },
+                                  )
                                 : '-',
                             textAlign: TextAlign.center,
                             style: AppText.caption.copyWith(fontSize: 12),
@@ -1303,9 +1348,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
     );
     final empty = all.isEmpty
-        ? const Padding(
+        ? Padding(
             padding: EdgeInsets.only(top: 16),
-            child: Information('배정된 근무가 없어요. 크루 추가 버튼으로 배정할 수 있어요.'),
+            child: Information(context.t('ui.audit768')),
           )
         : const SizedBox.shrink();
     if (slivers) {
@@ -1544,7 +1589,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         if (!compact && box.maxHeight >= 120)
                                           Text(
                                             slots[i].crewId == null
-                                                ? '미배정'
+                                                ? context.t('ui.audit769')
                                                 : '${slots[i].adjusted ? '배정 · 미세조정' : '배정'}${requestLabel(slots[i])}',
                                             style: AppText.caption,
                                           ),
@@ -1618,7 +1663,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        '${rosterClock(previewMinute!)}–${previewMinute! + previewDuration! >= 1440 ? '다음 날 ' : ''}${rosterClock(previewMinute! + previewDuration!)}\n여기에 배정',
+                        context.t(
+                          'ui.audit770',
+                          args: {
+                            'p0': rosterClock(previewMinute!),
+                            'p1': previewMinute! + previewDuration! >= 1440
+                                ? context.t('ui.audit1142')
+                                : '',
+                            'p2': rosterClock(
+                              previewMinute! + previewDuration!,
+                            ),
+                          },
+                        ),
                         style: AppText.body,
                       ),
                     ),
@@ -1641,8 +1697,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final shortRange = start.year != end.year
         ? fullRange
         : start.month == end.month
-        ? '${start.year}년 ${start.month}.${start.day}–${end.day}'
-        : '${start.year}년 ${start.month}.${start.day}–${end.month}.${end.day}';
+        ? context.t(
+            'ui.audit2065',
+            args: {
+              'p0': start.year,
+              'p1': start.month,
+              'p2': start.day,
+              'p3': end.day,
+            },
+          )
+        : context.t(
+            'ui.audit2066',
+            args: {
+              'p0': start.year,
+              'p1': start.month,
+              'p2': start.day,
+              'p3': end.month,
+              'p4': end.day,
+            },
+          );
     return SizedBox(
       key: const ValueKey('schedule-header'),
       height: 48 * (MediaQuery.textScalerOf(context).scale(13) / 13),
@@ -1660,7 +1733,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
             Tooltip(
               message: model.month
                   ? (AppStrings.of(context).languageTag == 'ko'
-                        ? '${model.selected.year}년 ${model.selected.month}월'
+                        ? context.t(
+                            'ui.audit771',
+                            args: {
+                              'p0': model.selected.year,
+                              'p1': model.selected.month,
+                            },
+                          )
                         : MaterialLocalizations.of(
                             context,
                           ).formatMonthYear(model.selected))
@@ -1668,7 +1747,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
               child: Text(
                 model.month
                     ? (AppStrings.of(context).languageTag == 'ko'
-                          ? '${model.selected.year}년 ${model.selected.month}월'
+                          ? context.t(
+                              'ui.audit771',
+                              args: {
+                                'p0': model.selected.year,
+                                'p1': model.selected.month,
+                              },
+                            )
                           : MaterialLocalizations.of(
                               context,
                             ).formatMonthYear(model.selected))
@@ -1707,14 +1792,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
             const AppToolbarDivider(),
             const Icon(Icons.horizontal_rule, size: 18, color: AppColors.green),
             Text(
-              '영업시간',
+              context.t('ui.audit772'),
               style: AppText.caption.copyWith(color: AppColors.green),
             ),
             if (ops.data?['workplace']?['breaks']?['$sourceDay'] != null) ...[
               const SizedBox(width: 8),
               const Icon(Icons.square, size: 18, color: Colors.orange),
               Text(
-                '브레이크',
+                context.t('ui.audit773'),
                 style: AppText.caption.copyWith(color: Colors.orange),
               ),
             ],
@@ -1761,16 +1846,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   List<Widget> contents({bool slivers = false}) => [
     if (!holidays.keys.any((d) => d.startsWith('${model.selected.year}-')))
-      const Text('이 연도의 공휴일 정보를 불러오지 못했어요.', style: AppText.caption),
-    if (savingDraft) const Text('근무표 저장 중…', style: AppText.caption),
+      Text(context.t('ui.audit244'), style: AppText.caption),
+    if (savingDraft) Text(context.t('ui.audit245'), style: AppText.caption),
     if (draftFailed && editMode)
       editTapRegion(
         Row(
           children: [
-            const Expanded(
-              child: Text('저장하지 못했어요. 수정 내용은 유지돼요.', style: AppText.caption),
+            Expanded(
+              child: Text(context.t('ui.audit774'), style: AppText.caption),
             ),
-            TextButton(onPressed: finishEdit, child: const Text('다시 저장')),
+            TextButton(
+              onPressed: finishEdit,
+              child: Text(context.t('ui.audit246')),
+            ),
             TextButton(
               onPressed: () => setState(() {
                 pendingMove = null;
@@ -1779,7 +1867,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 arranging = false;
                 draftFailed = false;
               }),
-              child: const Text('변경 취소'),
+              child: Text(context.t('ui.audit130')),
             ),
           ],
         ),
@@ -1791,11 +1879,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
-              '${selectedSlot!.name} · 다른 곳을 누르면 저장',
+              context.t('ui.audit775', args: {'p0': selectedSlot!.name}),
               style: AppText.caption,
             ),
             IconButton(
-              tooltip: '시간·크루 변경',
+              tooltip: context.t('ui.audit776'),
               onPressed: () async {
                 final slot = selectedSlot!;
                 if (await finishEdit() && mounted) await edit(slot);
@@ -1803,7 +1891,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               icon: const Icon(Icons.tune),
             ),
             IconButton(
-              tooltip: '이름 변경',
+              tooltip: context.t('ui.audit568'),
               onPressed: () async {
                 final slot = selectedSlot!;
                 if (await finishEdit() && mounted) await renameSlot(slot);
@@ -1823,9 +1911,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
       ),
     if (model.month && model.editable)
-      const Padding(
+      Padding(
         padding: EdgeInsets.only(bottom: 8),
-        child: Text('날짜를 눌러 추가 휴무·업무일을 지정해요.', style: AppText.caption),
+        child: Text(context.t('ui.audit777'), style: AppText.caption),
       ),
     if (model.month) month() else week(slivers: slivers),
     if (!model.history && !isClosedDay(model.selected))

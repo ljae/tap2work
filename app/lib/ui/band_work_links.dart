@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -36,15 +37,13 @@ class BandWorkLinks extends StatelessWidget {
           .where((t) => t['archivedAt'] == null && t['menuManualId'] == null)
           .toList();
       return AppEditorScaffold(
-        title: '$bandName · 연결 업무',
+        title: context.t('ui.audit864', args: {'p0': bandName}),
         body: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            const Information(
-              'TAP 전체 또는 개별 Task를 선택해 이 시간대의 담당 파트를 설정해 주세요. 변경은 같은 업무 설정에 저장돼요.',
-            ),
+            Information(context.t('ui.audit321')),
             const SizedBox(height: 16),
-            if (taps.isEmpty) const Information('먼저 업무 또는 매뉴얼에서 TAP을 추가해 주세요.'),
+            if (taps.isEmpty) Information(context.t('ui.audit322')),
             for (final tap in taps)
               AppFormSection(
                 title: '${tap['manualTitle'] ?? tap['title']}',
@@ -53,7 +52,11 @@ class BandWorkLinks extends StatelessWidget {
                     onPressed: ops.canEditTasks && !ops.readOnly
                         ? () => edit(context, tap)
                         : null,
-                    child: Text(linked(tap) ? 'TAP 연결 수정' : 'TAP 전체 연결'),
+                    child: Text(
+                      linked(tap)
+                          ? context.t('ui.audit865')
+                          : context.t('ui.audit866'),
+                    ),
                   ),
                   for (final step
                       in (tap['steps'] as List? ?? []).whereType<Json>())
@@ -62,13 +65,13 @@ class BandWorkLinks extends StatelessWidget {
                       title: Text('${step['manualTitle'] ?? step['title']}'),
                       subtitle: Text(
                         linked(step)
-                            ? '이 시간대에 별도 연결'
+                            ? context.t('ui.audit867')
                             : linked(tap) &&
                                   (step['settings']?['assignment']?['mode'] ??
                                           'inherit') ==
                                       'inherit'
-                            ? 'TAP 연결 따름'
-                            : 'Task 개별 설정',
+                            ? context.t('ui.audit868')
+                            : context.t('ui.audit869'),
                       ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: ops.canEditTasks && !ops.readOnly

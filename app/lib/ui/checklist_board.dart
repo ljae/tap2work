@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -101,10 +102,10 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const PageHeading(
+        PageHeading(
           'TODAY · TAP TO CHECK',
-          '탭 한 번으로 확인을 기록해요',
-          '그룹을 열고, 활동을 실제로 마친 뒤 왼쪽 동그라미를 눌러요. 이름을 누르면 방법과 노하우가 보여요.',
+          context.t('ui.audit213'),
+          context.t('ui.audit214'),
         ),
         _Progress(
           done: doneSteps,
@@ -142,7 +143,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
             if (!ops.isLeader)
               FilterChip(
                 chipAnimationStyle: AppMotion.chipStyle(context),
-                label: const Text('내 담당만'),
+                label: Text(context.t('ui.audit215')),
                 selected: mineOnly,
                 onSelected: (v) => setState(() => mineOnly = v),
               ),
@@ -167,14 +168,14 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                           builder: (_) => ChecklistEditor(ops: ops),
                         ),
                   icon: const Icon(Icons.tune),
-                  label: const Text('체크리스트 편집'),
+                  label: Text(context.t('ui.audit216')),
                 ),
               ),
           ],
         ),
         const SizedBox(height: 16),
         if (visibleGroups.isEmpty && visibleStock.isEmpty)
-          const Information('이 조건에 맞는 할 일이 없어요.'),
+          Information(context.t('ui.audit217')),
         for (final g in visibleGroups) groupCard(g),
         for (final t in visibleStock) stockCard(t),
       ],
@@ -185,7 +186,10 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
     if (ops.busy) return;
     if (task['canComplete'] != true) {
       notice(
-        '${checklistRoles[task['requiredRole']]} 담당 그룹이에요. 담당자나 사장님·매니저가 확인해요.',
+        context.t(
+          'ui.audit1125',
+          args: {'p0': checklistRoles[task['requiredRole']]},
+        ),
       );
       return;
     }
@@ -200,7 +204,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
       });
       if (!previewNoticeShown) {
         previewNoticeShown = true;
-        notice('공개 미리보기 · 확인 표시는 이 기기에서만 보이고 저장되지 않아요.');
+        notice(context.t('ui.audit1126'));
       }
       return;
     }
@@ -215,25 +219,30 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
     final allowed = ops.isLeader || by?['id'] == ops.actor['id'];
     if (ops.busy) return;
     if (!allowed) {
-      notice('${by?['name'] ?? '동료'}님이 확인한 활동은 본인이나 매니저만 되돌릴 수 있어요.');
+      notice(
+        context.t(
+          'ui.audit1127',
+          args: {'p0': by?['name'] ?? context.t('ui.audit1249')},
+        ),
+      );
       return;
     }
     final confirm = await showAppDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('확인을 되돌릴까요?'),
-        content: Text('「${step['title']}」 확인 기록을 지우고 다시 미완료로 돌려요.'),
+        title: Text(context.t('ui.audit218')),
+        content: Text(context.t('ui.audit703', args: {'p0': step['title']})),
         actions: [
           PressBounce(
             child: TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('그대로 두기'),
+              child: Text(context.t('ui.audit219')),
             ),
           ),
           PressBounce(
             child: FilledButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('되돌리기'),
+              child: Text(context.t('ui.audit220')),
             ),
           ),
         ],
@@ -330,7 +339,10 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
                   child: Text(
-                    '${checklistRoles[task['requiredRole']]} 담당 그룹이에요. 읽고 배우는 건 자유롭게, 확인은 담당자가 눌러요.',
+                    context.t(
+                      'ui.audit704',
+                      args: {'p0': checklistRoles[task['requiredRole']]},
+                    ),
                     style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.muted,
@@ -342,8 +354,14 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                   padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
                   child: Text(
                     task['completedAt'] == null
-                        ? '✓ 모든 활동 확인 · 체험 표시 · 저장 안 됨'
-                        : '✓ 모든 활동 확인 · ${task['completedBy']?['name'] ?? ''} · ${stampOf(task['completedAt'])}',
+                        ? context.t('ui.audit705')
+                        : context.t(
+                            'ui.audit706',
+                            args: {
+                              'p0': task['completedBy']?['name'] ?? '',
+                              'p1': stampOf(task['completedAt']),
+                            },
+                          ),
                     style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.green,
@@ -377,8 +395,8 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                 Semantics(
                   button: true,
                   label: done
-                      ? '${step['title']} 확인 되돌리기'
-                      : '${step['title']} 확인',
+                      ? context.t('ui.audit707', args: {'p0': step['title']})
+                      : context.t('ui.audit708', args: {'p0': step['title']}),
                   child: InkResponse(
                     radius: 28,
                     onTap: enabled
@@ -434,10 +452,19 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                       ),
                       Text(
                         done
-                            ? '${by?['name'] ?? ''} · ${stampOf(step['completedAt'])} 확인${step['preview'] == true ? ' · 체험 · 저장 안 됨' : ''}'
+                            ? context.t(
+                                'ui.audit709',
+                                args: {
+                                  'p0': by?['name'] ?? '',
+                                  'p1': stampOf(step['completedAt']),
+                                  'p2': step['preview'] == true
+                                      ? context.t('ui.audit1128')
+                                      : '',
+                                },
+                              )
                             : open
-                            ? '방법 닫기'
-                            : '눌러서 방법 보기',
+                            ? context.t('ui.audit710')
+                            : context.t('ui.audit711'),
                         style: TextStyle(
                           fontSize: 13,
                           color: done ? AppColors.green : AppColors.muted,
@@ -524,8 +551,17 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                   ),
                   Text(
                     complete
-                        ? '✓ ${task['completedBy']?['name'] ?? ''} · ${stampOf(task['completedAt'])} 확인'
-                        : '발주 후 정한 날짜 · 실제 수량을 세어 입력해요${place == null ? '' : ' · $place'}',
+                        ? context.t(
+                            'ui.audit712',
+                            args: {
+                              'p0': task['completedBy']?['name'] ?? '',
+                              'p1': stampOf(task['completedAt']),
+                            },
+                          )
+                        : context.t(
+                            'ui.audit713',
+                            args: {'p0': place == null ? '' : ' · $place'},
+                          ),
                     style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.muted,
@@ -541,7 +577,7 @@ class _ChecklistBoardState extends State<ChecklistBoard> {
                       ops.busy || ops.readOnly || task['canComplete'] != true
                       ? null
                       : () => widget.onStock(task),
-                  child: const Text('재고 수량 확인하기'),
+                  child: Text(context.t('ui.audit221')),
                 ),
               ),
           ],
@@ -571,10 +607,10 @@ class _Progress extends StatelessWidget {
             Expanded(
               child: Text(
                 total == 0
-                    ? '오늘 등록된 활동이 없어요'
+                    ? context.t('ui.audit714')
                     : done == total
-                    ? '오늘 활동을 모두 확인했어요 🎉'
-                    : '오늘 활동 $done / $total 확인',
+                    ? context.t('ui.audit715')
+                    : context.t('ui.audit716', args: {'p0': done, 'p1': total}),
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
@@ -582,7 +618,7 @@ class _Progress extends StatelessWidget {
               ),
             ),
             Text(
-              '그룹 $groupsDone/$groups',
+              context.t('ui.audit717', args: {'p0': groupsDone, 'p1': groups}),
               style: const TextStyle(fontSize: 13, color: AppColors.muted),
             ),
           ],

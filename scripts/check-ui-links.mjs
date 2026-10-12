@@ -63,7 +63,7 @@ const contracts = [
   ['S26', 'app/lib/ui/manual_workspace.dart', "'edit_manual_node'", 'developer/operations.mjs', "case 'edit_manual_node'"],
   ['S27', 'app/lib/ui/calendar_screen.dart', "'delete_roster_slot'", 'developer/workplace.mjs', "'delete_roster_slot'"],
   ['S22', 'app/lib/ui/checklist_editor.dart', "'save_manual_tap'", 'developer/manual_market.mjs', "input.action==='save_manual_tap'"],
-  ['S23', 'app/lib/ui/manual_workspace.dart', "'Task 추가'", 'app/lib/ui/manual_tap_editor.dart', 'widget.addTask'],
+  ['S23', 'app/lib/ui/manual_workspace.dart', "addTask: action == 'add' && kind == 'tap'", 'app/lib/ui/manual_tap_editor.dart', 'widget.addTask'],
   ['S24', 'app/lib/state/operations_controller.dart', 'get canEditTasks', 'developer/operations.mjs', 'result.canEditTasks'],
   ['E06', 'app/lib/main.dart', 'AppStartup', 'app/web/index.html', 'flutter-first-frame'],
   ['U01', 'app/lib/ui/design_system.dart', 'class AppEditorScaffold', 'app/lib/ui/checklist_editor.dart', 'AppSheetFooter('],

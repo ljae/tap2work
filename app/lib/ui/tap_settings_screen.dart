@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'work_assignment_field.dart';
 import 'workplace_screens.dart';
 import 'dart:convert';
@@ -139,15 +140,15 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
       final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('변경을 버릴까요?'),
+          title: Text(context.t('ui.audit178')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('계속 수정'),
+              child: Text(context.t('ui.audit179')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('변경 버리기'),
+              child: Text(context.t('ui.audit22')),
             ),
           ],
         ),
@@ -164,7 +165,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
     if (saving) return;
     if (openingActor != widget.ops.actorId ||
         openingWorkspace != widget.ops.data?['workspaceId']) {
-      setState(() => error = '매장 또는 권한이 변경됐어요. 화면을 다시 열어 주세요.');
+      setState(() => error = context.t('ui.audit1269'));
       return;
     }
     final task = template;
@@ -174,11 +175,11 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
         settings['usage'] != 'reference' &&
         recurrence['mode'] == 'weekly' &&
         (recurrence['weekdays'] as List? ?? []).isEmpty) {
-      setState(() => error = '반복 요일을 하나 이상 선택해 주세요.');
+      setState(() => error = context.t('ui.audit1270'));
       return;
     }
     if (invalidTargetSteps.isNotEmpty) {
-      setState(() => error = '목표 수량은 숫자로 입력해 주세요.');
+      setState(() => error = context.t('ui.audit1271'));
       return;
     }
     if (completionPolicy['kind'] == 'quantity') {
@@ -188,12 +189,12 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
           '${spec['unit'] ?? ''}'.trim().isEmpty ||
           (target != null &&
               (target is! num || target <= 0 || target > 100000))) {
-        setState(() => error = 'TAP의 수량·단위를 확인해 주세요.');
+        setState(() => error = context.t('ui.audit1272'));
         return;
       }
     }
     if (task['policyReport']?['needsReview'] == true && !acknowledgeLegacy) {
-      setState(() => error = '기존 Task 설정의 통합 내용을 확인해 주세요.');
+      setState(() => error = context.t('ui.audit1273'));
       return;
     }
     setState(() {
@@ -217,7 +218,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
     if (!mounted) return;
     setState(() {
       saving = false;
-      error = ok ? null : widget.ops.error ?? '저장하지 못했어요.';
+      error = ok ? null : widget.ops.error ?? context.t('ui.audit760');
     });
     if (ok) {
       setState(() => leaving = true);
@@ -231,24 +232,22 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
     if (saving) return;
     if (openingActor != widget.ops.actorId ||
         openingWorkspace != widget.ops.data?['workspaceId']) {
-      setState(() => error = '매장 또는 권한이 변경됐어요. 화면을 다시 열어 주세요.');
+      setState(() => error = context.t('ui.audit1269'));
       return;
     }
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('Task별 별도 TAP으로 분리할까요?'),
-        content: const Text(
-          '기존 Task 설정을 각 TAP으로 옮겨 다음 영업일부터 사용해요. 오늘 업무와 기존 기록은 유지해요.',
-        ),
+        title: Text(context.t('ui.audit374')),
+        content: Text(context.t('ui.audit375')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('계속 수정'),
+            child: Text(context.t('ui.audit179')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('TAP으로 분리'),
+            child: Text(context.t('ui.audit376')),
           ),
         ],
       ),
@@ -304,10 +303,16 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
             AppPillField<String>(
               key: ValueKey('kind-${step['id']}'),
               initialValue: config['kind'] ?? 'check',
-              decoration: const InputDecoration(labelText: '완료 방식'),
-              items: const [
-                DropdownMenuItem(value: 'check', child: Text('체크')),
-                DropdownMenuItem(value: 'quantity', child: Text('실제 수량 입력')),
+              decoration: InputDecoration(labelText: context.t('ui.audit377')),
+              items: [
+                DropdownMenuItem(
+                  value: 'check',
+                  child: Text(context.t('ui.audit914')),
+                ),
+                DropdownMenuItem(
+                  value: 'quantity',
+                  child: Text(context.t('ui.audit915')),
+                ),
               ],
               onChanged: (v) => update(() {
                 config['kind'] = v;
@@ -320,7 +325,9 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               TextFormField(
                 key: ValueKey('unit-${step['id']}'),
                 initialValue: '${spec['unit'] ?? ''}',
-                decoration: const InputDecoration(labelText: '단위 · 필수'),
+                decoration: InputDecoration(
+                  labelText: context.t('ui.audit378'),
+                ),
                 onChanged: (v) => update(() => spec['unit'] = v.trim()),
               ),
               TextFormField(
@@ -329,7 +336,9 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(labelText: '목표 수량 · 선택'),
+                decoration: InputDecoration(
+                  labelText: context.t('ui.audit379'),
+                ),
                 onChanged: (v) => update(() {
                   final value = v.trim();
                   spec['target'] = value.isEmpty ? null : num.tryParse(value);
@@ -343,11 +352,22 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               ),
               AppPillField<int>(
                 initialValue: spec['decimalPlaces'] ?? 0,
-                decoration: const InputDecoration(labelText: '소수 자리'),
-                items: const [
-                  DropdownMenuItem(value: 0, child: Text('정수')),
-                  DropdownMenuItem(value: 1, child: Text('소수 1자리')),
-                  DropdownMenuItem(value: 2, child: Text('소수 2자리')),
+                decoration: InputDecoration(
+                  labelText: context.t('ui.audit380'),
+                ),
+                items: [
+                  DropdownMenuItem(
+                    value: 0,
+                    child: Text(context.t('ui.audit916')),
+                  ),
+                  DropdownMenuItem(
+                    value: 1,
+                    child: Text(context.t('ui.audit917')),
+                  ),
+                  DropdownMenuItem(
+                    value: 2,
+                    child: Text(context.t('ui.audit918')),
+                  ),
                 ],
                 onChanged: (v) => update(() => spec['decimalPlaces'] = v),
               ),
@@ -357,11 +377,11 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               initialValue: zones.any((row) => row['id'] == place)
                   ? place
                   : null,
-              decoration: const InputDecoration(labelText: '장소'),
+              decoration: InputDecoration(labelText: context.t('ui.audit381')),
               items: [
-                const DropdownMenuItem<String>(
+                DropdownMenuItem<String>(
                   value: null,
-                  child: Text('장소 미설정'),
+                  child: Text(context.t('ui.audit919')),
                 ),
                 for (final zone in zones)
                   DropdownMenuItem(
@@ -374,7 +394,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
             const SizedBox(height: 10),
             AppPillField<int>(
               initialValue: settings['estimatedMinutes'],
-              decoration: const InputDecoration(labelText: '예상 소요 시간'),
+              decoration: InputDecoration(labelText: context.t('ui.audit382')),
               items: [
                 if (settings['estimatedMinutes'] != null &&
                     ![
@@ -394,22 +414,69 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                     ].contains(settings['estimatedMinutes']))
                   DropdownMenuItem<int>(
                     value: settings['estimatedMinutes'] as int,
-                    child: Text('${settings['estimatedMinutes']}분'),
+                    child: Text(
+                      context.t(
+                        'ui.audit920',
+                        args: {'p0': settings['estimatedMinutes']},
+                      ),
+                    ),
                   ),
-                const DropdownMenuItem<int>(value: null, child: Text('미설정')),
-                DropdownMenuItem(value: 1, child: Text('1분')),
-                DropdownMenuItem(value: 2, child: Text('2분')),
-                DropdownMenuItem(value: 3, child: Text('3분')),
-                DropdownMenuItem(value: 5, child: Text('5분')),
-                DropdownMenuItem(value: 8, child: Text('8분')),
-                DropdownMenuItem(value: 10, child: Text('10분')),
-                DropdownMenuItem(value: 15, child: Text('15분')),
-                DropdownMenuItem(value: 20, child: Text('20분')),
-                DropdownMenuItem(value: 30, child: Text('30분')),
-                DropdownMenuItem(value: 45, child: Text('45분')),
-                DropdownMenuItem(value: 60, child: Text('60분')),
-                DropdownMenuItem(value: 90, child: Text('90분')),
-                DropdownMenuItem(value: 120, child: Text('120분')),
+                DropdownMenuItem<int>(
+                  value: null,
+                  child: Text(context.t('ui.audit921')),
+                ),
+                DropdownMenuItem(
+                  value: 1,
+                  child: Text(context.t('ui.audit922')),
+                ),
+                DropdownMenuItem(
+                  value: 2,
+                  child: Text(context.t('ui.audit923')),
+                ),
+                DropdownMenuItem(
+                  value: 3,
+                  child: Text(context.t('ui.audit924')),
+                ),
+                DropdownMenuItem(
+                  value: 5,
+                  child: Text(context.t('ui.audit925')),
+                ),
+                DropdownMenuItem(
+                  value: 8,
+                  child: Text(context.t('ui.audit926')),
+                ),
+                DropdownMenuItem(
+                  value: 10,
+                  child: Text(context.t('ui.audit927')),
+                ),
+                DropdownMenuItem(
+                  value: 15,
+                  child: Text(context.t('ui.audit928')),
+                ),
+                DropdownMenuItem(
+                  value: 20,
+                  child: Text(context.t('ui.audit929')),
+                ),
+                DropdownMenuItem(
+                  value: 30,
+                  child: Text(context.t('ui.audit930')),
+                ),
+                DropdownMenuItem(
+                  value: 45,
+                  child: Text(context.t('ui.audit931')),
+                ),
+                DropdownMenuItem(
+                  value: 60,
+                  child: Text(context.t('ui.audit932')),
+                ),
+                DropdownMenuItem(
+                  value: 90,
+                  child: Text(context.t('ui.audit933')),
+                ),
+                DropdownMenuItem(
+                  value: 120,
+                  child: Text(context.t('ui.audit934')),
+                ),
               ],
               onChanged: (v) => update(() => settings['estimatedMinutes'] = v),
             ),
@@ -427,12 +494,14 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               (step) => step['id'] == widget.initialStepId,
             ))) {
       return AppEditorScaffold(
-        title: widget.effectiveFrom == null ? 'TAP 설정' : '내일부터 반복 업무 변경',
+        title: widget.effectiveFrom == null
+            ? context.t('ui.audit935')
+            : context.t('ui.audit936'),
         body: Center(
           child: Information(
             widget.initialTemplateId == null
-                ? '업무 화면의 TAP 추가로 만들어 주세요.'
-                : '연결된 TAP 또는 Task를 찾지 못했어요. 목록을 새로고침해 주세요.',
+                ? context.t('ui.audit937')
+                : context.t('ui.audit938'),
           ),
         ),
       );
@@ -448,16 +517,21 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
       },
       child: AppEditorScaffold(
         onClose: close,
-        title: widget.effectiveFrom == null ? 'TAP 설정' : '내일부터 반복 업무 변경',
+        title: widget.effectiveFrom == null
+            ? context.t('ui.audit935')
+            : context.t('ui.audit936'),
         footer: AppSheetFooter(
           children: [
-            if (error != null) Information('$error\n입력 중인 내용은 남아 있어요.'),
+            if (error != null)
+              Information(context.t('ui.audit939', args: {'p0': error})),
             FilledButton(
               onPressed:
                   widget.ops.canEditTasks && !widget.ops.readOnly && !saving
                   ? save
                   : null,
-              child: Text(saving ? '저장 중…' : '설정 저장'),
+              child: Text(
+                saving ? context.t('ui.audit532') : context.t('ui.audit940'),
+              ),
             ),
           ],
         ),
@@ -469,11 +543,13 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
               children: [
                 Information(
                   widget.effectiveFrom != null
-                      ? '${widget.effectiveFrom}부터 앞으로 반복되는 업무에 적용돼요. 오늘 업무와 진행·완료 기록은 그대로 유지해요.'
-                      : '담당 변경은 오늘 아직 시작하지 않은 업무에도 적용돼요. 진행 중·완료 업무는 유지하고, 나머지 규칙은 다음 업무부터 적용해요.',
+                      ? context.t(
+                          'ui.audit941',
+                          args: {'p0': widget.effectiveFrom},
+                        )
+                      : context.t('ui.audit942'),
                 ),
-                if (widget.ops.readOnly)
-                  const Information('공개 미리보기에서는 설정을 저장하지 않아요.'),
+                if (widget.ops.readOnly) Information(context.t('ui.audit383')),
                 const SizedBox(height: 14),
                 if (widget.initialTemplateId != null)
                   Text('${task['title']}', style: AppText.title)
@@ -481,7 +557,9 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                   AppPillField<String>(
                     key: const ValueKey('tap-settings-template'),
                     initialValue: selectedId,
-                    decoration: const InputDecoration(labelText: 'TAP 선택'),
+                    decoration: InputDecoration(
+                      labelText: context.t('ui.audit384'),
+                    ),
                     items: [
                       for (final row in templates)
                         DropdownMenuItem(
@@ -509,12 +587,14 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                   AppPillField<String>(
                     key: ValueKey('type-$selectedId'),
                     initialValue: config['type'],
-                    decoration: const InputDecoration(labelText: '업무 유형'),
+                    decoration: InputDecoration(
+                      labelText: context.t('ui.audit385'),
+                    ),
                     items: [
                       for (final entry in types.entries)
                         DropdownMenuItem(
                           value: entry.key,
-                          child: Text(entry.value),
+                          child: Text(context.t(entry.value)),
                         ),
                     ],
                     onChanged: (v) => update(() => config['type'] = v),
@@ -526,21 +606,26 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                         (config['enabled'] == true
                             ? 'routine'
                             : 'unclassified'),
-                    decoration: const InputDecoration(labelText: '매뉴얼 사용 방법'),
-                    items: const [
+                    decoration: InputDecoration(
+                      labelText: context.t('ui.audit386'),
+                    ),
+                    items: [
                       DropdownMenuItem(
                         value: 'unclassified',
-                        child: Text('아직 선택하지 않음'),
+                        child: Text(context.t('ui.audit943')),
                       ),
                       DropdownMenuItem(
                         value: 'reference',
-                        child: Text('필요할 때 보기'),
+                        child: Text(context.t('ui.audit944')),
                       ),
                       DropdownMenuItem(
                         value: 'routine',
-                        child: Text('정기적으로 확인'),
+                        child: Text(context.t('ui.audit945')),
                       ),
-                      DropdownMenuItem(value: 'event', child: Text('작업할 때 확인')),
+                      DropdownMenuItem(
+                        value: 'event',
+                        child: Text(context.t('ui.audit946')),
+                      ),
                     ],
                     onChanged: (v) => update(() {
                       if (v == 'unclassified') {
@@ -565,22 +650,41 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                     }),
                   ),
                   if (task['workStatus']?['label'] != null)
-                    Information('현재 저장 상태 · ${task['workStatus']['label']}'),
-                  if (config['usage'] == 'event') ...[
-                    const Information(
-                      '제품·배치별로 작업을 시작하면 업무가 만들어져요. 시간대 배정 대신 담당 크루 또는 직접 맡기를 선택하세요.',
+                    Information(
+                      context.t(
+                        'ui.audit947',
+                        args: {
+                          'p0': localizedWorkStatus(
+                            context,
+                            task['workStatus'] as Json?,
+                          ),
+                        },
+                      ),
                     ),
+                  if (config['usage'] == 'event') ...[
+                    Information(context.t('ui.audit387')),
                     AppPillField<String>(
                       initialValue: config['eventKind'] ?? 'batch',
-                      decoration: const InputDecoration(labelText: '작업 발생 시점'),
-                      items: const [
+                      decoration: InputDecoration(
+                        labelText: context.t('ui.audit388'),
+                      ),
+                      items: [
                         DropdownMenuItem(
                           value: 'batch',
-                          child: Text('제조·준비 배치'),
+                          child: Text(context.t('ui.audit948')),
                         ),
-                        DropdownMenuItem(value: 'opened', child: Text('제품 개봉')),
-                        DropdownMenuItem(value: 'thawed', child: Text('해동')),
-                        DropdownMenuItem(value: 'received', child: Text('입고')),
+                        DropdownMenuItem(
+                          value: 'opened',
+                          child: Text(context.t('ui.audit949')),
+                        ),
+                        DropdownMenuItem(
+                          value: 'thawed',
+                          child: Text(context.t('ui.audit950')),
+                        ),
+                        DropdownMenuItem(
+                          value: 'received',
+                          child: Text(context.t('ui.audit951')),
+                        ),
                       ],
                       onChanged: (v) => update(() => config['eventKind'] = v),
                     ),
@@ -591,16 +695,16 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                       initialValue: config['operatingStandard'] ?? '',
                       maxLength: 1000,
                       maxLines: 4,
-                      decoration: const InputDecoration(
-                        labelText: '제품·공정별 매장 기준',
-                        hintText: '근거, 제품 상태, 시간·온도, 보관 조건과 이상 시 조치',
+                      decoration: InputDecoration(
+                        labelText: context.t('ui.audit389'),
+                        hintText: context.t('ui.audit390'),
                       ),
                       onChanged: (v) =>
                           update(() => config['operatingStandard'] = v),
                     ),
                   if (config['usage'] != 'reference')
                     ExpansionTile(
-                      title: const Text('연결할 참고 매뉴얼'),
+                      title: Text(context.t('ui.audit391')),
                       children: [
                         for (final other
                             in widget.ops
@@ -630,15 +734,24 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                     ),
                   if (config['usage'] != 'event' &&
                       config['usage'] != 'reference') ...[
-                    const Text(
-                      '반복',
+                    Text(
+                      context.t('ui.audit392'),
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     AppSegmented<String>(
-                      segments: const [
-                        ButtonSegment(value: 'daily', label: Text('매일')),
-                        ButtonSegment(value: 'weekly', label: Text('매주')),
-                        ButtonSegment(value: 'monthly', label: Text('매월')),
+                      segments: [
+                        ButtonSegment(
+                          value: 'daily',
+                          label: Text(context.t('ui.audit952')),
+                        ),
+                        ButtonSegment(
+                          value: 'weekly',
+                          label: Text(context.t('ui.audit953')),
+                        ),
+                        ButtonSegment(
+                          value: 'monthly',
+                          label: Text(context.t('ui.audit954')),
+                        ),
                       ],
                       selected: {recurrence['mode'] ?? 'daily'},
                       onSelectionChanged: (v) => update(() {
@@ -652,25 +765,28 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                     ),
                     if (widget.effectiveFrom != null)
                       Information(
-                        '${widget.effectiveFrom}부터 앞으로 반복되는 업무에 적용돼요. 오늘 진행·완료 기록은 유지돼요.',
+                        context.t(
+                          'ui.audit955',
+                          args: {'p0': widget.effectiveFrom},
+                        ),
                       ),
                     if (recurrence['mode'] == 'monthly')
                       AppPicker<int>(
-                        label: '매월 날짜',
+                        label: context.t('ui.audit956'),
                         value: recurrence['monthDay'] as int? ?? 1,
                         items: List.generate(
                           31,
                           (i) => DropdownMenuItem(
                             value: i + 1,
-                            child: Text('${i + 1}일'),
+                            child: Text(
+                              context.t('ui.audit957', args: {'p0': i + 1}),
+                            ),
                           ),
                         ),
                         onChanged: (v) =>
                             update(() => recurrence['monthDay'] = v),
                       ),
-                    const Information(
-                      '휴무일의 정기 업무는 다음 영업일로 넘어가요. 없는 날짜는 그달 마지막 날을 기준으로 해요.',
-                    ),
+                    Information(context.t('ui.audit393')),
                     if (recurrence['mode'] == 'weekly')
                       Wrap(
                         spacing: 6,
@@ -678,7 +794,7 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                           for (var d = 1; d <= 7; d++)
                             FilterChip(
                               chipAnimationStyle: AppMotion.chipStyle(context),
-                              label: Text(days[d - 1]),
+                              label: Text(context.t(days[d - 1])),
                               selected: weekdays.contains(d),
                               onSelected: (_) => update(() {
                                 final selected = List<int>.from(
@@ -694,18 +810,21 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                       ),
                   ],
                   switchRow(
-                    'TAP에서 한 번에 완료 허용',
+                    context.t('ui.audit1384'),
                     config['allowBulkComplete'] == true,
                     (v) => update(() => config['allowBulkComplete'] = v),
                   ),
                   switchRow(
-                    'Task 순서대로 수행',
+                    context.t('ui.audit1385'),
                     config['enforceSequence'] == true,
                     (v) => update(() => config['enforceSequence'] = v),
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    'Task · ${(task['steps'] as List).length}개',
+                    context.t(
+                      'ui.audit958',
+                      args: {'p0': (task['steps'] as List).length},
+                    ),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -726,19 +845,19 @@ class _TapSettingsScreenState extends State<TapSettingsScreen> {
                             !widget.ops.canEditTasks
                         ? null
                         : splitLegacy,
-                    child: const Text('Task별 별도 TAP으로 분리'),
+                    child: Text(context.t('ui.audit394')),
                   ),
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('기존 Task 설정을 TAP 기준으로 통합'),
-                    subtitle: const Text('기존 설정은 복구 이력에 보관하고 진행·완료 업무는 유지해요.'),
+                    title: Text(context.t('ui.audit395')),
+                    subtitle: Text(context.t('ui.audit396')),
                     value: acknowledgeLegacy,
                     onChanged: (value) =>
                         update(() => acknowledgeLegacy = value == true),
                   ),
                 ],
                 tapConstraints(),
-                const Information('모든 Task는 이 TAP의 시간대·파트와 규칙을 함께 따라요.'),
+                Information(context.t('ui.audit397')),
               ],
             ),
           ),

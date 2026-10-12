@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
@@ -123,10 +124,10 @@ class BusinessHoursSlider extends StatelessWidget {
       final value = await showTimeWheel(
         context,
         title: i == 0
-            ? '영업 시작'
+            ? context.t('ui.audit595')
             : i == cuts.length - 1
-            ? '영업 종료'
-            : '교대 시간',
+            ? context.t('ui.audit596')
+            : context.t('ui.audit968'),
         value: hoursTime(cuts[i]),
       );
       if (value == null) return;
@@ -151,7 +152,7 @@ class BusinessHoursSlider extends StatelessWidget {
     Future<void> chooseBreak(int i) async {
       final value = await showTimeWheel(
         context,
-        title: i == 0 ? '브레이크 시작' : '브레이크 종료',
+        title: i == 0 ? context.t('ui.audit598') : context.t('ui.audit599'),
         value: hoursTime(pause![i]),
       );
       if (value != null) changeBreak(i, absolute(value));
@@ -176,7 +177,7 @@ class BusinessHoursSlider extends StatelessWidget {
         ?shiftControls,
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('브레이크 타임'),
+          title: Text(context.t('ui.audit95')),
           value: breakTime != null,
           onChanged: enabled
               ? (value) {
@@ -360,9 +361,9 @@ class _HoursTrack extends StatelessWidget {
                   top: barTop + barHeight - 8,
                   width: math.max(0, x(reference![1]) - x(reference![0])),
                   height: 8,
-                  child: const IgnorePointer(
+                  child: IgnorePointer(
                     child: Tooltip(
-                      message: '브레이크 타임 · 교대와 별도',
+                      message: context.t('ui.audit969'),
                       child: ColoredBox(color: AppColors.amber),
                     ),
                   ),

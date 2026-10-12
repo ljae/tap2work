@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../domain/part_schedule.dart';
@@ -152,22 +153,39 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
         padding: const EdgeInsets.all(24),
         children: [
           Text(
-            '${partLabel(ops, targets.first.partId)} 크루 선택',
+            context.t(
+              'ui.audit825',
+              args: {'p0': partLabel(ops, targets.first.partId)},
+            ),
             style: AppText.title,
           ),
           Text(
-            '${dayLabel(targets.map((t) => t.day).toSet())}에 함께 배정 · 예상 주간 시간',
+            context.t(
+              'ui.audit826',
+              args: {'p0': dayLabel(targets.map((t) => t.day).toSet())},
+            ),
             style: AppText.caption,
           ),
-          if (plans.isEmpty)
-            const Information(
-              '선택한 모든 요일에 배정할 수 있는 크루가 없어요. 담당 파트·정원·겹치는 시간을 확인하거나 요일을 나누어 선택해 주세요.',
-            ),
+          if (plans.isEmpty) Information(context.t('ui.audit275')),
           for (final entry in plans.entries)
             ListTile(
               title: Text(name(entry.key)),
               subtitle: Text(
-                '예상 ${planner.summary(entry.value.patterns[entry.key]!).label}${planner.summary(entry.value.patterns[entry.key]!).hint == null ? '' : ' · ${planner.summary(entry.value.patterns[entry.key]!).hint}'}',
+                context.t(
+                  'ui.audit827',
+                  args: {
+                    'p0': planner
+                        .summary(entry.value.patterns[entry.key]!)
+                        .label,
+                    'p1':
+                        planner
+                                .summary(entry.value.patterns[entry.key]!)
+                                .hint ==
+                            null
+                        ? ''
+                        : ' · ${planner.summary(entry.value.patterns[entry.key]!).hint}',
+                  },
+                ),
               ),
               onTap: () => Navigator.pop(c, entry.key),
             ),
@@ -193,15 +211,27 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('${name(id)} 배정', style: AppText.title),
             Text(
-              '${dayLabel(legacy == null ? targets.map((t) => t.day).toSet() : [legacy['weekday'] as int])} · 선택 범위의 배정만 해제해요.',
+              context.t('ui.audit828', args: {'p0': name(id)}),
+              style: AppText.title,
+            ),
+            Text(
+              context.t(
+                'ui.audit829',
+                args: {
+                  'p0': dayLabel(
+                    legacy == null
+                        ? targets.map((t) => t.day).toSet()
+                        : [legacy['weekday'] as int],
+                  ),
+                },
+              ),
               style: AppText.caption,
             ),
             const SizedBox(height: 16),
             OutlinedButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('배정 해제'),
+              child: Text(context.t('ui.audit276')),
             ),
           ],
         ),
@@ -246,18 +276,21 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
     final yes = await showAppDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('선택한 기간에 배정할까요?'),
+        title: Text(context.t('ui.audit277')),
         content: Text(
-          '${rosterDate(from)} ~ ${rosterDate(until)}\n기존 반복 근무의 세부 시간 조정은 다시 설정해야 해요. 승인된 OFF·대타·출퇴근·대기 신청과 별도 근무는 유지해요.',
+          context.t(
+            'ui.audit830',
+            args: {'p0': rosterDate(from), 'p1': rosterDate(until)},
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('취소'),
+            child: Text(context.t('ui.audit33')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('근무표 적용'),
+            child: Text(context.t('ui.audit278')),
           ),
         ],
       ),
@@ -276,9 +309,9 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
       if (ok) revision = ops.data!['revision'];
     });
     if (ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('선택한 기간에 적용했어요. 근무표에서 세부 시간을 조정해 주세요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.t('ui.audit831'))));
     }
   }
 
@@ -288,15 +321,15 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
       final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('변경을 버릴까요?'),
+          title: Text(context.t('ui.audit178')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('계속 편집'),
+              child: Text(context.t('ui.audit21')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('변경 버리기'),
+              child: Text(context.t('ui.audit22')),
             ),
           ],
         ),
@@ -319,7 +352,11 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
         .map((t) => t.capacity - planner.assigned(shown, t).length)
         .fold<int>(0, (a, b) => a > b ? a : b);
     final detail = {
-      for (final t in targets) '${t.start}–${t.end} · ${t.capacity}명',
+      for (final t in targets)
+        context.t(
+          'ui.audit2107',
+          args: {'p0': t.start, 'p1': t.end, 'p2': t.capacity},
+        ),
     };
     return AllocationPartCard(
       key: ValueKey('allocation-${group.id}-${part['id']}'),
@@ -332,8 +369,15 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
               ? detail.first
               : targets
                     .map(
-                      (t) =>
-                          '${dayLabel([t.day])} ${t.start}–${t.end} · ${t.capacity}명',
+                      (t) => context.t(
+                        'ui.audit2108',
+                        args: {
+                          'p0': dayLabel([t.day]),
+                          'p1': t.start,
+                          'p2': t.end,
+                          'p3': t.capacity,
+                        },
+                      ),
                     )
                     .join('\n'),
           style: AppText.caption,
@@ -359,7 +403,10 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
             padding: const EdgeInsets.only(top: 8),
             child: AllocationEmptySlot(
               key: ValueKey('empty-${group.id}-${part['id']}-$n'),
-              label: '${group.name} ${part['name']} 크루 배정',
+              label: context.t(
+                'ui.audit832',
+                args: {'p0': group.name, 'p1': part['name']},
+              ),
               onTap: editable && ghost == null ? () => pick(targets) : null,
             ),
           ),
@@ -377,7 +424,7 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
         if (!didPop) close();
       },
       child: AppEditorScaffold(
-        title: '크루별 근무 배정',
+        title: context.t('ui.audit833'),
         onClose: close,
         footer: AppSheetFooter(
           children: [
@@ -391,10 +438,10 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
                   : null,
               child: Text(
                 saving
-                    ? '저장 중…'
+                    ? context.t('ui.audit532')
                     : ghost != null
-                    ? '배정 확정'
-                    : '기본 배정 저장',
+                    ? context.t('ui.audit834')
+                    : context.t('ui.audit835'),
               ),
             ),
           ],
@@ -402,10 +449,7 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text(
-              '1 영업시간·인원 → 2 크루 배정 → 3 근무표 조정',
-              style: AppText.caption,
-            ),
+            Text(context.t('ui.audit279'), style: AppText.caption),
             const SizedBox(height: 12),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -422,30 +466,21 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
                 ],
               ),
             ),
-            if (people.isEmpty) const Information('크루를 먼저 등록해 주세요.'),
+            if (people.isEmpty) Information(context.t('ui.audit280')),
             ExpansionTile(
               minTileHeight: 40,
               dense: true,
               tilePadding: EdgeInsets.zero,
-              title: const Text(
-                '선택 주 기본 배정 시간 · 휴게 미반영',
-                style: AppText.caption,
-              ),
-              children: const [
-                Text(
-                  '15h는 주휴 조건을 확인하는 참고선이에요. 실제 주휴 여부는 4주 평균 소정근로시간·출근 등 조건을 확인해야 해요. 36h부터 주 40h 근접 표시를 해요. 실제 근로·급여 계산은 별도이며 매장 브레이크는 자동 차감하지 않아요.',
-                  style: AppText.caption,
-                ),
-                Text(
-                  '기본 배정을 저장한 뒤 기간을 정해 근무표에 적용해 주세요. 앞 설정이 바뀌면 다시 적용해야 해요.',
-                  style: AppText.caption,
-                ),
+              title: Text(context.t('ui.audit281'), style: AppText.caption),
+              children: [
+                Text(context.t('ui.audit836'), style: AppText.caption),
+                Text(context.t('ui.audit837'), style: AppText.caption),
               ],
             ),
             Row(
               children: [
                 IconButton(
-                  tooltip: '이전 주',
+                  tooltip: context.t('ui.audit838'),
                   onPressed: saving || ghost != null
                       ? null
                       : () => setState(
@@ -456,13 +491,13 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
                 ),
                 Expanded(
                   child: Text(
-                    '${rosterDate(monday)} 기준 주',
+                    context.t('ui.audit839', args: {'p0': rosterDate(monday)}),
                     textAlign: TextAlign.center,
                     style: AppText.caption,
                   ),
                 ),
                 IconButton(
-                  tooltip: '다음 주',
+                  tooltip: context.t('ui.audit840'),
                   onPressed: saving || ghost != null
                       ? null
                       : () => setState(
@@ -489,7 +524,7 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
             ),
             OutlinedButton.icon(
               icon: const Icon(Icons.history),
-              label: const Text('이전 스케줄 불러오기'),
+              label: Text(context.t('ui.audit282')),
               onPressed: editable && days.isNotEmpty && ghost == null
                   ? () => setState(() {
                       ghost = planner.suggest(patterns, saved, days);
@@ -499,11 +534,26 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
             ),
             if (ghost != null) ...[
               Information(
-                '미리보기 ${ghost!.proposed}개 · ${dayLabel(days)}의 기존 배정을 교체해요.${ghost!.skipped > 0 ? '\n현재 파트·시간·정원에 맞지 않는 ${ghost!.skipped}개는 제외돼요.' : ''}${ghost!.proposed == 0 ? '\n불러올 수 있는 이전 배정이 없어요.' : '\n확정 후 근무표에는 별도로 적용해 주세요.'}',
+                context.t(
+                  'ui.audit841',
+                  args: {
+                    'p0': ghost!.proposed,
+                    'p1': dayLabel(days),
+                    'p2': ghost!.skipped > 0
+                        ? context.t(
+                            'ui.audit1158',
+                            args: {'p0': ghost!.skipped},
+                          )
+                        : '',
+                    'p3': ghost!.proposed == 0
+                        ? context.t('ui.audit1159')
+                        : context.t('ui.audit1160'),
+                  },
+                ),
               ),
               TextButton(
                 onPressed: saving ? null : () => setState(() => ghost = null),
-                child: const Text('미리보기 취소'),
+                child: Text(context.t('ui.audit283')),
               ),
             ],
             for (final group in groups) ...[
@@ -522,7 +572,7 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
                     '${row.entry['start']}–${row.entry['end']} · ${partLabel(ops, row.entry['partId'])}',
                 index: 0,
                 children: [
-                  const Text('변경 전 시간 · 현재 슬롯과 달라요', style: AppText.caption),
+                  Text(context.t('ui.audit284'), style: AppText.caption),
                   ActionChip(
                     label: Text(
                       '${name(row.id)} · ${dayLabel([row.entry['weekday'] as int])}',
@@ -533,10 +583,9 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
                   ),
                 ],
               ),
-            if (groups.isEmpty)
-              const Information('선택한 요일의 영업시간과 필요 인원을 먼저 설정해 주세요.'),
+            if (groups.isEmpty) Information(context.t('ui.audit285')),
             const SizedBox(height: 24),
-            const Text('근무표에 적용', style: AppText.title),
+            Text(context.t('ui.audit286'), style: AppText.title),
             Wrap(
               spacing: 8,
               children: [
@@ -544,13 +593,17 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
                   onPressed: editable && ghost == null
                       ? () => chooseDate(true)
                       : null,
-                  child: Text('시작 ${rosterDate(from)}'),
+                  child: Text(
+                    context.t('ui.audit842', args: {'p0': rosterDate(from)}),
+                  ),
                 ),
                 TextButton(
                   onPressed: editable && ghost == null
                       ? () => chooseDate(false)
                       : null,
-                  child: Text('종료 ${rosterDate(until)}'),
+                  child: Text(
+                    context.t('ui.audit843', args: {'p0': rosterDate(until)}),
+                  ),
                 ),
               ],
             ),
@@ -558,9 +611,10 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
               onPressed: editable && pendingIds.isEmpty && ghost == null
                   ? apply
                   : null,
-              child: const Text('기간 확인·근무표 적용'),
+              child: Text(context.t('ui.audit287')),
             ),
-            if (error != null) Information('$error\n입력한 배정은 유지돼요.'),
+            if (error != null)
+              Information(context.t('ui.audit844', args: {'p0': error})),
           ],
         ),
       ),

@@ -392,3 +392,6 @@ Shared time sheet: large tabular HH:mm draft, labeled hour/minute wheels, +/-30m
 Loading retains actual readiness/retry/error state, uses a quiet mint ambient surface and1800ms skeleton, disabled under reduced motion/TickerMode. No fabricated progress or artificial delay. Task lane icons distinguish outstanding/coral and completed/mint; existing assignee color semantics are retained. Store links use42px mint icon containers.
 
 2026-10-11 사장님 운영 준비: 기본 제안은 검토 전 자동 선택하지 않는다. 본문 검토→선택→일괄 등록과 저장 성공→반영 위치→내일 미리보기를 분리한다. 미리보기는 실제 수행 체크를 만들지 않는다. 반복 변경은 ‘내일부터 앞으로’ 범위를 표시하고 담당 공석을 숨기지 않는다. 기존 영업시간·크루·완료 기록을 보존하며 상세 설정은 선택 진입한다. 공통 카드·시트·짧은 콘텐츠 전환과 동작 줄이기를 재사용한다.
+
+
+2026-10-12 번역 보완: 상세 설정·편집·접근성 안내도 개인 언어를 따른다. 수량·날짜·이름이 있는 고정 문장은 번역 리소스와 변수로 표시하고 상태/ID/저장값을 번역하지 않는다. 기본 운영 제안과 첫 근무의 공개 예시 원문은 사전 번역으로 제공한다. 사용자 수정본은 기존 원문 일치/등록 번역 정책을 유지한다. 작은 화면·확대 글자에서 긴 안내는 줄바꿈/스크롤을 사용하며 하단 검토/저장 동작을 보존한다. 번역은 원어민 미검수 초안이다.

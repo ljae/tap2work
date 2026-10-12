@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'dart:ui' as ui;
 import 'design_tokens.dart';
 export 'design_tokens.dart';
@@ -116,7 +117,7 @@ class BrandLogo extends StatelessWidget {
             height: 48,
             cacheWidth: (48 * MediaQuery.devicePixelRatioOf(context)).ceil(),
             fit: BoxFit.contain,
-            semanticLabel: 'TAP Work 로고',
+            semanticLabel: context.t('ui.audit738'),
           ),
         ),
         if (!compact) ...[

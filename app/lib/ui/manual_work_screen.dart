@@ -1,3 +1,5 @@
+import '../l10n/app_localizations.dart';
+import '../l10n/manual_text_scope.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -31,20 +33,22 @@ class _ManualWorkScreenState extends State<ManualWorkScreen> {
         )
         .toList();
     return AppEditorScaffold(
-      title: '매뉴얼 · 업무 연결',
+      title: context.t('ui.audit1067'),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
           if (widget.ops.error != null) Information(widget.ops.error!),
-          const Information(
-            '매뉴얼을 모두 매일 체크할 필요는 없어요. 참고용은 그대로 두고 필요한 업무만 연결하세요.',
-          ),
+          Information(context.t('ui.audit474')),
           Wrap(
             spacing: 8,
             children: [
               for (final value in ['all', 'needs'])
                 ChoiceChip(
-                  label: Text(value == 'all' ? '전체' : '설정 확인'),
+                  label: Text(
+                    value == 'all'
+                        ? context.t('ui.audit656')
+                        : context.t('ui.audit1068'),
+                  ),
                   selected: filter == value,
                   onSelected: (_) => setState(() => filter = value),
                 ),
@@ -57,20 +61,23 @@ class _ManualWorkScreenState extends State<ManualWorkScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${t['title']}', style: AppText.section),
+                    Text(
+                      manualDisplayText(context, '${t['title']}'),
+                      style: AppText.section,
+                    ),
                     const SizedBox(height: 8),
                     Text(
-                      '${t['workStatus']?['label'] ?? '사용 방법을 확인해 주세요'}',
+                      localizedWorkStatus(context, t['workStatus'] as Json?),
                       style: AppText.caption,
                     ),
                     if (t['knowledge']?['scope'] != null)
                       Text(
                         {
-                              'universal': '업종 공통',
-                              'food': '외식 공통',
-                              'process': '공정 공통',
-                              'menu': '메뉴·업종별',
-                              'store': '매장 전용',
+                              'universal': context.t('ui.audit1069'),
+                              'food': context.t('ui.audit1070'),
+                              'process': context.t('ui.audit1071'),
+                              'menu': context.t('ui.audit1072'),
+                              'store': context.t('ui.audit1073'),
                             }[t['knowledge']['scope']] ??
                             '',
                         style: AppText.caption,
@@ -91,7 +98,7 @@ class _ManualWorkScreenState extends State<ManualWorkScreen> {
                                   );
                                   if (mounted) setState(() {});
                                 },
-                          child: const Text('연결 설정'),
+                          child: Text(context.t('ui.audit475')),
                         ),
                         if (t['workStatus']?['code'] == 'replacement')
                           TextButton(
@@ -104,20 +111,22 @@ class _ManualWorkScreenState extends State<ManualWorkScreen> {
                                     final accepted = await showAppDialog<bool>(
                                       context: context,
                                       builder: (c) => AlertDialog(
-                                        title: const Text('공통 업무로 정리할까요?'),
-                                        content: const Text(
-                                          '기존 매뉴얼은 보관하고 진행 중·완료 기록은 유지해요. 새 매뉴얼은 업무 사용을 끈 상태로 가져와요. 매장에서 수정한 내용은 기존 보관본에서 확인할 수 있어요.',
-                                        ),
+                                        title: Text(context.t('ui.audit476')),
+                                        content: Text(context.t('ui.audit477')),
                                         actions: [
                                           TextButton(
                                             onPressed: () =>
                                                 Navigator.pop(c, false),
-                                            child: const Text('취소'),
+                                            child: Text(
+                                              context.t('ui.audit33'),
+                                            ),
                                           ),
                                           FilledButton(
                                             onPressed: () =>
                                                 Navigator.pop(c, true),
-                                            child: const Text('나누어 가져오기'),
+                                            child: Text(
+                                              context.t('ui.audit478'),
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -132,7 +141,7 @@ class _ManualWorkScreenState extends State<ManualWorkScreen> {
                                     });
                                     if (mounted) setState(() {});
                                   },
-                            child: const Text('새 구성 적용'),
+                            child: Text(context.t('ui.audit479')),
                           ),
                         if (t['workStatus']?['code'] == 'event')
                           FilledButton(
@@ -148,7 +157,7 @@ class _ManualWorkScreenState extends State<ManualWorkScreen> {
                                     );
                                     if (mounted) setState(() {});
                                   },
-                            child: const Text('작업 시작'),
+                            child: Text(context.t('ui.audit480')),
                           ),
                       ],
                     ),
@@ -156,7 +165,7 @@ class _ManualWorkScreenState extends State<ManualWorkScreen> {
                 ),
               ),
             ),
-          if (rows.isEmpty) const Information('확인이 필요한 매뉴얼이 없어요.'),
+          if (rows.isEmpty) Information(context.t('ui.audit481')),
         ],
       ),
     );
@@ -192,7 +201,7 @@ class _StartManualWorkState extends State<StartManualWork> {
       return;
     }
     if (subject.text.trim().isEmpty) {
-      setState(() => error = '제품·배치 이름을 입력해 주세요.');
+      setState(() => error = context.t('ui.audit1287'));
       return;
     }
     submitted ??= subject.text.trim();
@@ -215,35 +224,38 @@ class _StartManualWorkState extends State<StartManualWork> {
 
   @override
   Widget build(BuildContext context) => AppEditorScaffold(
-    title: '작업 시작',
+    title: context.t('ui.audit480'),
     body: ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        Text('${widget.template['title']}', style: AppText.title),
+        Text(
+          manualDisplayText(context, '${widget.template['title']}'),
+          style: AppText.title,
+        ),
         const SizedBox(height: 16),
-        const Information('이번 제품·배치에 필요한 체크리스트가 업무에 추가돼요. 다른 배치는 따로 시작하세요.'),
+        Information(context.t('ui.audit482')),
         TextField(
           controller: subject,
           enabled: !saving && submitted == null,
           maxLength: 80,
-          decoration: const InputDecoration(
-            labelText: '제품·배치 또는 로트',
-            hintText: '예: 오전 육수 1차 · 10L',
+          decoration: InputDecoration(
+            labelText: context.t('ui.audit483'),
+            hintText: context.t('ui.audit484'),
           ),
         ),
         if (widget.template['settings']?['operatingStandard']
             case final String standard)
           Text(standard),
-        if (error != null) Information(error!),
+        if (error != null) Information(context.t(error!)),
         const SizedBox(height: 24),
         FilledButton(
           onPressed: saving || widget.ops.readOnly ? null : save,
           child: Text(
             saving
-                ? '만들고 있어요'
+                ? context.t('ui.audit1074')
                 : submitted == null
-                ? '체크리스트 만들기'
-                : '같은 작업 다시 요청',
+                ? context.t('ui.audit1075')
+                : context.t('ui.audit1076'),
           ),
         ),
       ],

@@ -31,13 +31,21 @@ class _TeamScreenState extends State<TeamScreen> {
   String money(num value) => value
       .toStringAsFixed(0)
       .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
-  String hours(dynamic minutes) =>
-      '${((minutes as num? ?? 0) / 60).toStringAsFixed(1)}시간';
+  String hours(dynamic minutes) => context.t(
+    'ui.audit530',
+    args: {'p0': ((minutes as num? ?? 0) / 60).toStringAsFixed(1)},
+  );
   Future<void> action(String type, Json data) async {
     final ok = await ops.act(type, data);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ok ? '기록했어요.' : ops.error ?? '기록하지 못했어요.')),
+        SnackBar(
+          content: Text(
+            ok
+                ? context.t('ui.audit888')
+                : ops.error ?? context.t('ui.audit781'),
+          ),
+        ),
       );
     }
   }
@@ -128,15 +136,15 @@ class _TeamScreenState extends State<TeamScreen> {
               final discard = await showAppDialog<bool>(
                 context: context,
                 builder: (dialog) => AlertDialog(
-                  title: const Text('입력한 내용을 버릴까요?'),
+                  title: Text(context.t('ui.audit345')),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(dialog, false),
-                      child: const Text('계속 편집'),
+                      child: Text(context.t('ui.audit21')),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(dialog, true),
-                      child: const Text('입력 버리기'),
+                      child: Text(context.t('ui.audit346')),
                     ),
                   ],
                 ),
@@ -155,10 +163,10 @@ class _TeamScreenState extends State<TeamScreen> {
             child: AppSheetPanel(
               title: Text(
                 widget.payOnly
-                    ? '인건비 설정'
+                    ? context.t('ui.audit371')
                     : current == null
-                    ? '크루 등록'
-                    : '크루 수정',
+                    ? context.t('ui.audit369')
+                    : context.t('ui.audit889'),
               ),
               content: AbsorbPointer(
                 absorbing: saving,
@@ -171,13 +179,15 @@ class _TeamScreenState extends State<TeamScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         if (saveError != null)
-                          Information('$saveError\n입력한 내용은 남아 있어요.'),
+                          Information(
+                            context.t('ui.audit890', args: {'p0': saveError}),
+                          ),
                         if (!widget.payOnly)
                           TextField(
                             controller: nickname,
                             onChanged: (_) => update(() {}),
-                            decoration: const InputDecoration(
-                              labelText: '별칭(이름)',
+                            decoration: InputDecoration(
+                              labelText: context.t('ui.audit347'),
                             ),
                           ),
                         if (!widget.payOnly) ...[
@@ -226,13 +236,13 @@ class _TeamScreenState extends State<TeamScreen> {
                         ],
                         if (!widget.payOnly)
                           AppPicker<String>(
-                            label: '직급',
+                            label: context.t('ui.audit891'),
                             value: rank,
                             items: _ranks.entries
                                 .map(
                                   (e) => DropdownMenuItem(
                                     value: e.key,
-                                    child: Text(e.value),
+                                    child: Text(context.t(e.value)),
                                   ),
                                 )
                                 .toList(),
@@ -240,7 +250,7 @@ class _TeamScreenState extends State<TeamScreen> {
                           ),
                         if (!widget.payOnly)
                           AppPicker<String>(
-                            label: '고용형태',
+                            label: context.t('ui.audit162'),
                             value: employment,
                             items: ['정규직', '시간알바', '정규알바']
                                 .map(
@@ -253,8 +263,8 @@ class _TeamScreenState extends State<TeamScreen> {
                             onChanged: (v) => update(() => employment = v!),
                           ),
                         if (!widget.payOnly)
-                          const Text(
-                            '파트·시간대는 등록 후 크루 배정에서 설정해요.',
+                          Text(
+                            context.t('ui.audit348'),
                             style: AppText.caption,
                           ),
                         if (widget.payOnly)
@@ -262,8 +272,8 @@ class _TeamScreenState extends State<TeamScreen> {
                             controller: rate,
                             onChanged: (_) => update(() {}),
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: '시급 · 원',
+                            decoration: InputDecoration(
+                              labelText: context.t('ui.audit349'),
                             ),
                           ),
                         if (widget.payOnly)
@@ -272,21 +282,21 @@ class _TeamScreenState extends State<TeamScreen> {
                               context,
                               builder: (_) => PayrollSettingsScreen(ops: ops),
                             ),
-                            child: const Text('매장 정산 설정'),
+                            child: Text(context.t('ui.audit350')),
                           ),
                         if (!widget.payOnly)
                           TextField(
                             controller: kakao,
-                            decoration: const InputDecoration(
-                              labelText: '카카오톡 HTTPS 링크 · 선택',
+                            decoration: InputDecoration(
+                              labelText: context.t('ui.audit351'),
                             ),
                           ),
                         if (!widget.payOnly)
                           TextField(
                             controller: phone,
                             keyboardType: TextInputType.phone,
-                            decoration: const InputDecoration(
-                              labelText: '전화번호 · 선택',
+                            decoration: InputDecoration(
+                              labelText: context.t('ui.audit352'),
                             ),
                           ),
                       ],
@@ -298,7 +308,7 @@ class _TeamScreenState extends State<TeamScreen> {
                 PressBounce(
                   child: TextButton(
                     onPressed: saving ? null : cancel,
-                    child: const Text('취소'),
+                    child: Text(context.t('ui.audit33')),
                   ),
                 ),
                 PressBounce(
@@ -354,7 +364,11 @@ class _TeamScreenState extends State<TeamScreen> {
                             });
                             if (ok) Navigator.pop(context);
                           },
-                    child: Text(saving ? '저장 중…' : '저장'),
+                    child: Text(
+                      saving
+                          ? context.t('ui.audit532')
+                          : context.t('ui.audit51'),
+                    ),
                   ),
                 ),
               ],
@@ -388,7 +402,9 @@ class _TeamScreenState extends State<TeamScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, update) => AppSheetPanel(
-          title: Text('${tapper['nickname']} 근무 배정'),
+          title: Text(
+            context.t('ui.audit892', args: {'p0': tapper['nickname']}),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -411,7 +427,7 @@ class _TeamScreenState extends State<TeamScreen> {
                 ),
               ),
               AppPicker<String>(
-                label: '담당',
+                label: context.t('ui.audit893'),
                 value: duty,
                 items: availableParts
                     .map(
@@ -428,7 +444,7 @@ class _TeamScreenState extends State<TeamScreen> {
                   onPressed: () async {
                     final next = await showTimeWheel(
                       context,
-                      title: '시작 시간',
+                      title: context.t('ui.audit755'),
                       value:
                           '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}',
                     );
@@ -441,7 +457,12 @@ class _TeamScreenState extends State<TeamScreen> {
                       );
                     }
                   },
-                  child: Text('시작 ${start.format(context)}'),
+                  child: Text(
+                    context.t(
+                      'ui.audit842',
+                      args: {'p0': start.format(context)},
+                    ),
+                  ),
                 ),
               ),
               PressBounce(
@@ -449,7 +470,7 @@ class _TeamScreenState extends State<TeamScreen> {
                   onPressed: () async {
                     final next = await showTimeWheel(
                       context,
-                      title: '종료 시간',
+                      title: context.t('ui.audit756'),
                       value:
                           '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}',
                     );
@@ -462,7 +483,9 @@ class _TeamScreenState extends State<TeamScreen> {
                       );
                     }
                   },
-                  child: Text('종료 ${end.format(context)}'),
+                  child: Text(
+                    context.t('ui.audit843', args: {'p0': end.format(context)}),
+                  ),
                 ),
               ),
             ],
@@ -471,7 +494,7 @@ class _TeamScreenState extends State<TeamScreen> {
             PressBounce(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('취소'),
+                child: Text(context.t('ui.audit33')),
               ),
             ),
             PressBounce(
@@ -486,7 +509,7 @@ class _TeamScreenState extends State<TeamScreen> {
                   'end':
                       '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}',
                 }),
-                child: const Text('배정'),
+                child: Text(context.t('ui.audit353')),
               ),
             ),
           ],
@@ -502,19 +525,25 @@ class _TeamScreenState extends State<TeamScreen> {
     final result = await showAppFormSheet<Json>(
       context: context,
       builder: (context) => AppSheetPanel(
-        title: Text(type == 'record_payment' ? '지급액 기록' : '추가보수 기록'),
+        title: Text(
+          type == 'record_payment'
+              ? context.t('ui.audit894')
+              : context.t('ui.audit895'),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: amount,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: '원 단위 금액'),
+              decoration: InputDecoration(labelText: context.t('ui.audit354')),
             ),
             if (type == 'add_pay_adjustment')
               TextField(
                 controller: note,
-                decoration: const InputDecoration(labelText: '설명'),
+                decoration: InputDecoration(
+                  labelText: context.t('ui.audit355'),
+                ),
               ),
           ],
         ),
@@ -522,7 +551,7 @@ class _TeamScreenState extends State<TeamScreen> {
           PressBounce(
             child: TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('취소'),
+              child: Text(context.t('ui.audit33')),
             ),
           ),
           PressBounce(
@@ -536,7 +565,7 @@ class _TeamScreenState extends State<TeamScreen> {
                   if (type == 'add_pay_adjustment') 'note': note.text.trim(),
                 });
               },
-              child: const Text('기록'),
+              child: Text(context.t('ui.audit356')),
             ),
           ),
         ],
@@ -559,7 +588,9 @@ class _TeamScreenState extends State<TeamScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(phone ? '전화 앱을 열지 못해 번호를 복사했어요.' : '링크를 열지 못해 복사했어요.'),
+          content: Text(
+            phone ? context.t('ui.audit896') : context.t('ui.audit897'),
+          ),
         ),
       );
     }
@@ -630,7 +661,7 @@ class _TeamScreenState extends State<TeamScreen> {
             ),
             IconButton(
               onPressed: () => openPerson(person['id']),
-              tooltip: '직원 정보',
+              tooltip: context.t('ui.audit898'),
               icon: const Icon(
                 CupertinoIcons.ellipsis_vertical,
                 color: AppColors.muted,
@@ -661,7 +692,7 @@ class _TeamScreenState extends State<TeamScreen> {
             .toList()
             .reversed;
         return AppEditorScaffold(
-          title: '크루 정보',
+          title: context.t('ui.audit899'),
           body: ListView(
             padding: const EdgeInsets.all(24),
             children: [
@@ -670,14 +701,19 @@ class _TeamScreenState extends State<TeamScreen> {
                 const SizedBox(height: 16),
                 Surface(
                   child: SettingRow(
-                    title: '시급·정산',
-                    subtitle:
-                        '시급 ${money(person['hourlyWon'] ?? 0)}원 · 배정 ${hours(person['plannedMinutes'])}',
+                    title: context.t('ui.audit900'),
+                    subtitle: context.t(
+                      'ui.audit901',
+                      args: {
+                        'p0': money(person['hourlyWon'] ?? 0),
+                        'p1': hours(person['plannedMinutes']),
+                      },
+                    ),
                     icon: CupertinoIcons.money_dollar_circle,
                     onTap: () => showAppSheet(
                       context,
                       builder: (_) => AppEditorScaffold(
-                        title: '시급·정산',
+                        title: context.t('ui.audit900'),
                         body: SingleChildScrollView(
                           padding: const EdgeInsets.all(24),
                           child: TeamScreen(operations: ops, payOnly: true),
@@ -692,8 +728,8 @@ class _TeamScreenState extends State<TeamScreen> {
                 child: Column(
                   children: [
                     SettingRow(
-                      title: '크루 배정',
-                      subtitle: '인원 배치에서 파트·시간대를 설정해요.',
+                      title: context.t('ui.audit902'),
+                      subtitle: context.t('ui.audit903'),
                       icon: CupertinoIcons.slider_horizontal_3,
                       onTap: ops.isOwner
                           ? () =>
@@ -706,8 +742,8 @@ class _TeamScreenState extends State<TeamScreen> {
               const SizedBox(height: 16),
               Surface(
                 child: SettingRow(
-                  title: '보건증',
-                  subtitle: '문서 보관 연결 전',
+                  title: context.t('ui.audit904'),
+                  subtitle: context.t('ui.audit905'),
                   icon: CupertinoIcons.doc_text,
                   onTap: () => showAppSheet(
                     context,
@@ -724,24 +760,27 @@ class _TeamScreenState extends State<TeamScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('근태', style: AppText.caption),
+                    Text(context.t('ui.audit357'), style: AppText.caption),
                     const SizedBox(height: 12),
                     Text(
-                      '이번 주 실근무 ${hours(person['weeklyActualMinutes'])}',
+                      context.t(
+                        'ui.audit906',
+                        args: {'p0': hours(person['weeklyActualMinutes'])},
+                      ),
                       style: AppText.body,
                     ),
                     if (records.isEmpty)
-                      const Text('열람 가능한 근무 기록이 없어요.', style: AppText.caption),
+                      Text(context.t('ui.audit358'), style: AppText.caption),
                     for (final record in records.take(12))
                       SettingRow(
                         title:
-                            const {
-                              'clock_in': '출근',
-                              'clock_out': '퇴근',
-                              'break_start': '휴게 시작',
-                              'break_end': '휴게 종료',
+                            {
+                              'clock_in': context.t('ui.audit364'),
+                              'clock_out': context.t('ui.audit367'),
+                              'break_start': context.t('ui.audit365'),
+                              'break_end': context.t('ui.audit366'),
                             }[record['type']] ??
-                            '기록',
+                            context.t('ui.audit356'),
                         subtitle: _recordTime(record['at']),
                       ),
                   ],
@@ -752,11 +791,11 @@ class _TeamScreenState extends State<TeamScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('근무 일정', style: AppText.caption),
+                    Text(context.t('ui.audit359'), style: AppText.caption),
                     if (shifts.isEmpty)
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.only(top: 12),
-                        child: Text('배정된 근무가 없어요.'),
+                        child: Text(context.t('ui.audit907')),
                       ),
                     for (final shift in shifts.take(14))
                       SettingRow(
@@ -774,7 +813,7 @@ class _TeamScreenState extends State<TeamScreen> {
                         onPressed: ops.readOnly
                             ? null
                             : () => editShift(person),
-                        child: const Text('근무 배정'),
+                        child: Text(context.t('ui.audit360')),
                       ),
                   ],
                 ),
@@ -783,7 +822,7 @@ class _TeamScreenState extends State<TeamScreen> {
                 const SizedBox(height: 16),
                 Surface(
                   child: SettingRow(
-                    title: '직원 기본 정보 수정',
+                    title: context.t('ui.audit908'),
                     icon: CupertinoIcons.pencil,
                     onTap: ops.readOnly ? null : () => editCrew(person),
                   ),
@@ -792,13 +831,13 @@ class _TeamScreenState extends State<TeamScreen> {
               if ((person['phone'] ?? '').toString().isNotEmpty)
                 TextButton(
                   onPressed: () => openContact(person['phone'], phone: true),
-                  child: const Text('전화 연결'),
+                  child: Text(context.t('ui.audit361')),
                 ),
               if ((person['kakaoUrl'] ?? '').toString().isNotEmpty)
                 TextButton(
                   onPressed: () =>
                       openContact(person['kakaoUrl'], phone: false),
-                  child: const Text('카카오톡 링크'),
+                  child: Text(context.t('ui.audit362')),
                 ),
             ],
           ),
@@ -830,7 +869,10 @@ class _TeamScreenState extends State<TeamScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('${person['nickname']}', style: AppText.title),
-              Text(_ranks[person['rank']] ?? '크루', style: AppText.caption),
+              Text(
+                _ranks[person['rank']] ?? context.t('ui.audit765'),
+                style: AppText.caption,
+              ),
             ],
           ),
         ),
@@ -848,21 +890,24 @@ class _TeamScreenState extends State<TeamScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.payOnly)
-            const Information(
-              '시급·지급 주기 설정 및 지급 기록이에요. 아래 누적액은 법정 수당을 제외해요. 수당 포함 예상은 주간 인건비에서 확인하세요.',
-            ),
+          if (widget.payOnly) Information(context.t('ui.audit363')),
           if (!widget.payOnly && own != null)
             Surface(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${own['nickname']} · 현재 ${state == 'clock_in' || state == 'break_end'
-                        ? '근무 중'
-                        : state == 'break_start'
-                        ? '휴게 중'
-                        : '근무 전/퇴근'}',
+                    context.t(
+                      'ui.audit909',
+                      args: {
+                        'p0': own['nickname'],
+                        'p1': state == 'clock_in' || state == 'break_end'
+                            ? context.t('ui.audit1176')
+                            : state == 'break_start'
+                            ? context.t('ui.audit1177')
+                            : context.t('ui.audit1178'),
+                      },
+                    ),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -875,7 +920,7 @@ class _TeamScreenState extends State<TeamScreen> {
                             onPressed: ops.readOnly || ops.busy
                                 ? null
                                 : () => action('clock_in', {}),
-                            child: const Text('출근'),
+                            child: Text(context.t('ui.audit364')),
                           ),
                         ),
                       if (state == 'clock_in' || state == 'break_end')
@@ -884,7 +929,7 @@ class _TeamScreenState extends State<TeamScreen> {
                             onPressed: ops.readOnly || ops.busy
                                 ? null
                                 : () => action('break_start', {}),
-                            child: const Text('휴게 시작'),
+                            child: Text(context.t('ui.audit365')),
                           ),
                         ),
                       if (state == 'break_start')
@@ -893,7 +938,7 @@ class _TeamScreenState extends State<TeamScreen> {
                             onPressed: ops.readOnly || ops.busy
                                 ? null
                                 : () => action('break_end', {}),
-                            child: const Text('휴게 종료'),
+                            child: Text(context.t('ui.audit366')),
                           ),
                         ),
                       if (state == 'clock_in' || state == 'break_end')
@@ -902,12 +947,12 @@ class _TeamScreenState extends State<TeamScreen> {
                             onPressed: ops.readOnly || ops.busy
                                 ? null
                                 : () => action('clock_out', {}),
-                            child: const Text('퇴근'),
+                            child: Text(context.t('ui.audit367')),
                           ),
                         ),
                     ],
                   ),
-                  if (ops.readOnly) const Text('공개 미리보기에서는 근태가 저장되지 않아요.'),
+                  if (ops.readOnly) Text(context.t('ui.audit368')),
                 ],
               ),
             ),
@@ -917,7 +962,7 @@ class _TeamScreenState extends State<TeamScreen> {
               child: FilledButton.icon(
                 onPressed: ops.busy || ops.readOnly ? null : () => editCrew(),
                 icon: const Icon(Icons.person_add_alt),
-                label: const Text('크루 등록'),
+                label: Text(context.t('ui.audit369')),
               ),
             ),
           if (!widget.payOnly && ops.canManageCrewInvites)
@@ -953,7 +998,7 @@ class _TeamScreenState extends State<TeamScreen> {
                 children: [
                   ChoiceChip(
                     chipAnimationStyle: AppMotion.chipStyle(context),
-                    label: const Text('전체 파트'),
+                    label: Text(context.t('ui.audit370')),
                     selected: selectedPart == null,
                     onSelected: (_) => setState(() => selectedPart = null),
                   ),
@@ -997,7 +1042,13 @@ class _TeamScreenState extends State<TeamScreen> {
                           ),
                           Text(crewPartsLabel(ops, tapper)),
                           Text(
-                            '이번 주 계획 ${hours(tapper['plannedMinutes'])} · 실적 ${hours(tapper['weeklyActualMinutes'])}',
+                            context.t(
+                              'ui.audit910',
+                              args: {
+                                'p0': hours(tapper['plannedMinutes']),
+                                'p1': hours(tapper['weeklyActualMinutes']),
+                              },
+                            ),
                           ),
                           if (widget.payOnly && tapper['gross'] != null) ...[
                             Text(
@@ -1005,13 +1056,29 @@ class _TeamScreenState extends State<TeamScreen> {
                               style: AppText.caption,
                             ),
                             Text(
-                              '시급 ${money(tapper['hourlyWon'])}원 · ${_periods[tapper['payPeriod']]}',
+                              context.t(
+                                'ui.audit911',
+                                args: {
+                                  'p0': money(tapper['hourlyWon']),
+                                  'p1': _periods[tapper['payPeriod']],
+                                },
+                              ),
                             ),
                             Text(
-                              '기본급·추가보수 ${money(tapper['gross'])}원 · 가산수당 별도 확인',
+                              context.t(
+                                'ui.audit912',
+                                args: {'p0': money(tapper['gross'])},
+                              ),
                             ),
                             Text(
-                              '지급 ${money(tapper['paid'])}원 · 잔여 ${money(tapper['remaining'])}원 · 추가보수 ${money(tapper['adjustments'])}원',
+                              context.t(
+                                'ui.audit913',
+                                args: {
+                                  'p0': money(tapper['paid']),
+                                  'p1': money(tapper['remaining']),
+                                  'p2': money(tapper['adjustments']),
+                                },
+                              ),
                             ),
                           ],
                           Wrap(
@@ -1023,7 +1090,7 @@ class _TeamScreenState extends State<TeamScreen> {
                                     onPressed: ops.readOnly
                                         ? null
                                         : () => editCrew(tapper),
-                                    child: const Text('인건비 설정'),
+                                    child: Text(context.t('ui.audit371')),
                                   ),
                                 ),
                               if (!widget.payOnly && ops.isOwner)
@@ -1032,7 +1099,7 @@ class _TeamScreenState extends State<TeamScreen> {
                                     onPressed: ops.readOnly
                                         ? null
                                         : () => editCrew(tapper),
-                                    child: const Text('수정'),
+                                    child: Text(context.t('ui.audit155')),
                                   ),
                                 ),
                               if (!widget.payOnly && ops.isLeader)
@@ -1041,7 +1108,7 @@ class _TeamScreenState extends State<TeamScreen> {
                                     onPressed: ops.readOnly
                                         ? null
                                         : () => editShift(tapper),
-                                    child: const Text('근무 배정'),
+                                    child: Text(context.t('ui.audit360')),
                                   ),
                                 ),
                               if (widget.payOnly && ops.isOwner)
@@ -1053,7 +1120,7 @@ class _TeamScreenState extends State<TeamScreen> {
                                             tapper,
                                             'add_pay_adjustment',
                                           ),
-                                    child: const Text('추가보수'),
+                                    child: Text(context.t('ui.audit372')),
                                   ),
                                 ),
                               if (widget.payOnly && ops.isOwner)
@@ -1065,7 +1132,7 @@ class _TeamScreenState extends State<TeamScreen> {
                                             tapper,
                                             'record_payment',
                                           ),
-                                    child: const Text('지급 기록'),
+                                    child: Text(context.t('ui.audit373')),
                                   ),
                                 ),
                               if ((tapper['phone'] ?? '').toString().isNotEmpty)
@@ -1075,7 +1142,7 @@ class _TeamScreenState extends State<TeamScreen> {
                                       tapper['phone'],
                                       phone: true,
                                     ),
-                                    child: const Text('전화 연결'),
+                                    child: Text(context.t('ui.audit361')),
                                   ),
                                 ),
                               if ((tapper['kakaoUrl'] ?? '')
@@ -1087,7 +1154,7 @@ class _TeamScreenState extends State<TeamScreen> {
                                       tapper['kakaoUrl'],
                                       phone: false,
                                     ),
-                                    child: const Text('카카오톡 링크'),
+                                    child: Text(context.t('ui.audit362')),
                                   ),
                                 ),
                             ],

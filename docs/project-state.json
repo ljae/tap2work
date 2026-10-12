@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 304,
+  "revision": 306,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -8834,7 +8834,19 @@
       "type": "verification",
       "title": "Codex Cloud environment installed, validated and published",
       "detail": "Codex Cloud tap2work published (UI Environment published/Published verified), Only me, GitHub Connector limited to ljae/tap2work. Setup baseline31daecaf: Flutter3.41.2/Dart3.11.0/Node22.23.3/Deno2.1.4; Flutter568 pass/3browser skip,analysis0,server381,JS/UI78,Edge,7-language translations,5PGlite SQL checks,web build/HTTP preview/start-stop-restart/repeat install passed. Complete Install script and Start skill saved; cache paths address read-only home. No credentials or production data migrated. New Cloud task started, but final restoration result unverified after Ego task space13 disappeared; no browser retry. Native simulator/signing/store operations remain Mac. See CODEX_CLOUD_SETUP.md."
+    },
+    {
+      "at": "2026-10-12T10:28:34.431674+00:00",
+      "type": "verification",
+      "title": "Detailed UI and owner starter manuals localized across eight languages",
+      "detail": "User requested finding and translating missing foreign-language text. 59 Flutter UI files use AppStrings for detailed settings/editing/feedback/accessibility; supplemental1764 rows cover ko/en/vi/zh-Hans/ja/th/ne/id. Prepared source dictionaries now1357 strings per foreign language, including owner starter24manuals110actions and first-shift6guides; public catalog/registration/user-authored originals/IDs/permissions/status codes unchanged. Added10regression tests; final Flutter578pass/3browser skips, analysis0, Node381pass, JScheck/UI78/7x1357 source-number-placeholder checks pass. Initial new tests8failed due offscreen taps/asset Future scheduling; corrected harness and full rerun. Provider omitted placeholders rejected;19numeric draft discrepancies and ambiguous owner/count labels corrected. ai-draft/native-speaker review pending; no real browser/device review, web/native build/deployment or operational data writes. Read current revision304 before this append; preserve all prior history and existing dirty work. See LOCALIZATION_COMPLETION_2026-10-12.md."
+    },
+    {
+      "at": "2026-10-12T10:44:31.246416+00:00",
+      "type": "verification",
+      "title": "AI language review completed; user selected draft deployment",
+      "detail": "User clarified AI additional language review followed by deployment while keeping native-speaker review incomplete. Reviewed terminology/safety subjects/negations/placeholders and Thai mixed-language prose; corrected435foreign cells in106source rows plus corresponding prepared manual fields. Rejected=反려, goods receipt=입고, operational time band vs geographical timezone, hours/shifts, roster and restaurant crew glossary; unwell worker vs food condition and affected orders vs spells corrected. ai-draft maintained; no human reviewer fabricated. Isolated .local/localization-release based on current origin/main ecdc861; all59UI opening snapshots byte-match base. Only75selected release paths; existing dirty root/credentials/operational data preserved. Final isolated Flutter579pass/3browser skips, analysis0, server381, JS/UI78/7x1357 source-number-placeholder checks pass. iOS17/Android16 build and deployment pending."
     }
   ],
-  "updatedAt": "2026-10-11T14:03:30.444192+00:00"
+  "updatedAt": "2026-10-12T10:44:31.246416+00:00"
 }

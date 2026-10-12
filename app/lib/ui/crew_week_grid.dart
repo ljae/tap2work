@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../domain/part_schedule.dart';
@@ -70,8 +71,11 @@ class CrewWeekGrid extends StatelessWidget {
                 children: [
                   SizedBox(
                     height: header,
-                    child: const Center(
-                      child: Text('시간', style: AppText.caption),
+                    child: Center(
+                      child: Text(
+                        context.t('ui.audit1061'),
+                        style: AppText.caption,
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -107,6 +111,7 @@ class CrewWeekGrid extends StatelessWidget {
                       children: [
                         for (var day = 1; day <= 7; day++)
                           dayColumn(
+                            context,
                             day,
                             from,
                             until,
@@ -128,6 +133,7 @@ class CrewWeekGrid extends StatelessWidget {
   }
 
   Widget dayColumn(
+    BuildContext context,
     int day,
     int from,
     int until,
@@ -161,7 +167,20 @@ class CrewWeekGrid extends StatelessWidget {
             alignment: Alignment.center,
             color: AppColors.surface,
             child: Text(
-              '${const ['월', '화', '수', '목', '금', '토', '일'][day - 1]}요일',
+              context.t(
+                'ui.audit1062',
+                args: {
+                  'p0': [
+                    context.t('ui.audit523'),
+                    context.t('ui.audit524'),
+                    context.t('ui.audit525'),
+                    context.t('ui.audit526'),
+                    context.t('ui.audit527'),
+                    context.t('ui.audit528'),
+                    context.t('ui.audit529'),
+                  ][day - 1],
+                },
+              ),
               style: AppText.body,
             ),
           ),
@@ -182,8 +201,21 @@ class CrewWeekGrid extends StatelessWidget {
                         onTap: editable ? () => onAdd(day, m) : null,
                         child: Semantics(
                           button: editable,
-                          label:
-                              '${const ['월', '화', '수', '목', '금', '토', '일'][day - 1]}요일 ${rosterClock(m)} 배정 추가',
+                          label: context.t(
+                            'ui.audit1063',
+                            args: {
+                              'p0': [
+                                context.t('ui.audit523'),
+                                context.t('ui.audit524'),
+                                context.t('ui.audit525'),
+                                context.t('ui.audit526'),
+                                context.t('ui.audit527'),
+                                context.t('ui.audit528'),
+                                context.t('ui.audit529'),
+                              ][day - 1],
+                              'p1': rosterClock(m),
+                            },
+                          ),
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border(
@@ -192,8 +224,11 @@ class CrewWeekGrid extends StatelessWidget {
                               ),
                             ),
                             child: m == from && rows.isEmpty
-                                ? const Center(
-                                    child: Text('+ 배정', style: AppText.caption),
+                                ? Center(
+                                    child: Text(
+                                      context.t('ui.audit1064'),
+                                      style: AppText.caption,
+                                    ),
                                   )
                                 : null,
                           ),
@@ -230,7 +265,7 @@ class CrewWeekGrid extends StatelessWidget {
                                 style: AppText.caption,
                               ),
                               Text(
-                                '배정',
+                                context.t('ui.audit353'),
                                 style: AppText.caption.copyWith(color: color),
                               ),
                             ],

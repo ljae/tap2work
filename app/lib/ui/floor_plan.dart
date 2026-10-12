@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'place_guide.dart';
 import 'dart:convert';
 import 'dart:math' as math;
@@ -39,7 +40,7 @@ class _FloorPlanViewState extends State<FloorPlanView> {
     final ops = widget.operations;
     final layout = ops.data?['layout'] as Json?;
     if (layout == null) {
-      return const Information('매장 배치를 불러오려면 최신 매장 서버에 연결해 주세요.');
+      return Information(context.t('ui.audit121'));
     }
     final mapFloors = ops
         .rows('zones')
@@ -66,14 +67,14 @@ class _FloorPlanViewState extends State<FloorPlanView> {
         PlaceGuide(ops: ops),
         const SizedBox(height: 24),
         ExpansionTile(
-          title: const Text('간단 배치도 · 선택'),
+          title: Text(context.t('ui.audit122')),
           children: [
             Wrap(
               spacing: 8,
               children: [
                 for (final f in mapFloors)
                   ChoiceChip(
-                    label: Text(f.isEmpty ? '기본 구역' : f),
+                    label: Text(f.isEmpty ? context.t('ui.audit620') : f),
                     selected: mapFloor == f,
                     onSelected: (_) => setState(() {
                       mapFloor = f;
@@ -103,11 +104,11 @@ class _FloorPlanViewState extends State<FloorPlanView> {
                               ),
                             ),
                       icon: const Icon(Icons.edit_location_alt_outlined),
-                      label: const Text('배치 설정'),
+                      label: Text(context.t('ui.audit123')),
                     ),
                   ),
-                const Text(
-                  '테이블 · 기기 · 보관 · 출입구',
+                Text(
+                  context.t('ui.audit124'),
                   style: TextStyle(fontSize: 13, color: AppColors.muted),
                 ),
               ],
@@ -128,8 +129,8 @@ class _FloorPlanViewState extends State<FloorPlanView> {
               onSelect: (id) => setState(() => selected = id),
             ),
             const SizedBox(height: 10),
-            const Text(
-              '두 손가락으로 확대 · 항목을 눌러 상세 확인 · 격자는 상대적인 배치 기준',
+            Text(
+              context.t('ui.audit125'),
               style: TextStyle(fontSize: 13, color: AppColors.muted),
             ),
             if (selection != null) ...[
@@ -146,7 +147,12 @@ class _FloorPlanViewState extends State<FloorPlanView> {
                       ),
                     ),
                     if (selection['kind'] == 'table')
-                      Text('${selection['seats']}인석'),
+                      Text(
+                        context.t(
+                          'ui.audit621',
+                          args: {'p0': selection['seats']},
+                        ),
+                      ),
                     if (selection['description'] != '')
                       Text(
                         selection['description'],
@@ -156,7 +162,16 @@ class _FloorPlanViewState extends State<FloorPlanView> {
                         .rows('items')
                         .any((i) => i['zone'] == selection['id']))
                       Text(
-                        '보관 재료: ${ops.rows('items').where((i) => i['zone'] == selection['id']).map((i) => i['name']).join(', ')}',
+                        context.t(
+                          'ui.audit622',
+                          args: {
+                            'p0': ops
+                                .rows('items')
+                                .where((i) => i['zone'] == selection['id'])
+                                .map((i) => i['name'])
+                                .join(', '),
+                          },
+                        ),
                       ),
                   ],
                 ),
@@ -166,11 +181,25 @@ class _FloorPlanViewState extends State<FloorPlanView> {
               Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: Information(
-                  '$route 예시 · 장애물을 피해 이동 가능한 격자 경로를 표시해요. 막힌 구간은 선이 보이지 않아요.\n${path.indexed.map((p) => '${p.$1 + 1}. ${zones.firstWhere((z) => z['id'] == p.$2)['name']}').join(' → ')}',
+                  context.t(
+                    'ui.audit623',
+                    args: {
+                      'p0': route,
+                      'p1': path.indexed
+                          .map(
+                            (p) =>
+                                '${p.$1 + 1}. ${zones.firstWhere((z) => z['id'] == p.$2)['name']}',
+                          )
+                          .join(' → '),
+                    },
+                  ),
                 ),
               ),
             const SizedBox(height: 20),
-            const SectionHeading('재료 위치와 수량', '배치와 연결된 재료의 최근 기록이에요.'),
+            SectionHeading(
+              context.t('ui.audit1449'),
+              context.t('ui.audit1450'),
+            ),
             Surface(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Column(
@@ -184,7 +213,13 @@ class _FloorPlanViewState extends State<FloorPlanView> {
                         '${item['name']} · ${item['quantity']}${item['unit']}',
                       ),
                       subtitle: Text(
-                        '마지막 실사 ${_stamp(item['lastCheckedAt'])} · 마지막 발주 ${_stamp(item['lastOrderedAt'])}',
+                        context.t(
+                          'ui.audit624',
+                          args: {
+                            'p0': _stamp(item['lastCheckedAt']),
+                            'p1': _stamp(item['lastOrderedAt']),
+                          },
+                        ),
                       ),
                     ),
                   ],
@@ -194,9 +229,7 @@ class _FloorPlanViewState extends State<FloorPlanView> {
             const SizedBox(height: 16),
           ],
         ),
-        const Information(
-          '좌석 수는 설정된 정원이며 실시간 착석 정보가 아니에요. 배치는 개략도이며, 실제 장비 사용법과 안전·비상 동선은 현장에서 확인해 주세요.',
-        ),
+        Information(context.t('ui.audit126')),
       ],
     );
   }
@@ -367,7 +400,7 @@ class _MapCanvasState extends State<_MapCanvas> {
             PressBounce(
               child: TextButton(
                 onPressed: () => transform.value = Matrix4.identity(),
-                child: const Text('전체 보기'),
+                child: Text(context.t('ui.audit127')),
               ),
             ),
           ],
@@ -467,7 +500,7 @@ class _MapCanvasState extends State<_MapCanvas> {
                                         onTap: () => widget.onSelect(z['id']),
                                         child: Tooltip(
                                           message:
-                                              '${z['name']}${z['kind'] == 'table' ? ' · ${z['seats']}인석' : ''}',
+                                              '${z['name']}${z['kind'] == 'table' ? context.t('ui.audit2100', args: {'p0': z['seats']}) : ''}',
                                           child: Center(
                                             child: Padding(
                                               padding: const EdgeInsets.all(3),
@@ -492,7 +525,12 @@ class _MapCanvasState extends State<_MapCanvas> {
                                                     ),
                                                     if (z['kind'] == 'table')
                                                       Text(
-                                                        '${z['seats']}인석',
+                                                        context.t(
+                                                          'ui.audit621',
+                                                          args: {
+                                                            'p0': z['seats'],
+                                                          },
+                                                        ),
                                                         style: const TextStyle(
                                                           fontSize: 13,
                                                         ),
@@ -525,7 +563,10 @@ class _MapCanvasState extends State<_MapCanvas> {
                                 width: 30,
                                 height: 30,
                                 child: Semantics(
-                                  label: '${z['name']} 크기 조정',
+                                  label: context.t(
+                                    'ui.audit625',
+                                    args: {'p0': z['name']},
+                                  ),
                                   child: MouseRegion(
                                     cursor: SystemMouseCursors
                                         .resizeUpLeftDownRight,
@@ -730,19 +771,19 @@ class _LayoutEditorState extends State<_LayoutEditor> {
         await showAppDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text('배치 변경을 취소할까요?'),
-                content: const Text('저장하지 않은 배치 변경은 사라져요.'),
+                title: Text(context.t('ui.audit128')),
+                content: Text(context.t('ui.audit129')),
                 actions: [
                   PressBounce(
                     child: TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: const Text('계속 편집'),
+                      child: Text(context.t('ui.audit21')),
                     ),
                   ),
                   PressBounce(
                     child: FilledButton(
                       onPressed: () => Navigator.pop(context, true),
-                      child: const Text('변경 취소'),
+                      child: Text(context.t('ui.audit130')),
                     ),
                   ),
                 ],
@@ -830,11 +871,11 @@ class _LayoutEditorState extends State<_LayoutEditor> {
               (z['notchDepth'] ?? 0) < 1 ||
               z['notchWidth'] > baseWidth - (shape == 'u' ? 2 : 1) ||
               z['notchDepth'] >= baseHeight)) {
-        return '${z['name']}의 도형 홈 크기를 확인해 주세요.';
+        return context.t('ui.audit2101', args: {'p0': z['name']});
       }
       if (z['x'] + z['width'] > layout['columns'] ||
           z['y'] + z['height'] > layout['rows']) {
-        return '${z['name']}이 매장 경계를 벗어나요. 위치나 크기를 수정해 주세요.';
+        return context.t('ui.audit2102', args: {'p0': z['name']});
       }
       if (z['kind'] == 'table' && !tableNames.add(z['name'])) {
         return '테이블 이름은 서로 다르게 정해 주세요.';
@@ -846,7 +887,10 @@ class _LayoutEditorState extends State<_LayoutEditor> {
         if (occupiedLayoutCells(
           z,
         ).intersection(occupiedLayoutCells(other)).isNotEmpty) {
-          return '${z['name']}과 ${other['name']}의 위치가 겹쳐요. 빈 칸으로 옮겨 주세요.';
+          return context.t(
+            'ui.audit2103',
+            args: {'p0': z['name'], 'p1': other['name']},
+          );
         }
       }
     }
@@ -859,7 +903,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
       return;
     }
     if (ops.actorId != actorId || !ops.isLeader) {
-      setState(() => error = '편집을 시작한 역할로 다시 연결해 주세요.');
+      setState(() => error = context.t('ui.audit1244'));
       return;
     }
     final ok = await ops.act('save_layout', {
@@ -876,7 +920,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
       });
       Navigator.pop(context);
     } else {
-      setState(() => error = ops.error ?? '저장하지 못했어요.');
+      setState(() => error = ops.error ?? context.t('ui.audit760'));
     }
   }
 
@@ -884,19 +928,19 @@ class _LayoutEditorState extends State<_LayoutEditor> {
     final yes = await showAppDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('최신 배치를 불러올까요?'),
-        content: const Text('현재 편집한 내용은 버리고 매장에 저장된 배치를 불러와요.'),
+        title: Text(context.t('ui.audit131')),
+        content: Text(context.t('ui.audit132')),
         actions: [
           PressBounce(
             child: TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('계속 편집'),
+              child: Text(context.t('ui.audit21')),
             ),
           ),
           PressBounce(
             child: FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('불러오기'),
+              child: Text(context.t('ui.audit133')),
             ),
           ),
         ],
@@ -975,9 +1019,9 @@ class _LayoutEditorState extends State<_LayoutEditor> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('매장 배치 설정'),
+          title: Text(context.t('ui.audit134')),
           leading: IconButton(
-            tooltip: '편집 닫기',
+            tooltip: context.t('ui.audit626'),
             onPressed: leave,
             icon: const Icon(Icons.close),
           ),
@@ -992,10 +1036,10 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                 icon: const Icon(Icons.save_outlined),
                 label: Text(
                   ops.readOnly
-                      ? '공개 미리보기 · 저장 불가'
+                      ? context.t('ui.audit627')
                       : ops.busy
-                      ? '저장 중…'
-                      : '배치 저장',
+                      ? context.t('ui.audit532')
+                      : context.t('ui.audit628'),
                 ),
               ),
             ),
@@ -1013,18 +1057,16 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                   children: [
                     Information(
                       ops.readOnly
-                          ? '배치를 자유롭게 바꿔 볼 수 있지만 공개 미리보기에서는 저장되지 않아요.'
-                          : '항목을 선택한 뒤 빈 칸을 눌러 이동하세요. 배치 저장 전까지는 다른 동료에게 반영되지 않아요.',
+                          ? context.t('ui.audit629')
+                          : context.t('ui.audit630'),
                     ),
                     if (ops.data?['revision'] != revision) ...[
                       const SizedBox(height: 12),
-                      const Information(
-                        '매장 정보가 변경됐어요. 덮어쓰지 않도록 최신 배치를 불러온 뒤 다시 편집해 주세요.',
-                      ),
+                      Information(context.t('ui.audit135')),
                       PressBounce(
                         child: TextButton(
                           onPressed: reload,
-                          child: const Text('최신 배치 불러오기'),
+                          child: Text(context.t('ui.audit136')),
                         ),
                       ),
                     ],
@@ -1049,8 +1091,8 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                               !zones.any((d) => d['id'] == z['id']),
                         ))
                       DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(
-                          labelText: '등록한 장소를 배치도에 표시',
+                        decoration: InputDecoration(
+                          labelText: context.t('ui.audit137'),
                         ),
                         items: [
                           for (final z
@@ -1098,23 +1140,23 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                                 ? null
                                 : () => editItem(),
                             icon: const Icon(Icons.add),
-                            label: const Text('테이블·기기 추가'),
+                            label: Text(context.t('ui.audit138')),
                           ),
                         ),
                         PressBounce(
                           child: TextButton.icon(
                             onPressed: dimensions,
                             icon: const Icon(Icons.grid_on),
-                            label: const Text('매장 크기·이름'),
+                            label: Text(context.t('ui.audit139')),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(bottom: 12),
                       child: Text(
-                        '기기를 끌어 이동하고, 선택한 기기의 모서리로 크기를 조정하세요.',
+                        context.t('ui.audit631'),
                         style: TextStyle(fontSize: 13, color: AppColors.muted),
                       ),
                     ),
@@ -1133,13 +1175,16 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${selection!['name']} 선택됨',
+                              context.t(
+                                'ui.audit632',
+                                args: {'p0': selection!['name']},
+                              ),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const Text(
-                              '빈 칸을 누르거나 화살표로 한 칸씩 옮기세요.',
+                            Text(
+                              context.t('ui.audit140'),
                               style: TextStyle(fontSize: 13),
                             ),
                             Wrap(
@@ -1168,7 +1213,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                                   child: TextButton.icon(
                                     onPressed: () => editItem(selection),
                                     icon: const Icon(Icons.tune),
-                                    label: const Text('이름·크기·좌석 수정'),
+                                    label: Text(context.t('ui.audit141')),
                                   ),
                                 ),
                                 PressBounce(
@@ -1179,7 +1224,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                                       dirty = true;
                                     }),
                                     icon: const Icon(Icons.delete_outline),
-                                    label: const Text('배치에서 삭제'),
+                                    label: Text(context.t('ui.audit142')),
                                   ),
                                 ),
                               ],
@@ -1203,9 +1248,7 @@ class _LayoutEditorState extends State<_LayoutEditor> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    const Information(
-                      '테이블·기기는 서로 겹치지 않게 배치해 주세요. 구역은 다른 항목의 배경으로 겹칠 수 있어요. 업무·재고에 연결된 장소는 삭제할 수 없어요. 도면 이미지 업로드와 실제 치수 측정은 아직 지원하지 않아요.',
-                    ),
+                    Information(context.t('ui.audit143')),
                   ],
                 ),
               ),
@@ -1292,13 +1335,17 @@ class _ItemDialogState extends State<_ItemDialog> {
           keyboardType: TextInputType.number,
           validator: (v) {
             final n = int.tryParse(v ?? '');
-            return n == null || n < 1 || n > max ? '1~$max 입력' : null;
+            return n == null || n < 1 || n > max
+                ? context.t('ui.audit2104', args: {'p0': max})
+                : null;
           },
         ),
       );
   @override
   Widget build(BuildContext context) => AppSheetPanel(
-    title: Text(widget.item == null ? '테이블·기기 추가' : '배치 항목 수정'),
+    title: Text(
+      widget.item == null ? context.t('ui.audit138') : context.t('ui.audit633'),
+    ),
     content: SizedBox(
       width: 420,
       child: SingleChildScrollView(
@@ -1310,29 +1357,40 @@ class _ItemDialogState extends State<_ItemDialog> {
             spacing: 20,
             children: [
               AppPicker<String>(
-                label: '종류',
+                label: context.t('ui.audit181'),
                 value: kind,
                 items: _kinds.entries
                     .map(
-                      (e) =>
-                          DropdownMenuItem(value: e.key, child: Text(e.value)),
+                      (e) => DropdownMenuItem(
+                        value: e.key,
+                        child: Text(context.t(e.value)),
+                      ),
                     )
                     .toList(),
                 onChanged: (v) => setState(() => kind = v!),
               ),
               AppPicker<String>(
-                label: '격자 도형',
+                label: context.t('ui.audit634'),
                 value: shape,
-                items: const [
-                  DropdownMenuItem(value: 'rect', child: Text('직사각형')),
-                  DropdownMenuItem(value: 'l', child: Text('L자')),
-                  DropdownMenuItem(value: 'u', child: Text('U자')),
+                items: [
+                  DropdownMenuItem(
+                    value: 'rect',
+                    child: Text(context.t('ui.audit635')),
+                  ),
+                  DropdownMenuItem(
+                    value: 'l',
+                    child: Text(context.t('ui.audit636')),
+                  ),
+                  DropdownMenuItem(
+                    value: 'u',
+                    child: Text(context.t('ui.audit637')),
+                  ),
                 ],
                 onChanged: (v) => setState(() => shape = v!),
               ),
               if (shape != 'rect') ...[
                 AppPicker<int>(
-                  label: '회전',
+                  label: context.t('ui.audit638'),
                   value: rotation,
                   items: const [
                     DropdownMenuItem(value: 0, child: Text('0°')),
@@ -1365,15 +1423,18 @@ class _ItemDialogState extends State<_ItemDialog> {
               TextFormField(
                 controller: name,
                 maxLength: 30,
-                decoration: const InputDecoration(labelText: '이름'),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? '이름을 입력해 주세요' : null,
+                decoration: InputDecoration(labelText: context.t('ui.audit50')),
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? context.t('ui.audit1464')
+                    : null,
               ),
               TextFormField(
                 controller: description,
                 maxLength: 500,
                 maxLines: 2,
-                decoration: const InputDecoration(labelText: '위치·사용 안내 (선택)'),
+                decoration: InputDecoration(
+                  labelText: context.t('ui.audit144'),
+                ),
               ),
               Wrap(
                 spacing: 12,
@@ -1395,7 +1456,7 @@ class _ItemDialogState extends State<_ItemDialog> {
       PressBounce(
         child: TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('취소'),
+          child: Text(context.t('ui.audit33')),
         ),
       ),
       PressBounce(
@@ -1412,9 +1473,9 @@ class _ItemDialogState extends State<_ItemDialog> {
                 (int.parse(notchWidth.text) >
                         baseWidth - (shape == 'u' ? 2 : 1) ||
                     int.parse(notchDepth.text) >= baseHeight)) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('도형의 홈이 바깥 경계를 넘어가요.')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(context.t('ui.audit639'))));
               return;
             }
             Navigator.pop(context, <String, dynamic>{
@@ -1436,7 +1497,7 @@ class _ItemDialogState extends State<_ItemDialog> {
               'seats': kind == 'table' ? int.parse(seats.text) : 0,
             });
           },
-          child: const Text('배치에 적용'),
+          child: Text(context.t('ui.audit145')),
         ),
       ),
     ],
@@ -1467,7 +1528,7 @@ class _DimensionsDialogState extends State<_DimensionsDialog> {
 
   @override
   Widget build(BuildContext context) => AppSheetPanel(
-    title: const Text('매장 크기·이름'),
+    title: Text(context.t('ui.audit139')),
     content: SizedBox(
       width: 360,
       child: SingleChildScrollView(
@@ -1481,9 +1542,12 @@ class _DimensionsDialogState extends State<_DimensionsDialog> {
               TextFormField(
                 controller: name,
                 maxLength: 40,
-                decoration: const InputDecoration(labelText: '매장 배치 이름'),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? '이름을 입력해 주세요' : null,
+                decoration: InputDecoration(
+                  labelText: context.t('ui.audit146'),
+                ),
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? context.t('ui.audit1464')
+                    : null,
               ),
               for (final field in [('가로 칸 수', columns), ('세로 칸 수', rows)])
                 TextFormField(
@@ -1496,10 +1560,7 @@ class _DimensionsDialogState extends State<_DimensionsDialog> {
                   },
                 ),
               const SizedBox(height: 12),
-              const Text(
-                '실제 미터 단위가 아닌 배치 격자예요. 크기를 줄이면 항목이 경계를 벗어나지 않는지 확인해 주세요.',
-                style: TextStyle(fontSize: 13),
-              ),
+              Text(context.t('ui.audit147'), style: TextStyle(fontSize: 13)),
             ],
           ),
         ),
@@ -1509,7 +1570,7 @@ class _DimensionsDialogState extends State<_DimensionsDialog> {
       PressBounce(
         child: TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('취소'),
+          child: Text(context.t('ui.audit33')),
         ),
       ),
       PressBounce(
@@ -1523,7 +1584,7 @@ class _DimensionsDialogState extends State<_DimensionsDialog> {
               });
             }
           },
-          child: const Text('크기 적용'),
+          child: Text(context.t('ui.audit148')),
         ),
       ),
     ],

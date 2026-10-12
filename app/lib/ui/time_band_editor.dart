@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'time_wheel.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -45,15 +46,15 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
       final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('변경을 버릴까요?'),
+          title: Text(context.t('ui.audit178')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('계속 수정'),
+              child: Text(context.t('ui.audit179')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('변경 버리기'),
+              child: Text(context.t('ui.audit22')),
             ),
           ],
         ),
@@ -70,7 +71,7 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
   Future<void> time(bool first) async {
     final value = await showTimeWheel(
       context,
-      title: first ? '시작 시간' : '종료 시간',
+      title: first ? context.t('ui.audit755') : context.t('ui.audit756'),
       value: first ? start : end,
     );
     if (value == null || !mounted) return;
@@ -91,7 +92,7 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
         selected.isEmpty ||
         days.isEmpty ||
         start == end) {
-      setState(() => error = '이름, 파트, 적용 요일과 서로 다른 시작·종료 시간을 확인해 주세요.');
+      setState(() => error = context.t('ui.audit1264'));
       return;
     }
     final counts = <String, dynamic>{
@@ -126,7 +127,9 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
       if (!didPop) close();
     },
     child: AppEditorScaffold(
-      title: widget.band == null ? '새 시간대' : '시간대 수정',
+      title: widget.band == null
+          ? context.t('ui.audit861')
+          : context.t('ui.audit862'),
       onClose: close,
       footer: AppSheetFooter(
         children: [
@@ -137,7 +140,7 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
             ),
           FilledButton(
             onPressed: leaving ? null : apply,
-            child: const Text('시간대 적용'),
+            child: Text(context.t('ui.audit315')),
           ),
         ],
       ),
@@ -145,7 +148,7 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
         padding: const EdgeInsets.all(24),
         children: [
           AppFormSection(
-            title: '시간대',
+            title: context.t('ui.audit38'),
             children: [
               Wrap(
                 spacing: 8,
@@ -164,7 +167,9 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
               TextField(
                 controller: name,
                 maxLength: 40,
-                decoration: const InputDecoration(labelText: '시간대 이름'),
+                decoration: InputDecoration(
+                  labelText: context.t('ui.audit316'),
+                ),
                 onChanged: (_) => setState(() => dirty = true),
               ),
               Wrap(
@@ -173,19 +178,19 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
                 children: [
                   OutlinedButton(
                     onPressed: () => time(true),
-                    child: Text('시작 $start'),
+                    child: Text(context.t('ui.audit842', args: {'p0': start})),
                   ),
                   OutlinedButton(
                     onPressed: () => time(false),
-                    child: Text('종료 $end'),
+                    child: Text(context.t('ui.audit843', args: {'p0': end})),
                   ),
                 ],
               ),
-              if (end.compareTo(start) < 0) const Text('종료는 다음 날이에요.'),
+              if (end.compareTo(start) < 0) Text(context.t('ui.audit317')),
             ],
           ),
           AppFormSection(
-            title: '파트',
+            title: context.t('ui.audit160'),
             children: [
               Wrap(
                 spacing: 8,
@@ -202,11 +207,11 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
                     ),
                 ],
               ),
-              const Text('선택한 파트에 필요 인원을 추가해요. 인원수는 적용 후 조정할 수 있어요.'),
+              Text(context.t('ui.audit318')),
             ],
           ),
           AppFormSection(
-            title: '적용 요일',
+            title: context.t('ui.audit863'),
             children: [
               Wrap(
                 spacing: 8,
@@ -227,10 +232,10 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
                     ),
                 ],
               ),
-              const Text('휴무일은 영업시간 화면에서 먼저 해제해 주세요.'),
+              Text(context.t('ui.audit319')),
             ],
           ),
-          const Text('적용 후 일주일 설정 저장을 누르면 근무표의 필요 인원에 반영돼요. 이미 배정한 근무는 유지돼요.'),
+          Text(context.t('ui.audit320')),
         ],
       ),
     ),

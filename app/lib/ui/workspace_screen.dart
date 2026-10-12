@@ -1,3 +1,5 @@
+import '../l10n/app_localizations.dart';
+import '../l10n/manual_text_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../domain/lesson.dart';
@@ -24,13 +26,25 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
         action: PopupMenuButton<String>(
           popUpAnimationStyle: AppMotion.dialogStyle(context),
           key: const ValueKey('header-account-menu'),
-          tooltip: '체험 역할과 안내',
+          tooltip: context.t('ui.audit1290'),
           onSelected: _menu,
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 'worker', child: Text('신입 · 지우로 체험')),
-            PopupMenuItem(value: 'buddy', child: Text('버디 · 민지로 체험')),
-            PopupMenuItem(value: 'about', child: Text('체험 버전 안내')),
-            PopupMenuItem(value: 'reset', child: Text('체험 기록 초기화')),
+          itemBuilder: (_) => [
+            PopupMenuItem(
+              value: 'worker',
+              child: Text(context.t('ui.audit1291')),
+            ),
+            PopupMenuItem(
+              value: 'buddy',
+              child: Text(context.t('ui.audit1292')),
+            ),
+            PopupMenuItem(
+              value: 'about',
+              child: Text(context.t('ui.audit1293')),
+            ),
+            PopupMenuItem(
+              value: 'reset',
+              child: Text(context.t('ui.audit1294')),
+            ),
           ],
           child: const HeaderAccountButton(),
         ),
@@ -49,10 +63,10 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
                       child: Text(
-                        '체험 버전 · 가상 매장 · 이 기기에만 저장돼요',
+                        context.t('ui.audit1295'),
                         style: TextStyle(fontSize: 13, color: AppColors.muted),
                       ),
                     ),
@@ -67,9 +81,9 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                       _ => _team(),
                     },
                     const SizedBox(height: 28),
-                    const Center(
+                    Center(
                       child: Text(
-                        '한 번에 하나씩, 함께 배워요.',
+                        context.t('ui.audit1296'),
                         style: TextStyle(fontSize: 13, color: AppColors.muted),
                       ),
                     ),
@@ -83,11 +97,14 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       bottomNavigationBar: FloatingMenu(
         selectedIndex: selected,
         onSelected: (index) => setState(() => selected = index),
-        items: const [
-          FloatingMenuItem('오늘', CupertinoIcons.house),
-          FloatingMenuItem('배우기', CupertinoIcons.book),
-          FloatingMenuItem('근무', CupertinoIcons.calendar),
-          FloatingMenuItem('도움', CupertinoIcons.question_circle),
+        items: [
+          FloatingMenuItem(context.t('ui.audit1585'), CupertinoIcons.house),
+          FloatingMenuItem(context.t('ui.audit1702'), CupertinoIcons.book),
+          FloatingMenuItem(context.t('ui.audit1616'), CupertinoIcons.calendar),
+          FloatingMenuItem(
+            context.t('ui.audit1315'),
+            CupertinoIcons.question_circle,
+          ),
         ],
       ),
     ),
@@ -96,20 +113,28 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
   List<Widget> _today() {
     final next = work.nextLesson;
     return [
-      const PageHeading(
-        '첫 출근, 반가워요',
-        '지우님, 함께 시작해요.',
-        '오늘은 주방 보조 · 한 번에 하나씩 익히면 돼요.',
+      PageHeading(
+        context.t('ui.audit1297'),
+        context.t('ui.audit1298'),
+        context.t('ui.audit1299'),
       ),
-      const Surface(
+      Surface(
         color: Color(0xFF222528),
         padding: EdgeInsets.all(17),
         child: Wrap(
           spacing: 24,
           runSpacing: 12,
           children: [
-            _Brief(Icons.schedule, '10:00 출근', '14:00까지 · 예시'),
-            _Brief(Icons.place_outlined, '작은주방 · 연남', '민지님과 함께해요'),
+            _Brief(
+              Icons.schedule,
+              context.t('ui.audit1703'),
+              context.t('ui.audit1704'),
+            ),
+            _Brief(
+              Icons.place_outlined,
+              context.t('ui.audit1335'),
+              context.t('ui.audit1705'),
+            ),
           ],
         ),
       ),
@@ -120,15 +145,17 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Eyebrow(
-              next == null ? '함께 확인하기' : '지금 할 일 · 약 ${next.minutes}분',
+              next == null
+                  ? context.t('ui.audit1300')
+                  : context.t('ui.audit1301', args: {'p0': next.minutes}),
               color: AppColors.green,
             ),
             const SizedBox(height: 22),
             Text(
               next?.title ??
                   (work.allConfirmed
-                      ? '첫걸음 완료.\n다음도 함께해요.'
-                      : '잘 연습했어요.\n민지님과 확인해요.'),
+                      ? context.t('ui.audit1302')
+                      : context.t('ui.audit1303')),
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
@@ -140,8 +167,8 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             const SizedBox(height: 12),
             Text(
               next == null
-                  ? '다시 해보고 싶은 것도 알려 주세요.\n다음 업무도 버디와 함께해요.'
-                  : '${next.subtitle}.\n민지님이 옆에서 도와줄 거예요.',
+                  ? context.t('ui.audit1304')
+                  : context.t('ui.audit1305', args: {'p0': next.subtitle}),
               style: const TextStyle(
                 fontSize: 13,
                 color: Color(0xFFD1DBD5),
@@ -160,7 +187,11 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                   ),
                   onPressed: next == null ? _help : () => _lesson(next),
                   icon: const Icon(Icons.arrow_forward, size: 18),
-                  label: Text(next == null ? '같이 봐 달라고 하기' : '어떻게 하는지 보기'),
+                  label: Text(
+                    next == null
+                        ? context.t('ui.audit1306')
+                        : context.t('ui.audit1307'),
+                  ),
                 ),
               ),
             ),
@@ -173,12 +204,12 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                     color: AppColors.lime,
                     backgroundColor: const Color(0xFF536B5D),
                     borderRadius: BorderRadius.circular(10),
-                    semanticsLabel: '함께 익힌 단계',
+                    semanticsLabel: context.t('ui.audit1308'),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  '${work.approved.length}개 함께 익혔어요',
+                  context.t('ui.audit1309', args: {'p0': work.approved.length}),
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFFD1DBD5),
@@ -193,14 +224,14 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            '오늘 배울 것',
+          Text(
+            context.t('ui.audit1310'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           PressBounce(
             child: TextButton(
               onPressed: () => setState(() => selected = 1),
-              child: const Text('전체 6단계 →'),
+              child: Text(context.t('ui.audit1311')),
             ),
           ),
         ],
@@ -212,10 +243,10 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Eyebrow('오늘의 버디 · 예시'),
+            Eyebrow(context.t('ui.audit1312')),
             const SizedBox(height: 16),
-            const Text(
-              '“빨리 하는 것보다\n같이 익히는 게 먼저예요.”',
+            Text(
+              context.t('ui.audit1313'),
               style: TextStyle(
                 fontSize: 24,
                 height: 1.4,
@@ -225,9 +256,12 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             const SizedBox(height: 20),
             Person(
               name: '민지',
-              subtitle: '처음부터 같이 해볼게요.',
+              subtitle: context.t('ui.audit1314'),
               trailing: PressBounce(
-                child: TextButton(onPressed: _help, child: const Text('도움')),
+                child: TextButton(
+                  onPressed: _help,
+                  child: Text(context.t('ui.audit1315')),
+                ),
               ),
             ),
           ],
@@ -262,7 +296,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                 ),
         ),
         title: Text(
-          item.title,
+          manualDisplayText(context, item.title),
           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
@@ -270,7 +304,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
           style: const TextStyle(fontSize: 13, color: AppColors.muted),
         ),
         trailing: Text(
-          '${item.minutes}분',
+          context.t('ui.audit920', args: {'p0': item.minutes}),
           style: const TextStyle(fontSize: 13, color: AppColors.muted),
         ),
       ),
@@ -278,45 +312,50 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
   );
 
   List<Widget> _learning() => [
-    const PageHeading(
-      '보고 → 같이 해보고 → 확인받기',
-      '첫 한 시간 배우기',
-      '6개의 짧은 단계로 오늘의 일을 익혀요.',
+    PageHeading(
+      context.t('ui.audit1316'),
+      context.t('ui.audit1317'),
+      context.t('ui.audit1318'),
     ),
     Information(
-      '연습 ${work.practiced.length}/6 · 함께 확인 ${work.approved.length}/6\n시간은 안내용이에요. 이해가 안 되면 더 연습해도 괜찮아요.',
+      context.t(
+        'ui.audit1319',
+        args: {'p0': work.practiced.length, 'p1': work.approved.length},
+      ),
     ),
     gap,
     ...lessons.map(_lessonTile),
     gap,
-    const Information(
-      '매장의 실제 절차를 버디와 확인해요. 이 체험은 매장의 필수 교육이나 자격 확인을 대신하지 않아요.',
-    ),
+    Information(context.t('ui.audit1320')),
   ];
 
   List<Widget> _shifts() => [
-    const PageHeading('일하는 날을 한눈에', '내 근무표', '확정된 시간과 함께할 버디를 확인해요.'),
-    const Information('예시 일정이에요. 실제 배정이나 출퇴근 기록은 아직 연결되지 않았어요.'),
+    PageHeading(
+      context.t('ui.audit1321'),
+      context.t('ui.audit1322'),
+      context.t('ui.audit1323'),
+    ),
+    Information(context.t('ui.audit1324')),
     gap,
     Surface(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Eyebrow('첫 출근일 · 예시'),
+          Eyebrow(context.t('ui.audit1325')),
           const SizedBox(height: 14),
           const Text(
             '10:00 — 14:00',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 9),
-          const Text('작은주방 · 연남 / 주방 보조'),
+          Text(context.t('ui.audit1326')),
           const SizedBox(height: 8),
-          const Text(
-            '10:00–11:00 첫 한 시간 함께 배우기',
+          Text(
+            context.t('ui.audit1327'),
             style: TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           const Divider(height: 36),
-          const Person(name: '민지', subtitle: '오늘의 버디 · 주방 담당'),
+          Person(name: '민지', subtitle: context.t('ui.audit1328')),
           gap,
           SizedBox(
             width: double.infinity,
@@ -324,7 +363,11 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
               child: FilledButton(
                 key: const Key('confirm-shift'),
                 onPressed: work.shiftConfirmed ? null : work.confirmShift,
-                child: Text(work.shiftConfirmed ? '근무 시간 확인했어요' : '근무 시간 확인하기'),
+                child: Text(
+                  work.shiftConfirmed
+                      ? context.t('ui.audit1329')
+                      : context.t('ui.audit1330'),
+                ),
               ),
             ),
           ),
@@ -336,24 +379,24 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Eyebrow('다음 근무 · 예시'),
+          Eyebrow(context.t('ui.audit1331')),
           const SizedBox(height: 13),
-          const Text(
-            '첫 출근 다음 날',
+          Text(
+            context.t('ui.audit1332'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           const Text('11:00 — 15:00', style: TextStyle(fontSize: 24)),
           const SizedBox(height: 10),
-          const Text(
-            '시작 전 5분, 어제 어려웠던 일을 다시 확인해요.',
+          Text(
+            context.t('ui.audit1333'),
             style: TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           gap,
           PressBounce(
             child: OutlinedButton(
               onPressed: _help,
-              child: const Text('근무 시간 상의하기'),
+              child: Text(context.t('ui.audit1334')),
             ),
           ),
         ],
@@ -362,13 +405,13 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
   ];
 
   List<Widget> _team() => [
-    const PageHeading(
-      '작은주방 · 연남',
-      '혼자 고민하지 마세요.',
-      '작은 질문도 괜찮아요. 가까운 버디에게 물어봐요.',
+    PageHeading(
+      context.t('ui.audit1335'),
+      context.t('ui.audit1336'),
+      context.t('ui.audit1337'),
     ),
-    const Surface(
-      child: Person(name: '민지', subtitle: '오늘의 버디 · 주방 담당'),
+    Surface(
+      child: Person(name: '민지', subtitle: context.t('ui.audit1328')),
     ),
     gap,
     Surface(
@@ -376,10 +419,10 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Eyebrow('도움이 필요할 때', color: AppColors.green),
+          Eyebrow(context.t('ui.audit1338'), color: AppColors.green),
           const SizedBox(height: 19),
-          const Text(
-            '“여기, 같이 봐 주세요.”',
+          Text(
+            context.t('ui.audit1339'),
             style: TextStyle(
               fontSize: 24,
               color: Colors.white,
@@ -387,8 +430,8 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             ),
           ),
           const SizedBox(height: 13),
-          const Text(
-            '현장에서 민지님을 먼저 불러 주세요. 급한 위험은 앱 답장을 기다리지 않고 바로 알려요.',
+          Text(
+            context.t('ui.audit1340'),
             style: TextStyle(color: Color(0xFFD1DBD5), height: 1.7),
           ),
           gap,
@@ -400,7 +443,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
               ),
               onPressed: _help,
               icon: const Icon(Icons.chat_bubble_outline, size: 19),
-              label: const Text('도움 요청 체험'),
+              label: Text(context.t('ui.audit1341')),
             ),
           ),
         ],
@@ -409,31 +452,37 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     gap,
     Information(
       work.helpRequested
-          ? '데모 요청이 있어요. 버디 모드에서 확인할 수 있어요. 실제 알림은 전송되지 않아요.'
-          : '이 체험에서는 실제 알림이나 메시지가 전송되지 않아요.',
+          ? context.t('ui.audit1342')
+          : context.t('ui.audit1343'),
     ),
     gap,
-    const Surface(
-      child: Person(name: '현우', subtitle: '매니저 · 근무 일정 상담'),
+    Surface(
+      child: Person(name: '현우', subtitle: context.t('ui.audit1344')),
     ),
   ];
 
   List<Widget> _buddy() => [
-    const PageHeading('버디 체험 모드', '첫날을 함께 만들어 줘요.', '신입이 해본 일을 살펴보고 함께 확인해요.'),
-    const Information('데모 역할 전환이에요. 실제 로그인이나 매장별 권한 확인은 아직 연결하지 않았어요.'),
+    PageHeading(
+      context.t('ui.audit1345'),
+      context.t('ui.audit1346'),
+      context.t('ui.audit1347'),
+    ),
+    Information(context.t('ui.audit1348')),
     gap,
     Surface(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Person(name: '지우', subtitle: '오늘의 신입 · 주방 준비 및 설거지'),
+          Person(name: '지우', subtitle: context.t('ui.audit1349')),
           gap,
           Text(
             '${work.approved.length} / 6',
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
           ),
           Text(
-            work.allConfirmed ? '함께 확인했어요. 다음 업무도 옆에서 도와주세요.' : '함께 확인한 단계',
+            work.allConfirmed
+                ? context.t('ui.audit1350')
+                : context.t('ui.audit1351'),
             style: const TextStyle(color: AppColors.muted),
           ),
         ],
@@ -446,17 +495,17 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '지우님이 함께 봐 달래요.',
+            Text(
+              context.t('ui.audit1352'),
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 10),
-            const Text('현장에서 상황을 확인한 뒤 눌러 주세요.'),
+            Text(context.t('ui.audit1353')),
             const SizedBox(height: 16),
             PressBounce(
               child: FilledButton(
                 onPressed: work.resolveHelp,
-                child: const Text('함께 확인했어요'),
+                child: Text(context.t('ui.audit1354')),
               ),
             ),
           ],
@@ -464,8 +513,8 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       ),
       gap,
     ],
-    const Text(
-      '단계별 확인',
+    Text(
+      context.t('ui.audit1355'),
       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
     ),
     gap,
@@ -478,7 +527,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                item.title,
+                manualDisplayText(context, item.title),
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -499,7 +548,9 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                       ? () => _lesson(item, approve: true)
                       : null,
                   child: Text(
-                    work.approved.contains(item.id) ? '확인 완료' : '함께 확인하기',
+                    work.approved.contains(item.id)
+                        ? context.t('ui.audit1356')
+                        : context.t('ui.audit1300'),
                   ),
                 ),
               ),
@@ -533,18 +584,24 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                   children: [
                     Expanded(
                       child: Eyebrow(
-                        '${lessons.indexOf(lesson) + 1} / 6 · 약 ${lesson.minutes}분',
+                        context.t(
+                          'ui.audit1357',
+                          args: {
+                            'p0': lessons.indexOf(lesson) + 1,
+                            'p1': lesson.minutes,
+                          },
+                        ),
                       ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(sheetContext),
                       icon: const Icon(Icons.close),
-                      tooltip: '닫기',
+                      tooltip: context.t('ui.audit83'),
                     ),
                   ],
                 ),
                 Text(
-                  lesson.title,
+                  manualDisplayText(context, lesson.title),
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
@@ -552,10 +609,19 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                 ),
                 gap,
                 if (!approve) ...[
-                  _Instruction('01 보기', lesson.watch),
-                  _Instruction('02 함께', lesson.practice),
+                  _Instruction(
+                    context.t('ui.audit1358'),
+                    manualDisplayText(context, lesson.watch),
+                  ),
+                  _Instruction(
+                    context.t('ui.audit1359'),
+                    manualDisplayText(context, lesson.practice),
+                  ),
                 ],
-                _Instruction('03 확인', lesson.check),
+                _Instruction(
+                  context.t('ui.audit1360'),
+                  manualDisplayText(context, lesson.check),
+                ),
                 if (approve ||
                     (!practiced && work.role == DemoRole.worker)) ...[
                   CheckboxListTile(
@@ -567,8 +633,8 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                         setSheetState(() => checked = value ?? false),
                     title: Text(
                       approve
-                          ? '현장에서 함께 확인하고, 더 도울 부분을 설명했어요.'
-                          : '버디와 함께 직접 해봤어요.',
+                          ? context.t('ui.audit1361')
+                          : context.t('ui.audit1362'),
                       style: const TextStyle(fontSize: 13),
                     ),
                   ),
@@ -586,21 +652,23 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                                 if (success) {
                                   _message(
                                     approve
-                                        ? '함께 확인한 내용을 기록했어요.'
-                                        : '같이 해본 내용을 기록했어요. 버디가 함께 확인해 줄 거예요.',
+                                        ? context.t('ui.audit1386')
+                                        : context.t('ui.audit1387'),
                                   );
                                 }
                               }
                             : null,
-                        child: Text(approve ? '버디 확인 완료' : '같이 해봤어요'),
+                        child: Text(
+                          approve
+                              ? context.t('ui.audit1363')
+                              : context.t('ui.audit1364'),
+                        ),
                       ),
                     ),
                   ),
                 ] else
                   Information(
-                    practiced
-                        ? work.status(lesson)
-                        : '버디는 시범을 보여 주고 함께 연습해 주세요. 연습 기록은 신입 모드에서 남길 수 있어요.',
+                    practiced ? work.status(lesson) : context.t('ui.audit1365'),
                   ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -611,7 +679,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                         Navigator.pop(sheetContext);
                         _help();
                       },
-                      child: const Text('도움이 필요해요'),
+                      child: Text(context.t('ui.audit1366')),
                     ),
                   ),
                 ),
@@ -627,21 +695,19 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     final result = await showAppDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('버디와 같이 봐요.'),
-        content: const Text(
-          '현장에서 민지님을 먼저 불러 주세요.\n\n이 체험의 요청은 이 기기에만 저장돼요. 실제 메시지는 전송되지 않아요.',
-        ),
+        title: Text(context.t('ui.audit1367')),
+        content: Text(context.t('ui.audit1368')),
         actions: [
           PressBounce(
             child: TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('닫기'),
+              child: Text(context.t('ui.audit83')),
             ),
           ),
           PressBounce(
             child: FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('데모 요청 남기기'),
+              child: Text(context.t('ui.audit1369')),
             ),
           ),
         ],
@@ -649,7 +715,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     );
     if (result == true && mounted) {
       work.requestHelp();
-      _message('이 기기에 요청을 남겼어요. 버디 모드에서 확인할 수 있어요.');
+      _message(context.t('ui.audit1388'));
     }
   }
 
@@ -666,15 +732,13 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       await showAppDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('함께 시작하는 첫 근무'),
-          content: const Text(
-            'Flutter로 만든 tap2work 체험 버전이에요.\n\n가상 매장과 예시 인물이며 실제 직원 계정, 초대, 알림, 급여, 교육 영상은 아직 연결하지 않았어요. 진행 기록은 현재 기기에만 저장돼요.',
-          ),
+          title: Text(context.t('ui.audit1370')),
+          content: Text(context.t('ui.audit1371')),
           actions: [
             PressBounce(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('확인했어요'),
+                child: Text(context.t('ui.audit1372')),
               ),
             ),
           ],
@@ -684,19 +748,19 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       final reset = await showAppDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('체험 기록을 초기화할까요?'),
-          content: const Text('이 기기의 연습·버디 확인·도움 요청·일정 확인 기록이 지워져요.'),
+          title: Text(context.t('ui.audit1373')),
+          content: Text(context.t('ui.audit1374')),
           actions: [
             PressBounce(
               child: TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('취소'),
+                child: Text(context.t('ui.audit33')),
               ),
             ),
             PressBounce(
               child: FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('초기화'),
+                child: Text(context.t('ui.audit1375')),
               ),
             ),
           ],

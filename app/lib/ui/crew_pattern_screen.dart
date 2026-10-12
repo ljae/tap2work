@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'time_wheel.dart';
 import 'crew_week_grid.dart';
 import 'dart:convert';
@@ -73,15 +74,15 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
       final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('변경을 버릴까요?'),
+          title: Text(context.t('ui.audit178')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('계속 편집'),
+              child: Text(context.t('ui.audit21')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('변경 버리기'),
+              child: Text(context.t('ui.audit22')),
             ),
           ],
         ),
@@ -130,7 +131,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
         )
         .toList();
     if (parts.isEmpty) {
-      setState(() => error = '배정 가능한 파트를 먼저 설정해 주세요.');
+      setState(() => error = context.t('ui.audit1285'));
       return;
     }
     var part = existing?['partId'] as String? ?? parts.first['id'] as String;
@@ -149,7 +150,20 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
       builder: (c) => StatefulBuilder(
         builder: (c, update) => AppSheetPanel(
           title: Text(
-            '${const ['월', '화', '수', '목', '금', '토', '일'][weekday - 1]}요일 배정',
+            context.t(
+              'ui.audit1046',
+              args: {
+                'p0': [
+                  context.t('ui.audit523'),
+                  context.t('ui.audit524'),
+                  context.t('ui.audit525'),
+                  context.t('ui.audit526'),
+                  context.t('ui.audit527'),
+                  context.t('ui.audit528'),
+                  context.t('ui.audit529'),
+                ][weekday - 1],
+              },
+            ),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -157,7 +171,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AppPicker<String>(
-                  label: '파트',
+                  label: context.t('ui.audit160'),
                   value: part,
                   items: [
                     for (final p in parts)
@@ -180,10 +194,13 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                 ),
                 const SizedBox(height: 16),
                 AppPicker<String>(
-                  label: '영업 시간대',
+                  label: context.t('ui.audit1047'),
                   value: bandId,
                   items: [
-                    const DropdownMenuItem(value: '', child: Text('직접 시간 지정')),
+                    DropdownMenuItem(
+                      value: '',
+                      child: Text(context.t('ui.audit1048')),
+                    ),
                     for (final b in bands)
                       DropdownMenuItem(
                         value: b['id'] as String,
@@ -207,7 +224,9 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: AppTimeField(
-                      label: isStart ? '시작' : '종료',
+                      label: isStart
+                          ? context.t('ui.audit664')
+                          : context.t('ui.audit665'),
                       value: isStart ? start : end,
 
                       onChanged: (v) =>
@@ -215,7 +234,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                     ),
                   ),
                 if (end.compareTo(start) < 0)
-                  const Text('종료는 다음 날이에요.', style: AppText.caption),
+                  Text(context.t('ui.audit317'), style: AppText.caption),
               ],
             ),
           ),
@@ -224,11 +243,11 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
               TextButton(
                 onPressed: () =>
                     Navigator.pop(c, <String, dynamic>{'delete': true}),
-                child: const Text('배정 삭제'),
+                child: Text(context.t('ui.audit463')),
               ),
             TextButton(
               onPressed: () => Navigator.pop(c),
-              child: const Text('취소'),
+              child: Text(context.t('ui.audit33')),
             ),
             FilledButton(
               onPressed: start == end
@@ -241,7 +260,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                       'start': start,
                       'end': end,
                     }),
-              child: const Text('반영'),
+              child: Text(context.t('ui.audit464')),
             ),
           ],
         ),
@@ -284,7 +303,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
         .where((p) => p['tapperId'] == crewId)
         .firstOrNull;
     if (pattern == null) {
-      setState(() => error = '기본 배정을 먼저 저장해 주세요.');
+      setState(() => error = context.t('ui.audit1286'));
       return;
     }
     final replaced = ops
@@ -305,18 +324,26 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
     final yes = await showAppDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('기본 배정을 적용할까요?'),
+        title: Text(context.t('ui.audit465')),
         content: Text(
-          '${rosterDate(from)} ~ ${rosterDate(until)}\n${people.where((p) => p['id'] == crewId).first['nickname']} · 기존 반복 근무 $replaced건 중 보호되지 않은 날짜 갱신\n\n승인된 OFF·대체 배정·출퇴근·대기 신청이 있는 날짜는 유지해요. 나머지 날짜의 반복 배정과 미세조정만 초기화해요. 별도 근무는 보존해요. 시간이 겹치면 전체 적용을 멈춰요.',
+          context.t(
+            'ui.audit1049',
+            args: {
+              'p0': rosterDate(from),
+              'p1': rosterDate(until),
+              'p2': people.where((p) => p['id'] == crewId).first['nickname'],
+              'p3': replaced,
+            },
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('취소'),
+            child: Text(context.t('ui.audit33')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('적용·초기화'),
+            child: Text(context.t('ui.audit466')),
           ),
         ],
       ),
@@ -338,7 +365,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
     if (ok) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('선택한 기간에 배정했어요.')));
+      ).showSnackBar(SnackBar(content: Text(context.t('ui.audit1050'))));
     }
   }
 
@@ -349,14 +376,16 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
       if (!didPop) close();
     },
     child: AppEditorScaffold(
-      title: '크루별 근무 배정',
+      title: context.t('ui.audit833'),
       maxWidth: 1440,
       onClose: close,
       footer: AppSheetFooter(
         children: [
           FilledButton(
             onPressed: editable && crewId != null ? save : null,
-            child: Text(saving ? '저장 중…' : '기본 배정 저장'),
+            child: Text(
+              saving ? context.t('ui.audit532') : context.t('ui.audit835'),
+            ),
           ),
         ],
       ),
@@ -366,9 +395,9 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              if (people.isEmpty) const Information('크루를 먼저 등록해 주세요.'),
+              if (people.isEmpty) Information(context.t('ui.audit280')),
               AppPicker<String>(
-                label: '크루',
+                label: context.t('ui.audit765'),
                 value: crewId,
                 items: [
                   for (final p in people)
@@ -381,13 +410,14 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                   if (!dirty && !saving) setState(() => load(v!));
                 },
               ),
-              if (dirty)
-                const Text('저장한 뒤 다른 크루를 선택할 수 있어요.', style: AppText.caption),
+              if (dirty) Text(context.t('ui.audit467'), style: AppText.caption),
               const SizedBox(height: 24),
               AppChoiceGroup<int>(
                 values: const [1, 2],
                 selected: cycle,
-                labelOf: (n) => n == 1 ? '매주 동일' : '2주 교대',
+                labelOf: (n) => n == 1
+                    ? context.t('ui.audit1225')
+                    : context.t('ui.audit1226'),
                 onSelected: (n) {
                   if (!editable) return;
                   setState(() {
@@ -400,20 +430,21 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
               if (cycle == 2) ...[
                 TextButton(
                   onPressed: () => date('anchor'),
-                  child: Text('A주 시작 월요일 · ${rosterDate(anchor)}'),
+                  child: Text(
+                    context.t('ui.audit1051', args: {'p0': rosterDate(anchor)}),
+                  ),
                 ),
                 AppChoiceGroup<int>(
                   values: const [0, 1],
                   selected: week,
-                  labelOf: (n) => n == 0 ? 'A주' : 'B주',
+                  labelOf: (n) => n == 0
+                      ? context.t('ui.audit1227')
+                      : context.t('ui.audit1228'),
                   onSelected: (n) => setState(() => week = n),
                 ),
               ],
               const SizedBox(height: 16),
-              const Text(
-                '빈 시간을 눌러 배정해요. 배정 블록을 누르면 수정·삭제할 수 있어요.',
-                style: AppText.caption,
-              ),
+              Text(context.t('ui.audit468'), style: AppText.caption),
               const SizedBox(height: 12),
               CrewWeekGrid(
                 entries: entries.where((e) => e['week'] == week).toList(),
@@ -426,30 +457,32 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                 onEdit: (day, entry) => add(day, entry),
               ),
               const SizedBox(height: 16),
-              const Text('근무표에 적용', style: AppText.title),
+              Text(context.t('ui.audit286'), style: AppText.title),
               const SizedBox(height: 8),
-              const Text(
-                '선택한 기간에 기본 배정을 넣어요. 승인된 OFF·대체 배정·출퇴근·대기 신청이 있는 날짜는 유지해요. 나머지 반복 근무의 날짜별 조정은 초기화돼요.',
-                style: AppText.caption,
-              ),
+              Text(context.t('ui.audit469'), style: AppText.caption),
               Wrap(
                 spacing: 8,
                 children: [
                   TextButton(
                     onPressed: () => date('from'),
-                    child: Text('시작 ${rosterDate(from)}'),
+                    child: Text(
+                      context.t('ui.audit842', args: {'p0': rosterDate(from)}),
+                    ),
                   ),
                   TextButton(
                     onPressed: () => date('until'),
-                    child: Text('종료 ${rosterDate(until)}'),
+                    child: Text(
+                      context.t('ui.audit843', args: {'p0': rosterDate(until)}),
+                    ),
                   ),
                 ],
               ),
               OutlinedButton(
                 onPressed: editable && !dirty ? apply : null,
-                child: const Text('적용 범위 확인'),
+                child: Text(context.t('ui.audit470')),
               ),
-              if (error != null) Information('$error\n입력한 내용은 유지돼요.'),
+              if (error != null)
+                Information(context.t('ui.audit723', args: {'p0': error})),
             ],
           ),
         ),

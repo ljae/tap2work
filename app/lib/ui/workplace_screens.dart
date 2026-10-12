@@ -224,7 +224,11 @@ class _StorePreparationState extends State<StorePreparation> {
               ),
               TextButton(
                 onPressed: () => setState(() => collapsed = !collapsed),
-                child: Text(collapsed ? '펼치기' : '접기'),
+                child: Text(
+                  collapsed
+                      ? context.t('ui.audit778')
+                      : context.t('ui.audit779'),
+                ),
               ),
             ],
           ),
@@ -289,7 +293,11 @@ class AttendanceCard extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(ok ? '근태를 기록했어요.' : ops.error ?? '기록하지 못했어요.'),
+            content: Text(
+              ok
+                  ? context.t('ui.audit780')
+                  : ops.error ?? context.t('ui.audit781'),
+            ),
           ),
         );
       }
@@ -300,13 +308,19 @@ class AttendanceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${own['nickname']}님, ${working
-                ? '근무 중이에요'
-                : resting
-                ? '쉬는 중이에요'
-                : shifts.isEmpty
-                ? '오늘은 배정이 없어요'
-                : '오늘도 함께해요'}',
+            context.t(
+              'ui.audit782',
+              args: {
+                'p0': own['nickname'],
+                'p1': working
+                    ? context.t('ui.audit1143')
+                    : resting
+                    ? context.t('ui.audit1144')
+                    : shifts.isEmpty
+                    ? context.t('ui.audit1145')
+                    : context.t('ui.audit1146'),
+              },
+            ),
             style: AppText.body.copyWith(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -315,7 +329,7 @@ class AttendanceCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             shifts.isEmpty
-                ? '배정이 없어도 출근을 기록할 수 있어요.'
+                ? context.t('ui.audit783')
                 : shifts
                       .map(
                         (s) =>
@@ -336,7 +350,7 @@ class AttendanceCard extends StatelessWidget {
                         ? null
                         : () => act('clock_in'),
                     icon: const Icon(CupertinoIcons.arrow_right_circle),
-                    label: const Text('출근하기'),
+                    label: Text(context.t('ui.audit247')),
                   ),
                 ),
               if (working)
@@ -349,7 +363,7 @@ class AttendanceCard extends StatelessWidget {
                       backgroundColor: AppColors.amber,
                       foregroundColor: AppColors.paper,
                     ),
-                    child: const Text('퇴근하기'),
+                    child: Text(context.t('ui.audit248')),
                   ),
                 ),
               if (working || resting)
@@ -358,15 +372,19 @@ class AttendanceCard extends StatelessWidget {
                     onPressed: ops.readOnly || ops.busy
                         ? null
                         : () => act(resting ? 'break_end' : 'break_start'),
-                    child: Text(resting ? '휴게 종료' : '휴게 시작'),
+                    child: Text(
+                      resting
+                          ? context.t('ui.audit366')
+                          : context.t('ui.audit365'),
+                    ),
                   ),
                 ),
             ],
           ),
           if (ops.readOnly)
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 12),
-              child: Text('미리보기 · 근태 기록은 저장되지 않아요.', style: AppText.caption),
+              child: Text(context.t('ui.audit784'), style: AppText.caption),
             ),
         ],
       ),
@@ -460,7 +478,19 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   List<String> get hoursReflowImpact => [
     for (final entry in reflowedHours.entries)
       if ((days['${entry.key}'] as List).isNotEmpty)
-        '${dayNames[entry.key - 1]}요일: ${hoursSummary(entry.value)}\n→ ${hoursSummary((days['${entry.key}'] as List).cast<Json>().where((b) => b['custom'] != true).toList())}',
+        context.t(
+          'ui.audit2105',
+          args: {
+            'p0': dayNames[entry.key - 1],
+            'p1': hoursSummary(entry.value),
+            'p2': hoursSummary(
+              (days['${entry.key}'] as List)
+                  .cast<Json>()
+                  .where((b) => b['custom'] != true)
+                  .toList(),
+            ),
+          },
+        ),
   ];
 
   List<Json> reopenedDay(int day) =>
@@ -605,16 +635,16 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     final discard = await showAppDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('변경을 버릴까요?'),
-        content: const Text('아직 저장하지 않은 내용이 있어요.'),
+        title: Text(context.t('ui.audit178')),
+        content: Text(context.t('ui.audit43')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('계속 편집'),
+            child: Text(context.t('ui.audit21')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('변경 버리기'),
+            child: Text(context.t('ui.audit22')),
           ),
         ],
       ),
@@ -629,7 +659,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
 
   Future<void> save(String action, Json values) async {
     if (!editable) {
-      setState(() => error = '계정이 바뀌었어요. 닫고 다시 열어 주세요.');
+      setState(() => error = context.t('ui.audit1254'));
       return;
     }
     setState(() {
@@ -645,7 +675,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         dirty = false;
         if (action == 'save_workplace_hours') reflowedHours.clear();
       } else {
-        error = '${ops.error}\n입력한 내용은 그대로 남아 있어요.';
+        error = context.t('ui.audit1255', args: {'p0': ops.error});
       }
     });
     if (ok) {
@@ -653,8 +683,8 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         SnackBar(
           content: Text(
             action == 'save_workplace_hours'
-                ? '기존 미세 조정을 초기화하고 새 영업시간·인원 배치를 근무표에 반영했어요. 출퇴근·승인·대기 기록은 유지돼요.'
-                : '저장했어요.',
+                ? context.t('ui.audit785')
+                : context.t('ui.audit786'),
           ),
         ),
       );
@@ -668,7 +698,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       child: PressBounce(
         child: FilledButton(
           onPressed: editable ? onSave : null,
-          child: Text(saving ? '저장 중…' : label),
+          child: Text(saving ? context.t('ui.audit532') : label),
         ),
       ),
     ),
@@ -716,8 +746,10 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                   retainedCount >
               24) {
         setState(
-          () => error =
-              '${dayNames[d - 1]}요일의 영업시간과 추가 시간대를 확인해 주세요. 교대마다 30분 이상 필요해요.',
+          () => error = context.t(
+            'ui.audit1256',
+            args: {'p0': context.t(dayNames[d - 1])},
+          ),
         );
         return;
       }
@@ -727,7 +759,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         .where((b) => linkedIds.contains(b['id']))
         .toList();
     if (count + custom.length + retained.length > 24) {
-      setState(() => error = '요일별 시간대는 최대 24개예요.');
+      setState(() => error = context.t('ui.audit1257'));
       return;
     }
     final hours = ops.data?['store']?['profile']?['hours'] as Json? ?? {};
@@ -739,7 +771,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     );
     if (end <= start) end += 1440;
     if (end - start < count * 30) {
-      setState(() => error = '시간대당 30분 이상 필요해요.');
+      setState(() => error = context.t('ui.audit1258'));
       return;
     }
     update(() {
@@ -751,7 +783,10 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         var end = _minute(operating.last['end']);
         if (end <= start) end += 1440;
         if (end - start < count * 30) {
-          error = '${dayNames[d - 1]}요일은 시간대당 30분 이상 필요해요.';
+          error = context.t(
+            'ui.audit1259',
+            args: {'p0': context.t(dayNames[d - 1])},
+          );
           continue;
         }
         final cuts = shiftBoundaries(start, end, count);
@@ -820,7 +855,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       final count = regular.isEmpty ? rows.length : regular.length;
       return count > 3 || boundaries.last - start < count * 30;
     })) {
-      setState(() => error = '각 요일의 교대가 30분 이상이 되도록 영업시간을 먼저 조정해 주세요.');
+      setState(() => error = context.t('ui.audit1260'));
       return;
     }
     allHours = true;
@@ -880,7 +915,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     children: [
       Expanded(child: Text(title, style: AppText.section)),
       IconButton(
-        tooltip: '$title 도움말',
+        tooltip: context.t('ui.audit787', args: {'p0': title}),
         onPressed: () => ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(help))),
@@ -926,15 +961,18 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      tooltip: '인원 줄이기',
+                      tooltip: context.t('ui.audit788'),
                       onPressed: count > 0
                           ? () => refresh(() => count--)
                           : null,
                       icon: const Icon(Icons.remove),
                     ),
-                    Text('$count명', style: AppText.title),
+                    Text(
+                      context.t('ui.audit602', args: {'p0': count}),
+                      style: AppText.title,
+                    ),
                     IconButton(
-                      tooltip: '인원 늘리기',
+                      tooltip: context.t('ui.audit789'),
                       onPressed: count < 12
                           ? () => refresh(() => count++)
                           : null,
@@ -949,9 +987,17 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                       key: ValueKey('staffing-crew-$seat-${ids[seat]}'),
                       initialValue: ids[seat],
                       isExpanded: true,
-                      decoration: InputDecoration(labelText: '크루 ${seat + 1}'),
+                      decoration: InputDecoration(
+                        labelText: context.t(
+                          'ui.audit790',
+                          args: {'p0': seat + 1},
+                        ),
+                      ),
                       items: [
-                        const DropdownMenuItem(value: '', child: Text('미배정')),
+                        DropdownMenuItem(
+                          value: '',
+                          child: Text(context.t('ui.audit769')),
+                        ),
                         for (final person in people)
                           DropdownMenuItem<String>(
                             value: person['id'],
@@ -964,7 +1010,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                             !people.any((p) => p['id'] == ids[seat]))
                           DropdownMenuItem(
                             value: ids[seat],
-                            child: const Text('비활성 크루 · 다시 선택'),
+                            child: Text(context.t('ui.audit249')),
                           ),
                       ],
                       onChanged: (v) => refresh(() => ids[seat] = v ?? ''),
@@ -976,11 +1022,11 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('취소'),
+              child: Text(context.t('ui.audit33')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('적용'),
+              child: Text(context.t('ui.audit34')),
             ),
           ],
         ),
@@ -1057,7 +1103,16 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              '${crewFor(dayBands[i], p['id']).where((id) => id.isNotEmpty).length} / ${countFor(dayBands[i], p['id'])}명',
+                              context.t(
+                                'ui.audit791',
+                                args: {
+                                  'p0': crewFor(
+                                    dayBands[i],
+                                    p['id'],
+                                  ).where((id) => id.isNotEmpty).length,
+                                  'p1': countFor(dayBands[i], p['id']),
+                                },
+                              ),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 6),
@@ -1070,7 +1125,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                                         .where((id) => id.isNotEmpty)
                                         .map(name)
                                         .join(' · ')
-                                  : '미배정',
+                                  : context.t('ui.audit769'),
                               style: AppText.caption,
                               textAlign: TextAlign.center,
                             ),
@@ -1089,7 +1144,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
   List<Widget> closedDayControls() => [
     SwitchListTile(
       contentPadding: EdgeInsets.zero,
-      title: const Text('휴무일'),
+      title: Text(context.t('ui.audit250')),
       value: useClosedDays,
       onChanged: canDraftHours ? toggleClosedDays : null,
     ),
@@ -1102,7 +1157,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             FilterChip(
               showCheckmark: false,
               label: Text(
-                dayNames[d - 1],
+                context.t(dayNames[d - 1]),
                 style: TextStyle(
                   decoration: (days['$d'] as List).isEmpty
                       ? TextDecoration.lineThrough
@@ -1151,7 +1206,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             ...closedDayControls(),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('2교대 이상'),
+              title: Text(context.t('ui.audit251')),
               value: multipleShifts,
               onChanged: canDraftHours
                   ? (value) => preset(value ? 2 : 1)
@@ -1173,13 +1228,9 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                           : null,
                     ),
                   IconButton(
-                    tooltip: '시간 조정 도움말',
+                    tooltip: context.t('ui.audit792'),
                     onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          '구분선이나 시간을 끌어 30분 단위로 조정해요. 시간을 누르면 숫자로 선택할 수 있어요. 전체는 모든 영업일에 적용해요.',
-                        ),
-                      ),
+                      SnackBar(content: Text(context.t('ui.audit793'))),
                     ),
                     icon: const Icon(Icons.info_outline),
                   ),
@@ -1244,13 +1295,13 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       const SizedBox(height: 16),
     ],
     if (hoursStep == 0 && dayBands.isEmpty) ...closedDayControls(),
-    if (dayBands.isEmpty) const Information('휴무일이에요. 영업시간 설정에서 휴무일을 해제해 주세요.'),
+    if (dayBands.isEmpty) Information(context.t('ui.audit252')),
   ];
   List<Widget> orderSystem() => [
     SwitchListTile.adaptive(
       contentPadding: EdgeInsets.zero,
-      title: const Text('주문처리 보드 사용'),
-      subtitle: const Text('켜면 업무 메뉴에 주문처리 보드가 나타나요.'),
+      title: Text(context.t('ui.audit253')),
+      subtitle: Text(context.t('ui.audit254')),
       value: ops.data?['orderBoardEnabled'] == true,
       onChanged: editable
           ? (v) async {
@@ -1259,12 +1310,12 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           : null,
     ),
     const SizedBox(height: 16),
-    const Information('외부 주문 시스템은 아직 연결되지 않았어요. 보드에서는 예시 주문만 확인할 수 있어요.'),
+    Information(context.t('ui.audit255')),
   ];
   List<Widget> partEditor() => [
-    const Text('파트로 나누면 더 간단해요', style: AppText.title),
+    Text(context.t('ui.audit256'), style: AppText.title),
     const SizedBox(height: 8),
-    const Text('크루과 할 일을 파트별로 살펴보세요. 숨겨도 기존 기록은 남아요.', style: AppText.caption),
+    Text(context.t('ui.audit257'), style: AppText.caption),
     const SizedBox(height: 24),
     ReorderableListView.builder(
       shrinkWrap: true,
@@ -1293,15 +1344,17 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                 child: TextFormField(
                   key: ValueKey('part-name-${parts[i]['id'] ?? i}'),
                   initialValue: parts[i]['name'],
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     border: InputBorder.none,
-                    hintText: '파트 이름',
+                    hintText: context.t('ui.audit258'),
                   ),
                   onChanged: (v) => update(() => parts[i]['name'] = v),
                 ),
               ),
               IconButton(
-                tooltip: parts[i]['hidden'] == true ? '파트 표시' : '파트 숨기기',
+                tooltip: parts[i]['hidden'] == true
+                    ? context.t('ui.audit794')
+                    : context.t('ui.audit795'),
                 onPressed: () => update(
                   () => parts[i]['hidden'] = parts[i]['hidden'] != true,
                 ),
@@ -1321,14 +1374,14 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         Expanded(
           child: TextField(
             controller: partName,
-            decoration: const InputDecoration(hintText: '새 파트 이름'),
+            decoration: InputDecoration(hintText: context.t('ui.audit97')),
             onSubmitted: (_) => addPart(),
           ),
         ),
         const SizedBox(width: 8),
         IconButton(
           onPressed: addPart,
-          tooltip: '파트 추가',
+          tooltip: context.t('ui.audit99'),
           icon: const Icon(CupertinoIcons.add),
         ),
       ],
@@ -1360,15 +1413,13 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         ],
       ),
       const SizedBox(height: 20),
-      const Information(
-        '사장은 항상 허용돼요. 켠 항목도 기존 직책의 권한 범위 안에서만 사용할 수 있어요. 급여·시급은 사장님만 볼 수 있어요.',
-      ),
+      Information(context.t('ui.audit259')),
       if (dirty && !ops.readOnly)
-        const Padding(
+        Padding(
           padding: EdgeInsets.only(top: 12),
-          child: Text('저장한 뒤 다른 직책을 선택할 수 있어요.', style: AppText.caption),
+          child: Text(context.t('ui.audit796'), style: AppText.caption),
         ),
-      section('운영 권한'),
+      section(context.t('ui.audit1147')),
       Surface(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
@@ -1405,7 +1456,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
 
   List<Widget> person() => [
     Text('${widget.person?['nickname']}', style: AppText.title),
-    section('담당 파트 · 미선택 시 전체 파트 가능'),
+    section(context.t('ui.audit1148')),
     Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -1421,7 +1472,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
           ),
       ],
     ),
-    section('시간대 · 선택하지 않으면 전체'),
+    section(context.t('ui.audit1149')),
     Wrap(
       spacing: 8,
       children: [
@@ -1437,13 +1488,10 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       ],
     ),
     const SizedBox(height: 16),
-    const Text(
-      '활동 파트와 선호 시간대예요. 기본 근무는 영업시간·인원의 인원 배치에서 선택해 주세요.',
-      style: AppText.caption,
-    ),
+    Text(context.t('ui.audit260'), style: AppText.caption),
   ];
   List<Widget> invite() => [
-    const Information('체험용 초대 코드예요. 실제 계정 가입·권한 부여·메시지 발송은 연결되지 않았어요.'),
+    Information(context.t('ui.audit261')),
     const SizedBox(height: 20),
     for (final e in {
       'hourly': '알바용 코드',
@@ -1469,7 +1517,7 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                         onPressed: editable && !ops.cloud
                             ? () => save('create_demo_invite', {'role': e.key})
                             : null,
-                        child: const Text('새 코드'),
+                        child: Text(context.t('ui.audit262')),
                       ),
                     ],
                   ),
@@ -1485,8 +1533,13 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                   const SizedBox(height: 12),
                   Text(
                     code == null
-                        ? '코드를 만들면 7일 동안 표시돼요.'
-                        : '만료 ${'${code['expiresAt']}'.substring(0, 10)} · 체험 전용',
+                        ? context.t('ui.audit797')
+                        : context.t(
+                            'ui.audit798',
+                            args: {
+                              'p0': '${code['expiresAt']}'.substring(0, 10),
+                            },
+                          ),
                     textAlign: TextAlign.center,
                     style: AppText.caption,
                   ),
@@ -1501,20 +1554,22 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                             : () async {
                                 await Clipboard.setData(
                                   ClipboardData(
-                                    text:
-                                        'tap2work 체험 코드: ${code['code']} (실제 가입 불가)',
+                                    text: context.t(
+                                      'ui.audit2106',
+                                      args: {'p0': code['code']},
+                                    ),
                                   ),
                                 );
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('체험 코드를 복사했어요.'),
+                                    SnackBar(
+                                      content: Text(context.t('ui.audit799')),
                                     ),
                                   );
                                 }
                               },
                         icon: const Icon(CupertinoIcons.doc_on_doc),
-                        label: const Text('복사'),
+                        label: Text(context.t('ui.audit263')),
                       ),
                       OutlinedButton.icon(
                         onPressed: code == null
@@ -1531,8 +1586,8 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Text(
-                                          'QR 초대 · 체험',
+                                        Text(
+                                          context.t('ui.audit264'),
                                           style: AppText.title,
                                         ),
                                         const SizedBox(height: 20),
@@ -1552,8 +1607,8 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                                           '${code['code']}',
                                           style: AppText.title,
                                         ),
-                                        const Text(
-                                          '체험 코드만 담겨 있어요. 실제 가입 링크가 아니에요.',
+                                        Text(
+                                          context.t('ui.audit265'),
                                           style: AppText.caption,
                                         ),
                                       ],
@@ -1562,13 +1617,13 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                                 ),
                               ),
                         icon: const Icon(CupertinoIcons.qrcode),
-                        label: const Text('QR 보기'),
+                        label: Text(context.t('ui.audit266')),
                       ),
                       TextButton(
                         onPressed: code == null || !editable
                             ? null
                             : () => save('revoke_demo_invite', {'role': e.key}),
-                        child: const Text('폐기'),
+                        child: Text(context.t('ui.audit267')),
                       ),
                     ],
                   ),
@@ -1583,18 +1638,19 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       widget.ops.data?['workplace']?['attendancePreferences']?['method'] ??
       'location';
   List<Widget> verification() => [
-    const Text('자동 출근 방식', style: AppText.title),
+    Text(context.t('ui.audit268'), style: AppText.title),
     const SizedBox(height: 16),
-    const Information(
-      '사용할 방식을 미리 선택해요. 현재는 직접 출퇴근 버튼으로 기록하며, 자동 감지는 기기 연동 후 사용할 수 있어요.',
-    ),
+    Information(context.t('ui.audit269')),
     const SizedBox(height: 16),
     AppPicker<String>(
-      label: '출근 감지 방식',
+      label: context.t('ui.audit800'),
       value: attendanceMethod,
-      items: const [
-        DropdownMenuItem(value: 'location', child: Text('매장 도착 위치')),
-        DropdownMenuItem(value: 'wifi', child: Text('매장 Wi-Fi 연결')),
+      items: [
+        DropdownMenuItem(
+          value: 'location',
+          child: Text(context.t('ui.audit801')),
+        ),
+        DropdownMenuItem(value: 'wifi', child: Text(context.t('ui.audit802'))),
       ],
       onChanged: editable
           ? (value) => setState(() {
@@ -1606,8 +1662,8 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     const SizedBox(height: 16),
     Text(
       attendanceMethod == 'location'
-          ? '위치 권한과 매장 위치 등록을 연결할 예정이에요.'
-          : '모바일 앱에서 매장 Wi-Fi 등록과 기기 권한을 연결할 예정이에요. 웹에서는 Wi-Fi를 확인할 수 없어요.',
+          ? context.t('ui.audit803')
+          : context.t('ui.audit804'),
       style: AppText.caption,
     ),
   ];
@@ -1686,15 +1742,12 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
             if (!didPop) close();
           },
           child: AppEditorScaffold(
-            title: titles[widget.section] ?? '매장 설정',
+            title: titles[widget.section] ?? context.t('ui.audit805'),
             footer: hasSaveFooter
                 ? AppSheetFooter(
                     children: [
                       if (widget.section == 'hours' && hoursStep == 1)
-                        const Text(
-                          '저장하면 선택·변경한 요일의 오늘 이후 근무표에 기간 제한 없이 적용해요. 기존 미세 조정·개별 배정·배정 삭제는 초기화돼요. 이후 날짜별로 별도 설정하면 해당 날짜에 우선 적용돼요. 출퇴근 이력과 승인·대기 중인 변경 신청은 유지돼요.',
-                          style: AppText.caption,
-                        ),
+                        Text(context.t('ui.audit270'), style: AppText.caption),
                       if (error != null)
                         Text(
                           error!,
@@ -1712,10 +1765,12 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                             : null,
                         child: Text(
                           saving
-                              ? '저장 중…'
+                              ? context.t('ui.audit532')
                               : widget.section == 'hours'
-                              ? (hoursStep < 1 ? '다음 단계' : '일주일 설정 저장')
-                              : '저장',
+                              ? (hoursStep < 1
+                                    ? context.t('ui.audit806')
+                                    : context.t('ui.audit807'))
+                              : context.t('ui.audit51'),
                         ),
                       ),
                     ],
@@ -1750,7 +1805,10 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                                 minimumSize: const Size(0, 56),
                               ),
                               child: Text(
-                                ['영업시간 설정', '인원 배치'][i],
+                                [
+                                  context.t('ui.audit808'),
+                                  context.t('ui.audit809'),
+                                ][i],
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -1768,11 +1826,9 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                         padding: const EdgeInsets.all(24),
                         children: [
                           if (ops.readOnly)
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.only(bottom: 16),
-                              child: Information(
-                                '미리보기 · 편집을 살펴볼 수 있지만 저장하지 않아요.',
-                              ),
+                              child: Information(context.t('ui.audit810')),
                             ),
                           ...switch (widget.section) {
                             'order-system' => orderSystem(),
@@ -1782,16 +1838,12 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                             'person' => person(),
                             'invite' => invite(),
                             'verification' => verification(),
-                            _ => [
-                              const Information(
-                                '문서 보관은 보안 저장소 연결 후 사용할 수 있어요. 실제 보건증을 체험 매장에 올리지 마세요.',
-                              ),
-                            ],
+                            _ => [Information(context.t('ui.audit271'))],
                           },
                           if (error != null && !hasSaveFooter)
                             Padding(
                               padding: const EdgeInsets.only(top: 16),
-                              child: Information(error!),
+                              child: Information(context.t(error!)),
                             ),
                         ],
                       ),

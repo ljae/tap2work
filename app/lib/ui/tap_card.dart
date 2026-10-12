@@ -233,7 +233,10 @@ class TapCard extends StatelessWidget {
                               child: AppLinearProgress(
                                 value: progress,
                                 minHeight: 5,
-                                semanticsLabel: '$done/$total 활동 완료',
+                                semanticsLabel: context.t(
+                                  'ui.audit1182',
+                                  args: {'p0': done, 'p1': total},
+                                ),
                                 color: complete ? AppColors.muted : tint,
                                 backgroundColor: complete
                                     ? Colors.white
@@ -246,7 +249,9 @@ class TapCard extends StatelessWidget {
                       if (checked || locked) ...[
                         const SizedBox(height: 6),
                         Text(
-                          checked ? '완료' : '담당자 확인',
+                          checked
+                              ? context.t('ui.audit434')
+                              : context.t('ui.audit977'),
                           style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.muted,

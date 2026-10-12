@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../domain/manual_market_catalog.dart';
@@ -93,7 +94,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
     if (widget.ops.actorId != actor ||
         widget.ops.data?['workspaceId'] != workspace ||
         !widget.ops.canEditTasks) {
-      setState(() => error = '권한 또는 매장이 변경됐어요. 다시 열어 주세요.');
+      setState(() => error = context.t('ui.audit1247'));
       return;
     }
     setState(() {
@@ -125,14 +126,12 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            widget.setup
-                ? '검토 대기에 담았어요. 운영 준비에서 사장님이 확인해 주세요.'
-                : '검토 대기에 담았어요. 운영 준비에서 사장님이 확인하면 등록돼요.',
+            widget.setup ? context.t('ui.audit671') : context.t('ui.audit672'),
           ),
         ),
       );
     } else {
-      setState(() => error = widget.ops.error ?? '가져오지 못했어요. 다시 시도해 주세요.');
+      setState(() => error = widget.ops.error ?? context.t('ui.audit1248'));
     }
   }
 
@@ -151,7 +150,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
       context,
       builder: (c) => StatefulBuilder(
         builder: (c, change) => AppEditorScaffold(
-          title: '업무·업종 좁혀보기',
+          title: context.t('ui.audit673'),
           footer: AppSheetFooter(
             children: [
               TextButton(
@@ -159,11 +158,11 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   nextIndustry = null;
                   nextPurpose = null;
                 }),
-                child: const Text('분류 초기화'),
+                child: Text(context.t('ui.audit192')),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(c, true),
-                child: const Text('선택 적용'),
+                child: Text(context.t('ui.audit193')),
               ),
             ],
           ),
@@ -171,10 +170,13 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
             padding: const EdgeInsets.all(24),
             children: [
               AppPicker<String>(
-                label: '업무 종류',
+                label: context.t('ui.audit674'),
                 value: nextPurpose ?? '',
                 items: [
-                  const DropdownMenuItem(value: '', child: Text('모든 업무')),
+                  DropdownMenuItem(
+                    value: '',
+                    child: Text(context.t('ui.audit675')),
+                  ),
                   for (final item in catalog.purposes.where(
                     (p) => catalog
                         .search(useCase: useCase)
@@ -191,10 +193,13 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
               const SizedBox(height: 24),
               AppPicker<String>(
                 key: const ValueKey('market-industry'),
-                label: '업종',
+                label: context.t('ui.audit676'),
                 value: nextIndustry ?? '',
                 items: [
-                  const DropdownMenuItem(value: '', child: Text('모든 업종')),
+                  DropdownMenuItem(
+                    value: '',
+                    child: Text(context.t('ui.audit677')),
+                  ),
                   for (final item in catalog.industries)
                     DropdownMenuItem(
                       value: item['id'] as String,
@@ -205,7 +210,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     change(() => nextIndustry = v == '' ? null : v),
               ),
               const SizedBox(height: 16),
-              const Text('업종을 고르면 공통 매뉴얼도 함께 보여요.', style: AppText.caption),
+              Text(context.t('ui.audit194'), style: AppText.caption),
             ],
           ),
         ),
@@ -230,9 +235,9 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
       }
     }
     if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('출처를 열지 못했어요. 잠시 후 다시 시도해 주세요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.t('ui.audit678'))));
     }
   }
 
@@ -249,7 +254,10 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
           key: ValueKey('market-${entry['sourceId']}'),
           tilePadding: const EdgeInsets.symmetric(horizontal: 4),
           leading: Checkbox(
-            semanticLabel: '${entry['title']} 담기',
+            semanticLabel: context.t(
+              'ui.audit679',
+              args: {'p0': entry['title']},
+            ),
             value: linked || selected.contains(entry['sourceId']),
             onChanged: linked || saving
                 ? null
@@ -257,7 +265,16 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
           ),
           title: Text(entry['title'], style: AppText.body),
           subtitle: Text(
-            '${ManualMarketCatalog.useCases[catalog.useCaseOf(entry)] ?? '매장 루틴'} · ${steps.length}개 항목${linked ? ' · 가져옴' : ''}',
+            context.t(
+              'ui.audit680',
+              args: {
+                'p0':
+                    ManualMarketCatalog.useCases[catalog.useCaseOf(entry)] ??
+                    context.t('ui.audit1122'),
+                'p1': steps.length,
+                'p2': linked ? context.t('ui.audit1123') : '',
+              },
+            ),
             style: AppText.caption,
           ),
           children: [
@@ -269,16 +286,16 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   if (entry['summary'] != null)
                     Text(entry['summary'], style: AppText.body),
                   const SizedBox(height: 12),
-                  Text('적용 대상', style: AppText.section),
+                  Text(context.t('ui.audit681'), style: AppText.section),
                   Text(
                     entry['applicability'] ?? entry['collectionName'],
                     style: AppText.caption,
                   ),
                   if (legal)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(top: 8),
                       child: Text(
-                        '해당 여부를 확인하는 목록이에요. 체크 완료가 법적 충족을 뜻하지 않아요.',
+                        context.t('ui.audit682'),
                         style: AppText.caption,
                       ),
                     ),
@@ -291,7 +308,14 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   ],
                   const SizedBox(height: 16),
                   Text(
-                    '${entry['jurisdiction'] ?? '운영 참고'} · 자료 확인 ${entry['reviewedAt']}',
+                    context.t(
+                      'ui.audit683',
+                      args: {
+                        'p0':
+                            entry['jurisdiction'] ?? context.t('ui.audit1124'),
+                        'p1': entry['reviewedAt'],
+                      },
+                    ),
                     style: AppText.caption,
                   ),
                   Text(entry['basis'] ?? '', style: AppText.caption),
@@ -307,10 +331,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     ),
                   ],
                   if (references.isEmpty)
-                    const Text(
-                      '운영 초안 · 매장의 실제 절차에 맞게 확인해 주세요.',
-                      style: AppText.caption,
-                    ),
+                    Text(context.t('ui.audit195'), style: AppText.caption),
                   if (linked)
                     TextButton(
                       onPressed: () => showAppSheet(
@@ -322,7 +343,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                           )['templateId'],
                         ),
                       ),
-                      child: const Text('내 TAP 상세 열기'),
+                      child: Text(context.t('ui.audit196')),
                     ),
                 ],
               ),
@@ -359,25 +380,25 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
       ..sort((a, b) => order.indexOf(a.key).compareTo(order.indexOf(b.key)));
     return AppEditorScaffold(
       title: reviewing
-          ? '담은 항목 확인'
+          ? context.t('ui.audit684')
           : widget.setup
-          ? '내 사업장 매뉴얼 구성'
-          : '매뉴얼 마켓',
+          ? context.t('ui.audit685')
+          : context.t('ui.audit686'),
       footer: AppSheetFooter(
         children: [
-          if (error != null) Information(error!),
+          if (error != null) Information(context.t(error!)),
           if (reviewing) ...[
             Text(
               widget.setup
-                  ? '메뉴·레시피와 이미 진행한 업무 기록은 유지해요.'
-                  : '공용 내용은 자동 업데이트돼요. 가져온 항목은 사용 OFF로 보관돼요.',
+                  ? context.t('ui.audit687')
+                  : context.t('ui.audit688'),
               style: AppText.caption,
             ),
             TextButton(
               onPressed: saving
                   ? null
                   : () => setState(() => reviewing = false),
-              child: const Text('더 찾아보기'),
+              child: Text(context.t('ui.audit197')),
             ),
           ],
           FilledButton(
@@ -388,12 +409,18 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                 : () => setState(() => reviewing = true),
             child: Text(
               saving
-                  ? '가져오는 중…'
+                  ? context.t('ui.audit689')
                   : reviewing
                   ? widget.setup
-                        ? '선택한 ${selected.length}개로 구성하기'
-                        : '선택한 ${selected.length}개 가져오기'
-                  : '담은 ${selected.length}개 확인',
+                        ? context.t(
+                            'ui.audit690',
+                            args: {'p0': selected.length},
+                          )
+                        : context.t(
+                            'ui.audit691',
+                            args: {'p0': selected.length},
+                          )
+                  : context.t('ui.audit692', args: {'p0': selected.length}),
             ),
           ),
         ],
@@ -408,25 +435,18 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     '${catalog.industryName(industry ?? 'all')} · ${specialization.text.isEmpty ? '내 사업장' : specialization.text}',
                     style: AppText.section,
                   ),
-                  const Text(
-                    '선택한 매뉴얼을 업무별로 분류해요. 메뉴의 재료·분량·조리법은 메뉴·레시피에서 직접 정해 주세요.',
-                    style: AppText.caption,
-                  ),
+                  Text(context.t('ui.audit198'), style: AppText.caption),
                   SwitchListTile(
-                    title: const Text('기존 운영 매뉴얼을 새 구성으로 교체'),
-                    subtitle: const Text(
-                      '진행 전인 오늘 이후 업무는 보관하고, 진행·완료 기록과 메뉴·레시피는 유지해요.',
-                    ),
+                    title: Text(context.t('ui.audit199')),
+                    subtitle: Text(context.t('ui.audit200')),
                     value: replaceExisting,
                     onChanged: saving
                         ? null
                         : (v) => setState(() => replaceExisting = v),
                   ),
                   SwitchListTile(
-                    title: const Text('매일 하는 루틴을 업무에 연결'),
-                    subtitle: const Text(
-                      '교육·정기관리는 참고용으로 담아요. 필요한 항목의 담당·주기는 가져온 뒤 정해 주세요.',
-                    ),
+                    title: Text(context.t('ui.audit201')),
+                    subtitle: Text(context.t('ui.audit202')),
                     value: enableOperations,
                     onChanged: saving
                         ? null
@@ -434,20 +454,20 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   ),
                 ],
                 if (!widget.setup)
-                  const Text('그룹은 한 번만 정하세요', style: AppText.section),
+                  Text(context.t('ui.audit203'), style: AppText.section),
                 const SizedBox(height: 12),
                 if (!widget.setup)
                   AppPicker<String>(
-                    label: '분류 방식',
+                    label: context.t('ui.audit693'),
                     value: folderMode,
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                         value: 'purpose',
-                        child: Text('업무별 자동 분류'),
+                        child: Text(context.t('ui.audit694')),
                       ),
                       DropdownMenuItem(
                         value: 'existing',
-                        child: Text('기존 그룹에 모으기'),
+                        child: Text(context.t('ui.audit695')),
                       ),
                     ],
                     onChanged: saving
@@ -457,7 +477,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                 if (folderMode == 'existing') ...[
                   const SizedBox(height: 16),
                   AppPicker<String>(
-                    label: '가져올 그룹',
+                    label: context.t('ui.audit696'),
                     value: folder,
                     items: widget.ops
                         .rows('checklistFolders')
@@ -481,30 +501,29 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     subtitle: Text(
                       folderMode == 'purpose'
                           ? catalog.purposeName(entry)
-                          : '선택한 그룹에 가져와요',
+                          : context.t('ui.audit697'),
                     ),
                     trailing: IconButton(
-                      tooltip: '${entry['title']} 담기 취소',
+                      tooltip: context.t(
+                        'ui.audit698',
+                        args: {'p0': entry['title']},
+                      ),
                       onPressed: saving ? null : () => choose(entry, false),
                       icon: const Icon(Icons.close),
                     ),
                   ),
-                if (basket.isEmpty)
-                  const Information('담은 항목이 없어요. 더 찾아보기에서 골라 주세요.'),
+                if (basket.isEmpty) Information(context.t('ui.audit204')),
               ]
             : [
                 if (widget.setup) ...[
-                  const Text(
-                    '1. 업종 선택 → 2. 필요한 항목 담기 → 3. 적용',
-                    style: AppText.caption,
-                  ),
+                  Text(context.t('ui.audit205'), style: AppText.caption),
                   const SizedBox(height: 16),
                   TextField(
                     controller: specialization,
                     maxLength: 100,
-                    decoration: const InputDecoration(
-                      labelText: '우리 사업장 특성',
-                      hintText: '예: 고기집 · 뼈찜 전문',
+                    decoration: InputDecoration(
+                      labelText: context.t('ui.audit206'),
+                      hintText: context.t('ui.audit207'),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -512,13 +531,13 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                 TextField(
                   controller: search,
                   decoration: InputDecoration(
-                    labelText: '내 업종이나 필요한 업무 검색',
-                    hintText: '예: 손 씻기, 홀 마감, 냉장고 청소',
+                    labelText: context.t('ui.audit699'),
+                    hintText: context.t('ui.audit700'),
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: search.text.isEmpty
                         ? null
                         : IconButton(
-                            tooltip: '검색 지우기',
+                            tooltip: context.t('ui.audit701'),
                             onPressed: () => setState(search.clear),
                             icon: const Icon(Icons.close),
                           ),
@@ -551,7 +570,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   icon: const Icon(Icons.tune, size: 18),
                   label: Text(
                     industry == null && purpose == null
-                        ? '업무·업종 좁혀보기'
+                        ? context.t('ui.audit673')
                         : '${purpose == null ? '모든 업무' : catalog.purposes.where((p) => p['id'] == purpose).firstOrNull?['name'] ?? '모든 업무'} · ${industry == null ? '모든 업종' : catalog.industryName(industry!)}',
                   ),
                 ),
@@ -578,14 +597,14 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                             ),
                           ),
                     icon: const Icon(Icons.playlist_add),
-                    label: const Text('공통 기본 운영 7개 담기'),
+                    label: Text(context.t('ui.audit208')),
                   ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
                       child: Text(
-                        '${results.length}개 항목',
+                        context.t('ui.audit702', args: {'p0': results.length}),
                         style: AppText.caption,
                       ),
                     ),
@@ -605,16 +624,14 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                                 .map((e) => e['sourceId'] as String),
                           ),
                         ),
-                        child: const Text('이 결과 담기'),
+                        child: Text(context.t('ui.audit209')),
                       ),
                   ],
                 ),
                 if (catalog.entries.isEmpty)
-                  const Information(
-                    '공용 목록을 불러오지 못했어요. 매뉴얼 목록을 새로고침하고 다시 열어 주세요.',
-                  )
+                  Information(context.t('ui.audit210'))
                 else if (results.isEmpty) ...[
-                  const Information('조건에 맞는 매뉴얼이 없어요. 검색어나 분류를 바꿔 보세요.'),
+                  Information(context.t('ui.audit211')),
                   TextButton(
                     onPressed: () => setState(() {
                       search.clear();
@@ -622,7 +639,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                       useCase = null;
                       purpose = null;
                     }),
-                    child: const Text('검색·분류 초기화'),
+                    child: Text(context.t('ui.audit212')),
                   ),
                 ],
                 for (final group in orderedGroups)
@@ -634,7 +651,10 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     tilePadding: EdgeInsets.zero,
                     title: Text(group.key, style: AppText.section),
                     subtitle: Text(
-                      '${group.value.length}개 항목',
+                      context.t(
+                        'ui.audit702',
+                        args: {'p0': group.value.length},
+                      ),
                       style: AppText.caption,
                     ),
                     children: [

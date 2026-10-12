@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'workplace_screens.dart';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
@@ -93,7 +94,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
     if (problem != null) {
       // The inline banner sits at the top of a lazy list; the snackbar is visible from any scroll position.
       setState(() => issue = problem);
-      notice('저장하려면 먼저 채워 주세요 · $problem');
+      notice(context.t('ui.audit536', args: {'p0': problem}));
       return;
     }
     final ok = await ops.act('save_checklists', {
@@ -113,19 +114,19 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
       await showAppDialog<bool>(
             context: context,
             builder: (c) => AlertDialog(
-              title: const Text('편집을 취소할까요?'),
-              content: const Text('저장하지 않은 변경은 사라져요.'),
+              title: Text(context.t('ui.audit19')),
+              content: Text(context.t('ui.audit20')),
               actions: [
                 PressBounce(
                   child: TextButton(
                     onPressed: () => Navigator.pop(c, false),
-                    child: const Text('계속 편집'),
+                    child: Text(context.t('ui.audit21')),
                   ),
                 ),
                 PressBounce(
                   child: FilledButton(
                     onPressed: () => Navigator.pop(c, true),
-                    child: const Text('변경 버리기'),
+                    child: Text(context.t('ui.audit22')),
                   ),
                 ),
               ],
@@ -149,12 +150,14 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
           }
         },
         child: AppEditorScaffold(
-          title: '보드 편집',
+          title: context.t('ui.audit534'),
           footer: AppSheetFooter(
             children: [
               FilledButton(
                 onPressed: !enabled || ops.readOnly || !dirty ? null : save,
-                child: Text(ops.busy ? '저장 중…' : '저장'),
+                child: Text(
+                  ops.busy ? context.t('ui.audit532') : context.t('ui.audit51'),
+                ),
               ),
             ],
           ),
@@ -164,17 +167,14 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
               child: ListView(
                 padding: const EdgeInsets.all(24),
                 children: [
-                  if (ops.readOnly)
-                    const Information(
-                      '공개 미리보기에서는 자유롭게 편집을 체험해요. 변경은 저장되지 않아요.',
-                    ),
-                  const Information(
-                    '새 매뉴얼은 아직 시작하지 않은 오늘 업무부터 적용돼요. 시작했거나 완료한 업무는 당시 내용과 기록을 유지해요.',
-                  ),
+                  if (ops.readOnly) Information(context.t('ui.audit23')),
+                  Information(context.t('ui.audit24')),
                   if (ops.error != null)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Information('${ops.error}\n초안은 그대로 남아 있어요.'),
+                      child: Information(
+                        context.t('ui.audit535', args: {'p0': ops.error}),
+                      ),
                     ),
                   if (ops.data?['revision'] != revision)
                     PressBounce(
@@ -185,7 +185,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                                 if (await discard() && mounted) setState(reset);
                               },
                         icon: const Icon(Icons.refresh),
-                        label: const Text('최신 목록 다시 불러오기'),
+                        label: Text(context.t('ui.audit25')),
                       ),
                     ),
                   const SizedBox(height: 12),
@@ -197,21 +197,21 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                         child: FilledButton.icon(
                           onPressed: enabled ? library : null,
                           icon: const Icon(Icons.auto_stories_outlined),
-                          label: const Text('업종별 기본 목록'),
+                          label: Text(context.t('ui.audit26')),
                         ),
                       ),
                       PressBounce(
                         child: OutlinedButton.icon(
                           onPressed: enabled ? () => editGroup() : null,
                           icon: const Icon(Icons.add),
-                          label: const Text('TAP 만들기'),
+                          label: Text(context.t('ui.audit27')),
                         ),
                       ),
                       PressBounce(
                         child: TextButton.icon(
                           onPressed: enabled ? () => editFolder() : null,
                           icon: const Icon(Icons.create_new_folder_outlined),
-                          label: const Text('TAP그룹 추가'),
+                          label: Text(context.t('ui.audit28')),
                         ),
                       ),
                     ],
@@ -251,7 +251,9 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                               Icons.edit_outlined,
                               size: 18,
                             ),
-                            deleteButtonTooltipMessage: '그룹 이름 수정',
+                            deleteButtonTooltipMessage: context.t(
+                              'ui.audit1100',
+                            ),
                           ),
                         ),
                     ],
@@ -274,7 +276,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                                   selected = 'general';
                                 })
                               : null,
-                          child: const Text('그룹 삭제 · TAP은 기본 그룹으로'),
+                          child: Text(context.t('ui.audit29')),
                         ),
                       ),
                     ),
@@ -282,12 +284,11 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                   if (issue != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: Information('저장하려면 먼저 채워 주세요 · $issue'),
+                      child: Information(
+                        context.t('ui.audit536', args: {'p0': issue}),
+                      ),
                     ),
-                  if (visible.isEmpty)
-                    const Information(
-                      '비어 있는 그룹이에요. TAP을 만들거나 다른 그룹의 TAP을 끌어다 놓아 보세요.',
-                    ),
+                  if (visible.isEmpty) Information(context.t('ui.audit30')),
                   ReorderableListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -317,9 +318,9 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                     ),
                   ),
                   if (dirty)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.all(12),
-                      child: Text('아직 저장하지 않은 변경이 있어요. 상단의 저장을 눌러 적용해 주세요.'),
+                      child: Text(context.t('ui.audit537')),
                     ),
                 ],
               ),
@@ -364,12 +365,12 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
             if (enabled)
               ReorderableDragStartListener(
                 index: index,
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.all(12),
                   child: Icon(
                     Icons.drag_indicator,
                     size: 28,
-                    semanticLabel: 'TAP 순서 드래그',
+                    semanticLabel: context.t('ui.audit538'),
                   ),
                 ),
               )
@@ -392,7 +393,19 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                         ),
                       ),
                       Text(
-                        '${task['slot']} · ${storeParts(ops).where((p) => p['id'] == task['partId']).firstOrNull?['name'] ?? '전체 파트'}${place == null ? '' : ' · $place'} · Task ${steps.length}개',
+                        context.t(
+                          'ui.audit539',
+                          args: {
+                            'p0': task['slot'],
+                            'p1':
+                                storeParts(ops)
+                                    .where((p) => p['id'] == task['partId'])
+                                    .firstOrNull?['name'] ??
+                                context.t('ui.audit370'),
+                            'p2': place == null ? '' : ' · $place',
+                            'p3': steps.length,
+                          },
+                        ),
                         style: const TextStyle(
                           fontSize: 13,
                           color: AppColors.muted,
@@ -404,7 +417,9 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
               ),
             ),
             IconButton(
-              tooltip: open ? 'Task 접기' : 'Task 펼치기',
+              tooltip: open
+                  ? context.t('ui.audit540')
+                  : context.t('ui.audit541'),
               onPressed: () => setState(
                 () => open ? collapsed.add(id) : collapsed.remove(id),
               ),
@@ -413,7 +428,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
             PopupMenuButton<String>(
               popUpAnimationStyle: AppMotion.dialogStyle(context),
               enabled: enabled,
-              tooltip: 'TAP 수정·이동·삭제',
+              tooltip: context.t('ui.audit542'),
               onSelected: (value) {
                 if (value == 'edit') {
                   editGroup(task);
@@ -434,17 +449,31 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                 }
               },
               itemBuilder: (_) => [
-                const PopupMenuItem(value: 'edit', child: Text('TAP 정보 수정')),
-                const PopupMenuItem(value: 'up', child: Text('위로 이동')),
-                const PopupMenuItem(value: 'down', child: Text('아래로 이동')),
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Text(context.t('ui.audit543')),
+                ),
+                PopupMenuItem(
+                  value: 'up',
+                  child: Text(context.t('ui.audit544')),
+                ),
+                PopupMenuItem(
+                  value: 'down',
+                  child: Text(context.t('ui.audit545')),
+                ),
                 for (final f in folders.where(
                   (f) => f['id'] != task['folderId'],
                 ))
                   PopupMenuItem<String>(
                     value: f['id'],
-                    child: Text('${f['name']} 그룹으로 이동'),
+                    child: Text(
+                      context.t('ui.audit546', args: {'p0': f['name']}),
+                    ),
                   ),
-                const PopupMenuItem(value: 'delete', child: Text('TAP 삭제')),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Text(context.t('ui.audit547')),
+                ),
               ],
             ),
           ],
@@ -489,7 +518,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                         ? () => editStep(task)
                         : null,
                     icon: const Icon(Icons.add),
-                    label: const Text('Task 추가'),
+                    label: Text(context.t('ui.audit31')),
                   ),
                 ),
               ),
@@ -528,13 +557,13 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
           if (enabled)
             ReorderableDragStartListener(
               index: i,
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
                   Icons.drag_handle,
                   size: 22,
                   color: AppColors.muted,
-                  semanticLabel: 'Task 순서 드래그',
+                  semanticLabel: context.t('ui.audit548'),
                 ),
               ),
             )
@@ -560,13 +589,13 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                     Text(
                       (step['title'] as String?)?.isNotEmpty == true
                           ? step['title']
-                          : '(이름 없는 Task)',
+                          : context.t('ui.audit549'),
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     Text(
                       (step['manual'] as String?)?.isNotEmpty == true
                           ? step['manual']
-                          : '매뉴얼을 적어 주세요',
+                          : context.t('ui.audit550'),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -580,7 +609,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
             ),
           ),
           IconButton(
-            tooltip: 'Task 삭제',
+            tooltip: context.t('ui.audit551'),
             onPressed: enabled
                 ? () => change(() => (task['steps'] as List).remove(step))
                 : null,
@@ -611,26 +640,28 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
 
   Future<void> editFolder([Json? folder]) async {
     if (folder == null && folders.length >= checklistFolderLimit) {
-      notice('TAP그룹은 최대 30개예요. 사용하지 않는 그룹을 먼저 정리해 주세요.');
+      notice(context.t('ui.audit1101'));
       return;
     }
     var folderName = folder?['name'] as String? ?? '';
     final name = await showAppFormSheet<String>(
       context: context,
       builder: (c) => AppSheetPanel(
-        title: Text(folder == null ? '새 TAP그룹' : 'TAP그룹 이름'),
+        title: Text(
+          folder == null ? context.t('ui.audit552') : context.t('ui.audit32'),
+        ),
         content: TextFormField(
           initialValue: folderName,
           onChanged: (value) => folderName = value,
           maxLength: 40,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'TAP그룹 이름'),
+          decoration: InputDecoration(labelText: context.t('ui.audit32')),
         ),
         actions: [
           PressBounce(
             child: TextButton(
               onPressed: () => Navigator.pop(c),
-              child: const Text('취소'),
+              child: Text(context.t('ui.audit33')),
             ),
           ),
           PressBounce(
@@ -640,7 +671,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                   Navigator.pop(c, folderName.trim());
                 }
               },
-              child: const Text('적용'),
+              child: Text(context.t('ui.audit34')),
             ),
           ),
         ],
@@ -662,7 +693,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
   /// Group info sheet: title, icon, time bucket, rank and place. A new group then opens its first activity.
   Future<void> editGroup([Json? task]) async {
     if (task == null && templates.length >= checklistTaskLimit) {
-      notice('TAP은 최대 150개예요. 필요 없는 TAP을 먼저 정리해 주세요.');
+      notice(context.t('ui.audit1102'));
       return;
     }
     final draft = task == null
@@ -767,13 +798,13 @@ class _GroupSheetState extends State<_GroupSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'TAP 정보',
+          Text(
+            context.t('ui.audit35'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
-          const Text(
-            '하나의 TAP에는 같은 업무를 이루는 Task이 들어가요.',
+          Text(
+            context.t('ui.audit36'),
             style: TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           const SizedBox(height: 16),
@@ -805,7 +836,9 @@ class _GroupSheetState extends State<_GroupSheet> {
                   initialValue: task['title'],
                   maxLength: 100,
                   autofocus: (task['title'] as String).isEmpty,
-                  decoration: const InputDecoration(labelText: 'TAP 이름'),
+                  decoration: InputDecoration(
+                    labelText: context.t('ui.audit37'),
+                  ),
                   onChanged: (v) => setState(() {
                     task['title'] = v.trim();
                     issue = null;
@@ -815,7 +848,10 @@ class _GroupSheetState extends State<_GroupSheet> {
             ],
           ),
           const SizedBox(height: 8),
-          const Text('시간대', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            context.t('ui.audit38'),
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 6),
           AppChoiceGroup<String>(
             values: checklistSlots,
@@ -824,7 +860,10 @@ class _GroupSheetState extends State<_GroupSheet> {
             onSelected: (slot) => setState(() => task['slot'] = slot),
           ),
           const SizedBox(height: 14),
-          const Text('담당 파트', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            context.t('ui.audit39'),
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 6),
           AppChoiceGroup<String>(
             values: [
@@ -835,7 +874,7 @@ class _GroupSheetState extends State<_GroupSheet> {
             ],
             selected: task['partId'] ?? 'all',
             labelOf: (id) => id == 'all'
-                ? '전체 파트'
+                ? context.t('ui.audit370')
                 : widget.parts.firstWhere((p) => p['id'] == id)['name'],
             onSelected: (id) => setState(() {
               task['partId'] = id == 'all' ? null : id;
@@ -844,7 +883,7 @@ class _GroupSheetState extends State<_GroupSheet> {
           ),
           const SizedBox(height: 14),
           AppPicker<String>(
-            label: '장소',
+            label: context.t('ui.audit381'),
             value: widget.zones.any((z) => z['id'] == task['zone'])
                 ? task['zone']
                 : widget.zones.firstOrNull?['id'],
@@ -869,12 +908,12 @@ class _GroupSheetState extends State<_GroupSheet> {
               child: FilledButton(
                 onPressed: () {
                   if ((task['title'] as String).trim().isEmpty) {
-                    setState(() => issue = 'TAP 이름을 1~100자로 입력해 주세요.');
+                    setState(() => issue = context.t('ui.audit1236'));
                     return;
                   }
                   Navigator.pop(context, task);
                 },
-                child: const Text('TAP 정보 적용'),
+                child: Text(context.t('ui.audit40')),
               ),
             ),
           ),
@@ -987,10 +1026,8 @@ class _ManualTaskEditorState extends State<ManualTaskEditor> {
   Widget build(BuildContext context) {
     if (sourceTemplate == null || sourceStep == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('매뉴얼 편집')),
-        body: const Center(
-          child: Information('이 Task를 찾지 못했어요. 목록을 새로고침해 주세요.'),
-        ),
+        appBar: AppBar(title: Text(context.t('ui.audit41'))),
+        body: Center(child: Information(context.t('ui.audit553'))),
       );
     }
     return _ActivityEditor(
@@ -1138,16 +1175,16 @@ class _ActivityEditorState extends State<_ActivityEditor> {
       final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('매뉴얼 편집을 취소할까요?'),
-          content: const Text('아직 저장하지 않은 내용이 있어요.'),
+          title: Text(context.t('ui.audit42')),
+          content: Text(context.t('ui.audit43')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('계속 편집'),
+              child: Text(context.t('ui.audit21')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('변경 버리기'),
+              child: Text(context.t('ui.audit22')),
             ),
           ],
         ),
@@ -1158,7 +1195,9 @@ class _ActivityEditorState extends State<_ActivityEditor> {
       }
     },
     child: AppEditorScaffold(
-      title: widget.onSave == null ? 'Task과 간단 매뉴얼' : '매뉴얼 편집',
+      title: widget.onSave == null
+          ? context.t('ui.audit554')
+          : context.t('ui.audit41'),
       subtitle: widget.groupTitle.isEmpty ? null : 'TAP · ${widget.groupTitle}',
       body: AbsorbPointer(
         absorbing: saving,
@@ -1170,42 +1209,50 @@ class _ActivityEditorState extends State<_ActivityEditor> {
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
               children: [
                 if (widget.catalogLinked)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(bottom: 20),
-                    child: Information(
-                      '내용을 수정하면 이 TAP은 개인화 항목으로 분리돼요. 이후 공용 업데이트 대신 백업으로 관리하고, 기존 업무 기록은 유지해요.',
-                    ),
+                    child: Information(context.t('ui.audit555')),
                   ),
                 if (widget.previewOnly)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(bottom: 20),
-                    child: Information('공개 샘플에서는 새로고침하면 원래 내용으로 돌아가요.'),
+                    child: Information(context.t('ui.audit556')),
                   ),
                 AppFormSection(
-                  title: '업무 안내',
-                  description: '방법과 완료 기준을 짧고 명확하게 적어 주세요.',
+                  title: context.t('ui.audit557'),
+                  description: context.t('ui.audit558'),
                   children: [
-                    field('title', 'Task 이름', hint: '예) 핏물 빼기', limit: 100),
+                    field(
+                      'title',
+                      context.t('ui.audit1104'),
+                      hint: context.t('ui.audit1103'),
+                      limit: 100,
+                    ),
                     field(
                       'manual',
-                      '간단 매뉴얼 · 방법과 완료 기준',
-                      hint: '무엇을, 어떤 순서로, 어디까지 하면 끝인지 적어요.',
+                      context.t('ui.audit1106'),
+                      hint: context.t('ui.audit1105'),
                       lines: 4,
                       limit: 700,
                     ),
                   ],
                 ),
                 AppFormSection(
-                  title: '추가 안내',
-                  description: '필요한 경우에만 입력해 주세요.',
+                  title: context.t('ui.audit559'),
+                  description: context.t('ui.audit560'),
                   children: [
-                    field('tip', '놓치기 쉬운 노하우 (선택)', lines: 2, limit: 400),
+                    field(
+                      'tip',
+                      context.t('ui.audit1107'),
+                      lines: 2,
+                      limit: 400,
+                    ),
                     TextFormField(
                       initialValue: ((step['tags'] as List?) ?? []).join(', '),
-                      decoration: const InputDecoration(
-                        labelText: '#연관어 (쉼표로 구분)',
-                        hintText: '주문취소, 환불',
-                        helperText: '최대 20개, 각 30자 이내',
+                      decoration: InputDecoration(
+                        labelText: context.t('ui.audit44'),
+                        hintText: context.t('ui.audit45'),
+                        helperText: context.t('ui.audit46'),
                       ),
                       onChanged: (value) => setState(() {
                         step['tags'] = value
@@ -1222,8 +1269,8 @@ class _ActivityEditorState extends State<_ActivityEditor> {
                   ],
                 ),
                 AppFormSection(
-                  title: '참고 자료',
-                  description: '사진으로 위치와 완료 모습을 보여 주세요.',
+                  title: context.t('ui.audit561'),
+                  description: context.t('ui.audit562'),
                   children: [
                     if (widget.ops != null)
                       PhotoRegistrationField(
@@ -1254,21 +1301,18 @@ class _ActivityEditorState extends State<_ActivityEditor> {
                         }),
                       ),
                     if (widget.ops != null && !widget.ops!.cloud)
-                      const Text(
-                        '촬영한 사진 등록은 로그인한 매장에서 사용할 수 있어요.',
-                        style: AppText.caption,
-                      ),
+                      Text(context.t('ui.audit47'), style: AppText.caption),
                     if (pendingPhoto == null &&
                         !isManualMediaReference(step['imageUrl'] ?? ''))
-                      field('imageUrl', '사진 HTTPS 링크 (선택)'),
-                    field('videoUrl', '영상 HTTPS 링크 (선택)'),
-                    field('sourceUrl', '공식 사진 가이드 HTTPS 링크 (선택)'),
+                      field('imageUrl', context.t('ui.audit1108')),
+                    field('videoUrl', context.t('ui.audit1109')),
+                    field('sourceUrl', context.t('ui.audit1110')),
                   ],
                 ),
                 Text(
                   widget.onSave == null
-                      ? '초안에 적용한 뒤 이전 화면에서 저장해 주세요.'
-                      : '이 Task의 매뉴얼만 바꿔요. 이미 생성된 업무의 기록은 유지돼요.',
+                      ? context.t('ui.audit563')
+                      : context.t('ui.audit564'),
                   style: AppText.caption,
                 ),
               ],
@@ -1290,10 +1334,10 @@ class _ActivityEditorState extends State<_ActivityEditor> {
             onPressed: saving || convertingPhoto ? null : submit,
             child: Text(
               saving
-                  ? '저장 중…'
+                  ? context.t('ui.audit532')
                   : widget.onSave == null
-                  ? '초안에 적용'
-                  : '매뉴얼 저장',
+                  ? context.t('ui.audit565')
+                  : context.t('ui.audit566'),
             ),
           ),
         ],

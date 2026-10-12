@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'place_guide.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -95,15 +96,15 @@ class _PreparedItemEditorState extends State<PreparedItemEditor> {
       final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('변경을 버릴까요?'),
+          title: Text(context.t('ui.audit178')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('계속 편집'),
+              child: Text(context.t('ui.audit21')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('변경 버리기'),
+              child: Text(context.t('ui.audit22')),
             ),
           ],
         ),
@@ -118,7 +119,7 @@ class _PreparedItemEditorState extends State<PreparedItemEditor> {
   Future<void> save() async {
     if (saving || ops.readOnly || !ops.isLeader) return;
     if (actor != ops.actorId) {
-      setState(() => error = '계정이 변경되었어요. 화면을 다시 열어 주세요.');
+      setState(() => error = context.t('ui.audit1261'));
       return;
     }
     setState(() {
@@ -162,7 +163,7 @@ class _PreparedItemEditorState extends State<PreparedItemEditor> {
     } else {
       setState(() {
         saving = false;
-        error = ops.error ?? '저장하지 못했어요.';
+        error = ops.error ?? context.t('ui.audit760');
       });
     }
   }
@@ -200,16 +201,16 @@ class _PreparedItemEditorState extends State<PreparedItemEditor> {
     },
     child: AppEditorScaffold(
       title: widget.countOnly
-          ? '${widget.item?['name']} 실제 수량 확인'
+          ? context.t('ui.audit811', args: {'p0': widget.item?['name']})
           : widget.item == null
-          ? '준비품 추가'
-          : '${widget.item!['name']} 설정',
+          ? context.t('ui.audit324')
+          : context.t('ui.audit812', args: {'p0': widget.item!['name']}),
       onClose: close,
       footer: AppSheetFooter(
         children: [
-          if (error != null) Information(error!),
+          if (error != null) Information(context.t(error!)),
           if (ops.readOnly)
-            const Text('공개 미리보기에서는 저장하지 않아요.', style: AppText.caption),
+            Text(context.t('ui.audit8'), style: AppText.caption),
           FilledButton(
             onPressed:
                 !saving &&
@@ -220,10 +221,10 @@ class _PreparedItemEditorState extends State<PreparedItemEditor> {
                 : null,
             child: Text(
               saving
-                  ? '저장 중…'
+                  ? context.t('ui.audit532')
                   : widget.countOnly
-                  ? '실제 수량 기록'
-                  : '준비품 저장',
+                  ? context.t('ui.audit813')
+                  : context.t('ui.audit814'),
             ),
           ),
         ],
@@ -236,57 +237,68 @@ class _PreparedItemEditorState extends State<PreparedItemEditor> {
           children: widget.countOnly
               ? [
                   AppFormSection(
-                    title: '실제 수량',
+                    title: context.t('ui.audit815'),
                     children: [
                       field(
                         'quantity',
-                        '현재 수량 · ${widget.item?['unit']}',
+                        context.t(
+                          'ui.audit1150',
+                          args: {'p0': widget.item?['unit']},
+                        ),
                         number: true,
                       ),
-                      field('reason', '보정 이유', help: '예: 실사, 폐기'),
+                      field(
+                        'reason',
+                        context.t('ui.audit1151'),
+                        help: context.t('ui.audit1536'),
+                      ),
                     ],
                   ),
                 ]
               : [
                   AppFormSection(
-                    title: '기본 정보',
+                    title: context.t('ui.audit816'),
                     children: [
-                      field('name', '준비품 이름'),
-                      field('unit', '단위', help: '예: 인분, 개'),
+                      field('name', context.t('ui.audit1152')),
+                      field(
+                        'unit',
+                        context.t('ui.audit1153'),
+                        help: context.t('ui.audit1537'),
+                      ),
                     ],
                   ),
                   AppFormSection(
-                    title: '준비 수량 기준',
-                    description: '실제 매장 기준으로 입력해 주세요.',
+                    title: context.t('ui.audit817'),
+                    description: context.t('ui.audit818'),
                     children: [
                       field(
                         'minimum',
-                        '부족 기준',
+                        context.t('ui.audit1154'),
                         number: true,
-                        help: '이 수량 이하가 되면 준비가 필요해요.',
+                        help: context.t('ui.audit1538'),
                       ),
                       field(
                         'target',
-                        '목표 수량',
+                        context.t('ui.audit1155'),
                         number: true,
-                        help: '부족 기준보다 크게 설정해 주세요.',
+                        help: context.t('ui.audit1539'),
                       ),
                       field(
                         'batchQuantity',
-                        '기본 준비량',
+                        context.t('ui.audit1156'),
                         number: true,
-                        help: '한 번 준비할 때의 기본 수량이에요.',
+                        help: context.t('ui.audit1540'),
                       ),
                     ],
                   ),
                   AppFormSection(
-                    title: '업무 연결',
+                    title: context.t('ui.audit819'),
                     children: [
                       if (folders.isEmpty)
-                        const Information('매뉴얼에서 폴더를 먼저 추가해 주세요.')
+                        Information(context.t('ui.audit272'))
                       else
                         AppPicker<String>(
-                          label: '준비 TAP그룹',
+                          label: context.t('ui.audit820'),
                           value: folder,
                           items: [
                             for (final f in folders)
@@ -304,11 +316,11 @@ class _PreparedItemEditorState extends State<PreparedItemEditor> {
                         TextButton.icon(
                           onPressed: () => editPlace(context, widget.ops),
                           icon: const Icon(Icons.add_location_alt_outlined),
-                          label: const Text('준비 장소 추가'),
+                          label: Text(context.t('ui.audit273')),
                         )
                       else
                         AppPicker<String>(
-                          label: '준비 장소',
+                          label: context.t('ui.audit821'),
                           value: zone,
                           items: [
                             for (final z in zones)
@@ -325,18 +337,24 @@ class _PreparedItemEditorState extends State<PreparedItemEditor> {
                     ],
                   ),
                   AppFormSection(
-                    title: '메뉴별 사용량',
-                    description: '메뉴 1개당 쓰는 준비품 수량이에요. 사용하지 않는 메뉴는 비워 두세요.',
+                    title: context.t('ui.audit822'),
+                    description: context.t('ui.audit823'),
                     children: [
                       if (menus.isEmpty)
-                        const Text('등록된 메뉴가 없어요.', style: AppText.caption),
+                        Text(context.t('ui.audit274'), style: AppText.caption),
                       for (final m in menus)
                         field('menu:${m['id']}', m['name'], number: true),
                     ],
                   ),
                   AppFormSection(
-                    title: '준비 방법',
-                    children: [field('instructions', '매장 기준', lines: 3)],
+                    title: context.t('ui.audit824'),
+                    children: [
+                      field(
+                        'instructions',
+                        context.t('ui.audit1157'),
+                        lines: 3,
+                      ),
+                    ],
                   ),
                 ],
         ),

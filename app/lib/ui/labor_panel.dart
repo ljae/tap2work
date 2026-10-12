@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'payroll_settings_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
@@ -5,9 +6,15 @@ import '../state/operations_controller.dart';
 import 'components.dart';
 import 'team_screen.dart';
 
-String laborMoney(dynamic value) => value == null
-    ? '확인 필요'
-    : '${(value as num).round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원';
+String laborMoney(dynamic value, {AppStrings? strings}) {
+  if (value == null) return strings?.text('ui.audit1092') ?? '확인 필요';
+  final amount = (value as num).round().toString().replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+    (m) => '${m[1]},',
+  );
+  return strings?.text('ui.audit959', {'p0': amount}) ?? '$amount원';
+}
+
 String laborDate(DateTime d) =>
     '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
@@ -25,7 +32,7 @@ class _LaborPanelState extends State<LaborPanel> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: widget.ops,
     builder: (context, _) {
-      if (!widget.ops.isOwner) return const Information('인건비는 사장님만 볼 수 있어요.');
+      if (!widget.ops.isOwner) return Information(context.t('ui.audit1'));
       final report = widget.ops.data?['labor'] as Json? ?? {};
       final weeks = (report['weeks'] as List? ?? []).cast<Json>();
       final now =
@@ -52,7 +59,9 @@ class _LaborPanelState extends State<LaborPanel> {
         children: [
           Row(
             children: [
-              const Expanded(child: Text('주간 인건비', style: AppText.title)),
+              Expanded(
+                child: Text(context.t('ui.audit504'), style: AppText.title),
+              ),
               Icon(
                 Icons.notifications_none,
                 color: alerts > 0 ? AppColors.accent : AppColors.green,
@@ -66,7 +75,7 @@ class _LaborPanelState extends State<LaborPanel> {
               context,
               builder: (_) => Scaffold(
                 appBar: AppBar(
-                  title: const Text('시급·지급 기록'),
+                  title: Text(context.t('ui.audit2')),
                   leading: const CloseButton(),
                 ),
                 body: SingleChildScrollView(
@@ -75,7 +84,7 @@ class _LaborPanelState extends State<LaborPanel> {
                 ),
               ),
             ),
-            child: const Text('시급·지급 기록'),
+            child: Text(context.t('ui.audit2')),
           ),
           TextButton.icon(
             onPressed: () => showAppSheet(
@@ -83,26 +92,31 @@ class _LaborPanelState extends State<LaborPanel> {
               builder: (_) => PayrollSettingsScreen(ops: widget.ops),
             ),
             icon: const Icon(Icons.tune),
-            label: const Text('정산 설정'),
+            label: Text(context.t('ui.audit3')),
           ),
           if (weeks.isNotEmpty)
             AppPicker<String>(
-              label: '주 시작일 · 월요일',
+              label: context.t('ui.audit505'),
               value: week!['week'],
               items: [
                 for (final w in weeks)
                   DropdownMenuItem(
                     value: w['week'] as String,
-                    child: Text('${w['week']} 주'),
+                    child: Text(
+                      context.t('ui.audit506', args: {'p0': w['week']}),
+                    ),
                   ),
               ],
               onChanged: (v) => setState(() => selectedWeek = v),
             ),
           const SizedBox(height: 16),
           AppSegmented<bool>(
-            segments: const [
-              ButtonSegment(value: true, label: Text('배정 예상')),
-              ButtonSegment(value: false, label: Text('근태 기준')),
+            segments: [
+              ButtonSegment(value: true, label: Text(context.t('ui.audit507'))),
+              ButtonSegment(
+                value: false,
+                label: Text(context.t('ui.audit508')),
+              ),
             ],
             selected: {planned},
             onSelectionChanged: (v) => setState(() => planned = v.first),
@@ -113,27 +127,35 @@ class _LaborPanelState extends State<LaborPanel> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  pending > 0 ? '계산 조건 $pending명 확인 필요' : laborMoney(total),
+                  pending > 0
+                      ? context.t('ui.audit509', args: {'p0': pending})
+                      : laborMoney(total, strings: AppStrings.of(context)),
                   style: AppText.title,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   pending > 0
-                      ? '확인된 직원 합계 ${laborMoney(total)}'
-                      : '세전 예상 · 지급 확정 전',
+                      ? context.t(
+                          'ui.audit510',
+                          args: {
+                            'p0': laborMoney(
+                              total,
+                              strings: AppStrings.of(context),
+                            ),
+                          },
+                        )
+                      : context.t('ui.audit511'),
                   style: AppText.caption,
                 ),
                 Text(
-                  planned
-                      ? '휴게 차감 전 · 주휴는 확인한 조건 기준'
-                      : '퇴근 완료·휴게 제외 · 주휴는 확인한 조건 기준',
+                  planned ? context.t('ui.audit512') : context.t('ui.audit513'),
                   style: AppText.caption,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 32),
-          if (people.isEmpty) const Information('계산할 직원이 없어요.'),
+          if (people.isEmpty) Information(context.t('ui.audit4')),
           for (final person in people)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
@@ -142,7 +164,20 @@ class _LaborPanelState extends State<LaborPanel> {
                   contentPadding: const EdgeInsets.all(24),
                   title: Text(person['nickname'], style: AppText.body),
                   subtitle: Text(
-                    '시급 ${laborMoney(person['hourlyWon'])}\n${laborMoney(person[key]['totalWon'])} · 확인 ${(person[key]['alerts'] as List).length}건',
+                    context.t(
+                      'ui.audit514',
+                      args: {
+                        'p0': laborMoney(
+                          person['hourlyWon'],
+                          strings: AppStrings.of(context),
+                        ),
+                        'p1': laborMoney(
+                          person[key]['totalWon'],
+                          strings: AppStrings.of(context),
+                        ),
+                        'p2': (person[key]['alerts'] as List).length,
+                      },
+                    ),
                     style: AppText.caption,
                   ),
                   trailing: const Icon(Icons.chevron_right),
@@ -188,18 +223,29 @@ class LaborDetail extends StatelessWidget {
       if (person == null) {
         return Scaffold(
           appBar: AppBar(leading: const CloseButton()),
-          body: const Information('직원 정보를 다시 확인해 주세요.'),
+          body: Information(context.t('ui.audit5')),
         );
       }
       final result = person[planned ? 'planned' : 'actual'] as Json;
       return AppEditorScaffold(
-        title: '${person['nickname']} 인건비',
+        title: context.t('ui.audit515', args: {'p0': person['nickname']}),
         body: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            Text(laborMoney(result['totalWon']), style: AppText.title),
             Text(
-              '$week 주 · ${planned ? '배정 예상' : '근태 기준'} · 세전',
+              laborMoney(result['totalWon'], strings: AppStrings.of(context)),
+              style: AppText.title,
+            ),
+            Text(
+              context.t(
+                'ui.audit516',
+                args: {
+                  'p0': week,
+                  'p1': planned
+                      ? context.t('ui.audit507')
+                      : context.t('ui.audit508'),
+                },
+              ),
               style: AppText.caption,
             ),
             const SizedBox(height: 24),
@@ -215,11 +261,19 @@ class LaborDetail extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
-                    Expanded(child: Text(entry.value, style: AppText.caption)),
+                    Expanded(
+                      child: Text(
+                        context.t(entry.value),
+                        style: AppText.caption,
+                      ),
+                    ),
                     const SizedBox(width: 16),
                     Flexible(
                       child: Text(
-                        laborMoney(result[entry.key]),
+                        laborMoney(
+                          result[entry.key],
+                          strings: AppStrings.of(context),
+                        ),
                         textAlign: TextAlign.end,
                         style: AppText.body,
                       ),
@@ -229,16 +283,38 @@ class LaborDetail extends StatelessWidget {
               ),
             if (result['weeklyRestIncluded'] == false)
               Text(
-                '주휴수당 합계 제외 · 발생 ${result['weeklyRestWeeks'] ?? '확인 필요'}주 · 발생액 ${laborMoney(result['weeklyRestAccruedWon'])}',
+                context.t(
+                  'ui.audit517',
+                  args: {
+                    'p0':
+                        result['weeklyRestWeeks'] ?? context.t('ui.audit1092'),
+                    'p1': laborMoney(
+                      result['weeklyRestAccruedWon'],
+                      strings: AppStrings.of(context),
+                    ),
+                  },
+                ),
                 style: AppText.caption,
               ),
             const SizedBox(height: 16),
             Text(
-              '근로 ${((result['workedMinutes'] as num) / 60).toStringAsFixed(1)}시간 · 연장 ${((result['overtimeMinutes'] as num) / 60).toStringAsFixed(1)}시간 · 야간 ${((result['nightMinutes'] as num) / 60).toStringAsFixed(1)}시간',
+              context.t(
+                'ui.audit518',
+                args: {
+                  'p0': ((result['workedMinutes'] as num) / 60).toStringAsFixed(
+                    1,
+                  ),
+                  'p1': ((result['overtimeMinutes'] as num) / 60)
+                      .toStringAsFixed(1),
+                  'p2': ((result['nightMinutes'] as num) / 60).toStringAsFixed(
+                    1,
+                  ),
+                },
+              ),
               style: AppText.caption,
             ),
             const SizedBox(height: 32),
-            const Text('주간 확인 목록', style: AppText.body),
+            Text(context.t('ui.audit6'), style: AppText.body),
             for (final alert in result['alerts'] as List)
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -261,23 +337,20 @@ class LaborDetail extends StatelessWidget {
                           week: week,
                         ),
                       ),
-                child: const Text('계산 조건 확인·변경'),
+                child: Text(context.t('ui.audit7')),
               ),
             ),
             if (ops.readOnly)
-              const Text('공개 미리보기에서는 저장하지 않아요.', style: AppText.caption),
+              Text(context.t('ui.audit8'), style: AppText.caption),
             const SizedBox(height: 24),
             TextButton(
               onPressed: () => launchUrl(
                 Uri.parse('https://1350.moel.go.kr/rtmview.do?id=1000263464'),
                 mode: LaunchMode.externalApplication,
               ),
-              child: const Text('주휴·사업장 규모 · 공식 기준'),
+              child: Text(context.t('ui.audit9')),
             ),
-            const Text(
-              '시급제 성인·고정 근로시간 기준 추정치예요. 월급 계약, 포괄임금, 탄력근로, 미성년자 등 별도 기준은 급여 담당자와 확인해 주세요. 추가보수·지급기록·세금·보험 공제는 이 합계에 포함하지 않아요.',
-              style: AppText.caption,
-            ),
+            Text(context.t('ui.audit10'), style: AppText.caption),
           ],
         ),
       );
@@ -346,7 +419,7 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
       value: value,
       items: [
         for (final e in values.entries)
-          DropdownMenuItem(value: e.key, child: Text(e.value)),
+          DropdownMenuItem(value: e.key, child: Text(context.t(e.value))),
       ],
       onChanged: (v) => setState(() => changed(v!)),
     ),
@@ -373,7 +446,7 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
           !n.isFinite ||
           n < 0 ||
           (key.endsWith('Won') && n != n.round())) {
-        setState(() => error = '금액과 시간을 확인해 주세요.');
+        setState(() => error = context.t('ui.audit1234'));
         return;
       }
       values[key] = key.endsWith('Won') ? n.round() : (n * 60).round();
@@ -385,7 +458,7 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
     if (openingActor != widget.ops.actorId) {
       setState(() {
         saving = false;
-        error = '계정이 변경됐어요. 다시 열어 주세요.';
+        error = context.t('ui.audit1235');
       });
       return;
     }
@@ -407,7 +480,7 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
     if (!mounted) return;
     setState(() {
       saving = false;
-      error = ok ? null : widget.ops.error ?? '저장하지 못했어요.';
+      error = ok ? null : widget.ops.error ?? context.t('ui.audit760');
     });
     if (ok) Navigator.pop(context);
   }
@@ -416,8 +489,11 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
   Widget build(BuildContext context) => PopScope(
     canPop: !saving,
     child: AppEditorScaffold(
-      title: '계산 조건',
-      subtitle: '${widget.person['nickname']} · ${widget.week} 주',
+      title: context.t('ui.audit519'),
+      subtitle: context.t(
+        'ui.audit520',
+        args: {'p0': widget.person['nickname'], 'p1': widget.week},
+      ),
       body: AbsorbPointer(
         absorbing: saving,
         child: ListView(
@@ -425,18 +501,18 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           children: [
             AppFormSection(
-              title: '시급·근로시간',
+              title: context.t('ui.audit521'),
               children: [
-                picker('근로계약 기준', scope, {
-                  'unknown': '미확인 · 계산 보류',
-                  'standard': '시급제 성인 · 고정 근로시간',
+                picker(context.t('ui.audit1093'), scope, {
+                  'unknown': context.t('ui.audit1094'),
+                  'standard': context.t('ui.audit1095'),
                 }, (v) => scope = v),
                 TextButton(
                   onPressed: () => showAppSheet(
                     context,
                     builder: (_) => PayrollSettingsScreen(ops: widget.ops),
                   ),
-                  child: const Text('사업장 규모·주휴 포함은 매장 정산 설정에서 변경'),
+                  child: Text(context.t('ui.audit11')),
                 ),
                 number(
                   'hourlyWon',
@@ -460,10 +536,7 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
                   '유급 주휴시간 · 시간 (최대 8)',
                   (draft['restMinutes'] ?? 0) / 60,
                 ),
-                const Text(
-                  '단시간 근로자의 주휴시간은 4주 소정근로시간 ÷ 같은 기간 통상근로자의 소정근로일수로 확인해 입력하세요. 일반 주 5일·40시간제는 8시간이에요.',
-                  style: AppText.caption,
-                ),
+                Text(context.t('ui.audit12'), style: AppText.caption),
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
@@ -476,37 +549,47 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
                       setState(() {});
                     }
                   },
-                  child: const Text('주 5일·40시간제 기준으로 계산'),
+                  child: Text(context.t('ui.audit13')),
                 ),
               ],
             ),
             AppFormSection(
-              title: '주휴·계약',
+              title: context.t('ui.audit522'),
               children: [
-                picker('이번 주 주휴 요건', attendance, {
-                  'unknown': '미확인',
-                  'met': '개근·주휴 요건 충족',
-                  'unmet': '요건 미충족',
+                picker(context.t('ui.audit1096'), attendance, {
+                  'unknown': context.t('ui.audit1097'),
+                  'met': context.t('ui.audit1098'),
+                  'unmet': context.t('ui.audit1099'),
                 }, (v) => attendance = v),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('단시간 근로 계약'),
+                  title: Text(context.t('ui.audit14')),
                   value: shortTime,
                   onChanged: (v) => setState(() => shortTime = v),
                 ),
                 if (shortTime) ...[
-                  const Text('요일별 소정근로시간', style: AppText.body),
+                  Text(context.t('ui.audit15'), style: AppText.body),
                   for (var i = 0; i < 7; i++)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: AppPicker<int>(
-                        label: const ['월', '화', '수', '목', '금', '토', '일'][i],
+                        label: [
+                          context.t('ui.audit523'),
+                          context.t('ui.audit524'),
+                          context.t('ui.audit525'),
+                          context.t('ui.audit526'),
+                          context.t('ui.audit527'),
+                          context.t('ui.audit528'),
+                          context.t('ui.audit529'),
+                        ][i],
                         value: daily[i],
                         items: [
                           for (var m = 0; m <= 480; m += 30)
                             DropdownMenuItem(
                               value: m,
-                              child: Text('${m / 60}시간'),
+                              child: Text(
+                                context.t('ui.audit530', args: {'p0': m / 60}),
+                              ),
                             ),
                         ],
                         onChanged: (v) => setState(() => daily[i] = v!),
@@ -516,10 +599,10 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
               ],
             ),
             AppFormSection(
-              title: '휴일',
+              title: context.t('ui.audit531'),
               children: [
                 const SizedBox(height: 24),
-                const Text('휴일근로 날짜', style: AppText.body),
+                Text(context.t('ui.audit16'), style: AppText.body),
                 Wrap(
                   spacing: 8,
                   children: [
@@ -543,10 +626,7 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
                       ),
                   ],
                 ),
-                const Text(
-                  '주휴일·근로자의 날·사업장에 적용되는 공휴일 등을 선택하세요. 일요일로 자동 지정하지 않아요.',
-                  style: AppText.caption,
-                ),
+                Text(context.t('ui.audit17'), style: AppText.caption),
                 const SizedBox(height: 16),
                 number(
                   'otherPaidHolidayMinutes',
@@ -555,7 +635,7 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('휴일 날짜·유급 지급시간 확인'),
+                  title: Text(context.t('ui.audit18')),
                   value: holidaysConfirmed,
                   onChanged: (v) => setState(() => holidaysConfirmed = v),
                 ),
@@ -576,7 +656,9 @@ class _LaborReviewEditorState extends State<LaborReviewEditor> {
             ),
           FilledButton(
             onPressed: saving || widget.ops.readOnly ? null : save,
-            child: Text(saving ? '저장 중…' : '이번 주 조건 저장'),
+            child: Text(
+              saving ? context.t('ui.audit532') : context.t('ui.audit533'),
+            ),
           ),
         ],
       ),

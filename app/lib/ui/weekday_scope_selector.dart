@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'components.dart';
 
@@ -30,7 +31,9 @@ class WeekdayScopeSelector extends StatelessWidget {
               child: CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 controlAffinity: ListTileControlAffinity.leading,
-                title: Text(mode ? '전체' : '개별'),
+                title: Text(
+                  mode ? context.t('ui.audit656') : context.t('ui.audit874'),
+                ),
                 value: all == mode,
                 onChanged: enabled ? (_) => onMode(mode) : null,
               ),
@@ -50,7 +53,7 @@ class WeekdayScopeSelector extends StatelessWidget {
                   width: 32,
                   child: Center(
                     child: Text(
-                      names[d - 1],
+                      context.t(names[d - 1]),
                       style: TextStyle(
                         decoration: openDays.contains(d)
                             ? null
@@ -82,9 +85,9 @@ class WeekdayScopeSelector extends StatelessWidget {
         },
       ),
       if (!all)
-        const Padding(
+        Padding(
           padding: EdgeInsets.only(top: 8),
-          child: Text('여러 요일을 함께 선택할 수 있어요.', style: AppText.caption),
+          child: Text(context.t('ui.audit875'), style: AppText.caption),
         ),
     ],
   );

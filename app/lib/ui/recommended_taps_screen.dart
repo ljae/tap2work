@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -35,7 +36,7 @@ class _RecommendedTapsScreenState extends State<RecommendedTapsScreen> {
     if (openingActor != widget.ops.actorId) {
       setState(() {
         saving = false;
-        error = '계정이 변경됐어요. 다시 열어 주세요.';
+        error = context.t('ui.audit1235');
       });
       return;
     }
@@ -46,24 +47,23 @@ class _RecommendedTapsScreenState extends State<RecommendedTapsScreen> {
     if (!mounted) return;
     setState(() {
       saving = false;
-      error = ok ? null : widget.ops.error ?? '가져오지 못했어요.';
+      error = ok ? null : widget.ops.error ?? context.t('ui.audit1276');
     });
     if (ok) Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) => AppEditorScaffold(
-    title: '맞춤 업무 양식',
+    title: context.t('ui.audit973'),
     body: Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 680),
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            const Information('양식은 시작점이에요. 매장의 실제 순서와 완료 기준을 편집해서 사용하세요.'),
+            Information(context.t('ui.audit400')),
             const SizedBox(height: 12),
-            if (rows.isEmpty)
-              const Information('POS나 배달 사용 정보를 저장하면 관련 업무를 추천해요.'),
+            if (rows.isEmpty) Information(context.t('ui.audit401')),
             for (final row in rows)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
@@ -76,7 +76,7 @@ class _RecommendedTapsScreenState extends State<RecommendedTapsScreen> {
                         title: Text('${row['title']}'),
                         subtitle: Text(
                           row['alreadyAdded'] == true
-                              ? '이미 가져온 업무'
+                              ? context.t('ui.audit974')
                               : 'TAP · ${row['steps'].length} Task',
                         ),
                         value:
@@ -102,14 +102,19 @@ class _RecommendedTapsScreenState extends State<RecommendedTapsScreen> {
                   ),
                 ),
               ),
-            if (error != null) Information('$error\n선택한 업무는 그대로 남아 있어요.'),
+            if (error != null)
+              Information(context.t('ui.audit975', args: {'p0': error})),
             const SizedBox(height: 10),
             PressBounce(
               child: FilledButton(
                 onPressed: widget.ops.readOnly || selected.isEmpty || saving
                     ? null
                     : save,
-                child: Text(saving ? '가져오는 중…' : '${selected.length}개 업무 가져오기'),
+                child: Text(
+                  saving
+                      ? context.t('ui.audit689')
+                      : context.t('ui.audit976', args: {'p0': selected.length}),
+                ),
               ),
             ),
           ],

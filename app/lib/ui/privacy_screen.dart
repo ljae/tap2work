@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,9 +26,11 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
           padding: const EdgeInsets.fromLTRB(24, 8, 12, 12),
           child: Row(
             children: [
-              const Expanded(child: Text('개인정보처리방침', style: AppText.section)),
+              Expanded(
+                child: Text(context.t('ui.audit168'), style: AppText.section),
+              ),
               IconButton(
-                tooltip: '닫기',
+                tooltip: context.t('ui.audit83'),
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close),
               ),
@@ -39,7 +42,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
             future: policy,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return const Center(child: Text('안내를 열지 못했어요. 다시 열어 주세요.'));
+                return Center(child: Text(context.t('ui.audit1059')));
               }
               if (!snapshot.hasData) {
                 return const Center(child: AppCircularProgress());
@@ -69,11 +72,11 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                       );
                       if (!opened && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('이메일 주소를 복사해 문의해 주세요.')),
+                          SnackBar(content: Text(context.t('ui.audit1060'))),
                         );
                       }
                     },
-                    child: const Text('개인정보 문의하기'),
+                    child: Text(context.t('ui.audit472')),
                   ),
                 ],
               );

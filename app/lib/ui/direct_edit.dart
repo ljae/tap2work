@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../state/operations_controller.dart';
@@ -72,7 +73,7 @@ class _DirectEditFrameState extends State<DirectEditFrame>
   @override
   Widget build(BuildContext context) => Semantics(
     onLongPress: widget.enabled ? enter : null,
-    hint: widget.enabled && !active ? '길게 눌러 편집' : null,
+    hint: widget.enabled && !active ? context.t('ui.audit49') : null,
     child: GestureDetector(
       onLongPress: widget.enabled ? enter : null,
       onSecondaryTap: widget.enabled ? enter : null,
@@ -105,25 +106,25 @@ class _DirectEditFrameState extends State<DirectEditFrame>
                         children: [
                           if (widget.onMove != null)
                             IconButton(
-                              tooltip: '위치 이동',
+                              tooltip: context.t('ui.audit567'),
                               onPressed: widget.onMove,
                               icon: const Icon(Icons.open_with, size: 20),
                             ),
                           if (widget.onRename != null)
                             IconButton(
-                              tooltip: '이름 변경',
+                              tooltip: context.t('ui.audit568'),
                               onPressed: widget.onRename,
                               icon: const Icon(Icons.edit_outlined, size: 20),
                             ),
                           if (widget.onSettings != null)
                             IconButton(
-                              tooltip: '상세 설정',
+                              tooltip: context.t('ui.audit569'),
                               onPressed: widget.onSettings,
                               icon: const Icon(Icons.tune, size: 20),
                             ),
                           if (widget.onDelete != null)
                             IconButton(
-                              tooltip: '삭제',
+                              tooltip: context.t('ui.audit52'),
                               onPressed: widget.onDelete,
                               icon: const Icon(Icons.delete_outline, size: 20),
                               color: AppColors.accent,
@@ -159,10 +160,10 @@ class DirectEditBar extends StatelessWidget {
         TextButton.icon(
           onPressed: onDone,
           icon: const Icon(Icons.check),
-          label: const Text('편집 완료'),
+          label: Text(context.t('ui.audit48')),
         )
       else
-        const Text('길게 눌러 편집', style: AppText.caption),
+        Text(context.t('ui.audit49'), style: AppText.caption),
       if (onAdd != null)
         TextButton.icon(
           onPressed: onAdd,
@@ -216,15 +217,15 @@ class _NameDialogState extends State<_NameDialog> {
       controller: controller,
       autofocus: true,
       maxLength: widget.maxLength,
-      decoration: const InputDecoration(labelText: '이름'),
+      decoration: InputDecoration(labelText: context.t('ui.audit50')),
       onSubmitted: (_) => save(),
     ),
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('취소'),
+        child: Text(context.t('ui.audit33')),
       ),
-      FilledButton(onPressed: save, child: const Text('저장')),
+      FilledButton(onPressed: save, child: Text(context.t('ui.audit51'))),
     ],
   );
 }
@@ -237,9 +238,9 @@ Future<void> directEditNode(
   String title,
 ) async {
   if (ops.readOnly) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('구조 변경은 로그인한 매장에서 저장할 수 있어요.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.t('ui.audit570'))));
     return;
   }
   final revision = ops.data?['revision'], actor = ops.actorId;
@@ -249,20 +250,20 @@ Future<void> directEditNode(
     final confirm = await showAppDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('$title 삭제'),
+        title: Text(context.t('ui.audit571', args: {'p0': title})),
         content: Text(
           action == 'edit_work_node'
-              ? '선택한 미완료 업무와 연결된 기본 양식에서 제거해요. 완료 기록은 유지됩니다.'
-              : '기본 양식에서 제거해요. 이미 실행한 업무 기록은 유지됩니다.',
+              ? context.t('ui.audit572')
+              : context.t('ui.audit573'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
+            child: Text(context.t('ui.audit33')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('삭제'),
+            child: Text(context.t('ui.audit52')),
           ),
         ],
       ),
@@ -272,7 +273,9 @@ Future<void> directEditNode(
     value = await directEditName(
       context,
       command['operation'] == 'add' ? '' : title,
-      title: command['operation'] == 'add' ? '추가' : '이름 변경',
+      title: command['operation'] == 'add'
+          ? context.t('ui.audit574')
+          : context.t('ui.audit568'),
       maxLength: command['kind'] == 'group' ? 40 : 100,
     );
     if (value == null) return;
@@ -288,8 +291,10 @@ Future<void> directEditNode(
       SnackBar(
         content: Text(
           ok
-              ? (ops.readOnly ? '체험에 반영했어요. 저장되지는 않아요.' : '반영했어요.')
-              : ops.error ?? '변경하지 못했어요.',
+              ? (ops.readOnly
+                    ? context.t('ui.audit575')
+                    : context.t('ui.audit576'))
+              : ops.error ?? context.t('ui.audit577'),
         ),
       ),
     );

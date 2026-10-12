@@ -336,7 +336,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       );
       if (!mounted) return;
       if (!ok) {
-        notice(ops.error ?? '이동하지 못했어요.');
+        notice(ops.error ?? context.t('ui.audit1230'));
         return;
       }
       setState(() {
@@ -404,7 +404,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       if (moving == null || parent == null) return;
       final different = command['sourceTapId'] != command['targetId'];
       if (different && target.length >= 30) {
-        notice('한 TAP의 Task는 최대 30개예요.');
+        notice(context.t('ui.audit1231'));
         return;
       }
       if (different && target.any((r) => r['sourceStepId'] == command['id'])) {
@@ -506,20 +506,27 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       )) {
         if (!seen.add(row['tapId'])) continue;
         choices.add({
-          'label': '${row['folderName']} / ${row['tapTitle']} · 맨 아래',
+          'label': context.t(
+            'ui.audit2132',
+            args: {'p0': row['folderName'], 'p1': row['tapTitle']},
+          ),
           'command': {...from, 'targetId': row['tapId']}
             ..remove('targetFolderId'),
         });
       }
     }
     if (choices.isEmpty) {
-      notice('이 폴더에 TAP을 먼저 추가해 주세요.');
+      notice(context.t('ui.audit1232'));
       return;
     }
     final command = await showAppDialog<Json>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: Text(folderId == null ? '이동 위치' : '이 폴더의 TAP 선택'),
+        title: Text(
+          folderId == null
+              ? context.t('ui.audit1081')
+              : context.t('ui.audit1082'),
+        ),
         children: [
           for (final option in choices)
             SimpleDialogOption(
@@ -552,9 +559,9 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     final data = drag(kind, id, tapId: tapId);
     final handle = Semantics(
       key: ValueKey('manual-drag-$key'),
-      label: '드래그하여 순서 변경',
+      label: context.t('ui.audit1083'),
       child: IconButton(
-        tooltip: '위치 이동',
+        tooltip: context.t('ui.audit567'),
         constraints: const BoxConstraints.tightFor(width: 48, height: 48),
         onPressed: () => chooseDestination(data),
         icon: const Icon(Icons.open_with, size: 18, color: AppColors.muted),
@@ -602,7 +609,9 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         children: [
           if (hasChildren)
             IconButton(
-              tooltip: expanded.contains(key) ? '접기' : '펼치기',
+              tooltip: expanded.contains(key)
+                  ? context.t('ui.audit779')
+                  : context.t('ui.audit778'),
               constraints: const BoxConstraints(minWidth: 36, minHeight: 44),
               icon: Icon(
                 expanded.contains(key) || widget.query.isNotEmpty
@@ -646,7 +655,9 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         children: [
                           Tooltip(
                             triggerMode: TooltipTriggerMode.manual,
-                            message: editing && editable ? '이름을 눌러 변경' : label,
+                            message: editing && editable
+                                ? context.t('ui.audit1084')
+                                : label,
                             child: InkWell(
                               key: ValueKey('manual-rename-$key'),
                               mouseCursor: editing && editable
@@ -712,7 +723,9 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           if (!editing && editable && canEdit && kind != 'group')
             IconButton(
               key: ValueKey('manual-detail-$key'),
-              tooltip: kind == 'tap' ? 'TAP 상세 수정' : 'Task 상세 수정',
+              tooltip: kind == 'tap'
+                  ? context.t('ui.audit846')
+                  : context.t('ui.audit297'),
               icon: const Icon(Icons.tune, size: 18),
               onPressed: () => showAppSheet(
                 context,
@@ -726,8 +739,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               ),
             ),
           if (editing && !editable)
-            const Tooltip(
-              message: '오늘 업무는 조회 전용이에요. 기본 매뉴얼 항목을 선택해 수정해 주세요.',
+            Tooltip(
+              message: context.t('ui.audit497'),
               child: Padding(
                 padding: EdgeInsets.all(12),
                 child: Icon(
@@ -740,7 +753,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           if (editing && editable && canEdit) ...[
             PopupMenuButton<String>(
               key: ValueKey('manual-actions-$key'),
-              tooltip: '$label 편집',
+              tooltip: context.t('ui.audit1085', args: {'p0': label}),
               icon: const Icon(Icons.more_horiz, size: 18),
               constraints: const BoxConstraints(minWidth: 160),
               onSelected: (action) {
@@ -773,22 +786,35 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               },
               itemBuilder: (_) => [
                 if (kind != 'group')
-                  const PopupMenuItem(value: 'detail', child: Text('상세 수정')),
+                  PopupMenuItem(
+                    value: 'detail',
+                    child: Text(context.t('ui.audit1086')),
+                  ),
                 if (kind != 'task')
                   PopupMenuItem(
                     value: 'add',
-                    child: Text(kind == 'group' ? 'TAP 추가' : 'Task 추가'),
+                    child: Text(
+                      kind == 'group'
+                          ? context.t('ui.audit845')
+                          : context.t('ui.audit31'),
+                    ),
                   ),
-                const PopupMenuItem(value: 'move', child: Text('위치 이동')),
-                const PopupMenuItem(value: 'rename', child: Text('이름 변경')),
+                PopupMenuItem(
+                  value: 'move',
+                  child: Text(context.t('ui.audit567')),
+                ),
+                PopupMenuItem(
+                  value: 'rename',
+                  child: Text(context.t('ui.audit568')),
+                ),
                 if (deletable)
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: Row(
                       children: [
                         Icon(Icons.delete_outline, color: AppColors.accent),
                         SizedBox(width: 8),
-                        Text('삭제'),
+                        Text(context.t('ui.audit52')),
                       ],
                     ),
                   ),
@@ -920,14 +946,14 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             folderId: folder['id'],
             label: tap['editable'] == true
                 ? tap['tapTitle']
-                : '${tap['tapTitle']} · 오늘 업무',
+                : context.t('ui.audit1087', args: {'p0': tap['tapTitle']}),
             depth: 1,
             editable: tap['editable'] == true,
             selected: scopeTap == tap['tapId'],
             hasChildren: children.isNotEmpty,
             count: children.length,
             durationText: all.where((r) => r['tapId'] == tap['tapId']).isEmpty
-                ? 'Task 0개'
+                ? context.t('Task 0개')
                 : duration(
                     all.where((r) => r['tapId'] == tap['tapId']).toList(),
                   ),
@@ -1023,7 +1049,17 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           for (final id in (selected['knowledgeIds'] as List? ?? []))
             ExpansionTile(
               title: Text(
-                '참고 · ${ops.rows('manualSearch').where((r) => r['templateId'] == id).firstOrNull?['tapTitle'] ?? '연결 매뉴얼'}',
+                context.t(
+                  'ui.audit1032',
+                  args: {
+                    'p0':
+                        ops
+                            .rows('manualSearch')
+                            .where((r) => r['templateId'] == id)
+                            .firstOrNull?['tapTitle'] ??
+                        context.t('ui.audit1233'),
+                  },
+                ),
               ),
               children: [
                 for (final row
@@ -1147,7 +1183,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               widget.query.trim().isNotEmpty
                   ? context.t('manual.noResults')
                   : canEdit
-                  ? 'Task가 없어요. TAP을 선택하고 Task를 추가해 주세요.'
+                  ? context.t('ui.audit1088')
                   : context.t('manual.empty'),
             ),
           );
@@ -1208,7 +1244,12 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                   Text(
                     row['editable'] == true
                         ? duration([row])
-                        : '${duration([row])} · 오늘 업무 · 조회 전용',
+                        : context.t(
+                            'ui.audit1089',
+                            args: {
+                              'p0': duration([row]),
+                            },
+                          ),
                     maxLines: 2,
                   ),
                 ],
@@ -1274,12 +1315,9 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const Text('우리 매장만의 메뉴와 레시피', style: AppText.section),
+        Text(context.t('ui.audit498'), style: AppText.section),
         const SizedBox(height: 8),
-        const Text(
-          '판매 메뉴별 재료·분량·조리 순서·제공 기준을 직접 채워 주세요. 마켓의 공통 운영 매뉴얼과 따로 관리해요.',
-          style: AppText.caption,
-        ),
+        Text(context.t('ui.audit499'), style: AppText.caption),
         if (ops.canEditTasks)
           Align(
             alignment: Alignment.centerLeft,
@@ -1289,17 +1327,16 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 builder: (_) => CatalogEditor(ops: ops, menusOnly: true),
               ),
               icon: const Icon(Icons.add),
-              label: const Text('판매 메뉴 추가·관리'),
+              label: Text(context.t('ui.audit500')),
             ),
           ),
-        if (templates.isEmpty)
-          const Information('판매 메뉴를 등록하면 메뉴별 레시피 공간이 생겨요.'),
+        if (templates.isEmpty) Information(context.t('ui.audit501')),
         for (final t in templates)
           ListTile(
             key: ValueKey('store-recipe-${t['id']}'),
             contentPadding: EdgeInsets.zero,
             title: Text(t['manualTitle'] ?? t['title']),
-            subtitle: const Text('매장 전용 · 레시피 보기'),
+            subtitle: Text(context.t('ui.audit502')),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => showAppSheet(
               context,
@@ -1475,7 +1512,16 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                         onPressed: () => openOwnerWorkflow(context, ops),
                         icon: const Icon(Icons.fact_check_outlined),
                         label: Text(
-                          '사장님 검토 · 등록 대기 ${(ops.data?['ownerWorkflow']?['pending'] as List? ?? []).length}개',
+                          context.t(
+                            'ui.audit1090',
+                            args: {
+                              'p0':
+                                  (ops.data?['ownerWorkflow']?['pending']
+                                              as List? ??
+                                          [])
+                                      .length,
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -1556,8 +1602,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                             }),
                           ),
                         if (editing && ops.readOnly)
-                          const Text(
-                            '드래그 체험 · 저장 안 됨',
+                          Text(
+                            context.t('ui.audit503'),
                             style: TextStyle(
                               fontSize: 13,
                               color: AppColors.muted,
@@ -1577,7 +1623,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
-                        '이동 아이콘을 누르거나 드래그해 위치를 바꿔요. ⋯에서 추가·수정·삭제할 수 있어요.',
+                        context.t('ui.audit1091'),
                         style: TextStyle(fontSize: 13, color: AppColors.muted),
                       ),
                     ),

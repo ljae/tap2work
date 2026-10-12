@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'components.dart';
 
@@ -21,7 +22,7 @@ class MenuArtwork extends StatelessWidget {
     final crop = _art[menuId];
     if (crop == null) {
       return Semantics(
-        label: '$menuName 그림',
+        label: context.t('ui.audit578', args: {'p0': menuName}),
         image: true,
         child: Container(
           width: 48,
@@ -45,7 +46,7 @@ class MenuArtwork extends StatelessWidget {
       width: 48,
       height: 48,
       borderRadius: 12,
-      semanticLabel: '$menuName 그림',
+      semanticLabel: context.t('ui.audit578', args: {'p0': menuName}),
     );
   }
 }

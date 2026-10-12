@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -45,15 +46,15 @@ class _PayrollSettingsScreenState extends State<PayrollSettingsScreen> {
       final discard = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('변경을 버릴까요?'),
+          title: Text(context.t('ui.audit178')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('계속 편집'),
+              child: Text(context.t('ui.audit21')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('변경 버리기'),
+              child: Text(context.t('ui.audit22')),
             ),
           ],
         ),
@@ -69,7 +70,7 @@ class _PayrollSettingsScreenState extends State<PayrollSettingsScreen> {
   Future<void> save() async {
     if (!editable) return;
     if (widget.ops.actorId != actorId) {
-      setState(() => error = '계정이 바뀌었어요. 다시 열어 주세요.');
+      setState(() => error = context.t('ui.audit1278'));
       return;
     }
     setState(() {
@@ -103,11 +104,11 @@ class _PayrollSettingsScreenState extends State<PayrollSettingsScreen> {
       if (!didPop) close();
     },
     child: AppEditorScaffold(
-      title: '정산 설정',
-      subtitle: '시급제 크루의 정산 기준을 설정해요.',
+      title: context.t('ui.audit3'),
+      subtitle: context.t('ui.audit1000'),
       onClose: close,
       body: !widget.ops.isOwner
-          ? const Information('정산 설정은 사장님만 볼 수 있어요.')
+          ? Information(context.t('ui.audit427'))
           : AbsorbPointer(
               absorbing: saving,
               child: Center(
@@ -117,24 +118,32 @@ class _PayrollSettingsScreenState extends State<PayrollSettingsScreen> {
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                     children: [
                       AppFormSection(
-                        title: '지급 주기',
-                        description: '월 고정급 계약이 아닌 시급제 정산 주기예요.',
+                        title: context.t('ui.audit1001'),
+                        description: context.t('ui.audit1002'),
                         children: [
                           AppChoiceGroup<String>(
                             values: const ['monthly', 'weekly'],
                             selected: cycle,
-                            labelOf: (v) => v == 'monthly' ? '월급' : '주급',
+                            labelOf: (v) => v == 'monthly'
+                                ? context.t('ui.audit1206')
+                                : context.t('ui.audit1207'),
                             onSelected: (v) => change(() => cycle = v),
                           ),
                         ],
                       ),
                       AppFormSection(
-                        title: '정산 시작일',
+                        title: context.t('ui.audit1003'),
                         children: [
                           Text(
                             cycle == 'monthly'
-                                ? '매월 $monthDay일'
-                                : '매주 ${days[weekDay - 1]}요일',
+                                ? context.t(
+                                    'ui.audit1004',
+                                    args: {'p0': monthDay},
+                                  )
+                                : context.t(
+                                    'ui.audit1005',
+                                    args: {'p0': context.t(days[weekDay - 1])},
+                                  ),
                             style: AppText.title.copyWith(
                               color: AppColors.green,
                             ),
@@ -153,16 +162,22 @@ class _PayrollSettingsScreenState extends State<PayrollSettingsScreen> {
                                     min: 1,
                                     max: 31,
                                     divisions: 30,
-                                    label: '$monthDay일',
+                                    label: context.t(
+                                      'ui.audit957',
+                                      args: {'p0': monthDay},
+                                    ),
                                     semanticFormatterCallback: (value) =>
-                                        '매월 ${value.round()}일',
+                                        context.t(
+                                          'ui.audit1004',
+                                          args: {'p0': value.round()},
+                                        ),
                                     onChanged: (v) =>
                                         change(() => monthDay = v.round()),
                                   )
                                 : AppChoiceGroup<int>(
                                     values: const [1, 2, 3, 4, 5, 6, 7],
                                     selected: weekDay,
-                                    labelOf: (v) => days[v - 1],
+                                    labelOf: (v) => context.t(days[v - 1]),
                                     onSelected: (v) =>
                                         change(() => weekDay = v),
                                   ),
@@ -170,75 +185,85 @@ class _PayrollSettingsScreenState extends State<PayrollSettingsScreen> {
                           Text(
                             cycle == 'monthly'
                                 ? (monthDay == 1
-                                      ? '매월 1일부터 말일까지예요.'
-                                      : '매월 $monthDay일부터 다음 정산 시작일 전날까지예요. 해당 날짜가 없는 달은 말일에 시작해요.')
-                                : '매주 ${days[weekDay - 1]}요일부터 7일간이에요.',
+                                      ? context.t('ui.audit1006')
+                                      : context.t(
+                                          'ui.audit1007',
+                                          args: {'p0': monthDay},
+                                        ))
+                                : context.t(
+                                    'ui.audit1008',
+                                    args: {'p0': context.t(days[weekDay - 1])},
+                                  ),
                             style: AppText.caption,
                           ),
                         ],
                       ),
                       AppFormSection(
-                        title: '정산 시간 반올림',
-                        description: '하루의 휴게 제외 시간을 기준으로 계산해요.',
+                        title: context.t('ui.audit1009'),
+                        description: context.t('ui.audit1010'),
                         children: [
                           AppChoiceGroup<int>(
                             key: const ValueKey('payroll-rounding'),
                             values: roundingValues,
                             selected: rounding,
-                            labelOf: (v) => v == 0 ? '없음' : '$v분',
+                            labelOf: (v) => v == 0
+                                ? context.t('ui.audit1115')
+                                : context.t('ui.audit920', args: {'p0': v}),
                             onSelected: (v) => change(() => rounding = v),
                           ),
                           Text(
                             rounding == 0
-                                ? '기록된 시간 그대로 계산해요.'
-                                : '하루의 휴게 제외 시간을 $rounding분 단위로 반올림해 기본급에 반영해요.',
+                                ? context.t('ui.audit1011')
+                                : context.t(
+                                    'ui.audit1012',
+                                    args: {'p0': rounding},
+                                  ),
                             style: AppText.caption,
                           ),
-                          const Text(
-                            '원본 출퇴근 기록과 수당·주휴 요건 판정 시간은 유지해요.',
+                          Text(
+                            context.t('ui.audit428'),
                             style: AppText.caption,
                           ),
                         ],
                       ),
                       AppFormSection(
-                        title: '사업장 규모',
+                        title: context.t('ui.audit1013'),
                         children: [
                           AppChoiceGroup<String>(
                             values: const ['under5', 'fivePlus'],
                             selected: size,
-                            labelOf: (v) => v == 'under5' ? '5인 미만' : '5인 이상',
+                            labelOf: (v) => v == 'under5'
+                                ? context.t('ui.audit1208')
+                                : context.t('ui.audit1209'),
                             onSelected: (v) => change(() => size = v),
                           ),
                           Text(
                             size == 'unknown'
-                                ? '상시근로자 기준 사업장 규모를 선택해 주세요.'
+                                ? context.t('ui.audit1014')
                                 : size == 'under5'
-                                ? '연장·야간·휴일근로 가산을 예상액에 넣지 않아요.'
-                                : '연장·야간·휴일근로 가산을 확인한 근로조건에 따라 계산해요.',
+                                ? context.t('ui.audit1015')
+                                : context.t('ui.audit1016'),
                             style: AppText.caption,
                           ),
                         ],
                       ),
                       AppFormSection(
-                        title: '주휴수당',
+                        title: context.t('ui.audit1017'),
                         children: [
                           SwitchListTile.adaptive(
                             contentPadding: EdgeInsets.zero,
-                            title: const Text('주휴수당 포함'),
+                            title: Text(context.t('ui.audit429')),
                             subtitle: Text(
                               includeRest
-                                  ? '발생 요건을 확인한 주휴수당을 예상 합계에 넣어요.'
-                                  : '주휴 발생 주수만 세고 금액에는 넣지 않아요.',
+                                  ? context.t('ui.audit1018')
+                                  : context.t('ui.audit1019'),
                             ),
                             value: includeRest,
                             onChanged: (v) => change(() => includeRest = v),
                           ),
                         ],
                       ),
-                      const Text(
-                        '설정은 현재 예상액에 적용해요. 기존 지급 기록은 바뀌지 않으며, 포함 여부가 지급 의무를 바꾸지는 않아요.',
-                        style: AppText.caption,
-                      ),
+                      Text(context.t('ui.audit430'), style: AppText.caption),
                     ],
                   ),
                 ),
@@ -249,18 +274,22 @@ class _PayrollSettingsScreenState extends State<PayrollSettingsScreen> {
           : AppSheetFooter(
               children: [
                 if (widget.ops.readOnly)
-                  const Text('공개 미리보기에서는 저장하지 않아요.', style: AppText.caption),
+                  Text(context.t('ui.audit8'), style: AppText.caption),
                 if (error != null)
                   Semantics(
                     liveRegion: true,
                     child: Text(
-                      '$error\n입력한 내용은 유지했어요.',
+                      context.t('ui.audit1020', args: {'p0': error}),
                       style: AppText.caption.copyWith(color: AppColors.accent),
                     ),
                   ),
                 FilledButton(
                   onPressed: editable && size != 'unknown' ? save : null,
-                  child: Text(saving ? '저장 중…' : '정산 설정 저장'),
+                  child: Text(
+                    saving
+                        ? context.t('ui.audit532')
+                        : context.t('ui.audit1021'),
+                  ),
                 ),
               ],
             ),

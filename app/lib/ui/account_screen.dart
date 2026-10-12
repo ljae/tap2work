@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../data/account_repository.dart';
 import '../state/account_controller.dart';
@@ -39,7 +40,7 @@ class _AccountScreenState extends State<AccountScreen> {
       await widget.onSignOut();
       if (mounted) Navigator.pop(context);
     } catch (_) {
-      if (mounted) setState(() => sessionError = '로그아웃하지 못했어요. 다시 시도해 주세요.');
+      if (mounted) setState(() => sessionError = context.t('ui.audit1481'));
     } finally {
       if (mounted) setState(() => signingOut = false);
     }
@@ -60,9 +61,14 @@ class _AccountScreenState extends State<AccountScreen> {
                 padding: const EdgeInsets.fromLTRB(24, 8, 12, 12),
                 child: Row(
                   children: [
-                    const Expanded(child: Text('내 계정', style: AppText.section)),
+                    Expanded(
+                      child: Text(
+                        context.t('ui.audit644'),
+                        style: AppText.section,
+                      ),
+                    ),
                     IconButton(
-                      tooltip: '닫기',
+                      tooltip: context.t('ui.audit83'),
                       onPressed: busy ? null : () => Navigator.pop(context),
                       icon: const Icon(Icons.close),
                     ),
@@ -77,23 +83,24 @@ class _AccountScreenState extends State<AccountScreen> {
                     const SizedBox(height: 24),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('개인정보처리방침'),
+                      title: Text(context.t('ui.audit168')),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => openPrivacy(context),
                     ),
                     OutlinedButton(
                       onPressed: busy ? null : signOut,
-                      child: Text(signingOut ? '로그아웃 중…' : '로그아웃'),
+                      child: Text(
+                        signingOut
+                            ? context.t('ui.audit645')
+                            : context.t('ui.audit646'),
+                      ),
                     ),
                     const SizedBox(height: 32),
-                    const Text('계정 삭제', style: AppText.section),
+                    Text(context.t('ui.audit169'), style: AppText.section),
                     const SizedBox(height: 12),
-                    const Text('삭제하면 로그인 계정과 연결된 개인정보가 삭제돼요. 이 작업은 되돌릴 수 없어요.'),
+                    Text(context.t('ui.audit170')),
                     const SizedBox(height: 12),
-                    const Text(
-                      '다른 크루의 계정은 삭제되지 않아요. 직접 저장한 PDF·JSON 파일은 기기에서 별도로 삭제해 주세요. Apple 구독을 이용 중이라면 구독 취소도 별도로 진행해 주세요.',
-                      style: AppText.caption,
-                    ),
+                    Text(context.t('ui.audit171'), style: AppText.caption),
                     const SizedBox(height: 20),
                     if (preview == null)
                       OutlinedButton(
@@ -103,7 +110,11 @@ class _AccountScreenState extends State<AccountScreen> {
                                 setState(() => acknowledged = false);
                                 controller.loadPreview();
                               },
-                        child: Text(busy ? '삭제 범위 확인 중…' : '삭제 범위 확인'),
+                        child: Text(
+                          busy
+                              ? context.t('ui.audit647')
+                              : context.t('ui.audit648'),
+                        ),
                       ),
                     if (preview != null) ...[
                       if (preview.workspaces.length > 1)
@@ -117,8 +128,16 @@ class _AccountScreenState extends State<AccountScreen> {
                         ),
                       Information(
                         preview.destroysWorkspace
-                            ? '유일한 사장님으로 등록된 ${preview.workspaceName ?? '내 매장'}의 업무·매뉴얼·근무표·재고 등 모든 매장 데이터와 ${preview.memberCount}명 계정의 해당 매장 접근이 함께 삭제돼요.'
-                            : '내 계정과 연결된 크루 정보·근무 및 급여 기록을 삭제해요. 공유 업무의 완료 기록은 개인 식별 정보를 지운 뒤 남겨요.',
+                            ? context.t(
+                                'ui.audit649',
+                                args: {
+                                  'p0':
+                                      preview.workspaceName ??
+                                      context.t('ui.audit1120'),
+                                  'p1': preview.memberCount,
+                                },
+                              )
+                            : context.t('ui.audit650'),
                       ),
                       const SizedBox(height: 12),
                       CheckboxListTile(
@@ -131,8 +150,8 @@ class _AccountScreenState extends State<AccountScreen> {
                                   setState(() => acknowledged = value == true),
                         title: Text(
                           preview.destroysWorkspace
-                              ? '매장 데이터와 접근도 함께 삭제하는 것을 확인했어요.'
-                              : '삭제 범위를 확인했어요.',
+                              ? context.t('ui.audit651')
+                              : context.t('ui.audit652'),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -150,14 +169,18 @@ class _AccountScreenState extends State<AccountScreen> {
                                     SnackBar(
                                       content: Text(
                                         controller.completionWarning ??
-                                            '계정이 삭제됐어요.',
+                                            context.t('ui.audit653'),
                                       ),
                                     ),
                                   );
                                   Navigator.pop(context);
                                 }
                               },
-                        child: Text(busy ? '계정 삭제 중…' : '계정 영구 삭제'),
+                        child: Text(
+                          busy
+                              ? context.t('ui.audit654')
+                              : context.t('ui.audit655'),
+                        ),
                       ),
                     ],
                     if (controller.error != null)
@@ -173,13 +196,14 @@ class _AccountScreenState extends State<AccountScreen> {
                                 } catch (_) {
                                   if (mounted) {
                                     setState(
-                                      () => sessionError =
-                                          'Apple 로그인 화면을 열지 못했어요.',
+                                      () => sessionError = context.t(
+                                        'ui.audit1484',
+                                      ),
                                     );
                                   }
                                 }
                               },
-                        child: const Text('삭제를 위해 Apple로 다시 로그인'),
+                        child: Text(context.t('ui.audit172')),
                       ),
                   ],
                 ),

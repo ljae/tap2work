@@ -28,11 +28,20 @@ class ManualConditions extends StatelessWidget {
                 : values[e.key] == true
                 ? 'yes'
                 : 'no',
-            decoration: InputDecoration(labelText: e.value),
-            items: const [
-              DropdownMenuItem(value: 'unknown', child: Text('나중에 설정')),
-              DropdownMenuItem(value: 'yes', child: Text('사용해요')),
-              DropdownMenuItem(value: 'no', child: Text('없어요')),
+            decoration: InputDecoration(labelText: context.t(e.value)),
+            items: [
+              DropdownMenuItem(
+                value: 'unknown',
+                child: Text(context.t('ui.audit739')),
+              ),
+              DropdownMenuItem(
+                value: 'yes',
+                child: Text(context.t('ui.audit740')),
+              ),
+              DropdownMenuItem(
+                value: 'no',
+                child: Text(context.t('ui.audit741')),
+              ),
             ],
             onChanged: (v) =>
                 onChanged(e.key, v == 'unknown' ? null : v == 'yes'),
@@ -84,15 +93,15 @@ class _ManualSetupScreenState extends State<ManualSetupScreen> {
         await showAppDialog<bool>(
               context: context,
               builder: (c) => AlertDialog(
-                title: const Text('변경을 버릴까요?'),
+                title: Text(context.t('ui.audit178')),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(c, false),
-                    child: const Text('계속 수정'),
+                    child: Text(context.t('ui.audit179')),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(c, true),
-                    child: const Text('변경 버리기'),
+                    child: Text(context.t('ui.audit22')),
                   ),
                 ],
               ),
@@ -107,7 +116,7 @@ class _ManualSetupScreenState extends State<ManualSetupScreen> {
     if (busy) return;
     if (actor != widget.ops.actorId ||
         workspace != widget.ops.data?['workspaceId']) {
-      setState(() => error = '매장이 바뀌었어요. 다시 열어 주세요.');
+      setState(() => error = context.t('ui.audit1246'));
       return;
     }
     setState(() => busy = true);
@@ -141,20 +150,22 @@ class _ManualSetupScreenState extends State<ManualSetupScreen> {
       if (!didPop) leave();
     },
     child: AppEditorScaffold(
-      title: '매뉴얼 구성',
+      title: context.t('ui.audit742'),
       onClose: leave,
       footer: AppSheetFooter(
         children: [
           FilledButton(
             onPressed: busy ? null : save,
-            child: Text(busy ? '저장 중…' : '변경 적용'),
+            child: Text(
+              busy ? context.t('ui.audit532') : context.t('ui.audit743'),
+            ),
           ),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          const Text('외식업 공통 업무에 매장 특성을 반영해요.', style: AppText.body),
+          Text(context.t('ui.audit231'), style: AppText.body),
           const SizedBox(height: 24),
           ManualConditions(
             values: conditions,
@@ -163,7 +174,7 @@ class _ManualSetupScreenState extends State<ManualSetupScreen> {
               changed = true;
             }),
           ),
-          const Text('여러 업무에서 함께 쓰는 장소', style: AppText.section),
+          Text(context.t('ui.audit232'), style: AppText.section),
           const SizedBox(height: 16),
           for (final e in {
             'return': context.t('setup.returnPlace'),
@@ -178,7 +189,7 @@ class _ManualSetupScreenState extends State<ManualSetupScreen> {
                 key: ValueKey('${e.key}-${places[e.key]}'),
                 initialValue: places[e.key],
                 isExpanded: true,
-                decoration: InputDecoration(labelText: e.value),
+                decoration: InputDecoration(labelText: context.t(e.value)),
                 items: [
                   DropdownMenuItem<String>(
                     value: null,
@@ -214,13 +225,13 @@ class _ManualSetupScreenState extends State<ManualSetupScreen> {
                             )) {
                           revision = widget.ops.data?['revision'] ?? revision;
                         } else {
-                          error = '매뉴얼 구성이 다른 곳에서 변경됐어요. 입력을 확인하고 다시 열어 주세요.';
+                          error = context.t('ui.audit1250');
                         }
                       });
                     }
                   },
             icon: const Icon(Icons.add_location_alt_outlined),
-            label: const Text('장소 등록'),
+            label: Text(context.t('ui.audit233')),
           ),
           if (widget.ops.data?['dishwashingExampleVersion'] != 1) ...[
             TextButton.icon(
@@ -259,18 +270,21 @@ class _ManualSetupScreenState extends State<ManualSetupScreen> {
             ),
           ] else
             Information(context.t('setup.exampleAdded')),
-          const Information(
-            '영업시간·브레이크·파트는 기존 매장 설정을 사용해요. 연결한 장소의 이름과 설명은 한 곳에서 수정해요.',
-          ),
+          Information(context.t('ui.audit234')),
           if (changed)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Information(
-                '${conditions['selfbar'] == false
-                    ? '홀 오픈·마감에서 셀프바 절차가 제외돼요.'
-                    : conditions['selfbar'] == true
-                    ? '홀 오픈·마감에 셀프바 절차를 포함해요.'
-                    : '미설정 조건은 기존 절차를 유지해요.'}\n매장 수정과 입력값을 보존해요. 시작한 업무는 그대로 유지해요.',
+                context.t(
+                  'ui.audit744',
+                  args: {
+                    'p0': conditions['selfbar'] == false
+                        ? context.t('ui.audit1133')
+                        : conditions['selfbar'] == true
+                        ? context.t('ui.audit1134')
+                        : context.t('ui.audit1135'),
+                  },
+                ),
               ),
             ),
           if (error != null)
@@ -309,7 +323,7 @@ class ManualCustomizationBadge extends StatelessWidget {
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  added ? '직접 추가' : '우리 매장 수정',
+                  added ? context.t('ui.audit745') : context.t('ui.audit746'),
                   style: const TextStyle(fontSize: 13, color: AppColors.accent),
                 ),
               ),

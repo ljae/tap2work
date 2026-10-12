@@ -206,10 +206,13 @@ class _WorkspaceSetup extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('내 매장 시작하기'),
+      title: Text(context.t('ui.audit485')),
       actions: [
         PressBounce(
-          child: TextButton(onPressed: onAccount, child: const Text('계정')),
+          child: TextButton(
+            onPressed: onAccount,
+            child: Text(context.t('ui.audit486')),
+          ),
         ),
       ],
     ),
@@ -220,19 +223,19 @@ class _WorkspaceSetup extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              const Text(
-                '어떤 매장으로 시작할까요?',
+              Text(
+                context.t('ui.audit487'),
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              const Text('선택한 매장은 이 계정에 저장됩니다. 빈 매장은 내 재료와 메뉴를 직접 등록할 수 있어요.'),
+              Text(context.t('ui.audit488')),
               const SizedBox(height: 24),
               PressBounce(
                 child: FilledButton(
                   onPressed: ops.busy
                       ? null
                       : () => openStoreSetup(context, ops),
-                  child: const Text('새 매장 등록'),
+                  child: Text(context.t('ui.audit489')),
                 ),
               ),
               const SizedBox(height: 12),
@@ -254,12 +257,12 @@ class _WorkspaceSetup extends StatelessWidget {
                           'mode': 'sample',
                           'revision': 0,
                         }),
-                  child: const Text('샘플 매장으로 체험'),
+                  child: Text(context.t('ui.audit490')),
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
-                '샘플 매장에는 가상 직원·주문·재고가 들어갑니다. 실제 매장 기록으로 사용하지 마세요.',
+              Text(
+                context.t('ui.audit491'),
                 style: TextStyle(color: AppColors.muted),
               ),
               if (ops.error != null) ...[
@@ -297,21 +300,21 @@ Future<void> openAccount(BuildContext context, SupabaseClient client) async {
     await showAppDialog<void>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('내 매장 로그인'),
+        title: Text(context.t('ui.audit492')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SocialSignInButtons(onSignIn: auth.signIn),
             TextButton(
               onPressed: () => openPrivacy(c),
-              child: const Text('개인정보처리방침'),
+              child: Text(context.t('ui.audit168')),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c),
-            child: const Text('닫기'),
+            child: Text(context.t('ui.audit83')),
           ),
         ],
       ),
@@ -355,7 +358,7 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
       if (mounted) {
         setState(() {
           providers = {};
-          error = '로그인 연결 상태를 확인하지 못했어요. 다시 시도해 주세요.';
+          error = context.t('ui.audit1288');
         });
       }
     } finally {
@@ -380,7 +383,7 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
       // Dismissing the provider sheet leaves the user on the login screen.
     } catch (_) {
       if (mounted) {
-        setState(() => error = '로그인하지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.');
+        setState(() => error = context.t('ui.audit1289'));
       }
     } finally {
       if (mounted) {
@@ -446,8 +449,8 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
                 Expanded(
                   child: Text(
                     provider == OAuthProvider.google
-                        ? 'Google로 계속하기'
-                        : 'Apple로 계속하기',
+                        ? context.t('ui.audit1077')
+                        : context.t('ui.audit1078'),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 16,
@@ -465,27 +468,24 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
       if (checkingProviders)
         Semantics(
           liveRegion: true,
-          child: const Text('로그인 연결 확인 중이에요.', style: AppText.caption),
+          child: Text(context.t('ui.audit493'), style: AppText.caption),
         ),
       if (!checkingProviders &&
           providers != null &&
           providers!.length < 2 &&
           error == null)
-        const Text(
-          '소셜 로그인 연결 준비 중이에요. 잠시 후 다시 시도해 주세요.',
-          style: AppText.caption,
-        ),
+        Text(context.t('ui.audit494'), style: AppText.caption),
       if (busy)
         Semantics(
           liveRegion: true,
-          child: const Text('계정 연결을 기다리고 있어요.', style: AppText.caption),
+          child: Text(context.t('ui.audit495'), style: AppText.caption),
         ),
       if (error != null)
-        Semantics(liveRegion: true, child: Information(error!)),
+        Semantics(liveRegion: true, child: Information(context.t(error!))),
       if (providers != null && providers!.length < 2)
         TextButton(
           onPressed: busy || checkingProviders ? null : load,
-          child: const Text('연결 다시 확인'),
+          child: Text(context.t('ui.audit496')),
         ),
     ],
   );

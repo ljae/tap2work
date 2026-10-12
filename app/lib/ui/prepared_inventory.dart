@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -39,18 +40,26 @@ class PreparedInventory extends StatelessWidget {
           childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
           shape: const Border(),
           collapsedShape: const Border(),
-          title: const Text(
-            '사전 준비 수량',
+          title: Text(
+            context.t('ui.audit323'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           subtitle: Text(
-            '${items.length}종 준비품 · ${low == 0 ? '부족 없음' : '부족 기준 도달 $low종'}',
+            context.t(
+              'ui.audit870',
+              args: {
+                'p0': items.length,
+                'p1': low == 0
+                    ? context.t('ui.audit1161')
+                    : context.t('ui.audit1162', args: {'p0': low}),
+              },
+            ),
             style: const TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           children: [
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
-              child: Text('조리 시작 때 사용량을 차감하고, 부족하면 준비 Tap이 생겨요.'),
+              child: Text(context.t('ui.audit871')),
             ),
             if (ops.isLeader && !ops.readOnly)
               Align(
@@ -59,7 +68,7 @@ class PreparedInventory extends StatelessWidget {
                   child: TextButton.icon(
                     onPressed: () => _save(context, null),
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('준비품 추가'),
+                    label: Text(context.t('ui.audit324')),
                   ),
                 ),
               ),
@@ -70,12 +79,27 @@ class PreparedInventory extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${item['name']} · ${item['onHand']}${item['unit']}  /  부족 기준 ${item['minimum']}${item['unit']}',
+                      context.t(
+                        'ui.audit872',
+                        args: {
+                          'p0': item['name'],
+                          'p1': item['onHand'],
+                          'p2': item['unit'],
+                          'p3': item['minimum'],
+                          'p4': item['unit'],
+                        },
+                      ),
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                     if ((item['onHand'] as num) < 0)
                       Text(
-                        '준비분 부족 ${(item['onHand'] as num).abs()}${item['unit']}',
+                        context.t(
+                          'ui.audit873',
+                          args: {
+                            'p0': (item['onHand'] as num).abs(),
+                            'p1': item['unit'],
+                          },
+                        ),
                         style: const TextStyle(color: AppColors.accent),
                       ),
                     if (ops.isLeader && !ops.readOnly)
@@ -86,13 +110,13 @@ class PreparedInventory extends StatelessWidget {
                           PressBounce(
                             child: TextButton(
                               onPressed: () => _save(context, item),
-                              child: const Text('기준·메뉴 수정'),
+                              child: Text(context.t('ui.audit325')),
                             ),
                           ),
                           PressBounce(
                             child: TextButton(
                               onPressed: () => _count(context, item),
-                              child: const Text('실제 수량 보정'),
+                              child: Text(context.t('ui.audit326')),
                             ),
                           ),
                         ],

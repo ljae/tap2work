@@ -1,3 +1,5 @@
+import '../l10n/app_localizations.dart';
+import '../l10n/manual_text_scope.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -28,7 +30,7 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
   String query = '';
   bool matches(Json row) =>
       query.trim().isEmpty ||
-      '${row['title']} ${(row['steps'] as List? ?? []).map((s) => s['title']).join(' ')}'
+      '${row['title']} ${manualDisplayText(context, '${row['title']}')} ${(row['steps'] as List? ?? []).map((s) => '${s['title']} ${manualDisplayText(context, '${s['title']}')}').join(' ')}'
           .contains(query.trim());
   bool saving = false;
   String? error;
@@ -46,12 +48,12 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
     final confirmed = await showAppSheet<bool>(
       context,
       builder: (c) => AppEditorScaffold(
-        title: '${row['title']}',
+        title: manualDisplayText(c, '${row['title']}'),
         footer: AppSheetFooter(
           children: [
             FilledButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('내용을 검토했어요 · 선택'),
+              child: Text(context.t('ui.audit53')),
             ),
           ],
         ),
@@ -60,23 +62,27 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
           children: [
             Information(
               pending
-                  ? '사장님 확인 전에는 크루 검색과 자동 할 일에 나오지 않아요.'
-                  : flow['assumption'] as String? ?? '',
+                  ? context.t('ui.audit579')
+                  : manualDisplayText(c, flow['assumption'] as String? ?? ''),
             ),
             if (row['catalogUpdate'] == true)
-              const Information('공용 원본의 새 내용이에요. 검토 후 등록하면 앞으로 생성되는 업무에 적용돼요.'),
+              Information(context.t('ui.audit54')),
             if (row['replacesExisting'] == true)
-              const Information(
-                '기존 같은 매뉴얼을 상세 내용으로 보완해요. 오늘 기록은 유지하고 새 내용은 내일부터 적용해요.',
-              ),
+              Information(context.t('ui.audit55')),
             for (final step in (row['steps'] as List).cast<Json>()) ...[
               const SizedBox(height: 24),
-              Text('${step['title']}', style: AppText.section),
+              Text(
+                manualDisplayText(c, '${step['title']}'),
+                style: AppText.section,
+              ),
               const SizedBox(height: 12),
-              Text('${step['manual']}', style: AppText.body),
+              Text(
+                manualDisplayText(c, '${step['manual']}'),
+                style: AppText.body,
+              ),
               if ('${step['tip'] ?? ''}'.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                Information('${step['tip']}'),
+                Information(manualDisplayText(c, '${step['tip']}')),
               ],
             ],
           ],
@@ -101,7 +107,7 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
       return row == null || reviewed[id] != jsonEncode(row);
     })) {
       setState(() {
-        error = '매장 내용이 변경됐어요. 선택한 매뉴얼을 다시 검토해 주세요.';
+        error = context.t('ui.audit1237');
         selected.clear();
       });
       return;
@@ -130,7 +136,7 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
         selected.clear();
         stage = 1;
       } else {
-        error = ops.error ?? '저장하지 못했어요. 다시 시도해 주세요.';
+        error = ops.error ?? context.t('ui.audit1139');
       }
     });
   }
@@ -155,7 +161,7 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
           candidates = rows('candidates').where(matches).toList(),
           plans = rows('plans');
       return AppEditorScaffold(
-        title: '사장님의 운영 준비',
+        title: context.t('ui.audit580'),
         footer: AppSheetFooter(
           children: [
             FilledButton(
@@ -168,12 +174,12 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
                   : () => Navigator.pop(context, 'work'),
               child: Text(
                 saving
-                    ? '등록하고 있어요'
+                    ? context.t('ui.audit581')
                     : stage == 0
-                    ? '확인 후 ${selected.length}개 우리 매장에 등록'
+                    ? context.t('ui.audit582', args: {'p0': selected.length})
                     : stage == 1
-                    ? '내일 할 일 미리보기'
-                    : '오늘 업무로 가기',
+                    ? context.t('ui.audit583')
+                    : context.t('ui.audit584'),
               ),
             ),
           ],
@@ -186,7 +192,13 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
               children: [
                 for (var i = 0; i < 3; i++)
                   ChoiceChip(
-                    label: Text(['1 매뉴얼 검토', '2 반영 확인', '3 내일 준비'][i]),
+                    label: Text(
+                      [
+                        context.t('ui.audit585'),
+                        context.t('ui.audit586'),
+                        context.t('ui.audit587'),
+                      ][i],
+                    ),
                     selected: stage == i,
                     onSelected: saving
                         ? null
@@ -196,8 +208,8 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            if (!valid) const Information('매장 또는 권한이 변경됐어요. 화면을 닫고 다시 열어 주세요.'),
-            if (error != null) Information(error!),
+            if (!valid) Information(context.t('ui.audit56')),
+            if (error != null) Information(context.t(error!)),
             AppContentTransition(
               trigger: stage,
               child: KeyedSubtree(
@@ -206,83 +218,72 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: stage == 0
                       ? [
-                          const Text(
-                            '기본으로 시작하고,\n우리 매장에 맞춰요.',
-                            style: AppText.section,
-                          ),
+                          Text(context.t('ui.audit57'), style: AppText.section),
                           const SizedBox(height: 12),
-                          const Text(
-                            '내용을 열어 검토한 매뉴얼만 선택돼요. 등록하면 크루가 검색할 수 있고, 루틴은 일정에 맞춰 할 일로 들어가요. 세부 설정은 나중에 바꿔도 돼요.',
-                            style: AppText.body,
-                          ),
+                          Text(context.t('ui.audit58'), style: AppText.body),
                           const SizedBox(height: 16),
                           TextField(
-                            decoration: const InputDecoration(
-                              labelText: '검토할 매뉴얼 찾기',
-                              hintText: '전화, 고객, 마감',
+                            decoration: InputDecoration(
+                              labelText: context.t('ui.audit59'),
+                              hintText: context.t('ui.audit60'),
                               prefixIcon: Icon(Icons.search),
                             ),
                             onChanged: (v) => setState(() => query = v),
                           ),
                           const SizedBox(height: 16),
                           if (pending.isNotEmpty)
-                            const Eyebrow('가져온 매뉴얼 · 사장님 확인 대기'),
-                          for (final row in pending) manualCard(row, true),
+                            Eyebrow(context.t('ui.audit61')),
+                          for (final row in pending)
+                            manualCard(context, row, true),
                           if (candidates.isNotEmpty)
-                            const Eyebrow('소규모 식당 기본 제안 · 24개 매뉴얼'),
-                          for (final row in candidates) manualCard(row, false),
+                            Eyebrow(context.t('ui.audit62')),
+                          for (final row in candidates)
+                            manualCard(context, row, false),
                           if (pending.isEmpty && candidates.isEmpty)
-                            const Information(
-                              '해당하는 검토 항목이 없어요. 검색어를 바꾸거나 매뉴얼에서 등록한 내용을 다듬어 주세요.',
-                            ),
+                            Information(context.t('ui.audit63')),
                         ]
                       : stage == 1
                       ? [
-                          const Text('설정은 여기에 반영돼요', style: AppText.section),
+                          Text(context.t('ui.audit64'), style: AppText.section),
                           const SizedBox(height: 16),
                           effect(
                             Icons.search,
-                            '매뉴얼 확인 → 매뉴얼 검색',
-                            '등록한 응대·전화·작업 방법을 모든 크루가 같은 내용으로 찾아봐요.',
-                            '매뉴얼에서 보기',
+                            context.t('ui.audit65'),
+                            context.t('ui.audit66'),
+                            context.t('ui.audit67'),
                             () => Navigator.pop(context, 'manual'),
                           ),
                           effect(
                             Icons.today_outlined,
-                            '루틴 일정 → 업무의 할 일',
-                            '매일은 영업일마다, 매주·매월은 예정일에 들어가요. 휴무일이면 다음 영업일로 넘어가요.',
-                            '오늘 업무에서 보기',
+                            context.t('ui.audit68'),
+                            context.t('ui.audit69'),
+                            context.t('ui.audit70'),
                             () => Navigator.pop(context, 'work'),
                           ),
                           effect(
                             Icons.people_outline,
-                            '담당 설정 → 배정된 크루',
-                            '파트·교대에 맞는 근무 크루를 연결해요. 담당이 비어 있으면 내일 미리보기에서 확인해 주세요.',
-                            '내일 담당 확인',
+                            context.t('ui.audit71'),
+                            context.t('ui.audit72'),
+                            context.t('ui.audit73'),
                             () => setState(() => stage = 2),
                           ),
-                          const Information(
-                            '영업시간·크루·기존 기록은 유지해요. 필요한 파트가 없으면 담당을 직접 지정할 수 있어요.',
-                          ),
+                          Information(context.t('ui.audit74')),
                         ]
                       : [
                           Text(
-                            '${flow['date'] ?? ''}\n내일 할 일을 먼저 확인해요',
+                            context.t(
+                              'ui.audit588',
+                              args: {'p0': flow['date'] ?? ''},
+                            ),
                             style: AppText.section,
                           ),
                           const SizedBox(height: 12),
-                          const Information(
-                            '예정 업무예요. 여기서 완료 기록은 만들지 않아요. 담당·일정을 바꾸면 내일부터 앞으로 반복되는 업무에 적용돼요.',
-                          ),
+                          Information(context.t('ui.audit75')),
                           if (flow['closed'] == true)
-                            const Information(
-                              '내일은 휴무일이에요. 정기 업무는 다음 영업일로 이동해요.',
-                            ),
+                            Information(context.t('ui.audit76')),
                           if (plans.isEmpty)
-                            const Information(
-                              '내일 예정된 루틴이 없어요. 매뉴얼 등록과 반복 일정을 확인해 주세요.',
-                            ),
-                          for (final plan in plans) planCard(plan),
+                            Information(context.t('ui.audit77')),
+                          for (final plan in plans) planCard(context, plan),
                         ],
                 ),
               ),
@@ -293,18 +294,18 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
     },
   );
 
-  Widget manualCard(Json row, bool pending) {
+  Widget manualCard(BuildContext context, Json row, bool pending) {
     final key = '${pending ? 'pending' : 'starter'}:${row['id']}';
     final settings = pending ? row['settings'] as Json? ?? {} : row;
     final recurrence = settings['recurrence'] as Json? ?? {};
     final usage = settings['usage'] ?? 'reference';
     final label = usage != 'routine'
-        ? '필요할 때 보는 방법'
+        ? context.t('ui.audit1238')
         : recurrence['mode'] == 'monthly'
-        ? '매월 ${recurrence['monthDay']}일'
+        ? context.t('ui.audit1004', args: {'p0': recurrence['monthDay']})
         : recurrence['mode'] == 'weekly'
-        ? '매주 지정 요일'
-        : '매 영업일';
+        ? context.t('ui.audit1239')
+        : context.t('ui.audit1240');
     return AppCard(
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -314,11 +315,16 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
               : Icons.menu_book_outlined,
           color: selected.contains(key) ? AppColors.green : AppColors.muted,
         ),
-        title: Text('${row['title']}'),
-        subtitle: Text('$label · ${(row['steps'] as List).length}개 행동'),
+        title: Text(manualDisplayText(context, '${row['title']}')),
+        subtitle: Text(
+          context.t(
+            'ui.audit589',
+            args: {'p0': label, 'p1': (row['steps'] as List).length},
+          ),
+        ),
         trailing: selected.contains(key)
             ? IconButton(
-                tooltip: '선택 해제',
+                tooltip: context.t('ui.audit590'),
                 onPressed: saving
                     ? null
                     : () => setState(() => selected.remove(key)),
@@ -353,7 +359,7 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
     ),
   );
 
-  Widget planCard(Json plan) {
+  Widget planCard(BuildContext context, Json plan) {
     final assignment = plan['assignment'] as Json? ?? {};
     final names = (assignment['assignees'] as List? ?? [])
         .map((p) => p['nickname'])
@@ -364,25 +370,36 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${plan['title']}', style: AppText.section),
+            Text(
+              manualDisplayText(context, '${plan['title']}'),
+              style: AppText.section,
+            ),
             const SizedBox(height: 8),
             Text(
-              '${plan['timeBandName'] ?? plan['slot']} · ${plan['stepCount']}개 행동',
+              context.t(
+                'ui.audit589',
+                args: {
+                  'p0': plan['timeBandName'] ?? plan['slot'],
+                  'p1': plan['stepCount'],
+                },
+              ),
               style: AppText.caption,
             ),
             const SizedBox(height: 8),
             Text(
-              names.isEmpty ? '담당 크루 확인이 필요해요' : '담당 $names',
+              names.isEmpty
+                  ? context.t('ui.audit591')
+                  : context.t('ui.audit592', args: {'p0': names}),
               style: AppText.body,
             ),
             if (plan['scheduled'] == true)
-              const Text('내일부터 변경 예약됨', style: AppText.caption),
+              Text(context.t('ui.audit78'), style: AppText.caption),
             Wrap(
               spacing: 8,
               children: [
                 TextButton(
                   onPressed: () => settings(plan),
-                  child: const Text('담당·반복 일정 변경'),
+                  child: Text(context.t('ui.audit79')),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -395,7 +412,7 @@ class _OwnerWorkflowScreenState extends State<OwnerWorkflowScreen> {
                     );
                     if (mounted) setState(() {});
                   },
-                  child: const Text('매뉴얼 다듬기'),
+                  child: Text(context.t('ui.audit80')),
                 ),
               ],
             ),

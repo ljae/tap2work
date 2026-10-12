@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'components.dart';
 import 'address_search_stub.dart'
@@ -21,7 +22,7 @@ class _StoreAddressFieldState extends State<StoreAddressField> {
     final result = await showAppFormSheet<Map<String, dynamic>>(
       context: context,
       builder: (context) => AppEditorScaffold(
-        title: '표준 주소 검색',
+        title: context.t('ui.audit404'),
         onClose: () => Navigator.pop(context),
         body: platform.addressSearch(
           widget.controller.text,
@@ -42,9 +43,9 @@ class _StoreAddressFieldState extends State<StoreAddressField> {
       TextField(
         controller: widget.controller,
         maxLength: 200,
-        decoration: const InputDecoration(
-          labelText: '주소 · 선택',
-          hintText: '도로명·건물명 입력 후 검색',
+        decoration: InputDecoration(
+          labelText: context.t('ui.audit402'),
+          hintText: context.t('ui.audit403'),
         ),
         onChanged: (_) => widget.onSelected(null),
         onSubmitted: (_) => search(),
@@ -52,7 +53,7 @@ class _StoreAddressFieldState extends State<StoreAddressField> {
       OutlinedButton.icon(
         onPressed: search,
         icon: const Icon(Icons.search),
-        label: const Text('표준 주소 검색'),
+        label: Text(context.t('ui.audit404')),
       ),
     ],
   );

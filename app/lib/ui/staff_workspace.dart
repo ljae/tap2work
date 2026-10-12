@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'workplace_screens.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class HiringDrafts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!ops.isOwner) {
-      return const Information('채용 준비는 사장님 계정에서 볼 수 있어요.');
+      return Information(context.t('ui.audit149'));
     }
     final drafts = ops
         .rows('hiringDrafts')
@@ -56,20 +57,35 @@ class HiringDrafts extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Information('공고 초안을 작성하고 복사할 수 있어요. 외부 사이트에는 게시되지 않아요.'),
+        Information(context.t('ui.audit150')),
         const SizedBox(height: 10),
         for (final target in targets)
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: Text(
-              '${storeParts(ops).where((p) => p['id'] == (target['partId'] ?? target['roleId'])).firstOrNull?['name'] ?? roles[target['roleId']] ?? target['roleId']} · 목표 ${target['count']}명',
+              context.t(
+                'ui.audit640',
+                args: {
+                  'p0':
+                      storeParts(ops)
+                          .where(
+                            (p) =>
+                                p['id'] ==
+                                (target['partId'] ?? target['roleId']),
+                          )
+                          .firstOrNull?['name'] ??
+                      roles[target['roleId']] ??
+                      target['roleId'],
+                  'p1': target['count'],
+                },
+              ),
             ),
           ),
-        if (ops.readOnly) const Information('공개 미리보기에서는 초안을 저장하지 않아요.'),
+        if (ops.readOnly) Information(context.t('ui.audit151')),
         PressBounce(
           child: OutlinedButton.icon(
             icon: const Icon(CupertinoIcons.add),
-            label: const Text('공고 초안 만들기'),
+            label: Text(context.t('ui.audit152')),
             onPressed: ops.readOnly
                 ? null
                 : () => showAppSheet(
@@ -85,7 +101,7 @@ class HiringDrafts extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        if (drafts.isEmpty) const Information('저장된 공고 초안이 없어요.'),
+        if (drafts.isEmpty) Information(context.t('ui.audit153')),
         for (final draft in drafts)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
@@ -94,14 +110,25 @@ class HiringDrafts extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${storeParts(ops).where((p) => p['id'] == draft['partId']).firstOrNull?['name'] ?? roles[draft['roleId']] ?? draft['roleId']} · ${draft['headcount']}명',
+                    context.t(
+                      'ui.audit641',
+                      args: {
+                        'p0':
+                            storeParts(ops)
+                                .where((p) => p['id'] == draft['partId'])
+                                .firstOrNull?['name'] ??
+                            roles[draft['roleId']] ??
+                            draft['roleId'],
+                        'p1': draft['headcount'],
+                      },
+                    ),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const Text(
-                    '초안 · 아직 게시되지 않음',
+                  Text(
+                    context.t('ui.audit154'),
                     style: TextStyle(color: AppColors.muted),
                   ),
                   Wrap(
@@ -114,7 +141,7 @@ class HiringDrafts extends StatelessWidget {
                             builder: (_) =>
                                 HiringDraftEditor(ops: ops, existing: draft),
                           ),
-                          child: const Text('수정'),
+                          child: Text(context.t('ui.audit155')),
                         ),
                       ),
                       PressBounce(
@@ -122,7 +149,7 @@ class HiringDrafts extends StatelessWidget {
                           onPressed: () => showAppFormSheet<void>(
                             context: context,
                             builder: (dialog) => AppSheetPanel(
-                              title: const Text('공고 초안'),
+                              title: Text(context.t('ui.audit156')),
                               content: SingleChildScrollView(
                                 child: SelectableText(_draftText(draft)),
                               ),
@@ -130,13 +157,13 @@ class HiringDrafts extends StatelessWidget {
                                 PressBounce(
                                   child: TextButton(
                                     onPressed: () => Navigator.pop(dialog),
-                                    child: const Text('닫기'),
+                                    child: Text(context.t('ui.audit83')),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          child: const Text('내용 선택·복사'),
+                          child: Text(context.t('ui.audit157')),
                         ),
                       ),
                       PressBounce(
@@ -148,12 +175,14 @@ class HiringDrafts extends StatelessWidget {
                             if (context.mounted && !ok) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(ops.error ?? '보관하지 못했어요.'),
+                                  content: Text(
+                                    ops.error ?? context.t('ui.audit642'),
+                                  ),
                                 ),
                               );
                             }
                           },
-                          child: const Text('보관'),
+                          child: Text(context.t('ui.audit158')),
                         ),
                       ),
                     ],
@@ -243,7 +272,7 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
   Future<void> save() async {
     final headcount = int.tryParse(count.text);
     if (headcount == null || headcount < 1) {
-      setState(() => error = '필요 인원을 1명 이상 입력해 주세요.');
+      setState(() => error = context.t('ui.audit1245'));
       return;
     }
     setState(() {
@@ -253,7 +282,7 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
     if (openingActor != widget.ops.actorId) {
       setState(() {
         saving = false;
-        error = '계정이 변경됐어요. 다시 열어 주세요.';
+        error = context.t('ui.audit1235');
       });
       return;
     }
@@ -272,19 +301,21 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
     if (!mounted) return;
     setState(() {
       saving = false;
-      error = ok ? null : widget.ops.error ?? '저장하지 못했어요.';
+      error = ok ? null : widget.ops.error ?? context.t('ui.audit760');
     });
     if (ok) Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) => AppEditorScaffold(
-    title: '공고 초안',
+    title: context.t('ui.audit156'),
     footer: AppSheetFooter(
       children: [
         FilledButton(
           onPressed: !saving && !widget.ops.readOnly ? save : null,
-          child: Text(saving ? '저장 중…' : '초안 저장'),
+          child: Text(
+            saving ? context.t('ui.audit532') : context.t('ui.audit643'),
+          ),
         ),
       ],
     ),
@@ -294,11 +325,11 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            const Information('아직 게시되지 않는 초안이에요. 비어 있는 조건은 미입력으로 표시해요.'),
+            Information(context.t('ui.audit159')),
             const SizedBox(height: 14),
             AppPillField<String>(
               initialValue: role,
-              decoration: const InputDecoration(labelText: '파트'),
+              decoration: InputDecoration(labelText: context.t('ui.audit160')),
               items: [
                 for (final part in storeParts(
                   widget.ops,
@@ -314,12 +345,12 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
             TextField(
               controller: count,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: '필요 인원'),
+              decoration: InputDecoration(labelText: context.t('ui.audit161')),
             ),
             const SizedBox(height: 12),
             AppPillField<String>(
               initialValue: type,
-              decoration: const InputDecoration(labelText: '고용형태'),
+              decoration: InputDecoration(labelText: context.t('ui.audit162')),
               items: [
                 for (final entry in HiringDrafts.employment.entries)
                   DropdownMenuItem(value: entry.key, child: Text(entry.value)),
@@ -327,7 +358,7 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
               onChanged: (v) => setState(() => type = v ?? type),
             ),
             const SizedBox(height: 16),
-            const Text('근무 요일 · 선택'),
+            Text(context.t('ui.audit163')),
             Wrap(
               spacing: 7,
               children: [
@@ -335,7 +366,15 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
                   FilterChip(
                     chipAnimationStyle: AppMotion.chipStyle(context),
                     label: Text(
-                      const ['월', '화', '수', '목', '금', '토', '일'][day - 1],
+                      [
+                        context.t('ui.audit523'),
+                        context.t('ui.audit524'),
+                        context.t('ui.audit525'),
+                        context.t('ui.audit526'),
+                        context.t('ui.audit527'),
+                        context.t('ui.audit528'),
+                        context.t('ui.audit529'),
+                      ][day - 1],
                     ),
                     selected: days.contains(day),
                     onSelected: (_) => setState(
@@ -348,27 +387,28 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
             const SizedBox(height: 20),
             TextField(
               controller: time,
-              decoration: const InputDecoration(labelText: '근무 시간 · 선택'),
+              decoration: InputDecoration(labelText: context.t('ui.audit164')),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: duties,
               maxLines: 3,
-              decoration: const InputDecoration(labelText: '하는 일 · 선택'),
+              decoration: InputDecoration(labelText: context.t('ui.audit165')),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: requirements,
               maxLines: 3,
-              decoration: const InputDecoration(labelText: '필요 조건 · 선택'),
+              decoration: InputDecoration(labelText: context.t('ui.audit166')),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: note,
               maxLines: 3,
-              decoration: const InputDecoration(labelText: '메모 · 선택'),
+              decoration: InputDecoration(labelText: context.t('ui.audit167')),
             ),
-            if (error != null) Information('$error\n초안은 그대로 남아 있어요.'),
+            if (error != null)
+              Information(context.t('ui.audit535', args: {'p0': error})),
             const SizedBox(height: 16),
           ],
         ),

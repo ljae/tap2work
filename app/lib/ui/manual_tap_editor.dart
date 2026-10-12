@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -113,11 +114,11 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
     if (widget.ops.actorId != actor ||
         widget.ops.data?['workspaceId'] != workspace ||
         !widget.ops.canEditTasks) {
-      setState(() => error = '권한 또는 매장이 변경됐어요. 다시 열어 주세요.');
+      setState(() => error = context.t('ui.audit1247'));
       return;
     }
     if (title.text.trim().isEmpty) {
-      setState(() => error = 'TAP 이름을 적어 주세요.');
+      setState(() => error = context.t('ui.audit1262'));
       return;
     }
     setState(() {
@@ -145,7 +146,7 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
         if (mounted) Navigator.pop(context);
       });
     } else {
-      setState(() => error = widget.ops.error ?? '입력 내용은 유지돼요. 다시 시도해 주세요.');
+      setState(() => error = widget.ops.error ?? context.t('ui.audit1263'));
     }
   }
 
@@ -155,15 +156,15 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
       final leave = await showAppDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('수정 내용을 버릴까요?'),
+          title: Text(context.t('ui.audit288')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('계속 편집'),
+              child: Text(context.t('ui.audit21')),
             ),
             TextButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('버리기'),
+              child: Text(context.t('ui.audit289')),
             ),
           ],
         ),
@@ -183,28 +184,26 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
       if (!didPop) close();
     },
     child: AppEditorScaffold(
-      title: widget.templateId == null ? 'TAP 추가' : 'TAP 상세 수정',
+      title: widget.templateId == null
+          ? context.t('ui.audit845')
+          : context.t('ui.audit846'),
       onClose: close,
       footer: AppSheetFooter(
         children: [
-          const Text(
-            '기존 업무·완료 기록은 유지하고 새로 생성되는 업무부터 반영해요.',
-            style: AppText.caption,
-          ),
-          if (error != null) Information(error!),
+          Text(context.t('ui.audit290'), style: AppText.caption),
+          if (error != null) Information(context.t(error!)),
           FilledButton(
             onPressed: saving || widget.ops.readOnly ? null : save,
-            child: Text(saving ? '저장 중…' : '매뉴얼 저장'),
+            child: Text(
+              saving ? context.t('ui.audit532') : context.t('ui.audit566'),
+            ),
           ),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          if (linked)
-            const Information(
-              '공용 연결 TAP이에요. 내용을 수정하면 개인화 항목으로 분리되어 공용 업데이트 대신 백업으로 관리해요.',
-            ),
+          if (linked) Information(context.t('ui.audit291')),
           if (linked)
             TextButton.icon(
               onPressed: dirty || saving || widget.ops.readOnly
@@ -233,7 +232,7 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
                       }
                     },
               icon: const Icon(Icons.copy_outlined),
-              label: const Text('공용 연결을 유지하고 개인화 사본 추가'),
+              label: Text(context.t('ui.audit292')),
             ),
           const SizedBox(height: 16),
           TextField(
@@ -241,18 +240,18 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
             controller: title,
             maxLength: 100,
             enabled: !saving,
-            decoration: const InputDecoration(labelText: 'TAP 이름'),
+            decoration: InputDecoration(labelText: context.t('ui.audit37')),
             onChanged: (_) => setState(() => dirty = true),
           ),
           TextField(
             controller: emoji,
             maxLength: 10,
-            decoration: const InputDecoration(labelText: '아이콘'),
+            decoration: InputDecoration(labelText: context.t('ui.audit293')),
             onChanged: (_) => setState(() => dirty = true),
           ),
           if (source['menuManualId'] == null)
             AppPicker<String>(
-              label: '그룹',
+              label: context.t('ui.audit847'),
               value: folder,
               items: widget.ops
                   .rows('checklistFolders')
@@ -290,20 +289,19 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
                       }
                     },
               icon: const Icon(Icons.tune),
-              label: const Text('파트·시간대·TAP 운영 설정'),
+              label: Text(context.t('ui.audit294')),
             ),
           if (dirty && widget.templateId != null)
-            const Text('내용을 저장한 뒤 운영 설정을 바꿀 수 있어요.', style: AppText.caption),
+            Text(context.t('ui.audit295'), style: AppText.caption),
           const SizedBox(height: 24),
           Text(
-            source['menuManualId'] == null ? 'Task·매뉴얼' : '재료·분량·조리 순서·제공 기준',
+            source['menuManualId'] == null
+                ? context.t('ui.audit848')
+                : context.t('ui.audit849'),
             style: AppText.section,
           ),
           if (source['menuManualId'] != null)
-            const Text(
-              '이 매장의 기준을 직접 기록해요. 판매 메뉴 이름과 가격은 판매 메뉴 관리에서 바꿔 주세요.',
-              style: AppText.caption,
-            ),
+            Text(context.t('ui.audit296'), style: AppText.caption),
           for (var i = 0; i < steps.length; i++)
             Padding(
               padding: const EdgeInsets.only(top: 12),
@@ -325,10 +323,10 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
                       children: [
                         TextButton(
                           onPressed: saving ? null : () => edit(i),
-                          child: const Text('Task 상세 수정'),
+                          child: Text(context.t('ui.audit297')),
                         ),
                         IconButton(
-                          tooltip: '위로',
+                          tooltip: context.t('ui.audit850'),
                           onPressed: saving || i == 0
                               ? null
                               : () => setState(() {
@@ -339,7 +337,7 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
                           icon: const Icon(Icons.arrow_upward),
                         ),
                         IconButton(
-                          tooltip: '아래로',
+                          tooltip: context.t('ui.audit851'),
                           onPressed: saving || i == steps.length - 1
                               ? null
                               : () => setState(() {
@@ -350,7 +348,7 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
                           icon: const Icon(Icons.arrow_downward),
                         ),
                         IconButton(
-                          tooltip: 'Task 삭제',
+                          tooltip: context.t('ui.audit551'),
                           onPressed: saving
                               ? null
                               : () => setState(() {
@@ -369,7 +367,7 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
           OutlinedButton.icon(
             onPressed: saving || steps.length >= 30 ? null : () => edit(),
             icon: const Icon(Icons.add),
-            label: const Text('Task 추가'),
+            label: Text(context.t('ui.audit31')),
           ),
         ],
       ),

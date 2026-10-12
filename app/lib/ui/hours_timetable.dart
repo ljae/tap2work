@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -65,17 +66,17 @@ class _HoursTimetableState extends State<HoursTimetable> {
           .toList()
         ..sort((a, b) => start(a).compareTo(start(b)));
   String clock(int minute) =>
-      '${minute >= 1440 ? '다음날 ' : ''}${rosterClock(minute)}';
+      '${minute >= 1440 ? context.t('다음날 ') : ''}${rosterClock(minute)}';
   Future<void> edit(int day, Json row) async {
     await showAppFormSheet<void>(
       context: context,
       builder: (c) => AppSheetPanel(
-        title: Text('${row['name']} 시간'),
+        title: Text(context.t('ui.audit663', args: {'p0': row['name']})),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AppTimeField(
-              label: '시작',
+              label: context.t('ui.audit664'),
               value: row['start'],
               onChanged: (v) {
                 if (v != row['end']) {
@@ -85,7 +86,7 @@ class _HoursTimetableState extends State<HoursTimetable> {
               },
             ),
             AppTimeField(
-              label: '종료',
+              label: context.t('ui.audit665'),
               value: row['end'],
               onChanged: (v) {
                 if (v != row['start']) {
@@ -94,16 +95,13 @@ class _HoursTimetableState extends State<HoursTimetable> {
                 }
               },
             ),
-            const Text(
-              '선택한 블록만 바뀌어요. 겹침과 빈 구간은 시간표에서 확인해 주세요.',
-              style: AppText.caption,
-            ),
+            Text(context.t('ui.audit189'), style: AppText.caption),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c),
-            child: const Text('닫기'),
+            child: Text(context.t('ui.audit83')),
           ),
         ],
       ),
@@ -113,7 +111,13 @@ class _HoursTimetableState extends State<HoursTimetable> {
   Widget handle(int day, Json row, bool first, int a, int b) {
     final key = '$day/${row['id']}/${first ? 'start' : 'end'}';
     return Semantics(
-      label: '${row['name']} ${first ? '시작' : '종료'} 시간 조정',
+      label: context.t(
+        'ui.audit666',
+        args: {
+          'p0': row['name'],
+          'p1': first ? context.t('ui.audit664') : context.t('ui.audit665'),
+        },
+      ),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onVerticalDragStart: widget.editable
@@ -190,9 +194,12 @@ class _HoursTimetableState extends State<HoursTimetable> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('요일별 시간표 · 좌우·위아래로 이동', style: AppText.caption),
+          Text(context.t('ui.audit190'), style: AppText.caption),
           if (dragging != null && preview != null)
-            Text('적용 예정 ${clock(preview!)}', style: AppText.body),
+            Text(
+              context.t('ui.audit667', args: {'p0': clock(preview!)}),
+              style: AppText.body,
+            ),
           SizedBox(
             height: 480,
             child: SingleChildScrollView(
@@ -213,7 +220,10 @@ class _HoursTimetableState extends State<HoursTimetable> {
                                   top: (m - minMinute) * scale,
                                   left: 0,
                                   child: Text(
-                                    clock(m).replaceFirst('다음날 ', '+1\n'),
+                                    clock(m).replaceFirst(
+                                      context.t('ui.audit1485'),
+                                      '+1\n',
+                                    ),
                                     style: AppText.caption,
                                   ),
                                 ),
@@ -276,11 +286,19 @@ class _HoursTimetableState extends State<HoursTimetable> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    ['월', '화', '수', '목', '금', '토', '일'][day - 1],
+                    [
+                      context.t('ui.audit523'),
+                      context.t('ui.audit524'),
+                      context.t('ui.audit525'),
+                      context.t('ui.audit526'),
+                      context.t('ui.audit527'),
+                      context.t('ui.audit528'),
+                      context.t('ui.audit529'),
+                    ][day - 1],
                     style: AppText.body,
                   ),
                   if (laneEnds.length > 1)
-                    const Text('겹침 · 인원 합산', style: AppText.caption),
+                    Text(context.t('ui.audit191'), style: AppText.caption),
                 ],
               ),
             ),
@@ -297,10 +315,13 @@ class _HoursTimetableState extends State<HoursTimetable> {
                     child: const Divider(height: 1),
                   ),
                 if (list.isEmpty)
-                  const Positioned(
+                  Positioned(
                     top: 8,
                     left: 12,
-                    child: Text('휴무', style: AppText.caption),
+                    child: Text(
+                      context.t('ui.audit668'),
+                      style: AppText.caption,
+                    ),
                   ),
                 for (final gap in gaps)
                   Positioned(
@@ -312,7 +333,10 @@ class _HoursTimetableState extends State<HoursTimetable> {
                       color: AppColors.muted.withValues(alpha: .08),
                       child: SingleChildScrollView(
                         child: Text(
-                          '빈 구간 ${clock(gap.$1)}–${clock(gap.$2)}',
+                          context.t(
+                            'ui.audit669',
+                            args: {'p0': clock(gap.$1), 'p1': clock(gap.$2)},
+                          ),
                           style: AppText.caption,
                         ),
                       ),
@@ -368,7 +392,16 @@ class _HoursTimetableState extends State<HoursTimetable> {
                                     0,
                           ))
                             Text(
-                              '${p['name']} ${row['headcounts']?[p['id']] ?? 1}명${row['partTimes']?[p['id']] != null ? ' · 별도 시간' : ''}',
+                              context.t(
+                                'ui.audit670',
+                                args: {
+                                  'p0': p['name'],
+                                  'p1': row['headcounts']?[p['id']] ?? 1,
+                                  'p2': row['partTimes']?[p['id']] != null
+                                      ? context.t('ui.audit1121')
+                                      : '',
+                                },
+                              ),
                               style: AppText.caption,
                             ),
                       ],

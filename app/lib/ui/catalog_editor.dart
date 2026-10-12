@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -19,7 +20,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
     if (mounted && ok) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('저장했어요.')));
+      ).showSnackBar(SnackBar(content: Text(context.t('ui.audit786'))));
     }
     return ok;
   }
@@ -56,10 +57,14 @@ class _CatalogEditorState extends State<CatalogEditor> {
                 if (ok && dialog.mounted) {
                   Navigator.pop(dialog);
                 } else if (dialog.mounted) {
-                  update(() => localError = ops.error ?? '저장하지 못했어요.');
+                  update(
+                    () => localError = ops.error ?? context.t('ui.audit760'),
+                  );
                 }
               } catch (_) {
-                if (dialog.mounted) update(() => localError = '입력 값을 확인해 주세요.');
+                if (dialog.mounted) {
+                  update(() => localError = context.t('ui.audit1541'));
+                }
               } finally {
                 if (dialog.mounted) update(() => saving = false);
               }
@@ -82,14 +87,14 @@ class _CatalogEditorState extends State<CatalogEditor> {
                                   initialValue: inputs['zone']!.text.isEmpty
                                       ? ''
                                       : inputs['zone']!.text,
-                                  decoration: const InputDecoration(
-                                    labelText: '보관 장소',
+                                  decoration: InputDecoration(
+                                    labelText: context.t('ui.audit298'),
                                     border: OutlineInputBorder(),
                                   ),
                                   items: [
-                                    const DropdownMenuItem(
+                                    DropdownMenuItem(
                                       value: '',
-                                      child: Text('미지정'),
+                                      child: Text(context.t('ui.audit852')),
                                     ),
                                     for (final zone in ops.rows('zones'))
                                       DropdownMenuItem(
@@ -122,7 +127,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
                 PressBounce(
                   child: TextButton(
                     onPressed: saving ? null : () => Navigator.pop(dialog),
-                    child: const Text('취소'),
+                    child: Text(context.t('ui.audit33')),
                   ),
                 ),
                 if (localError != null)
@@ -134,13 +139,17 @@ class _CatalogEditorState extends State<CatalogEditor> {
                               await ops.refresh(force: true);
                               if (dialog.mounted) Navigator.pop(dialog);
                             },
-                      child: const Text('최신 내용 보기'),
+                      child: Text(context.t('ui.audit299')),
                     ),
                   ),
                 PressBounce(
                   child: FilledButton(
                     onPressed: saving ? null : submit,
-                    child: Text(saving ? '저장 중…' : '저장'),
+                    child: Text(
+                      saving
+                          ? context.t('ui.audit532')
+                          : context.t('ui.audit51'),
+                    ),
                   ),
                 ),
               ],
@@ -163,23 +172,23 @@ class _CatalogEditorState extends State<CatalogEditor> {
     final revision = ops.data?['revision'] as int?;
     if (revision == null) return;
     await editFields(
-      menu == null ? '메뉴 추가' : '메뉴 수정',
+      menu == null ? context.t('ui.audit310') : context.t('ui.audit1382'),
       [
         (
           key: 'name',
-          label: '메뉴 이름',
+          label: context.t('ui.audit1542'),
           value: '${menu?['name'] ?? ''}',
           number: false,
         ),
         (
           key: 'category',
-          label: '분류',
+          label: context.t('ui.audit1543'),
           value: '${menu?['category'] ?? ''}',
           number: false,
         ),
         (
           key: 'price',
-          label: '가격 (원)',
+          label: context.t('ui.audit1544'),
           value: '${menu?['price'] ?? 0}',
           number: true,
         ),
@@ -198,59 +207,59 @@ class _CatalogEditorState extends State<CatalogEditor> {
     final revision = ops.data?['revision'] as int?;
     if (revision == null) return;
     await editFields(
-      item == null ? '재료 추가' : '재료 수정',
+      item == null ? context.t('ui.audit312') : context.t('ui.audit1383'),
       [
         (
           key: 'name',
-          label: '재료 이름',
+          label: context.t('ui.audit1545'),
           value: '${item?['name'] ?? ''}',
           number: false,
         ),
         (
           key: 'emoji',
-          label: '표시 이모지',
+          label: context.t('ui.audit1546'),
           value: '${item?['emoji'] ?? '📦'}',
           number: false,
         ),
         (
           key: 'unit',
-          label: '단위 (예: kg, 봉)',
+          label: context.t('ui.audit1547'),
           value: '${item?['unit'] ?? ''}',
           number: false,
         ),
         (
           key: 'supplier',
-          label: '공급처',
+          label: context.t('ui.audit1548'),
           value: '${item?['supplier'] ?? ''}',
           number: false,
         ),
         (
           key: 'zone',
-          label: '보관 장소',
+          label: context.t('ui.audit298'),
           value: '${item?['zone'] ?? ''}',
           number: false,
         ),
         (
           key: 'minimum',
-          label: '보충 기준 수량',
+          label: context.t('ui.audit1549'),
           value: '${item?['minimum'] ?? 0}',
           number: true,
         ),
         (
           key: 'orderQuantity',
-          label: '기본 발주 수량',
+          label: context.t('ui.audit1550'),
           value: '${item?['orderQuantity'] ?? 1}',
           number: true,
         ),
         (
           key: 'price',
-          label: '예상 단가 (원)',
+          label: context.t('ui.audit1551'),
           value: '${item?['price'] ?? 0}',
           number: true,
         ),
         (
           key: 'reviewDays',
-          label: '발주 후 확인 일수 (1~90)',
+          label: context.t('ui.audit1552'),
           value: '${item?['reviewDays'] ?? 3}',
           number: true,
         ),
@@ -274,19 +283,19 @@ class _CatalogEditorState extends State<CatalogEditor> {
     final yes = await showAppDialog<bool>(
       context: context,
       builder: (dialog) => AlertDialog(
-        title: Text('$label 보관'),
-        content: Text('${row['name']}을 목록에서 숨길까요? 이전 기록은 유지됩니다.'),
+        title: Text(context.t('ui.audit853', args: {'p0': label})),
+        content: Text(context.t('ui.audit854', args: {'p0': row['name']})),
         actions: [
           PressBounce(
             child: TextButton(
               onPressed: () => Navigator.pop(dialog, false),
-              child: const Text('취소'),
+              child: Text(context.t('ui.audit33')),
             ),
           ),
           PressBounce(
             child: FilledButton(
               onPressed: () => Navigator.pop(dialog, true),
-              child: const Text('보관'),
+              child: Text(context.t('ui.audit158')),
             ),
           ),
         ],
@@ -301,21 +310,19 @@ class _CatalogEditorState extends State<CatalogEditor> {
     final yes = await showAppDialog<bool>(
       context: context,
       builder: (dialog) => AlertDialog(
-        title: const Text('빈 매장으로 시작'),
-        content: const Text(
-          '현재 샘플 주문·직원·재고·업무를 화면에서 숨기고 서버에 보관합니다. 지금까지 샘플 매장에서 수정한 내용도 함께 보관됩니다.',
-        ),
+        title: Text(context.t('ui.audit300')),
+        content: Text(context.t('ui.audit301')),
         actions: [
           PressBounce(
             child: TextButton(
               onPressed: () => Navigator.pop(dialog, false),
-              child: const Text('취소'),
+              child: Text(context.t('ui.audit33')),
             ),
           ),
           PressBounce(
             child: FilledButton(
               onPressed: () => Navigator.pop(dialog, true),
-              child: const Text('보관하고 시작'),
+              child: Text(context.t('ui.audit302')),
             ),
           ),
         ],
@@ -334,16 +341,15 @@ class _CatalogEditorState extends State<CatalogEditor> {
           .toList();
       final items = ops.rows('items');
       return AppEditorScaffold(
-        title: widget.menusOnly ? '판매 메뉴 관리' : '매장 설정',
+        title: widget.menusOnly
+            ? context.t('ui.audit855')
+            : context.t('ui.audit805'),
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
               if (!widget.menusOnly) ...[
-                if (ops.cloud)
-                  const Information(
-                    '이 계정의 매장에 저장됩니다. 동료가 먼저 수정한 경우 최신 내용을 확인한 뒤 다시 입력해 주세요.',
-                  ),
+                if (ops.cloud) Information(context.t('ui.audit303')),
                 if (ops.cloud &&
                     ops.isOwner &&
                     ops.data?['salesSource'] == 'sample' &&
@@ -353,17 +359,15 @@ class _CatalogEditorState extends State<CatalogEditor> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          '샘플 매장 사용 중',
+                        Text(
+                          context.t('ui.audit304'),
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        const Text(
-                          '실제 매장 기록을 시작할 준비가 되었다면 샘플을 보관하고 빈 매장으로 전환하세요.',
-                        ),
+                        Text(context.t('ui.audit305')),
                         PressBounce(
                           child: TextButton(
                             onPressed: ops.busy ? null : startBlank,
-                            child: const Text('샘플 보관하고 빈 매장 시작'),
+                            child: Text(context.t('ui.audit306')),
                           ),
                         ),
                       ],
@@ -375,8 +379,8 @@ class _CatalogEditorState extends State<CatalogEditor> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '매장 정보',
+                      Text(
+                        context.t('ui.audit307'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -392,7 +396,7 @@ class _CatalogEditorState extends State<CatalogEditor> {
                           child: PressBounce(
                             child: TextButton(
                               onPressed: ops.busy ? null : editStore,
-                              child: const Text('매장 정보 수정'),
+                              child: Text(context.t('ui.audit308')),
                             ),
                           ),
                         ),
@@ -402,15 +406,13 @@ class _CatalogEditorState extends State<CatalogEditor> {
               ],
               if (menus.any((m) => m['setupNeedsReview'] == true) ||
                   items.any((i) => i['setupNeedsReview'] == true))
-                const Information(
-                  '업종별 기본 초안이에요. 메뉴·재료의 수정 메뉴에서 가격·단위·공급처·발주 기준을 확인하고, 매뉴얼 → 메뉴·레시피에서 조리 방법을 수정해 주세요.',
-                ),
+                Information(context.t('ui.audit309')),
               const SizedBox(height: 20),
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      '메뉴',
+                      context.t('ui.audit856'),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -420,20 +422,28 @@ class _CatalogEditorState extends State<CatalogEditor> {
                   if (ops.isLeader)
                     FilledButton.tonal(
                       onPressed: ops.busy ? null : () => editMenu(),
-                      child: const Text('메뉴 추가'),
+                      child: Text(context.t('ui.audit310')),
                     ),
                 ],
               ),
-              if (menus.isEmpty)
-                const Information('등록된 메뉴가 없어요. 실제 판매 메뉴를 추가해 주세요.'),
+              if (menus.isEmpty) Information(context.t('ui.audit311')),
               for (final menu in menus)
                 AppCard(
                   child: ListTile(
                     title: Text('${menu['name']}'),
                     subtitle: Text(
                       menu['setupNeedsReview'] == true
-                          ? '${menu['category']} · 기본 메뉴 — 가격을 확인해 주세요'
-                          : '${menu['category']} · ${menu['price']}원',
+                          ? context.t(
+                              'ui.audit857',
+                              args: {'p0': menu['category']},
+                            )
+                          : context.t(
+                              'ui.audit858',
+                              args: {
+                                'p0': menu['category'],
+                                'p1': menu['price'],
+                              },
+                            ),
                     ),
                     trailing: ops.isLeader
                         ? PopupMenuButton<String>(
@@ -442,11 +452,14 @@ class _CatalogEditorState extends State<CatalogEditor> {
                             onSelected: (value) => value == 'edit'
                                 ? editMenu(menu)
                                 : archive('archive_menu', menu, '메뉴'),
-                            itemBuilder: (_) => const [
-                              PopupMenuItem(value: 'edit', child: Text('수정')),
+                            itemBuilder: (_) => [
+                              PopupMenuItem(
+                                value: 'edit',
+                                child: Text(context.t('ui.audit155')),
+                              ),
                               PopupMenuItem(
                                 value: 'archive',
-                                child: Text('보관'),
+                                child: Text(context.t('ui.audit158')),
                               ),
                             ],
                           )
@@ -457,9 +470,9 @@ class _CatalogEditorState extends State<CatalogEditor> {
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        '재료',
+                        context.t('ui.audit859'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -469,22 +482,28 @@ class _CatalogEditorState extends State<CatalogEditor> {
                     if (ops.isLeader)
                       FilledButton.tonal(
                         onPressed: ops.busy ? null : () => editItem(),
-                        child: const Text('재료 추가'),
+                        child: Text(context.t('ui.audit312')),
                       ),
                   ],
                 ),
-                const Text(
-                  '실제 수량은 재고 화면의 수량 확인에서 따로 기록합니다.',
+                Text(
+                  context.t('ui.audit313'),
                   style: TextStyle(color: AppColors.muted),
                 ),
-                if (items.isEmpty)
-                  const Information('등록된 재료가 없어요. 재료를 추가한 뒤 실물 수량을 확인해 주세요.'),
+                if (items.isEmpty) Information(context.t('ui.audit314')),
                 for (final item in items)
                   AppCard(
                     child: ListTile(
                       title: Text('${item['emoji']} ${item['name']}'),
                       subtitle: Text(
-                        '${item['supplier']} · ${item['unit']} · 기준 ${item['minimum']}',
+                        context.t(
+                          'ui.audit860',
+                          args: {
+                            'p0': item['supplier'],
+                            'p1': item['unit'],
+                            'p2': item['minimum'],
+                          },
+                        ),
                       ),
                       trailing: ops.isLeader
                           ? PopupMenuButton<String>(
@@ -499,11 +518,14 @@ class _CatalogEditorState extends State<CatalogEditor> {
                                       item,
                                       '재료',
                                     ),
-                              itemBuilder: (_) => const [
-                                PopupMenuItem(value: 'edit', child: Text('수정')),
+                              itemBuilder: (_) => [
+                                PopupMenuItem(
+                                  value: 'edit',
+                                  child: Text(context.t('ui.audit155')),
+                                ),
                                 PopupMenuItem(
                                   value: 'archive',
-                                  child: Text('보관'),
+                                  child: Text(context.t('ui.audit158')),
                                 ),
                               ],
                             )

@@ -289,13 +289,13 @@ class _PlaceGuideState extends State<PlaceGuide> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('공간·장비', style: AppText.title),
+        Text(context.t('ui.audit173'), style: AppText.title),
         const SizedBox(height: 8),
-        const Text('사진과 위치 설명으로 필요한 장소를 찾아요.', style: AppText.caption),
+        Text(context.t('ui.audit174'), style: AppText.caption),
         const SizedBox(height: 16),
         TextField(
-          decoration: const InputDecoration(
-            labelText: '장소·물품 찾기',
+          decoration: InputDecoration(
+            labelText: context.t('ui.audit175'),
             prefixIcon: Icon(Icons.search),
           ),
           onChanged: (v) => setState(() => query = v.trim()),
@@ -307,7 +307,7 @@ class _PlaceGuideState extends State<PlaceGuide> {
             for (final f in floors)
               ChoiceChip(
                 label: Text(
-                  f == '전체'
+                  f == context.t('ui.audit656')
                       ? context.t('common.all')
                       : displayedPlace(
                           context,
@@ -324,10 +324,9 @@ class _PlaceGuideState extends State<PlaceGuide> {
           TextButton.icon(
             onPressed: () => editPlace(context, widget.ops),
             icon: const Icon(Icons.add_location_alt_outlined),
-            label: const Text('장소 추가'),
+            label: Text(context.t('ui.audit176')),
           ),
-        if (places.isEmpty)
-          const Information('이름과 위치 설명만으로 장소를 등록할 수 있어요. 층과 사진은 나중에 추가해도 돼요.'),
+        if (places.isEmpty) Information(context.t('ui.audit177')),
         for (final p in places.where(
           (p) =>
               (floor == '전체' || p['floor'] == floor) &&
@@ -418,15 +417,15 @@ class _PlaceEditorState extends State<PlaceEditor> {
         await showAppDialog<bool>(
               context: context,
               builder: (c) => AlertDialog(
-                title: const Text('변경을 버릴까요?'),
+                title: Text(context.t('ui.audit178')),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(c, false),
-                    child: const Text('계속 수정'),
+                    child: Text(context.t('ui.audit179')),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(c, true),
-                    child: const Text('변경 버리기'),
+                    child: Text(context.t('ui.audit22')),
                   ),
                 ],
               ),
@@ -447,7 +446,7 @@ class _PlaceEditorState extends State<PlaceEditor> {
   Future<void> save() async {
     if (busy || photoBusy) return;
     if (!scopeCurrent) {
-      setState(() => error = '매장이 바뀌었어요. 다시 열어 주세요.');
+      setState(() => error = context.t('ui.audit1246'));
       return;
     }
     setState(() => busy = true);
@@ -462,7 +461,7 @@ class _PlaceEditorState extends State<PlaceEditor> {
       if (!scopeCurrent) {
         setState(() {
           busy = false;
-          error = '매장이 바뀌었어요. 다시 열어 주세요.';
+          error = context.t('ui.audit1246');
         });
         return;
       }
@@ -521,7 +520,9 @@ class _PlaceEditorState extends State<PlaceEditor> {
       if (!didPop) leave();
     },
     child: AppEditorScaffold(
-      title: widget.place == null ? '장소 추가' : '장소 안내',
+      title: widget.place == null
+          ? context.t('ui.audit176')
+          : context.t('ui.audit657'),
       onClose: leave,
       footer: AppSheetFooter(
         children: [
@@ -535,7 +536,9 @@ class _PlaceEditorState extends State<PlaceEditor> {
             ),
           FilledButton(
             onPressed: busy || photoBusy ? null : save,
-            child: Text(busy ? '저장 중…' : '장소 저장'),
+            child: Text(
+              busy ? context.t('ui.audit532') : context.t('ui.audit658'),
+            ),
           ),
         ],
       ),
@@ -545,18 +548,33 @@ class _PlaceEditorState extends State<PlaceEditor> {
           TextField(
             controller: name,
             maxLength: 30,
-            decoration: const InputDecoration(labelText: '장소 이름'),
+            decoration: InputDecoration(labelText: context.t('ui.audit180')),
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: kind,
-            decoration: const InputDecoration(labelText: '종류'),
-            items: const [
-              DropdownMenuItem(value: 'storage', child: Text('보관')),
-              DropdownMenuItem(value: 'equipment', child: Text('장비')),
-              DropdownMenuItem(value: 'area', child: Text('구역')),
-              DropdownMenuItem(value: 'entrance', child: Text('출입구')),
-              DropdownMenuItem(value: 'table', child: Text('테이블')),
+            decoration: InputDecoration(labelText: context.t('ui.audit181')),
+            items: [
+              DropdownMenuItem(
+                value: 'storage',
+                child: Text(context.t('ui.audit158')),
+              ),
+              DropdownMenuItem(
+                value: 'equipment',
+                child: Text(context.t('ui.audit659')),
+              ),
+              DropdownMenuItem(
+                value: 'area',
+                child: Text(context.t('ui.audit660')),
+              ),
+              DropdownMenuItem(
+                value: 'entrance',
+                child: Text(context.t('ui.audit661')),
+              ),
+              DropdownMenuItem(
+                value: 'table',
+                child: Text(context.t('ui.audit662')),
+              ),
             ],
             onChanged: (v) => setState(() => kind = v!),
           ),
@@ -564,26 +582,26 @@ class _PlaceEditorState extends State<PlaceEditor> {
           TextField(
             controller: floor,
             maxLength: 30,
-            decoration: const InputDecoration(
-              labelText: '층·건물 (선택)',
-              hintText: '1층, 2층, 별관, 외부',
+            decoration: InputDecoration(
+              labelText: context.t('ui.audit182'),
+              hintText: context.t('ui.audit183'),
             ),
           ),
           TextField(
             controller: area,
             maxLength: 40,
-            decoration: const InputDecoration(
-              labelText: '구역 (선택)',
-              hintText: '홀, 주방, 창고',
+            decoration: InputDecoration(
+              labelText: context.t('ui.audit184'),
+              hintText: context.t('ui.audit185'),
             ),
           ),
           TextField(
             controller: note,
             maxLength: 500,
             maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: '찾는 방법',
-              hintText: '계단 오른쪽 첫 번째 문, 왼쪽 선반',
+            decoration: InputDecoration(
+              labelText: context.t('ui.audit186'),
+              hintText: context.t('ui.audit187'),
             ),
           ),
           const SizedBox(height: 16),
@@ -608,10 +626,7 @@ class _PlaceEditorState extends State<PlaceEditor> {
           const SizedBox(height: 16),
 
           const SizedBox(height: 16),
-          const Text(
-            '재고·매뉴얼에서 같은 장소를 선택해 사용해요. 도면 작성은 선택이에요.',
-            style: AppText.caption,
-          ),
+          Text(context.t('ui.audit188'), style: AppText.caption),
         ],
       ),
     ),

@@ -533,3 +533,14 @@ S70 사진 읽기는 같은 화면에서 다시 불러오며 매장·계정 변�
 | S85 | TAP 설정 → 매일/매주/매월·날짜 | `recurrence.monthDay`, `holidayPolicy=next_open` | `work_recurrence.mjs`를 미리보기·실행 생성이 공유. 짧은 달 말일, 연속 휴무 다음 영업일, 동일일 중복 합침. 재고 발주 기준 주기와 독립 |
 
 반영 확인은 짧은 AppContentTransition과 명시적 ‘매뉴얼에서 보기/오늘 업무에서 보기/내일 담당 확인’으로 제공한다. reduced motion에서는 움직임을 줄인다. 세부 설정 진입을 강제하지 않는다. 이미 등록된 기존 매뉴얼의 승인 이력을 소급해서 만들지 않는다.
+
+
+## 2026-10-12 상세 화면 번역 보완
+
+| ID | Source → control | Action / saved effect | Consumer / verification |
+|---|---|---|---|
+| S83 | 공용 기본 제안의 정확한 원문 + 개인 언어 → 운영 준비 목록·검색·검토 본문 | 기존 `register_owner_selection`; 번역 제목으로 검색해도 원래 ID·검토 원문·revision을 저장 | `PreparedManualScope` / `manualDisplayText`; 기본24매뉴얼110행동 사전 번역, supplemental_localization_test.dart |
+| S84 | 기존 예약 설정 + 개인 언어 → 내일 준비·담당/반복 설정 설명 | 기존 `schedule_tap_settings`; 날짜·오늘 기록·담당 ID 보존 | 8언어 고정 문구/변수 치환, owner_workflow_test.dart 및 supplemental_localization_test.dart |
+| S85 | 기존 recurrence 코드/숫자 + 개인 언어 → 반복·월 날짜·요일 표시 | 기존 저장값을 유지하고 표시만 번역 | 요일 번역은 코드/요일 인덱스와 분리; settings_screens_test.dart |
+
+우리매장·재고·크루·배치·편집/인쇄 등 기존 설정의 고정 문구는 supplemental_messages.dart로 보완한다. 원문의 고정 UI 라벨을 정확히 찾아 번역하며, 알 수 없는 매장 작성 텍스트는 원문을 유지한다. 서버 업무 연결 진단은 원인 문구와 scheduled.executionIds 수를 표시 번역한다. S23 연결 검사는 번역된 문자 대신 기존 addTask 분기를 검증한다. 저장/API 권한·액션·엔티티 식별자를 표시 문자열로 판정하지 않는다.

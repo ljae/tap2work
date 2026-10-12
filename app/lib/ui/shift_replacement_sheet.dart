@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
@@ -116,7 +117,7 @@ class _ReplacementSheetState extends State<_ReplacementSheet> {
       widget.vacancy,
     );
     return AppSheetPanel(
-      title: const Text('대체 크루 배정'),
+      title: Text(context.t('ui.audit227')),
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -126,10 +127,10 @@ class _ReplacementSheetState extends State<_ReplacementSheet> {
             ),
             const SizedBox(height: 16),
             if (people.isEmpty)
-              const Information('이 파트와 시간에 배정 가능한 크루가 없어요.')
+              Information(context.t('ui.audit405'))
             else
               AppPicker<String>(
-                label: '가능한 크루',
+                label: context.t('ui.audit978'),
                 value: crewId,
                 items: [
                   for (final p in people)
@@ -143,24 +144,24 @@ class _ReplacementSheetState extends State<_ReplacementSheet> {
                 },
               ),
             const SizedBox(height: 16),
-            const Text(
-              '승인된 빈 시간만 배정해요. 저장할 때 겹치는 근무와 OFF를 다시 확인해요.',
-              style: AppText.caption,
-            ),
-            if (error != null) Information('$error\n선택한 내용은 유지돼요.'),
+            Text(context.t('ui.audit406'), style: AppText.caption),
+            if (error != null)
+              Information(context.t('ui.audit979', args: {'p0': error})),
           ],
         ),
       ),
       actions: [
         TextButton(
           onPressed: saving ? null : () => Navigator.pop(context),
-          child: const Text('닫기'),
+          child: Text(context.t('ui.audit83')),
         ),
         FilledButton(
           onPressed: !saving && people.any((p) => p['id'] == crewId)
               ? save
               : null,
-          child: Text(saving ? '배정 중…' : '대체 배정 저장'),
+          child: Text(
+            saving ? context.t('ui.audit980') : context.t('ui.audit981'),
+          ),
         ),
       ],
     );

@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'time_wheel.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -62,9 +63,9 @@ class _RequestSheetState extends State<_RequestSheet> {
       error = ok ? null : widget.ops.error;
     });
     if (ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('신청했어요. 승인 전에는 원래 근무가 유지돼요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.t('ui.audit718'))));
       Navigator.pop(context);
     }
   }
@@ -77,7 +78,7 @@ class _RequestSheetState extends State<_RequestSheet> {
 
   @override
   Widget build(BuildContext context) => AppSheetPanel(
-    title: const Text('내 근무 변경 신청'),
+    title: Text(context.t('ui.audit222')),
     content: SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -91,10 +92,10 @@ class _RequestSheetState extends State<_RequestSheet> {
             values: const ['leave', 'partial_off', 'shorten'],
             selected: kind,
             labelOf: (v) => v == 'leave'
-                ? '휴무 신청'
+                ? context.t('ui.audit1129')
                 : v == 'partial_off'
-                ? '일부 시간 OFF'
-                : '단축 근무',
+                ? context.t('ui.audit1130')
+                : context.t('ui.audit1131'),
             onSelected: (v) => setState(() => kind = v),
           ),
           if (kind != 'leave') ...[
@@ -104,8 +105,12 @@ class _RequestSheetState extends State<_RequestSheet> {
                 padding: const EdgeInsets.only(bottom: 16),
                 child: AppTimeField(
                   label: kind == 'partial_off'
-                      ? (first ? 'OFF 시작' : 'OFF 종료')
-                      : (first ? '변경 시작' : '변경 종료'),
+                      ? (first
+                            ? context.t('ui.audit719')
+                            : context.t('ui.audit720'))
+                      : (first
+                            ? context.t('ui.audit721')
+                            : context.t('ui.audit722')),
                   value: first ? start : end,
 
                   onChanged: (v) => setState(() => first ? start = v : end = v),
@@ -113,30 +118,30 @@ class _RequestSheetState extends State<_RequestSheet> {
               ),
           ],
           if (kind == 'partial_off')
-            const Text(
-              '선택한 시간만 쉬고, 앞뒤 시간은 계속 근무해요. 야간 근무의 이른 시각은 다음 날이에요.',
-              style: AppText.caption,
-            ),
+            Text(context.t('ui.audit223'), style: AppText.caption),
           const SizedBox(height: 16),
           TextField(
             controller: reason,
             maxLength: 300,
             maxLines: 3,
-            decoration: const InputDecoration(labelText: '신청 이유'),
+            decoration: InputDecoration(labelText: context.t('ui.audit224')),
           ),
-          const Text('사장님 승인 후 근무표에 반영돼요.', style: AppText.caption),
-          if (error != null) Information('$error\n입력한 내용은 유지돼요.'),
+          Text(context.t('ui.audit225'), style: AppText.caption),
+          if (error != null)
+            Information(context.t('ui.audit723', args: {'p0': error})),
         ],
       ),
     ),
     actions: [
       TextButton(
         onPressed: saving ? null : () => Navigator.pop(context),
-        child: const Text('취소'),
+        child: Text(context.t('ui.audit33')),
       ),
       FilledButton(
         onPressed: saving ? null : submit,
-        child: Text(saving ? '신청 중…' : '신청'),
+        child: Text(
+          saving ? context.t('ui.audit724') : context.t('ui.audit725'),
+        ),
       ),
     ],
   );
@@ -152,10 +157,10 @@ class ShiftChangePanel extends StatelessWidget {
       builder: (c) => AlertDialog(
         title: Text(
           decision == 'approved'
-              ? '변경을 승인할까요?'
+              ? context.t('ui.audit726')
               : decision == 'rejected'
-              ? '신청을 반려할까요?'
-              : '신청을 취소할까요?',
+              ? context.t('ui.audit727')
+              : context.t('ui.audit728'),
         ),
         content: Text(
           '${row['before']['date']} · ${row['before']['start']}–${row['before']['end']} → ${shiftChangeSummary(row)}',
@@ -163,11 +168,11 @@ class ShiftChangePanel extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('닫기'),
+            child: Text(context.t('ui.audit83')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('확인'),
+            child: Text(context.t('ui.audit226')),
           ),
         ],
       ),
@@ -179,7 +184,13 @@ class ShiftChangePanel extends StatelessWidget {
     );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ok ? '처리했어요.' : ops.error ?? '처리하지 못했어요.')),
+        SnackBar(
+          content: Text(
+            ok
+                ? context.t('ui.audit729')
+                : ops.error ?? context.t('ui.audit730'),
+          ),
+        ),
       );
     }
   }
@@ -192,7 +203,10 @@ class ShiftChangePanel extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: ExpansionTile(
         title: Text(
-          '근무 변경 신청 · 대기 ${rows.where((r) => r['status'] == 'pending').length}건',
+          context.t(
+            'ui.audit731',
+            args: {'p0': rows.where((r) => r['status'] == 'pending').length},
+          ),
         ),
         children: [
           for (final r in rows)
@@ -209,12 +223,12 @@ class ShiftChangePanel extends StatelessWidget {
                     ),
                     Text(
                       r['status'] == 'pending'
-                          ? '승인 대기 · 기존 근무 유지'
+                          ? context.t('ui.audit732')
                           : r['status'] == 'approved'
-                          ? '승인 완료 · 근무표 반영'
+                          ? context.t('ui.audit733')
                           : r['status'] == 'rejected'
-                          ? '반려 · 기존 근무 유지'
-                          : '신청 취소',
+                          ? context.t('ui.audit734')
+                          : context.t('ui.audit230'),
                       style: AppText.caption.copyWith(
                         color: r['status'] == 'approved'
                             ? AppColors.green
@@ -232,14 +246,37 @@ class ShiftChangePanel extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 8),
                           child: vacancy['replacementShiftId'] != null
                               ? Text(
-                                  '${vacancy['start']}–${vacancy['end']} · 대체 배정 완료 · ${ops.rows('tappers').where((p) => p['id'] == vacancy['replacementTapperId']).firstOrNull?['nickname'] ?? '크루'}',
+                                  context.t(
+                                    'ui.audit735',
+                                    args: {
+                                      'p0': vacancy['start'],
+                                      'p1': vacancy['end'],
+                                      'p2':
+                                          ops
+                                              .rows('tappers')
+                                              .where(
+                                                (p) =>
+                                                    p['id'] ==
+                                                    vacancy['replacementTapperId'],
+                                              )
+                                              .firstOrNull?['nickname'] ??
+                                          context.t('ui.audit765'),
+                                    },
+                                  ),
                                   style: AppText.caption,
                                 )
                               : Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${vacancy['date']} ${vacancy['start']}–${vacancy['end']} · 대체 미배정',
+                                      context.t(
+                                        'ui.audit736',
+                                        args: {
+                                          'p0': vacancy['date'],
+                                          'p1': vacancy['start'],
+                                          'p2': vacancy['end'],
+                                        },
+                                      ),
                                       style: AppText.caption,
                                     ),
                                     if (ops.isOwner &&
@@ -252,7 +289,7 @@ class ShiftChangePanel extends StatelessWidget {
                                           r,
                                           vacancy,
                                         ),
-                                        child: const Text('대체 크루 배정'),
+                                        child: Text(context.t('ui.audit227')),
                                       ),
                                   ],
                                 ),
@@ -264,16 +301,16 @@ class ShiftChangePanel extends StatelessWidget {
                           if (ops.isOwner) ...[
                             FilledButton(
                               onPressed: () => act(context, r, 'approved'),
-                              child: const Text('승인'),
+                              child: Text(context.t('ui.audit228')),
                             ),
                             TextButton(
                               onPressed: () => act(context, r, 'rejected'),
-                              child: const Text('반려'),
+                              child: Text(context.t('ui.audit229')),
                             ),
                           ] else
                             TextButton(
                               onPressed: () => act(context, r, 'cancelled'),
-                              child: const Text('신청 취소'),
+                              child: Text(context.t('ui.audit230')),
                             ),
                         ],
                       ),
