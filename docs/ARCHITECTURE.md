@@ -752,3 +752,5 @@ Flutter `OwnerWorkflowScreen` provides review → saved effects → tomorrow pla
 사용자 후속 지시에 따라 폴더·파트 기본 이름도 앱 언어로 표시한다. entity_name_scope.dart는 ID별 매장 등록 번역 → 기본30이름의 8언어 사전 → 기존 준비 사전/원문 순서로 표시한다. 번역은 저장 이름·배정/접근 권한·파트 ID·폴더 ID를 바꾸지 않는다. 이름 편집 폼은 원문으로 열고, 검색은 원문과 표시 번역을 함께 찾는다.
 
 save_manual_translation에 source.kind=folder/part와 field=name을 추가했다. 저장은 기존 revision CAS와 정확한 sourceText 검사를 재사용한다. manualContentTranslations.folders/parts[id][locale].name은 기존 JSON section 내부이며 새 SQL 테이블이 아니다. 서버 view는 source hash/text 일치로 current를 계산하고 작성자 정보는 공유하지 않는다. 삭제된 항목은 투영하지 않고 이름 변경 시 이전 번역은 표시하지 않는다. 폴더는 기존 업무 편집 권한, 파트는 기존 설정과 동일하게 사장님 전용이다. 유료 런타임 번역은 활성화하지 않는다.
+
+ManualExampleScreen compact navigation: on phones narrower than600px and shorter than850px, pane and category selectors use48px dropdown controls and count/draft metadata moves into each pane's scrollable content. Selection/pane/history remain device-local; the change writes no workspace settings or actual store configuration. Larger views retain the shared choice groups.

@@ -401,3 +401,5 @@ Loading retains actual readiness/retry/error state, uses a quiet mint ambient su
 ## 2026-10-12 폴더·파트 언어 표시
 
 폴더명과 파트명도 현재 앱 언어로 표시한다. 직접 이름 편집은 저장된 원문을 유지한다. 폴더의 공통 편집 ⋯ 메뉴와 파트 관리의 번역 아이콘에서 기존 번역 편집기와 언어 선택을 재사용한다. 새 항목·미저장 이름은 먼저 저장해야 번역을 등록할 수 있다. ID·권한·근무표 연결은 표시 번역과 분리한다.
+
+Short phone example navigation (width below600 and height below850) uses48px view/category dropdowns. Count and draft metadata scroll with the content instead of reducing the list viewport. Larger screens retain choice chips. Keep enlarged labels scrollable and preserve explicit selection/back controls.

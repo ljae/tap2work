@@ -112,6 +112,15 @@ class _ManualExampleScreenState extends State<ManualExampleScreen> {
       ),
     ),
   );
+  List<Widget> get metadata => [
+    Text(
+      '${entries.length} TAP · ${entries.fold<int>(0, (n, e) => n + (e['steps'] as List).length)} ${context.t('manual.structure.section')}',
+      style: AppText.section,
+    ),
+    const SizedBox(height: 8),
+    Text(context.t('manual.market.aiDraft'), style: AppText.caption),
+    const SizedBox(height: 16),
+  ];
   Widget structure() {
     final current = tap, currentStep = step;
     final filtered = entries
@@ -149,7 +158,11 @@ class _ManualExampleScreenState extends State<ManualExampleScreen> {
               stepId = null;
             }),
     );
-    final children = <Widget>[path, const SizedBox(height: 16)];
+    final children = <Widget>[
+      if (compactNavigation) ...metadata,
+      path,
+      const SizedBox(height: 16),
+    ];
     if (folder != null || tapId != null || history.isNotEmpty) {
       children.add(
         Align(
@@ -323,6 +336,7 @@ class _ManualExampleScreenState extends State<ManualExampleScreen> {
       key: const PageStorageKey('example/setup'),
       padding: const EdgeInsets.all(24),
       children: [
+        if (compactNavigation) ...metadata,
         Information(display(profile['notice'])),
         title(context.t('example.hours')),
         Surface(
@@ -466,6 +480,7 @@ class _ManualExampleScreenState extends State<ManualExampleScreen> {
       key: PageStorageKey('example/day/$date'),
       padding: const EdgeInsets.all(24),
       children: [
+        if (compactNavigation) ...metadata,
         Information(
           date == DateTime(2026, 10, 12)
               ? display(widget.profile['exampleDay']['description'])
@@ -508,6 +523,17 @@ class _ManualExampleScreenState extends State<ManualExampleScreen> {
     );
   }
 
+  bool get compactNavigation =>
+      MediaQuery.sizeOf(context).width < 600 &&
+      MediaQuery.sizeOf(context).height < 850;
+  String paneLabel(int value) => context.t(
+    value == 0
+        ? 'example.structure'
+        : value == 1
+        ? 'manual.market.exampleConfig'
+        : 'example.day',
+  );
+
   @override
   Widget build(BuildContext context) => AppEditorScaffold(
     title: context.t('manual.market.exampleTitle'),
@@ -531,49 +557,69 @@ class _ManualExampleScreenState extends State<ManualExampleScreen> {
         : null,
     body: Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Text(
-            '${entries.length} TAP · ${entries.fold<int>(0, (n, e) => n + (e['steps'] as List).length)} ${context.t('manual.structure.section')}',
-            style: AppText.section,
+        if (!compactNavigation)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(children: metadata),
           ),
-        ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          child: Text(
-            context.t('manual.market.aiDraft'),
-            style: AppText.caption,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: AppChoiceGroup<int>(
-            values: const [0, 1, 2],
-            selected: pane,
-            labelOf: (value) => context.t(
-              value == 0
-                  ? 'example.structure'
-                  : value == 1
-                  ? 'manual.market.exampleConfig'
-                  : 'example.day',
-            ),
-            onSelected: (value) => setState(() => pane = value),
-          ),
+          padding: compactNavigation
+              ? const EdgeInsets.symmetric(horizontal: 24)
+              : const EdgeInsets.all(16),
+          child: compactNavigation
+              ? SizedBox(
+                  height: 48,
+                  child: Semantics(
+                    label: context.t('manual.market.exampleTitle'),
+                    child: DropdownButton<int>(
+                      key: const ValueKey('example-view-select'),
+                      isExpanded: true,
+                      value: pane,
+                      underline: const SizedBox(),
+                      items: [
+                        for (final value in [0, 1, 2])
+                          DropdownMenuItem(
+                            value: value,
+                            child: Text(
+                              paneLabel(value),
+                              maxLines: 2,
+                              style: AppText.body,
+                            ),
+                          ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) setState(() => pane = value);
+                      },
+                    ),
+                  ),
+                )
+              : AppChoiceGroup<int>(
+                  values: const [0, 1, 2],
+                  selected: pane,
+                  labelOf: paneLabel,
+                  onSelected: (value) => setState(() => pane = value),
+                ),
         ),
         if (pane == 0)
-          ManualCategoryPicker(
-            selected: category,
-            counts: {
-              for (final c in manualCategoryIds)
-                c: entries.where((e) => manualCategoryOf(e) == c).length,
-            },
-            onSelected: (value) => setState(() {
-              category = value;
-              folder = null;
-              tapId = null;
-              stepId = null;
-              history.clear();
-            }),
+          Padding(
+            padding: compactNavigation
+                ? const EdgeInsets.symmetric(horizontal: 24)
+                : EdgeInsets.zero,
+            child: ManualCategoryPicker(
+              compact: compactNavigation,
+              selected: category,
+              counts: {
+                for (final c in manualCategoryIds)
+                  c: entries.where((e) => manualCategoryOf(e) == c).length,
+              },
+              onSelected: (value) => setState(() {
+                category = value;
+                folder = null;
+                tapId = null;
+                stepId = null;
+                history.clear();
+              }),
+            ),
           ),
         Expanded(
           child: AppContentTransition(

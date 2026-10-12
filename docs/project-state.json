@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 313,
+  "revision": 315,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -8900,7 +8900,19 @@
       "type": "verification",
       "title": "Manual model selected release source ready for requested Sol low web deployment",
       "detail": "Isolated finalFlutter605pass/3browser-onlyskip,analysis0,Node388,UI81,JS/135catalog/7x1971translations,DenoEdge+5isolatedSQL andproductionreviewbuild passed. Actual anonymousChrome390px verified26TAP/108sections/AI-draft/native-review-incomplete label; phonefolder/TAP/method/setup/day and8locale desktop reducedmotion reviewed. Corrected currentTAPtitletranslation rendering withoutsourcewrites,regressiontest passed. No live data deletion,newnativebuild or catalogpublication. Requested gpt-6.1-sol low now receives deployment-ready source; valid supplier/distinctreviewer auth stillmissing for liveDB135publication."
+    },
+    {
+      "at": "2026-10-12T17:24:16.480058+00:00",
+      "type": "verification",
+      "title": "First manual-model web release verified; compact phone follow-up",
+      "detail": "Requested gpt-6.1-sol low deployed2c8127a/Pages38282802152 success,operations65/catalog-admin7 ACTIVE,267/267 publicartifactSHA match. Actualanonymous390px sample26TAP/108sections/AI-draft-label verified. Existing liveDBstable109/revision2 preserved; normal135publication authpending. Actual320x740Nepali review led to48px dropdown view/category selectors and scrollable count/draft metadata; follow-up local tests/build/deployment inprogress. No live operational data deletion or newnativebuild."
+    },
+    {
+      "at": "2026-10-12T17:26:17.677737+00:00",
+      "type": "verification",
+      "title": "Compact phone manual example follow-up verified for Sol low deployment",
+      "detail": "48px dropdown view/category controls and scrollable count/AI-draft metadata preserve short phone list space. Isolatedanalysis0,50relevantwidget tests (translatedNepali320x740/1.3scale,minimum96pxlist,reachablefolder/viewchange),productionbuild andactualanonymous320pxNepali rootfolder/menuitem->setup pass. Initial assetawait harness and text-vs-menuitem browser locator attempts were corrected; not production failures. Firstlive2c8127a/CI38282802152/267hashes andEdge65/7 remain verified. Newfull606CI/deployment pending; stable109auth-gated135publication unchanged."
     }
   ],
-  "updatedAt": "2026-10-12T17:12:45.985383+00:00"
+  "updatedAt": "2026-10-12T17:26:17.677737+00:00"
 }

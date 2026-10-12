@@ -9,10 +9,12 @@ class ManualCategoryPicker extends StatelessWidget {
     required this.selected,
     required this.onSelected,
     this.counts = const {},
+    this.compact = false,
   });
   final String? selected;
   final ValueChanged<String?> onSelected;
   final Map<String, int> counts;
+  final bool compact;
   static const icons = {
     'startup': Icons.tune_outlined,
     'periodic': Icons.event_repeat_outlined,
@@ -22,7 +24,7 @@ class ManualCategoryPicker extends StatelessWidget {
   };
   @override
   Widget build(BuildContext context) {
-    if (MediaQuery.sizeOf(context).height < 600) {
+    if (compact || MediaQuery.sizeOf(context).height < 600) {
       return SizedBox(
         height: 48,
         child: Semantics(

@@ -13,6 +13,82 @@ import 'package:tap2work/state/operations_controller.dart';
 Json catalog() =>
     jsonDecode(File('../docs/market/current.json').readAsStringSync());
 void main() {
+  testWidgets(
+    'short Nepali phone keeps a usable list and selectors with enlarged text',
+    (t) async {
+      t.view.physicalSize = const Size(320, 740);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+      final words = Map<String, String>.from(
+        jsonDecode(
+          File('assets/manual_translations/ne.json').readAsStringSync(),
+        )['translations'],
+      );
+      final data =
+          jsonDecode(
+                jsonEncode(catalog()),
+                reviver: (key, value) =>
+                    value is String ? (words[value] ?? value) : value,
+              )
+              as Json;
+      await t.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ne'),
+          supportedLocales: appSupportedLocales,
+          localizationsDelegates: const [
+            AppStrings.delegate,
+            ...GlobalMaterialLocalizations.delegates,
+          ],
+          builder: (c, child) => MediaQuery(
+            data: MediaQuery.of(c).copyWith(
+              textScaler: const TextScaler.linear(1.3),
+              disableAnimations: true,
+            ),
+            child: child!,
+          ),
+          home: ManualExampleScreen(
+            profile: data['taxonomy']['exampleStores'][0],
+            entries: (data['entries'] as List).cast<Json>(),
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      expect(find.byKey(const ValueKey('example-view-select')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('manual-category-select')),
+        findsOneWidget,
+      );
+      expect(
+        t.getSize(find.byType(Scrollable).first).height,
+        greaterThanOrEqualTo(96),
+      );
+      final folder = find.text(words['운영 기준 잡기']!);
+      await t.scrollUntilVisible(
+        folder,
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await t.pumpAndSettle();
+      final tile = find
+          .ancestor(of: folder, matching: find.byType(ListTile))
+          .first;
+      expect(t.getSize(tile).height, greaterThanOrEqualTo(48));
+      expect(folder.hitTestable(), findsOneWidget);
+      await t.tap(find.byKey(const ValueKey('example-view-select')));
+      await t.pumpAndSettle();
+      await t.tap(
+        find.text(AppStrings('ne').text('manual.market.exampleConfig')).last,
+      );
+      await t.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('manual-category-select')),
+        findsNothing,
+      );
+      expect(t.takeException(), isNull);
+    },
+  );
+
   test('every model phrase has all languages and matching placeholders', () {
     for (final entry in manualModelMessageRows.entries) {
       expect(entry.value.length, 8, reason: entry.key);
