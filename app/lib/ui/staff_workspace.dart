@@ -1,3 +1,4 @@
+import '../l10n/entity_name_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'workplace_screens.dart';
 import 'package:flutter/cupertino.dart';
@@ -336,7 +337,15 @@ class _HiringDraftEditorState extends State<HiringDraftEditor> {
                 ).where((p) => p['hidden'] != true))
                   DropdownMenuItem(
                     value: part['id'] as String,
-                    child: Text(part['name']),
+                    child: Text(
+                      entityDisplayName(
+                        context,
+                        widget.ops,
+                        'part',
+                        part['id'],
+                        part['name'],
+                      ),
+                    ),
                   ),
               ],
               onChanged: (v) => setState(() => role = v ?? role),

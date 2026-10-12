@@ -1,3 +1,4 @@
+import '../l10n/entity_name_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -258,7 +259,15 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
                   .map(
                     (f) => DropdownMenuItem(
                       value: f['id'] as String,
-                      child: Text(f['name']),
+                      child: Text(
+                        entityDisplayName(
+                          context,
+                          widget.ops,
+                          'folder',
+                          f['id'],
+                          f['name'],
+                        ),
+                      ),
                     ),
                   )
                   .toList(),

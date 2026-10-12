@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 308,
+  "revision": 309,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -8858,7 +8858,13 @@
       "type": "verification",
       "title": "AI-reviewed localization final web and native release verified",
       "detail": "User-selected AI review/draft deployment completed. Finalweb b5bcfe702b814f955978a6816d607d300da1316f / Pages38241794392 success;262publicSHA256 match. CIFlutter587pass/3browser skip,analysis0,server381,JS/UI78/Edge/5SQL/7x1357source-number-placeholder checks pass. UI1765rows; initialAI435foreign cells/106sources corrected plus actual-web board captions/owner stages. AnonymousChrome390px Thai login/work/owner verified;error0,existing preload warnings. iOS1.0.0(19)VALID/internalTestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL,reviewdetails unchanged. Android1.0.0(18)internal+alpha completed,beta/production empty;originalsigner+7assetbytes match. Initialreference-key relative-path/signature403 corrected via existing private key. Intermediate native publicGoogle define omission caught;Androidrollback15 rejected/deleted without track mutation,iOS17reviewcancelled/internalunlinked. Final19/18restore4priorpublicvalues+configureiOSGooglecallback,verified actualAOTembeddedconfig/CFURLscheme. No signer reset,server OAuth changes,real operations writes or native-speaker review. AI-draft retained;physical-device/native-login review not performed. Existingdirtyroot preserved. LOCALIZATION_RELEASE_2026-10-12.md and .local/localization-deployment/."
+    },
+    {
+      "at": "2026-10-12T13:16:52.175697+00:00",
+      "type": "implementation",
+      "title": "Translate folder and part display names after user reports remaining omissions",
+      "detail": "Previous release preserved store-authored folder/part names verbatim. User now requests their translation: add30 exact built-in name rows in8languages; shared display helper applies ID-specific current name translation, built-in row, prepared dictionary/source. Source names/IDs and rename inputs remain intact. Extend save_manual_translation source.kind folder/part and name only, same revision/sourceText CAS; parts owner-only, folders task-editor permission; sanitized view invalidates renamed/deleted names. Folder edit menu and saved-part translation controls reuse existing editor. Node383pass/UI79pass/analysis0, focused47pass before two additional regression tests; full verification and redeployment in progress. AI-draft/native-speaker review incomplete retained; existing root work preserved."
     }
   ],
-  "updatedAt": "2026-10-12T11:51:24.940165+00:00"
+  "updatedAt": "2026-10-12T13:16:52.175697+00:00"
 }

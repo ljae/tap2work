@@ -1,3 +1,4 @@
+import '../l10n/entity_name_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'time_wheel.dart';
 import 'package:flutter/material.dart';
@@ -198,7 +199,15 @@ class _TimeBandEditorState extends State<TimeBandEditor> {
                 children: [
                   for (final p in widget.parts)
                     FilterChip(
-                      label: Text(p['name']),
+                      label: Text(
+                        entityDisplayName(
+                          context,
+                          null,
+                          'part',
+                          p['id'],
+                          p['name'],
+                        ),
+                      ),
                       selected: selected.contains(p['id']),
                       onSelected: (v) => setState(() {
                         v ? selected.add(p['id']) : selected.remove(p['id']);

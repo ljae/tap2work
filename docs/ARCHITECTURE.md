@@ -734,3 +734,9 @@ Flutter `OwnerWorkflowScreen` provides review → saved effects → tomorrow pla
 `AppStrings`는 기존 세 번역표에 `supplemental_messages.dart`를 더해 상세 설정·편집·피드백/접근성 문구를 8언어로 표시한다. 한국어 고정 라벨의 정확한 source lookup은 enum 표시용이며 알 수 없는 원문은 유지한다. nullable 표시 변수도 기존 문자열 보간과 같은 방식으로 치환한다. 업무 연결 진단은 `localizedWorkStatus`에서 서버 원인 문구 또는 scheduled.executionIds 개수를 번역하며 상태 코드는 번역하지 않는다.
 
 공용109개 원본+웰컴에 기존 owner_starter_content.json의24매뉴얼110행동과 첫 근무6개 안내의 누락 필드를 사전 번역으로 보완한다. 번들에는 catalogReleaseId와 함께 ownerStarterVersion / firstShiftGuideVersion을 기록한다. 운영 준비 목록·검색·검토·내일 제목과 첫 근무 안내는 PreparedManualScope를 소비한다. 원문 ID·검토 fingerprint·사진·완료·등록 동작을 변경하지 않는다. check-manual-translations.mjs는 세 원본 묶음의 정확한 source keys와 숫자·변수를 검사한다. 번역 상태는 ai-draft이며 원어민 확인은 별도다. 실시간 유료 번역은 계속 비활성화한다.
+
+## 2026-10-12 폴더·파트 표시 이름 번역
+
+사용자 후속 지시에 따라 폴더·파트 기본 이름도 앱 언어로 표시한다. entity_name_scope.dart는 ID별 매장 등록 번역 → 기본30이름의 8언어 사전 → 기존 준비 사전/원문 순서로 표시한다. 번역은 저장 이름·배정/접근 권한·파트 ID·폴더 ID를 바꾸지 않는다. 이름 편집 폼은 원문으로 열고, 검색은 원문과 표시 번역을 함께 찾는다.
+
+save_manual_translation에 source.kind=folder/part와 field=name을 추가했다. 저장은 기존 revision CAS와 정확한 sourceText 검사를 재사용한다. manualContentTranslations.folders/parts[id][locale].name은 기존 JSON section 내부이며 새 SQL 테이블이 아니다. 서버 view는 source hash/text 일치로 current를 계산하고 작성자 정보는 공유하지 않는다. 삭제된 항목은 투영하지 않고 이름 변경 시 이전 번역은 표시하지 않는다. 폴더는 기존 업무 편집 권한, 파트는 기존 설정과 동일하게 사장님 전용이다. 유료 런타임 번역은 활성화하지 않는다.

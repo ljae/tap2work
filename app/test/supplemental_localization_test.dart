@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
 import 'package:tap2work/l10n/app_localizations.dart';
 import 'package:tap2work/l10n/supplemental_messages.dart';
+import 'package:tap2work/l10n/entity_name_messages.dart';
 import 'package:tap2work/main.dart';
 import 'package:tap2work/data/bundled_manual_translations.dart';
 import 'package:tap2work/state/app_locale_controller.dart';
@@ -83,6 +84,15 @@ void main() {
         await locale.selectLanguage(language);
         final work = WorkController(MemoryStore());
         final state = fixture();
+        state['workplace'] = {
+          'parts': [
+            {
+              'id': 'kitchen',
+              'name': '주방',
+              'roles': ['cook'],
+            },
+          ],
+        };
         state['tappers'] = [
           {
             'id': 'fixture-worker',
@@ -118,6 +128,14 @@ void main() {
         expect(find.text('TAP · ${strings.text('전체 업무')}'), findsOneWidget);
         expect(find.textContaining(strings.text('가능한 담당자')), findsOneWidget);
         expect(find.textContaining('매장 작성 원문'), findsOneWidget);
+        expect(
+          find.text(
+            entityNameRows['주방']![appLanguageNames.keys.toList().indexOf(
+              language,
+            )],
+          ),
+          findsOneWidget,
+        );
         expect(ops.rows('tasks')[0]['slot'], '준비');
         expect(ops.rows('tasks')[0]['id'], 'daily-prep');
         expect(t.takeException(), isNull);

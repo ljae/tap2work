@@ -1,3 +1,4 @@
+import '../l10n/entity_name_scope.dart';
 import 'owner_workflow_screen.dart';
 import 'dart:math';
 import '../domain/inventory_readiness.dart';
@@ -710,7 +711,13 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                                     ))
                                                   AppToolbarButton(
                                                     icon: Icons.work_outline,
-                                                    label: part['name'],
+                                                    label: entityDisplayName(
+                                                      context,
+                                                      ops,
+                                                      'part',
+                                                      part['id'],
+                                                      part['name'],
+                                                    ),
                                                     selected:
                                                         selected == part['id'],
                                                     onPressed: () =>
@@ -1042,9 +1049,13 @@ class _OperationsScreenState extends State<OperationsScreen> {
       actionCard(
         CupertinoIcons.person_2_square_stack,
         '파트 관리',
-        storeParts(
-          ops,
-        ).where((p) => p['hidden'] != true).map((p) => p['name']).join(' · '),
+        storeParts(ops)
+            .where((p) => p['hidden'] != true)
+            .map(
+              (p) =>
+                  entityDisplayName(context, ops, 'part', p['id'], p['name']),
+            )
+            .join(' · '),
         () => openWorkplace('parts'),
       ),
       if (ops.isOwner) ...[

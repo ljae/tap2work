@@ -1,3 +1,4 @@
+import '../l10n/entity_name_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -155,7 +156,9 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
           Text(
             context.t(
               'ui.audit825',
-              args: {'p0': partLabel(ops, targets.first.partId)},
+              args: {
+                'p0': partLabel(ops, targets.first.partId, context: context),
+              },
             ),
             style: AppText.title,
           ),
@@ -360,7 +363,7 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
     };
     return AllocationPartCard(
       key: ValueKey('allocation-${group.id}-${part['id']}'),
-      title: part['name'],
+      title: entityDisplayName(context, ops, 'part', part['id'], part['name']),
       index: index,
       ghost: ghost != null,
       children: [
@@ -405,7 +408,16 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
               key: ValueKey('empty-${group.id}-${part['id']}-$n'),
               label: context.t(
                 'ui.audit832',
-                args: {'p0': group.name, 'p1': part['name']},
+                args: {
+                  'p0': group.name,
+                  'p1': entityDisplayName(
+                    context,
+                    ops,
+                    'part',
+                    part['id'],
+                    part['name'],
+                  ),
+                },
               ),
               onTap: editable && ghost == null ? () => pick(targets) : null,
             ),
@@ -569,7 +581,7 @@ class _CrewAllocationScreenState extends State<CrewAllocationScreen> {
             for (final row in unmatched)
               AllocationPartCard(
                 title:
-                    '${row.entry['start']}–${row.entry['end']} · ${partLabel(ops, row.entry['partId'])}',
+                    '${row.entry['start']}–${row.entry['end']} · ${partLabel(ops, row.entry['partId'], context: context)}',
                 index: 0,
                 children: [
                   Text(context.t('ui.audit284'), style: AppText.caption),

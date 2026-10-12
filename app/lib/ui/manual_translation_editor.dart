@@ -89,7 +89,7 @@ class _ManualTranslationEditorState extends State<ManualTranslationEditor> {
   bool get valid =>
       widget.ops.actorId == actor &&
       widget.ops.data?['workspaceId'] == workspace &&
-      widget.ops.canEditTasks &&
+      (widget.kind == 'part' ? widget.ops.isOwner : widget.ops.canEditTasks) &&
       !widget.ops.readOnly;
   int limit(String field) => manualTranslationLimit(field);
   List<Json> get values => [

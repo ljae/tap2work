@@ -1,3 +1,4 @@
+import '../l10n/entity_name_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'time_wheel.dart';
 import '../domain/schedule_layout.dart';
@@ -567,7 +568,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
             Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                context.t('ui.audit750', args: {'p0': part.name}),
+                context.t(
+                  'ui.audit750',
+                  args: {
+                    'p0': entityDisplayName(
+                      context,
+                      ops,
+                      'part',
+                      part.id,
+                      part.name,
+                    ),
+                  },
+                ),
                 style: AppText.title,
               ),
             ),
@@ -646,7 +658,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ))
                         DropdownMenuItem(
                           value: part.id,
-                          child: Text(part.name),
+                          child: Text(
+                            entityDisplayName(
+                              context,
+                              ops,
+                              'part',
+                              part.id,
+                              part.name,
+                            ),
+                          ),
                         ),
                     ],
                     onChanged: (v) {
@@ -1265,7 +1285,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             children: [
                               Flexible(
                                 child: Text(
-                                  '${part.name}${part.hidden ? ' · 숨김' : ''}',
+                                  '${entityDisplayName(context, ops, 'part', part.id, part.name)}${part.hidden ? ' · 숨김' : ''}',
                                   style: AppText.caption,
                                 ),
                               ),
@@ -1518,7 +1538,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     Semantics(
                       button: true,
                       label:
-                          '${slots[i].date} ${part.name} ${slots[i].name} ${slots[i].start} ${rosterClock(shownEnd(slots[i]))}',
+                          '${slots[i].date} ${entityDisplayName(context, ops, 'part', part.id, part.name)} ${slots[i].name} ${slots[i].start} ${rosterClock(shownEnd(slots[i]))}',
                       child: Material(
                         color: Color.alphaBlend(
                           (slots[i].crewId == null

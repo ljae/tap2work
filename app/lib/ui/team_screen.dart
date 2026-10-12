@@ -1,3 +1,4 @@
+import '../l10n/entity_name_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'dart:math';
 import '../domain/edit_conflict.dart';
@@ -433,7 +434,15 @@ class _TeamScreenState extends State<TeamScreen> {
                     .map(
                       (p) => DropdownMenuItem(
                         value: p['id'] as String,
-                        child: Text(p['name']),
+                        child: Text(
+                          entityDisplayName(
+                            context,
+                            ops,
+                            'part',
+                            p['id'],
+                            p['name'],
+                          ),
+                        ),
                       ),
                     )
                     .toList(),
@@ -603,7 +612,7 @@ class _TeamScreenState extends State<TeamScreen> {
             p['id'],
           ),
         )
-        .map((p) => p['name'])
+        .map((p) => entityDisplayName(context, ops, 'part', p['id'], p['name']))
         .join(' · ');
     return Surface(
       padding: const EdgeInsets.all(16),
@@ -802,7 +811,7 @@ class _TeamScreenState extends State<TeamScreen> {
                         title:
                             '${shift['date']} · ${shift['start']}–${shift['end']}',
                         subtitle:
-                            '${partLabel(ops, shift['partId'])}${shift['status'] == 'leave'
+                            '${partLabel(ops, shift['partId'], context: context)}${shift['status'] == 'leave'
                                 ? ' · 승인된 휴무'
                                 : shift['approvedRequestId'] != null
                                 ? ' · 승인 반영'
@@ -1007,7 +1016,15 @@ class _TeamScreenState extends State<TeamScreen> {
                   ).where((p) => p['hidden'] != true))
                     ChoiceChip(
                       chipAnimationStyle: AppMotion.chipStyle(context),
-                      label: Text(part['name']),
+                      label: Text(
+                        entityDisplayName(
+                          context,
+                          ops,
+                          'part',
+                          part['id'],
+                          part['name'],
+                        ),
+                      ),
                       selected: selectedPart == part['id'],
                       onSelected: (_) =>
                           setState(() => selectedPart = part['id']),
@@ -1040,7 +1057,7 @@ class _TeamScreenState extends State<TeamScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(crewPartsLabel(ops, tapper)),
+                          Text(crewPartsLabel(ops, tapper, context: context)),
                           Text(
                             context.t(
                               'ui.audit910',

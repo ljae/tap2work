@@ -1,3 +1,4 @@
+import '../l10n/entity_name_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'workplace_screens.dart';
 import 'dart:convert';
@@ -242,7 +243,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                                 ? AppColors.lime
                                 : null,
                             label: Text(
-                              '${f['name']} · ${templates.where((t) => t['folderId'] == f['id']).length}',
+                              '${entityDisplayName(context, ops, 'folder', f['id'], f['name'])} · ${templates.where((t) => t['folderId'] == f['id']).length}',
                             ),
                             selected: selected == f['id'],
                             onPressed: () => setState(() => selected = f['id']),
@@ -397,11 +398,11 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                           'ui.audit539',
                           args: {
                             'p0': task['slot'],
-                            'p1':
-                                storeParts(ops)
-                                    .where((p) => p['id'] == task['partId'])
-                                    .firstOrNull?['name'] ??
-                                context.t('ui.audit370'),
+                            'p1': partLabel(
+                              ops,
+                              task['partId'],
+                              context: context,
+                            ),
                             'p2': place == null ? '' : ' · $place',
                             'p3': steps.length,
                           },
@@ -467,7 +468,18 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
                   PopupMenuItem<String>(
                     value: f['id'],
                     child: Text(
-                      context.t('ui.audit546', args: {'p0': f['name']}),
+                      context.t(
+                        'ui.audit546',
+                        args: {
+                          'p0': entityDisplayName(
+                            context,
+                            ops,
+                            'folder',
+                            f['id'],
+                            f['name'],
+                          ),
+                        },
+                      ),
                     ),
                   ),
                 PopupMenuItem(
@@ -715,6 +727,7 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => _GroupSheet(
+        ops: ops,
         task: draft,
         parts: storeParts(ops),
         zones: ops.rows('zones'),
@@ -775,10 +788,12 @@ class _ChecklistEditorState extends State<ChecklistEditor> {
 
 class _GroupSheet extends StatefulWidget {
   const _GroupSheet({
+    this.ops,
     required this.task,
     required this.zones,
     required this.parts,
   });
+  final OperationsController? ops;
   final Json task;
   final List<Json> zones;
   final List<Json> parts;
@@ -875,7 +890,13 @@ class _GroupSheetState extends State<_GroupSheet> {
             selected: task['partId'] ?? 'all',
             labelOf: (id) => id == 'all'
                 ? context.t('ui.audit370')
-                : widget.parts.firstWhere((p) => p['id'] == id)['name'],
+                : entityDisplayName(
+                    context,
+                    widget.ops,
+                    'part',
+                    id,
+                    widget.parts.firstWhere((p) => p['id'] == id)['name'],
+                  ),
             onSelected: (id) => setState(() {
               task['partId'] = id == 'all' ? null : id;
               task['requiredRole'] = 'all';

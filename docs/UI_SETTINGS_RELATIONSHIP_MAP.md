@@ -547,3 +547,9 @@ S70 사진 읽기는 같은 화면에서 다시 불러오며 매장·계정 변�
 
 
 2026-10-12 실제 웹 후속: S25 업무 보드의 전체 업무·담당 후보/공동 업무·슬롯 표시는 개인 언어를 사용한다. 실제 lane 상태·slot 값·partId·업무/크루 ID는 보존하고 매장 작성 파트명/제목을 자동 번역하지 않는다. supplemental_localization_test.dart의8언어 보드 회귀와 기존 tap_workspace_test.dart로 확인했다.
+
+## 2026-10-12 폴더·파트 이름 번역 보완
+
+| ID | 원본 → 컨트롤 → 저장 | 소비자·조건 | 검증 |
+|---|---|---|---|
+| S86 | checklistFolders/workplace.parts 원문 → 폴더 편집 ⋯ 번역 / 파트 설정 번역 아이콘 → save_manual_translation(source.kind=folder/part,id,locale,fields.name,revision) | manualContentTranslations.folders/parts의 ID·원문 일치 번역, 기본30이름 사전; 업무·매뉴얼·근무표·크루에 공통 표시. 이름 입력/저장과 연결 ID는 원문 유지. 폴더는 업무 편집 권한, 파트는 사장님만. 새 파트/미저장 이름은 번역 등록 전에 저장 | entity_name_localization_test.dart, supplemental_localization_test.dart, manual_content_translations.test.mjs |

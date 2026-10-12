@@ -1,3 +1,4 @@
+import '../l10n/entity_name_scope.dart';
 import '../l10n/manual_text_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'translated_content.dart';
@@ -242,10 +243,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
 
   String role(Json task) {
     if (task.containsKey('partId')) {
-      return storeParts(
-            ops,
-          ).where((p) => p['id'] == task['partId']).firstOrNull?['name'] ??
-          context.t('전체 파트');
+      return partLabel(ops, task['partId'], context: context);
     }
     return context.t(checklistRoles[task['requiredRole']] ?? '전체 파트');
   }
@@ -305,8 +303,17 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               : context.t('ui.audit893'));
       final partName = storeParts(
         ops,
-      ).where((p) => p['id'] == view['partId']).firstOrNull?['name'];
-      return '$label${partName == null ? '' : ' · $partName'} · ${context.t(view['unassigned'] == true ? '담당 미배정' : '공동 업무')}';
+      ).where((p) => p['id'] == view['partId']).firstOrNull;
+      final displayedPart = partName == null
+          ? null
+          : entityDisplayName(
+              context,
+              ops,
+              'part',
+              partName['id'],
+              partName['name'],
+            );
+      return '$label${displayedPart == null ? '' : ' · $displayedPart'} · ${context.t(view['unassigned'] == true ? '담당 미배정' : '공동 업무')}';
     }
     final people = assignees(task);
     if (task.containsKey('partId')
@@ -516,7 +523,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                           'manual.progress',
                           args: {'done': done(task), 'total': total(task)},
                         )
-                      : 'TAP · ${folder == null ? context.t('전체 업무') : context.t('ui.audit2127', args: {'p0': folder['name']})}',
+                      : 'TAP · ${folder == null ? context.t('전체 업무') : context.t('ui.audit2127', args: {'p0': entityDisplayName(context, ops, 'folder', folder['id'], folder['name'])})}',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -601,7 +608,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             templateId: t['templateId'],
           ),
           subtitle:
-              '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${context.t('${t['slot']}')} · ${assigneeLabel(t)}${estimatedDuration(t).isEmpty ? '' : ' · ${estimatedDuration(t)}'}',
+              '${entityDisplayName(context, ops, 'folder', folderOf(t), folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'])} · ${context.t('${t['slot']}')} · ${assigneeLabel(t)}${estimatedDuration(t).isEmpty ? '' : ' · ${estimatedDuration(t)}'}',
           accentColor: assigneeColor(t),
           assigneeBadges: assigneeBadges(t),
           dragHandle: !ops.canEditTasks
@@ -1243,7 +1250,15 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ).where((p) => p['hidden'] != true))
               ChoiceChip(
                 chipAnimationStyle: AppMotion.chipStyle(context),
-                label: Text(part['name']),
+                label: Text(
+                  entityDisplayName(
+                    context,
+                    ops,
+                    'part',
+                    part['id'],
+                    part['name'],
+                  ),
+                ),
                 selected: selectedPart == part['id'],
                 onSelected: (_) => setState(() => localPart = part['id']),
               ),

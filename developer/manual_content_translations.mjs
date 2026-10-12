@@ -13,6 +13,12 @@ function sourceContent(state, source) {
     if(!place)fail('장소를 찾지 못했어요.',404);
     return Object.fromEntries(['name','floor','area','description'].map(field=>[field,place[field]??'']));
   }
+  if (['folder','part'].includes(source.kind) && typeof source.id === 'string') {
+    const rows=source.kind==='part' ? state.workplace?.parts : state.checklistFolders;
+    const entity=(rows??[]).find(row=>row.id===source.id);
+    if(!entity)fail('번역할 항목을 찾지 못했어요.',404);
+    return {name:entity.name};
+  }
   if (source.kind !== 'manual' || typeof source.id !== 'string') fail('번역할 매뉴얼을 선택해 주세요.');
   const template=(state.taskTemplates??[]).find(row=>row.id===source.id&&!row.archivedAt);
   if (!template) fail('매뉴얼을 찾지 못했어요.',404);
@@ -31,6 +37,7 @@ function sourceField(content,row) {
 export function saveManualTranslation(state,input,actor,now) {
   if (!['owner','manager'].includes(actor.role) || actor.role!=='owner' && state.workplace?.restrictions?.[actor.role]?.tasks===false) fail('매뉴얼 편집 권한이 필요해요.',403);
   if (!supportedLocales.includes(input.locale)) fail('지원하는 번역 언어를 선택해 주세요.');
+  if(input.source?.kind==='part' && actor.role!=='owner')fail('사장님만 파트 번역을 편집할 수 있어요.',403);
   const content=sourceContent(state,input.source);
   if (!Array.isArray(input.fields) || !input.fields.length || input.fields.length>193) fail('번역 항목은 1–193개로 저장해 주세요.');
   const seen=new Set();let total=0;
@@ -47,14 +54,14 @@ export function saveManualTranslation(state,input,actor,now) {
   const store=state.manualContentTranslations??={manuals:{},welcome:{}};
   let target;
   if(input.source.kind==='welcome')target=slot(store.welcome??={},input.locale);
-  else {const manual=slot(input.source.kind==='place' ? store.places??={} : store.manuals??={},input.source.id);target=slot(manual,input.locale);}
+  else {const manual=slot(input.source.kind==='place' ? store.places??={} : input.source.kind==='folder' ? store.folders??={} : input.source.kind==='part' ? store.parts??={} : store.manuals??={},input.source.id);target=slot(manual,input.locale);}
   for(const update of updates) {
     if(update.stepId==null)target[update.field]=update.cell;
     else {const step=slot(target.steps??={},update.stepId);step[update.field]=update.cell;}
   }
 }
 export function manualTranslationView(state) {
-  const result={manuals:{},welcome:{},places:{}};
+  const result={manuals:{},welcome:{},places:{},folders:{},parts:{}};
   const project=(saved,content)=>{
     const locales={};
     for(const [locale,translation] of Object.entries(saved??{})) {
@@ -74,5 +81,9 @@ export function manualTranslationView(state) {
   result.welcome=project(store.welcome,sourceContent(state,{kind:'welcome'}));
   for(const template of state.taskTemplates??[])if(!template.archivedAt&&store.manuals?.[template.id])Object.defineProperty(result.manuals,template.id,{value:project(store.manuals[template.id],sourceContent(state,{kind:'manual',id:template.id})),enumerable:true});
   for(const place of state.zones??[])if(store.places?.[place.id])Object.defineProperty(result.places,place.id,{value:project(store.places[place.id],sourceContent(state,{kind:'place',id:place.id})),enumerable:true});
+  for(const [kind,rows] of [['folder',state.checklistFolders],['part',state.workplace?.parts]]) {
+    const key=kind==='part'?'parts':'folders';
+    for(const entity of rows??[])if(store[key]?.[entity.id])Object.defineProperty(result[key],entity.id,{value:project(store[key][entity.id],sourceContent(state,{kind,id:entity.id})),enumerable:true});
+  }
   return result;
 }

@@ -1,3 +1,5 @@
+import 'entity_name_translation.dart';
+import '../l10n/entity_name_scope.dart';
 import 'owner_workflow_screen.dart';
 import '../l10n/manual_text_scope.dart';
 import '../l10n/app_localizations.dart';
@@ -251,7 +253,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         ),
     ].join(' ');
     final text = normalize(
-      '$translated ${folder?['name']} ${row['tapTitle']} ${row['title']} ${row['manual']} ${row['tip']} ${(row['tags'] as List? ?? []).join(' ')}',
+      '$translated ${folder?['name']} ${folderLabel(folder?['id'])} ${row['tapTitle']} ${row['title']} ${row['manual']} ${row['tip']} ${(row['tags'] as List? ?? []).join(' ')}',
     );
     return words.every(text.contains);
   }
@@ -485,7 +487,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       for (final f in folders) {
         if (kind == 'group' && f['id'] == from['id']) continue;
         choices.add({
-          'label': f['name'],
+          'label': folderLabel(f['id']),
           'command': kind == 'group'
               ? {...from, 'beforeId': f['id']}
               : {...from, 'targetId': f['id']},
@@ -508,7 +510,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         choices.add({
           'label': context.t(
             'ui.audit2132',
-            args: {'p0': row['folderName'], 'p1': row['tapTitle']},
+            args: {
+              'p0': folderLabel(row['folderId'], row['folderName']),
+              'p1': row['tapTitle'],
+            },
           ),
           'command': {...from, 'targetId': row['tapId']}
             ..remove('targetFolderId'),
@@ -539,6 +544,17 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     if (command != null && mounted) await move(command);
   }
 
+  String folderLabel(dynamic id, [dynamic fallback]) {
+    final folder = folders.where((f) => f['id'] == id).firstOrNull;
+    return entityDisplayName(
+      context,
+      ops,
+      'folder',
+      id,
+      folder?['name'] ?? fallback ?? '',
+    );
+  }
+
   Widget node({
     required String kind,
     required String id,
@@ -556,6 +572,9 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   }) {
     final compactEdit = editing && MediaQuery.sizeOf(context).width < 700;
     final key = '$kind:$id${kind == 'task' ? ':$tapId' : ''}';
+    final sourceLabel = kind == 'group'
+        ? (folders.where((f) => f['id'] == id).firstOrNull?['name'] ?? label)
+        : label;
     final data = drag(kind, id, tapId: tapId);
     final handle = Semantics(
       key: ValueKey('manual-drag-$key'),
@@ -676,7 +695,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                                           'parentId': tapId,
                                           'operation': 'rename',
                                         },
-                                        label,
+                                        sourceLabel,
                                       );
                                     }
                                   : null,
@@ -757,7 +776,15 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               icon: const Icon(Icons.more_horiz, size: 18),
               constraints: const BoxConstraints(minWidth: 160),
               onSelected: (action) {
-                if (action == 'move') {
+                if (action == 'translate') {
+                  editEntityNameTranslation(
+                    context,
+                    ops,
+                    'folder',
+                    id,
+                    sourceLabel,
+                  );
+                } else if (action == 'move') {
                   chooseDestination(data);
                 } else if (action == 'detail' || action == 'add') {
                   showAppSheet(
@@ -781,10 +808,15 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                     'id': id,
                     'parentId': tapId,
                     'operation': action,
-                  }, label);
+                  }, sourceLabel);
                 }
               },
               itemBuilder: (_) => [
+                if (kind == 'group')
+                  PopupMenuItem(
+                    value: 'translate',
+                    child: Text(context.t('translation.edit')),
+                  ),
                 if (kind != 'group')
                   PopupMenuItem(
                     value: 'detail',
@@ -905,20 +937,22 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 widget.query.trim().isEmpty ||
                 matching.any((r) => r['tapId'] == t['tapId']) ||
                 normalize(
-                  '${folder['name']} ${t['tapTitle']}',
+                  '${folder['name']} ${folderLabel(folder['id'])} ${t['tapTitle']}',
                 ).contains(normalize(widget.query).trim()),
           )
           .toList();
       if (widget.query.trim().isNotEmpty &&
           visibleTaps.isEmpty &&
-          !normalize(folder['name']).contains(normalize(widget.query).trim())) {
+          !normalize(
+            '${folder['name']} ${folderLabel(folder['id'])}',
+          ).contains(normalize(widget.query).trim())) {
         continue;
       }
       nodes.add(
         node(
           kind: 'group',
           id: folder['id'],
-          label: folder['name'],
+          label: folderLabel(folder['id']),
           depth: 0,
           selected: scopeGroup == folder['id'] && scopeTap == null,
           count: folderTaps.length,
@@ -1038,7 +1072,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           ManualCustomizationBadge(value: selected['manualCustomization']),
           SharedPlaceLinks(ops: ops, row: selected),
           Text(
-            '${selected['folderName'] ?? ''} / ${selected['tapTitle']} / Task',
+            '${folderLabel(selected['folderId'], selected['folderName'])} / ${selected['tapTitle']} / Task',
             style: const TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           const SizedBox(height: 12),
@@ -1592,7 +1626,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                             chipAnimationStyle: AppMotion.chipStyle(context),
                             label: Text(
                               scopeTap == null
-                                  ? '${folders.where((f) => f['id'] == scopeGroup).firstOrNull?['name'] ?? 'TAP그룹'}'
+                                  ? folderLabel(scopeGroup, 'TAP그룹')
                                   : '${taps.where((r) => r['tapId'] == scopeTap).firstOrNull?['tapTitle'] ?? 'TAP'}',
                             ),
                             onDeleted: () => setState(() {

@@ -1,3 +1,5 @@
+import 'entity_name_translation.dart';
+import '../l10n/entity_name_scope.dart';
 import 'weekday_scope_selector.dart';
 import 'business_hours_slider.dart';
 import 'crew_invitation_screen.dart';
@@ -46,13 +48,27 @@ const defaultParts = <Json>[
 List<Json> storeParts(OperationsController ops) =>
     (ops.data?['workplace']?['parts'] as List? ?? defaultParts).cast<Json>();
 
-String partLabel(OperationsController ops, dynamic id) =>
-    storeParts(ops).where((p) => p['id'] == id).firstOrNull?['name'] ?? '전체 파트';
-String crewPartsLabel(OperationsController ops, Json person) {
+String partLabel(
+  OperationsController ops,
+  dynamic id, {
+  BuildContext? context,
+}) {
+  final part = storeParts(ops).where((p) => p['id'] == id).firstOrNull;
+  if (context == null) return part?['name'] ?? '전체 파트';
+  return part == null
+      ? context.t('전체 파트')
+      : entityDisplayName(context, ops, 'part', id, part['name']);
+}
+
+String crewPartsLabel(
+  OperationsController ops,
+  Json person, {
+  BuildContext? context,
+}) {
   final ids = person['workProfile']?['partIds'] as List? ?? [];
   return ids.isEmpty
-      ? '전체 파트'
-      : ids.map((id) => partLabel(ops, id)).join(' · ');
+      ? (context == null ? '전체 파트' : context.t('전체 파트'))
+      : ids.map((id) => partLabel(ops, id, context: context)).join(' · ');
 }
 
 /// Compact, shared card row used by setup, settings and employee details.
@@ -333,7 +349,7 @@ class AttendanceCard extends StatelessWidget {
                 : shifts
                       .map(
                         (s) =>
-                            '${s['start']}–${s['end']} · ${partLabel(ops, s['partId'])}',
+                            '${s['start']}–${s['end']} · ${partLabel(ops, s['partId'], context: context)}',
                       )
                       .join('\n'),
             style: AppText.caption,
@@ -951,7 +967,9 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       builder: (c) => StatefulBuilder(
         builder: (c, refresh) => AlertDialog(
           scrollable: true,
-          title: Text('${bandLabel(dayBands[index])} · ${part['name']}'),
+          title: Text(
+            '${bandLabel(dayBands[index])} · ${entityDisplayName(context, ops, 'part', part['id'], part['name'])}',
+          ),
           content: SizedBox(
             width: 360,
             child: Column(
@@ -1084,7 +1102,16 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                 decoration: const BoxDecoration(color: AppColors.elevated),
                 children: [
                   label('교대'),
-                  for (final p in visibleParts) label(p['name']),
+                  for (final p in visibleParts)
+                    label(
+                      entityDisplayName(
+                        context,
+                        ops,
+                        'part',
+                        p['id'],
+                        p['name'],
+                      ),
+                    ),
                 ],
               ),
               for (var i = 0; i < dayBands.length; i++)
@@ -1352,6 +1379,26 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                 ),
               ),
               IconButton(
+                key: ValueKey('part-translation-${parts[i]['id']}'),
+                tooltip: context.t('translation.edit'),
+                icon: const Icon(Icons.translate),
+                onPressed:
+                    editable &&
+                        storeParts(ops).any(
+                          (p) =>
+                              p['id'] == parts[i]['id'] &&
+                              p['name'] == parts[i]['name'],
+                        )
+                    ? () => editEntityNameTranslation(
+                        context,
+                        ops,
+                        'part',
+                        parts[i]['id'],
+                        parts[i]['name'],
+                      )
+                    : null,
+              ),
+              IconButton(
                 tooltip: parts[i]['hidden'] == true
                     ? context.t('ui.audit794')
                     : context.t('ui.audit795'),
@@ -1464,7 +1511,9 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
         for (final part in parts.where((p) => p['hidden'] != true))
           FilterChip(
             chipAnimationStyle: AppMotion.chipStyle(context),
-            label: Text(part['name']),
+            label: Text(
+              entityDisplayName(context, ops, 'part', part['id'], part['name']),
+            ),
             selected: partIds.contains(part['id']),
             onSelected: (v) => update(() {
               v ? partIds.add(part['id']) : partIds.remove(part['id']);

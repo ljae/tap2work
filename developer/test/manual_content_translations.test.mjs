@@ -52,3 +52,33 @@ test('place translations keep identities and media private, invalidate only chan
  assert.throws(()=>saveManualTranslation(state,{...payload,fields:[field('photo','tap2work-media:private','https://example.com/photo')]},owner,now),{status:400});
  assert.throws(()=>saveManualTranslation(state,payload,{id:'crew',role:'crew'},now),{status:403});
 });
+test('folder and part name translations preserve sources, isolate identities and invalidate renames',()=>{
+ const state=fixture();state.checklistFolders=[{id:'f',name:'가게 폴더'}];state.workplace.parts=[{id:'p',name:'가게 파트'}];
+ for(const [kind,id,source] of [['folder','f','가게 폴더'],['part','p','가게 파트']]) {
+   const payload={source:{kind,id},locale:'en',fields:[field('name',source,'Store name')]};
+   saveManualTranslation(state,payload,owner,now);
+   const key=kind==='part'?'parts':'folders';
+   assert.equal(manualTranslationView(state)[key][id].en.name.current,true);
+   assert.equal(manualTranslationView(state)[key][id].en.name.updatedBy,undefined);
+   assert.throws(()=>saveManualTranslation(state,{...payload,fields:[field('body',source,'Invalid')]},owner,now),{status:400});
+   assert.throws(()=>saveManualTranslation(state,{...payload,source:{kind,id:'missing'}},owner,now),{status:404});
+ }
+ assert.equal(state.checklistFolders[0].name,'가게 폴더');assert.equal(state.workplace.parts[0].name,'가게 파트');
+ state.checklistFolders[0].name='새 폴더';state.workplace.parts[0].name='새 파트';
+ assert.equal(manualTranslationView(state).folders.f.en.name.current,false);
+ assert.equal(manualTranslationView(state).parts.p.en.name.current,false);
+ state.checklistFolders=[];assert.deepEqual(manualTranslationView(state).folders,{});
+});
+test('part translation requires owner; folder follows task editing permission and operation CAS',async()=>{
+ const state=fixture();state.checklistFolders=[{id:'f',name:'폴더'}];state.workplace.parts=[{id:'p',name:'파트'}];
+ const manager={id:'manager',role:'manager'};
+ const payload=kind=>({source:{kind,id:kind==='part'?'p':'f'},locale:'en',fields:[field('name',kind==='part'?'파트':'폴더','Name')]});
+ assert.throws(()=>saveManualTranslation(state,payload('part'),manager,now),{status:403});
+ saveManualTranslation(state,payload('folder'),manager,now);
+ state.workplace.restrictions.manager.tasks=false;assert.throws(()=>saveManualTranslation(state,payload('folder'),manager,now),{status:403});
+ let data=seedOperations(now);const store=new OperationsStore(null,()=>now,{actor:owner,persistence:{read:async()=>structuredClone(data),save:async next=>{data=next;}}});
+ const initial=await store.snapshot(),folder=initial.checklistFolders[0];
+ const request={action:'save_manual_translation',revision:initial.revision,source:{kind:'folder',id:folder.id},locale:'en',fields:[field('name',folder.name,'Translated folder')]};
+ const saved=await store.mutate(null,request);assert.equal(saved.manualContentTranslations.folders[folder.id].en.name.text,'Translated folder');
+ assert.deepEqual(saved.checklistFolders,initial.checklistFolders);await assert.rejects(store.mutate(null,request),{status:409});
+});

@@ -1,3 +1,4 @@
+import '../l10n/entity_name_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../state/operations_controller.dart';
@@ -98,7 +99,15 @@ class WorkAssignmentField extends StatelessWidget {
                 for (final p in parts)
                   DropdownMenuItem(
                     value: p['id'] as String,
-                    child: Text(p['name']),
+                    child: Text(
+                      entityDisplayName(
+                        context,
+                        ops,
+                        'part',
+                        p['id'],
+                        p['name'],
+                      ),
+                    ),
                   ),
               ],
               onChanged: (v) => onChanged({

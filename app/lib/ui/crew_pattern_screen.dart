@@ -1,3 +1,4 @@
+import '../l10n/entity_name_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'time_wheel.dart';
 import 'crew_week_grid.dart';
@@ -177,7 +178,15 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                     for (final p in parts)
                       DropdownMenuItem(
                         value: p['id'] as String,
-                        child: Text(p['name']),
+                        child: Text(
+                          entityDisplayName(
+                            context,
+                            ops,
+                            'part',
+                            p['id'],
+                            p['name'],
+                          ),
+                        ),
                       ),
                   ],
                   onChanged: (v) => update(() {
@@ -452,7 +461,7 @@ class _CrewPatternScreenState extends State<CrewPatternScreen> {
                 boundary:
                     ops.data?['workplace']?['businessDayStart'] ?? '00:00',
                 editable: editable && crewId != null,
-                partName: (id) => partLabel(ops, id),
+                partName: (id) => partLabel(ops, id, context: context),
                 onAdd: (day, minute) => add(day, null, minute),
                 onEdit: (day, entry) => add(day, entry),
               ),
