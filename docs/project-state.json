@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 315,
+  "revision": 316,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1492,7 +1492,7 @@
       "decision": "User requested categorization,full fictional store example,UI/motion redesign and Sol low web deployment; AI review followed by draft deployment was already selected.",
       "source": "User conversation 2026-10-12/13",
       "updatedAt": "2026-10-12T17:01:25.922687+00:00",
-      "implementation": "Implemented and locally verified; publication pending actual supplier/reviewer authentication and web deployment. See docs/MANUAL_OPERATING_MODEL_REDESIGN_2026-10-12.md. No live data deleted; protected account identifier remains private."
+      "implementation": "Web UI and read-only fictional draft example deployed and verified (5f6f0a3 / Pages38284243014; operations65/catalog-admin7). Live authenticated-store catalog remains109/revision2; new135 publication awaits genuine supplier and independent reviewer authentication. No live data deleted or new native deployment. See docs/MANUAL_MODEL_WEB_RELEASE_2026-10-13.md."
     }
   ],
   "milestones": [
@@ -8912,7 +8912,13 @@
       "type": "verification",
       "title": "Compact phone manual example follow-up verified for Sol low deployment",
       "detail": "48px dropdown view/category controls and scrollable count/AI-draft metadata preserve short phone list space. Isolatedanalysis0,50relevantwidget tests (translatedNepali320x740/1.3scale,minimum96pxlist,reachablefolder/viewchange),productionbuild andactualanonymous320pxNepali rootfolder/menuitem->setup pass. Initial assetawait harness and text-vs-menuitem browser locator attempts were corrected; not production failures. Firstlive2c8127a/CI38282802152/267hashes andEdge65/7 remain verified. Newfull606CI/deployment pending; stable109auth-gated135publication unchanged."
+    },
+    {
+      "at": "2026-10-12T17:36:54.083166+00:00",
+      "type": "verification",
+      "title": "Requested Sol low manual-model web deployment verified; live catalog publication pending",
+      "detail": "Selected source2c8127a/Pages38282802152 and compact follow-up5f6f0a3/Pages38284243014 build+deploy success. FinalCI Flutter606pass/3browser-onlyskip,Node388,analysis0,UI81,JS/catalog135/7x1971translation,Edge+5SQL pass. operations65/catalog-admin7 ACTIVE; no account or SQL deployment. Both release artifacts267/267 publicSHA match. Actual anonymousChrome390px draft26TAP/108sections verified; final320x740Nepali firstfolder fullyvisible and viewdropdown->setup works. Publicsample135/c7eaf2 is an AI-reviewed fictional draft, translations not native-reviewed; authenticated liveDBstable109/revision2/08a4e057 preserved. Authentic supplier/distinctreviewer sessions unavailable, no publication bypass or fabricated review. No live operational writes/deletion or newnativebuild. Private evidence .local/manual-model-deployment/; docs/MANUAL_MODEL_WEB_RELEASE_2026-10-13.md."
     }
   ],
-  "updatedAt": "2026-10-12T17:26:17.677737+00:00"
+  "updatedAt": "2026-10-12T17:36:54.083166+00:00"
 }
