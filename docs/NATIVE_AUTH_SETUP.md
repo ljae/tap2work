@@ -128,3 +128,10 @@ Google Cloud `tap-work-510711`에 Android OAuth `TAP Work Android Play`를 생�
 ## 문의 이메일 통일 · 2026-10-10
 
 앱·개인정보/삭제 안내·Play 스토어/IARC·App Store 심사 연락처 및 한국어/영어 설명·Google OAuth 사용자지원/개발자 연락처는 `tap2work.dev@gmail.com`을 사용한다. 기존 계정 식별자·심사용 로그인·공급자 개인정보 연락처는 문의 주소와 별개다. Google 지원 주소 선택을 위해 해당 계정에 TAP Work 프로젝트의 `roles/oauthconfig.editor`만 부여하고 기존 소유자는 보존했다. 새 계정으로 브랜딩 저장과 지원/개발자 주소 확인을 완료했다. 위의 이전 로그인 계정만 선택 가능했다는 설명은 과거 상태다.
+
+
+## 2026-10-12 격리 native 배포 필수 확인
+
+번역 릴리스의 격리 작업 트리에서 기존 공개 Google define/콜백이 빠질 수 있음을 산출물 비교로 확인했다. 각 작업 트리의 native 빌드에는 SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID 네 공개 값을 명시적으로 전달한다. 기존 공개 native-auth JSON을 쓰더라도 그 작업 트리의 app/ios/Flutter/Auth.xcconfig는 별도로 생성해야 한다. configure-native-auth.mjs의 iOS client reversed callback 생성 계약을 따른다. 비밀키/서비스 키/Google client secret은 compile define에 포함하지 않는다.
+
+최종19/18에서 AOT 실제 문자열·iOS CFBundleURLTypes·기존 Android 업로드 인증서·번역 자산을 비교하고 배포를 확인했다. 공개 설정 파일을 전달했다는 사실만으로 산출물 포함을 가정하지 않는다. 실제 실기기/실계정 로그인은 별도 검증이다. signing properties는 기존 저장소 외부 비공개 값을 사용하고 상대 경로를 다른 프로젝트의 키로 추정하지 않는다.

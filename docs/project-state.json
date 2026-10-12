@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 307,
+  "revision": 308,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -8852,7 +8852,13 @@
       "type": "verification",
       "title": "AI-reviewed draft release verified; actual web identified board caption follow-up",
       "detail": "ce8849f / Pages38238284416 completed success. CI579pass/3skip, analysis0, Node381, UI78, Edge+5SQL+7x1357translation checks pass. Public262SHA256 match. iOS17VALID/internalTestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL, review details preserved. Android16internal+alpha completed, production/beta empty; same original signer and7translation assets verified. Android initial reference-key relative path failed; wrong reference-key upload returned403 and temporary edit deleted; actual external private Tap2work key recovered/certificate-matched and rebuilt successfully. No upload-key reset or signing identity change. Anonymous390px browser confirmed Thai login/work/owner text and identified Korean all-work/assignee/slot captions; source fixed plus three owner-stage labels clarified. New8board locale tests preserve custom names/IDs/slot codes; final isolated587pass/3skip, analysis0, relevant32tests/UI78pass. Follow-up web and iOS18/Android17 deployment in progress. ai-draft and native-speaker review incomplete preserved; no operational writes."
+    },
+    {
+      "at": "2026-10-12T11:51:24.940165+00:00",
+      "type": "verification",
+      "title": "AI-reviewed localization final web and native release verified",
+      "detail": "User-selected AI review/draft deployment completed. Finalweb b5bcfe702b814f955978a6816d607d300da1316f / Pages38241794392 success;262publicSHA256 match. CIFlutter587pass/3browser skip,analysis0,server381,JS/UI78/Edge/5SQL/7x1357source-number-placeholder checks pass. UI1765rows; initialAI435foreign cells/106sources corrected plus actual-web board captions/owner stages. AnonymousChrome390px Thai login/work/owner verified;error0,existing preload warnings. iOS1.0.0(19)VALID/internalTestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL,reviewdetails unchanged. Android1.0.0(18)internal+alpha completed,beta/production empty;originalsigner+7assetbytes match. Initialreference-key relative-path/signature403 corrected via existing private key. Intermediate native publicGoogle define omission caught;Androidrollback15 rejected/deleted without track mutation,iOS17reviewcancelled/internalunlinked. Final19/18restore4priorpublicvalues+configureiOSGooglecallback,verified actualAOTembeddedconfig/CFURLscheme. No signer reset,server OAuth changes,real operations writes or native-speaker review. AI-draft retained;physical-device/native-login review not performed. Existingdirtyroot preserved. LOCALIZATION_RELEASE_2026-10-12.md and .local/localization-deployment/."
     }
   ],
-  "updatedAt": "2026-10-12T11:18:16.804544+00:00"
+  "updatedAt": "2026-10-12T11:51:24.940165+00:00"
 }

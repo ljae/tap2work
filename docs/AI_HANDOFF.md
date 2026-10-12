@@ -1,3 +1,7 @@
+2026-10-12 다국어 AI 검토/최종배포 완료: 사용자 AI추가검토+ai-draft배포 선택. 웹b5bcfe7/Actions38241794392성공·262publicSHA일치, iOS19VALID/내부TestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL, Android18internal+alpha completed·production없음. CI587/3skip·analysis0·Node381·UI78/Edge/5SQL/7x1357통과. 실웹390px Thai로그인/업무보조/운영준비확인. native초기Google공개define누락/콜백미설정은 최종4값/AOT/CFURL검증으로복구, 원본키인증서보존. docs/LOCALIZATION_RELEASE_2026-10-12.md 및 NATIVE_AUTH_SETUP.md 새필수확인 참조. 원어민·실기기·실계정native로그인미검증. 기존dirty/운영데이터보존; .local/localization-release 검증본, rootHEAD만으로복원하지않음.
+
+2026-10-12 상세 다국어 보완 로컬 완료: UI59파일/고정1764행, 기본 운영24매뉴얼110행동+첫근무6안내 포함7언어각1357원문. Flutter578통과/3browser skip·analysis0·Node381·JS/UI78·번역숫자/변수 통과. docs/LOCALIZATION_COMPLETION_2026-10-12.md 참조. ai-draft/원어민·실브라우저·실기기·빌드/배포 미수행. 기존 dirty/운영 데이터 보존.
+
 2026-10-11 Codex Cloud 설정 완료: D133, GitHub ljae/tap2work만 연결·Only me·환경 tap2work 게시 UI 확인. Flutter3.41.2/Dart3.11.0/Node22.23.3/Deno2.1.4 설치, Flutter568/3skip·analysis0·서버381·JS/UI78·Edge/번역/SQL·웹빌드/미리보기/재시작 통과. 새 Cloud 작업 시작했으나 EgoSpace13 소멸로 최종 복원 점검 결과는 미확인. Mac 미커밋/인증/운영데이터 자동이전 없음, 네이티브는 Mac 유지. docs/CODEX_CLOUD_SETUP.md 참조.
 
 2026-10-11 최신 완료: D132 통합 검색·국기/언어 바로가기 구현 및 GPT-6 Luna 배포 완료. 웹674ea84 / Actions38142070476 성공(Flutter568·3skip/서버381/analysis0, 공개256개SHA일치), iOS16 심사대기·내부TestFlight, Android15 internal/alpha completed·production없음. 실제390px 국기 선택/언어 저장·재접속·한국어 복원 확인. 검색 입력 브라우저 자동화 한계는 유지하며 네 탭 검색은 widget 검증. `docs/SEARCH_LANGUAGE_RELEASE_2026-10-11.md` 참조.
