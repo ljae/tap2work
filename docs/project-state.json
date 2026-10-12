@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 306,
+  "revision": 307,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -8846,7 +8846,13 @@
       "type": "verification",
       "title": "AI language review completed; user selected draft deployment",
       "detail": "User clarified AI additional language review followed by deployment while keeping native-speaker review incomplete. Reviewed terminology/safety subjects/negations/placeholders and Thai mixed-language prose; corrected435foreign cells in106source rows plus corresponding prepared manual fields. Rejected=反려, goods receipt=입고, operational time band vs geographical timezone, hours/shifts, roster and restaurant crew glossary; unwell worker vs food condition and affected orders vs spells corrected. ai-draft maintained; no human reviewer fabricated. Isolated .local/localization-release based on current origin/main ecdc861; all59UI opening snapshots byte-match base. Only75selected release paths; existing dirty root/credentials/operational data preserved. Final isolated Flutter579pass/3browser skips, analysis0, server381, JS/UI78/7x1357 source-number-placeholder checks pass. iOS17/Android16 build and deployment pending."
+    },
+    {
+      "at": "2026-10-12T11:18:16.804544+00:00",
+      "type": "verification",
+      "title": "AI-reviewed draft release verified; actual web identified board caption follow-up",
+      "detail": "ce8849f / Pages38238284416 completed success. CI579pass/3skip, analysis0, Node381, UI78, Edge+5SQL+7x1357translation checks pass. Public262SHA256 match. iOS17VALID/internalTestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL, review details preserved. Android16internal+alpha completed, production/beta empty; same original signer and7translation assets verified. Android initial reference-key relative path failed; wrong reference-key upload returned403 and temporary edit deleted; actual external private Tap2work key recovered/certificate-matched and rebuilt successfully. No upload-key reset or signing identity change. Anonymous390px browser confirmed Thai login/work/owner text and identified Korean all-work/assignee/slot captions; source fixed plus three owner-stage labels clarified. New8board locale tests preserve custom names/IDs/slot codes; final isolated587pass/3skip, analysis0, relevant32tests/UI78pass. Follow-up web and iOS18/Android17 deployment in progress. ai-draft and native-speaker review incomplete preserved; no operational writes."
     }
   ],
-  "updatedAt": "2026-10-12T10:44:31.246416+00:00"
+  "updatedAt": "2026-10-12T11:18:16.804544+00:00"
 }

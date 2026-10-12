@@ -12,6 +12,8 @@ import 'package:tap2work/state/operations_controller.dart';
 import 'package:tap2work/state/work_controller.dart';
 import 'package:tap2work/ui/owner_workflow_screen.dart';
 import 'package:tap2work/ui/tap_settings_screen.dart';
+import 'package:tap2work/ui/tap_workspace.dart';
+import 'checklist_test.dart' show fixture;
 import 'app_locale_test.dart' show MemoryLocales;
 import 'work_controller_test.dart' show MemoryStore;
 import 'owner_workflow_test.dart' as owner;
@@ -74,6 +76,56 @@ void main() {
   );
 
   for (final language in appLanguageNames.keys) {
+    testWidgets(
+      'work board fixed captions use $language while custom names and IDs stay intact',
+      (t) async {
+        final locale = AppLocaleController(store: MemoryLocales());
+        await locale.selectLanguage(language);
+        final work = WorkController(MemoryStore());
+        final state = fixture();
+        state['tappers'] = [
+          {
+            'id': 'fixture-worker',
+            'nickname': '가상 크루',
+            'active': true,
+            'rank': 'crew',
+            'duties': ['조리'],
+          },
+        ];
+        state['taskTemplates'][1]['title'] = '매장 작성 원문';
+        state['tasks'][1]['title'] = '매장 작성 원문';
+        final ops = OperationsController(
+          client: MockClient((_) async => response(state)),
+        );
+        addTearDown(locale.dispose);
+        addTearDown(work.dispose);
+        addTearDown(ops.dispose);
+        await ops.refresh();
+        await t.runAsync(() => BundledManualTranslations.load(language));
+        await t.pumpWidget(
+          Tap2workApp(
+            controller: work,
+            localeController: locale,
+            homeOverride: Scaffold(
+              body: SingleChildScrollView(
+                child: TapWorkspace(ops: ops, onStock: (_) async {}),
+              ),
+            ),
+          ),
+        );
+        await t.pumpAndSettle();
+        final strings = AppStrings(language);
+        expect(find.text('TAP · ${strings.text('전체 업무')}'), findsOneWidget);
+        expect(find.textContaining(strings.text('가능한 담당자')), findsOneWidget);
+        expect(find.textContaining('매장 작성 원문'), findsOneWidget);
+        expect(ops.rows('tasks')[0]['slot'], '준비');
+        expect(ops.rows('tasks')[0]['id'], 'daily-prep');
+        expect(t.takeException(), isNull);
+      },
+    );
+  }
+
+  for (final language in appLanguageNames.keys) {
     testWidgets('owner review and future settings in $language at 320px', (
       t,
     ) async {
@@ -110,6 +162,7 @@ void main() {
       addTearDown(work.dispose);
       addTearDown(ops.dispose);
       await ops.refresh();
+      await t.runAsync(() => BundledManualTranslations.load(language));
       await t.runAsync(() => BundledManualTranslations.load(language));
       Future<void> mount(Widget screen) async {
         await t.pumpWidget(

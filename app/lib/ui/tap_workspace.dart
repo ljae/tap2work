@@ -245,9 +245,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       return storeParts(
             ops,
           ).where((p) => p['id'] == task['partId']).firstOrNull?['name'] ??
-          '전체 파트';
+          context.t('전체 파트');
     }
-    return checklistRoles[task['requiredRole']] ?? '전체 파트';
+    return context.t(checklistRoles[task['requiredRole']] ?? '전체 파트');
   }
 
   String platformBadge(String value) {
@@ -306,15 +306,15 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       final partName = storeParts(
         ops,
       ).where((p) => p['id'] == view['partId']).firstOrNull?['name'];
-      return '$label${partName == null ? '' : ' · $partName'} · ${view['unassigned'] == true ? '담당 미배정' : '공동 업무'}';
+      return '$label${partName == null ? '' : ' · $partName'} · ${context.t(view['unassigned'] == true ? '담당 미배정' : '공동 업무')}';
     }
     final people = assignees(task);
     if (task.containsKey('partId')
         ? task['partId'] == null
         : task['requiredRole'] == 'all') {
-      return '전체 파트';
+      return context.t('전체 파트');
     }
-    return '${role(task)} · ${people.isEmpty ? '담당자 미지정' : '가능한 담당자'}';
+    return '${role(task)} · ${context.t(people.isEmpty ? '담당자 미지정' : '가능한 담당자')}';
   }
 
   String assignmentTimes(Json task, dynamic id) {
@@ -324,7 +324,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     final times = all
         .map(
           (p) =>
-              '${p['start']}–${p['startDate'] != null && p['endDate'] != null && p['startDate'] != p['endDate'] ? '다음 날 ' : ''}${p['end']}',
+              '${p['start']}–${p['startDate'] != null && p['endDate'] != null && p['startDate'] != p['endDate'] ? context.t('다음 날 ') : ''}${p['end']}',
         )
         .toSet();
     return times.isEmpty ? '' : ' · ${times.join(', ')}';
@@ -516,7 +516,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                           'manual.progress',
                           args: {'done': done(task), 'total': total(task)},
                         )
-                      : 'TAP · ${folder == null ? '전체 업무' : context.t('ui.audit2127', args: {'p0': folder['name']})}',
+                      : 'TAP · ${folder == null ? context.t('전체 업무') : context.t('ui.audit2127', args: {'p0': folder['name']})}',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -601,7 +601,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             templateId: t['templateId'],
           ),
           subtitle:
-              '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${t['slot']} · ${assigneeLabel(t)}${estimatedDuration(t).isEmpty ? '' : ' · ${estimatedDuration(t)}'}',
+              '${folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'] ?? ''} · ${context.t('${t['slot']}')} · ${assigneeLabel(t)}${estimatedDuration(t).isEmpty ? '' : ' · ${estimatedDuration(t)}'}',
           accentColor: assigneeColor(t),
           assigneeBadges: assigneeBadges(t),
           dragHandle: !ops.canEditTasks
