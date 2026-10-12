@@ -1,3 +1,4 @@
+import 'manual_categories.dart';
 import '../state/operations_controller.dart';
 
 /// Discovery metadata never changes a template's content or operating policy.
@@ -20,13 +21,14 @@ class ManualMarketCatalog {
   List<String> industryIds(Json entry) =>
       (entry['industryIds'] as List? ?? ['all']).cast<String>();
   static const useCases = {
-    'training': '직원교육',
-    'routine': '매장 루틴',
-    'periodic': '정기관리',
+    'startup': '처음 설정',
+    'periodic': '정기 관리',
+    'routine': '루틴 업무',
+    'recipe': '레시피',
+    'reference': '교육·참고',
   };
-  String useCaseOf(Json entry) => entry['knowledge']?['useCase'] ??
-      (entry['kind'] == 'legal' ? 'periodic' : 'routine');
-  bool discoverable(Json entry) => useCaseOf(entry) != 'startup' &&
+  String useCaseOf(Json entry) => manualCategoryOf(entry);
+  bool discoverable(Json entry) =>
       (entry['knowledge']?['supersededBy'] as List? ?? []).isEmpty;
   String scopeOf(Json entry) =>
       entry['knowledge']?['scope'] ??

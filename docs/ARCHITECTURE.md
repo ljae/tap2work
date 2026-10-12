@@ -1,3 +1,15 @@
+## 2026-10-13 매뉴얼 분야·본보기·연결 경로
+
+분야는 `startup/periodic/routine/recipe/reference`이며 기존 training은 교육·참고로 표시한다. 분야는 찾는 축, `settings.usage/recurrence/assignment`는 실행 정책이다. 메뉴 연결 문서는 recipe이고 처음 설정·레시피·교육/참고는 일일 실행을 만들지 않는다. 정기 관리는 weekly/monthly가 있어야 생성 조건을 충족한다. 기존 실행의 완료·담당·본문 snapshot을 다시 쓰지 않는다.
+
+매장 선택 분류는 `manualCategoryOverride`로 원문 knowledge와 분리한다. `save_manual_tap.manualCategory`가 기존 권한·revision 검사로 변경하며 원문·ID·운영 설정을 유지한다. 체크리스트 편집에서 누락된 override는 보존하고 개인화 백업에 포함한다. `manualSearch`와 crew guidance는 계산한 manualCategory를 투영한다. 공용 변경은 등록 매뉴얼의 비교·선택 적용 계약을 따른다.
+
+`fictional_store_examples.json`은 실제 운영 데이터와 분리된 원본이다. 26TAP·108행동/내용·15폴더와 시간대·파트·역할·장소·좌석 설정 용량·작업 blueprint를 제공한다. `fictional_store_schema.mjs`가 ID·참조·정책·격자 범위·겹침·좌석 합계를 검증하고 builder가 schemaVersion2의 taxonomy.exampleStores와 콘텐츠에 넣는다. 발행 해시는 서버와 같은 canonical JSON으로 계산한다. 공용 step에는 콘텐츠만 넣는다.
+
+가져오기 `folderMode:example`은 본보기 폴더로 추가하고 실제 가져온 정의에만 관련 문서 ID를 연결한다. 빠진 문서의 가짜 ID를 만들지 않는다. 등록 대기·업무 OFF로 시작하며 blueprint를 실제 매장 설정으로 자동 저장하지 않는다. 사용자 지정 보존 계정의 원본·할 일·완료 기록은 유지한다. 다른 계정 정리 허용을 삭제 필수 작업으로 해석하지 않는다.
+
+`ManualCategoryPicker → ManualHierarchyPath → ManualExampleScreen/ManualWorkspace → ManualActionSlides`가 분야·폴더·TAP·행동/내용·방법 경로를 공유한다. 본보기 담기는 로컬 basket이다. 레시피는 읽기를 먼저 열고 편집은 별도 동작이다. 수행 화면은 기존 Task/step ID와 actor/workspace/day를 고정하며 저장 성공 뒤만 다음 행동으로 이동한다. 폴더·선택·본문 전환은 AppMotion을 재사용하고 동작 줄이기는 정지 Column을 사용한다.
+
 ## 2026-10-11 통합 검색·국기 언어 컨트롤
 
 상단 검색은 기존 manualSearch projection에서 등록 매뉴얼과 menuManualId 레시피의 제목/태그/본문을 함께 검색하며 결과 종류를 표시한다. 서버 인덱스·등록 승인·권한·ID 계약은 유지한다. CountryFlag는 ISO 국적249개의 번들 PNG를 사용한다. Twemoji 고정 소스/CC BY4.0 고지는 assets/flags/LICENSE.txt와 앱 LicenseRegistry에 포함한다. appLanguageNames/appLanguageCountries가 공통 표시 카탈로그이며 LanguageLabel이 크루/웰컴 편집 언어 선택에 재사용된다. 영어 대표 국기는 US이며 국적과 독립이다. 미입력은 지구본, 서버가 미투영한 국적은 카드에서 표시하지 않는다.

@@ -1,3 +1,6 @@
+import '../l10n/entity_name_scope.dart';
+import '../l10n/manual_text_scope.dart';
+import 'manual_example_screen.dart';
 import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -29,6 +32,8 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
   String folderMode = 'purpose';
   final selected = <String>{};
   final search = TextEditingController();
+  final browseScroll = ScrollController();
+  final basketScroll = ScrollController();
   final specialization = TextEditingController();
   bool replaceExisting = false, enableOperations = false;
   String? industry, useCase, purpose, error;
@@ -86,6 +91,8 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
   @override
   void dispose() {
     search.dispose();
+    browseScroll.dispose();
+    basketScroll.dispose();
     specialization.dispose();
     super.dispose();
   }
@@ -184,7 +191,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   ))
                     DropdownMenuItem(
                       value: item['id'] as String,
-                      child: Text(item['name']),
+                      child: Text(display(item['name'])),
                     ),
                 ],
                 onChanged: (v) =>
@@ -203,7 +210,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   for (final item in catalog.industries)
                     DropdownMenuItem(
                       value: item['id'] as String,
-                      child: Text(item['name']),
+                      child: Text(display(item['name'])),
                     ),
                 ],
                 onChanged: (v) =>
@@ -241,6 +248,87 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
     }
   }
 
+  String display(dynamic value) => manualDisplayText(context, '${value ?? ''}');
+  Future<void> openExample(Json profile) async {
+    final ids = catalog.entries
+        .where((e) => e['knowledge']?['exampleStoreId'] == profile['id'])
+        .map((e) => e['sourceId'] as String)
+        .toSet();
+    final picked = await showAppFormSheet<List<String>>(
+      context: context,
+      builder: (_) => ManualExampleScreen(
+        profile: profile,
+        entries: catalog.entries,
+        initialSelected: selected.intersection(ids),
+        canSelect: !saving,
+      ),
+    );
+    if (!mounted ||
+        picked == null ||
+        widget.ops.actorId != actor ||
+        widget.ops.data?['workspaceId'] != workspace) {
+      return;
+    }
+    setState(() {
+      selected.removeWhere(ids.contains);
+      selected.addAll(picked.where(ids.contains));
+    });
+  }
+
+  List<Json> matchingEntries() {
+    final original = catalog.search(
+      useCase: useCase,
+      purpose: purpose,
+      query: search.text,
+      industry: industry,
+    );
+    if (search.text.trim().isEmpty) return original;
+    String norm(String value) =>
+        value.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+    final words = search.text.trim().split(RegExp(r'\s+')).map(norm);
+    final translated = catalog
+        .search(useCase: useCase, purpose: purpose, industry: industry)
+        .where((entry) {
+          final text = norm(
+            [
+              display(entry['title']),
+              display(entry['summary']),
+              display(entry['applicability']),
+              display(entry['collectionName']),
+              for (final action in (entry['steps'] as List? ?? []).cast<Json>())
+                '${display(action['title'])} ${display(action['manual'])}',
+            ].join(' '),
+          );
+          return words.every(text.contains);
+        });
+    return {
+      for (final entry in [...original, ...translated])
+        entry['sourceId']: entry,
+    }.values.toList();
+  }
+
+  Widget exampleFeature(Json profile) => Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Surface(
+      padding: const EdgeInsets.all(8),
+      child: ListTile(
+        key: ValueKey('market-example-${profile['id']}'),
+        leading: const Icon(Icons.storefront_outlined, color: AppColors.green),
+        title: Text(
+          display(profile['name']),
+          maxLines: 2,
+          style: AppText.body.copyWith(fontWeight: FontWeight.w700),
+        ),
+        subtitle: Text(
+          context.t('manual.market.exampleTitle'),
+          style: AppText.caption,
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => openExample(profile),
+      ),
+    ),
+  );
+
   Widget entryCard(Json entry) {
     final linked = !widget.setup && catalog.linked(entry);
     final legal = entry['kind'] == 'legal';
@@ -256,21 +344,19 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
           leading: Checkbox(
             semanticLabel: context.t(
               'ui.audit679',
-              args: {'p0': entry['title']},
+              args: {'p0': display(entry['title'])},
             ),
             value: linked || selected.contains(entry['sourceId']),
             onChanged: linked || saving
                 ? null
                 : (v) => choose(entry, v == true),
           ),
-          title: Text(entry['title'], style: AppText.body),
+          title: Text(display(entry['title']), style: AppText.body),
           subtitle: Text(
             context.t(
               'ui.audit680',
               args: {
-                'p0':
-                    ManualMarketCatalog.useCases[catalog.useCaseOf(entry)] ??
-                    context.t('ui.audit1122'),
+                'p0': context.t('manual.category.${catalog.useCaseOf(entry)}'),
                 'p1': steps.length,
                 'p2': linked ? context.t('ui.audit1123') : '',
               },
@@ -284,11 +370,11 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (entry['summary'] != null)
-                    Text(entry['summary'], style: AppText.body),
+                    Text(display(entry['summary']), style: AppText.body),
                   const SizedBox(height: 12),
                   Text(context.t('ui.audit681'), style: AppText.section),
                   Text(
-                    entry['applicability'] ?? entry['collectionName'],
+                    display(entry['applicability'] ?? entry['collectionName']),
                     style: AppText.caption,
                   ),
                   if (legal)
@@ -301,32 +387,36 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     ),
                   for (var i = 0; i < steps.length; i++) ...[
                     const SizedBox(height: 16),
-                    Text('${i + 1}. ${steps[i]['title']}', style: AppText.body),
-                    Text(steps[i]['manual'] ?? '', style: AppText.caption),
+                    Text(
+                      '${i + 1}. ${display(steps[i]['title'])}',
+                      style: AppText.body,
+                    ),
+                    Text(display(steps[i]['manual']), style: AppText.caption),
                     if ((steps[i]['tip'] ?? '').isNotEmpty)
-                      Text(steps[i]['tip'], style: AppText.caption),
+                      Text(display(steps[i]['tip']), style: AppText.caption),
                   ],
                   const SizedBox(height: 16),
                   Text(
                     context.t(
                       'ui.audit683',
                       args: {
-                        'p0':
-                            entry['jurisdiction'] ?? context.t('ui.audit1124'),
+                        'p0': display(
+                          entry['jurisdiction'] ?? context.t('ui.audit1124'),
+                        ),
                         'p1': entry['reviewedAt'],
                       },
                     ),
                     style: AppText.caption,
                   ),
-                  Text(entry['basis'] ?? '', style: AppText.caption),
+                  Text(display(entry['basis']), style: AppText.caption),
                   for (final ref in references) ...[
                     TextButton.icon(
                       onPressed: () => openSource(ref['url']),
                       icon: const Icon(Icons.open_in_new, size: 16),
-                      label: Text(ref['title']),
+                      label: Text(display(ref['title'])),
                     ),
                     Text(
-                      '${ref['scope']} · ${ref['checkedAt']}',
+                      '${display(ref['scope'])} · ${ref['checkedAt']}',
                       style: AppText.caption,
                     ),
                   ],
@@ -356,12 +446,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final results = catalog.search(
-      useCase: useCase,
-      purpose: purpose,
-      query: search.text,
-      industry: industry,
-    );
+    final results = matchingEntries();
     final basket = catalog.entries
         .where((e) => selected.contains(e['sourceId']))
         .toList();
@@ -427,6 +512,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
       ),
       body: ListView(
         key: ValueKey(reviewing ? 'market-basket' : 'market-browse'),
+        controller: reviewing ? basketScroll : browseScroll,
         padding: const EdgeInsets.all(24),
         children: reviewing
             ? [
@@ -465,6 +551,16 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                         value: 'purpose',
                         child: Text(context.t('ui.audit694')),
                       ),
+                      if ((catalog.data['taxonomy']?['exampleStores']
+                                  as List? ??
+                              [])
+                          .isNotEmpty)
+                        DropdownMenuItem(
+                          value: 'example',
+                          child: Text(
+                            context.t('manual.market.exampleStructure'),
+                          ),
+                        ),
                       DropdownMenuItem(
                         value: 'existing',
                         child: Text(context.t('ui.audit695')),
@@ -484,7 +580,15 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                         .map(
                           (f) => DropdownMenuItem(
                             value: f['id'] as String,
-                            child: Text(f['name']),
+                            child: Text(
+                              entityDisplayName(
+                                context,
+                                widget.ops,
+                                'folder',
+                                f['id'],
+                                f['name'],
+                              ),
+                            ),
                           ),
                         )
                         .toList(),
@@ -497,7 +601,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                 for (final entry in basket)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text(entry['title']),
+                    title: Text(display(entry['title'])),
                     subtitle: Text(
                       folderMode == 'purpose'
                           ? catalog.purposeName(entry)
@@ -506,7 +610,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     trailing: IconButton(
                       tooltip: context.t(
                         'ui.audit698',
-                        args: {'p0': entry['title']},
+                        args: {'p0': display(entry['title'])},
                       ),
                       onPressed: saving ? null : () => choose(entry, false),
                       icon: const Icon(Icons.close),
@@ -528,6 +632,11 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
+                for (final profile
+                    in (catalog.data['taxonomy']?['exampleStores'] as List? ??
+                            [])
+                        .cast<Json>())
+                  exampleFeature(profile),
                 TextField(
                   controller: search,
                   decoration: InputDecoration(
@@ -542,7 +651,14 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                             icon: const Icon(Icons.close),
                           ),
                   ),
-                  onChanged: (_) => setState(() {}),
+                  onChanged: (_) {
+                    setState(() {});
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted && browseScroll.hasClients) {
+                        browseScroll.jumpTo(0);
+                      }
+                    });
+                  },
                 ),
                 const SizedBox(height: 16),
                 Wrap(
@@ -554,7 +670,11 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                       ...ManualMarketCatalog.useCases,
                     }.entries)
                       ChoiceChip(
-                        label: Text(item.value),
+                        label: Text(
+                          item.key.isEmpty
+                              ? context.t('manual.category.all')
+                              : context.t('manual.category.${item.key}'),
+                        ),
                         selected: (useCase ?? '') == item.key,
                         onSelected: (_) => setState(() {
                           useCase = item.key.isEmpty ? null : item.key;

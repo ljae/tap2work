@@ -438,3 +438,9 @@ iOS App Store에서 무료 다운로드를 제공하고 향후 추가 기능에 
 
 
 2026-10-10 웹 선행 출시: 통합 행동 슬라이드와 최적화 비공개 사진 등록을 웹에서 먼저 제공한다(D-118). 네이티브 호환은 다음 업데이트이며 구버전의 새 사진 표시·관련 편집 제한을 사용자에게 설명하고 웹 우선 선택을 받았다. 전체 신입 내비게이션 로드맵을 이번 출시 완료로 취급하지 않는다.
+
+### 2026-10-13 Manual organization and operating example
+
+Manuals are grouped as first setup, periodic management, routine work, recipes, and training/reference. Daily crew checks mainly use routines. Setup, recipes and references remain readable documents; periodic checks use explicit weekly/monthly schedules and receipt/production checks use actual events. Parts classify work and ranks authorize access. Existing manual IDs and execution histories remain intact.
+
+The manual market source includes the explicitly fictional Soldam restaurant example (26 TAPs,108 sections,15 folders). Users can inspect its folder/TAP/action/method structure, configured store/roles/places and example dates before selecting documents. Import remains pending and OFF until owner review. Quantities and recipes illustrate documentation depth and require actual store confirmation. New catalog publication follows independent exact-hash review; implementation alone does not establish live publication.

@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S87','app/lib/ui/manual_tap_editor.dart',"'manualCategory'",'developer/manual_market.mjs','manualCategoryOverride'],
+  ['S88','app/lib/ui/manual_market_screen.dart','ManualExampleScreen','developer/manual_market.mjs',"'example'"],
   ['S86','app/lib/ui/entity_name_translation.dart','ManualTranslationEditor','developer/manual_content_translations.mjs',"['folder','part']"],
   ['S83','app/lib/ui/owner_workflow_screen.dart',"'register_owner_selection'",'developer/owner_workflow.mjs',"'register_owner_selection'"],
   ['S84','app/lib/ui/tap_settings_screen.dart',"'schedule_tap_settings'",'developer/owner_workflow.mjs','scheduledSettings'],

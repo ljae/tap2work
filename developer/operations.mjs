@@ -1,3 +1,4 @@
+import {manualCategory} from './manual_categories.mjs';
 import {ownerWorkflowView,mutateOwnerWorkflow,registeredManual} from './owner_workflow.mjs';
 import {effectiveTemplate} from './work_recurrence.mjs';
 import { manualTranslationView, saveManualTranslation } from './manual_content_translations.mjs';
@@ -54,6 +55,8 @@ function manualSearchIndex(state) {
         tapId: template ? task.id : `occurrence:${task.id}`,
         templateId: template ? task.id : null,
         menuManualId: task.menuManualId ?? null,
+        manualCategory:manualCategory(task),
+        knowledge:task.knowledge??null,
         knowledgeIds: task.settings?.knowledgeIds??[],
         sourceStepId: step.id,
         editable: template,

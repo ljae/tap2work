@@ -1,3 +1,4 @@
+import {manualCategory,manualCategories,manualCategoryIds} from './manual_categories.mjs';
 import { presentSource } from './manual_setup.mjs';
 import {knowledgeFields} from './knowledge_work.mjs';
 import release from '../docs/market/current.json' with {type:'json'};
@@ -63,7 +64,7 @@ export function syncManualCatalog(state,now,catalog=release){
  }
  return changed;
 }
-export function catalogView(state,catalog=release){return {...catalog,entries:catalog.entries.filter(source=>source.knowledge?.useCase!=='startup').map(source=>({...presentSource(source),installed:Object.entries(state.catalogLinks??{}).filter(([id,l])=>l.sourceId===source.sourceId&&l.mode!=='removed'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)).map(([templateId,l])=>({templateId,mode:l.mode,releaseId:l.releaseId}))}))};}
+export function catalogView(state,catalog=release){return {...catalog,manualCategories,entries:catalog.entries.map(source=>({...presentSource(source),manualCategory:manualCategory(source),installed:Object.entries(state.catalogLinks??{}).filter(([id,l])=>l.sourceId===source.sourceId&&l.mode!=='removed'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)).map(([templateId,l])=>({templateId,mode:l.mode,releaseId:l.releaseId}))}))};}
 function addTemplates(state,drafts){
  const checked=validateChecklists({folders:state.checklistFolders,templates:[...state.taskTemplates,...drafts]},state);
  const ids=new Set(drafts.map(t=>t.id));
@@ -71,7 +72,7 @@ function addTemplates(state,drafts){
 }
 export function checklistBackup(state){
  const templates=state.taskTemplates.filter(t=>!t.archivedAt && state.catalogLinks?.[t.id]?.mode!=='linked').map(t=>({
-  ...templateContent(t),id:t.id,...(t.knowledge?{knowledge:t.knowledge}:{}),folderId:t.folderId,slot:t.slot,
+  ...templateContent(t),id:t.id,...(t.manualCategoryOverride?{manualCategoryOverride:t.manualCategoryOverride}:{}),...(t.knowledge?{knowledge:t.knowledge}:{}),folderId:t.folderId,slot:t.slot,
   settings:{...taskSettings(t),enabled:false,assignment:undefined},
  }));
  const ids=new Set(templates.map(t=>t.folderId));
@@ -100,16 +101,21 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
  if(!['configure_manual_business','import_market_taps','personalize_market_tap','restore_checklist_backup','save_manual_tap'].includes(input.action))return false;
  if(!['owner','manager'].includes(actor.role))fail('매니저 이상만 매뉴얼을 바꿀 수 있어요.',403);
  if(input.action==='save_manual_tap'){
+  if(input.manualCategory!=null && !manualCategoryIds.includes(input.manualCategory))fail('매뉴얼 분류를 선택해 주세요.');
+
   if(input.templateId==null){
    receipt(state,input,actor,()=>{
     const draft={id:uid(),title:input.title,emoji:input.emoji,folderId:input.folderId,slot:'준비',requiredRole:'all',partId:null,zone:null,steps:input.steps,sourceIds:[]};
-    addTemplates(state,[draft]);return [draft.id];
+    addTemplates(state,[draft]);
+    if(input.manualCategory){const actual=state.taskTemplates.find(t=>t.id===draft.id);actual.manualCategoryOverride=input.manualCategory;}
+    return [draft.id];
    });return true;
   }
   const template=state.taskTemplates.find(t=>t.id===input.templateId&&!t.archivedAt);
   if(!template)fail('TAP을 찾지 못했어요.',404);
   const draft={...template,...(input.manualTitle!=null?{manualTitle:input.manualTitle}:{}),title:input.title,emoji:input.emoji,folderId:input.folderId,steps:input.steps};
   const checked=validateChecklists({folders:state.checklistFolders,templates:state.taskTemplates.map(t=>t===template?draft:t)},state).templates.find(t=>t.id===template.id);
+  if(input.manualCategory!=null)checked.manualCategoryOverride=input.manualCategory;
   Object.assign(template,checked,{version:(template.version??1)+1});
   reconcileCatalogLinks(state,now);
   return true;
@@ -147,13 +153,13 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
    drafts.forEach((draft,i)=>{
     const actual=state.taskTemplates.find(t=>t.id===draft.id),source=additions[i];
     actual.knowledge=structuredClone(source.knowledge);
-    actual.settings.usage=input.enableOperations && source.kind!=='legal' && !['training','periodic','startup'].includes(source.knowledge?.useCase) && !source.knowledge?.safetyReviewRequired && !source.knowledge?.supersededBy?.length && !['reference','event'].includes(source.knowledge?.suggestedUse)?'routine':'reference';
+    actual.settings.usage=input.enableOperations && source.kind!=='legal' && !['training','periodic','startup','recipe','reference'].includes(source.knowledge?.useCase) && !source.knowledge?.safetyReviewRequired && !source.knowledge?.supersededBy?.length && !['reference','event'].includes(source.knowledge?.suggestedUse)?'routine':'reference';
     (state.catalogLinks??={})[draft.id]={mode:'linked',sourceId:source.sourceId,releaseId:catalog.releaseId,contentHash:contentHash(actual),importedAt:at};
 
    });
    if(input.enableOperations)for(const source of sources.filter(s=>s.kind!=='legal')){
     const template=state.taskTemplates.find(t=>!t.archivedAt&&state.catalogLinks?.[t.id]?.mode==='linked'&&state.catalogLinks[t.id].sourceId===source.sourceId);
-    if(template && !['training','periodic','startup'].includes(source.knowledge?.useCase) && !source.knowledge?.safetyReviewRequired && !source.knowledge?.supersededBy?.length && source.knowledge?.suggestedUse!=='reference' && source.knowledge?.suggestedUse!=='event')saveTapSettings(state,{templateId:template.id,assignmentScopeVersion:2,settings:{...taskSettings(template),enabled:true}},now);
+    if(template && !['training','periodic','startup','recipe','reference'].includes(source.knowledge?.useCase) && !source.knowledge?.safetyReviewRequired && !source.knowledge?.supersededBy?.length && source.knowledge?.suggestedUse!=='reference' && source.knowledge?.suggestedUse!=='event')saveTapSettings(state,{templateId:template.id,assignmentScopeVersion:2,settings:{...taskSettings(template),enabled:true}},now);
    }
    state.manualBusinessProfile={industryId:input.industryId,specialization:input.specialization.trim(),configuredAt:at,releaseId:catalog.releaseId};
    return drafts.map(t=>t.id);
@@ -161,17 +167,19 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
   if(input.action==='import_market_taps'){
    if(input.releaseId!==catalog.releaseId)fail('공용 목록이 업데이트됐어요. 다시 확인해 주세요.',409);
    if(!Array.isArray(input.sourceIds)||!input.sourceIds.length||new Set(input.sourceIds).size!==input.sourceIds.length)fail('가져올 TAP을 골라 주세요.');
-   if(input.folderMode!=null && !['purpose','existing'].includes(input.folderMode))fail('그룹 분류 방식을 확인해 주세요.');
-   if(input.folderMode!=='purpose'&&!state.checklistFolders.some(f=>f.id===input.folderId))fail('대상 그룹을 선택해 주세요.');
+   if(input.folderMode!=null && !['purpose','existing','example'].includes(input.folderMode))fail('그룹 분류 방식을 확인해 주세요.');
+   if(!['purpose','example'].includes(input.folderMode)&&!state.checklistFolders.some(f=>f.id===input.folderId))fail('대상 그룹을 선택해 주세요.');
    const sources=input.sourceIds.map(id=>catalog.entries.find(t=>t.sourceId===id)??fail('공용 TAP을 찾지 못했어요.'));
    if(sources.some(s=>Object.entries(state.catalogLinks??{}).some(([id,l])=>l.sourceId===s.sourceId&&l.mode==='linked'&&state.taskTemplates.some(t=>t.id===id&&!t.archivedAt))))fail('이미 공용 연결로 가져온 TAP이 있어요.');
    const folders=structuredClone(state.checklistFolders);
    const destinations=new Map();
    for(const source of sources){
-    if(input.folderMode!=='purpose'){destinations.set(source.sourceId,input.folderId);continue;}
+    if(input.folderMode==='existing'||input.folderMode==null){destinations.set(source.sourceId,input.folderId);continue;}
     const purpose=catalog.taxonomy.purposes.find(p=>p.id===source.purposeId);
-    let folder=folders.find(f=>f.name===purpose.name);
-    if(!folder){folder={id:uid(),name:purpose.name};folders.push(folder);}
+    const name=input.folderMode==='example'?source.knowledge?.exampleFolder:purpose?.name;
+    if(!name || input.folderMode==='example'&&!source.knowledge?.exampleStoreId)fail('본보기 폴더로 가져올 매뉴얼을 확인해 주세요.');
+    let folder=folders.find(f=>f.name===name);
+    if(!folder){folder={id:uid(),name};folders.push(folder);}
     destinations.set(source.sourceId,folder.id);
    }
    if(folders.length>30)fail('그룹이 많아요. 기존 그룹을 선택해 가져와 주세요.');
@@ -179,6 +187,9 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
    const drafts=sources.map(s=>({id:uid(),title:s.title,emoji:s.emoji,folderId:destinations.get(s.sourceId),slot:s.slot,requiredRole:'all',partId:null,zone:null,steps:structuredClone(s.steps),sourceIds:[]}));
    addTemplates(state,drafts);
    drafts.forEach((t,i)=>{const actual=state.taskTemplates.find(v=>v.id===t.id);actual.knowledge=structuredClone(sources[i].knowledge);(state.catalogLinks??={})[t.id]={mode:'linked',sourceId:sources[i].sourceId,releaseId:catalog.releaseId,contentHash:contentHash(actual),importedAt:new Date(now).toISOString()};});
+   // Only links to actual imported definitions are saved. Missing companions stay discoverable in the public example.
+   const sourceToTemplate=new Map(Object.entries(state.catalogLinks??{}).filter(([id,link])=>state.taskTemplates.some(t=>t.id===id&&!t.archivedAt)).map(([id,link])=>[link.sourceId,id]));
+   drafts.forEach((draft,i)=>{const actual=state.taskTemplates.find(t=>t.id===draft.id);actual.settings.knowledgeIds=(sources[i].knowledge?.relatedSourceIds??[]).map(id=>sourceToTemplate.get(id)).filter(Boolean);});
    return drafts.map(t=>t.id);
   }
   if(input.action==='personalize_market_tap'){
@@ -209,6 +220,7 @@ export function mutateManualMarket(state,input,actor,now,catalog=release){
    const original=file.templates[i];
    const actual=state.taskTemplates.find(v=>v.id===t.id);
    if(original.knowledge)actual.knowledge=knowledgeFields(original.knowledge);
+   if(original.manualCategoryOverride){if(!manualCategoryIds.includes(original.manualCategoryOverride))fail('백업 매뉴얼 분류를 확인해 주세요.');actual.manualCategoryOverride=original.manualCategoryOverride;}
    const ids=file.templates.map(row=>row.id).filter(Boolean);
    if(new Set(ids).size!==ids.length)fail('백업 매뉴얼 ID가 중복됐어요.');
    const references=(original.settings?.knowledgeIds??[]).map(id=>file.templates.findIndex(row=>row.id===id)).filter(index=>index>=0&&drafts[index].id!==t.id).map(index=>drafts[index].id);

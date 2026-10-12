@@ -52,8 +52,8 @@ class TapCard extends StatelessWidget {
     final tint = accentColor ?? AppColors.green;
     final largeText = MediaQuery.textScalerOf(context).scale(16) > 20;
     final openLabel = level.toLowerCase() == 'task'
-        ? context.t('work.openManual')
-        : context.t('work.openTask');
+        ? context.t('manual.action.methodCheck')
+        : context.t('manual.action.viewTasks');
     // Keep the title beside its check action; secondary movement goes below
     // when a narrow card or enlarged type would squeeze the title.
     return LayoutBuilder(
@@ -173,8 +173,12 @@ class TapCard extends StatelessWidget {
                                     if (!largeText)
                                       Text(
                                         level.toLowerCase() == 'task'
-                                            ? context.t('nav.manual')
-                                            : context.t('work.content'),
+                                            ? context.t(
+                                                'manual.action.methodCheck',
+                                              )
+                                            : context.t(
+                                                'manual.structure.task',
+                                              ),
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,

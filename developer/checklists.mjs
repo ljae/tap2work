@@ -88,6 +88,7 @@ export function validateChecklists(input, state) {
       ...Object.fromEntries(['registration','starterId','scheduledSettings'].filter(k=>previous?.[k]!==undefined).map(k=>[k,structuredClone(previous[k])])),
       ...(previous?.manualCustomization ? {manualCustomization:structuredClone(previous.manualCustomization)} : {}),
       ...(previous?.knowledge ? {knowledge:structuredClone(previous.knowledge)} : {}),
+      ...(previous?.manualCategoryOverride?{manualCategoryOverride:previous.manualCategoryOverride}:{}),
       ...(previous?.settings ? { settings: structuredClone(previous.settings), settingsVersion: previous.settingsVersion ?? 1 } : {}),
       ...((row.manualTitle ?? previous?.manualTitle) ? {manualTitle: text(row.manualTitle ?? previous.manualTitle, 100, '매뉴얼 표시 이름')} : {}),
       ...(previous?.menuManualId ? { menuManualId: previous.menuManualId } : {}),

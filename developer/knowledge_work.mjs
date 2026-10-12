@@ -1,3 +1,4 @@
+import {manualCategory} from './manual_categories.mjs';
 import {recurringOn} from './work_recurrence.mjs';
 import { composeManual } from './manual_setup.mjs';
 import { StoreError } from './store.mjs';
@@ -13,11 +14,14 @@ export function knowledgeFields(value) {
     if (!Array.isArray(v) || v.length>max || v.some(x=>typeof x!=='string'||!x.trim()||x.length>100)) fail('매뉴얼 연결을 확인해 주세요.');
     return [...new Set(v)];
   };
-  if (value.useCase != null && !['training','routine','periodic','startup'].includes(value.useCase)) fail('매뉴얼 용도를 확인해 주세요.');
+  if (value.useCase != null && !['training','routine','periodic','startup','recipe','reference'].includes(value.useCase)) fail('매뉴얼 용도를 확인해 주세요.');
   const use=value.suggestedUse??'reference';
   if (!['reference','routine','event'].includes(use)) fail('권장 사용 방법을 확인해 주세요.');
   if (value.eventKind != null && !eventKinds.includes(value.eventKind)) fail('작업 종류를 확인해 주세요.');
-  return {...(value.useCase?{useCase:value.useCase}:{}),scope:value.scope,topics:array(value.topics??[]),menuNames:array(value.menuNames??[]),ingredientNames:array(value.ingredientNames??[]),requiresBreak:value.requiresBreak===true,suggestedUse:use,eventKind:value.eventKind??null,safetyReviewRequired:value.safetyReviewRequired===true,supersededBy:array(value.supersededBy??[])};
+  const exampleId=value.exampleStoreId;
+  if(exampleId!=null && !/^[a-zA-Z0-9_-]{1,80}$/.test(exampleId))fail('본보기 매장 ID를 확인해 주세요.');
+  for(const [key,max] of [['exampleFolder',80],['cadenceHint',160]])if(value[key]!=null && (typeof value[key]!=='string'||!value[key].trim()||value[key].length>max))fail('본보기 설명을 확인해 주세요.');
+  return {...(exampleId?{exampleStoreId:exampleId}:{}),...(value.exampleFolder?{exampleFolder:value.exampleFolder}:{}),...(value.cadenceHint?{cadenceHint:value.cadenceHint}:{}),...(value.relatedSourceIds?{relatedSourceIds:array(value.relatedSourceIds,10)}:{}),...(value.useCase?{useCase:value.useCase}:{}),scope:value.scope,topics:array(value.topics??[]),menuNames:array(value.menuNames??[]),ingredientNames:array(value.ingredientNames??[]),requiresBreak:value.requiresBreak===true,suggestedUse:use,eventKind:value.eventKind??null,safetyReviewRequired:value.safetyReviewRequired===true,supersededBy:array(value.supersededBy??[])};
 }
 export function usageFields(value) {
   if (value.usage == null) return {};
@@ -35,6 +39,9 @@ export function workEligibility(state,t,date) {
   const s=t.settings??{};
   if (t.registration?.status==='pending') return ['pending','사장님 검토 후 매뉴얼에 등록돼요'];
   if (t.archivedAt) return ['archived','보관된 매뉴얼이에요'];
+  const category=manualCategory(t);
+  if(category==='recipe' || category==='startup' || category==='reference')return ['reference','필요할 때 읽는 매뉴얼이에요. 일상 체크로 생성하지 않아요'];
+  if(category==='periodic' && s.usage!=='reference' && s.enabled!==false && (!s.recurrence || s.recurrence.mode==='daily'))return ['incomplete','정기 관리의 주간 또는 월간 주기를 선택해 주세요'];
   if (s.usage==='reference') return ['reference','필요할 때 보는 매뉴얼이에요'];
   if (s.enabled===false) return ['unclassified','업무 연결 방법을 선택해 주세요'];
   if (!t.steps?.length) return ['incomplete','확인할 행동을 추가해 주세요'];

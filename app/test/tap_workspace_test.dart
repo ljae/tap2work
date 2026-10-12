@@ -152,7 +152,7 @@ void main() {
     await tester.tap(find.byTooltip('완료하기'));
     expect(checked, 1);
     expect(opened, 0);
-    await tester.tap(find.text('내용'));
+    await tester.tap(find.text('할 일'));
     expect(opened, 1);
     expect(checked, 1);
   });
@@ -196,7 +196,7 @@ void main() {
     expect(tester.takeException(), isNull);
     final check = find.byTooltip('완료하기');
     final open = find.byWidgetPredicate(
-      (widget) => widget is Semantics && widget.properties.label == '업무 내용 열기',
+      (widget) => widget is Semantics && widget.properties.label == '할 일 보기',
     );
     for (final control in [check, open]) {
       final size = tester.getSize(control);
@@ -386,7 +386,7 @@ void main() {
             .level,
         'TAP',
       );
-      expect(find.text('내용'), findsWidgets);
+      expect(find.text('할 일'), findsWidgets);
       await openCard(tester, 'tap-daily-prep');
       expect(find.text('TAP 목록으로'), findsOneWidget);
       expect(find.text('Task 2개 보기'), findsNothing);
@@ -402,7 +402,7 @@ void main() {
         tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).selected,
         isTrue,
       );
-      expect(find.text('매뉴얼'), findsNWidgets(2));
+      expect(find.text('방법·체크'), findsNWidgets(2));
       if (width < 700) {
         expect(find.text('생재료와 완성식품 도구를 따로 놓아요.'), findsNothing);
       }

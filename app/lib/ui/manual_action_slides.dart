@@ -1,3 +1,5 @@
+import '../l10n/entity_name_scope.dart';
+import 'manual_hierarchy.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/manual_text_scope.dart';
 import 'package:flutter/cupertino.dart';
@@ -196,7 +198,51 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
                   padding: const EdgeInsets.all(AppSpacing.large),
                   child: currentTask == null || row == null
                       ? Information(context.t('manual.changedTask'))
-                      : widget.bodyBuilder(currentTask, row),
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            ManualHierarchyPath(
+                              compact: true,
+                              folder: entityDisplayName(
+                                context,
+                                widget.ops,
+                                'folder',
+                                currentTask['folderId'],
+                                widget.ops
+                                    .rows('checklistFolders')
+                                    .where(
+                                      (f) => f['id'] == currentTask['folderId'],
+                                    )
+                                    .firstOrNull?['name'],
+                              ),
+                              tap: manualDisplayText(
+                                context,
+                                '${currentTask['manualTitle'] ?? currentTask['title']}',
+                                translations: widget
+                                    .ops
+                                    .data?['manualContentTranslations'],
+                                templateId: currentTask['templateId'],
+                              ),
+                              task: manualDisplayText(
+                                context,
+                                '${row['manualTitle'] ?? row['title']}',
+                                translations: widget
+                                    .ops
+                                    .data?['manualContentTranslations'],
+                                templateId: currentTask['templateId'],
+                                stepId: row['id'],
+                              ),
+                              onFolder: saving
+                                  ? null
+                                  : () => Navigator.pop(context),
+                              onTap: saving
+                                  ? null
+                                  : () => Navigator.pop(context),
+                            ),
+                            const SizedBox(height: 16),
+                            widget.bodyBuilder(currentTask, row),
+                          ],
+                        ),
                 );
               },
             ),

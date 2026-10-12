@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:tap2work/l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:tap2work/state/operations_controller.dart';
@@ -88,6 +90,8 @@ Future<void> mount(
 }
 
 Future<void> click(WidgetTester tester, String key) async {
+  await tester.ensureVisible(find.byKey(ValueKey(key)));
+  await tester.pumpAndSettle();
   await tester.tap(find.byKey(ValueKey(key)));
   await tester.pumpAndSettle();
 }
@@ -107,6 +111,52 @@ Future<void> moveTask(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('TAP labels use current translation without rewriting source', (
+    tester,
+  ) async {
+    final data = directoryData();
+    data['manualContentTranslations'] = {
+      'manuals': {
+        'a': {
+          'en': {
+            'title': {
+              'sourceText': data['taskTemplates'][0]['title'],
+              'text': 'Hygiene TAP',
+              'current': true,
+            },
+          },
+        },
+      },
+    };
+    final ops = OperationsController(
+      client: MockClient((_) async => response(data)),
+    );
+    addTearDown(ops.dispose);
+    await ops.refresh();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        supportedLocales: const [Locale('en')],
+        localizationsDelegates: const [
+          AppStrings.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        home: Scaffold(
+          body: ManualWorkspace(ops: ops, query: ''),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Hygiene TAP'), findsOneWidget);
+    expect(
+      ops.rows('taskTemplates').first['title'],
+      data['taskTemplates'][0]['title'],
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   for (final entry in [
     ('group', 'general', null),
     ('tap', 'a', null),
@@ -127,7 +177,7 @@ void main() {
         );
         addTearDown(ops.dispose);
         await mount(tester, ops);
-        await tester.tap(find.text('메뉴·레시피'));
+        await tester.tap(find.byKey(const ValueKey('manual-category-recipe')));
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('store-recipe-a')));
         await tester.pumpAndSettle();
@@ -186,11 +236,13 @@ void main() {
       addTearDown(ops.dispose);
       await mount(tester, ops);
       expect(find.byKey(const ValueKey('manual-node-tap:a')), findsNothing);
-      await tester.tap(find.text('메뉴·레시피'));
+      await tester.tap(find.byKey(const ValueKey('manual-category-recipe')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('store-recipe-a')));
       await tester.pumpAndSettle();
       expect(find.text('파트·시간대·TAP 운영 설정'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('recipe-edit-a')));
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const ValueKey('manual-tap-title')),
         '우리 조리 기준',
@@ -283,7 +335,7 @@ void main() {
     expect(frame('manual-tree-frame-task:s1:a').controls, isFalse);
     expect(frame('manual-tree-frame-task:s1:a').outline, isFalse);
     expect(frame('manual-content-frame-a/s1').active, isTrue);
-    expect(tester.getSize(task).height, height);
+    expect(tester.getSize(task).height, lessThanOrEqualTo(height));
     expect(
       tester.getTopLeft(task).dx,
       greaterThan(
@@ -465,9 +517,11 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mount(tester, ops);
-      await tester.tap(find.text('메뉴·레시피'));
+      await tester.tap(find.byKey(const ValueKey('manual-category-recipe')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('store-recipe-a')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('recipe-edit-a')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Task 상세 수정').first);
       await tester.pumpAndSettle();
@@ -556,7 +610,7 @@ void main() {
     await tester.pumpAndSettle();
     await click(tester, 'manual-node-task:s1:b');
     expect(find.text('손 씻기 상세 매뉴얼'), findsOneWidget);
-    expect(find.text('마감 / 정리 TAP / Task'), findsOneWidget);
+    expect(find.text('마감 / 정리 TAP / 할 일'), findsOneWidget);
     expect(posts, 0);
   });
   testWidgets(

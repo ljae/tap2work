@@ -1,3 +1,4 @@
+import {validateExampleStores} from './fictional_store_schema.mjs';
 import legacyCatalog from '../docs/market/releases/473ae81f07c0e1289ff6e7ed1dc97f133586b93ec71559e5833032f1129ac9c1.json' with {type:'json'};
 import {createHash} from 'node:crypto';
 import {manualCatalog} from './manual_market.mjs';
@@ -25,6 +26,7 @@ export function validateRelease(value,{assignId=false}={}){
   validateTaxonomy(value.taxonomy);
   let entries;
   try{entries=validateCatalog(value.entries,value.taxonomy);}catch{throw new StoreError('콘텐츠 항목과 출처 형식을 확인해 주세요.',400);}
+  validateExampleStores(value.taxonomy.exampleStores,entries);
   const release={schemaVersion:2,taxonomy:structuredClone(value.taxonomy),entries};
   const hash=releaseHash(release);
   // Legacy IDs survive the first seed; arbitrary content cannot borrow that ID.

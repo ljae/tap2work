@@ -1,3 +1,4 @@
+import '../domain/manual_categories.dart';
 import '../l10n/entity_name_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'dart:convert';
@@ -42,6 +43,8 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
   );
   late final emoji = TextEditingController(text: source['emoji']);
   late String folder = source['folderId'];
+  late String category = manualCategoryOf(source);
+  bool categoryChanged = false;
   late List<Json> steps = (source['steps'] as List).cast<Json>();
   late int revision;
   late final String actor;
@@ -138,6 +141,8 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
       'emoji': emoji.text.trim(),
       'folderId': folder,
       'steps': steps,
+      if (categoryChanged || widget.templateId == null)
+        'manualCategory': category,
     });
     if (!mounted) return;
     setState(() => saving = false);
@@ -244,6 +249,25 @@ class _ManualTapEditorState extends State<ManualTapEditor> {
             decoration: InputDecoration(labelText: context.t('ui.audit37')),
             onChanged: (_) => setState(() => dirty = true),
           ),
+          AppPicker<String>(
+            label: context.t('manual.category.label'),
+            value: category,
+            items: [
+              for (final c in manualCategoryIds)
+                DropdownMenuItem(
+                  value: c,
+                  child: Text(context.t('manual.category.$c')),
+                ),
+            ],
+            onChanged: saving || source['menuManualId'] != null
+                ? null
+                : (value) => setState(() {
+                    category = value!;
+                    categoryChanged = true;
+                    dirty = true;
+                  }),
+          ),
+          const SizedBox(height: 16),
           TextField(
             controller: emoji,
             maxLength: 10,

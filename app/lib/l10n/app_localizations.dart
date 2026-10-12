@@ -1,3 +1,4 @@
+import 'manual_model_messages.dart';
 import 'store_messages.dart';
 import 'supplemental_messages.dart';
 import 'package:flutter/foundation.dart';
@@ -45,6 +46,11 @@ const appFontFallbacks = [
   'NotoSansJP',
 ];
 
+final _manualModelSourceKeys = {
+  for (final entry in manualModelMessageRows.entries)
+    entry.value.first: entry.key,
+};
+
 final _supplementalSourceKeys = {
   for (final entry in supplementalMessageRows.entries)
     entry.value.first: entry.key,
@@ -58,6 +64,8 @@ class AppStrings {
       Localizations.of<AppStrings>(context, AppStrings) ?? AppStrings('ko');
   String text(String key, [Map<String, Object?> params = const {}]) {
     final row =
+        manualModelMessageRows[key] ??
+        manualModelMessageRows[_manualModelSourceKeys[key]] ??
         appMessageRows[key] ??
         workflowMessageRows[key] ??
         storeMessageRows[key] ??

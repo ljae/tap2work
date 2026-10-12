@@ -158,6 +158,7 @@ void main() {
         '개인화 위생',
       );
       await tester.ensureVisible(find.byTooltip('아래로').first);
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('아래로').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('매뉴얼 저장'));
@@ -225,6 +226,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('복원할 TAP 1개'), findsOneWidget);
       await tester.ensureVisible(find.text('개인화 사본으로 추가 복원'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('개인화 사본으로 추가 복원'));
       await tester.pumpAndSettle();
       expect(sent?['action'], 'restore_checklist_backup');
@@ -280,6 +282,7 @@ void main() {
       '자체 점검',
     );
     await tester.ensureVisible(find.text('Task 추가'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Task 추가'));
     await tester.pumpAndSettle();
     await tester.enterText(

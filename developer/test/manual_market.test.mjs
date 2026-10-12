@@ -107,7 +107,9 @@ test('worker and restricted manager cannot import, edit or export private templa
  }
 });
 test('catalog validates stable unique IDs and prohibits operational fields inside public Tasks',()=>{
- assert.equal(validateCatalog(manualCatalog.entries).length,109);
+ assert.equal(validateCatalog(manualCatalog.entries).length,135);
+ assert.equal(manualCatalog.entries.filter(e=>e.knowledge?.exampleStoreId==='soldam').length,26);
+ assert.equal(manualCatalog.entries.filter(e=>!e.knowledge?.exampleStoreId).length,109);
  const duplicate=structuredClone(manualCatalog.entries);duplicate[1].sourceId=duplicate[0].sourceId;assert.throws(()=>validateCatalog(duplicate),/Duplicate/);
  const policy=structuredClone(manualCatalog.entries);policy[0].steps[0].settings={enabled:true};assert.throws(()=>validateCatalog(policy),/content only/);
 });

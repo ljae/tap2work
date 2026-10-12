@@ -50,3 +50,17 @@
 - 마켓 본보기의 실제 카탈로그 투영·읽기·부분 선택 가져오기와 활성화 분리.
 - 320/390/1200px, 확대 글자, 동작 줄이기, 되돌아가기·목록 위치·검색, 저장 실패·매장/크루 전환 검사.
 - 새 표시 문구와 기본 분류를 지원 8개 언어에 연결하고 AI 초안 상태 유지.
+
+## 2026-10-13 Implementation and verification
+
+Five categories are implemented with a separate manualCategoryOverride; existing source IDs, names, policies and execution histories remain intact. Setup, recipe and reference documents are excluded from daily generation; periodic work requires a weekly/monthly schedule.
+
+The explicitly fictional Soldam restaurant has26 TAPs,108 detailed sections,15 folders,4 parts,5 time bands,15 places and20 configured seats. Structure/setup/example-day views connect related recipes and support selecting only needed TAPs. Import stays pending and OFF. No live account data was deleted. The protected identifier is only in private local configuration.
+
+Folder/TAP/action-or-content/method navigation shares actual IDs. Recipes open for reading before separate editing. Actual task checks keep save-success advancement and identity/workspace protection. Reduced motion bypasses animated layout.
+
+Root and isolated release worktree: Flutter604pass/3browser-only skip,Node388pass,analysis0issues,UI81,JS,135catalog,7x1971translation,DenoEdge and5isolatedPostgreSQL checks passed. An initial accidental Node execution of the Edge smoke failed after Buffer removal; its intended Deno execution passed. AI semantic review corrected estimated completion,buddy confirmation and temporary-location handling in7languages. All translations remain ai-draft without native-speaker review.
+
+Web deployment and new catalog publication remain pending. The user requested gpt-6.1-sol low deployment; the assigned agent prepared the workflow. Existing supplier JWT and distinct reviewer exact-hash approval sessions are absent. Do not reuse the previous one-off DB-admin publication exception. No new native build is claimed; prior iOS20/Android19 releases are separate.
+
+Final selected source verification: isolated Flutter605pass/3browser-onlyskip and analysis0, including the regression for current translated TAP labels without source rewriting. Production review build and freshly seeded read-only sample passed. Actual anonymous Chrome390px showed the draft label and26TAP/108sections; folder/TAP/method,setup/example-day were viewed on phone and8locale structure screens on1200px with reduced motion. Browser automation retries used explicit close controls instead of Escape; these were locator limitations, not successful evidence. Screenshots/logs are private local artifacts. Deployment remains pending in this entry.

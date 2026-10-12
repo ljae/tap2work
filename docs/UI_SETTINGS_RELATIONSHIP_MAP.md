@@ -553,3 +553,11 @@ S70 사진 읽기는 같은 화면에서 다시 불러오며 매장·계정 변�
 | ID | 원본 → 컨트롤 → 저장 | 소비자·조건 | 검증 |
 |---|---|---|---|
 | S86 | checklistFolders/workplace.parts 원문 → 폴더 편집 ⋯ 번역 / 파트 설정 번역 아이콘 → save_manual_translation(source.kind=folder/part,id,locale,fields.name,revision) | manualContentTranslations.folders/parts의 ID·원문 일치 번역, 기본30이름 사전; 업무·매뉴얼·근무표·크루에 공통 표시. 이름 입력/저장과 연결 ID는 원문 유지. 폴더는 업무 편집 권한, 파트는 사장님만. 새 파트/미저장 이름은 번역 등록 전에 저장 | entity_name_localization_test.dart, supplemental_localization_test.dart, manual_content_translations.test.mjs |
+
+## 2026-10-13 매뉴얼 분야·본보기·수행 경로
+
+| ID | 원본 → 컨트롤 → 저장 | 소비자·조건 | 검증 |
+|---|---|---|---|
+| S87 | knowledge.useCase / manualCategoryOverride → 매뉴얼 분야 선택·TAP 분류 편집 → save_manual_tap(manualCategory,revision) | 매장 override는 원문·운영 정책과 분리, 검색/crew guidance/반복 생성 조건에 같은 분류 투영. 레시피·처음 설정·교육은 참고, 정기 관리는 weekly/monthly 필요 | manual_categories.test.mjs, manual_model_test.dart |
+| S88 | taxonomy.exampleStores / source IDs → 가상 매장 구조·설정·예시 하루·TAP 담기 → 로컬 basket → import_market_taps(folderMode:example,sourceIds,releaseId,revision) | 실제 가져온 정의만 관련 문서 ID 연결, 등록 대기·OFF. 보존 계정 원본/실행 유지. 프로필의 가상 시간·인원·수량 자동 저장 없음 | manual_categories.test.mjs, manual_model_test.dart |
+| U03 | 폴더·TAP·행동 source ID → ManualHierarchyPath / 폴더 높이 전환 / 방법·체크 → 기존 onToggle 및 완료 API | 읽기·스와이프는 완료 아님, 저장 성공 뒤 다음 행동. reduced motion은 정지 경로, actor/workspace/day 변경 결과 폐기 | manual_action_slides_test.dart, manual_workspace_test.dart |

@@ -1,3 +1,5 @@
+import '../domain/manual_categories.dart';
+import 'manual_hierarchy.dart';
 import 'entity_name_translation.dart';
 import '../l10n/entity_name_scope.dart';
 import 'owner_workflow_screen.dart';
@@ -45,7 +47,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   List<Json> rows = [], folders = [], taps = [];
   int revision = -1;
   String actor = '';
-  String? scopeGroup, scopeTap, selectedId;
+  String? scopeGroup, scopeTap, selectedId, category;
   bool editing = false;
   bool showTree = true, previewDirty = false, recipes = false;
   final expanded = <String>{};
@@ -159,6 +161,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         )
         .map(copy)
         .toList();
+    for (final row in rows) {
+      final source = ops
+          .rows('taskTemplates')
+          .where((t) => t['id'] == row['templateId'])
+          .firstOrNull;
+      if (source != null) row['manualCategory'] = manualCategoryOf(source);
+    }
     folders = ops.rows('checklistFolders').map(copy).toList();
     for (final row in rows) {
       row['folderId'] ??= 'general';
@@ -185,6 +194,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 (t) => t['menuManualId'] == null && t['archivedAt'] == null,
               ))
         {
+          'manualCategory': manualCategoryOf(t),
+          'knowledge': t['knowledge'],
           'manualCustomization': t['manualCustomization'],
           'tapId': t['id'],
           'templateId': t['id'],
@@ -225,12 +236,14 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         expanded.addAll(folders.map((f) => 'group:${f['id']}'));
       }
       recipes = false;
+      category = null;
     }
   }
 
   String normalize(String text) =>
       text.toLowerCase().replaceAll('메뉴얼', '매뉴얼').replaceAll('결재', '결제');
   bool matches(Json row) {
+    if (category != null && manualCategoryOf(row) != category) return false;
     final words = normalize(
       widget.query,
     ).trim().split(RegExp(r'\s+')).where((s) => s.isNotEmpty);
@@ -512,7 +525,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             'ui.audit2132',
             args: {
               'p0': folderLabel(row['folderId'], row['folderName']),
-              'p1': row['tapTitle'],
+              'p1': tapLabel(row),
             },
           ),
           'command': {...from, 'targetId': row['tapId']}
@@ -555,6 +568,13 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     );
   }
 
+  String tapLabel(Json row) => manualDisplayText(
+    context,
+    '${row['tapTitle'] ?? ''}',
+    translations: ops.data?['manualContentTranslations'],
+    templateId: row['tapId'] ?? row['templateId'],
+  );
+
   Widget node({
     required String kind,
     required String id,
@@ -572,9 +592,19 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   }) {
     final compactEdit = editing && MediaQuery.sizeOf(context).width < 700;
     final key = '$kind:$id${kind == 'task' ? ':$tapId' : ''}';
+    final definition = ops
+        .rows('taskTemplates')
+        .where((t) => t['id'] == (kind == 'tap' ? id : tapId))
+        .firstOrNull;
+    final sourceStep = (definition?['steps'] as List? ?? [])
+        .whereType<Json>()
+        .where((step) => step['id'] == id)
+        .firstOrNull;
     final sourceLabel = kind == 'group'
         ? (folders.where((f) => f['id'] == id).firstOrNull?['name'] ?? label)
-        : label;
+        : kind == 'tap'
+        ? (definition?['manualTitle'] ?? definition?['title'] ?? label)
+        : sourceStep?['manualTitle'] ?? sourceStep?['title'] ?? label;
     final data = drag(kind, id, tapId: tapId);
     final handle = Semantics(
       key: ValueKey('manual-drag-$key'),
@@ -610,7 +640,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                   !ops.rows('preparedItems').any((r) => r['folderId'] == id)
             : true);
     Widget row(bool hovering) => Container(
-      margin: const EdgeInsets.only(bottom: 2),
+      margin: EdgeInsets.only(bottom: editing ? 2 : 8),
       decoration: BoxDecoration(
         color: hovering
             ? AppColors.lime
@@ -651,8 +681,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               key: ValueKey('manual-node-$key'),
               onTap: onTap,
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
+                padding: EdgeInsets.symmetric(
+                  vertical: editing ? 12 : 16,
                   horizontal: 4,
                 ),
                 child: Row(
@@ -704,7 +734,11 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: editing
+                                      ? 13
+                                      : kind == 'group'
+                                      ? 16
+                                      : 15,
                                   fontWeight: selected
                                       ? FontWeight.w700
                                       : FontWeight.w500,
@@ -728,7 +762,9 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                     ),
                     if (durationText == null && kind != 'task')
                       Text(
-                        '$count',
+                        editing
+                            ? '$count'
+                            : '$count ${context.t(kind == 'group' ? 'manual.structure.tap' : 'manual.structure.task')}',
                         style: const TextStyle(
                           fontSize: 13,
                           color: AppColors.muted,
@@ -905,19 +941,85 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     );
   }
 
+  Map<String, int> get categoryCounts {
+    final items = <String, Json>{
+      for (final t
+          in ops.rows('taskTemplates').where((t) => t['archivedAt'] == null))
+        '${t['id']}': t,
+    };
+    for (final row in ops.rows('manualSearch')) {
+      items.putIfAbsent('${row['templateId'] ?? row['tapId']}', () => row);
+    }
+    return {
+      for (final c in manualCategoryIds)
+        c: items.values.where((t) => manualCategoryOf(t) == c).length,
+    };
+  }
+
+  void chooseCategory(String? value) => setState(() {
+    category = value;
+    recipes = value == 'recipe';
+    editing = false;
+    scopeGroup = null;
+    scopeTap = null;
+    selectedId = null;
+    showTree = true;
+  });
+  Widget hierarchy({Json? selected}) {
+    final tap = taps
+        .where((t) => t['tapId'] == (selected?['tapId'] ?? scopeTap))
+        .firstOrNull;
+    final folderId = selected?['folderId'] ?? tap?['folderId'] ?? scopeGroup;
+    return ManualHierarchyPath(
+      compact: MediaQuery.sizeOf(context).height < 600,
+      folder: folderId == null ? null : folderLabel(folderId),
+      reference: ['recipe', 'startup', 'reference'].contains(
+        selected == null ? (category ?? 'routine') : manualCategoryOf(selected),
+      ),
+      tap: selected == null
+          ? (tap == null ? null : tapLabel(tap))
+          : tapLabel(selected),
+      task: selected?['title'],
+      onFolder: () => setState(() {
+        scopeGroup = null;
+        scopeTap = null;
+        selectedId = null;
+        showTree = true;
+      }),
+      onTap: folderId == null
+          ? null
+          : () => setState(() {
+              scopeGroup = folderId;
+              scopeTap = null;
+              selectedId = null;
+              showTree = true;
+              expanded.add('group:$folderId');
+            }),
+      onTask: tap == null
+          ? null
+          : () => setState(() {
+              selectedId = null;
+              showTree = false;
+            }),
+    );
+  }
+
   Widget directory() {
     final nodes = <Widget>[
-      ListTile(
-        dense: true,
-        leading: const Icon(CupertinoIcons.folder),
-        title: Text(context.t('manual.all')),
-        selected: scopeGroup == null && scopeTap == null,
-        onTap: () => setState(() {
-          scopeGroup = null;
-          scopeTap = null;
-          selectedId = null;
-        }),
-      ),
+      if (!editing && MediaQuery.sizeOf(context).height >= 600)
+        Padding(padding: const EdgeInsets.all(8), child: hierarchy()),
+      if (MediaQuery.sizeOf(context).height >= 600)
+        ListTile(
+          dense: true,
+          leading: const Icon(CupertinoIcons.folder),
+          title: Text(context.t('manual.all')),
+          selected: scopeGroup == null && scopeTap == null,
+          onTap: () => setState(() {
+            scopeGroup = null;
+            scopeTap = null;
+            selectedId = null;
+          }),
+        ),
     ];
     for (final folder in folders) {
       if (folder['id'] == 'store-recipes') continue;
@@ -926,11 +1028,22 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           !taps.any((t) => t['folderId'] == folder['id'])) {
         continue;
       }
-      final all = rows.where((r) => r['folderId'] == folder['id']).toList();
+      final all = rows
+          .where(
+            (r) =>
+                r['folderId'] == folder['id'] &&
+                (category == null || manualCategoryOf(r) == category),
+          )
+          .toList();
       final matching = all.where(matches).toList();
       final folderTaps = taps
-          .where((t) => t['folderId'] == folder['id'])
+          .where(
+            (t) =>
+                t['folderId'] == folder['id'] &&
+                (category == null || manualCategoryOf(t) == category),
+          )
           .toList();
+      if (category != null && folderTaps.isEmpty && all.isEmpty) continue;
       final visibleTaps = folderTaps
           .where(
             (t) =>
@@ -948,6 +1061,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           ).contains(normalize(widget.query).trim())) {
         continue;
       }
+      final groupStart = nodes.length;
       nodes.add(
         node(
           kind: 'group',
@@ -966,6 +1080,14 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         ),
       );
       if (!expanded.contains('group:${folder['id']}') && widget.query.isEmpty) {
+        final header = nodes.removeLast();
+        nodes.add(
+          ManualFoldGroup(
+            key: ValueKey('manual-fold-${folder['id']}'),
+            header: header,
+            children: const [],
+          ),
+        );
         continue;
       }
       for (final tap in visibleTaps) {
@@ -979,15 +1101,15 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             id: tap['tapId'],
             folderId: folder['id'],
             label: tap['editable'] == true
-                ? tap['tapTitle']
-                : context.t('ui.audit1087', args: {'p0': tap['tapTitle']}),
+                ? tapLabel(tap)
+                : context.t('ui.audit1087', args: {'p0': tapLabel(tap)}),
             depth: 1,
             editable: tap['editable'] == true,
             selected: scopeTap == tap['tapId'],
             hasChildren: children.isNotEmpty,
             count: children.length,
             durationText: all.where((r) => r['tapId'] == tap['tapId']).isEmpty
-                ? context.t('Task 0개')
+                ? context.t('manual.structure.actionCount', args: {'count': 0})
                 : duration(
                     all.where((r) => r['tapId'] == tap['tapId']).toList(),
                   ),
@@ -1031,6 +1153,15 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           );
         }
       }
+      final group = nodes.sublist(groupStart);
+      nodes.removeRange(groupStart, nodes.length);
+      nodes.add(
+        ManualFoldGroup(
+          key: ValueKey('manual-fold-${folder['id']}'),
+          header: group.first,
+          children: group.skip(1).toList(),
+        ),
+      );
     }
     return KeyedSubtree(
       key: directoryViewport,
@@ -1045,12 +1176,21 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   }
 
   Future<void> openManual(Json row) async {
+    final openingActor = ops.actorId,
+        openingWorkspace = ops.data?['workspaceId'];
     setState(() => selectedId = row['id']);
     await showAppSheet(
       context,
       builder: (_) => ListenableBuilder(
         listenable: ops,
         builder: (context, _) {
+          if (ops.actorId != openingActor ||
+              ops.data?['workspaceId'] != openingWorkspace) {
+            return AppEditorScaffold(
+              title: context.t('nav.manual'),
+              body: Information(context.t('manual.changedTask')),
+            );
+          }
           sync();
           final current =
               rows.where((r) => r['id'] == row['id']).firstOrNull ?? row;
@@ -1072,7 +1212,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           ManualCustomizationBadge(value: selected['manualCustomization']),
           SharedPlaceLinks(ops: ops, row: selected),
           Text(
-            '${folderLabel(selected['folderId'], selected['folderName'])} / ${selected['tapTitle']} / Task',
+            '${folderLabel(selected['folderId'], selected['folderName'])} / ${tapLabel(selected)} / ${context.t(['recipe', 'startup', 'reference'].contains(manualCategoryOf(selected)) ? 'manual.structure.section' : 'manual.structure.task')}',
             style: const TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           const SizedBox(height: 12),
@@ -1321,15 +1461,138 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     );
   }
 
+  Future<void> openRecipe(Json source) async {
+    final actorId = ops.actorId, workspaceId = ops.data?['workspaceId'];
+    await showAppFormSheet<void>(
+      context: context,
+      builder: (_) => ListenableBuilder(
+        listenable: ops,
+        builder: (c, _) {
+          if (ops.actorId != actorId ||
+              ops.data?['workspaceId'] != workspaceId) {
+            return AppEditorScaffold(
+              title: c.t('manual.category.recipe'),
+              body: Information(c.t('manual.changedTask')),
+            );
+          }
+          final saved = ops
+              .rows('taskTemplates')
+              .where((t) => t['id'] == source['id'] && t['archivedAt'] == null)
+              .firstOrNull;
+          final guide = ops
+              .rows('manualSearch')
+              .where((row) => row['templateId'] == source['id'])
+              .toList();
+          final current =
+              saved ??
+              (guide.isEmpty
+                  ? null
+                  : <String, dynamic>{
+                      'id': source['id'],
+                      'title': guide.first['tapTitle'],
+                      'folderId': guide.first['folderId'],
+                      'steps': guide
+                          .map(
+                            (row) => <String, dynamic>{
+                              ...row,
+                              'id': row['sourceStepId'] ?? row['id'],
+                            },
+                          )
+                          .toList(),
+                    });
+          if (current == null) {
+            return AppEditorScaffold(
+              title: c.t('manual.category.recipe'),
+              body: Information(c.t('manual.changedTask')),
+            );
+          }
+          return AppEditorScaffold(
+            title: manualDisplayText(
+              c,
+              '${current['manualTitle'] ?? current['title']}',
+              translations: ops.data?['manualContentTranslations'],
+              templateId: current['id'],
+            ),
+            footer: ops.canEditTasks && !ops.readOnly
+                ? AppSheetFooter(
+                    children: [
+                      FilledButton.icon(
+                        key: ValueKey('recipe-edit-${current['id']}'),
+                        onPressed: () => showAppFormSheet<void>(
+                          context: c,
+                          builder: (_) => ManualTapEditor(
+                            ops: ops,
+                            templateId: current['id'],
+                          ),
+                        ),
+                        icon: const Icon(Icons.edit_outlined),
+                        label: Text(c.t('manual.edit')),
+                      ),
+                    ],
+                  )
+                : null,
+            body: ListView(
+              padding: const EdgeInsets.all(24),
+              children: [
+                ManualHierarchyPath(
+                  reference: true,
+                  folder: folderLabel(current['folderId']),
+                  tap: manualDisplayText(c, '${current['title']}'),
+                ),
+                const SizedBox(height: 16),
+                Text(c.t('manual.structure.reference'), style: AppText.caption),
+                const SizedBox(height: 16),
+                TranslatedContent(
+                  ops: ops,
+                  kind: 'manual',
+                  entityId: current['id'],
+                  source: current,
+                  builder: (context, displayed) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final action
+                          in (displayed['steps'] as List? ?? [])
+                              .cast<Json>()) ...[
+                        Text(
+                          '${action['manualTitle'] ?? action['title']}',
+                          style: AppText.section,
+                        ),
+                        const SizedBox(height: 8),
+                        Text('${action['manual'] ?? ''}', style: AppText.body),
+                        if ('${action['imageUrl'] ?? ''}'.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          placePhoto(action['imageUrl'], ops: ops),
+                        ],
+                        if ((action['tip'] ?? '').isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(action['tip'], style: AppText.caption),
+                        ],
+                        const SizedBox(height: 24),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget recipeList() {
     final available = ops
         .rows('taskTemplates')
-        .where((t) => t['menuManualId'] != null && t['archivedAt'] == null)
+        .where(
+          (t) => manualCategoryOf(t) == 'recipe' && t['archivedAt'] == null,
+        )
         .toList();
     if (!ops.canEditTasks) {
       final grouped = <String, Json>{};
       for (final row
-          in ops.rows('manualSearch').where((r) => r['menuManualId'] != null)) {
+          in ops
+              .rows('manualSearch')
+              .where((r) => manualCategoryOf(r) == 'recipe')) {
         final id = row['templateId'] as String;
         final template = grouped.putIfAbsent(
           id,
@@ -1369,31 +1632,17 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           ListTile(
             key: ValueKey('store-recipe-${t['id']}'),
             contentPadding: EdgeInsets.zero,
-            title: Text(t['manualTitle'] ?? t['title']),
+            title: Text(
+              manualDisplayText(
+                context,
+                '${t['manualTitle'] ?? t['title']}',
+                translations: ops.data?['manualContentTranslations'],
+                templateId: t['id'],
+              ),
+            ),
             subtitle: Text(context.t('ui.audit502')),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => showAppSheet(
-              context,
-              builder: (_) => ops.canEditTasks
-                  ? ManualTapEditor(ops: ops, templateId: t['id'])
-                  : AppEditorScaffold(
-                      title: t['title'],
-                      body: ListView(
-                        padding: const EdgeInsets.all(24),
-                        children: [
-                          for (final step
-                              in (t['steps'] as List).cast<Json>()) ...[
-                            Text(step['title'], style: AppText.section),
-                            const SizedBox(height: 8),
-                            Text(step['manual'] ?? '', style: AppText.body),
-                            if ((step['tip'] ?? '').isNotEmpty)
-                              Text(step['tip'], style: AppText.caption),
-                            const SizedBox(height: 24),
-                          ],
-                        ],
-                      ),
-                    ),
-            ),
+            onTap: () => openRecipe(t),
           ),
       ],
     );
@@ -1560,40 +1809,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                       ),
                     ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () => setState(() => recipes = false),
-                          child: Text(
-                            context.t('manual.operations'),
-                            style: TextStyle(
-                              color: recipes ? AppColors.muted : AppColors.ink,
-                              fontWeight: recipes
-                                  ? FontWeight.normal
-                                  : FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () => setState(() {
-                            recipes = true;
-                            editing = false;
-                          }),
-                          child: Text(
-                            context.t('manual.recipes'),
-                            style: TextStyle(
-                              color: recipes ? AppColors.ink : AppColors.muted,
-                              fontWeight: recipes
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  ManualCategoryPicker(
+                    selected: category,
+                    onSelected: chooseCategory,
+                    counts: categoryCounts,
                   ),
                   if (!recipes)
                     Wrap(
@@ -1678,14 +1897,19 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                                 const VerticalDivider(width: 1),
                                 Expanded(
                                   child: AppContentTransition(
-                                    trigger: (scopeGroup, scopeTap),
+                                    trigger: (category, scopeGroup, scopeTap),
                                     child: content(),
                                   ),
                                 ),
                               ],
                             )
                           : AppContentTransition(
-                              trigger: (showTree, scopeGroup, scopeTap),
+                              trigger: (
+                                category,
+                                showTree,
+                                scopeGroup,
+                                scopeTap,
+                              ),
                               child: showTree ? directory() : content(),
                             ),
                     ),

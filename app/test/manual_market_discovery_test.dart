@@ -46,6 +46,7 @@ void main() {
         await tester.ensureVisible(
           find.byKey(const ValueKey('market-starter')),
         );
+        await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('market-starter')));
         await tester.pumpAndSettle();
         await tester.tap(find.text('담은 7개 확인'));
@@ -83,7 +84,7 @@ void main() {
     'all legacy collections are discoverable; industry includes common legal and operations',
     () {
       final catalog = ManualMarketCatalog(release());
-      expect(catalog.entries.length, 109);
+      expect(catalog.entries.length, 135);
       expect(
         catalog
             .search(industry: 'beauty')
@@ -126,7 +127,7 @@ void main() {
     },
   );
   testWidgets(
-    'industry picker and periodic use case import six legal sources into existing group',
+    'industry picker and first setup import six legal references into existing group',
     (tester) async {
       final data = market.fixture()..['manualCatalog'] = release();
       Json? sent;
@@ -146,7 +147,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('선택 적용'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('정기관리'));
+      await tester.tap(find.text('처음 설정'));
       await tester.pumpAndSettle();
       expect(find.text('6개 항목'), findsWidgets);
       await tester.tap(find.text('이 결과 담기'));
@@ -217,11 +218,22 @@ void main() {
         await tester.pumpAndSettle();
         final checkbox = find.byType(Checkbox).first;
         await tester.ensureVisible(checkbox);
+        await tester.pumpAndSettle();
         await tester.tap(checkbox);
         await tester.pumpAndSettle();
         await tester.tap(find.text('담은 2개 확인'));
         await tester.pumpAndSettle();
         expect(find.text('업무별 자동 분류'), findsOneWidget);
+        final outerScroll = tester.state<ScrollableState>(
+          find
+              .descendant(
+                of: find.byKey(const ValueKey('market-basket')),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
+        outerScroll.position.jumpTo(outerScroll.position.maxScrollExtent);
+        await tester.pumpAndSettle();
         expect(find.text('근로계약·임금 서류 확인'), findsOneWidget);
         await tester.tap(find.text('선택한 2개 가져오기'));
         await tester.pumpAndSettle();
@@ -266,6 +278,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('검색·분류 초기화'), findsOneWidget);
       await tester.ensureVisible(find.text('검색·분류 초기화'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('검색·분류 초기화'));
       await tester.pumpAndSettle();
       expect(

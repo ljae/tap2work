@@ -1,25 +1,11 @@
+import {readManualTranslationSources} from './manual-translation-sources.mjs';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
 const catalog = JSON.parse(readFileSync(new URL('../docs/market/current.json', import.meta.url)));
 const ownerStarter = JSON.parse(readFileSync(new URL('../developer/owner_starter_content.json', import.meta.url)));
 const firstShiftSource = readFileSync(new URL('../app/lib/domain/lesson.dart', import.meta.url), 'utf8');
-const sources = new Set([
-  '우리 매장에 오신 것을 환영해요',
-  '처음 하는 일은 동료와 함께 확인해 주세요. 모르는 점이나 위험한 상황은 바로 물어봐도 괜찮아요.',
-]);
-sources.add(ownerStarter.assumption);
-for (const match of firstShiftSource.matchAll(/'([^'\n]*)'/g)) {
-  if (/[가-힣]/.test(match[1])) sources.add(match[1]);
-}
-for (const entry of [...catalog.entries, ...ownerStarter.entries]) {
-  sources.add(entry.title);
-  for (const step of entry.steps ?? []) {
-    for (const key of ['title', 'manual', 'tip']) {
-      if (typeof step[key] === 'string' && step[key].trim()) sources.add(step[key]);
-    }
-  }
-}
+const {sources} = readManualTranslationSources();
 const tokens = (text, pattern) => [...text.matchAll(pattern)].map(m => m[0]).sort();
 for (const locale of ['en', 'vi', 'zh-Hans', 'ja', 'th', 'ne', 'id']) {
   const bundle = JSON.parse(readFileSync(new URL(`../app/assets/manual_translations/${locale}.json`, import.meta.url)));

@@ -1,3 +1,9 @@
+2026-10-13 final selected source: isolatedFlutter605pass/3browser skip,analysis0,Node388,UI81/JS/7x1971/Edge/5SQL,production review build passed. Actual390px anonymous read-only sample showed26TAP/108sections and AI draft/native-review-incomplete label; phone structure/method/setup/day and8locale desktop viewed. Current TAP labels now use exact-source translations; source editing remains original. Sol-low deployment execution is next. New liveDB catalog publication still requires genuine supplier/reviewer sessions.
+
+## 2026-10-13 Manual organization implemented; web release preparation
+
+See [manual model redesign](MANUAL_OPERATING_MODEL_REDESIGN_2026-10-12.md). Five categories,26 fictional TAP/108sections/15folders,hierarchy/method/check UI,7x1971 ai-draft strings. Root and .local/manual-model-release Flutter604pass/3browser skip,Node388,analysis0,UI81/JS/Edge/5SQL passed. Existing actual IDs/history preserved; no live data deletion. User explicitly requests web deployment with Sol low; assigned gpt-6.1-sol low. New catalog requires authentic existing supplier/reviewer sessions (currently absent); no reuse of prior one-off DB-admin exception. Web deployment and public browser checks still in progress; do not mark published until verified.
+
 ## 2026-10-12 Folder/part localization deployed; manual-model redesign in progress
 
 [FOLDER_PART_LOCALIZATION_2026-10-12.md](FOLDER_PART_LOCALIZATION_2026-10-12.md): web0126782/CI38255526952, iOS20WAITING_FOR_REVIEW, Android19test tracks verified. Next user requirement: first setup / periodic / routine / recipe organization, detailed synthetic-store market example, hierarchy and motion redesign. See [implementation scope](MANUAL_OPERATING_MODEL_REDESIGN_2026-10-12.md). Protect the user-designated account with private execution configuration; do not put its email into source/history. Cleanup of other-account manual/task data is authorized where needed, not mandatory.
