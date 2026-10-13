@@ -1,3 +1,7 @@
+## 2026-10-13 공통 매뉴얼 앱·웹·DB 배포 완료
+
+D-136/revision318. 웹254663c/Pages38404612330 성공·공개267SHA일치. iOS21VALID/내부TestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL, Android20internal+alpha completed(운영production없음). 사용자 명시적 reviewer skip에 따라 이번만 관리자 발행: liveDB147/revision3/394a7e42 exact원본 일치, actor=null/생략이유 불변이력·PGlite재시도 통과. 기존계정은모두테스트로삭제허용됐으나필요없어삭제0. 기본24/110·개업6/24·레시피34·가로매뉴얼·중국어누락보완 포함. CI전체통과·local616/3skip·Node391·analysis0·UI84·Edge/5SQL/7x2047, 네이티브실산출물인증/번역/기존서명확인. 실제390Chrome샘플→매뉴얼마켓/개업상세 확인. 원어민·현장·실기기·실계정native로그인·Apple승인 미검증. rootdirty보존, 배포원본.local/common-operations-release. [배포기록](COMMON_MANUAL_APP_WEB_RELEASE_2026-10-13.md), 증거.local/common-operations-deployment.
+
 ## 2026-10-13 공통 업무 마켓·개업 준비·가로 매뉴얼 로컬 완료
 
 D-135/revision317. 공용147개(레시피34), 상세 공통24/110단계, 개업 전6/24단계. 매뉴얼·레시피·마켓 가로 페이지, 폴더/TAP 직접 복귀, 중국어 단계별 레시피/설거지 본보기 번역 누락 수정. 7언어각2047문자열(현재1951+과거96), BYOK 미구현·유료 런타임 OFF. 기존 원본/단계 ID·매장 사본·실행·사용자 dirty 보존. 최종 Flutter616/3skip·Node391·analysis0·JS/UI84·번역·웹build 통과, 위젯21렌더. 실제 브라우저/네이티브/원어민/현장 검수 및 새 운영 DB 발행·배포 미수행. 현재 운영 릴리스는 아래 이전 배포 기록을 따른다. [상세 기록](MANUAL_COMMON_OPERATIONS_2026-10-13.md), `.local/manual-operations-20261013/`.

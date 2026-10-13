@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 317,
+  "revision": 318,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1504,7 +1504,19 @@
       "decision": "User requested recipe separation, opening preparations, deeply detailed editable defaults and horizontal/direct navigation. Basic example translation gaps reported in Chinese are also corrected; owner API-key translation remains unimplemented.",
       "source": "User conversation 2026-10-13",
       "updatedAt": "2026-10-13T13:18:51.051868+00:00",
-      "implementation": "Implemented locally:147 catalog originals with34 recipes;18 enriched common manuals plus6 detailed service/review guides (24/110 steps),6 new opening packs/24 steps; horizontal pages, direct folder/TAP return, Chinese per-step recipe display and7x2047 prepared strings including historical versions. Existing source/step IDs, store data and execution history preserved. No new remote publication/deployment. See docs/MANUAL_COMMON_OPERATIONS_2026-10-13.md."
+      "implementation": "Implemented and deployed:147 originals/34 recipes,common24/110 and opening6/24,horizontal manual navigation and7x2047 translations. Web254663c,iOS21review pending,Android20test tracks,liveDB147/revision3. Existing IDs/history preserved. See docs/COMMON_MANUAL_APP_WEB_RELEASE_2026-10-13.md."
+    },
+    {
+      "id": "D-136",
+      "category": "Deployment and catalogue publication",
+      "title": "Deploy apps/web and explicitly omit independent review for this catalogue release",
+      "status": "confirmed",
+      "previous": "147 prepared originals were local; live stable109/revision2 awaited genuine provider and separate reviewer authentication. iOS20/Android19 were the latest native builds.",
+      "next": "Deploy prepared web and native changes; publish exact147 catalogue through an explicitly audited database administrator exception for this release. Existing accounts are identified by the user as tests and may be deleted/reset if needed.",
+      "decision": "User requested app/web deployment and explicitly instructed skipping the separate reviewer and deploying everything. Test account deletion/reconfiguration is permitted, not required for this release. General provider API review controls remain in place.",
+      "source": "User conversation 2026-10-13",
+      "updatedAt": "2026-10-13T13:42:31.444458+00:00",
+      "implementation": "Web254663c/Pages38404612330 succeeded;267publicSHA matched. iOS21VALID/InternalTestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL; Android20internal+alpha completed, production not published. Live stable147/revision3 exact394a7e42 release published with null DB-admin actor, explicit reviewer omission and immutable event. No fabricated reviewer, no accounts deleted. See docs/COMMON_MANUAL_APP_WEB_RELEASE_2026-10-13.md."
     }
   ],
   "milestones": [
@@ -8942,7 +8954,13 @@
       "type": "verification",
       "title": "Local manual operations verification passed; remote publication not performed",
       "detail": "Final Flutter616pass/3browser-onlyskip,Node391pass,flutter analyze0issues,npm check/UI84,market generation147,7x2047 translation numeric/placeholder/current-coverage checks,git diff --check and npm run build:app all pass. Flutter widget renders21captures at320/390/1200 and enlarged text; inspected opening detail,recipe320 and action390x1.5. First full runs failed on obsolete recipe auto-activation assumptions, offstage page expectations and lazy-list test scrolling; those tests corrected and full suites rerun successfully. No remaining failed checks. No actual browser/native/device run or new web/Edge/DB/store release. Translations remain ai-draft, native-language/restaurant expert review unperformed. Logs .local/manual-operations-20261013/ and docs/MANUAL_COMMON_OPERATIONS_2026-10-13.md."
+    },
+    {
+      "at": "2026-10-13T13:42:31.444458+00:00",
+      "type": "deployment",
+      "title": "Common manuals/recipes web and native submission verified; administrator catalogue147 published",
+      "detail": "User requested all deployment and explicitly skipped separate reviewer. Source254663cc90e7e2d7178f98373b200360bb303691/Pages38404612330 build+deploy success. CI full analysis/Flutter/Node391/UI84/Edge/5SQL/7x2047 translation/build passed (localFlutter616/3skip). Actual public267/267 SHA matches. iOS1.0.0(21)VALID,InternalTestFlight,old20review cancelled/new21WAITING_FOR_REVIEW/AFTER_APPROVAL; review details unchanged. Android1.0.0(20)internal+alpha completed/requeried, sameuploadcertificate and uploadedSHA match; noproduction. Native applicablepublicauth/callback/bundle/translations/privacy artifacts verified. Livecatalog109/rev2→147/rev3,394a7e42f8a61c6df34cebdcadd352b582114df996b0718a3a3187a4f20d1013 exact canonical read verified. One-off DB-admin actor=null/reviewer omission reason/immutable request6e75dcc7-b077-4b77-815d-68c05e527cc4; isolatedpublication/retry audit passed. All testaccountcleanup permitted, deleted0 as unnecessary. ExistingAPIreviewcontrols/realstorehistory retained. Actual390Chrome login/sample/manual/market/openingdetail rendered. Initial browser visibility/text locators and Android iOS-only define expectation corrected; missingoldcatalogfixture replaced with actual read-only109payload before publication test. No remainingdeployment failures. Appleapproval/Androidproduction/realdevice/nativeaccountlogin/native-language or field review not verified. Privateevidence.local/common-operations-deployment; docs/COMMON_MANUAL_APP_WEB_RELEASE_2026-10-13.md."
     }
   ],
-  "updatedAt": "2026-10-13T13:18:51.051868+00:00"
+  "updatedAt": "2026-10-13T13:42:31.444458+00:00"
 }
