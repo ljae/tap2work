@@ -84,7 +84,7 @@ void main() {
     'all legacy collections are discoverable; industry includes common legal and operations',
     () {
       final catalog = ManualMarketCatalog(release());
-      expect(catalog.entries.length, 135);
+      expect(catalog.entries.length, 147);
       expect(
         catalog
             .search(industry: 'beauty')
@@ -203,7 +203,16 @@ void main() {
         await tester.enterText(find.byType(TextField), '근로계약');
         await tester.pumpAndSettle();
         final legal = find.byKey(const ValueKey('market-legal/employment'));
-        await tester.ensureVisible(legal);
+        await tester.scrollUntilVisible(
+          legal,
+          300,
+          scrollable: find
+              .descendant(
+                of: find.byKey(const ValueKey('market-browse')),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
         await tester.pumpAndSettle();
         await tester.tap(
           find.descendant(of: legal, matching: find.byType(Checkbox)),
@@ -216,10 +225,21 @@ void main() {
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(TextField), '네일');
         await tester.pumpAndSettle();
-        final checkbox = find.byType(Checkbox).first;
-        await tester.ensureVisible(checkbox);
+        final nail = find.byKey(const ValueKey('market-nail/open'));
+        await tester.scrollUntilVisible(
+          nail,
+          300,
+          scrollable: find
+              .descendant(
+                of: find.byKey(const ValueKey('market-browse')),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
         await tester.pumpAndSettle();
-        await tester.tap(checkbox);
+        await tester.tap(
+          find.descendant(of: nail, matching: find.byType(Checkbox)),
+        );
         await tester.pumpAndSettle();
         await tester.tap(find.text('담은 2개 확인'));
         await tester.pumpAndSettle();
@@ -287,7 +307,7 @@ void main() {
       );
       expect(
         tester
-            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, '전체'))
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, '공통 업무'))
             .selected,
         isTrue,
       );

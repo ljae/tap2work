@@ -1,3 +1,7 @@
+## 2026-10-13 공통 업무 마켓·개업 준비·가로 매뉴얼 로컬 완료
+
+D-135/revision317. 공용147개(레시피34), 상세 공통24/110단계, 개업 전6/24단계. 매뉴얼·레시피·마켓 가로 페이지, 폴더/TAP 직접 복귀, 중국어 단계별 레시피/설거지 본보기 번역 누락 수정. 7언어각2047문자열(현재1951+과거96), BYOK 미구현·유료 런타임 OFF. 기존 원본/단계 ID·매장 사본·실행·사용자 dirty 보존. 최종 Flutter616/3skip·Node391·analysis0·JS/UI84·번역·웹build 통과, 위젯21렌더. 실제 브라우저/네이티브/원어민/현장 검수 및 새 운영 DB 발행·배포 미수행. 현재 운영 릴리스는 아래 이전 배포 기록을 따른다. [상세 기록](MANUAL_COMMON_OPERATIONS_2026-10-13.md), `.local/manual-operations-20261013/`.
+
 ## 2026-10-13 매뉴얼 모델 웹 배포 완료 · 실제 DB 발행 인증 대기
 
 웹5f6f0a3/Pages38284243014 성공, operations65/catalog-admin7 ACTIVE. CI Flutter606/3skip·Node388·analysis0·UI81/Edge/5SQL/7×1971번역 통과, 공개267SHA 일치. 공개320px 네팔어 첫폴더·보기드롭다운→설정 확인. read-only 샘플135/가상26TAP108내용은 AI초안이며 실제 로그인DB는stable109/revision2 유지. 정상 공급자/별도reviewer 인증 없어 신규135발행 미완료; 우회·새native배포 없음. [배포 기록](MANUAL_MODEL_WEB_RELEASE_2026-10-13.md).

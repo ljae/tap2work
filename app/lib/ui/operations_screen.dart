@@ -192,7 +192,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   Future<void> openManual(Json row) async {
     final actor = ops.actorId;
     final workspace = ops.data?['workspaceId'];
-    await showAppSheet<void>(
+    await showAppPage<void>(
       context,
       builder: (_) => AppEditorScaffold(
         title: context.t('nav.manual'),
@@ -965,7 +965,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
           onPeople: () => openStoreDetail('people'),
           onTasks: () async {
             if (ops.canEditTasks) {
-              await showAppSheet(
+              await showAppPage(
                 context,
                 builder: (_) => ManualMarketScreen(ops: ops),
               );
@@ -1035,8 +1035,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
           CupertinoIcons.book,
           '업종·기본 매뉴얼',
           '${storeBusinessName(ops)} · ${ops.rows('taskTemplates').where((t) => t['archivedAt'] == null).length} TAP',
-          () => showAppFormSheet(
-            context: context,
+          () => showAppPage(
+            context,
             builder: (_) => ManualMarketScreen(ops: ops, setup: true),
           ),
         ),

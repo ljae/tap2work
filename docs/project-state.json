@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 316,
+  "revision": 317,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1493,6 +1493,18 @@
       "source": "User conversation 2026-10-12/13",
       "updatedAt": "2026-10-12T17:01:25.922687+00:00",
       "implementation": "Web UI and read-only fictional draft example deployed and verified (5f6f0a3 / Pages38284243014; operations65/catalog-admin7). Live authenticated-store catalog remains109/revision2; new135 publication awaits genuine supplier and independent reviewer authentication. No live data deleted or new native deployment. See docs/MANUAL_MODEL_WEB_RELEASE_2026-10-13.md."
+    },
+    {
+      "id": "D-135",
+      "category": "Manual operations and recipes",
+      "title": "Common operations market, pre-opening guides and horizontal manual navigation",
+      "status": "confirmed",
+      "previous": "Food-specific guides were mixed into common operating manuals; startup lacked a complete pre-opening sequence; reading used bottom sheets and work breadcrumbs did not select the actual folder/TAP.",
+      "next": "Separate food-specific procedures into recipes and focus the common market on shared operations. Add detailed editable pre-opening guides and common procedures. Open manual reading horizontally and navigate directly to the actual folder/TAP.",
+      "decision": "User requested recipe separation, opening preparations, deeply detailed editable defaults and horizontal/direct navigation. Basic example translation gaps reported in Chinese are also corrected; owner API-key translation remains unimplemented.",
+      "source": "User conversation 2026-10-13",
+      "updatedAt": "2026-10-13T13:18:51.051868+00:00",
+      "implementation": "Implemented locally:147 catalog originals with34 recipes;18 enriched common manuals plus6 detailed service/review guides (24/110 steps),6 new opening packs/24 steps; horizontal pages, direct folder/TAP return, Chinese per-step recipe display and7x2047 prepared strings including historical versions. Existing source/step IDs, store data and execution history preserved. No new remote publication/deployment. See docs/MANUAL_COMMON_OPERATIONS_2026-10-13.md."
     }
   ],
   "milestones": [
@@ -8918,7 +8930,19 @@
       "type": "verification",
       "title": "Requested Sol low manual-model web deployment verified; live catalog publication pending",
       "detail": "Selected source2c8127a/Pages38282802152 and compact follow-up5f6f0a3/Pages38284243014 build+deploy success. FinalCI Flutter606pass/3browser-onlyskip,Node388,analysis0,UI81,JS/catalog135/7x1971translation,Edge+5SQL pass. operations65/catalog-admin7 ACTIVE; no account or SQL deployment. Both release artifacts267/267 publicSHA match. Actual anonymousChrome390px draft26TAP/108sections verified; final320x740Nepali firstfolder fullyvisible and viewdropdown->setup works. Publicsample135/c7eaf2 is an AI-reviewed fictional draft, translations not native-reviewed; authenticated liveDBstable109/revision2/08a4e057 preserved. Authentic supplier/distinctreviewer sessions unavailable, no publication bypass or fabricated review. No live operational writes/deletion or newnativebuild. Private evidence .local/manual-model-deployment/; docs/MANUAL_MODEL_WEB_RELEASE_2026-10-13.md."
+    },
+    {
+      "at": "2026-10-13T13:18:51.051868+00:00",
+      "type": "implementation",
+      "title": "Common operations market, pre-opening content and manual navigation completed locally",
+      "detail": "D-135; catalog135→147, release394a7e42f8a61c6df34cebdcadd352b582114df996b0718a3a3187a4f20d1013. Food-specific34 originals now recipe/reference; common24/110 and opening6/24 detailed. All existing source/step IDs preserved, duplicate bonejjim common originals point to richer sources. Manual/recipe/market pages use horizontal AppPageRoute; work folder/TAP returns exact destination after identity check; reduced motion skips transition. Recipe steps use registered/bundled translation and actual dishwashing20 strings are collected;7 locales each2047 current/historical strings cover1951 current sources. BYOK unimplemented; paid runtime remains off. Existing uncommitted work and live operations untouched."
+    },
+    {
+      "at": "2026-10-13T13:18:51.051868+00:00",
+      "type": "verification",
+      "title": "Local manual operations verification passed; remote publication not performed",
+      "detail": "Final Flutter616pass/3browser-onlyskip,Node391pass,flutter analyze0issues,npm check/UI84,market generation147,7x2047 translation numeric/placeholder/current-coverage checks,git diff --check and npm run build:app all pass. Flutter widget renders21captures at320/390/1200 and enlarged text; inspected opening detail,recipe320 and action390x1.5. First full runs failed on obsolete recipe auto-activation assumptions, offstage page expectations and lazy-list test scrolling; those tests corrected and full suites rerun successfully. No remaining failed checks. No actual browser/native/device run or new web/Edge/DB/store release. Translations remain ai-draft, native-language/restaurant expert review unperformed. Logs .local/manual-operations-20261013/ and docs/MANUAL_COMMON_OPERATIONS_2026-10-13.md."
     }
   ],
-  "updatedAt": "2026-10-12T17:36:54.083166+00:00"
+  "updatedAt": "2026-10-13T13:18:51.051868+00:00"
 }

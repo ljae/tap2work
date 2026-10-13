@@ -148,6 +148,14 @@ Future<T?> showAppSheet<T>(
 
 const appEditorWidth = 688.0;
 
+/// Reading follows a horizontal page stack; editing keeps its draft sheet.
+Future<T?> showAppPage<T>(
+  BuildContext context, {
+  required WidgetBuilder builder,
+}) => Navigator.of(context).push<T>(
+  AppPageRoute<T>(reduceMotion: AppMotion.reduced(context), builder: builder),
+);
+
 /// A wrapping heading and persistent action area, shared by all form families.
 class AppEditorScaffold extends StatelessWidget {
   const AppEditorScaffold({

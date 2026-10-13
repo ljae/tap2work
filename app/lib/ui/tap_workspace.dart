@@ -15,6 +15,7 @@ import 'checklist_board.dart' show rowsOf, stampOf;
 import 'components.dart';
 import 'tap_card.dart';
 import 'manual_action_slides.dart';
+import 'manual_hierarchy.dart';
 import 'manual_action_editor.dart';
 import 'place_guide.dart';
 import 'linked_place_guide.dart';
@@ -1336,11 +1337,12 @@ class _TapWorkspaceState extends State<TapWorkspace> {
 
         sequence: index + 1,
         selected: selected?['id'] == step['id'],
-        onOpen: () {
+        onOpen: () async {
           setState(() => selectedStepId = step['id']);
-          showAppSheet<void>(
+          final actor = ops.actorId;
+          final workspace = ops.data?['workspaceId'], day = ops.data?['day'];
+          final destination = await showAppPage<ManualHierarchyDestination>(
             context,
-            maxWidth: appEditorWidth,
             builder: (_) => ManualActionSlides(
               ops: ops,
               task: task,
@@ -1350,6 +1352,23 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               onToggle: _toggle,
               onCompleteQuantity: _checkMenu,
             ),
+          );
+          if (!mounted ||
+              destination == null ||
+              ops.actorId != actor ||
+              ops.data?['workspaceId'] != workspace ||
+              ops.data?['day'] != day) {
+            return;
+          }
+          final current = groups
+              .where((t) => t['id'] == task['id'])
+              .firstOrNull;
+          if (current == null) return;
+          navigate(
+            folder: folderOf(current),
+            task: destination == ManualHierarchyDestination.tap
+                ? current['id']
+                : null,
           );
         },
         checked: step['completedAt'] != null,

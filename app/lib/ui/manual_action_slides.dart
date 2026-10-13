@@ -232,12 +232,24 @@ class _ManualActionSlidesState extends State<ManualActionSlides> {
                                 templateId: currentTask['templateId'],
                                 stepId: row['id'],
                               ),
-                              onFolder: saving
+                              onFolder: saving || busy || !sameSource
                                   ? null
-                                  : () => Navigator.pop(context),
-                              onTap: saving
+                                  : () => Navigator.pop(
+                                      context,
+                                      ManualHierarchyDestination.folder,
+                                    ),
+                              onTap: saving || busy || !sameSource
                                   ? null
-                                  : () => Navigator.pop(context),
+                                  : () => Navigator.pop(
+                                      context,
+                                      ManualHierarchyDestination.tap,
+                                    ),
+                              onTask: saving || busy || !sameSource
+                                  ? null
+                                  : () => Navigator.pop(
+                                      context,
+                                      ManualHierarchyDestination.tap,
+                                    ),
                             ),
                             const SizedBox(height: 16),
                             widget.bodyBuilder(currentTask, row),

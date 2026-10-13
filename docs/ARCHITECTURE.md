@@ -1,3 +1,13 @@
+## 2026-10-13 공통 업무와 레시피·개업 준비 분리
+
+공용 원본의 음식별 문서는 `knowledge.useCase=recipe`, `suggestedUse=reference`로 분류한다. `ManualMarketCatalog.search`의 기본 범위는 공통 업무이며 recipe는 명시적 레시피 분야에서만 반환한다. `ManualWorkspace.sync`는 메뉴 연결 ID뿐 아니라 계산된 recipe 분류도 공통 트리에서 제외한다. 레시피 가져오기는 같은 `ManualMarketScreen(initialCategory:recipe)`와 기존 가져오기 API를 사용하고 가져온 분야에 맞는 화면으로 복귀한다. 판매 메뉴 ID를 새로 만들거나 변경하지 않는다.
+
+SOURCE.md의 기존18개 공통 원본을 사장님 기본 지침으로 보강하되 sourceId와 기존 stepId를 유지했다. 기존 상세 지침6개와 개업 준비6개24단계를 추가해147개 원본이다. 가상매장 생산 준비도 recipe로 분류하며 blueprint 사용은 reference/OFF다. 실제 매장 사본과 생성 실행을 일괄 변경하는 마이그레이션은 없다. 등록된 공용 사본은 기존 비교·선택 적용 경로를 따른다.
+
+`showAppPage`는 기존 AppPageRoute와 reduced motion을 공유한다. 매뉴얼/레시피 읽기·마켓·본보기 진입을 가로 push로 연다. `ManualHierarchyDestination.folder/tap`을 반환하면 작업 보드는 현재 동일 actor/workspace/day에서 실제 task의 folderId/id로 이동한다. 읽기 매뉴얼은 동일 actor/workspace와 최신 row를 다시 확인한다. 탐색으로 완료 API를 호출하지 않는다.
+
+레시피는 step별 `TranslatedContent(entityId:templateId,stepId)`를 사용해 등록 번역·준비 사전을 본문/팁까지 적용한다. 번역 원문 수집에 실제 설거지 본보기 정의를 추가했다. 변경 전 매장 사본을 위한 기존 번역 키를 보존하고 현재 원문 전체 포함 및 현재/과거 문자열의 숫자·변수를 검사한다. BYOK와 유료 런타임 자동 번역은 이번 구현에 포함하지 않는다.
+
 ## 2026-10-13 매뉴얼 분야·본보기·연결 경로
 
 분야는 `startup/periodic/routine/recipe/reference`이며 기존 training은 교육·참고로 표시한다. 분야는 찾는 축, `settings.usage/recurrence/assignment`는 실행 정책이다. 메뉴 연결 문서는 recipe이고 처음 설정·레시피·교육/참고는 일일 실행을 만들지 않는다. 정기 관리는 weekly/monthly가 있어야 생성 조건을 충족한다. 기존 실행의 완료·담당·본문 snapshot을 다시 쓰지 않는다.

@@ -40,11 +40,15 @@ void main() {
       expect(find.text('TAP 규칙'), findsNothing);
       expect(find.text('Task 추가'), findsNothing);
       final card = tester.widget<TapCard>(
-        find.byKey(const ValueKey('small-s1')),
+        // Reading now pushes a full page, so the source card can be offstage.
+        find.byKey(const ValueKey('small-s1'), skipOffstage: false),
       );
       expect(card.onEdit, isNull);
       expect(card.onCheck, isNotNull);
-      expect(find.byType(ReorderableDragStartListener), findsWidgets);
+      expect(
+        find.byType(ReorderableDragStartListener, skipOffstage: false),
+        findsWidgets,
+      );
       if (find.text('생재료와 완성식품 도구를 따로 놓아요.').evaluate().isEmpty) {
         card.onOpen();
         await tester.pumpAndSettle();

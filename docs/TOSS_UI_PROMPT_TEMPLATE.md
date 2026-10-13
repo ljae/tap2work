@@ -28,7 +28,9 @@ Flutter 앱 tap2work의 UI를 다음 공통 규칙으로 구현한다.
 4. 강조색은 tap2work의 초록·코랄을 다크 배경에 맞춰 유지하고 주요 버튼은 청록을 쓴다. 토스 로고·브랜드는 사용하지 않는다.
 5. 업무·매뉴얼·근무표·우리매장 네 주요 메뉴는 유지한다. 제목은 메뉴명과 같게 하고,
    공통 매뉴얼 검색을 같은 상단 위치에 둔다. 장식 설명은 추가하지 않는다.
-6. 설정·편집·상세는 showAppSheet/showModalBottomSheet를 사용한다.
+6. 설정·편집·일반 상세는 showAppSheet/showModalBottomSheet를 사용한다.
+   매뉴얼·레시피 읽기와 마켓·본보기는 showAppPage/AppPageRoute의 가로 전환으로 연다.
+   폴더/TAP 경로는 실제 소속 목록으로 이동하고 동작 줄이기를 따른다.
    상단 모서리 28px, 회색의 얇은 중앙 드래그 핸들, SafeArea와 키보드 대응을 제공한다.
    AppEditorScaffold와 AppSheetFooter로 제목 줄바꿈과 하단 저장 동작을 통일한다.
    AppFormSection의 섹션 제목 18sp, 입력 간격 20px, 공통 편집 폭 688px와 기본 좌우 여백을 뺀 입력/footer 폭 640px를 사용한다.

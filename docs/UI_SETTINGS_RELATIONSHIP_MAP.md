@@ -563,3 +563,12 @@ S70 사진 읽기는 같은 화면에서 다시 불러오며 매장·계정 변�
 | U03 | 폴더·TAP·행동 source ID → ManualHierarchyPath / 폴더 높이 전환 / 방법·체크 → 기존 onToggle 및 완료 API | 읽기·스와이프는 완료 아님, 저장 성공 뒤 다음 행동. reduced motion은 정지 경로, actor/workspace/day 변경 결과 폐기 | manual_action_slides_test.dart, manual_workspace_test.dart |
 
 S88 compact-phone control variation: same taxonomy/profile ->48px local view/category dropdowns -> pane/category/history state -> read-only structure/setup/day. This does not save settings; count/draft metadata scrolls with content. Enlarged Nepali320x740 fixture and actual anonymous320px Chrome cover the control and usable list.
+
+
+## 2026-10-13 공통 업무·개업 준비·가로 탐색 후속
+
+| ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
+|---|---|---|---|
+| S89 | 공용 knowledge.useCase와 매장 분류 → 공통 업무/레시피 가져오기 → ManualMarketCatalog.search(useCase) 및 기존 import_market_taps | 레시피는 공통 목록·트리에서 분리, 가져온 분야로 복귀. 메뉴 ID·과거 기록·등록 선택 계약 보존. 개업 준비6묶음은 startup/reference | manual_common_operations.test.mjs, manual_common_operations_test.dart, manual_market_discovery_test.dart |
+| S90 | 현재 폴더/TAP/행동 ID → 매뉴얼 읽기·ManualHierarchyPath → showAppPage 및 ManualHierarchyDestination 반환 | 가로 페이지 이동 후 보드/디렉토리 실제 폴더·TAP으로 이동. actor/workspace/day 재확인, 조회는 쓰기 없음, reduced motion | manual_common_operations_test.dart, manual_action_slides_test.dart, manual_workspace_test.dart |
+| S91 | 원문과 step ID·개인 언어 → 레시피 단계 본문·설거지 본보기 → TranslatedContent/준비 번역 조회 | 원문·체크·설정 저장 없음. 7언어 현재 원문+구 버전 번역 보존, 유료 API와 BYOK 미활성 | manual_common_operations_test.dart, check-manual-translations.mjs |

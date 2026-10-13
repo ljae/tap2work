@@ -59,6 +59,8 @@ class ManualMarketCatalog {
     final words = query.trim().split(RegExp(r'\s+')).map(normalize);
     return entries.where((entry) {
       if (!discoverable(entry)) return false;
+      // Menu-specific procedures live in Recipes, including search results.
+      if (useCase != 'recipe' && useCaseOf(entry) == 'recipe') return false;
       if (useCase != null && useCaseOf(entry) != useCase) return false;
       if (purpose != null && entry['purposeId'] != purpose) return false;
       if (scope != null && scopeOf(entry) != scope) return false;

@@ -34,10 +34,12 @@ test('registration shares hours, overnight shift, staffing and manual source con
  assert.equal(snapshot.tasks.length,0);
  assert.equal(snapshot.storeSetupCatalog.businessTypes.length,14);
 });
-test('presets distinguish Korean from frying and never activate legal or unrelated TAPs',()=>{
+test('presets distinguish Korean from frying; recipes stay reference even with operations enabled',()=>{
  const korean=create(setup({businessTypeId:'korean',sourceIds:['korean/prep'],enableOperations:true}));
  assert.equal(korean.taskTemplates[0].title,'반찬 소분과 배식 준비');
- assert.equal(korean.taskTemplates[0].settings.enabled,true);
+ assert.equal(korean.taskTemplates[0].settings.enabled,false);
+ assert.equal(korean.taskTemplates[0].settings.usage,'reference');
+ assert.equal(korean.taskTemplates[0].knowledge.useCase,'recipe');
  const cutlet=create(setup({businessTypeId:'donkatsu',sourceIds:['chicken/prep']}));
  assert.equal(cutlet.manualBusinessProfile.specialization,'돈까스');
  assert.throws(()=>create(setup({businessTypeId:'korean',sourceIds:['chicken/prep']})),/기본 매뉴얼/);

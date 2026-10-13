@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S89', 'app/lib/ui/manual_workspace.dart', "initialCategory: recipes ? 'recipe' : null", 'app/lib/domain/manual_market_catalog.dart', "useCase != 'recipe'"],
+  ['S90', 'app/lib/ui/manual_action_slides.dart', 'ManualHierarchyDestination.folder', 'app/lib/ui/tap_workspace.dart', 'ManualHierarchyDestination.tap'],
+  ['S91', 'app/lib/ui/manual_workspace.dart', "stepId: step['id']", 'scripts/manual-translation-sources.mjs', 'addDishwashingExample'],
   ['S87','app/lib/ui/manual_tap_editor.dart',"'manualCategory'",'developer/manual_market.mjs','manualCategoryOverride'],
   ['S88','app/lib/ui/manual_market_screen.dart','ManualExampleScreen','developer/manual_market.mjs',"'example'"],
   ['S86','app/lib/ui/entity_name_translation.dart','ManualTranslationEditor','developer/manual_content_translations.mjs',"['folder','part']"],

@@ -12,6 +12,13 @@ function fixture(){
  const importSource=async source=>{await act('import_market_taps',{sourceIds:[source],releaseId:manualCatalog.releaseId,operationId:`import-${source.replaceAll('/','-')}`,folderMode:'purpose'});const t=state.taskTemplates.find(t=>state.catalogLinks[t.id]?.sourceId===source);await act('register_owner_manuals',{ids:[t.id],reviewed:true});return t;};
  return {store,act,importSource,raw:()=>state,next:()=>date=new Date(date.getTime()+86400000)};
 }
+// Recipe originals are read-only guidance. An owner may explicitly classify
+// their editable store copy as operational before testing batch execution.
+async function operationalCopy(x,source){
+ const t=await x.importSource(source);
+ await x.act('save_manual_tap',{templateId:t.id,operationId:`operational-${source.replaceAll('/','-')}`,title:t.title,emoji:t.emoji,folderId:t.folderId,steps:t.steps,manualCategory:'routine'});
+ return x.raw().taskTemplates.find(row=>row.id===t.id);
+}
 test('common break is menu/time independent and old mixed source has replacements',()=>{
  const common=manualCatalog.entries.find(e=>e.sourceId==='common/break-service');
  assert.equal(common.knowledge.scope,'universal');assert.doesNotMatch(JSON.stringify(common.steps),/등뼈|14:00|16:00/);
@@ -27,7 +34,7 @@ test('reference, missing configuration and no-break day are distinct; existing i
  assert.equal(workStatus(state,base,'2026-10-08').code,'missing');
 });
 test('event requires store standard, generates once, keeps different batches and snapshots, requires evidence',async()=>{
- const x=fixture(), t=await x.importSource('process/broth-storage');
+ const x=fixture(), t=await operationalCopy(x,'process/broth-storage');
  const settings={...t.settings,usage:'event',eventKind:'batch',assignment:{mode:'anyone'}};
  await assert.rejects(x.act('save_tap_settings',{templateId:t.id,assignmentScopeVersion:2,settings}),/매장 기준/);
  await x.act('save_tap_settings',{templateId:t.id,assignmentScopeVersion:2,settings:{...settings,operatingStandard:'제품 지침과 검증된 매장 냉각 기준을 확인하고 실제 측정값 기록'}});
@@ -64,7 +71,7 @@ test('explicit split reuses installed common knowledge and preserves original hi
  assert.equal(x.raw().taskTemplates.filter(t=>!t.archivedAt&&x.raw().catalogLinks[t.id]?.sourceId==='common/break-service').length,1);
 });
 test('metadata survives editing and linked knowledge stays frozen in event snapshots',async()=>{
- const x=fixture(), t=await x.importSource('process/broth-storage'),ref=await x.importSource('common/prep');
+ const x=fixture(), t=await operationalCopy(x,'process/broth-storage'),ref=await x.importSource('common/prep');
  await x.act('save_tap_settings',{templateId:t.id,assignmentScopeVersion:2,settings:{...t.settings,usage:'event',eventKind:'batch',assignment:{mode:'anyone'},operatingStandard:'매장에 확인된 냉각·보관 기준을 적용하고 기록',knowledgeIds:[ref.id]}});
  await x.act('start_manual_work',{templateId:t.id,requestId:'snapshot-batch-123',subject:'배치1'});
  const task=x.raw().tasks.find(t=>t.workEvent),original=task.knowledgeSnapshots[0].title;
@@ -73,7 +80,7 @@ test('metadata survives editing and linked knowledge stays frozen in event snaps
  assert.equal(x.raw().taskTemplates.find(t=>t.id===ref.id).knowledge.scope,'food');
 });
 test('exceptions block completion until an explicit manager resolution',async()=>{
- const x=fixture(),t=await x.importSource('bonejjim/evening-prep');
+ const x=fixture(),t=await operationalCopy(x,'bonejjim/evening-prep');
  await x.act('save_tap_settings',{templateId:t.id,assignmentScopeVersion:2,settings:{...t.settings,usage:'event',eventKind:'batch',operatingStandard:'제품별 매장 전처리·보관 기준 확인'}});
  const view=await x.act('start_manual_work',{templateId:t.id,requestId:'issue-batch-123',subject:'저녁 준비'}),task=view.tasks.find(t=>t.workEvent);
  await x.act('flag_work_issue',{taskId:task.id,reason:'보관 이력 확인 불가, 사용 보류'});

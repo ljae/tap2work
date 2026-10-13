@@ -1,5 +1,25 @@
 // AI-reviewed draft; ko, en, vi, zh-Hans, ja, th, ne, id.
 const manualModelMessageRows = <String, List<String>>{
+  'manual.recipeLibrary': [
+    '레시피 가져오기',
+    'Import recipes',
+    'Nhập công thức',
+    '导入食谱',
+    'レシピを取り込む',
+    'นำเข้าสูตรอาหาร',
+    'रेसिपी आयात गर्ने',
+    'Impor resep',
+  ],
+  'manual.market.common': [
+    '공통 업무',
+    'Common operations',
+    'Công việc chung',
+    '通用工作',
+    '共通業務',
+    'งานส่วนกลาง',
+    'साझा काम',
+    'Pekerjaan umum',
+  ],
   "manual.category.startup": [
     "처음 설정",
     "First setup",

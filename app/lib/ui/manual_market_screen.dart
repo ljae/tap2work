@@ -15,10 +15,12 @@ class ManualMarketScreen extends StatefulWidget {
     required this.ops,
     this.folderId,
     this.setup = false,
+    this.initialCategory,
   });
   final OperationsController ops;
   final String? folderId;
   final bool setup;
+  final String? initialCategory;
   @override
   State<ManualMarketScreen> createState() => _ManualMarketScreenState();
 }
@@ -47,6 +49,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
     actor = widget.ops.actorId;
     workspace = widget.ops.data?['workspaceId'];
     catalog = ManualMarketCatalog(widget.ops.data?['manualCatalog'] ?? {});
+    useCase = widget.initialCategory;
     industry = widget.ops.data?['manualBusinessProfile']?['industryId'];
     specialization.text =
         widget.ops.data?['manualBusinessProfile']?['specialization'] ?? '';
@@ -75,6 +78,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                 (e) =>
                     collections.contains(e['collectionId']) &&
                     catalog.discoverable(e) &&
+                    catalog.useCaseOf(e) != 'recipe' &&
                     e['kind'] != 'legal' &&
                     !catalog.linked(e),
               )
@@ -254,8 +258,8 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
         .where((e) => e['knowledge']?['exampleStoreId'] == profile['id'])
         .map((e) => e['sourceId'] as String)
         .toSet();
-    final picked = await showAppFormSheet<List<String>>(
-      context: context,
+    final picked = await showAppPage<List<String>>(
+      context,
       builder: (_) => ManualExampleScreen(
         profile: profile,
         entries: catalog.entries,
@@ -468,6 +472,8 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
           ? context.t('ui.audit684')
           : widget.setup
           ? context.t('ui.audit685')
+          : useCase == 'recipe'
+          ? context.t('manual.recipeLibrary')
           : context.t('ui.audit686'),
       footer: AppSheetFooter(
         children: [
@@ -672,7 +678,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                       ChoiceChip(
                         label: Text(
                           item.key.isEmpty
-                              ? context.t('manual.category.all')
+                              ? context.t('manual.market.common')
                               : context.t('manual.category.${item.key}'),
                         ),
                         selected: (useCase ?? '') == item.key,

@@ -3,6 +3,8 @@ import '../domain/manual_categories.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 
+enum ManualHierarchyDestination { folder, tap }
+
 class ManualCategoryPicker extends StatelessWidget {
   const ManualCategoryPicker({
     super.key,
@@ -152,6 +154,7 @@ class ManualHierarchyPath extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: TextButton(
+                        key: ValueKey('manual-path-${kinds[i]}'),
                         onPressed: callbacks[i],
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(

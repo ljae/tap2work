@@ -703,9 +703,9 @@
             "opening"
           ],
           "settings": {
-            "usage": "event",
+            "usage": "reference",
             "type": "preparation",
-            "enabled": true,
+            "enabled": false,
             "recurrence": {
               "mode": "daily",
               "weekdays": []
@@ -2571,7 +2571,7 @@
         }
       ],
       "knowledge": {
-        "useCase": "routine",
+        "useCase": "recipe",
         "scope": "store",
         "topics": [
           "example-routine",
@@ -2582,7 +2582,7 @@
         ],
         "ingredientNames": [],
         "requiresBreak": false,
-        "suggestedUse": "event",
+        "suggestedUse": "reference",
         "eventKind": "batch",
         "safetyReviewRequired": true,
         "supersededBy": [],

@@ -16,13 +16,15 @@ for (const locale of ['en', 'vi', 'zh-Hans', 'ja', 'th', 'ne', 'id']) {
   assert.equal(bundle.reviewStatus, 'ai-draft');
   assert.equal(bundle.ownerStarterVersion, ownerStarter.version);
   assert.equal(bundle.firstShiftGuideVersion, 1);
-  assert.deepEqual(Object.keys(bundle.translations).sort(), [...sources].sort(), `${locale}: catalog source coverage`);
-  for (const source of sources) {
+  for (const source of sources) assert.ok(Object.hasOwn(bundle.translations, source), `${locale}: missing source: ${source}`);
+  // Installed manuals keep their original text until the owner reviews an update.
+  // Retain and validate their translations alongside the latest catalogue.
+  for (const source of Object.keys(bundle.translations)) {
     const text = bundle.translations[source];
     assert.equal(typeof text, 'string');
     assert.ok(text.trim(), `${locale}: empty translation: ${source}`);
     assert.deepEqual(tokens(text, /\d+/g), tokens(source, /\d+/g), `${locale}: numeric safety content: ${source}`);
     assert.deepEqual(tokens(text, /\{[^}]+\}/g), tokens(source, /\{[^}]+\}/g), `${locale}: placeholders: ${source}`);
   }
-  console.log(`${locale}: ${sources.size} prepared strings; source keys, numbers and placeholders verified`);
+  console.log(`${locale}: ${sources.size} current sources covered; ${Object.keys(bundle.translations).length} current/historical strings validated`);
 }
