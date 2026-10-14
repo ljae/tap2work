@@ -223,30 +223,11 @@ test('shared demo mode exposes only the operations API to allowed browser origin
   assert.equal((await raw(`http://127.0.0.1:${closed.address().port}`, 'GET', '/api/operations')).status, 403);
 });
 
-test('menu TAPs complete independently, move atomically as an order, and survive Korean midnight', async t => {
-  const { store, act, advance } = await setup(t);
-  let state = await store.snapshot('owner');
-  const first = state.tasks.find(t => t.orderId && state.tasks.filter(s => s.orderId === t.orderId).length > 1);
-  assert.ok(first, 'sample must include a multiple-menu ticket');
-  const members = state.tasks.filter(s => s.orderId === first.orderId);
-  assert.ok(members.every(t => t.steps.length >= 3));
-  state = await act('cook', 'complete_task', { taskId: first.id });
-  assert.ok(state.dashboard.queue.some(t => t.id === first.orderId), 'one menu must not complete the ticket');
-  advance(86400000);
-  state = await store.snapshot('owner');
-  assert.equal(state.tasks.filter(s => s.orderId === first.orderId).length, members.length);
-  state = await act('cook', 'move_tap', { taskId: members[1].id, status: 'done', folderId: 'order-work' });
-  assert.ok(state.tasks.filter(s => s.orderId === first.orderId).every(t => t.completedAt));
-  assert.ok(!state.dashboard.queue.some(t => t.id === first.orderId));
-  state = await act('cook', 'move_tap', { taskId: first.id, status: 'processing', folderId: 'order-work' });
-  assert.ok(state.tasks.filter(s => s.orderId === first.orderId).every(t => !t.completedAt));
-  assert.equal(state.dashboard.queue.find(t => t.id === first.orderId).status, '조리 중');
-});
 
-test('saved order Task order survives snapshots and store reload', async t => {
+test('saved routine action order survives snapshots and store reload', async t => {
   const { store, act, file, clock } = await setup(t);
   const before = await store.snapshot('owner');
-  const task = before.tasks.find(row => row.orderId && !row.completedAt);
+  const task = before.tasks.find(row => row.kind === 'routine' && !row.preparedItemId && row.steps?.length > 1 && !row.completedAt);
   const reversed = task.steps.map(step => step.id).reverse();
   const saved = await act('owner', 'reorder_small_taps', { taskId: task.id, stepIds: reversed });
   assert.deepEqual(saved.tasks.find(row => row.id === task.id).steps.map(step => step.id), reversed);
@@ -318,42 +299,7 @@ test('repeat shifts are bounded, idempotent, and check overnight overlap for eve
   assert.equal(manager.tappers[0].payPeriodStart, undefined);
 });
 
-test('customer channels own packing steps and preserve ticket requests', async t => {
-  const { store } = await setup(t);
-  const state = await store.snapshot('owner');
-  const delivery = state.tasks.find(t => t.orderChannel === '배달' && t.customerRequest);
-  assert.ok(delivery);
-  assert.equal(delivery.orderPlatform, '배달의민족');
-  assert.ok(delivery.steps.some(s => s.id === 'pack-check'));
-  assert.equal(delivery.steps.length, 4);
-  assert.match(delivery.steps.find(s => s.id === 'handoff').title, /기사 전달/);
-  assert.ok(!state.tasks.some(t => /(?:^|-)packing$/.test(t.templateId ?? '') && !t.archivedAt));
-});
 
-test('channel migration preserves a completed menu snapshot while upgrading its unfinished sibling', async t => {
-  const { store, file } = await setup(t);
-  const first = await store.snapshot('owner');
-  const menu = first.tasks.find(t => t.orderChannel === '배달' && t.customerRequest);
-  const disk = JSON.parse(await readFile(file, 'utf8'));
-  const siblings = disk.tasks.filter(t => t.orderId === menu.orderId);
-  assert.equal(siblings.length, 2);
-  for (const task of siblings) {
-    task.steps = task.steps.filter(s => s.id !== 'pack-check');
-    task.steps.find(s => s.id === 'handoff').title = '주문번호 대조·전달';
-  }
-  siblings[1].steps = ['cook-check', 'handoff', 'order-check'].map(id => siblings[1].steps.find(step => step.id === id));
-  siblings[0].completedAt = first.serverTime;
-  siblings[0].completedBy = { id: 'cook', name: '현우' };
-  await writeFile(file, JSON.stringify(disk));
-  const migrated = await store.snapshot('owner');
-  const completed = migrated.tasks.find(t => t.id === siblings[0].id);
-  const unfinished = migrated.tasks.find(t => t.id === siblings[1].id);
-  assert.equal(completed.steps.length, 3);
-  assert.equal(completed.completedAt, siblings[0].completedAt);
-  assert.equal(unfinished.steps.length, 4);
-  assert.deepEqual(unfinished.steps.map(step => step.id), ['cook-check', 'pack-check', 'handoff', 'order-check']);
-  assert.match(unfinished.steps.find(s => s.id === 'handoff').title, /기사 전달/);
-});
 
 test('manual text and external media links persist with revision checks and reusable recipe updates', async t => {
   const { store, act } = await setup(t);

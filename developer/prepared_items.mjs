@@ -28,7 +28,6 @@ export function ensurePreparedItems(state, now) {
   state.preparedMovements ??= [];
   // A migrated count is the current count. Prior order work remains evidence,
   // never a reason to consume portions retroactively.
-  for (const task of state.tasks.filter(t => t.orderId && !t.archivedAt)) task.preparedUsageVersion ??= 'before_tracking';
   state.preparedVersion = 1;
   return true;
 }
@@ -63,28 +62,6 @@ export function ensurePreparationTaps(state, now) {
     changed = true;
   }
   return changed;
-}
-
-export function consumePreparedForTask(state, task, now, actor) {
-  if (!task.orderId || task.archivedAt || task.preparedUsageVersion || !['processing', 'done'].includes(task.boardStatus)) return false;
-  const ticket = state.sales.tickets.find(t => t.id === task.orderId);
-  const line = ticket?.lines[task.orderLineIndex];
-  if (!line) { task.preparedUsageVersion = 'unmapped'; return true; }
-  task.preparedUsageVersion = 1;
-  task.preparedUsage = [];
-  task.menuId ??= line.menuId;
-  task.menuQuantity ??= line.quantity;
-  for (const item of state.preparedItems ?? []) {
-    const use = item.menuUses.find(row => row.menuId === line.menuId);
-    if (!use) continue;
-    const quantity = use.quantity * line.quantity;
-    item.onHand -= quantity;
-    const movement = { id: randomUUID(), type: 'order_use', itemId: item.id, quantity: -quantity,
-      taskId: task.id, orderId: task.orderId, menuId: line.menuId, at: new Date(now).toISOString(), actor };
-    state.preparedMovements.push(movement);
-    task.preparedUsage.push({ itemId: item.id, quantity, movementId: movement.id });
-  }
-  return true;
 }
 
 export function finishPreparation(state, task, quantity, now, actor) {

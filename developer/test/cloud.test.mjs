@@ -33,7 +33,7 @@ test('verified crew membership ignores forged owner headers and cannot edit layo
 });
 test('cloud persists completion and reports compare-and-swap conflicts',async()=>{
  const {request,setConflict}=setup();
- let state=await (await request()).json();const task=state.tasks.find(t=>t.orderId);
+ let state=await (await request()).json();const task=state.tasks.find(t=>t.kind==='routine'&&!t.preparedItemId&&t.steps?.length);
  const response=await request({action:'move_tap',revision:state.revision,taskId:task.id,folderId:task.folderId,status:'done'});
  assert.equal(response.status,200);state=await response.json();
  assert.ok(state.tasks.find(t=>t.id===task.id).steps.every(s=>s.completedAt));
@@ -66,13 +66,13 @@ test('settings survive independent cloud reads and reject stale writes',async()=
  const save=async(body)=>{const response=await request({...body,revision:state.revision});assert.equal(response.status,200);state=await (await request()).json();};
  await save({action:'save_payroll_settings',settings});
  assert.deepEqual(state.payrollSettings,{...settings,configured:true});
- await save({action:'save_order_system',enabled:true});
- assert.equal(state.orderBoardEnabled,true);
+ await save({action:'save_service_briefing',requestId:'cloud-settings',manualIds:[],note:'운영 안내'});
+ assert.equal(state.serviceWorkflow.briefing.note,'운영 안내');
  await save({action:'save_workplace_day',weekday:1,bands:[{name:'영업',start:'09:00',end:'21:00'}]});
  assert.equal(state.workplace.days[1][0].start,'09:00');
  assert.equal(state.payrollSettings.roundingMinutes,5);
  assert.equal((await request({action:'save_order_system',enabled:false,revision:state.revision-1})).status,409);
- assert.equal((await (await request()).json()).orderBoardEnabled,true);
+ assert.equal((await (await request()).json()).orderBoardEnabled,false);
 });
 
 test('cloud schedule range generates defaults years ahead and persists later fine edits',async()=>{
@@ -98,7 +98,7 @@ test('legacy employee query preserves verified identity and cloud cannot create 
  const headers={Authorization:'Bearer session','Content-Type':'application/json'};
  let response=await handler(new Request(endpoint,{headers}));const owner=await response.json();
  assert.equal(owner.actor.role,'owner');assert.equal(owner.actor.id,uid);assert.equal(owner.employeeMode,false);assert.equal(owner.canSwitchEmployee,false);
- response=await handler(new Request(endpoint,{method:'POST',headers,body:JSON.stringify({action:'save_order_system',enabled:true,revision:owner.revision})}));assert.equal(response.status,200);
+ response=await handler(new Request(endpoint,{method:'POST',headers,body:JSON.stringify({action:'save_service_briefing',requestId:'cloud-identity',manualIds:[],note:'인증 안내',revision:owner.revision})}));assert.equal(response.status,200);
  const actual=setup('crew');response=await actual.handler(new Request(endpoint,{headers}));const crew=await response.json();assert.equal(response.status,200);assert.equal(crew.actor.role,'crew');assert.equal(crew.actor.id,uid);assert.equal(crew.canEditTasks,false);
  response=await actual.handler(new Request(endpoint,{method:'POST',headers,body:JSON.stringify({action:'save_order_system',enabled:true,revision:crew.revision})}));assert.equal(response.status,403);
 });

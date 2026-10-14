@@ -19,30 +19,6 @@ async function setup(t) {
 const balance = state => state.preparedItems.find(i => i.id === 'prepared-bone').onHand;
 const prep = state => state.tasks.filter(t => t.preparedItemId === 'prepared-bone' && !t.completedAt);
 
-test('order TAPs contain only order work; first cooking action consumes shared prepared portions once', async t => {
-  const { store, act } = await setup(t);
-  let state = await store.snapshot('owner');
-  const menus = state.tasks.filter(t => t.orderId && ['bowl', 'pork'].includes(t.menuId));
-  assert.equal(menus.length, 2);
-  assert.ok(menus.every(t => t.steps.length >= 3 && !t.steps.some(s => s.sourceTemplateId)));
-  assert.equal(balance(state), 3);
-  assert.equal(prep(state).length, 1);
-  state = await act('cook', 'complete_step', { taskId: menus[0].id, stepId: menus[0].steps[0].id });
-  const firstUse = menus[0].menuQuantity * 2;
-  assert.equal(balance(state), 3 - firstUse);
-  state = await act('cook', 'move_tap', { taskId: menus[0].id, folderId: 'order-work', status: 'processing' });
-  assert.equal(balance(state), 3 - firstUse);
-  state = await act('cook', 'complete_task', { taskId: menus[0].id });
-  assert.equal(balance(state), 3 - firstUse);
-  state = await act('cook', 'move_tap', { taskId: menus[0].id, folderId: 'order-work', status: 'done' });
-  assert.equal(balance(state), 3 - firstUse);
-  state = await act('cook', 'move_tap', { taskId: menus[1].id, folderId: 'order-work', status: 'processing' });
-  const allOrder = state.tasks.filter(t => t.orderId === menus[1].orderId);
-  const expected = 3 - firstUse - allOrder.filter(t => t.menuId === 'pork').reduce((n, t) => n + t.menuQuantity * 2, 0);
-  assert.equal(balance(state), expected);
-  assert.equal(prep(state).length, 1, 'one open preparation TAP despite multiple orders');
-  assert.equal(state.preparedMovements.filter(m => m.type === 'order_use' && m.itemId === 'prepared-bone').length, 2);
-});
 
 test('actual preparation quantity credits once; short batch generates a new TAP; open work survives midnight', async t => {
   const { store, act, advance } = await setup(t);
@@ -83,9 +59,8 @@ test('a second prepared item maps to a different menu; count and config keep aud
   assert.equal(state.tasks.filter(t => t.preparedItemId === syrup.id && !t.completedAt).length, 1);
   state = await act('owner', 'count_prepared_item', { id: syrup.id, quantity: 10, reason: '실사' });
   assert.equal(state.tasks.filter(t => t.preparedItemId === syrup.id && !t.completedAt).length, 0);
-  const water = state.tasks.find(t => t.menuId === 'water');
-  state = await act('cook', 'complete_step', { taskId: water.id, stepId: water.steps[0].id });
-  assert.equal(state.preparedItems.find(i => i.id === syrup.id).onHand, 10 - water.menuQuantity);
+  assert.ok(state.tasks.every(t => !t.orderId));
+  assert.equal(state.preparedItems.find(i => i.id === syrup.id).onHand, 10);
   assert.ok(state.preparedMovements.some(m => m.itemId === syrup.id && m.type === 'count_correction' && m.reason === '실사'));
   const stale = state.revision;
   await act('owner', 'count_prepared_item', { id: syrup.id, quantity: 2, reason: '폐기' });
@@ -116,22 +91,3 @@ test('superseded preparation cannot credit stock or accept hidden Tap edits', as
   assert.equal(disk.preparedMovements.filter(row => row.taskId === task.id && row.type === 'prepared_output').length, 0);
 });
 
-test('migration keeps prior order evidence and does not retroactively consume a current count', async t => {
-  const { store, file } = await setup(t);
-  let state = await store.snapshot('owner');
-  const original = state.tasks.find(t => t.orderId && !t.completedAt);
-  const archived = { id: 'legacy-prep-step', title: '기존 사전 준비', sourceTemplateId: 'old-template', completedAt: '2026-09-19T02:00:00Z', completedBy: { id: 'cook' } };
-  const disk = JSON.parse(await readFile(file, 'utf8'));
-  const task = disk.tasks.find(t => t.id === original.id);
-  task.steps.splice(1, 0, archived);
-  task.preparedUsageVersion = undefined;
-  delete disk.preparedVersion; delete disk.preparedItems; delete disk.preparedMovements;
-  delete disk.orderCompositionVersion;
-  await writeFile(file, JSON.stringify(disk));
-  state = await store.snapshot('owner');
-  const upgraded = state.tasks.find(t => t.id === original.id);
-  assert.ok(upgraded.archivedPreparationSteps.some(s => s.id === archived.id && s.completedBy.id === 'cook'));
-  assert.ok(!upgraded.steps.some(s => s.sourceTemplateId));
-  assert.equal(upgraded.preparedUsageVersion, 'before_tracking');
-  assert.equal(balance(state), 3);
-});

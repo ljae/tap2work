@@ -1,3 +1,19 @@
+## 2026-10-14 서비스 UI/UX 개선
+
+근무 준비·인계를 오늘 안내/현재 내용 확인 상태, 남은 인계/다음 행동/받는 담당, 본인 버디 확인 우선으로 재배치했다. 상단3선택 고정·688px 폭·이중 여백 제거, 처리/연습 기록10개씩 펼침, 필수 항목별 오류/첫 누락 이동·작성 취소 보호·저장 중 잠금/하단 오류·300자 한도 반영.8언어 신규 문구15개, 공통 선택칩 fallback과 긴 입력 제목 줄바꿈 보완. 서버 API/권한/CAS/멱등 유지, 고객 주문 기능 종료 유지. `SERVICE_UX_REFINEMENT_2026-10-14.md`, `.local/service-ux-20261014/` 참조. Flutter626/3skip·analysis0·관련12·Node관련9·UI87·렌더링28장 통과. 초기 병행web빌드의 테스트자산 누락3건은 순차 전체재검사로 해소. 최종 웹빌드는 canonical 최신 이력 참조. 운영배포/native/browser실조작/실계정/원어민·현장효과 미수행, rootdirty 보존.
+
+## 2026-10-14 서비스 구현 후속 검증
+
+주문 종료의 광범위 `-packing` 보관 규칙을 제거해 일반 포장 매뉴얼을 보호하고, 안내 확인 응답 유실/새로고침 재시도의 requestId/opening revision을 화면 내 유지하도록 수정했다. 두 회귀 테스트 수정 전 실패→수정 후 통과. 최종 Flutter623/3browser skip·analysis0·Node394·UI87·Edge read smoke·web build 통과. `SERVICE_WORKFLOW_IMPLEMENTATION_2026-10-14.md` 후속 검증 및 `.local/service-verification-20261014/` 참조. 실제 배포/native/device/2계정/현장효과는 미수행. 미응답 요청의 앱 재시작 복원은 후속. 기존 dirty 보존.
+
+## 2026-10-14 주문 처리 종료·CS/근무 흐름 로컬 구현
+
+사용자가 주문 연결/고객별 처리를 삭제하고 방향 검토 계획을 진행하도록 요청했다. [구현 기록](SERVICE_WORKFLOW_IMPLEMENTATION_2026-10-14.md) 참조. 업무→근무 준비·인계, 최대3개 시작 안내/읽음, 미해결 교대·마감/실제 해결, CS5개 사장님 검토 등록(reference/OFF), 본인 연습/지정 버디 별도 확인, 원인·버전별 개선 의견, PDF·스킬·현장 실행표를 추가했다. 과거 주문·완료 증거와 발주/입고·준비 수량은 보존하며 주문 그룹/생성/자동 차감/preview 동기화는 종료한다. 서버393·관련Flutter24·분석0·UI87·스킬 검증 통과, 최종 전체Flutter/web 결과는 canonical 이력을 따른다. 실제 배포·native·실기기2인확인·원어민·현장효과·앱 자체offline·kiosk빠른인증은 미수행. 기존 rootdirty 보존.
+
+## 2026-10-14 CS 매뉴얼·근무 흐름·자가 발전 검토
+
+[서비스 운영 방향 검토](SERVICE_OPERATING_DIRECTION_2026-10-14.md). CS 매뉴얼 포함은 사용자 확정 요구이며 시작 브리핑/교대·마감/짧은 예외 안내/공용 기기·인쇄/현장 피드백 스킬은 proposed다. 영상 한국어 자동 자막·외부 근거·기존 CS/ContentMemory 소스를 확인했고 기존 content_memory 테스트13개 통과. 실제 매장·고객 만족 효과·신규 CS 발행·앱/UI/API 변경·배포는 미수행. 통합 운영·네 목적지·버디 흐름, D-101 수동 요청·D-111 선택 적용을 유지한다. 기존 PiP/음성 계획을 폐기하거나 이번 검토를 LMS·자동 발행 승인으로 해석하지 않는다. 기존 dirty 작업 보존.
+
 ## 2026-10-13 공통 매뉴얼 앱·웹·DB 배포 완료
 
 D-136/revision318. 웹254663c/Pages38404612330 성공·공개267SHA일치. iOS21VALID/내부TestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL, Android20internal+alpha completed(운영production없음). 사용자 명시적 reviewer skip에 따라 이번만 관리자 발행: liveDB147/revision3/394a7e42 exact원본 일치, actor=null/생략이유 불변이력·PGlite재시도 통과. 기존계정은모두테스트로삭제허용됐으나필요없어삭제0. 기본24/110·개업6/24·레시피34·가로매뉴얼·중국어누락보완 포함. CI전체통과·local616/3skip·Node391·analysis0·UI84·Edge/5SQL/7x2047, 네이티브실산출물인증/번역/기존서명확인. 실제390Chrome샘플→매뉴얼마켓/개업상세 확인. 원어민·현장·실기기·실계정native로그인·Apple승인 미검증. rootdirty보존, 배포원본.local/common-operations-release. [배포기록](COMMON_MANUAL_APP_WEB_RELEASE_2026-10-13.md), 증거.local/common-operations-deployment.

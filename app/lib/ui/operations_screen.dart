@@ -1,3 +1,4 @@
+import 'service_workflow_screen.dart';
 import '../l10n/entity_name_scope.dart';
 import 'owner_workflow_screen.dart';
 import 'dart:math';
@@ -1060,14 +1061,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
       ),
       if (ops.isOwner) ...[
         actionCard(
-          CupertinoIcons.link,
-          '주문처리 시스템 연결',
-          ops.data?['orderBoardEnabled'] == true
-              ? '보드 사용 중 · 외부 시스템 미연결'
-              : '보드 꺼짐',
-          () => openWorkplace('order-system'),
-        ),
-        actionCard(
           CupertinoIcons.person_add,
           ops.cloud ? context.t('invite.manageTitle') : '크루 초대',
           ops.cloud ? context.t('invite.managementEntry') : '코드 · QR 체험',
@@ -1280,6 +1273,17 @@ class _OperationsScreenState extends State<OperationsScreen> {
   ];
 
   List<Widget> tasks() => [
+    Align(
+      alignment: Alignment.centerLeft,
+      child: AppToolbarButton(
+        icon: CupertinoIcons.person_2,
+        label: context.t('service.title'),
+        onPressed: () => showAppPage(
+          context,
+          builder: (_) => ServiceWorkflowScreen(ops: ops),
+        ),
+      ),
+    ),
     TapWorkspace(
       key: ValueKey(ops.actorId),
       ops: ops,

@@ -1,3 +1,29 @@
+## 2026-10-14 서비스 화면 UX 개선
+
+`ServiceWorkflowPresentation`은 기존 서버 투영에서 현재 안내의 본인 읽음 여부와 미해결/해결 인계, 본인이 확인할 연습/과거 기록을 도출하는 읽기 전용 표시 계층이다. 읽음 상태는 actor/day/briefingNote/순서별 manual id·version·hash 일치가 필요하며 버튼 클릭만으로 완료 상태를 만들지 않는다. `ServiceWorkflowDraft`와 요청 멱등·버디/인계 권한 API는 유지한다.
+
+`ServiceWorkflowScreen`은 상단 선택과 본문 스크롤을 분리하고 공통 AppEditorScaffold 폭을 사용한다. 처리 이력은10개씩 추가 표시하며 PageStorageKey는 목록 위치와 각 펼침에 별도로 둔다. `_ServiceFormLifecycle`이 busy/dirty 닫기, 반응형 저장 상태, 실제 route unmount 시 컨트롤 해제를 담당한다. 입력 폼은 모든 필수 필드가 검증되도록 전체 필드를 마운트하고 첫 오류로 스크롤한다. 저장 오류는 footer에 유지한다. 상태·DB·API 계약 변경은 없다.
+
+## 2026-10-14 구현 재검증 보완
+
+고객 주문 종료는 알려진 `demo-bone-order`/`demo-spicy-order`/`demo-noodle-order` 정의만 보관 처리한다. 일반 포장 매뉴얼의 ID 접미사(`-packing`)를 종료 근거로 사용하지 않는다. 이미 보관된 과거 자료는 임의 복원하지 않는다.
+
+시작 안내 버튼은 `ServiceBriefingAcknowledgement`가 화면 수명 동안 영업일·안내 hash별 `ServiceWorkflowDraft`를 유지한다. 응답 유실 뒤 새로고침/재클릭도 같은 requestId와 opening revision으로 재시도하며 새 날/새 내용에는 새 요청을 만든다. 서버의 actor/requestId 영수증과 함께 중복 기록을 막는다. 앱 종료 후 미응답 요청 복원은 미구현이다.
+
+## 2026-10-14 주문 실행 종료·서비스 근무 흐름 구현
+
+`retired_order_work.mjs`는 자동 주문 정의를 보관하고 기존 ID/증거를 보존한다. OperationsStore는 고객 주문 생성/준비품 소비/완료 동기화를 종료하고 orderId 실행을 투영/정렬에서 제외한다. 구 연결/고객 실행 쓰기는410으로 종료하며 재고 발주·입고 계약과 무관하다. `order_taps.mjs`와 소비 코드·Flutter 주문 그룹/레인/preview 동기화는 제거했다.
+
+`service_workflow.mjs`의 serviceBriefing은 최대3개 등록 매뉴얼 참조+메모다. serviceRecords는 briefing/practice/handoff/feedback 및 별도 practice_confirmation/handoff_resolution 사건, serviceReceipts는 actor/requestId/payload hash 멱등 영수증이다. 기존 revision/매장 인증·section persistence를 공유한다. serviceWorkflow는 본인 유효 근무/안내·등록 원문 해시·역할별 사건 투영이며 원시 사건/영수증은 숨긴다. 읽음과 실제 업무/근태, 본인 연습과 버디 확인을 분리한다. 과거 인계와 연습 당시 버전은 유지하고 변경된 매뉴얼의 구판 확인은 거절한다.
+
+`ServiceWorkflowDraft`는 기존 OperationsController에 scope/opening revision/동일 요청 재시도를 연결하고 ServiceWorkflowScreen은 공통 page/form/PDF/매뉴얼 편집을 재사용한다. serviceGuides의5개 초안은 사장님 원문 검토 후 reference/OFF로 등록, sourceLocale/serviceGuideId는 일반 저장에서 보존된다. UI8언어와 한국어 원문 안내를 구분한다. [구현·검증·후속 경계](SERVICE_WORKFLOW_IMPLEMENTATION_2026-10-14.md), UI_SETTINGS_RELATIONSHIP_MAP S92~95를 따른다. 아래 과거 proposed는 사용자의 계획 진행 요청 전 검토 기록이다.
+
+## 2026-10-14 CS·근무 흐름·누적 개선 경계 검토 — proposed
+
+[서비스 운영 방향 검토](SERVICE_OPERATING_DIRECTION_2026-10-14.md)는 CS 매뉴얼 포함 요구와 제공 방식 제안을 구분한다. 기존 CS reference 원본·통합 검색·PDF·근무표·업무 이상 기록·ContentMemory를 재사용하는 방향이다. 시작/교대/마감의 짧은 사용, 공용 기기, 승인 안내의 오프라인 제공, 매뉴얼 버전별 현장 피드백과 개선 후보는 후속 설계이며 새 API/스키마/화면을 구현하지 않았다.
+
+제안 계약은 관찰→원인 검토→변경 전/후 후보→사장님 선택 적용→현장 결과 확인이다. D-101의 요청 실행과 D-111의 TAP별 비교·선택, 매장 격리·직책 권한·revision·기존 실행 snapshot을 유지한다. ContentMemory는 로컬 개발 도구이고 인증된 현장 학습 저장소가 아니다. 공용 기기의 개인 완료 귀속·잠금, 오프라인 승인본의 버전/권한 회수, 관찰과 기존 workIssue의 연결은 미확정이다. 앱 이상 등록은 비상 호출을 보장하지 않으며 현재 격자 경로는 피난 안내로 검증되지 않았다. UI 설정/저장 효과의 실제 변경 때는 UI_SETTINGS_RELATIONSHIP_MAP의 연결과 관련 검사를 갱신한다.
+
 ## 2026-10-13 공통 업무와 레시피·개업 준비 분리
 
 공용 원본의 음식별 문서는 `knowledge.useCase=recipe`, `suggestedUse=reference`로 분류한다. `ManualMarketCatalog.search`의 기본 범위는 공통 업무이며 recipe는 명시적 레시피 분야에서만 반환한다. `ManualWorkspace.sync`는 메뉴 연결 ID뿐 아니라 계산된 recipe 분류도 공통 트리에서 제외한다. 레시피 가져오기는 같은 `ManualMarketScreen(initialCategory:recipe)`와 기존 가져오기 API를 사용하고 가져온 분야에 맞는 화면으로 복귀한다. 판매 메뉴 ID를 새로 만들거나 변경하지 않는다.

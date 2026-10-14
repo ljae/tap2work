@@ -105,19 +105,16 @@ test('custom parts control assignment and task permissions independently from ra
   view=await act('manager','delete_staff_shift',{id});
   assert.ok(!view.staffShifts.some(s=>s.id===id));
 });
-test('order board is opt-in, projected to crew, owner-only and never pretends a live connection', async t => {
+test('retired order connection cannot be enabled and stays absent from crew settings', async t => {
   const {store,act}=await setup(t);
-  const original=await store.snapshot('owner');
-  assert.equal(original.orderBoardEnabled,false);
-  await assert.rejects(act('manager','save_order_system',{enabled:true}),{status:403});
-  await act('owner','save_order_system',{enabled:true});
+  const before=await store.snapshot('owner');
+  await assert.rejects(act('owner','save_order_system',{enabled:true}),{status:410});
   const crew=await store.snapshot('crew');
-  assert.equal(crew.orderBoardEnabled,true);
-  assert.equal(crew.store.profile.orderSystem.connectionStatus,'not_connected');
-  const off=await act('owner','save_order_system',{enabled:false});
-  assert.equal(off.orderBoardEnabled,false);
-  assert.equal(off.tasks.length,original.tasks.length);
+  assert.equal(crew.orderBoardEnabled,false);
+  assert.equal(crew.store.profile?.orderSystem,undefined);
+  assert.equal(crew.tasks.length,before.tasks.length);
 });
+
 test('part task completion follows custom membership, not legacy role, and keeps pay private', async t => {
   const {store,act}=await setup(t);
   let view=await store.snapshot('owner');

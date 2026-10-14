@@ -49,29 +49,28 @@ Future<void> openCard(WidgetTester tester, String key) async {
 }
 
 void main() {
-  testWidgets(
-    'order board and completed order cards remain hidden until enabled',
-    (tester) async {
-      final data = fixture();
-      final order = (data['tasks'] as List).first as Json;
-      order['orderId'] = 'hidden-order';
-      order['orderNumber'] = 'TEST-ORDER';
-      final ops = OperationsController(
-        readOnly: true,
-        client: MockClient((_) async => response(data)),
-      );
-      addTearDown(ops.dispose);
-      await mountBoard(tester, ops);
-      expect(find.text('주문처리중'), findsNothing);
-      expect(find.textContaining('TEST-ORDER'), findsNothing);
-      expect(find.text('TAP그룹 · 업무 그룹 필터'), findsNothing);
-      data['orderBoardEnabled'] = true;
-      await ops.refresh();
-      await tester.pumpAndSettle();
-      expect(find.text('주문처리중'), findsOneWidget);
-      expect(find.textContaining('TEST-ORDER'), findsWidgets);
-    },
-  );
+  testWidgets('retired orders stay hidden even in an old enabled snapshot', (
+    tester,
+  ) async {
+    final data = fixture();
+    final order = (data['tasks'] as List).first as Json;
+    order['orderId'] = 'hidden-order';
+    order['orderNumber'] = 'TEST-ORDER';
+    final ops = OperationsController(
+      readOnly: true,
+      client: MockClient((_) async => response(data)),
+    );
+    addTearDown(ops.dispose);
+    await mountBoard(tester, ops);
+    expect(find.text('주문처리중'), findsNothing);
+    expect(find.textContaining('TEST-ORDER'), findsNothing);
+    expect(find.text('TAP그룹 · 업무 그룹 필터'), findsNothing);
+    data['orderBoardEnabled'] = true;
+    await ops.refresh();
+    await tester.pumpAndSettle();
+    expect(find.text('주문처리중'), findsNothing);
+    expect(find.textContaining('TEST-ORDER'), findsNothing);
+  });
 
   testWidgets(
     'TAP surface fills with progress and completed cards use the muted dark surface',
@@ -265,7 +264,7 @@ void main() {
   );
 
   testWidgets(
-    'menu TAPs render in one order group and its touch action moves them together',
+    'legacy menu tasks and order actions are absent from the work board',
     (tester) async {
       final data = fixture()..['orderBoardEnabled'] = true;
       final first =
@@ -315,54 +314,10 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops, width: 390);
-      expect(find.textContaining('주문 A-17 ·'), findsOneWidget);
-      expect(
-        find.textContaining('9/24 18:00 접수 · 경과 8분 · 목표 25분(가상) · 17분 남음'),
-        findsOneWidget,
-      );
-      expect(find.text('주문처리중'), findsOneWidget);
+      expect(find.textContaining('A-17'), findsNothing);
+      expect(find.byKey(const ValueKey('lane-주문처리중')), findsNothing);
+      expect(find.byKey(const ValueKey('tap-second-menu')), findsNothing);
       expect(find.text('할일'), findsOneWidget);
-      expect(find.text('완료'), findsWidgets);
-      expect(find.text('2/4'), findsOneWidget);
-      expect(find.textContaining('🩵 배달의민족'), findsOneWidget);
-      final orderLane = tester.widget<DragTarget<String>>(
-        find.byKey(const ValueKey('lane-주문처리중')),
-      );
-      final prepLane = tester.widget<DragTarget<String>>(
-        find.byKey(const ValueKey('lane-할일')),
-      );
-      expect(
-        orderLane.onWillAcceptWithDetails!(
-          DragTargetDetails(data: 'daily-broth', offset: Offset.zero),
-        ),
-        isFalse,
-      );
-      expect(
-        prepLane.onWillAcceptWithDetails!(
-          DragTargetDetails(data: 'daily-prep', offset: Offset.zero),
-        ),
-        isFalse,
-      );
-      expect(find.text('2/4'), findsOneWidget);
-      expect(find.byKey(const ValueKey('tap-daily-prep')), findsOneWidget);
-      expect(find.byKey(const ValueKey('tap-second-menu')), findsOneWidget);
-      await tester.tap(find.byTooltip('요청사항 보기'));
-      await tester.pumpAndSettle();
-      expect(find.text('수저 제외'), findsOneWidget);
-      await tester.tap(find.text('확인'));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.byTooltip('주문 그룹 이동'));
-      await tester.tap(find.byTooltip('주문 그룹 이동'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('전체 완료'));
-      await tester.pumpAndSettle();
-      expect(
-        ops
-            .rows('tasks')
-            .where((t) => t['orderId'] == 'order-17')
-            .every((t) => t['completedAt'] != null),
-        true,
-      );
       expect(writes, 0);
       expect(tester.takeException(), isNull);
     },

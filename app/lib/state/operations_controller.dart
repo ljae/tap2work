@@ -322,7 +322,6 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
     error = null;
     _scheduleFrom = null;
     _scheduleTo = null;
-    _previewTickets.clear();
     _emit();
     await refresh(force: true);
   }
@@ -386,7 +385,6 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
             : '매장 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
         return;
       }
-      _previewTickets.clear();
       data = body;
       if (cloud && body['actor'] is Json) actorId = body['actor']['id'];
       _token = body['demoToken'] as String?;
@@ -665,9 +663,8 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   }) {
     if (!readOnly || data == null) return;
     final task = rows('tasks').firstWhere((t) => t['id'] == id);
-    final moving = task['orderId'] == null
-        ? [task]
-        : rows('tasks').where((t) => t['orderId'] == task['orderId']).toList();
+    if (task['orderId'] != null) return;
+    final moving = [task];
     for (final task in moving) {
       final wasDone = task['completedAt'] != null;
       final now = DateTime.now().toUtc().toIso8601String();
@@ -695,25 +692,15 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
         'completedBy': status == 'done' ? (task['completedBy'] ?? actor) : null,
         'canComplete': status != 'done',
       });
-      _previewConsumePrepared(task);
     }
     String laneStatus(Json row) {
-      final group = row['orderId'] == null
-          ? [row]
-          : rows('tasks').where((t) => t['orderId'] == row['orderId']);
-      return group.every((t) => t['completedAt'] != null)
-          ? 'done'
-          : row['orderId'] != null
-          ? 'order'
-          : 'todo';
+      return row['completedAt'] != null ? 'done' : 'todo';
     }
 
     final destinationLane =
         status == 'done' ||
             (status == 'keep' && moving.every((t) => t['completedAt'] != null))
         ? 'done'
-        : task['orderId'] != null
-        ? 'order'
         : 'todo';
 
     final lane =
@@ -737,13 +724,13 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
     for (var i = 0; i < lane.length; i++) {
       lane[i]['displayOrder'] = i;
     }
-    _previewOrder(task);
     _emit();
   }
 
   void previewToggleStep(String taskId, String stepId) {
     if (!readOnly || data == null) return;
     final task = rows('tasks').firstWhere((t) => t['id'] == taskId);
+    if (task['orderId'] != null) return;
     final steps = (task['steps'] as List).cast<Json>();
     final step = steps.firstWhere((s) => s['id'] == stepId);
     if (step['completedAt'] != null) {
@@ -764,43 +751,7 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
       'boardStatus': done ? 'done' : 'processing',
       'canComplete': !done,
     });
-    _previewConsumePrepared(task);
-    _previewOrder(task);
     _emit();
-  }
-
-  final _previewTickets = <String, Json>{};
-  void _previewConsumePrepared(Json task) {
-    if (task['orderId'] == null ||
-        task['preparedUsageVersion'] != null ||
-        !['processing', 'done'].contains(task['boardStatus'])) {
-      return;
-    }
-    task['preparedUsageVersion'] = 'preview';
-    final ticket = (data?['dashboard']?['queue'] as List? ?? [])
-        .cast<Json>()
-        .where((row) => row['id'] == task['orderId'])
-        .firstOrNull;
-    final lines = (ticket?['lines'] as List? ?? []).cast<Json>();
-    final index = task['orderLineIndex'] as int? ?? 0;
-    final menuId =
-        task['menuId'] ??
-        (index < lines.length ? lines[index]['menuId'] : null);
-    final quantity =
-        task['menuQuantity'] ??
-        (index < lines.length ? lines[index]['quantity'] : 1);
-    for (final item in rows('preparedItems')) {
-      final use = (item['menuUses'] as List? ?? [])
-          .cast<Json>()
-          .where((row) => row['menuId'] == menuId)
-          .firstOrNull;
-      if (use != null) {
-        item['onHand'] =
-            (item['onHand'] as num).toInt() -
-            (use['quantity'] as num).toInt() * (quantity as num).toInt();
-      }
-    }
-    _previewEnsurePreparation();
   }
 
   void _previewEnsurePreparation() {
@@ -869,62 +820,6 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
     previewMoveTap(taskId, task['folderId'], 'done');
     _previewEnsurePreparation();
     _emit();
-  }
-
-  void _previewOrder(Json task) {
-    if (task['orderId'] == null || data?['dashboard'] == null) return;
-    final dashboard = data!['dashboard'] as Json;
-    final queue = (dashboard['queue'] as List).cast<Json>();
-    final ticket =
-        queue.where((t) => t['id'] == task['orderId']).firstOrNull ??
-        _previewTickets[task['orderId']];
-    if (ticket == null) return;
-    _previewTickets[ticket['id']] = ticket;
-    final oldStatus = ticket['status'];
-    final group = rows('tasks').where((t) => t['orderId'] == task['orderId']);
-    final next = group.every((t) => t['completedAt'] != null)
-        ? '완료'
-        : group.any(
-            (t) => t['completedAt'] != null || t['boardStatus'] == 'processing',
-          )
-        ? '조리 중'
-        : '접수';
-    if (oldStatus == next) return;
-    ticket['status'] = next;
-    final delta = (next == '완료' ? 0 : 1) - (oldStatus == '완료' ? 0 : 1);
-    for (final report in (dashboard['reports'] as List).cast<Json>()) {
-      final day = DateTime.parse(ticket['createdAt'])
-          .toUtc()
-          .add(const Duration(hours: 9))
-          .toIso8601String()
-          .substring(0, 10);
-      if (day.compareTo(report['startDay']) < 0 ||
-          day.compareTo(report['endDay']) > 0 ||
-          (report['channel'] != '전체' &&
-              report['channel'] != ticket['channel'])) {
-        continue;
-      }
-      final summary = report['summary'] as Json;
-      summary['activeCount'] = (summary['activeCount'] as int) + delta;
-      final statuses = report['statuses'] as Json;
-      statuses[oldStatus] = (statuses[oldStatus] as int) - 1;
-      statuses[next] = (statuses[next] as int) + 1;
-      for (final line in (ticket['lines'] as List).cast<Json>()) {
-        for (final menu in (report['menus'] as List).cast<Json>().where(
-          (m) => m['id'] == line['menuId'],
-        )) {
-          menu['pendingQuantity'] =
-              (menu['pendingQuantity'] as num) +
-              delta * (line['quantity'] as num);
-        }
-      }
-    }
-    if (next == '완료') {
-      queue.removeWhere((t) => t['id'] == ticket['id']);
-    } else if (!queue.any((t) => t['id'] == ticket['id'])) {
-      queue.add(ticket);
-    }
-    dashboard['queue'] = queue;
   }
 
   void _emit() {

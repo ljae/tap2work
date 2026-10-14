@@ -40,7 +40,7 @@ flowchart LR
 | S03 | `workplace.days[weekday][]`, `workplace.breaks[weekday]` | 우리매장 > 영업시간 설정 / 준비 목록 / 신규 등록 / 근무표 영업시간·인원 → `openWorkplaceHours` → 영업시간 설정(휴무일→2교대 이상→브레이크 타임 토글)/인원 배치 탭·전체/개별 복수 요일·시간 표기가 붙은 영업/브레이크 드래그 막대·교대×파트 카운터 표 → `save_workplace_hours` (7일·브레이크 원자 저장) | `rosterTemplates[]` 생성, 브레이크를 차감하지 않는 근무표 요일·파트별 기본 슬롯·필요 시간 충족률. 전체 영업시간 `store.profile.hours`는 호환 기본값 | `workplace.test.mjs`, `calendar_test.dart` |
 | S04 | `rosterOverrides[]` | 근무표 슬롯 클릭 → `save_roster_slot`, `reset_roster_slot` | 선택 날짜의 이름·시작/끝·숨김만 덮어쓰기; 고정 왼쪽 시간축에 반영 | `workplace.test.mjs`, `calendar_test.dart` |
 | S05 | `staffShifts[]`, `shiftPatterns[]` | 근무표 개별 배정 → `save_staff_shift`; 반복은 S28 | 주간/월간 근무표, 필요 슬롯 충족률, 인건비 계획. 출퇴근 기록과 구별 | `workplace.test.mjs`, `calendar_test.dart` |
-| S06 | `store.profile.orderSystem.enabled` | 우리매장 주문처리 시스템 토글 → `save_order_system` | 서버 `orderBoardEnabled`; ON일 때만 업무 주문처리 보드/주문 카드 표시. 주문 기록 유지 | `workplace.test.mjs`, 업무 화면 테스트 |
+| S06 | 종료된 `store.profile.orderSystem` | 연결 토글·설정 진입 삭제; 구 `save_order_system`은 410 | 주문별 실행 생성/보드/주문 그룹 완료/준비품 자동 차감 종료, 구 기록은 저장소에 보존. 모든 역할 `orderBoardEnabled=false`, 발주·입고 독립 유지 | service_workflow.test.mjs, tap_workspace_test.dart, cloud_operations_test.dart |
 | S07 | `workplace.restrictions[role]` | 우리매장 직책 권한 → `save_workplace_permissions` | 업무 편집은 서버 `canEditTasks`와 UI를 연결; 재고/직원 등의 서버 액션 권한 검사 | `workplace.test.mjs` |
 | S08 | `store.profile` 기본/POS/배달; `businessTypeId` 세부 업종 | 우리매장 매장 정보/POS/배달 플랫폼 → 영역별 StoreProfileScreen → `save_store_profile`; 인원/영업시간은 S03 | 매장 카드·주문 도구 정보·기본 매뉴얼 제안. legacy hours/staffing 입력 UI 제거·데이터 호환 보존 | `workspace_settings.test.mjs`, `settings_screens_test.dart`, `settings_sheet_audit_test.dart` |
 | S09 | `payrollSettings` 및 이력 | 급여·정산 설정 → `save_payroll_settings` | 사장님 전용 인건비 계산·지급 주기/시작일/반올림/규모/주휴. 기존 근무/지급 기록을 역수정하지 않음 | `cloud.test.mjs`, `payroll_settings_test.dart` |
@@ -51,7 +51,7 @@ flowchart LR
 | S14 | 매뉴얼 폴더/TAP/Task 순서 | 왼쪽 트리 길게 누르기 → 같은 계층 행의 손잡이/⋯ 이동 → `move_manual_node` | TAP→폴더, Task→TAP. Task를 폴더에 놓으면 해당 폴더의 TAP 선택. 같은 단계는 앞 순서. 오른쪽 편집은 독립이며 본문·오늘 실행 보존 | `manual_workspace_test.dart` 양쪽 격리/계층/폴더 드롭/320px/충돌, `manual_directory.test.mjs` |
 | S15 | `tasks[].steps[]` 실행 스냅샷 | 업무 카드/단계 상세 → `complete_step`, `reopen_step`, `complete_task`, `save_step_manual` | 오늘 업무 완료 상태·기록; 정의 매뉴얼 수정과 별개. 서버가 완료 규칙 검사 | `operations_test.dart`, `checklists.test.mjs` |
 | S16 | `items[]`, `orders[]`, `preparedItems[]` | 재고/발주/입고/준비품 → `save_inventory_item`, `check_stock`, `place_order`, `receive_order`, `save_prepared_item`, `count_prepared_item` | 우리매장 재고, 부족 알림, 준비품·업무 카드. 주문만으로 재고 증가 없음 | `operations.test.mjs`, `prepared_items.test.mjs` |
-| S17 | `menus[]`, 주문 양식 | 메뉴 편집 → `save_menu` | 우리매장 메뉴, 메뉴 연계 매뉴얼·주문 업무 | `catalog.test.mjs`, `menu_layout_test.dart` |
+| S17 | `menus[]`, 주문 양식 | 메뉴 편집 → `save_menu` | 우리매장 메뉴·메뉴 연계 레시피. 주문별 실행 생성 없음 | `catalog.test.mjs`, `menu_layout_test.dart` |
 | S18 | `layout`, `zones[]` | 공간·장비 → 간단 배치도(선택) → 층별 편집 → `save_layout(floorScope)` | 우리매장 공간/동선, 재고·업무 위치 참조. 미배치 장소·다른 층·사진 보존; 삭제·겹침은 서버 검사 | `layout.test.mjs`, `floor_plan_test.dart` |
 | S19 | `hiringDrafts[]` | 근무표 > 채용 초안 → `save_hiring_draft`, `archive_hiring_draft` | 사장/매니저 초안 목록. 외부 공고 발행 없음 | `workspace_settings.test.mjs` |
 | S20 | `laborReviews[]` | 인건비 검토 → `save_labor_review` | 사장님 인건비 화면의 검토 상태; 급여 지급 실행과 구별 | `labor.test.mjs` |
@@ -572,3 +572,15 @@ S88 compact-phone control variation: same taxonomy/profile ->48px local view/cat
 | S89 | 공용 knowledge.useCase와 매장 분류 → 공통 업무/레시피 가져오기 → ManualMarketCatalog.search(useCase) 및 기존 import_market_taps | 레시피는 공통 목록·트리에서 분리, 가져온 분야로 복귀. 메뉴 ID·과거 기록·등록 선택 계약 보존. 개업 준비6묶음은 startup/reference | manual_common_operations.test.mjs, manual_common_operations_test.dart, manual_market_discovery_test.dart |
 | S90 | 현재 폴더/TAP/행동 ID → 매뉴얼 읽기·ManualHierarchyPath → showAppPage 및 ManualHierarchyDestination 반환 | 가로 페이지 이동 후 보드/디렉토리 실제 폴더·TAP으로 이동. actor/workspace/day 재확인, 조회는 쓰기 없음, reduced motion | manual_common_operations_test.dart, manual_action_slides_test.dart, manual_workspace_test.dart |
 | S91 | 원문과 step ID·개인 언어 → 레시피 단계 본문·설거지 본보기 → TranslatedContent/준비 번역 조회 | 원문·체크·설정 저장 없음. 7언어 현재 원문+구 버전 번역 보존, 유료 API와 BYOK 미활성 | manual_common_operations_test.dart, check-manual-translations.mjs |
+
+
+## 2026-10-14 주문별 처리 종료·근무 준비·인계
+
+| ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
+|---|---|---|---|
+| S92 | 업무 → 근무 준비·인계 → ServiceWorkflowScreen | 기존 네 목적지 유지. 시작/교대·마감/CS 탭 고정, 본문 스크롤 분리·688px 읽기 폭. 미해결 인계와 본인 버디 확인 우선, 처리 기록은 펼쳐 10개씩 더 보기. 조회는 완료·근태 변경 없음 | service_workflow_test.dart |
+| S93 | serviceBriefing.manualIds/note + 등록 매뉴얼 현재 hash → 시작 안내 설정/내용 보기/안내 확인 → save_service_briefing / record_service(kind=briefing) | 최대3개 참조, 편집 권한·opening revision. 확인 당시 내용/버전은 별도 읽음 기록, 업무 완료·숙련 아님. 같은 화면·영업일·안내 hash의 재시도는 requestId/opening revision을 유지. 서버 기록의 본인/영업일/메모/매뉴얼 버전·hash가 현재와 같을 때 확인 상태 표시. 선택 개수/검색 빈 결과/3개 제한 명시 | service_workflow.test.mjs, service_workflow_test.dart |
+| S94 | CS 초안·현재 등록 매뉴얼 → 본문 검토/사장님 등록/연습과 버디 확인/개선 의견 → register_service_guide / record_service / confirm_service_practice | 초안 hash 확인 후 reference/OFF 등록, 기존 사본 덮어쓰기 없음. 연습과 지정 버디 확인 별도 사건; 버전 변경이면 새 연습. 의견은 본인/권한 리더, 매뉴얼 현재 hash 연결·미측정 상태 유지. 기록이 AI 실행/발행을 만들지 않음 | service_workflow.test.mjs, service_workflow_test.dart |
+| S95 | serviceRecords 미해결 인계 → 교대/마감 사실·다음 행동·담당/미정 및 처리 결과 → record_service(kind=handoff) / resolve_service_handoff | 다음 영업일에도 보존, 지정 담당/권한 리더만 실제 조치 기록. 모든 저장은 actor/workspace scope·opening revision·requestId 멱등. 필수 입력 인라인 오류/첫 누락 이동, 저장 중 버튼 잠금·상태 표시, 미저장 닫기 확인, 오류는 저장 버튼 위 표시. 기존 업무 완료와 독립 | service_workflow.test.mjs, service_workflow_test.dart |
+
+S48 기존 PDF/인쇄를 CS·개선 화면에서 재사용한다. 등록한 안내만 인쇄하며 새 한국어 CS 초안과 번역/현장 미검수를 구별한다. 다운로드한 PDF 외 앱 오프라인·공용 기기 빠른 인증은 이번 구현에 포함하지 않는다. S06은 종료 이력이며 정적 링크 검사에서는 활성 계약을 삭제하고 신규 S92~95를 검사한다.

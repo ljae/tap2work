@@ -52,7 +52,7 @@ test('every settings domain survives section persistence and independent cloud r
   await save('save_workplace_day',{weekday:1,bands:[{name:'운영',start:'10:00',end:'20:00'}]},v=>assert.equal(v.workplace.days[1][0].start,'10:00'));
   await save('save_workplace_permissions',{role:'manager',permissions:{tasks:false}},v=>assert.equal(v.workplace.restrictions.manager.tasks,false));
   await save('save_staff_profile',{tapperId:view.tappers[0].id,partIds:[],bands:['오픈']},v=>assert.deepEqual(v.tappers[0].workProfile.bands,['오픈']));
-  await save('save_order_system',{enabled:true},v=>assert.equal(v.orderBoardEnabled,true));
+  await save('save_service_briefing',{requestId:'section-briefing',manualIds:[],note:'시작 안내'},v=>assert.equal(v.serviceWorkflow.briefing.note,'시작 안내'));
   const beforeCount=x.patches.length;
   await save('save_payroll_settings',{settings:{cycle:'weekly',monthStartDay:1,weekStartDay:2,roundingMinutes:5,businessSize:'under5',includeWeeklyRest:true}},v=>assert.equal(v.payrollSettings.weekStartDay,2));
   const pay=x.patches.slice(beforeCount).at(-1);
@@ -66,7 +66,7 @@ test('every settings domain survives section persistence and independent cloud r
   await save('save_inventory_item',{name:'테스트 재료',unit:'개',supplier:'예시',zone:'',emoji:'🥬',minimum:2,orderQuantity:5,price:3000,reviewDays:4},v=>assert.ok(v.items.some(i=>i.name==='테스트 재료')));
   await save('save_menu',{name:'테스트 메뉴',category:'식사',price:9000},v=>assert.ok(v.catalogMenus.some(i=>i.name==='테스트 메뉴')));
   await save('save_hiring_draft',{roleId:'cook',headcount:2,weekdays:[1,3],responsibilities:'준비'},v=>assert.ok(v.hiringDrafts.length));
-  x.conflict();assert.equal((await x.request({action:'save_order_system',revision:view.revision,enabled:false})).status,409);
+  x.conflict();assert.equal((await x.request({action:'save_store',revision:view.revision,name:'충돌 검증 매장'})).status,409);
 });
 test('conditional cloud reads validate identity each time and return no payload',async()=>{
   const x=fixture();const view=await(await x.request()).json();x.calls.length=0;

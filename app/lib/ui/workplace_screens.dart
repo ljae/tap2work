@@ -621,7 +621,6 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
       !saving &&
       !ops.busy;
   static const titles = {
-    'order-system': '주문처리 시스템 연결',
     'parts': '파트 관리',
     'hours': '영업시간·필요 인원',
     'permissions': '직책별 권한',
@@ -1324,21 +1323,6 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
     if (hoursStep == 0 && dayBands.isEmpty) ...closedDayControls(),
     if (dayBands.isEmpty) Information(context.t('ui.audit252')),
   ];
-  List<Widget> orderSystem() => [
-    SwitchListTile.adaptive(
-      contentPadding: EdgeInsets.zero,
-      title: Text(context.t('ui.audit253')),
-      subtitle: Text(context.t('ui.audit254')),
-      value: ops.data?['orderBoardEnabled'] == true,
-      onChanged: editable
-          ? (v) async {
-              await save('save_order_system', {'enabled': v});
-            }
-          : null,
-    ),
-    const SizedBox(height: 16),
-    Information(context.t('ui.audit255')),
-  ];
   List<Widget> partEditor() => [
     Text(context.t('ui.audit256'), style: AppText.title),
     const SizedBox(height: 8),
@@ -1880,7 +1864,6 @@ class _WorkplaceSettingsState extends State<WorkplaceSettings> {
                               child: Information(context.t('ui.audit810')),
                             ),
                           ...switch (widget.section) {
-                            'order-system' => orderSystem(),
                             'parts' => partEditor(),
                             'hours' => hours(),
                             'permissions' => permissions(),

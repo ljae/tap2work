@@ -5,6 +5,10 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S92', 'app/lib/ui/operations_screen.dart', 'ServiceWorkflowScreen(ops: ops)', 'developer/operations.mjs', 'serviceWorkflowView(state, actor)'],
+  ['S93', 'app/lib/ui/service_workflow_screen.dart', "'save_service_briefing'", 'developer/service_workflow.mjs', "'save_service_briefing'"],
+  ['S94', 'app/lib/ui/service_workflow_screen.dart', "'record_service'", 'developer/service_workflow.mjs', "'confirm_service_practice'"],
+  ['S95', 'app/lib/ui/service_workflow_screen.dart', "'resolve_service_handoff'", 'developer/service_workflow.mjs', "'resolve_service_handoff'"],
   ['S89', 'app/lib/ui/manual_workspace.dart', "initialCategory: recipes ? 'recipe' : null", 'app/lib/domain/manual_market_catalog.dart', "useCase != 'recipe'"],
   ['S90', 'app/lib/ui/manual_action_slides.dart', 'ManualHierarchyDestination.folder', 'app/lib/ui/tap_workspace.dart', 'ManualHierarchyDestination.tap'],
   ['S91', 'app/lib/ui/manual_workspace.dart', "stepId: step['id']", 'scripts/manual-translation-sources.mjs', 'addDishwashingExample'],
@@ -80,7 +84,6 @@ const contracts = [
   ['S02', 'app/lib/ui/workplace_screens.dart', "'save_staff_profile'", 'developer/workplace.mjs', "case 'save_staff_profile'"],
   ['S03', 'app/lib/ui/workplace_screens.dart', "'save_workplace_hours'", 'developer/workplace.mjs', "case 'save_workplace_hours'"],
   ['S04', 'app/lib/ui/calendar_screen.dart', "'save_roster_slot'", 'developer/workplace.mjs', "'save_roster_slot'"],
-  ['S06', 'app/lib/ui/workplace_screens.dart', "'save_order_system'", 'developer/workplace.mjs', "case 'save_order_system'"],
   ['S07', 'app/lib/ui/workplace_screens.dart', "'save_workplace_permissions'", 'developer/workplace.mjs', "case 'save_workplace_permissions'"],
   ['S08', 'app/lib/ui/store_profile_screen.dart', "'save_store_profile'", 'developer/operations.mjs', "case 'save_store_profile'"],
   ['S09', 'app/lib/ui/payroll_settings_screen.dart', "'save_payroll_settings'", 'developer/staff.mjs', "case 'save_payroll_settings'"],

@@ -1,3 +1,4 @@
+import {serviceWorkflowView, mutateServiceWorkflow, serviceRequestReplay} from './service_workflow.mjs';
 import {manualCategory} from './manual_categories.mjs';
 import {ownerWorkflowView,mutateOwnerWorkflow,registeredManual} from './owner_workflow.mjs';
 import {effectiveTemplate} from './work_recurrence.mjs';
@@ -28,8 +29,8 @@ import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { StoreError } from './store.mjs';
-import { ensureOrderTaps, syncOrderFromTap } from './order_taps.mjs';
-import { ensurePreparedItems, ensurePreparationTaps, consumePreparedForTask, finishPreparation, savePreparedItem, countPreparedItem } from './prepared_items.mjs';
+import { retireCustomerOrderWork } from './retired_order_work.mjs';
+import { ensurePreparedItems, ensurePreparationTaps, finishPreparation, savePreparedItem, countPreparedItem } from './prepared_items.mjs';
 import { seedSales, salesDashboard } from './sales.mjs';
 import { ensureLayout, validateLayout } from './layout.mjs';
 import { crewCreationReplay, ensureStaff, staffView, mutateStaff } from './staff.mjs';
@@ -67,8 +68,8 @@ function manualSearchIndex(state) {
       });
     }
   };
-  for (const template of state.taskTemplates ?? []) if (registeredManual(template) && !template.archivedAt && (template.folderId !== 'order-work' || template.menuManualId)) add(template, true);
-  for (const task of state.tasks ?? []) if (task.steps?.length && !task.orderId && task.folderId !== 'order-work' && !task.archivedAt && !task.supersededAt && task.date === state.day) add(task, false);
+  for (const template of state.taskTemplates ?? []) if (registeredManual(template) && !template.archivedAt) add(template, true);
+  for (const task of state.tasks ?? []) if (task.steps?.length && !task.orderId && !task.archivedAt && !task.supersededAt && task.date === state.day) add(task, false);
   return [...rows.values()];
 }
 
@@ -146,7 +147,7 @@ function seedChecklists(zones) {
   return { checklistVersion: 1, checklistFolders: [{ id: 'general', name: '기본 업무' }, folder], taskTemplates: templates };
 }
 const tapGroups = [
-  ['order-work', '주문처리'], ['marketing', '마케팅'], ['bone-preparation', '뼈찜 조리'],
+  ['order-work', '주방 운영'], ['marketing', '마케팅'], ['bone-preparation', '뼈찜 조리'],
   ['noodle-preparation', '뼈짬뽕 조리'], ['service', '응대'], ['maintenance', '정비'], ['settlement', '정산'],
 ];
 const tapFolder = id => ({
@@ -168,9 +169,6 @@ function ensureTapBoard(state) {
     steps: steps.map((title, index) => ({ id: `step-${index + 1}`, title,
       manual: '오늘 매장 기준과 주문표를 확인한 뒤 담당자와 진행해요. 후기의 제공 사례는 현재 매장 절차가 아닙니다.', tip: '수량·시간·온도는 매장 검수 후 입력해 주세요.' })) });
   const samples = [
-    make('bone-order', '샘플 주문 · 산뼈찜 2인', 'order-work', 'stove', ['주문번호·메뉴·수량 확인', '사이즈·제외 요청 확인', '조리 완료 기준 확인', '당일 소스·사리 제공 기준 확인', '본품·추가품 대조 후 전달']),
-    make('spicy-order', '샘플 주문 · 화산뼈찜', 'order-work', 'stove', ['맵기·추가 토핑 확인', '조리 완료 기준 확인', '당일 국물·소스 기준 확인', '본품과 추가품 대조 후 전달']),
-    make('noodle-order', '샘플 주문 · 뼈짬뽕', 'order-work', 'stove', ['면 또는 밥 요청 확인', '준비분과 주문 대조', '조리 완료 기준 확인', '동반품 대조 후 전달']),
     make('noodle-prep', '뼈짬뽕 · 국물·면/밥 준비', 'noodle-preparation', 'stove', ['오늘 판매·면/밥 변경 기준 확인', '승인된 국물·뼈 준비분 확인', '면·밥 준비분 확인', '채소·그릇·도구 확인', '조리 라인에 인계']),
     make('marketing', '오늘 메뉴 안내 준비', 'marketing', 'pass', ['오늘 판매 메뉴 확인', '품절·변경 사항 확인', '안내 문구 확인']),
     make('settlement', '마감 정산 준비', 'settlement', 'pass', ['오늘 주문 내역 확인', '확인 필요한 차이 기록', '담당자에게 인계']),
@@ -293,7 +291,7 @@ function ensureDueTasks(state, now, catalog = manualCatalog, catalogRevision = n
   const date = businessDate(state, now);
   if (state.day !== date) { state.day = date; changed = true; }
   if (ensurePreparedItems(state, now)) changed = true;
-  if (ensureOrderTaps(state, now)) changed = true;
+  if (retireCustomerOrderWork(state, now)) changed = true;
   if (ensurePreparationTaps(state, now)) changed = true;
   for (const template of state.taskTemplates) {
     if(template.scheduledSettings?.effectiveFrom<=date){Object.assign(template,effectiveTemplate(template,date));delete template.scheduledSettings;changed=true;}
@@ -347,6 +345,10 @@ export class OperationsStore {
   #view(state, actor) {
     actor = actorWithParts(state, actor);
     const result = structuredClone(state);
+    result.serviceWorkflow = serviceWorkflowView(state, actor);
+    delete result.serviceRecords;
+    delete result.serviceReceipts;
+    delete result.serviceBriefing;
     result.hasSampleArchive = Boolean(state.sampleArchive);
     delete result.sampleArchive;
     delete result.operationEditHistory;
@@ -371,7 +373,8 @@ export class OperationsStore {
     if (!['owner','manager'].includes(actor.role)) result.crewPatterns = (state.crewPatterns ?? []).filter(p => p.tapperId === ownCrew?.id);
     if (actor.role !== 'owner') { delete result.demoInvites; delete result.payrollSettings; delete result.payrollSettingsHistory; }
     result.rosterTemplates = rosterTemplates(state);
-    result.orderBoardEnabled = state.store?.profile?.orderSystem?.enabled === true;
+    result.orderBoardEnabled = false;
+    if (result.store?.profile) delete result.store.profile.orderSystem;
     result.actor = actor;
     result.canManageCrewInvites = actor.role === 'owner' || (actor.role === 'manager' && state.workplace?.restrictions?.manager?.crew === true);
     result.canEditSchedule = ['owner','manager'].includes(actor.role) && (actor.role === 'owner' || state.workplace?.restrictions?.[actor.role]?.schedule !== false);
@@ -382,12 +385,13 @@ export class OperationsStore {
     if (this.trustedActor) result.actors = [this.trustedActor];
     result.dashboard = salesDashboard(state.sales, this.clock(), actor.role === 'owner');
     if (['owner', 'manager'].includes(actor.role)) result.catalogMenus = structuredClone(state.sales.menus);
+    result.dashboard.queue = [];
     result.salesSource = state.sales.source;
     delete result.sales;
     result.items = result.items.filter(item => !item.archivedAt);
     if (actor.role !== 'owner') result.activity = result.activity.filter(entry =>
       entry.kind !== 'pay' && !/^(?:급여 지급 기록|추가보수) [\d,]+원(?:$|\s)/.test(entry.message));
-    result.tasks = result.tasks.filter(task => task.workIssue?.status === 'open' || (!task.supersededAt && !task.archivedAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day || task.workEvent && !task.completedAt)));
+    result.tasks = result.tasks.filter(task => !task.orderId && (task.workIssue?.status === 'open' || (!task.supersededAt && !task.archivedAt && (task.kind === 'stock' ? new Date(task.dueAt) <= this.clock() && (!task.completedAt || koreanDate(task.completedAt) === state.day) : task.date === state.day || task.workEvent && !task.completedAt))));
     for (const item of result.items) {
       Object.assign(item, inventoryReadiness(item));
       const review = stockReview(item);
@@ -460,12 +464,15 @@ export class OperationsStore {
       actor = actorWithParts(state, actor);
       checkWorkplacePermission(state, actor, input.action);
       if (this.trustedActor && input.action === 'setup_shared_employee') fail('로그인한 본인 계정으로 공통 업무를 이용해 주세요.', 403);
+      if (serviceRequestReplay(state,input,actor)) return this.#view(state,actor);
       if (receiptReplay(state,input,actor)) return this.#view(state,actor);
       if (issueRequestReplay(state,input,actor)) return this.#view(state,actor);
       if (crewCreationReplay(state,input,actor)) return this.#view(state,actor);
       if (eventReplay(state,input,actor)) return this.#view(state,actor);
       if (manualMarketReplay(state,input,actor)) return this.#view(state,actor);
       if (input.revision !== state.revision) throw new StoreError('최신 내용과 차이가 있어 저장하지 못했어요. 입력한 내용을 확인하고 다시 저장해 주세요.', 409, 'REVISION_CONFLICT');
+      const legacyOrderTask = state.tasks.find(task => task.id === (input.taskId ?? input.id) && task.orderId);
+      if (legacyOrderTask) fail('주문별 처리 기능은 종료되었어요. 근무 체크와 매뉴얼을 이용해 주세요.', 410);
       const scheduleDates = scheduleRange(input);
       const who = { id: actor.id, name: actor.name, role: actor.label };
       const activity = (message, kind) => state.activity.unshift({ id: randomUUID(), at: iso(now), actor: who, message, ...(kind ? { kind } : {}) });
@@ -802,7 +809,7 @@ export class OperationsStore {
           if (!(task.steps?.length ? task.steps.some(s => canCompleteStep(actor, task, s, state)) : allowed(actor, task, state))) fail('이 Tap의 담당자가 아니에요.', 403);
           if (!state.checklistFolders.some(folder => folder.id === input.folderId)) fail('TAP그룹을 찾지 못했어요.');
           if (!['todo', 'processing', 'done', 'keep'].includes(input.status)) fail('Tap 상태를 확인해 주세요.');
-          const moving = task.orderId ? state.tasks.filter(t => t.orderId === task.orderId && !t.archivedAt && !t.supersededAt) : [task];
+          const moving = [task];
           if (moving.some(t => t.preparedItemId && t.completedAt && !['done', 'keep'].includes(input.status))) fail('완성 수량이 반영된 준비 Tap은 되돌릴 수 없어요.', 409);
           if (moving.some(t => t.preparedItemId && !t.completedAt && input.status === 'done')) fail('실제 완성 수량을 입력해 주세요.');
           for (const task of moving) {
@@ -823,12 +830,9 @@ export class OperationsStore {
             task.completedAt = null; task.completedBy = null; delete task.assignmentSnapshot; delete task.actualQuantity;
           }
           }
-          const laneStatus = row => {
-            const group = row.orderId ? state.tasks.filter(t => t.orderId === row.orderId && !t.archivedAt && !t.supersededAt) : [row];
-            return group.every(t => t.completedAt) ? 'done' : row.orderId ? 'order' : 'todo';
-          };
-          const destinationLane = input.status === 'done' || (input.status === 'keep' && moving.every(t => t.completedAt)) ? 'done' : task.orderId ? 'order' : 'todo';
-          const lane = state.tasks.filter(row => !moving.some(t => t.id === row.id) && row.kind === 'routine' && row.date === state.day && !row.archivedAt && !row.supersededAt && laneStatus(row) === destinationLane)
+          const laneStatus = row => row.completedAt ? 'done' : 'todo';
+          const destinationLane = input.status === 'done' || (input.status === 'keep' && moving.every(t => t.completedAt)) ? 'done' : 'todo';
+          const lane = state.tasks.filter(row => !row.orderId && !moving.some(t => t.id === row.id) && row.kind === 'routine' && row.date === state.day && !row.archivedAt && !row.supersededAt && laneStatus(row) === destinationLane)
             .sort((a, b) => (a.boardOrder ?? (state.taskTemplates.findIndex(t => t.id === a.templateId) < 0 ? state.taskTemplates.length : state.taskTemplates.findIndex(t => t.id === a.templateId))) - (b.boardOrder ?? (state.taskTemplates.findIndex(t => t.id === b.templateId) < 0 ? state.taskTemplates.length : state.taskTemplates.findIndex(t => t.id === b.templateId))));
           const before = input.beforeTaskId == null ? lane.length : lane.findIndex(row => row.id === input.beforeTaskId);
           if (before < 0) fail('삽입할 Tap을 찾지 못했어요.', 409);
@@ -916,13 +920,7 @@ export class OperationsStore {
           state.layout.updatedAt = iso(now); state.layout.updatedBy = who;
           activity(`${zone.name} 위치 안내 업데이트`); break;
         }
-        default: if (!mutateOwnerWorkflow(state,input,actor,now,this.catalog) && !mutateGuidance(state,input,actor,now) && !mutateManualMarket(state,input,actor,now,this.catalog) && !mutateWorkplace(state, input, actor, now, activity, Boolean(this.trustedActor)) && !mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
-      }
-      if (['move_tap', 'complete_task', 'complete_step', 'reopen_step'].includes(input.action)) syncOrderFromTap(state, input.taskId);
-      if (['move_tap', 'complete_task', 'complete_step'].includes(input.action)) {
-        const task = state.tasks.find(t => t.id === input.taskId);
-        const moving = task?.orderId ? state.tasks.filter(t => t.orderId === task.orderId && !t.archivedAt) : task ? [task] : [];
-        for (const row of moving) consumePreparedForTask(state, row, now, who);
+        default: if (!mutateServiceWorkflow(state,input,actor,now) && !mutateOwnerWorkflow(state,input,actor,now,this.catalog) && !mutateGuidance(state,input,actor,now) && !mutateManualMarket(state,input,actor,now,this.catalog) && !mutateWorkplace(state, input, actor, now, activity, Boolean(this.trustedActor)) && !mutateStaff(state, input, actor, now, who, activity)) fail('지원하지 않는 작업이에요.');
       }
       for (const template of state.taskTemplates) {
         if (!previousTemplates.some(t => t.id === template.id)) { convertPolicy(template); }

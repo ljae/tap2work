@@ -79,6 +79,7 @@ export function ensurePartModel(state) {
     if (!Object.hasOwn(row, 'partId')) { row.partId = partForLegacy(state, row.duty); changed = true; }
   }
   for (const row of [...state.taskTemplates ?? [], ...state.tasks ?? []]) {
+    if (row.orderId) continue;
     if (!Object.hasOwn(row, 'partId')) { row.partId = partForLegacy(state, row.requiredRole); changed = true; }
   }
   for (const row of [...(state.hiringDrafts ?? []), ...(state.store?.profile?.staffing?.roleTargets ?? [])]) {

@@ -121,12 +121,8 @@ export function mutateWorkplace(state, input, actor, now, activity, authenticate
       break;
     }
 
-    case 'save_order_system': {
-      if (typeof input.enabled !== 'boolean') fail('주문처리 연결 사용 여부를 선택해 주세요.');
-      state.store.profile ??= {};
-      state.store.profile.orderSystem = { enabled: input.enabled, connectionStatus: 'not_connected' };
-      activity(input.enabled ? '주문처리 보드 표시 켜기' : '주문처리 보드 표시 끄기'); return true;
-    }
+    case 'save_order_system': fail('주문시스템 연결 기능은 종료되었어요.', 410);
+
     case 'save_workplace_parts': {
       if (!Array.isArray(input.parts) || !input.parts.length || input.parts.length > 12) fail('파트는 1–12개로 설정해 주세요.');
       const parts = input.parts.map(part => {

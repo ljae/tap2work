@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 318,
+  "revision": 322,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1517,6 +1517,45 @@
       "source": "User conversation 2026-10-13",
       "updatedAt": "2026-10-13T13:42:31.444458+00:00",
       "implementation": "Web254663c/Pages38404612330 succeeded;267publicSHA matched. iOS21VALID/InternalTestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL; Android20internal+alpha completed, production not published. Live stable147/revision3 exact394a7e42 release published with null DB-admin actor, explicit reviewer omission and immutable event. No fabricated reviewer, no accounts deleted. See docs/COMMON_MANUAL_APP_WEB_RELEASE_2026-10-13.md."
+    },
+    {
+      "id": "D-137",
+      "category": "Customer service manuals",
+      "title": "CS 매뉴얼 포함과 실제 근무 흐름에 맞는 방향성 검토",
+      "status": "confirmed",
+      "previous": "고객 맞이·전화·주문·불만 응대 reference 자료가 있으나, 휴대폰의 서비스 방해를 고려한 전체 제공 방식과 CS 연습 연결은 별도 검증되지 않음.",
+      "next": "CS 매뉴얼 포함을 명시적 요구로 기록하고 기존 자료의 말투·서빙·동시 요청·마감 안내·현장 연습 보강 범위를 검토한다. 근무 흐름 및 자가 발전 방식은 제안으로 비교·검증한다.",
+      "decision": "사용자가 영상 링크와 함께 CS 매뉴얼 필요를 명시하고 근무 전 교육·근무 마무리 체크·긴급 검색·일정/교육 중심 여부 및 자가 발전 스킬 적용 가능성의 검토를 요청했다.",
+      "reason": "서비스 중 기기 사용이 고객 응대를 방해할 수 있다는 사용자 우려를 제품 방향 검토에 반영. 별도 LMS·자동 실행·발행 승인은 아님.",
+      "source": "User conversation 2026-10-14; docs/SERVICE_OPERATING_DIRECTION_2026-10-14.md",
+      "updatedAt": "2026-10-14T11:05:04.479780+00:00",
+      "implementation": "공개 한국어 자동 자막·외부 근거·기존 CS/ContentMemory 소스 감사와 검토 문서 완료. 신규 CS 공용 발행·앱/API 변경·실매장 효과 측정·배포는 미수행."
+    },
+    {
+      "id": "D-138",
+      "category": "Service operating direction proposal",
+      "title": "시작·교대·마감 중심 사용과 현장 피드백 기반 개선 제안",
+      "status": "confirmed",
+      "previous": "2026-10-14 근무 시작·교대·마감 중심 제공과 현장 피드백 개선·스킬·파일럿은 검토 제안(proposed)이었음.",
+      "next": "사용자의 계획 진행 요청에 따라 근무 준비·인계, CS 초안 검토 등록, 본인 연습/지정 버디 확인, 개선 의견·PDF 연결·개선 스킬·현장 실행 준비를 진행한다. 자동 실행/발행은 기존 요청 기반 정책을 유지한다.",
+      "decision": "사용자가 주문시스템 연결과 주문별 처리를 삭제하고 상세 검토 문서의 계획을 진행하도록 명시했다. 구현 가능한 첫 소프트웨어 흐름과 현장 실행표를 완성하며 실제 참여 매장·효과, kiosk/앱 자체 offline 등 후속 구현은 별도 상태로 기록한다.",
+      "reason": "User conversation 2026-10-14: 핸드폰으로 각 주문별 처리는 실질적이지 않으므로 연결/주문 처리 삭제 후 계획 진행.",
+      "source": "Assistant proposal in docs/SERVICE_OPERATING_DIRECTION_2026-10-14.md; not user approval",
+      "updatedAt": "2026-10-14T11:55:14.176416+00:00",
+      "implementation": "Local implementation: serviceWorkflow projection/actions, five owner-reviewed Korean CS drafts/reference/OFF, briefing read snapshot, business-day own shifts, append-only handover/practice/buddy/feedback, PDF/editor links, project skill and field protocol. Flutter622pass/3browser-onlyskip,analysis0,server393pass,related24pass,UI87/npmcheck/skill validator/web build pass. No production publication/deployment, native/device/field verification, kiosk or app offline. SERVICE_WORKFLOW_IMPLEMENTATION_2026-10-14.md."
+    },
+    {
+      "id": "D-139",
+      "category": "Customer order execution retirement",
+      "title": "주문시스템 연결 옵션·고객 주문별 처리 종료",
+      "status": "confirmed",
+      "previous": "사장님 연결 토글로 주문 보드 표시; 고객 메뉴별 TAP 생성/그룹 이동·완료와 준비품 소비/대시보드 상태 동기화.",
+      "next": "연결 옵션/폼과 주문 레인·카드·그룹 처리를 제거하고 서버 고객 실행 생성/동기화/준비품 자동 차감·preview를 종료한다. 구 기록은 보존하되 투영/변경 대상에서 제외한다. 재고 발주·입고·준비 실측/완성 수량·레시피는 유지한다.",
+      "decision": "사용자가 핸드폰으로 주문마다 처리하는 방식은 실질적이지 않다고 설명하고 옵션과 해당 기능 삭제를 명시했다.",
+      "reason": "고객 서비스 중 휴대폰 입력 부담을 줄이고 근무 준비·인계·CS 중심 흐름으로 진행한다. D-017 공급처 발주 기준 재고 확인은 변경하지 않는다.",
+      "source": "User conversation 2026-10-14; docs/SERVICE_WORKFLOW_IMPLEMENTATION_2026-10-14.md",
+      "updatedAt": "2026-10-14T11:55:14.176416+00:00",
+      "implementation": "Local UI/API implemented. order_taps module and prepared consumption/preview synchronization removed; orderBoardEnabled=false, old owner connection/customer work writes410, legacy evidence preserved. Inventory receipt/rank/CAS/KST tests pass. Not deployed."
     }
   ],
   "milestones": [
@@ -1729,6 +1768,12 @@
       "title": "사장님 매뉴얼 검토·내일 업무 및 공통 디자인 배포",
       "status": "complete",
       "description": "Web3c041ba/Actions38134098649 success;16public SHA256 matches. operations63 ACTIVE/serverd566d5d purpose-only folder registration fix. iOS15 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL/internal group; Android14 internal+alpha committed/actual tracks completed. CI Flutter559/3browser-onlyskip,analysis0,Node380; finalserver381/7regression,UI78,Edge pass. Sol6.1 iPhone17Pro iOS26.5 native23.975s synthetic readOnly touch demo. Actual owner session in fictional store: hall-open reviewed/registered, default tomorrow settings saved and persisted across reload, today14todo/2done preserved. Store approval/physical device/newOAuth/profile not tested. Details OWNER_WORKFLOW_RELEASE_2026-10-11.md. Lower-model research execution remains future work; only requested playbook/recommendation delivered."
+    },
+    {
+      "id": "M-036",
+      "title": "서비스 품질·근무 준비·인계 개편과 현장 검증",
+      "status": "in_progress",
+      "description": "로컬 첫 소프트웨어 흐름과 주문별 처리 종료 완료; Flutter622/3skip·analysis0·Node393·UI87·web build/skill validator 통과. 프로젝트 개선 스킬과 현장 실행표 준비. 운영 배포·실계정 버디/실기기·원어민·현장효과 검증은 미수행, 앱 offline/kiosk/AI runtime는 후속. 상세 SERVICE_WORKFLOW_IMPLEMENTATION_2026-10-14.md."
     }
   ],
   "history": [
@@ -8960,7 +9005,37 @@
       "type": "deployment",
       "title": "Common manuals/recipes web and native submission verified; administrator catalogue147 published",
       "detail": "User requested all deployment and explicitly skipped separate reviewer. Source254663cc90e7e2d7178f98373b200360bb303691/Pages38404612330 build+deploy success. CI full analysis/Flutter/Node391/UI84/Edge/5SQL/7x2047 translation/build passed (localFlutter616/3skip). Actual public267/267 SHA matches. iOS1.0.0(21)VALID,InternalTestFlight,old20review cancelled/new21WAITING_FOR_REVIEW/AFTER_APPROVAL; review details unchanged. Android1.0.0(20)internal+alpha completed/requeried, sameuploadcertificate and uploadedSHA match; noproduction. Native applicablepublicauth/callback/bundle/translations/privacy artifacts verified. Livecatalog109/rev2→147/rev3,394a7e42f8a61c6df34cebdcadd352b582114df996b0718a3a3187a4f20d1013 exact canonical read verified. One-off DB-admin actor=null/reviewer omission reason/immutable request6e75dcc7-b077-4b77-815d-68c05e527cc4; isolatedpublication/retry audit passed. All testaccountcleanup permitted, deleted0 as unnecessary. ExistingAPIreviewcontrols/realstorehistory retained. Actual390Chrome login/sample/manual/market/openingdetail rendered. Initial browser visibility/text locators and Android iOS-only define expectation corrected; missingoldcatalogfixture replaced with actual read-only109payload before publication test. No remainingdeployment failures. Appleapproval/Androidproduction/realdevice/nativeaccountlogin/native-language or field review not verified. Privateevidence.local/common-operations-deployment; docs/COMMON_MANUAL_APP_WEB_RELEASE_2026-10-13.md."
+    },
+    {
+      "at": "2026-10-14T11:05:04.479780+00:00",
+      "type": "research",
+      "title": "CS·근무 흐름·자가 발전 방향 검토; 기존 개선 기억 테스트13개 통과",
+      "detail": "영상 II_BPTmu1Oc의 ko 자동 자막과 제목/채널 확인, 기존 CS 원본·PDF/검색 계약·ContentMemory/content-cycle 코드 감사. FDA 본문, Slater2024 대학 초록, 소방청 정책브리핑 본문 및 7shifts 공식 안내를 참고하고 관찰/인과 한계를 명시했다. PMC/소방청 원사이트 본문은 확인 페이지에 막혀 PMC는 검색 초록 범위만 사용하고 소방청은 정책브리핑 대체 본문 확인. node --test developer/test/content_memory.test.mjs:13pass/0fail/0skip. D-137 CS 요구 confirmed,D-138 제공/파일럿/개선 스킬 proposed. PRODUCT/ARCHITECTURE/CONTENT_IMPROVEMENT/AI_HANDOFF와 SERVICE_OPERATING_DIRECTION_2026-10-14.md 갱신. 전체 과거 decisions/history 보존·revision318→319. 앱/UI/API/운영데이터/카탈로그/배포 변경, 신규 스킬 실행·예약, 전체Flutter/네이티브빌드, 실매장·고객만족·원어민 검증은 미수행. 기존 dirty 작업 보존."
+    },
+    {
+      "at": "2026-10-14T11:55:14.176416+00:00",
+      "type": "decision",
+      "title": "주문 처리 종료 확정; 근무 흐름 제안의 계획 실행 승인",
+      "detail": "User explicitly removed customer order connection/processing as impractical on phones and requested proceeding with the detailed review plan. D-138 status proposed→confirmed for plan execution; D-139 records previous optional customer execution→retired UI/API/generation/automatic prepared consumption. D-017 procurement/receipt, D-101 request-based research and D-111 owner selection remain. Existing decisions/history and unrelated root dirty work preserved; no employee/credential/operational data inserted."
+    },
+    {
+      "at": "2026-10-14T11:55:14.176416+00:00",
+      "type": "verification",
+      "title": "근무 준비·인계·CS 로컬 구현 및 최종 검사 통과",
+      "detail": "ServiceWorkflowScreen/Draft and service_workflow/service_guides add max3 registered briefing references/frozen read acknowledgment, own effective shifts by Korean business day, enduring handovers and separate resolution, self practice/designated buddy confirmation with source-hash guard, author/authorized-leader feedback and original version/outcome. Five Korean review drafts owner-register reference/OFF, sourceLocale/serviceGuideId survive normal saving, existing PDF/editor reused and8-language UI. Old customer generator/group/lane/preview/consume code removed; 410 legacy writes, raw historical evidence and procurement preserved. Final flutter analyze0issues; Flutter622passed/3browser-onlyskips; related24 including320px1.5x8locales/390/1200, Node393passed/0failed, npmcheck/UI87, skill quick_validate and npm build:app web passed. Existing public147 catalogue394a7e42 unchanged. Initial retired-order test expectations, prepared fixture selection, form controller premature dispose, offscreen translated button locator and two path-invocation errors were corrected; final checks have no remaining failures. docs/SERVICE_WORKFLOW_IMPLEMENTATION_2026-10-14.md and SERVICE_PILOT_2026-10-14.md. Production/native deployment, native build/device/two-account buddy/field effect/native-language review not performed. PDF download is available; app offline/kiosk quick auth/AI runtime shared cloud memory remain future work. Logs.local/service-workflow-20261014; canonical revision319→320."
+    },
+    {
+      "at": "2026-10-14T12:05:45.701413+00:00",
+      "type": "verification",
+      "title": "서비스 구현 재검증 및 포장 매뉴얼 보존·안내 재시도 수정",
+      "detail": "User requested verification. Reproduced two failures before fixes: broad packing-ID retirement archived ordinary manuals; briefing button created a new request on retry after response loss/refresh. Limited retirement to three known customer sample IDs; added ServiceBriefingAcknowledgement retaining day/hash-scoped draft requestId/opening revision within screen lifetime. Existing archives preserved. Final Flutter623passed/3browser-onlyskips; analyze0; Node394passed/0failed; npmcheck/UI87; authenticated DB-backed Edge read smoke; Flutter web build passed. Catalogue147/394a7e42 unchanged. Logs .local/service-verification-20261014; implementation/architecture/settings map/handoff updated. No deployment/native build/actual browser or device/two-account field validation. Offline/kiosk/runtime AI and restart-persistent pending requests remain future. Existing root dirty preserved."
+    },
+    {
+      "at": "2026-10-14T12:21:24.943237+00:00",
+      "type": "verification",
+      "title": "근무 준비·인계 UI/UX 최적화 로컬 반영 및 검증",
+      "detail": "User requested UI/UX optimization. Implemented pinned start/handover/CS navigation, current actor/day/content-based acknowledged state from server evidence, pending handovers and designated buddy confirmations first, next action/assignee hierarchy, expandable history in batches of10, collapsed long guidance, max3 selection count/empty search, field validation/scroll to missing input, dirty dismissal guard, busy lock/footer errors, 300-character confirmation/resolution limit, wrapped free-text labels and no doubled card padding. ServiceWorkflowPresentation only reads existing projection; API/auth/revision/idempotency/order retirement unchanged. Added15UI strings in8languages; shared ChipTheme uses existing appFontFallbacks after rendered Nepali glyph omission. Final flutter analyze0; full Flutter626passed/3browser-onlyskips; related11+render1 passed;28captures at320/390/1200 and320x7401.5x8locales with simulated keyboard; Node relevant9passed; npmcheck/UI87/catalogue147394a7e42 unchanged; scoped whitespace and final web build passed. Initial PageStorage state collision fixed; full test shader asset misses3 occurred during concurrent web build and resolved by sequential full rerun/build. No native build/deployment/actual browser-device interaction/two-account/native-speaker/field effect verification. docs/SERVICE_UX_REFINEMENT_2026-10-14.md, .local/service-ux-20261014. Existing root dirty preserved."
     }
   ],
-  "updatedAt": "2026-10-13T13:42:31.444458+00:00"
+  "updatedAt": "2026-10-14T12:21:24.943237+00:00"
 }

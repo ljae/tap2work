@@ -1,3 +1,4 @@
+import 'service_messages.dart';
 import 'manual_model_messages.dart';
 import 'store_messages.dart';
 import 'supplemental_messages.dart';
@@ -64,6 +65,7 @@ class AppStrings {
       Localizations.of<AppStrings>(context, AppStrings) ?? AppStrings('ko');
   String text(String key, [Map<String, Object?> params = const {}]) {
     final row =
+        serviceMessageRows[key] ??
         manualModelMessageRows[key] ??
         manualModelMessageRows[_manualModelSourceKeys[key]] ??
         appMessageRows[key] ??

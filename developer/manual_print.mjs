@@ -5,7 +5,7 @@ export const printLocales=['en','vi','zh-Hans','ja'];
 export function printContent(t){return {title:t.manualTitle??t.title,steps:(t.steps??[]).map(s=>({id:s.id,title:s.manualTitle??s.title,manual:s.manual??'',tip:s.tip??'',sourceUrl:s.sourceUrl??'',imageUrl:s.imageUrl??'',videoUrl:s.videoUrl??''}))};}
 export function printSourceHash(t){return createHash('sha256').update(JSON.stringify(printContent(t))).digest('hex');}
 export function manualPrintView(state){
- return (state.taskTemplates??[]).filter(t=>t.registration?.status!=='pending'&&!t.archivedAt&&(t.folderId!=='order-work'||t.menuManualId)).map(t=>({
+ return (state.taskTemplates??[]).filter(t=>t.registration?.status!=='pending'&&!t.archivedAt).map(t=>({
   id:t.id,title:t.manualTitle??t.title,sourceHash:printSourceHash(t),version:t.version??1,
   folderId:t.folderId??'general',folderName:state.checklistFolders.find(f=>f.id===t.folderId)?.name??'기본 업무',
   partId:t.settings?.assignment?.mode==='scheduled'?t.settings.assignment.partId:t.partId??null,

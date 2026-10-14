@@ -85,19 +85,12 @@ test('count and receipt preserve exact order deadline, duplicate receipt rejects
   await assert.rejects(f.act('crew','complete_task',{taskId:oldCheck.id,quantity:0}),{status:409});
 });
 
-test('order board visibility toggles preserve tickets, procurement orders and completion evidence',async()=>{
-  const f=fixture();
-  await f.act('owner','place_order',{lines:[{itemId:'rice',quantity:1}]});
-  const before=f.raw();
-  for(const enabled of [true,false,true]){
-    const view=await f.act('owner','save_order_system',{enabled});
-    assert.equal(view.orderBoardEnabled,enabled);
-    assert.deepEqual(f.raw().sales,before.sales);
-    assert.deepEqual(f.raw().orders,before.orders);
-    assert.deepEqual(f.raw().tasks,before.tasks);
-    assert.equal(view.store.profile.orderSystem.connectionStatus,'not_connected');
-  }
-  await assert.rejects(f.act('manager','save_order_system',{enabled:false}),{status:403});
+test('retired order option rejects writes while preserving procurement and legacy evidence',async()=>{
+ const f=fixture(); await f.act('owner','place_order',{lines:[{itemId:'rice',quantity:1}]});
+ const before=f.raw();
+ await assert.rejects(f.act('owner','save_order_system',{enabled:true}),{status:410});
+ assert.deepEqual(f.raw().sales,before.sales); assert.deepEqual(f.raw().orders,before.orders); assert.deepEqual(f.raw().tasks,before.tasks);
+ assert.equal((await f.read('owner')).orderBoardEnabled,false);
 });
 
 test('trusted crew/cook cannot gain editing or payroll access from enabled restriction toggles',async()=>{

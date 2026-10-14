@@ -24,8 +24,7 @@ test('global manual index and related words reach crew without private data or d
   const pos = owner.manualSearch.find(row => row.title === '복합결제 · 금액별' && row.tapTitle.startsWith('오케이포스'));
   assert.ok(pos?.sourceUrl.startsWith('https://okpos.gitbook.io/'));
   assert.equal(owner.manualSearch.filter(row => row.id === pos.id).length, 1);
-  const orderTap = owner.tasks.find(row => row.orderId && row.steps?.length);
-  assert.ok(orderTap && !owner.manualSearch.some(row => row.tapTitle === orderTap.title));
+  assert.ok(owner.tasks.every(row => !row.orderId));
   const menuGuides = owner.manualSearch.filter(row => row.folderId === 'store-recipes');
   assert.equal(menuGuides.length, owner.catalogMenus.filter(menu => !menu.archivedAt).length);
   assert.ok(menuGuides.every(row => row.tapTitle === row.title && !/×\s*\d/.test(row.title)));
@@ -252,25 +251,6 @@ test('HTTP accepts checklist drafts larger than the old 64 KiB limit', async t =
   assert.equal(response.status, 200); assert.equal((await response.json()).taskTemplates.length, payload.templates.length);
 });
 
-test('order and prep lanes stay separate; linked orders survive folder editing and synchronize Home', async t => {
-  const { store, act } = await setup(t);
-  let state = await store.snapshot('owner');
-  const order = state.tasks.find(t => t.orderId);
-  const preparation = state.tasks.find(t => t.templateId && t.folderId !== order.folderId);
-  await assert.rejects(act('move_tap', { taskId: order.id, folderId: order.folderId, status: 'keep', beforeTaskId: preparation.id }), /삽입할 Tap/);
-  state = await act('move_tap', { taskId: order.id, folderId: order.folderId, status: 'keep' });
-  assert.equal(state.tasks.find(t => t.id === order.id).folderId, order.folderId);
-  assert.equal(state.tasks.find(t => t.id === order.id).boardStatus, order.boardStatus);
-  state = await act('save_checklists', draft(state));
-  assert.ok(state.tasks.some(t => t.id === order.id));
-  state = await act('move_tap', { taskId: order.id, folderId: order.folderId, status: 'done' });
-  assert.ok(state.tasks.find(t => t.id === order.id).steps.every(s => s.completedAt));
-  assert.ok(!state.dashboard.queue.some(t => t.id === order.orderId));
-  state = await act('move_tap', { taskId: order.id, folderId: order.folderId, status: 'processing' });
-  assert.ok(state.tasks.find(t => t.id === order.id).steps.every(s => !s.completedAt));
-  assert.equal(state.dashboard.queue.find(t => t.id === order.orderId).status, '조리 중');
-  assert.equal((await store.snapshot('owner')).tasks.filter(t => t.orderId === order.orderId).length, 1);
-});
 
 test('inline Task edits/additions preserve completed siblings and update only their source', async t => {
   const {store, act, file, midnight} = await setup(t);
@@ -305,13 +285,10 @@ test('inline Task edits/additions preserve completed siblings and update only th
   assert.deepEqual(stored.tasks.find(row => row.id === task.id).steps[0].completedAt, completed.completedAt);
 });
 
-test('inline Task creation caps lists and protects finished TAPs and source-less orders', async t => {
+test('inline Task creation caps lists and protects finished routine TAPs', async t => {
   const {store, act} = await setup(t);
   let state = await store.snapshot('owner');
-  const order = state.tasks.find(row => row.orderId && !row.completedAt);
-  const templates = structuredClone(state.taskTemplates);
-  state = await act('save_task_step', {taskId:order.id, title:'주문 확인 추가', manual:'이 주문만 확인'});
-  assert.deepEqual(state.taskTemplates, templates);
+  assert.ok(state.tasks.every(row => !row.orderId));
   const task = state.tasks.find(row => row.templateId === PREP);
   for (let i = task.steps.length; i < 30; i++) await act('save_task_step', {taskId:task.id, title:`추가 ${i}`, manual:'확인'});
   await assert.rejects(act('save_task_step', {taskId:task.id, title:'초과', manual:'확인'}), {status:400});

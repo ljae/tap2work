@@ -73,19 +73,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       if (taskId != null &&
           this.taskId == null &&
           !MediaQuery.disableAnimationsOf(context)) {
-        final task = groups.where((row) => row['id'] == taskId).firstOrNull;
         settlingTasks.add(taskId);
-        if (task?['orderId'] != null) {
-          settlingTasks.addAll(
-            groups
-                .where(
-                  (row) =>
-                      row['orderId'] == task!['orderId'] &&
-                      row['completedAt'] != null,
-                )
-                .map((row) => row['id'] as String),
-          );
-        }
       }
     });
     celebrationTimer = Timer(AppMotion.completionHold, () {
@@ -108,12 +96,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   List<Json> get groups =>
       ops
           .rows('tasks')
-          .where(
-            (t) =>
-                t['kind'] == 'routine' &&
-                (t['orderId'] == null ||
-                    ops.data?['orderBoardEnabled'] == true),
-          )
+          .where((t) => t['kind'] == 'routine' && t['orderId'] == null)
           .toList()
         ..sort(
           (a, b) => ((a['displayOrder'] ?? 0) as int).compareTo(
@@ -143,8 +126,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       steps(task).where((s) => s['completedAt'] != null).length;
   String status(Json task) {
     if (total(task) > 0 && done(task) == total(task)) return '완료';
-    final state = task['boardStatus'];
-    return state == 'processing' ? '주문처리중' : '할일';
+    return '할일';
   }
 
   String folderOf(Json task) => task['folderId'] ?? 'general';
@@ -247,22 +229,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       return partLabel(ops, task['partId'], context: context);
     }
     return context.t(checklistRoles[task['requiredRole']] ?? '전체 파트');
-  }
-
-  String platformBadge(String value) {
-    if (value.contains('배달의민족') || value.contains('배민')) return '🩵 $value';
-    if (value.contains('쿠팡이츠')) return '🧡 $value';
-    if (value.contains('요기요')) return '❤️ $value';
-    return '🛵 $value';
-  }
-
-  Color platformColor(String value) {
-    if (value.contains('배달의민족') || value.contains('배민')) {
-      return const Color(0xFF157B81);
-    }
-    if (value.contains('쿠팡이츠')) return const Color(0xFFA95015);
-    if (value.contains('요기요')) return const Color(0xFFB33348);
-    return AppColors.ink;
   }
 
   List<Json> assignees(Json task) {
@@ -376,67 +342,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
             ],
           ),
       ],
-    );
-  }
-
-  String orderTime(Json task) {
-    final created = task['orderCreatedAt'];
-    if (created == null) return '';
-    final date = DateTime.tryParse(created.toString());
-    if (date == null) return '';
-    final korean = date.toUtc().add(const Duration(hours: 9));
-    final clock =
-        '${korean.hour.toString().padLeft(2, '0')}:${korean.minute.toString().padLeft(2, '0')}';
-    final queue = (ops.data?['dashboard']?['queue'] as List? ?? const [])
-        .whereType<Json>();
-    final ticket = queue
-        .where((row) => row['id'] == task['orderId'])
-        .firstOrNull;
-    final members = groups
-        .where((row) => row['orderId'] == task['orderId'])
-        .toList();
-    final completed =
-        members.isNotEmpty &&
-        members.every((row) => row['completedAt'] != null);
-    final finishedAt = completed
-        ? members
-              .map((row) => DateTime.tryParse(row['completedAt'].toString()))
-              .whereType<DateTime>()
-              .fold<DateTime?>(
-                null,
-                (latest, value) =>
-                    latest == null || value.isAfter(latest) ? value : latest,
-              )
-        : null;
-    final elapsed =
-        ((completed
-                    ? finishedAt?.difference(date).inMinutes
-                    : ticket?['elapsedMinutes'] as int?) ??
-                DateTime.now().difference(date).inMinutes)
-            .clamp(0, 999999);
-    final target =
-        ticket?['targetMinutes'] as int? ?? task['orderTargetMinutes'] as int?;
-    final targetText = target == null
-        ? ''
-        : elapsed > target
-        ? context.t(
-            'ui.audit2067',
-            args: {'p0': target, 'p1': elapsed - target},
-          )
-        : context.t(
-            'ui.audit2068',
-            args: {'p0': target, 'p1': target - elapsed},
-          );
-    return context.t(
-      'ui.audit2126',
-      args: {
-        'p0': korean.month,
-        'p1': korean.day,
-        'p2': clock,
-        'p3': completed ? '완료까지 ' : '',
-        'p4': elapsed,
-        'p5': targetText,
-      },
     );
   }
 
@@ -573,25 +478,11 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     if (task != null) return _smallBoard(task);
 
     final entries = <({String id, String state, Widget card})>[];
-    final matched = scoped;
-    final visibleOrderIds = matched
-        .map((t) => t['orderId'])
-        .whereType<String>()
-        .toSet();
-    final boardTasks = [
-      ...matched.where((t) => t['orderId'] == null),
-      ...groups.where((t) => visibleOrderIds.contains(t['orderId'])),
-    ];
+    final boardTasks = scoped;
     for (final t in boardTasks) {
       entries.add((
         id: t['id'],
-        state: settlingTasks.contains(t['id'])
-            ? (t['orderId'] != null ? '주문처리중' : '할일')
-            : t['orderId'] != null
-            ? '주문처리중'
-            : status(t) == '완료'
-            ? '완료'
-            : '할일',
+        state: settlingTasks.contains(t['id']) ? '할일' : status(t),
         card: TapCard(
           holdCompletion: settlingTasks.contains(t['id']),
           completionTrigger:
@@ -635,8 +526,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                   if (settlingTasks.contains(t['id'])) return;
                   if (t['preparedItemId'] != null && status(t) != '완료') {
                     _finishPreparation(t);
-                  } else if (t['orderId'] != null) {
-                    _checkMenu(t);
                   } else {
                     _moveTap(
                       t,
@@ -649,227 +538,9 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         ),
       ));
     }
-    for (final orderId in visibleOrderIds) {
-      final members = groups.where((t) => t['orderId'] == orderId).toList();
-      final cards = entries
-          .where((e) => members.any((t) => t['id'] == e.id))
-          .toList();
-      if (cards.isEmpty) continue;
-      final first = members.first;
-      final state =
-          members.every((t) => status(t) == '완료') &&
-              !members.any((t) => settlingTasks.contains(t['id']))
-          ? '완료'
-          : '주문처리중';
-      final count = members.fold<int>(0, (sum, t) => sum + total(t));
-      final completed = members.fold<int>(0, (sum, t) => sum + done(t));
-      final progress = count == 0 ? 0.0 : completed / count;
-      final complete = count > 0 && completed == count;
-      const groupText = AppColors.ink;
-      final request = (first['customerRequest'] ?? '').toString();
-      final position = entries.indexWhere(
-        (e) => members.any((t) => t['id'] == e.id),
-      );
-      entries.removeWhere((e) => members.any((t) => t['id'] == e.id));
-      entries.insert(position, (
-        id: first['id'],
-        state: state,
-        card: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: complete ? AppColors.elevated : AppColors.surface,
-            gradient: complete
-                ? null
-                : LinearGradient(
-                    colors: [
-                      assigneeColor(first).withValues(alpha: .18),
-                      Colors.transparent,
-                    ],
-                    stops: [progress, progress],
-                  ),
-            border: Border.all(
-              color: complete
-                  ? AppColors.line
-                  : completed > 0
-                  ? assigneeColor(first)
-                  : AppColors.line,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (count > 0)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                  child: Row(
-                    children: [
-                      Text(
-                        '$completed/$count',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: groupText,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: AppLinearProgress(
-                          value: progress,
-                          minHeight: 5,
-                          color: complete
-                              ? AppColors.muted
-                              : assigneeColor(first),
-                          backgroundColor: complete
-                              ? Colors.white
-                              : AppColors.paper,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              _draggable(
-                data: first['id'],
-                feedback: Material(
-                  child: Text(
-                    context.t(
-                      'ui.audit1023',
-                      args: {'p0': first['orderNumber']},
-                    ),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              context.t(
-                                'ui.audit1024',
-                                args: {
-                                  'p0': first['orderNumber'],
-                                  'p1': first['orderChannel'],
-                                  'p2': members.length,
-                                },
-                              ),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: groupText,
-                              ),
-                            ),
-                          ),
-                          if (request.isNotEmpty)
-                            IconButton(
-                              tooltip: context.t('ui.audit1025'),
-                              icon: Icon(
-                                CupertinoIcons.exclamationmark_bubble,
-                                color: AppColors.accent,
-                              ),
-                              onPressed: () => showAppFormSheet<void>(
-                                context: context,
-                                builder: (_) => AppSheetPanel(
-                                  title: Text(context.t('ui.audit432')),
-                                  content: Text(request),
-                                  actions: [
-                                    PressBounce(
-                                      child: TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text(context.t('ui.audit226')),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          PopupMenuButton<String>(
-                            popUpAnimationStyle: AppMotion.dialogStyle(context),
-                            iconColor: groupText,
-                            tooltip: context.t('ui.audit1026'),
-                            onSelected: (value) =>
-                                _moveTap(first, folderOf(first), value),
-                            itemBuilder: (_) => [
-                              if (complete)
-                                PopupMenuItem(
-                                  value: 'todo',
-                                  child: Text(context.t('ui.audit1027')),
-                                ),
-                              if (!complete)
-                                PopupMenuItem(
-                                  value: 'processing',
-                                  child: Text(context.t('ui.audit1028')),
-                                ),
-                              if (!complete)
-                                PopupMenuItem(
-                                  value: 'done',
-                                  child: Text(context.t('ui.audit1029')),
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Text(
-                        orderTime(first),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.muted,
-                        ),
-                      ),
-                      if (first['orderChannel'] == '배달' &&
-                          (first['orderPlatform'] ?? '')
-                              .toString()
-                              .trim()
-                              .isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Color.lerp(
-                              platformColor(first['orderPlatform']),
-                              Colors.white,
-                              .88,
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            platformBadge(first['orderPlatform']),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: platformColor(first['orderPlatform']),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              for (final card in cards) card.card,
-            ],
-          ),
-        ),
-      ));
-    }
-    final lanes = [
-      if (ops.data?['orderBoardEnabled'] == true) '주문처리중',
-      '할일',
-      '완료',
-    ];
+    final lanes = ['할일', '완료'];
     String? targetStatus(Json moving, String lane) {
-      final complete = moving['orderId'] == null
-          ? status(moving) == '완료'
-          : groups
-                .where((t) => t['orderId'] == moving['orderId'])
-                .every((t) => status(t) == '완료');
-      final current = complete
-          ? '완료'
-          : moving['orderId'] != null
-          ? '주문처리중'
-          : '할일';
+      final current = status(moving);
       return lane == current ? 'keep' : null;
     }
 
@@ -884,10 +555,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
         return false;
       }
       final target = before == null ? null : movingTask(before);
-      return target == null ||
-          (target['id'] != id &&
-              (target['orderId'] == null ||
-                  target['orderId'] != moving['orderId']));
+      return target == null || target['id'] != id;
     }
 
     void drop(String id, String lane, {String? before}) {
@@ -953,8 +621,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                                   context.t(
                                     lane == '완료'
                                         ? 'manual.completed'
-                                        : lane == '주문처리중'
-                                        ? 'work.processing'
                                         : 'work.todo',
                                   ),
                                   style: const TextStyle(
@@ -1031,7 +697,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     );
   }
 
-  Future<void> _checkMenu(Json task) async {
+  Future<void> _completeTap(Json task) async {
     if (status(task) == '완료') {
       await _toggle(task, steps(task).first);
     } else if (ops.readOnly) {
@@ -1350,7 +1016,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               initialStepId: step['id'],
               bodyBuilder: _manual,
               onToggle: _toggle,
-              onCompleteQuantity: _checkMenu,
+              onCompleteQuantity: _completeTap,
             ),
           );
           if (!mounted ||
@@ -1428,7 +1094,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
           FilledButton(
             onPressed: ops.busy || ops.readOnly || task['canComplete'] != true
                 ? null
-                : () => _checkMenu(task),
+                : () => _completeTap(task),
             child: Text(context.t('ui.audit435')),
           ),
       ],

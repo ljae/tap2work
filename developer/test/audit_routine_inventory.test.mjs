@@ -6,7 +6,7 @@ import { assertIssuePhotoPermission, issuePhotoReceipt, verifyIssuePhotoReceipt 
 const now = new Date('2026-10-10T03:00:00Z');
 function fixture(){let state=seedOperations(now);const store=new OperationsStore(null,()=>now,{persistence:{read:async()=>structuredClone(state),save:async next=>{state=structuredClone(next);}}});return {store,raw:()=>state,act:async(action,args={},actor='owner')=>{const v=await store.snapshot(actor);return store.mutate(actor,{action,revision:v.revision,...args});}};}
 test('routine blocked report prevents completion; a note allows work and remains resolvable after completion',async()=>{
- const x=fixture();let view=await x.store.snapshot('owner');const t=view.tasks.find(t=>t.kind==='routine'&&t.steps.length>1);
+ const x=fixture();let view=await x.store.snapshot('owner');const t=view.tasks.find(t=>t.kind==='routine'&&!t.preparedItemId&&t.steps.length>1);
  await x.act('flag_work_issue',{taskId:t.id,reason:'배수구 막힘',severity:'blocked'});
  await assert.rejects(x.act('complete_step',{taskId:t.id,stepId:t.steps[0].id}),{code:'WORK_ISSUE_BLOCKED'});
  await assert.rejects(x.act('flag_work_issue',{taskId:t.id,reason:'단순 주의로 변경',severity:'note'}),{status:409});

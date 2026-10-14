@@ -312,12 +312,14 @@ class Tap2workApp extends StatelessWidget {
             shape: const StadiumBorder(),
             labelStyle: const TextStyle(
               fontFamily: 'Pretendard',
+              fontFamilyFallback: appFontFallbacks,
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.ink,
             ),
             secondaryLabelStyle: const TextStyle(
               fontFamily: 'Pretendard',
+              fontFamilyFallback: appFontFallbacks,
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.ink,

@@ -85,7 +85,7 @@ export function validateChecklists(input, state) {
     unique(steps);
     const sourceIds = Array.isArray(row.sourceIds) ? [...new Set(row.sourceIds.filter(id => checklistLibrary.sources.some(source => source.id === id)))] : [];
     return { assignmentScopeVersion:scope, id: text(row.id, 100, '업무 ID'), partId: validatePart(state, Object.hasOwn(row, 'partId') ? row.partId : previous?.partId ?? partForLegacy(state, row.requiredRole), {allowAll:true, allowHidden:true}), title: text(previous?.menuManualId ? previous.title : row.title, 100, '업무 이름'), emoji: emoji(row.emoji), folderId: row.folderId, slot: row.slot, requiredRole: row.requiredRole, zone: row.zone ?? null, steps, sourceIds,
-      ...Object.fromEntries(['registration','starterId','scheduledSettings'].filter(k=>previous?.[k]!==undefined).map(k=>[k,structuredClone(previous[k])])),
+      ...Object.fromEntries(['registration','starterId','serviceGuideId','sourceLocale','scheduledSettings'].filter(k=>previous?.[k]!==undefined).map(k=>[k,structuredClone(previous[k])])),
       ...(previous?.manualCustomization ? {manualCustomization:structuredClone(previous.manualCustomization)} : {}),
       ...(previous?.knowledge ? {knowledge:structuredClone(previous.knowledge)} : {}),
       ...(previous?.manualCategoryOverride?{manualCategoryOverride:previous.manualCategoryOverride}:{}),
