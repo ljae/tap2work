@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 322,
+  "revision": 323,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -9035,7 +9035,13 @@
       "type": "verification",
       "title": "근무 준비·인계 UI/UX 최적화 로컬 반영 및 검증",
       "detail": "User requested UI/UX optimization. Implemented pinned start/handover/CS navigation, current actor/day/content-based acknowledged state from server evidence, pending handovers and designated buddy confirmations first, next action/assignee hierarchy, expandable history in batches of10, collapsed long guidance, max3 selection count/empty search, field validation/scroll to missing input, dirty dismissal guard, busy lock/footer errors, 300-character confirmation/resolution limit, wrapped free-text labels and no doubled card padding. ServiceWorkflowPresentation only reads existing projection; API/auth/revision/idempotency/order retirement unchanged. Added15UI strings in8languages; shared ChipTheme uses existing appFontFallbacks after rendered Nepali glyph omission. Final flutter analyze0; full Flutter626passed/3browser-onlyskips; related11+render1 passed;28captures at320/390/1200 and320x7401.5x8locales with simulated keyboard; Node relevant9passed; npmcheck/UI87/catalogue147394a7e42 unchanged; scoped whitespace and final web build passed. Initial PageStorage state collision fixed; full test shader asset misses3 occurred during concurrent web build and resolved by sequential full rerun/build. No native build/deployment/actual browser-device interaction/two-account/native-speaker/field effect verification. docs/SERVICE_UX_REFINEMENT_2026-10-14.md, .local/service-ux-20261014. Existing root dirty preserved."
+    },
+    {
+      "at": "2026-10-14T12:36:34.753216+00:00",
+      "type": "verification",
+      "title": "서비스 앱웹·Android 테스트 배포 완료 및 Apple 심사 상태 확인",
+      "detail": "User requested app/web deployment and checking prolonged Apple review. Selected47 files from preserved root into isolated .local/service-web-release; source2ff4711/Pages38563676323 successful. CIFlutter626passed/3browser-onlyskips, Node394,analysis0/UI87,Edge/SQL5/translations/publicweb build passed. Public267files exactly match CI artifact. Actual anonymous Chrome390 sample work→service start/handover/5CSdrafts verified, pageerror0; corrected text locator using actual choice positions. operations66 ACTIVE and unauth401 verified; no new SQL/catalogue publication or authenticated production write roundtrip. Android1.0.0build21 AAB signed with existing cert/publicGoogleSupabase/7dictionary match, uploaded exacta9a43f76sha, internal+alpha21completed re-read; production empty. iOS existing21VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL/internalgroup preserved; no cancellation/newIPA/resubmission. Current submission2026-10-13T13:33:30Z, ~23hours at inspection; prior cancellation/resubmission repeats documented and Apple official restart rule checked; internal delay cause/Resolution Center/demo login validity not verified. No support message sent. docs/SERVICE_WEB_RELEASE_2026-10-14.md and APPLE_REVIEW_STATUS_2026-10-14.md. No actual device/native login/two-account/field/native-speaker check; existing rootdirty/operational data and credentials preserved. Evidence.local/service-deployment-20261014."
     }
   ],
-  "updatedAt": "2026-10-14T12:21:24.943237+00:00"
+  "updatedAt": "2026-10-14T12:36:34.753216+00:00"
 }

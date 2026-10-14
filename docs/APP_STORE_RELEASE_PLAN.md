@@ -1,3 +1,7 @@
+## 2026-10-14 심사 대기 확인
+
+현재 iOS1.0.0 빌드21 VALID/WAITING_FOR_REVIEW, 현재 접수2026-10-13 22:33 KST(조회 당시약23시간). 연락처/데모 입력/메모 존재 확인, 실제 로그인/Apple 내부사유 미확인. 과거 교체로 취소·재제출 반복; 이번 앱웹 배포에서는 기존 심사 유지. [확인 기록](APPLE_REVIEW_STATUS_2026-10-14.md), [웹·Android 테스트배포](SERVICE_WEB_RELEASE_2026-10-14.md).
+
 ## 2026-10-05 실제 배포·스토어 등록 결과
 
 웹은 `676b6f0` / [GitHub Actions 37316667822](https://github.com/ljae/tap2work/actions/runs/37316667822)로 배포 성공. 홈페이지·개인정보·계정 삭제 안내 모두 HTTP 200이다. Supabase account v1, operations v43, public-login v3와 삭제 SQL을 배포했다.

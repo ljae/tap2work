@@ -1,3 +1,7 @@
+## 2026-10-14 서비스 앱웹 배포 완료·Apple 대기 확인
+
+웹2ff4711/Pages38563676323 build/deploy 성공·공개267SHA일치. CIFlutter626/3skip·Node394·analysis0/UI87·Edge/SQL5/번역/web 통과. operations66 ACTIVE/미인증401, Android21internal+alpha completed(생산없음)/기존서명·공개로그인설정·7사전일치. 실제390Chrome샘플→근무준비/시작/교대·마감/CS5개확인·pageerror0. iOS21 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL·내부그룹유지; 이번취소/새빌드없음. 현재제출10/13 22:33KST, 약23시간. 이전재제출이심사를재시작한요인, 내부사유/실계정로그인미확인. `SERVICE_WEB_RELEASE_2026-10-14.md`, `APPLE_REVIEW_STATUS_2026-10-14.md`. 실제저장왕복/실기기/원어민/현장효과미검증. rootdirty보존·선택47파일격리.local/service-web-release, 비공개증거.local/service-deployment-20261014.
+
 ## 2026-10-14 서비스 UI/UX 개선
 
 근무 준비·인계를 오늘 안내/현재 내용 확인 상태, 남은 인계/다음 행동/받는 담당, 본인 버디 확인 우선으로 재배치했다. 상단3선택 고정·688px 폭·이중 여백 제거, 처리/연습 기록10개씩 펼침, 필수 항목별 오류/첫 누락 이동·작성 취소 보호·저장 중 잠금/하단 오류·300자 한도 반영.8언어 신규 문구15개, 공통 선택칩 fallback과 긴 입력 제목 줄바꿈 보완. 서버 API/권한/CAS/멱등 유지, 고객 주문 기능 종료 유지. `SERVICE_UX_REFINEMENT_2026-10-14.md`, `.local/service-ux-20261014/` 참조. Flutter626/3skip·analysis0·관련12·Node관련9·UI87·렌더링28장 통과. 초기 병행web빌드의 테스트자산 누락3건은 순차 전체재검사로 해소. 최종 웹빌드는 canonical 최신 이력 참조. 운영배포/native/browser실조작/실계정/원어민·현장효과 미수행, rootdirty 보존.
