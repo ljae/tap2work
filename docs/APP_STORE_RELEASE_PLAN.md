@@ -1,3 +1,7 @@
+## 2026-10-18 Apple 심사 감사·수정 빌드 준비
+
+실제 iOS21은 VALID/WAITING_FOR_REVIEW이며 현재 반려·Apple 메시지 없음. 네이티브 비로그인 샘플 file URI 오류 수정, iPhone 시뮬레이터 1개·Flutter21·Node19·analysis0·UI87 통과. 새 서명 IPA22와 현재 화면 캡처8장·심사 메모 준비. ASC 소개8언어 및 개인정보14종 직접 저장·재조회. Google 심사 계정 웹 로그인 성공은 native OAuth 검증이 아님. 새 IPA 첫 업로드는 Mac 내부 ENOSPC로 실패하여 복구 중; 기존21 취소/교체/재제출 없음. 공개 정책 배포와 최종 상태는 [상세 감사](APPLE_REVIEW_AUDIT_2026-10-18.md)의 후속 결과를 따른다. 기존 dirty 보존, 격리 사본 `.local/apple-review-release`.
+
 ## 2026-10-14 심사 대기 확인
 
 현재 iOS1.0.0 빌드21 VALID/WAITING_FOR_REVIEW, 현재 접수2026-10-13 22:33 KST(조회 당시약23시간). 연락처/데모 입력/메모 존재 확인, 실제 로그인/Apple 내부사유 미확인. 과거 교체로 취소·재제출 반복; 이번 앱웹 배포에서는 기존 심사 유지. [확인 기록](APPLE_REVIEW_STATUS_2026-10-14.md), [웹·Android 테스트배포](SERVICE_WEB_RELEASE_2026-10-14.md).

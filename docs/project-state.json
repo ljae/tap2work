@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 323,
+  "revision": 324,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -9041,7 +9041,13 @@
       "type": "verification",
       "title": "서비스 앱웹·Android 테스트 배포 완료 및 Apple 심사 상태 확인",
       "detail": "User requested app/web deployment and checking prolonged Apple review. Selected47 files from preserved root into isolated .local/service-web-release; source2ff4711/Pages38563676323 successful. CIFlutter626passed/3browser-onlyskips, Node394,analysis0/UI87,Edge/SQL5/translations/publicweb build passed. Public267files exactly match CI artifact. Actual anonymous Chrome390 sample work→service start/handover/5CSdrafts verified, pageerror0; corrected text locator using actual choice positions. operations66 ACTIVE and unauth401 verified; no new SQL/catalogue publication or authenticated production write roundtrip. Android1.0.0build21 AAB signed with existing cert/publicGoogleSupabase/7dictionary match, uploaded exacta9a43f76sha, internal+alpha21completed re-read; production empty. iOS existing21VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL/internalgroup preserved; no cancellation/newIPA/resubmission. Current submission2026-10-13T13:33:30Z, ~23hours at inspection; prior cancellation/resubmission repeats documented and Apple official restart rule checked; internal delay cause/Resolution Center/demo login validity not verified. No support message sent. docs/SERVICE_WEB_RELEASE_2026-10-14.md and APPLE_REVIEW_STATUS_2026-10-14.md. No actual device/native login/two-account/field/native-speaker check; existing rootdirty/operational data and credentials preserved. Evidence.local/service-deployment-20261014."
+    },
+    {
+      "at": "2026-10-18T08:59:11.471388+00:00",
+      "type": "verification",
+      "title": "Apple 심사 상세 감사·네이티브 샘플 오류 수정 및 빌드 22 준비",
+      "detail": "Actual Apple API/UI: iOS21 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL, submitted2026-10-13T13:33:30Z (~115h); no current rejection/message, prior10 complete submissions display Removed. Reproduced native sample file:// bug and fixed platform-specific HTTPS sampleBase; preserves web subpath/no credentials/no writes. Final Flutter21passed, native iPhone17Pro/iOS26.5 smoke1passed, analysis0, Node account/cloud19, npmcheck/UI87;8current widget captures rendered with corrected packaged Cupertino font. Signed iOS1.0.0(22) archive/IPA and codesign verification passed; SHA20a970e29ffcb5710020e74b511981eb9f2bae6a053bdbb134b6143ebfd0e33d; 8localizations,4publicauth,policy2026-10-18-photos-and-signin,15privacy manifests verified. Live ko/en descriptions updated to8languages; AppPrivacy10→14 aligned to submitted GoogleSignIn manifest and reloaded linked/no tracking; photo declaration already existed. Registered Google review password login succeeded in browser only, not native OAuth. Added explicit private photo/EXIF/removal and GoogleSDK policy, regeneratedweb; notes22 and screenshot candidates prepared. Initial Mac ENOSPC and harness selector/HTTP/font issues documented and tests corrected; archive launch-placeholder warning remains. Upload22 first attempt failed due internal Mac ENOSPC in altool (not Apple rejection), recovery and public policy deployment in progress. Existing21 queue untouched; no replacement/resubmission/support message. No real device OAuth/deletion/camera/iPad-native or full local suite rerun. docs/APPLE_REVIEW_AUDIT_2026-10-18.md; private evidence.local/apple-review-audit-20261018. Existing dirty tree preserved; isolated release copies only task files."
     }
   ],
-  "updatedAt": "2026-10-14T12:36:34.753216+00:00"
+  "updatedAt": "2026-10-18T08:59:11.471388+00:00"
 }

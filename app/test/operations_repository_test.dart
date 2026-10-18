@@ -34,6 +34,62 @@ class MemoryOperations implements OperationsRepository {
 
 void main() {
   test(
+    'native public preview reads HTTPS samples without authentication',
+    () async {
+      final requests = <http.Request>[];
+      final repository = HttpOperationsRepository(
+        endpoint: Uri.parse('http://localhost:3100/api/operations'),
+        readOnly: true,
+        accessToken: () async =>
+            throw StateError('Preview must not read a session'),
+        client: MockClient((request) async {
+          requests.add(request);
+          return http.Response(jsonEncode({'revision': 1, 'tasks': []}), 200);
+        }),
+      );
+      addTearDown(repository.close);
+      final result = await repository.read(actorId: 'owner');
+      expect(result.statusCode, 200);
+      expect(
+        requests.single.url,
+        Uri.parse('https://tap2.work/review-data/owner.json'),
+      );
+      expect(requests.single.headers, isEmpty);
+    },
+  );
+
+  test(
+    'web preview preserves the hosting subdirectory and ignores cloud scope',
+    () async {
+      final requests = <http.Request>[];
+      final repository = HttpOperationsRepository(
+        endpoint: Uri.parse(
+          'https://example.supabase.co/functions/v1/operations',
+        ),
+        sampleBase: Uri.parse('https://example.test/portal/app/?review=1'),
+        readOnly: true,
+        client: MockClient((request) async {
+          requests.add(request);
+          return http.Response('{"revision":1}', 200);
+        }),
+      );
+      addTearDown(repository.close);
+      await repository.read(
+        actorId: 'owner',
+        workspaceId: 'private-workspace',
+        demoToken: 'private-token',
+        scheduleFrom: '2026-10-18',
+        scheduleTo: '2026-10-24',
+      );
+      expect(
+        requests.single.url,
+        Uri.parse('https://example.test/portal/app/review-data/owner.json'),
+      );
+      expect(requests.single.headers, isEmpty);
+    },
+  );
+
+  test(
     'conditional reads carry the catalog revision and replace it after publication',
     () async {
       final requests = <Uri>[];

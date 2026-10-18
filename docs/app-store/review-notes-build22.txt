@@ -1,0 +1,24 @@
+TAP Work 1.0.0 (22) — App Review notes
+
+TAP Work helps small restaurant and cafe owners and crew manage shared work, operating manuals, schedules and store records. This version is free and has no ads, paid subscriptions or in-app purchases.
+
+SIGN-IN AND SAVED FEATURES
+Choose Google on the first screen and use the review credentials in App Store Connect's Sign-In Information fields. These are Google account credentials; TAP Work has no separate password. The supplied credentials were checked with Google's browser sign-in on October 18, 2026.
+
+If the account has no store, choose the sample-store option (샘플 매장으로 체험) to create an editable workspace with fictional sample data, or register a store. Owner setup does not require an invitation code or external hardware. Crew invitations are a separate workflow for joining an existing store. Account and role permissions are enforced by the server.
+
+OPTIONAL PREVIEW
+The first screen also offers 저장 없이 샘플 둘러보기 (Explore sample without saving). This opens a public fictional workspace. It does not save changes or provide full access to authenticated editing and account features. Build 22 corrects the native preview data URL. On the welcome screen, continue to work without having to acknowledge it.
+
+NAVIGATION AND LANGUAGES
+The four main destinations are 업무 (Work), 매뉴얼 (Manuals), 근무표 (Schedule), 우리매장 (Store). Use the language control on the login screen or in the app header to choose Korean, English, Vietnamese, Simplified Chinese, Japanese, Thai, Nepali or Indonesian. Store-authored text uses its original language unless a translation has been entered. Prepared translations are supplied for common manuals; no paid runtime translation service is enabled.
+
+FEATURES TO REVIEW
+Work: shared checklists and step-by-step manuals; work completion, personal practice, buddy confirmation and attendance are separate records. Manuals: common operating guidance, recipes, store customization, optional photos and PDF export. Schedule: crew assignments and attendance history. Store: store settings, crew, inventory, purchase/receipt records and work locations. Recording purchases does not transmit supplier orders or increase stock until receipt. Estimated labor costs do not process payroll. There is no GPS/Wi-Fi attendance detection.
+
+PRIVACY AND ACCOUNT DELETION
+The privacy policy is available before sign-in and from the account screen. To delete an account, open the account control, review the deletion scope, acknowledge it and confirm permanent deletion. A sole owner is separately warned that the store and access to that store will be deleted. Other crew login accounts are preserved. Apple accounts require Apple reauthentication and server-side token revocation. Photos are optimized before upload and stored privately for authorized store members.
+
+Privacy: https://tap2.work/privacy/
+Account deletion information: https://tap2.work/delete-account/
+Support: tap2work.dev@gmail.com

@@ -23,7 +23,7 @@ flowchart LR
 | ID | 현재 값과 소유 코드 | 사용자에게 보이는 효과 | 저장/보안 계약 | 검증 |
 | --- | --- | --- | --- | --- |
 | E01 | `app/lib/main.dart` `AUTO_SAMPLE_STORE=false` 기본값 | Apple·Google 개인 로그인 버튼. 재방문은 검증된 개인 세션으로 진입 | 임시 UX 결정. 이 플래그는 인증 권한을 부여하지 않음 | Flutter 시작 구성 확인, `operations_test.dart` |
-| E02 | `PUBLIC_REVIEW=true`, `scripts/build-site.mjs` `review-data/owner.json` | 명시적 샘플 둘러보기만 시드한 공개 샘플 표시 | `HttpOperationsRepository`가 쓰기 차단. UI 미리보기 변경은 메모리에만 유지 | `manual_workspace_test.dart`, Pages 빌드 |
+| E02 | `CloudWorkspace` 샘플 선택, `scripts/build-site.mjs` `review-data/owner.json` | 샘플 둘러보기 → readOnly repository. 웹은 현재 hosting 경로, iOS/Android는 `https://tap2.work/review-data/owner.json` | 세션·demo token·workspace scope를 전송하지 않음. 쓰기 차단, UI 미리보기 변경은 메모리에만 유지 | `operations_repository_test.dart`, `integration_test/public_preview_test.dart`, Pages 빌드 |
 | E03 | 로컬 `/api/operations`, `.local/operations-demo.json` | 개발 서버 샘플에서 편집 연습 | 서버 revision 검사; 데모 actor는 실제 인증 아님 | `developer/test/*.test.mjs` |
 | E04 | `CloudWorkspace`, `developer/supabase_backend.mjs` | 개인 로그인 후 본인 소속 매장 읽기·수정·저장 | JWT 및 매장 멤버십 검증 후 저장. 샘플 진입에서 Supabase 쓰기 없음 | `cloud_workspace_test.dart`, `developer/test/cloud.test.mjs` |
 | E05 | `app/lib/ui/components.dart`, `operations_screen.dart` | 업무, 매뉴얼, 근무표, 우리매장 네 목적지 | 탭 변경은 설정 저장 아님. 공통 `AppMotionScope`와 시트 사용 | `operations_test.dart`, `app_motion_test.dart` |

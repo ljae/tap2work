@@ -1,3 +1,7 @@
+## 2026-10-18 Apple 심사 감사·수정 빌드 준비
+
+실제 iOS21은 VALID/WAITING_FOR_REVIEW이며 현재 반려·Apple 메시지 없음. 네이티브 비로그인 샘플 file URI 오류 수정, iPhone 시뮬레이터 1개·Flutter21·Node19·analysis0·UI87 통과. 새 서명 IPA22와 현재 화면 캡처8장·심사 메모 준비. ASC 소개8언어 및 개인정보14종 직접 저장·재조회. Google 심사 계정 웹 로그인 성공은 native OAuth 검증이 아님. 새 IPA 첫 업로드는 Mac 내부 ENOSPC로 실패하여 복구 중; 기존21 취소/교체/재제출 없음. 공개 정책 배포와 최종 상태는 [상세 감사](APPLE_REVIEW_AUDIT_2026-10-18.md)의 후속 결과를 따른다. 기존 dirty 보존, 격리 사본 `.local/apple-review-release`.
+
 ## 2026-10-14 서비스 앱웹 배포 완료·Apple 대기 확인
 
 웹2ff4711/Pages38563676323 build/deploy 성공·공개267SHA일치. CIFlutter626/3skip·Node394·analysis0/UI87·Edge/SQL5/번역/web 통과. operations66 ACTIVE/미인증401, Android21internal+alpha completed(생산없음)/기존서명·공개로그인설정·7사전일치. 실제390Chrome샘플→근무준비/시작/교대·마감/CS5개확인·pageerror0. iOS21 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL·내부그룹유지; 이번취소/새빌드없음. 현재제출10/13 22:33KST, 약23시간. 이전재제출이심사를재시작한요인, 내부사유/실계정로그인미확인. `SERVICE_WEB_RELEASE_2026-10-14.md`, `APPLE_REVIEW_STATUS_2026-10-14.md`. 실제저장왕복/실기기/원어민/현장효과미검증. rootdirty보존·선택47파일격리.local/service-web-release, 비공개증거.local/service-deployment-20261014.

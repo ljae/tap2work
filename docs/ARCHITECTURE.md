@@ -1,3 +1,9 @@
+## 2026-10-18 App Store 심사 진입 경로 보완
+
+`HttpOperationsRepository.sampleBase`는 읽기 전용 공개 샘플의 원본이다. 웹은 `Uri.base`로 하위 경로 호스팅을 유지하고, 네이티브는 `https://tap2.work/`를 사용한다. iOS/Android의 `Uri.base`는 파일 주소이므로 HTTP API 기준으로 쓰지 않는다. 인증 세션·workspace scope는 공개 샘플 요청에 포함하지 않으며 쓰기 차단은 유지한다. 네이티브 통합 검사는 별도 비영속 Auth client로 로그인 화면의 샘플 버튼과 네 목적지를 검증한다.
+
+iOS `CFBundleLocalizations`는 앱의 실제 8언어와 일치한다. 번들 방침/정적 웹 방침은 사진 최적화·비공개 저장·매장 삭제 후 재시도 정리와 포함 Google SDK의 데이터 처리를 명시한다. 실제 심사·빌드 교체·외부 반영 여부는 `APPLE_REVIEW_AUDIT_2026-10-18.md`와 canonical history를 따른다.
+
 ## 2026-10-14 서비스 화면 UX 개선
 
 `ServiceWorkflowPresentation`은 기존 서버 투영에서 현재 안내의 본인 읽음 여부와 미해결/해결 인계, 본인이 확인할 연습/과거 기록을 도출하는 읽기 전용 표시 계층이다. 읽음 상태는 actor/day/briefingNote/순서별 manual id·version·hash 일치가 필요하며 버튼 클릭만으로 완료 상태를 만들지 않는다. `ServiceWorkflowDraft`와 요청 멱등·버디/인계 권한 API는 유지한다.

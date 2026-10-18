@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import '../domain/operations_repository.dart';
 import '../domain/manual_media_repository.dart';
@@ -20,12 +21,18 @@ class HttpOperationsRepository
     required this.endpoint,
     required this.readOnly,
     this.accessToken,
-  }) : _client = client ?? http.Client();
+    Uri? sampleBase,
+  }) : _client = client ?? http.Client(),
+       sampleBase =
+           sampleBase ?? (kIsWeb ? Uri.base : Uri.parse('https://tap2.work/'));
 
   final http.Client _client;
   String? _syncActor;
   Json? _sync;
   final Uri endpoint;
+  // Uri.base is a file URI on iOS/Android. Only web previews resolve relative
+  // to the hosting page (including review portals hosted in a subdirectory).
+  final Uri sampleBase;
   final bool readOnly;
   final Future<String?> Function()? accessToken;
 
@@ -64,7 +71,7 @@ class HttpOperationsRepository
     bool useCache = true,
   }) async {
     var uri = readOnly
-        ? Uri.base.resolve('review-data/$actorId.json')
+        ? sampleBase.resolve('review-data/$actorId.json')
         : endpoint;
     if (!readOnly && workspaceId != null) {
       uri = uri.replace(
