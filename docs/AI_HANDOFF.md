@@ -1,6 +1,6 @@
-## 2026-10-18 Apple 감사 수정·빌드 22 준비 및 웹 정책 배포 완료
+## 2026-10-18 Apple 감사 수정·빌드 22 재제출 완료
 
-네이티브 샘플 file URI 오류를 수정했다. 새 iOS22 업로드 COMPLETE/VALID·암호화 false, 기존21 WAITING_FOR_REVIEW/AFTER_APPROVAL 유지. 취소·교체·재제출·내부그룹 배포는 하지 않았으며, 약5일 대기 초기화 때문에 교체 여부를 사용자에게 확인 요청한 상태다. 응답 없이 취소하지 않는다. ASC 소개8언어/개인정보14종 직접 저장·재조회, 심사 Google 계정 웹 로그인 성공(native OAuth 검증 아님), 새 캡처8장·심사 메모 준비/기존8장 보존. 웹7f18f49/Pages39113779070 성공, 공개 정책3응답 SHA 일치. CIFlutter628/3skip·Node394·analysis0·UI87·Edge/SQL5/번역/web 통과, 실제 iPhone시뮬레이터 샘플 통합1 통과. altool 내부 ENOSPC를 공식 업로드 API로 복구, 사용자 파일·캐시 삭제/이동 없음. [상세 감사](APPLE_REVIEW_AUDIT_2026-10-18.md), 증거 `.local/apple-review-audit-20261018`. 기존 dirty 보존/격리 `.local/apple-review-release`. 실기기 OAuth·삭제·카메라·iPad 네이티브 미검증.
+사용자가 대기 초기화를 이해하고22교체·재제출을 명시 선택했다. 기존21 취소 완료 후 새 iOS22 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL 확인, 새 제출 cbce64f8-e327-4e5b-ba3d-7af66df2173c 접수18:14:16KST. 현재 Flutter 화면8장 COMPLETE/체크섬/순서 확인·최신 메모 반영, 기존 심사 계정·연락처 보존. Apple 승인 전이며 별도 내부그룹/지원메시지 없음. 네이티브 샘플 file URI 오류 수정·ASC8언어 소개/개인정보14종·공개 정책 반영. 웹7f18f49/Pages39113779070 성공, 공개 정책3응답 SHA 일치. CIFlutter628/3skip·Node394·analysis0·UI87·Edge/SQL5/번역/web 통과, iPhone시뮬레이터 샘플 통합1 통과. Google 심사 계정 웹 로그인 성공(native OAuth 검증 아님). altool ENOSPC는 공식 업로드 API로 복구, 사용자 파일·캐시 삭제/이동 없음. [상세 감사](APPLE_REVIEW_AUDIT_2026-10-18.md), 증거 `.local/apple-review-audit-20261018`. 기존 dirty 보존/격리 `.local/apple-review-release`. 실기기 OAuth·삭제·카메라·iPad 네이티브 미검증.
 
 ## 2026-10-14 서비스 앱웹 배포 완료·Apple 대기 확인
 

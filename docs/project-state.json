@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 325,
+  "revision": 326,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -9053,7 +9053,13 @@
       "type": "verification",
       "title": "Apple 수정 빌드 22 VALID·웹 정책 배포 완료, 기존 심사 유지",
       "detail": "Isolated18-file source7f18f49 pushed main; Pages39113779070 build/deploy successful. CI Flutter628passed/3browser-onlyskips, Node394passed,analysis0,UI87,Edge,5SQL,translations,web build all passed. Public privacy/delete-account/bundled policy JSON HTTP200 and SHA256 match source. Final local capture8passed with iOS platform/asset precache/package font corrections; final analysis0. altool22 upload failed internal ENOSPC; no user files/caches deleted/moved. Recovered through official Build Upload API with exact original IPA; initial checksum parameter409 errors corrected to MD5 and ordered multipart chunk-size convention; all10uploaded part ETags matched original bytes. New22 upload COMPLETE/buildVALID, non-exempt encryption false; Apple warning90068 applies minimumiOS15 fromApril2027, not current rejection. Build22 cbf6ed62-c2b8-477b-b099-07e24f78b850 ready but not connected to review or internalgroup. Existing21 remains WAITING_FOR_REVIEW/AFTER_APPROVAL; no cancellation/resubmission/support message. New8screenshots and review notes prepared, old8screenshots preserved. User asked whether to replace pending21 with22 because cancellation restarts roughly5-day wait; no response is not approval, leave queue intact. Native real device OAuth/deletion/camera/iPad-native remain unverified. docs/APPLE_REVIEW_AUDIT_2026-10-18.md; private evidence.local/apple-review-audit-20261018; rootdirty preserved."
+    },
+    {
+      "at": "2026-10-18T09:15:16.774326+00:00",
+      "type": "verification",
+      "title": "사용자 승인 후 iOS 빌드 22·새 스크린샷·심사 안내 재제출 완료",
+      "detail": "User explicitly selected replacing21 with22 and resubmitting after explanation that roughly5-day wait restarts. Confirmed target22VALID and exact current21WAITING before canceling only old submission8b544327-0642-491c-9f5b-a3aef73da074; removal COMPLETE verified. Connected22 cbf6ed62-c2b8-477b-b099-07e24f78b850, updated review notes; all non-note credentials/contact attributes preserved exactly. Uploaded8new current Flutter-rendered screenshots(iPhone1284x2778/iPad2064x2752), checked COMPLETE/sourceMD5/four destination order; old8images privately preserved before deleting old assets. New submissioncbce64f8-e327-4e5b-ba3d-7af66df2173c submitted2026-10-18T09:14:16.115Z(18:14KST), reread submission+version WAITING_FOR_REVIEW, connectedbuild22, AFTER_APPROVAL maintained. Approval not yet granted. No support message/internalgroup distribution/production workspace writes. Source7f18f49 and Pages39113779070 remain verified; CI628/3skip+Node394 and native simulator1 as prior entry. Native physical-device OAuth/deletion/camera/iPad-native remain unverified. docs/APPLE_REVIEW_AUDIT_2026-10-18.md; private stage/submission evidence.local/apple-review-audit-20261018; existing rootdirty preserved."
     }
   ],
-  "updatedAt": "2026-10-18T09:10:57.929342+00:00"
+  "updatedAt": "2026-10-18T09:15:16.774326+00:00"
 }
