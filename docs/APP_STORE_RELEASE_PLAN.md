@@ -1,6 +1,6 @@
-## 2026-10-18 Apple 심사 감사·수정 빌드 준비
+## 2026-10-18 Apple 감사 수정·빌드 22 준비 및 웹 정책 배포 완료
 
-실제 iOS21은 VALID/WAITING_FOR_REVIEW이며 현재 반려·Apple 메시지 없음. 네이티브 비로그인 샘플 file URI 오류 수정, iPhone 시뮬레이터 1개·Flutter21·Node19·analysis0·UI87 통과. 새 서명 IPA22와 현재 화면 캡처8장·심사 메모 준비. ASC 소개8언어 및 개인정보14종 직접 저장·재조회. Google 심사 계정 웹 로그인 성공은 native OAuth 검증이 아님. 새 IPA 첫 업로드는 Mac 내부 ENOSPC로 실패하여 복구 중; 기존21 취소/교체/재제출 없음. 공개 정책 배포와 최종 상태는 [상세 감사](APPLE_REVIEW_AUDIT_2026-10-18.md)의 후속 결과를 따른다. 기존 dirty 보존, 격리 사본 `.local/apple-review-release`.
+네이티브 샘플 file URI 오류를 수정했다. 새 iOS22 업로드 COMPLETE/VALID·암호화 false, 기존21 WAITING_FOR_REVIEW/AFTER_APPROVAL 유지. 취소·교체·재제출·내부그룹 배포는 하지 않았으며, 약5일 대기 초기화 때문에 교체 여부를 사용자에게 확인 요청한 상태다. 응답 없이 취소하지 않는다. ASC 소개8언어/개인정보14종 직접 저장·재조회, 심사 Google 계정 웹 로그인 성공(native OAuth 검증 아님), 새 캡처8장·심사 메모 준비/기존8장 보존. 웹7f18f49/Pages39113779070 성공, 공개 정책3응답 SHA 일치. CIFlutter628/3skip·Node394·analysis0·UI87·Edge/SQL5/번역/web 통과, 실제 iPhone시뮬레이터 샘플 통합1 통과. altool 내부 ENOSPC를 공식 업로드 API로 복구, 사용자 파일·캐시 삭제/이동 없음. [상세 감사](APPLE_REVIEW_AUDIT_2026-10-18.md), 증거 `.local/apple-review-audit-20261018`. 기존 dirty 보존/격리 `.local/apple-review-release`. 실기기 OAuth·삭제·카메라·iPad 네이티브 미검증.
 
 ## 2026-10-14 심사 대기 확인
 
