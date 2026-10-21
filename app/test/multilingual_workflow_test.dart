@@ -119,7 +119,7 @@ Future<AppLocaleController> _mount(
   return locale;
 }
 
-Finder get _check => find.byKey(const ValueKey('manual-action-check'));
+Finder get _check => find.byKey(const ValueKey('method-check-daily-prep-s1'));
 
 void main() {
   setUpAll(() async {
@@ -145,7 +145,7 @@ void main() {
 
   for (final language in appLanguageNames.keys) {
     testWidgets(
-      'crew action slides fit $language at 320px/1.5 and retain completion IDs',
+      'crew inline methods fit $language at 320px/1.5 and retain completion IDs',
       (t) async {
         final data = _crewData(language);
         final writes = <Json>[];
@@ -175,10 +175,6 @@ void main() {
         );
         await openCard(t, 'tap-daily-prep');
         await openCard(t, 'small-s1');
-        final footer = t.getRect(_check);
-        expect(footer.left, greaterThanOrEqualTo(0));
-        expect(footer.right, lessThanOrEqualTo(320));
-        expect(footer.bottom, lessThanOrEqualTo(900));
         expect(find.textContaining(_longText[language]!), findsWidgets);
         if (language != 'ko') {
           await t.tap(
@@ -192,12 +188,12 @@ void main() {
           );
           await t.pumpAndSettle();
         }
-        await t.drag(
-          find.byKey(const ValueKey('manual-action-pages')),
-          const Offset(0, -500),
-        );
+        await t.ensureVisible(_check);
         await t.pumpAndSettle();
-        expect(t.getRect(_check), footer);
+        final footer = t.getRect(_check);
+        expect(footer.left, greaterThanOrEqualTo(0));
+        expect(footer.right, lessThanOrEqualTo(320));
+        expect(footer.bottom, lessThanOrEqualTo(900));
         expect(writes, isEmpty);
         await t.tap(_check);
         await t.pumpAndSettle();
@@ -206,12 +202,9 @@ void main() {
         expect(writes.single['taskId'], 'daily-prep');
         expect(writes.single['stepId'], 's1');
         expect(writes.single['revision'], 2);
+        expect(data['tasks'][0]['steps'][0]['completedAt'], isNotNull);
         expect(
-          find.text(
-            AppStrings(
-              language,
-            ).text('work.actions', {'current': 2, 'total': 2}),
-          ),
+          find.byKey(const ValueKey('method-inline-daily-prep-s1')),
           findsOneWidget,
         );
         expect(t.takeException(), isNull);

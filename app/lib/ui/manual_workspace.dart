@@ -949,21 +949,6 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     );
   }
 
-  Map<String, int> get categoryCounts {
-    final items = <String, Json>{
-      for (final t
-          in ops.rows('taskTemplates').where((t) => t['archivedAt'] == null))
-        '${t['id']}': t,
-    };
-    for (final row in ops.rows('manualSearch')) {
-      items.putIfAbsent('${row['templateId'] ?? row['tapId']}', () => row);
-    }
-    return {
-      for (final c in manualCategoryIds)
-        c: items.values.where((t) => manualCategoryOf(t) == c).length,
-    };
-  }
-
   void chooseCategory(String? value) => setState(() {
     category = value;
     recipes = value == 'recipe';
@@ -1838,33 +1823,38 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   header(),
-                  if (ops.actor['role'] == 'owner' &&
-                      ops.data?['ownerWorkflow'] != null)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        onPressed: () => openOwnerWorkflow(context, ops),
-                        icon: const Icon(Icons.fact_check_outlined),
-                        label: Text(
-                          context.t(
-                            'ui.audit1090',
-                            args: {
-                              'p0':
-                                  (ops.data?['ownerWorkflow']?['pending']
-                                              as List? ??
-                                          [])
-                                      .length,
-                            },
-                          ),
-                        ),
+                  AppViewToolbar(
+                    key: const ValueKey('manual-view-toolbar'),
+                    leading:
+                        ops.actor['role'] == 'owner' &&
+                            ops.data?['ownerWorkflow'] != null
+                        ? AppToolbarButton(
+                            onPressed: () => openOwnerWorkflow(context, ops),
+                            icon: Icons.fact_check_outlined,
+                            label: context.t(
+                              'ui.audit1090',
+                              args: {
+                                'p0':
+                                    (ops.data?['ownerWorkflow']?['pending']
+                                                as List? ??
+                                            [])
+                                        .length,
+                              },
+                            ),
+                          )
+                        : null,
+                    toggle: AppViewToggle<bool>(
+                      key: const ValueKey('manual-view-toggle'),
+                      values: const [false, true],
+                      selected: recipes,
+                      labelOf: (value) => context.t(
+                        value ? 'manual.category.recipe' : 'nav.manual',
                       ),
+                      onSelected: (value) =>
+                          chooseCategory(value ? 'recipe' : null),
                     ),
-                  const SizedBox(height: 4),
-                  ManualCategoryPicker(
-                    selected: category,
-                    onSelected: chooseCategory,
-                    counts: categoryCounts,
                   ),
+                  const SizedBox(height: 4),
                   if (!recipes)
                     Wrap(
                       spacing: 8,

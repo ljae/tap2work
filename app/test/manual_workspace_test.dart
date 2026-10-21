@@ -177,7 +177,7 @@ void main() {
         );
         addTearDown(ops.dispose);
         await mount(tester, ops);
-        await tester.tap(find.byKey(const ValueKey('manual-category-recipe')));
+        await tester.tap(find.byKey(const ValueKey('view-toggle-option-true')));
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('store-recipe-a')));
         await tester.pumpAndSettle();
@@ -236,7 +236,7 @@ void main() {
       addTearDown(ops.dispose);
       await mount(tester, ops);
       expect(find.byKey(const ValueKey('manual-node-tap:a')), findsNothing);
-      await tester.tap(find.byKey(const ValueKey('manual-category-recipe')));
+      await tester.tap(find.byKey(const ValueKey('view-toggle-option-true')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('store-recipe-a')));
       await tester.pumpAndSettle();
@@ -517,7 +517,7 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mount(tester, ops);
-      await tester.tap(find.byKey(const ValueKey('manual-category-recipe')));
+      await tester.tap(find.byKey(const ValueKey('view-toggle-option-true')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('store-recipe-a')));
       await tester.pumpAndSettle();

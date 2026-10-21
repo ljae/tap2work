@@ -1,3 +1,7 @@
+## 2026-10-21 업무·매뉴얼 보기 개편 로컬 완료
+
+업무는 근무 준비·인계 행 오른쪽 할일/완료 토글과 한 열 목록이다. TAP 할일과 방법·체크는 바로 아래 펼치며 별도 실행 페이지/자동 다음 장을 대체한다. TAP/할일 손잡이는 같은 ReorderableListView, 저장 대기 위치/컨트롤 크기 유지·실패 복원. 업무 운영 준비·내일 미리보기 버튼 제거. 매뉴얼 메인 분류 버튼 제거, 사장님 검토 오른쪽 매뉴얼/레시피 토글. 원본/마켓 분류·등록·검색·매뉴얼 가로 읽기·권한/수량/완료 기록 유지. 최종 수량 전 TAP은 할일에 남는다. Flutter635pass/3browser-onlyskip, 최종 관련45pass·analysis0, Node64·npmcheck/UI89, 24widget capture/9test와 최종 웹빌드 통과. 로컬 소스/빌드이며 운영 배포·네이티브 빌드·실기기/실브라우저 검증 없음. canonical D-140/revision327, 증거 `.local/work-menu-20261021/`. 기존 dirty 보존.
+
 ## 2026-10-18 Apple 감사 수정·빌드 22 재제출 완료
 
 사용자가 대기 초기화를 이해하고22교체·재제출을 명시 선택했다. 기존21 취소 완료 후 새 iOS22 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL 확인, 새 제출 cbce64f8-e327-4e5b-ba3d-7af66df2173c 접수18:14:16KST. 현재 Flutter 화면8장 COMPLETE/체크섬/순서 확인·최신 메모 반영, 기존 심사 계정·연락처 보존. Apple 승인 전이며 별도 내부그룹/지원메시지 없음. 네이티브 샘플 file URI 오류 수정·ASC8언어 소개/개인정보14종·공개 정책 반영. 웹7f18f49/Pages39113779070 성공, 공개 정책3응답 SHA 일치. CIFlutter628/3skip·Node394·analysis0·UI87·Edge/SQL5/번역/web 통과, iPhone시뮬레이터 샘플 통합1 통과. Google 심사 계정 웹 로그인 성공(native OAuth 검증 아님). altool ENOSPC는 공식 업로드 API로 복구, 사용자 파일·캐시 삭제/이동 없음. [상세 감사](APPLE_REVIEW_AUDIT_2026-10-18.md), 증거 `.local/apple-review-audit-20261018`. 기존 dirty 보존/격리 `.local/apple-review-release`. 실기기 OAuth·삭제·카메라·iPad 네이티브 미검증.

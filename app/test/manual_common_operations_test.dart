@@ -11,7 +11,6 @@ import 'package:tap2work/ui/manual_action_slides.dart';
 import 'package:tap2work/ui/manual_hierarchy.dart';
 import 'package:tap2work/ui/manual_market_screen.dart';
 import 'package:tap2work/ui/manual_workspace.dart';
-import 'package:tap2work/ui/tap_card.dart';
 import 'checklist_test.dart' show fixture;
 import 'manual_workspace_test.dart' show directoryData;
 import 'manual_workspace_test.dart' as directory;
@@ -83,62 +82,40 @@ void main() {
     expect(common.any((e) => e['sourceId'] == 'food/cleaning'), isTrue);
   });
 
-  for (final destination in ['folder', 'tap']) {
-    testWidgets('work breadcrumb opens the actual $destination without writes', (
-      tester,
-    ) async {
-      final data = fixture();
-      data['tasks'][1]['folderId'] = 'close';
+  testWidgets(
+    'work methods expand inline and retain neighboring TAPs without writes',
+    (tester) async {
       var writes = 0;
       final ops = OperationsController(
         client: MockClient((r) async {
           if (r.method == 'POST') writes++;
-          return response(data);
+          return response(fixture());
         }),
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops, width: 390);
       await openCard(tester, 'tap-daily-prep');
+      final tapRect = tester.getRect(
+        find.byKey(const ValueKey('tap-daily-prep')),
+      );
       await openCard(tester, 'small-s1');
-      await tester.tap(find.byKey(ValueKey('manual-path-$destination')));
-      await tester.pumpAndSettle();
+      final method = find.byKey(const ValueKey('method-inline-daily-prep-s1'));
       expect(find.byType(ManualActionSlides), findsNothing);
       expect(
-        find.byKey(
-          ValueKey(
-            'tap-body/general/${destination == 'folder' ? 'null' : 'daily-prep'}',
-          ),
-        ),
-        findsOneWidget,
+        tester.getRect(find.byKey(const ValueKey('tap-daily-prep'))),
+        tapRect,
       );
-      expect(find.byKey(const ValueKey('tap-daily-broth')), findsNothing);
       expect(
-        find.byKey(
-          ValueKey(destination == 'folder' ? 'tap-daily-prep' : 'small-s1'),
+        tester.getTopLeft(method).dy,
+        greaterThanOrEqualTo(
+          tester.getBottomLeft(find.byKey(const ValueKey('small-s1'))).dy,
         ),
-        findsOneWidget,
       );
+      expect(find.byKey(const ValueKey('tap-daily-broth')), findsOneWidget);
       expect(writes, 0);
       expect(tester.takeException(), isNull);
-    });
-  }
-
-  testWidgets('work manual enters horizontally from the right', (tester) async {
-    final ops = OperationsController(
-      client: MockClient((_) async => response(fixture())),
-    );
-    addTearDown(ops.dispose);
-    await mountBoard(tester, ops, width: 390);
-    await openCard(tester, 'tap-daily-prep');
-    tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).onOpen();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-    final during = tester.getTopLeft(find.byType(ManualActionSlides));
-    expect(during.dx, greaterThan(0));
-    expect(during.dy, 0);
-    await tester.pumpAndSettle();
-    expect(tester.getTopLeft(find.byType(ManualActionSlides)), Offset.zero);
-  });
+    },
+  );
 
   for (final crew in [false, true]) {
     testWidgets(
@@ -210,7 +187,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.byKey(const ValueKey('manual-node-tap:a')), findsNothing);
-        await tester.tap(find.byKey(const ValueKey('manual-category-recipe')));
+        await tester.tap(find.byKey(const ValueKey('view-toggle-option-true')));
         await tester.pumpAndSettle();
         if (!crew) {
           await tester.tap(find.byKey(const ValueKey('manual-market-button')));

@@ -343,7 +343,9 @@ void main() {
       );
       expect(find.text('할 일'), findsWidgets);
       await openCard(tester, 'tap-daily-prep');
-      expect(find.text('TAP 목록으로'), findsOneWidget);
+      expect(find.text('TAP 목록으로'), findsNothing);
+      expect(find.byKey(const ValueKey('tap-daily-prep')), findsOneWidget);
+      expect(find.byKey(const ValueKey('tap-daily-broth')), findsOneWidget);
       expect(find.text('Task 2개 보기'), findsNothing);
       expect(
         tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).level,
@@ -355,7 +357,7 @@ void main() {
       );
       expect(
         tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).selected,
-        isTrue,
+        isFalse,
       );
       expect(find.text('방법·체크'), findsNWidgets(2));
       if (width < 700) {
@@ -368,7 +370,7 @@ void main() {
   }
 
   testWidgets(
-    'opening a TAP returns to the part-filtered board without folder filters',
+    'closing a TAP preserves the part-filtered board without navigation',
     (tester) async {
       final ops = OperationsController(
         readOnly: true,
@@ -379,13 +381,13 @@ void main() {
       await openCard(tester, 'tap-daily-prep');
       expect(find.text('TAP그룹 · 업무 그룹 필터'), findsNothing);
       expect(find.byKey(const ValueKey('small-s1')), findsOneWidget);
-      await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
+      await openCard(tester, 'tap-daily-prep');
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('tap-body/null/null')), findsOneWidget);
+      expect(find.byKey(const ValueKey('small-s1')), findsNothing);
       expect(find.text('TAP그룹 · 업무 그룹 필터'), findsNothing);
       expect(find.byKey(const ValueKey('tap-daily-prep')), findsOneWidget);
       await openCard(tester, 'tap-daily-prep');
-      await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
+      await openCard(tester, 'tap-daily-prep');
       await tester.pumpAndSettle();
       expect(
         tester
@@ -421,7 +423,7 @@ void main() {
         tester.widget<TapCard>(find.byKey(const ValueKey('small-s1'))).checked,
         isTrue,
       );
-      await tester.tap(find.widgetWithText(TextButton, 'TAP 목록으로'));
+      await openCard(tester, 'tap-daily-prep');
       await tester.pumpAndSettle();
       expect(
         tester

@@ -1,3 +1,11 @@
+## 2026-10-21 업무 한 열 펼침·보기 토글
+
+`TapWorkspace`는 `showCompleted`로 할일/완료 중 한 목록을 표시한다. `OperationsScreen.tasks`가 전달한 근무 준비·인계와 토글을 공통 `AppViewToolbar` 같은 행에 배치한다. `expandedTaps`와 TAP별 `expandedMethods`는 `ManualFoldGroup`을 통해 TAP→할일→방법을 기존 본문 안에 펼치며 읽기에서 route를 만들지 않는다. 펼친 방법에는 기존 본문·사진·이상·편집과 완료/되돌리기를 제공하고 선택한 방법을 유지한다. 이는 과거 업무의 별도 행동 슬라이드/자동 다음 페이지 규칙을 대체한다. 매뉴얼 목적지의 가로 읽기 페이지는 유지한다.
+
+TAP과 할일은 `ReorderableListView` 손잡이로 순서를 바꾼다. TAP의 임시 표시 순서는 응답까지 유지하며 `move_tap(status:keep,folderId,beforeTaskId)` 성공 후 서버 순서로 전환하고 실패하면 원래 순서/오류를 표시한다. 폴더·원본·완료 기록은 재정렬로 바뀌지 않는다. 임시 펼침/순서는 actor/workspace/day 범위이며 파트 필터와 완료 선택을 보존한다. 완료 목록은 실행 `completedAt`을 기준으로 하므로 행동 체크를 모두 해도 최종 수량이 미저장인 TAP은 할일에 남는다. 기존 revision·권한·체험 쓰기 차단·수량/이상/순서 검증은 재사용한다.
+
+`AppViewToggle`은 공통 색/글자/48px 타깃/선택 semantics를 사용하며 큰 글자는 줄바꿈한다. `ManualWorkspace`는 사장님 검토 행 오른쪽 매뉴얼/레시피 선택으로 `directory/content`와 `recipeList`를 전환한다. 메인의 전체/처음 설정/정기 관리/루틴 업무/교육·참고 분류 선택은 제거하되 데이터 분류·마켓 필터·분류 편집·검색은 유지한다. 업무의 운영 준비·내일 미리보기 버튼만 제거하고 매뉴얼/계정의 기존 등록 경로는 유지한다.
+
 ## 2026-10-18 App Store 심사 진입 경로 보완
 
 `HttpOperationsRepository.sampleBase`는 읽기 전용 공개 샘플의 원본이다. 웹은 `Uri.base`로 하위 경로 호스팅을 유지하고, 네이티브는 `https://tap2.work/`를 사용한다. iOS/Android의 `Uri.base`는 파일 주소이므로 HTTP API 기준으로 쓰지 않는다. 인증 세션·workspace scope는 공개 샘플 요청에 포함하지 않으며 쓰기 차단은 유지한다. 네이티브 통합 검사는 별도 비영속 Auth client로 로그인 화면의 샘플 버튼과 네 목적지를 검증한다.

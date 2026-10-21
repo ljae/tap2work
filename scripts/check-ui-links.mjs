@@ -5,12 +5,14 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['S96', 'app/lib/ui/tap_workspace.dart', "ValueKey('work-view-toggle')", 'app/lib/ui/components.dart', 'class AppViewToggle'],
+  ['S97', 'app/lib/ui/manual_workspace.dart', "ValueKey('manual-view-toggle')", 'app/lib/ui/manual_workspace.dart', 'recipeList()'],
   ['S92', 'app/lib/ui/operations_screen.dart', 'ServiceWorkflowScreen(ops: ops)', 'developer/operations.mjs', 'serviceWorkflowView(state, actor)'],
   ['S93', 'app/lib/ui/service_workflow_screen.dart', "'save_service_briefing'", 'developer/service_workflow.mjs', "'save_service_briefing'"],
   ['S94', 'app/lib/ui/service_workflow_screen.dart', "'record_service'", 'developer/service_workflow.mjs', "'confirm_service_practice'"],
   ['S95', 'app/lib/ui/service_workflow_screen.dart', "'resolve_service_handoff'", 'developer/service_workflow.mjs', "'resolve_service_handoff'"],
   ['S89', 'app/lib/ui/manual_workspace.dart', "initialCategory: recipes ? 'recipe' : null", 'app/lib/domain/manual_market_catalog.dart', "useCase != 'recipe'"],
-  ['S90', 'app/lib/ui/manual_action_slides.dart', 'ManualHierarchyDestination.folder', 'app/lib/ui/tap_workspace.dart', 'ManualHierarchyDestination.tap'],
+  ['S90', 'app/lib/ui/manual_workspace.dart', 'ManualHierarchyDestination.folder', 'app/lib/ui/manual_workspace.dart', 'navigateHierarchy('],
   ['S91', 'app/lib/ui/manual_workspace.dart', "stepId: step['id']", 'scripts/manual-translation-sources.mjs', 'addDishwashingExample'],
   ['S87','app/lib/ui/manual_tap_editor.dart',"'manualCategory'",'developer/manual_market.mjs','manualCategoryOverride'],
   ['S88','app/lib/ui/manual_market_screen.dart','ManualExampleScreen','developer/manual_market.mjs',"'example'"],
@@ -29,7 +31,7 @@ const contracts = [
   ['S74','app/lib/ui/translated_content.dart','BundledManualTranslations.load','app/lib/data/bundled_manual_translations.dart','assets/manual_translations/'],
   ['S75','app/lib/ui/manual_translation_editor.dart',"'save_manual_translation'",'developer/manual_content_translations.mjs','saveManualTranslation'],
   ['S76','app/lib/ui/team_screen.dart',"'guideLocale'",'developer/staff.mjs','guideLocale'],
-  ['S68','app/lib/ui/tap_workspace.dart','ManualActionSlides(','app/lib/ui/manual_action_slides.dart','onToggle'],
+  ['S68','app/lib/ui/tap_workspace.dart','_inlineMethod(task, step)','developer/operations.mjs',"case 'complete_step'"],
   ['S69','app/lib/ui/checklist_editor.dart','uploadManualPhoto','app/lib/state/operations_controller.dart','uploadManualPhoto'],
   ['S70','app/lib/ui/place_guide.dart','loadManualPhoto','app/lib/data/http_operations_repository.dart','loadManualPhoto'],
   ['S71','app/lib/ui/checklist_backup_screen.dart','photosToRegister','developer/manual_media_reference.mjs','tap2work-media:'],

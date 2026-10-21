@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -35,7 +34,7 @@ void saved(Json data, Json payload) {
       : null;
 }
 
-Future<void> openSlides(
+Future<void> openInline(
   WidgetTester tester,
   OperationsController ops, {
   double width = 390,
@@ -45,53 +44,48 @@ Future<void> openSlides(
   await mountBoard(tester, ops, width: width, textScale: textScale);
   await openCard(tester, 'tap-daily-prep');
   await openCard(tester, 'small-$step');
-  expect(find.byType(ManualActionSlides), findsOneWidget);
+  expect(find.byType(ManualActionSlides), findsNothing);
 }
 
-Finder get check => find.byKey(const ValueKey('manual-action-check'));
-Finder get previous => find.byKey(const ValueKey('manual-action-previous'));
-Finder get next => find.byKey(const ValueKey('manual-action-next'));
+Finder get check => find.byWidgetPredicate(
+  (w) => w is FilledButton && w.key.toString().contains('method-check-'),
+);
+Future<void> checkInline(WidgetTester tester) async {
+  await tester.ensureVisible(check);
+  await tester.pumpAndSettle();
+  await tester.tap(check);
+}
 
 void main() {
-  testWidgets(
-    'actual Task entry browses with buttons, swipe and keyboard without writes',
-    (tester) async {
-      final data = fixture();
-      final writes = <Json>[];
-      final ops = OperationsController(
-        client: MockClient((request) async {
-          if (request.method == 'POST') {
-            writes.add(jsonDecode(request.body) as Json);
-          }
-          return response(data);
-        }),
-      );
-      addTearDown(ops.dispose);
-      await openSlides(tester, ops);
-      expect(find.text('생재료와 완성식품 도구를 따로 놓아요.'), findsOneWidget);
-      expect(find.text('팁 · 색상보다 용도를 확인해요.'), findsOneWidget);
-      expect(find.text('작업 장소 보기'), findsOneWidget);
-      await tester.tap(next);
-      await tester.pumpAndSettle();
-      expect(find.text('2/2 행동'), findsOneWidget);
-      await tester.tap(previous);
-      await tester.pumpAndSettle();
-      await tester.drag(
-        find.byKey(const ValueKey('manual-action-pages')),
-        const Offset(-300, 0),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('2/2 행동'), findsOneWidget);
-      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-      await tester.pumpAndSettle();
-      expect(find.text('1/2 행동'), findsOneWidget);
-      expect(writes, isEmpty);
-      expect(stepOf(ops.data!, 's1')['completedAt'], isNull);
-    },
-  );
+  testWidgets('Task methods switch inline without navigation or writes', (
+    tester,
+  ) async {
+    final data = fixture();
+    final writes = <Json>[];
+    final ops = OperationsController(
+      client: MockClient((request) async {
+        if (request.method == 'POST') {
+          writes.add(jsonDecode(request.body) as Json);
+        }
+        return response(data);
+      }),
+    );
+    addTearDown(ops.dispose);
+    await openInline(tester, ops);
+    expect(find.text('생재료와 완성식품 도구를 따로 놓아요.'), findsOneWidget);
+    expect(find.text('팁 · 색상보다 용도를 확인해요.'), findsOneWidget);
+    expect(find.text('작업 장소 보기'), findsOneWidget);
+    await openCard(tester, 'small-s2');
+    expect(find.text('오염을 제거하고 지정 절차대로 처리해요.'), findsOneWidget);
+    expect(find.text('생재료와 완성식품 도구를 따로 놓아요.'), findsNothing);
+    await openCard(tester, 'small-s1');
+    expect(find.text('생재료와 완성식품 도구를 따로 놓아요.'), findsOneWidget);
+    expect(writes, isEmpty);
+    expect(stepOf(ops.data!, 's1')['completedAt'], isNull);
+  });
 
   testWidgets(
-    'completion waits for saved response, advances once, final done and undo stay',
+    'completion waits for saved response and moves to the completed view only after all actions',
     (tester) async {
       final data = fixture();
       final writes = <Json>[];
@@ -108,12 +102,15 @@ void main() {
         }),
       );
       addTearDown(ops.dispose);
-      await openSlides(tester, ops);
-      await tester.tap(check);
+      await openInline(tester, ops);
+      await checkInline(tester);
       await tester.pump();
-      expect(find.text('1/2 행동'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('method-inline-daily-prep-s1')),
+        findsOneWidget,
+      );
       expect(find.text('저장 중…'), findsOneWidget);
-      await tester.tap(check);
+      await checkInline(tester);
       await tester.pump();
       expect(writes.length, 1);
       expect(writes.single['action'], 'complete_step');
@@ -122,19 +119,27 @@ void main() {
       expect(writes.single['revision'], 2);
       pending.complete(response(data));
       await tester.pumpAndSettle();
-      expect(find.text('2/2 행동'), findsOneWidget);
-      await tester.tap(check);
+      expect(stepOf(ops.data!, 's1')['completedAt'], isNotNull);
+      await openCard(tester, 'small-s2');
+      await checkInline(tester);
       await tester.pumpAndSettle();
-      expect(find.text('2/2 행동'), findsOneWidget);
+      expect(check, findsNothing);
+      await tester.tap(find.byKey(const ValueKey('view-toggle-option-true')));
+      await tester.pumpAndSettle();
       expect(find.text('완료했어요'), findsOneWidget);
-      await tester.tap(check);
+      await checkInline(tester);
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, '되돌리기'));
       await tester.pumpAndSettle();
       expect(writes.last['action'], 'reopen_step');
       expect(writes.last['stepId'], 's2');
-      expect(find.text('2/2 행동'), findsOneWidget);
-      expect(find.text('완료 체크'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('view-toggle-option-false')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('method-inline-daily-prep-s2')),
+        findsOneWidget,
+      );
+      expect(stepOf(ops.data!, 's2')['completedAt'], isNull);
     },
   );
 
@@ -156,22 +161,25 @@ void main() {
         }),
       );
       addTearDown(ops.dispose);
-      await openSlides(tester, ops);
-      await tester.tap(check);
+      await openInline(tester, ops);
+      await checkInline(tester);
       await tester.pumpAndSettle();
-      expect(find.text('1/2 행동'), findsOneWidget);
-      expect(find.text('담당 변경을 확인해 주세요.'), findsWidgets);
+      expect(
+        find.byKey(const ValueKey('method-inline-daily-prep-s1')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('담당 변경을 확인해 주세요.'), findsWidgets);
       expect(stepOf(ops.data!, 's1')['completedAt'], isNull);
-      await tester.tap(check);
+      await checkInline(tester);
       await tester.pumpAndSettle();
       expect(attempts, 2);
-      expect(find.text('2/2 행동'), findsOneWidget);
+      expect(stepOf(ops.data!, 's1')['completedAt'], isNotNull);
     },
   );
 
   for (final width in [320.0, 390.0, 1200.0]) {
     testWidgets(
-      'long manual keeps checks fixed at $width with enlarged text and preview makes no POST',
+      'long inline method scrolls to its check at $width with enlarged text and no POST',
       (tester) async {
         final data = fixture();
         stepOf(data, 's1')['manual'] = List.filled(
@@ -187,18 +195,14 @@ void main() {
           }),
         );
         addTearDown(ops.dispose);
-        await openSlides(tester, ops, width: width, textScale: 1.5);
-        final footerBefore = tester.getRect(check);
-        await tester.drag(
-          find.byKey(const ValueKey('manual-action-pages')),
-          const Offset(0, -700),
+        await openInline(tester, ops, width: width, textScale: 1.5);
+        await checkInline(tester);
+        await tester.pumpAndSettle();
+        expect(stepOf(ops.data!, 's1')['completedAt'], isNotNull);
+        expect(
+          find.byKey(const ValueKey('method-inline-daily-prep-s1')),
+          findsOneWidget,
         );
-        await tester.pumpAndSettle();
-        expect(tester.getRect(check), footerBefore);
-        expect(find.text('1/2 행동 · 체험 · 저장 안 됨'), findsOneWidget);
-        await tester.tap(check);
-        await tester.pumpAndSettle();
-        expect(find.text('2/2 행동 · 체험 · 저장 안 됨'), findsOneWidget);
         expect(writes, 0);
         expect(tester.takeException(), isNull);
       },
@@ -219,10 +223,10 @@ void main() {
         }),
       );
       addTearDown(ops.dispose);
-      await openSlides(tester, ops, step: 's2');
+      await openInline(tester, ops, step: 's2');
       expect(find.text('앞의 행동을 먼저 완료해 주세요.'), findsOneWidget);
       expect(tester.widget<FilledButton>(check).onPressed, isNull);
-      await tester.tap(previous);
+      await openCard(tester, 'small-s1');
       await tester.pumpAndSettle();
       taskOf(data)['workIssue'] = <String, dynamic>{
         'status': 'open',
@@ -265,21 +269,24 @@ void main() {
         }),
       );
       addTearDown(ops.dispose);
-      await openSlides(tester, ops);
-      await tester.tap(check);
+      await openInline(tester, ops);
+      await checkInline(tester);
       await tester.pumpAndSettle();
       await tester.tap(find.text('취소'));
       await tester.pumpAndSettle();
       expect(writes, isEmpty);
-      expect(find.text('1/2 행동'), findsOneWidget);
-      await tester.tap(check);
+      expect(
+        find.byKey(const ValueKey('method-inline-daily-prep-s1')),
+        findsOneWidget,
+      );
+      await checkInline(tester);
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), '8');
       await tester.tap(find.widgetWithText(FilledButton, '완료'));
       await tester.pumpAndSettle();
       expect(writes.single['quantity'], 8);
       expect(writes.single['stepId'], 's1');
-      expect(find.text('2/2 행동'), findsOneWidget);
+      expect(stepOf(ops.data!, 's1')['completedAt'], isNotNull);
     },
   );
 
@@ -296,12 +303,12 @@ void main() {
         }),
       );
       addTearDown(ops.dispose);
-      await openSlides(tester, ops);
+      await openInline(tester, ops);
       data['workspaceId'] = 'store-b';
       await ops.refresh();
       await tester.pumpAndSettle();
       expect(find.text('생재료와 완성식품 도구를 따로 놓아요.'), findsNothing);
-      expect(tester.widget<FilledButton>(check).onPressed, isNull);
+      expect(check, findsNothing);
       expect(writes, 0);
     },
   );
@@ -327,7 +334,7 @@ void main() {
         }),
       );
       addTearDown(ops.dispose);
-      await openSlides(tester, ops);
+      await openInline(tester, ops);
       await tester.ensureVisible(find.text('사진 크게 보기'));
       await tester.tap(find.text('사진 크게 보기'));
       await tester.pumpAndSettle();
@@ -357,7 +364,10 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, '저장'));
       await tester.pumpAndSettle();
       expect(find.byType(ManualActionEditor), findsNothing);
-      expect(find.text('1/2 행동'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('method-inline-daily-prep-s1')),
+        findsOneWidget,
+      );
       expect(find.text('수정한 방법과 완료 기준'), findsOneWidget);
       expect(stepOf(ops.data!, 's1')['completedAt'], isNull);
       expect(
@@ -368,37 +378,36 @@ void main() {
     },
   );
 
-  testWidgets(
-    'safety evidence remains required in slides and is sent before advancing',
-    (tester) async {
-      final data = fixture();
-      taskOf(data)['workEvent'] = {'type': 'manual'};
-      taskOf(data)['knowledge'] = {'safetyReviewRequired': true};
-      taskOf(data)['settings'] = {'operatingStandard': '매장 기준 확인'};
-      final writes = <Json>[];
-      final ops = OperationsController(
-        client: MockClient((request) async {
-          if (request.method == 'POST') {
-            final payload = jsonDecode(request.body) as Json;
-            writes.add(payload);
-            saved(data, payload);
-          }
-          return response(data);
-        }),
-      );
-      addTearDown(ops.dispose);
-      await openSlides(tester, ops);
-      await tester.tap(check);
-      await tester.pumpAndSettle();
-      expect(writes, isEmpty);
-      await tester.enterText(find.byType(TextField), '실제 상태와 매장 기준을 확인했어요.');
-      await tester.tap(find.widgetWithText(FilledButton, '기록하고 완료'));
-      await tester.pumpAndSettle();
-      expect(writes.single['evidence'], '실제 상태와 매장 기준을 확인했어요.');
-      expect(writes.single['action'], 'complete_step');
-      expect(find.text('2/2 행동'), findsOneWidget);
-    },
-  );
+  testWidgets('safety evidence remains required for inline completion', (
+    tester,
+  ) async {
+    final data = fixture();
+    taskOf(data)['workEvent'] = {'type': 'manual'};
+    taskOf(data)['knowledge'] = {'safetyReviewRequired': true};
+    taskOf(data)['settings'] = {'operatingStandard': '매장 기준 확인'};
+    final writes = <Json>[];
+    final ops = OperationsController(
+      client: MockClient((request) async {
+        if (request.method == 'POST') {
+          final payload = jsonDecode(request.body) as Json;
+          writes.add(payload);
+          saved(data, payload);
+        }
+        return response(data);
+      }),
+    );
+    addTearDown(ops.dispose);
+    await openInline(tester, ops);
+    await checkInline(tester);
+    await tester.pumpAndSettle();
+    expect(writes, isEmpty);
+    await tester.enterText(find.byType(TextField), '실제 상태와 매장 기준을 확인했어요.');
+    await tester.tap(find.widgetWithText(FilledButton, '기록하고 완료'));
+    await tester.pumpAndSettle();
+    expect(writes.single['evidence'], '실제 상태와 매장 기준을 확인했어요.');
+    expect(writes.single['action'], 'complete_step');
+    expect(stepOf(ops.data!, 's1')['completedAt'], isNotNull);
+  });
   testWidgets(
     'inline editor pins opening revision eagerly and asks before discarding changed draft',
     (tester) async {
@@ -411,7 +420,7 @@ void main() {
         }),
       );
       addTearDown(ops.dispose);
-      await openSlides(tester, ops);
+      await openInline(tester, ops);
       await tester.ensureVisible(find.text('매뉴얼 바로 수정'));
       await tester.tap(find.text('매뉴얼 바로 수정'));
       await tester.pumpAndSettle();

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 326,
+  "revision": 327,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1556,6 +1556,19 @@
       "source": "User conversation 2026-10-14; docs/SERVICE_WORKFLOW_IMPLEMENTATION_2026-10-14.md",
       "updatedAt": "2026-10-14T11:55:14.176416+00:00",
       "implementation": "Local UI/API implemented. order_taps module and prepared consumption/preview synchronization removed; orderBoardEnabled=false, old owner connection/customer work writes410, legacy evidence preserved. Inventory receipt/rank/CAS/KST tests pass. Not deployed."
+    },
+    {
+      "id": "D-140",
+      "category": "Work and manual navigation",
+      "title": "업무 한 열 펼침·할일/완료 토글과 매뉴얼/레시피 전환",
+      "status": "confirmed",
+      "previous": "업무 할일·완료를 2열 레인으로 표시하고 TAP→별도 할일 보드→행동 슬라이드로 이동. TAP은 별도 Draggable/DragTarget, 업무에 운영 준비·내일 미리보기 진입. 매뉴얼 메인에 전체/처음 설정/정기 관리/루틴 업무/레시피/교육·참고 분류 선택.",
+      "next": "근무 준비·인계 행 오른쪽 할일/완료 선택과 한 열 TAP 목록. 할일과 방법·체크는 각 카드 바로 아래 펼치고 현재 방법을 유지. TAP과 할일 모두 ReorderableListView 손잡이 사용. 업무 운영 준비·내일 미리보기 진입 제거. 매뉴얼 상단 분류 선택을 없애고 사장님 검토·등록 대기 오른쪽 매뉴얼/레시피 토글 제공.",
+      "decision": "사용자가 업무 2열을 1열로 바꾸고 새 화면 대신 할일·방법을 바로 아래 펼치기, 할일과 같은 TAP 드래그, 두 화면의 우측 토글과 지정 버튼 제거를 명시했다.",
+      "reason": "업무를 같은 화면에서 짧게 확인하고 일관된 이동 방식으로 조작하도록 사용자의 구체적 UI 요청을 반영한다. 과거 업무 슬라이드/자동 다음 페이지와 메인 분류 버튼 규칙을 이 범위에서 대체한다.",
+      "source": "User conversation 2026-10-21",
+      "updatedAt": "2026-10-21T13:59:10.596720+00:00",
+      "implementation": "Local Flutter implementation. AppViewToolbar/AppViewToggle and ManualFoldGroup reuse common tokens, 48px actions and reduced motion. Pending reorder preserves card size/position and restores server order or failure; only move_tap(status:keep) and existing completion APIs. Domain manual categories, market filters, source editing, manual reading pages, owner registration, historical records and read-only no-POST boundary preserved. Completed lane uses task.completedAt so pending final quantity stays todo. Full Flutter635pass/3browser-onlyskip, final related45pass, analysis0; Node64pass; npmcheck/UI89pass; 24widget captures at320/390/1200px,1.0/1.5scale; final webbuild passed. No deployment/native build/device/browser or production-data writes."
     }
   ],
   "milestones": [
@@ -9059,7 +9072,13 @@
       "type": "verification",
       "title": "사용자 승인 후 iOS 빌드 22·새 스크린샷·심사 안내 재제출 완료",
       "detail": "User explicitly selected replacing21 with22 and resubmitting after explanation that roughly5-day wait restarts. Confirmed target22VALID and exact current21WAITING before canceling only old submission8b544327-0642-491c-9f5b-a3aef73da074; removal COMPLETE verified. Connected22 cbf6ed62-c2b8-477b-b099-07e24f78b850, updated review notes; all non-note credentials/contact attributes preserved exactly. Uploaded8new current Flutter-rendered screenshots(iPhone1284x2778/iPad2064x2752), checked COMPLETE/sourceMD5/four destination order; old8images privately preserved before deleting old assets. New submissioncbce64f8-e327-4e5b-ba3d-7af66df2173c submitted2026-10-18T09:14:16.115Z(18:14KST), reread submission+version WAITING_FOR_REVIEW, connectedbuild22, AFTER_APPROVAL maintained. Approval not yet granted. No support message/internalgroup distribution/production workspace writes. Source7f18f49 and Pages39113779070 remain verified; CI628/3skip+Node394 and native simulator1 as prior entry. Native physical-device OAuth/deletion/camera/iPad-native remain unverified. docs/APPLE_REVIEW_AUDIT_2026-10-18.md; private stage/submission evidence.local/apple-review-audit-20261018; existing rootdirty preserved."
+    },
+    {
+      "at": "2026-10-21T13:59:10.596720+00:00",
+      "type": "implementation",
+      "title": "업무 한 열 펼침·동일 드래그와 업무/매뉴얼 우측 토글 구현·로컬 검증",
+      "detail": "D-140. Requested work todo/done and manual/recipe same-row toggles implemented; removed work owner preparation/tomorrow link and manual home category picker. Work TAP/action method remain inline with existing photo/editor/report/quantity/undo/permission/sequence behavior. Top TAP reorder uses native reorder gap animation, optimistic pending order, fixed controls during save and failure rollback. Actor/workspace/day resets ephemeral expansion/order. Updated architecture, product, shared UI guidelines/template and source→control→action→consumer links. Initial regression failures were stale lane/page/category selectors and changed raw-error expectations; corrected to inline behavior and retained error detail. Initial analyzer style findings fixed. Full Flutter635pass/3browser-onlyskip; final followup45pass+analysis0 after save-control stability refinement; Node64pass, npmcheck/UI89pass; capture test9pass/24PNG at320,390,1200px and1.0/1.5text, selected captures visually inspected and Korean enlarged toggle wrapping improved. Final npmrunbuild:app succeeded (27.8s compile); existing PWA deprecation/Wasm dry-run warnings, JS web artifact built. No native build, physical-device/real browser run, deployment, live API or production-data changes. Existing dirty work preserved. Evidence .local/work-menu-20261021/; original edited UI files copied before changes."
     }
   ],
-  "updatedAt": "2026-10-18T09:15:16.774326+00:00"
+  "updatedAt": "2026-10-21T13:59:10.596720+00:00"
 }

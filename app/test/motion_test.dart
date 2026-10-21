@@ -47,7 +47,10 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();
-    expect(tester.getTopLeft(tap).dx, greaterThan(start.dx));
+    expect(tap, findsNothing);
+    await tester.tap(find.byKey(const ValueKey('view-toggle-option-true')));
+    await tester.pumpAndSettle();
+    expect(tap, findsOneWidget);
     expect(tester.widget<TapCard>(tap).completionTrigger, isNull);
   });
 
@@ -94,33 +97,35 @@ void main() {
     );
   });
 
-  testWidgets(
-    'opening a TAP reveals its heading before the animation settles',
-    (tester) async {
-      final ops = OperationsController(
-        readOnly: true,
-        client: MockClient((_) async => response(fixture())),
-      );
-      addTearDown(ops.dispose);
-      await mountBoard(tester, ops);
-      final tap = find.byKey(const ValueKey('tap-daily-prep'));
-      await tester.ensureVisible(tap);
-      await tester.tap(
-        find.descendant(of: tap, matching: find.text('할 일')).first,
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      final body = find.byKey(const ValueKey('tap-body/null/daily-prep'));
-      final reveal = tester.widget<SlideTransition>(
-        find.ancestor(of: body, matching: find.byType(SlideTransition)).first,
-      );
-      expect(reveal.position.value.dy, greaterThan(0));
-      expect(reveal.position.value.dy, lessThan(.035));
-      expect(find.byKey(const ValueKey('tap-daily-prep')), findsNothing);
-      await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('small-s1')), findsOneWidget);
-    },
-  );
+  testWidgets('opening a TAP expands its list below the same card', (
+    tester,
+  ) async {
+    final ops = OperationsController(
+      readOnly: true,
+      client: MockClient((_) async => response(fixture())),
+    );
+    addTearDown(ops.dispose);
+    await mountBoard(tester, ops);
+    final tap = find.byKey(const ValueKey('tap-daily-prep'));
+    await tester.ensureVisible(tap);
+    await tester.tap(
+      find.descendant(of: tap, matching: find.text('할 일')).first,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    final body = find.byKey(const ValueKey('tap-inline-daily-prep'));
+    expect(
+      find.ancestor(of: body, matching: find.byType(AnimatedSize)),
+      findsWidgets,
+    );
+    expect(find.byKey(const ValueKey('tap-daily-prep')), findsOneWidget);
+    expect(
+      tester.getTopLeft(body).dy,
+      greaterThanOrEqualTo(tester.getBottomLeft(tap).dy),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('small-s1')), findsOneWidget);
+  });
 
   testWidgets('reduced motion moves a completed TAP without a holding frame', (
     tester,
@@ -137,10 +142,12 @@ void main() {
     addTearDown(ops.dispose);
     await mountBoard(tester, ops);
     final tap = find.byKey(const ValueKey('tap-daily-prep'));
-    final start = tester.getTopLeft(tap);
     tester.widget<TapCard>(tap).onCheck!();
     await tester.pump();
-    expect(tester.getTopLeft(tap).dx, greaterThan(start.dx));
+    expect(tap, findsNothing);
+    await tester.tap(find.byKey(const ValueKey('view-toggle-option-true')));
+    await tester.pumpAndSettle();
+    expect(tap, findsOneWidget);
     expect(tester.widget<TapCard>(tap).holdCompletion, isFalse);
     await tester.pump(const Duration(milliseconds: 600));
   });

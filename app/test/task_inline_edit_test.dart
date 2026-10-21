@@ -73,23 +73,21 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops, width: 390);
-      final handle = find.byWidgetPredicate(
-        (w) => w is Draggable<String> && w.data == 'daily-broth',
-      );
-      final target = find.byKey(const ValueKey('tap-daily-prep'));
-      final gesture = await tester.startGesture(
-        tester.getCenter(handle),
+      final handle = find.byKey(const ValueKey('tap-drag-daily-broth'));
+      await tester.drag(
+        handle,
+        const Offset(0, -400),
         kind: PointerDeviceKind.touch,
       );
-      await gesture.moveTo(tester.getTopLeft(target) + const Offset(30, 5));
-      await tester.pump(const Duration(milliseconds: 100));
-      await gesture.up();
       await tester.pumpAndSettle();
       expect(sent.last['action'], 'move_tap');
       expect(sent.last['status'], 'keep');
       expect(sent.last['beforeTaskId'], 'daily-prep');
       await openCard(tester, 'tap-daily-prep');
-      final handles = find.byType(ReorderableDragStartListener);
+      final handles = find.descendant(
+        of: find.byKey(const ValueKey('small-s1')),
+        matching: find.byType(ReorderableDragStartListener),
+      );
       await tester.drag(
         handles.first,
         const Offset(0, 230),
@@ -102,7 +100,7 @@ void main() {
     },
   );
   testWidgets(
-    'priority drop preserves status and rejects another status lane',
+    'priority reordering preserves status and folder without opening the done list',
     (tester) async {
       Json? sent;
       final state = fixture();
@@ -114,23 +112,18 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mountBoard(tester, ops);
-      final details = DragTargetDetails<String>(
-        data: 'daily-prep',
-        offset: Offset.zero,
-      );
-      final done = tester.widget<DragTarget<String>>(
-        find.byKey(const ValueKey('lane-완료')),
-      );
-      expect(done.onWillAcceptWithDetails!(details), false);
-      final todo = tester.widget<DragTarget<String>>(
-        find.byKey(const ValueKey('lane-할일')),
-      );
-      expect(todo.onWillAcceptWithDetails!(details), true);
-      todo.onAcceptWithDetails!(details);
+      expect(find.byKey(const ValueKey('lane-완료')), findsNothing);
+      tester
+          .widget<ReorderableListView>(
+            find.byKey(const ValueKey('tap-reorder-list')),
+          )
+          .onReorder(1, 0);
       await tester.pumpAndSettle();
       expect(sent?['action'], 'move_tap');
       expect(sent?['status'], 'keep');
-      expect(sent?['folderId'], state['tasks'][0]['folderId'] ?? 'general');
+      expect(sent?['taskId'], 'daily-broth');
+      expect(sent?['beforeTaskId'], 'daily-prep');
+      expect(sent?['folderId'], state['tasks'][1]['folderId']);
     },
   );
   testWidgets('permission and fixed sequence disable Task priority dragging', (
@@ -144,11 +137,23 @@ void main() {
     addTearDown(ops.dispose);
     await mountBoard(tester, ops);
     await openCard(tester, 'tap-daily-prep');
-    expect(find.byType(ReorderableDragStartListener), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('tap-inline-daily-prep')),
+        matching: find.byType(ReorderableDragStartListener),
+      ),
+      findsNothing,
+    );
     state['canEditTasks'] = true;
     state['tasks'][0]['settings'] = {'enforceSequence': true};
     await ops.refresh();
     await tester.pumpAndSettle();
-    expect(find.byType(ReorderableDragStartListener), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('tap-inline-daily-prep')),
+        matching: find.byType(ReorderableDragStartListener),
+      ),
+      findsNothing,
+    );
   });
 }

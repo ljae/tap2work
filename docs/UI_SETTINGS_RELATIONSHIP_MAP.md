@@ -124,7 +124,7 @@ flowchart LR
 | ID | 원본 → 컨트롤 → 액션 | 저장 후 소비 | 검증 |
 | --- | --- | --- | --- |
 | U03 | 업무·매뉴얼·근무표 → `DirectEditFrame` 길게 누르기/우클릭/접근성 동작 → 흔들림·초록 테두리·편집 완료 | 수정 권한이 있을 때만 진입. 동작 줄이기와 TickerMode에서는 흔들림 중지 | `direct_edit_test.dart` |
-| S25 | 오늘 TAP/Task 우선순위 | 업무 손잡이 드래그 → `move_tap(status: keep)` / `reorder_small_taps` | 현재 실행 순서만 변경. 폴더·내용·완료 상태 유지, 순서 강제 TAP 재정렬 금지 | `task_inline_edit_test.dart`, `direct_edit.test.mjs` |
+| S25 | 오늘 TAP/Task 우선순위 | 한 열 목록의 ReorderableListView 손잡이 → `move_tap(status: keep, beforeTaskId)` / `reorder_small_taps` | 현재 실행 순서만 변경. TAP은 저장 대기 위치 유지, 성공 시 응답 순서·실패 시 원래 순서와 오류. 폴더·내용·완료 상태 유지, 순서 강제 Task 재정렬 금지 | `task_inline_edit_test.dart`, `work_menu_views_test.dart`, `operations.test.mjs` |
 | S26 | 매뉴얼 폴더/TAP/Task | 폴더 추가 및 항목 ⋯의 이름·삭제 → `edit_manual_node`, 상세·추가 → `save_manual_tap`, 이동 → `move_manual_node` | 기본 양식 편집. 휴대폰 동일 기능, 편집 중 빈 폴더도 표시. 사용중/기본 폴더 삭제 보호 | `manual_authoring_test.dart`, `manual_workspace_test.dart`, `direct_edit.test.mjs` |
 | S27 | 근무표 카드 → 날짜·시간 드래그/이름/휴지통 → `save_staff_shift`, `save_roster_slot`, `delete_roster_slot` | 배정 근무의 label 또는 날짜별 슬롯 name/hidden; 사람 이름·출퇴근 원본 불변. 날짜별 삭제는 영업 기본시간을 변경하지 않음 | `direct_edit.test.mjs`, `direct_edit_test.dart`, `calendar_test.dart` |
 
@@ -477,12 +477,12 @@ E06 로딩 시각화 후속: 기존 초기화/매장 조회 상태 → TapWaterL
 
 | ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
 | --- | --- | --- | --- |
-| S68 | tasks[].steps snapshot → Task 열기 → ManualActionSlides → complete_step/reopen_step | 설명·사진·체크 같은 행동. 탐색만으로 완료 없음; 저장 성공 뒤 다음 장, 마지막/되돌리기 유지. 기존 측정·이상·순서·권한 검사 유지 | manual_action_slides_test.dart, tap_workspace_test.dart |
+| S68 | tasks[].steps snapshot → TAP 할 일 펼치기 → 방법·체크 펼치기 → 같은 위치의 complete_step/reopen_step | 업무 본문 안에 설명·사진·체크. 페이지 이동 없이 현재 방법 유지; 조회·토글은 쓰기 없음. 수량 최종 완료 전에는 할일 유지. 기존 측정·이상·순서·권한 검사·편집 유지 | manual_action_slides_test.dart, tap_workspace_test.dart, work_menu_views_test.dart |
 | S69 | 촬영/앨범 → PhotoRegistrationField → 자동 JPEG 최적화 → uploadManualPhoto → imageUrl/photo 참조 저장 | 매뉴얼 편집/save_manual_tap, 실행 바로 수정/save_step_manual, 장소/save_place. 각 opening revision 유지, scope 변경/실패 보존. 업로드는 완료 체크 아님 | photo_optimizer_test.dart, manual_media_repository_test.dart, developer/test/manual_media.test.mjs |
 | S70 | private image reference → loadManualPhoto → 인증 JPEG → placePhoto | 같은 매장 멤버 읽기. 기존 외부 HTTPS·장소 dataURL 호환. 사장/권한 매니저만 업로드, 공용 카탈로그에 매장 private ref 금지 | manual_media.test.mjs, manual_media_repository_test.dart |
 | S71 | checklistBackup.templates[].steps[].imageUrl → 복원 미리보기·제외 사진 수 → restore_checklist_backup | 다른 매장 비공개 사진은 제외하고 본문 복원·재등록 안내. 같은 매장 참조와 외부 링크 유지 | manual_media.test.mjs, manual_media_backup_test.dart |
 
-S15의 Task 열기는 S68 통합 행동 화면을 사용한다. 매뉴얼 원본 편집 S12/S22와 실제 생성 실행의 완료는 구분한다. S46의 다른 매장 사진 복원은 S71을 따른다. 배포 전 Storage bucket/삭제 정리 경로 준비·활성화가 필요하며 소스 구현만으로 운영 업로드가 활성화되지 않는다.
+S15의 Task 열기는 S68 본문 안 펼침을 사용한다(2026-10-21 변경). 매뉴얼 원본 편집 S12/S22와 실제 생성 실행의 완료는 구분한다. S46의 다른 매장 사진 복원은 S71을 따른다. 배포 전 Storage bucket/삭제 정리 경로 준비·활성화가 필요하며 소스 구현만으로 운영 업로드가 활성화되지 않는다.
 
 ## 2026-10-10 공통 파트너 화면·언어
 
@@ -528,7 +528,7 @@ S70 사진 읽기는 같은 화면에서 다시 불러오며 매장·계정 변�
 
 | ID | Source → control | Action / saved effect | Consumer / verification |
 |---|---|---|---|
-| S83 | 업무/계정 메뉴·매뉴얼 → 운영 준비 → 본문 검토·선택 → 확인 후 일괄 등록 | `register_owner_selection` → 사장님 권한·revision·검토 선택 검증, `registration` 기록; 공용 가져오기는 pending | 매뉴얼 검색·크루 readableTemplates·인쇄·자동/이벤트 업무는 등록 전 제외. 기본 식당24/110 제안은 확인 후 매장 사본으로 등록; 기존 같은 source는 보완하고 기존 실행 보존. owner_workflow tests |
+| S83 | 계정 메뉴·매뉴얼 → 운영 준비 → 본문 검토·선택 → 확인 후 일괄 등록 | `register_owner_selection` → 사장님 권한·revision·검토 선택 검증, `registration` 기록; 공용 가져오기는 pending | 매뉴얼 검색·크루 readableTemplates·인쇄·자동/이벤트 업무는 등록 전 제외. 기본 식당24/110 제안은 확인 후 매장 사본으로 등록; 기존 같은 source는 보완하고 기존 실행 보존. owner_workflow tests |
 | S84 | 운영 준비 → 내일 준비 → 담당·반복 일정 변경 | `schedule_tap_settings`, `scheduledSettings.effectiveFrom` → 다음 영업 기준 날짜부터 반복 설정 적용 | `ownerWorkflow.plans` 읽기 투영; 오늘 task/완료 기록 불변, 다음 생성부터 적용. 담당 공석 명시. 설정 저장 성공 후 재투영 |
 | S85 | TAP 설정 → 매일/매주/매월·날짜 | `recurrence.monthDay`, `holidayPolicy=next_open` | `work_recurrence.mjs`를 미리보기·실행 생성이 공유. 짧은 달 말일, 연속 휴무 다음 영업일, 동일일 중복 합침. 재고 발주 기준 주기와 독립 |
 
@@ -570,7 +570,7 @@ S88 compact-phone control variation: same taxonomy/profile ->48px local view/cat
 | ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
 |---|---|---|---|
 | S89 | 공용 knowledge.useCase와 매장 분류 → 공통 업무/레시피 가져오기 → ManualMarketCatalog.search(useCase) 및 기존 import_market_taps | 레시피는 공통 목록·트리에서 분리, 가져온 분야로 복귀. 메뉴 ID·과거 기록·등록 선택 계약 보존. 개업 준비6묶음은 startup/reference | manual_common_operations.test.mjs, manual_common_operations_test.dart, manual_market_discovery_test.dart |
-| S90 | 현재 폴더/TAP/행동 ID → 매뉴얼 읽기·ManualHierarchyPath → showAppPage 및 ManualHierarchyDestination 반환 | 가로 페이지 이동 후 보드/디렉토리 실제 폴더·TAP으로 이동. actor/workspace/day 재확인, 조회는 쓰기 없음, reduced motion | manual_common_operations_test.dart, manual_action_slides_test.dart, manual_workspace_test.dart |
+| S90 | 매뉴얼 디렉토리 폴더/TAP/행동 ID → 매뉴얼 읽기·ManualHierarchyPath → showAppPage 및 ManualHierarchyDestination 반환 | 매뉴얼 목적지의 읽기는 가로 페이지 이동·실제 폴더/TAP 복귀 유지. 업무 실행 읽기는 S68 한 열 펼침으로 대체. 조회는 쓰기 없음, reduced motion | manual_common_operations_test.dart, manual_workspace_test.dart |
 | S91 | 원문과 step ID·개인 언어 → 레시피 단계 본문·설거지 본보기 → TranslatedContent/준비 번역 조회 | 원문·체크·설정 저장 없음. 7언어 현재 원문+구 버전 번역 보존, 유료 API와 BYOK 미활성 | manual_common_operations_test.dart, check-manual-translations.mjs |
 
 
@@ -584,3 +584,11 @@ S88 compact-phone control variation: same taxonomy/profile ->48px local view/cat
 | S95 | serviceRecords 미해결 인계 → 교대/마감 사실·다음 행동·담당/미정 및 처리 결과 → record_service(kind=handoff) / resolve_service_handoff | 다음 영업일에도 보존, 지정 담당/권한 리더만 실제 조치 기록. 모든 저장은 actor/workspace scope·opening revision·requestId 멱등. 필수 입력 인라인 오류/첫 누락 이동, 저장 중 버튼 잠금·상태 표시, 미저장 닫기 확인, 오류는 저장 버튼 위 표시. 기존 업무 완료와 독립 | service_workflow.test.mjs, service_workflow_test.dart |
 
 S48 기존 PDF/인쇄를 CS·개선 화면에서 재사용한다. 등록한 안내만 인쇄하며 새 한국어 CS 초안과 번역/현장 미검수를 구별한다. 다운로드한 PDF 외 앱 오프라인·공용 기기 빠른 인증은 이번 구현에 포함하지 않는다. S06은 종료 이력이며 정적 링크 검사에서는 활성 계약을 삭제하고 신규 S92~95를 검사한다.
+
+
+## 2026-10-21 업무·매뉴얼 보기 전환
+
+| ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
+|---|---|---|---|
+| S96 | tasks/selectedPart → 근무 준비·인계 오른쪽 할일·완료 토글 → TapWorkspace.showCompleted | 선택 상태의 TAP만 한 열로 표시. TAP 바로 아래 할일, 할일 바로 아래 방법·체크. 폴링·펼침은 완료를 만들지 않으며 actor/workspace/day 변경 시 펼침·임시 순서 초기화. 업무의 운영 준비·내일 미리보기 진입 제거 | work_menu_views_test.dart, tap_workspace_test.dart, motion_test.dart |
+| S97 | taskTemplates/manualSearch → 사장님 검토·등록 대기 오른쪽 매뉴얼·레시피 토글 → recipes/chooseCategory → directory/content 또는 recipeList | 전체·처음 설정·정기 관리·루틴 업무·교육/참고의 상단 분류 버튼 제거. 분류 데이터·마켓·TAP 분류 편집은 보존. 보기 전환은 저장하지 않음, 크루도 등록된 레시피 조회 가능 | work_menu_views_test.dart, manual_workspace_test.dart, manual_common_operations_test.dart |

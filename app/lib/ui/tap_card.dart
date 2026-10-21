@@ -29,6 +29,8 @@ class TapCard extends StatelessWidget {
     this.completionTrigger,
     this.holdCompletion = false,
     this.customization,
+    this.expanded,
+    this.checkEnabled = true,
   });
 
   final String level, title, subtitle, emoji, footer;
@@ -44,6 +46,8 @@ class TapCard extends StatelessWidget {
   final Object? completionTrigger;
   final bool holdCompletion;
   final dynamic customization;
+  final bool? expanded;
+  final bool checkEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +112,7 @@ class TapCard extends StatelessWidget {
                                 minWidth: 48,
                                 minHeight: 48,
                               ),
-                              onPressed: onCheck,
+                              onPressed: checkEnabled ? onCheck : null,
                               icon: Icon(
                                 checked
                                     ? Icons.check_circle
@@ -155,6 +159,7 @@ class TapCard extends StatelessWidget {
                           Semantics(
                             label: openLabel,
                             button: true,
+                            expanded: expanded,
                             child: InkWell(
                               onTap: onOpen,
                               child: Container(
@@ -186,7 +191,9 @@ class TapCard extends StatelessWidget {
                                         ),
                                       ),
                                     Icon(
-                                      CupertinoIcons.chevron_right,
+                                      expanded == true
+                                          ? CupertinoIcons.chevron_down
+                                          : CupertinoIcons.chevron_right,
                                       size: 15,
                                       color: tint,
                                     ),

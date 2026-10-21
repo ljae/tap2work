@@ -7,14 +7,12 @@ import 'crew_colors.dart';
 import 'workplace_screens.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import '../domain/checklist_draft.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import 'checklist_board.dart' show rowsOf, stampOf;
 import 'components.dart';
 import 'tap_card.dart';
-import 'manual_action_slides.dart';
 import 'manual_hierarchy.dart';
 import 'manual_action_editor.dart';
 import 'place_guide.dart';
@@ -30,16 +28,22 @@ class TapWorkspace extends StatefulWidget {
     required this.ops,
     required this.onStock,
     this.partFilter,
+    this.toolbarLeading,
   });
   final OperationsController ops;
   final ValueNotifier<String?>? partFilter;
+  final Widget? toolbarLeading;
   final Future<void> Function(Json) onStock;
   @override
   State<TapWorkspace> createState() => _TapWorkspaceState();
 }
 
 class _TapWorkspaceState extends State<TapWorkspace> {
-  String? folderId, taskId;
+  bool showCompleted = false;
+  String? boardScope;
+  final expandedTaps = <String>{};
+  final expandedMethods = <String, String>{};
+  List<String>? pendingTapOrder;
   String? localPart;
   String? get selectedPart => widget.partFilter?.value ?? localPart;
 
@@ -53,7 +57,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     if (mounted) setState(() {});
   }
 
-  String? selectedStepId;
   String? celebratedStepId, celebratedTaskId;
   int completionTick = 0;
   Timer? celebrationTimer;
@@ -70,9 +73,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       celebratedStepId = stepId;
       celebratedTaskId = taskId;
       completionTick++;
-      if (taskId != null &&
-          this.taskId == null &&
-          !MediaQuery.disableAnimationsOf(context)) {
+      if (taskId != null && !MediaQuery.disableAnimationsOf(context)) {
         settlingTasks.add(taskId);
       }
     });
@@ -93,16 +94,33 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     super.dispose();
   }
 
-  List<Json> get groups =>
-      ops
-          .rows('tasks')
-          .where((t) => t['kind'] == 'routine' && t['orderId'] == null)
-          .toList()
-        ..sort(
-          (a, b) => ((a['displayOrder'] ?? 0) as int).compareTo(
-            (b['displayOrder'] ?? 0) as int,
-          ),
-        );
+  List<Json> get groups {
+    final result =
+        ops
+            .rows('tasks')
+            .where((t) => t['kind'] == 'routine' && t['orderId'] == null)
+            .toList()
+          ..sort(
+            (a, b) => ((a['displayOrder'] ?? 0) as int).compareTo(
+              (b['displayOrder'] ?? 0) as int,
+            ),
+          );
+    final order = pendingTapOrder;
+    if (order != null) {
+      // Replace only the visible lane's positions; hidden parts retain theirs.
+      final positions = [
+        for (var i = 0; i < result.length; i++)
+          if (order.contains(result[i]['id'])) i,
+      ];
+      final ordered = [
+        for (final id in order) ...result.where((t) => t['id'] == id),
+      ];
+      for (var i = 0; i < positions.length; i++) {
+        result[positions[i]] = ordered[i];
+      }
+    }
+    return result;
+  }
 
   List<Json> steps(Json task) {
     final result = <Json>[
@@ -125,7 +143,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   int done(Json task) =>
       steps(task).where((s) => s['completedAt'] != null).length;
   String status(Json task) {
-    if (total(task) > 0 && done(task) == total(task)) return '완료';
+    if (task['completedAt'] != null) return '완료';
     return '할일';
   }
 
@@ -345,20 +363,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     );
   }
 
-  void navigate({String? folder, String? task}) {
-    FocusScope.of(context).unfocus();
-    setState(() {
-      folderId = folder;
-      taskId = task;
-      selectedStepId = null;
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final position = Scrollable.maybeOf(context)?.position;
-      position?.jumpTo(position.minScrollExtent);
-    });
-  }
-
   void notice(String text) => ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(text)));
@@ -367,123 +371,125 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: ops,
     builder: (context, _) {
-      final folder = folders.where((f) => f['id'] == folderId).firstOrNull;
-      final task = groups.where((t) => t['id'] == taskId).firstOrNull;
+      final scope =
+          '${ops.actorId}/${ops.data?['workspaceId']}/${ops.data?['day']}';
+      if (boardScope != scope) {
+        boardScope = scope;
+        expandedTaps.clear();
+        expandedMethods.clear();
+        previewStepOrder.clear();
+        pendingTapOrder = null;
+        settlingTasks.clear();
+      }
       final part = storeParts(ops)
           .where((p) => p['id'] == selectedPart && p['hidden'] != true)
           .firstOrNull;
-      final scoped = (folder == null ? groups : inFolder(folder['id']))
+      final scoped = groups
           .where((task) => part == null || matchesPart(task, part))
           .where(visibleTask)
+          .where(
+            (task) =>
+                (settlingTasks.contains(task['id'])
+                    ? false
+                    : status(task) == '완료') ==
+                showCompleted,
+          )
           .toList();
       return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (task != null) ...[
-            PressBounce(
-              child: TextButton.icon(
-                onPressed: () => navigate(folder: folderId),
-                icon: const Icon(CupertinoIcons.chevron_back, size: 18),
-                label: Text(context.t('work.backList')),
+          AppViewToolbar(
+            key: const ValueKey('work-view-toolbar'),
+            leading: widget.toolbarLeading,
+            toggle: AppViewToggle<bool>(
+              key: const ValueKey('work-view-toggle'),
+              values: const [false, true],
+              selected: showCompleted,
+              labelOf: (value) =>
+                  context.t(value ? 'common.done' : 'work.todo'),
+              onSelected: (value) => setState(() => showCompleted = value),
+            ),
+          ),
+          if (!ops.canEditTasks)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilterChip(
+                label: Text(context.t('work.myOnly')),
+                selected: mineOnly,
+                onSelected: (v) => setState(() => mineOnly = v),
               ),
             ),
-            PageHeading(
-              '',
-              manualDisplayText(
-                context,
-                task['title'],
-                translations: ops.data?['manualContentTranslations'],
-                templateId: task['templateId'],
-              ),
-              '',
-            ),
+          if (widget.partFilter == null) ...[
+            _folderBar(),
+            const SizedBox(height: 16),
           ],
-          if (task != null &&
-              (task['customer_memo'] ?? '').toString().isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Information(
-                context.t('ui.audit1022', args: {'p0': task['customer_memo']}),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  showCompleted
+                      ? context.t('manual.completed')
+                      : 'TAP · ${context.t('전체 업무')}',
+                  style: AppText.caption,
+                ),
               ),
-            ),
-          if (task == null && !ops.canEditTasks)
-            FilterChip(
-              label: Text(context.t('work.myOnly')),
-              selected: mineOnly,
-              onSelected: (v) => setState(() => mineOnly = v),
-            ),
-
-          ...[
-            if (task == null && widget.partFilter == null) ...[
-              _folderBar(),
-              const SizedBox(height: 16),
+              Text('${scoped.length}', style: AppText.caption),
             ],
-            if (task != null) const SizedBox(height: 8),
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                Text(
-                  task != null
-                      ? context.t(
-                          'manual.progress',
-                          args: {'done': done(task), 'total': total(task)},
-                        )
-                      : 'TAP · ${folder == null ? context.t('전체 업무') : context.t('ui.audit2127', args: {'p0': entityDisplayName(context, ops, 'folder', folder['id'], folder['name'])})}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.muted,
-                  ),
-                ),
-                if (ops.readOnly)
-                  Text(
-                    context.t('ui.audit431'),
-                    style: TextStyle(fontSize: 13, color: AppColors.muted),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            AnimatedSwitcher(
-              key: const ValueKey('tap-body-transition'),
-              duration: MediaQuery.disableAnimationsOf(context)
-                  ? Duration.zero
-                  : AppMotion.sheet,
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              layoutBuilder: (current, previous) =>
-                  current ?? const SizedBox.shrink(),
-              transitionBuilder: (child, animation) => FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, .035),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
-                ),
-              ),
-              child: KeyedSubtree(
-                key: ValueKey('tap-body/$folderId/$taskId'),
-                child: _board(folder, task, scoped),
-              ),
-            ),
-          ],
+          ),
+          if (ops.readOnly)
+            Text(context.t('ui.audit431'), style: AppText.caption),
+          const SizedBox(height: 12),
+          _board(scoped),
         ],
       );
     },
   );
 
-  Widget _board(Json? folder, Json? task, List<Json> scoped) {
-    if (task != null) return _smallBoard(task);
+  Future<void> _reorderTaps(
+    List<Json> visible,
+    int oldIndex,
+    int newIndex,
+  ) async {
+    if (ops.busy || !ops.canEditTasks) return;
+    if (newIndex > oldIndex) newIndex--;
+    if (oldIndex == newIndex) return;
+    final ordered = [...visible];
+    final moving = ordered.removeAt(oldIndex);
+    ordered.insert(newIndex, moving);
+    final before = newIndex + 1 < ordered.length
+        ? ordered[newIndex + 1]['id'] as String
+        : null;
+    final scope = boardScope;
+    setState(
+      () => pendingTapOrder = ordered.map((t) => t['id'] as String).toList(),
+    );
+    if (ops.readOnly) {
+      ops.previewMoveTap(
+        moving['id'],
+        folderOf(moving),
+        'keep',
+        beforeTaskId: before,
+      );
+    } else {
+      final ok = await ops.act('move_tap', {
+        'taskId': moving['id'],
+        'folderId': folderOf(moving),
+        'status': 'keep',
+        'beforeTaskId': ?before,
+      });
+      if (mounted && boardScope == scope && !ok) {
+        notice(actionFailureText(context, ops));
+      }
+    }
+    if (mounted && boardScope == scope) setState(() => pendingTapOrder = null);
+  }
 
-    final entries = <({String id, String state, Widget card})>[];
-    final boardTasks = scoped;
-    for (final t in boardTasks) {
-      entries.add((
-        id: t['id'],
-        state: settlingTasks.contains(t['id']) ? '할일' : status(t),
-        card: TapCard(
+  Widget _board(List<Json> tasks) {
+    Widget card(Json t, int index) => Padding(
+      key: ValueKey('sort-tap-${t['id']}'),
+      padding: const EdgeInsets.only(bottom: 12),
+      child: ManualFoldGroup(
+        header: TapCard(
           holdCompletion: settlingTasks.contains(t['id']),
           completionTrigger:
               (celebratedTaskId == t['id'] || settlingTasks.contains(t['id']))
@@ -503,23 +509,25 @@ class _TapWorkspaceState extends State<TapWorkspace> {
               '${entityDisplayName(context, ops, 'folder', folderOf(t), folders.where((f) => f['id'] == folderOf(t)).firstOrNull?['name'])} · ${context.t('${t['slot']}')} · ${assigneeLabel(t)}${estimatedDuration(t).isEmpty ? '' : ' · ${estimatedDuration(t)}'}',
           accentColor: assigneeColor(t),
           assigneeBadges: assigneeBadges(t),
-          dragHandle: !ops.canEditTasks
-              ? null
-              : _draggable(
-                  data: t['id'],
-                  feedback: Material(
-                    elevation: 8,
-                    child: SizedBox(width: 260, child: Text(t['title'])),
-                  ),
+          dragHandle: ops.canEditTasks
+              ? ReorderableDragStartListener(
+                  key: ValueKey('tap-drag-${t['id']}'),
+                  index: index,
+                  enabled: !ops.busy,
                   child: const SizedBox(
                     width: 48,
                     height: 48,
                     child: Icon(Icons.drag_indicator, color: AppColors.muted),
                   ),
-                ),
+                )
+              : null,
           total: total(t),
           done: done(t),
-          onOpen: () => navigate(folder: folderId, task: t['id']),
+          expanded: expandedTaps.contains(t['id']),
+          onOpen: () => setState(() {
+            if (!expandedTaps.remove(t['id'])) expandedTaps.add(t['id']);
+          }),
+          checkEnabled: !ops.busy,
           onCheck: t['preparedOutputMovementId'] != null
               ? null
               : () {
@@ -536,164 +544,42 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 },
           checked: status(t) == '완료',
         ),
-      ));
-    }
-    final lanes = ['할일', '완료'];
-    String? targetStatus(Json moving, String lane) {
-      final current = status(moving);
-      return lane == current ? 'keep' : null;
-    }
-
-    Json? movingTask(String id) =>
-        groups.where((t) => t['id'] == id).firstOrNull;
-    bool canDrop(String id, String lane, {String? before}) {
-      final moving = movingTask(id);
-      if (moving == null ||
-          !ops.canEditTasks ||
-          ops.busy ||
-          targetStatus(moving, lane) == null) {
-        return false;
-      }
-      final target = before == null ? null : movingTask(before);
-      return target == null || target['id'] != id;
-    }
-
-    void drop(String id, String lane, {String? before}) {
-      final moving = movingTask(id);
-      final next = moving == null ? null : targetStatus(moving, lane);
-      if (moving == null || next == null) {
-        notice(context.t('ui.audit1210'));
-        return;
-      }
-      _moveTap(moving, folderOf(moving), next, beforeTaskId: before);
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 760;
-        final width = wide
-            ? (constraints.maxWidth - 12 * (lanes.length - 1)) / lanes.length
-            : (constraints.maxWidth - 20).clamp(230.0, 340.0);
-        return SingleChildScrollView(
-          key: ValueKey('board/$folderId/$taskId'),
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final (index, lane) in lanes.indexed)
-                DragTarget<String>(
-                  key: ValueKey('lane-$lane'),
-                  onWillAcceptWithDetails: (d) => canDrop(d.data, lane),
-                  onAcceptWithDetails: (details) => drop(details.data, lane),
-                  builder: (context, candidates, rejected) => Container(
-                    width: width,
-                    margin: EdgeInsets.only(
-                      right: index == lanes.length - 1 ? 0 : 12,
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: candidates.isNotEmpty
-                          ? AppColors.accentSoft
-                          : rejected.isNotEmpty
-                          ? AppColors.accentSoft
-                          : AppColors.surface.withValues(alpha: .45),
-                      borderRadius: BorderRadius.circular(AppShape.card),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(4, 2, 4, 14),
-                          child: Row(
-                            children: [
-                              Icon(
-                                lane == '완료'
-                                    ? CupertinoIcons.checkmark_circle_fill
-                                    : CupertinoIcons.circle_lefthalf_fill,
-                                size: 18,
-                                color: lane == '완료'
-                                    ? AppColors.green
-                                    : AppColors.accent,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  context.t(
-                                    lane == '완료'
-                                        ? 'manual.completed'
-                                        : 'work.todo',
-                                  ),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                '${entries.where((e) => e.state == lane).length}',
-                                style: const TextStyle(
-                                  color: AppColors.muted,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (rejected.isNotEmpty)
-                          Text(
-                            context.t('work.badDrop'),
-                            style: const TextStyle(
-                              color: AppColors.accent,
-                              fontSize: 13,
-                            ),
-                          ),
-                        for (final entry in entries.where(
-                          (e) => e.state == lane,
-                        ))
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: DragTarget<String>(
-                              onWillAcceptWithDetails: (details) =>
-                                  canDrop(details.data, lane, before: entry.id),
-                              onAcceptWithDetails: (details) =>
-                                  drop(details.data, lane, before: entry.id),
-                              builder: (context, candidates, rejected) =>
-                                  DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      border: candidates.isNotEmpty
-                                          ? const Border(
-                                              top: BorderSide(
-                                                color: AppColors.accent,
-                                                width: 3,
-                                              ),
-                                            )
-                                          : null,
-                                    ),
-                                    child: entry.card,
-                                  ),
-                            ),
-                          ),
-                        if (!entries.any((e) => e.state == lane))
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 24,
-                              horizontal: 8,
-                            ),
-                            child: Text(
-                              context.t('work.empty'),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.muted,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
+        children: [
+          if (expandedTaps.contains(t['id']))
+            Padding(
+              key: ValueKey('tap-inline-${t['id']}'),
+              padding: const EdgeInsets.only(top: 8),
+              child: _smallBoard(t),
+            ),
+        ],
+      ),
+    );
+    return KeyedSubtree(
+      key: ValueKey(showCompleted ? 'lane-완료' : 'lane-할일'),
+      child: tasks.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(context.t('work.empty'), style: AppText.caption),
+            )
+          : ops.canEditTasks
+          ? ReorderableListView(
+              key: const ValueKey('tap-reorder-list'),
+              primary: false,
+              padding: EdgeInsets.zero,
+              buildDefaultDragHandles: false,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              onReorder: (oldIndex, newIndex) =>
+                  _reorderTaps(tasks, oldIndex, newIndex),
+              children: [
+                for (final (index, task) in tasks.indexed) card(task, index),
+              ],
+            )
+          : Column(
+              children: [
+                for (final (index, task) in tasks.indexed) card(task, index),
+              ],
+            ),
     );
   }
 
@@ -880,24 +766,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     if (!ok && mounted) notice(actionFailureText(context, ops));
   }
 
-  Widget _draggable({
-    required String data,
-    required Widget feedback,
-    required Widget child,
-  }) {
-    if (!ops.canEditTasks) return child;
-    return MouseRegion(
-      cursor: SystemMouseCursors.grab,
-      child: Draggable<String>(
-        data: data,
-        feedback: feedback,
-        childWhenDragging: Opacity(opacity: .3, child: child),
-        maxSimultaneousDrags: ops.busy ? 0 : 1,
-        child: child,
-      ),
-    );
-  }
-
   Widget _folderBar() => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -937,9 +805,6 @@ class _TapWorkspaceState extends State<TapWorkspace> {
 
   Widget _smallBoard(Json task) {
     final all = steps(task);
-    final selected =
-        all.where((s) => s['id'] == selectedStepId).firstOrNull ??
-        all.firstOrNull;
     String subtitleFor(Json step) {
       if (step['completedAt'] != null) {
         return context.t(
@@ -961,101 +826,83 @@ class _TapWorkspaceState extends State<TapWorkspace> {
     Widget card(Json step, int index) => Padding(
       key: ValueKey('sort-small-${step['id']}'),
       padding: const EdgeInsets.only(bottom: 8),
-      child: TapCard(
-        key: ValueKey('small-${step['id']}'),
-        completionTrigger: celebratedStepId == step['id']
-            ? completionTick
-            : null,
-        level: 'Task',
-        dragHandle:
-            ops.canEditTasks &&
-                !ops.busy &&
-                task['settings']?['enforceSequence'] != true
-            ? ReorderableDragStartListener(
-                index: index,
-                child: const SizedBox(
-                  width: 32,
-                  height: 48,
-                  child: Icon(Icons.drag_indicator),
-                ),
-              )
-            : null,
-        emoji: '✓',
-        assigneeBadges: hasAssigned(step) ? assigneeBadges(step) : null,
-        accentColor: hasAssigned(step) ? assigneeColor(step) : null,
-        title: manualDisplayText(
-          context,
-          step['title'],
-          translations: ops.data?['manualContentTranslations'],
-          templateId: task['templateId'],
-          stepId: step['id'],
-        ),
-        subtitle: [
-          subtitleFor(step),
-          if (hasAssigned(step)) assigneeLabel(step),
-          if (step['settings']?['estimatedMinutes'] is int &&
-              step['settings']['estimatedMinutes'] > 0)
-            context.t(
-              'ui.audit2130',
-              args: {'p0': step['settings']['estimatedMinutes']},
-            ),
-        ].where((text) => text.isNotEmpty).join(' · '),
-
-        sequence: index + 1,
-        selected: selected?['id'] == step['id'],
-        onOpen: () async {
-          setState(() => selectedStepId = step['id']);
-          final actor = ops.actorId;
-          final workspace = ops.data?['workspaceId'], day = ops.data?['day'];
-          final destination = await showAppPage<ManualHierarchyDestination>(
+      child: ManualFoldGroup(
+        header: TapCard(
+          key: ValueKey('small-${step['id']}'),
+          completionTrigger: celebratedStepId == step['id']
+              ? completionTick
+              : null,
+          level: 'Task',
+          dragHandle:
+              ops.canEditTasks && task['settings']?['enforceSequence'] != true
+              ? ReorderableDragStartListener(
+                  index: index,
+                  enabled: !ops.busy,
+                  child: const SizedBox(
+                    width: 32,
+                    height: 48,
+                    child: Icon(Icons.drag_indicator),
+                  ),
+                )
+              : null,
+          emoji: '✓',
+          assigneeBadges: hasAssigned(step) ? assigneeBadges(step) : null,
+          accentColor: hasAssigned(step) ? assigneeColor(step) : null,
+          title: manualDisplayText(
             context,
-            builder: (_) => ManualActionSlides(
-              ops: ops,
-              task: task,
-              steps: all,
-              initialStepId: step['id'],
-              bodyBuilder: _manual,
-              onToggle: _toggle,
-              onCompleteQuantity: _completeTap,
+            step['title'],
+            translations: ops.data?['manualContentTranslations'],
+            templateId: task['templateId'],
+            stepId: step['id'],
+          ),
+          subtitle: [
+            subtitleFor(step),
+            if (hasAssigned(step)) assigneeLabel(step),
+            if (step['settings']?['estimatedMinutes'] is int &&
+                step['settings']['estimatedMinutes'] > 0)
+              context.t(
+                'ui.audit2130',
+                args: {'p0': step['settings']['estimatedMinutes']},
+              ),
+          ].where((text) => text.isNotEmpty).join(' · '),
+
+          sequence: index + 1,
+          selected: expandedMethods[task['id']] == step['id'],
+          expanded: expandedMethods[task['id']] == step['id'],
+          onOpen: () => setState(() {
+            if (expandedMethods[task['id']] == step['id']) {
+              expandedMethods.remove(task['id']);
+            } else {
+              expandedMethods[task['id']] = step['id'];
+            }
+          }),
+          checked: step['completedAt'] != null,
+          locked:
+              (step['canComplete'] ?? task['canComplete']) != true ||
+              task['preparedOutputMovementId'] != null,
+          checkEnabled: !ops.busy,
+          onCheck: () => _toggle(task, step),
+        ),
+        children: [
+          if (expandedMethods[task['id']] == step['id'])
+            Padding(
+              key: ValueKey('method-inline-${task['id']}-${step['id']}'),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: _inlineMethod(task, step),
             ),
-          );
-          if (!mounted ||
-              destination == null ||
-              ops.actorId != actor ||
-              ops.data?['workspaceId'] != workspace ||
-              ops.data?['day'] != day) {
-            return;
-          }
-          final current = groups
-              .where((t) => t['id'] == task['id'])
-              .firstOrNull;
-          if (current == null) return;
-          navigate(
-            folder: folderOf(current),
-            task: destination == ManualHierarchyDestination.tap
-                ? current['id']
-                : null,
-          );
-        },
-        checked: step['completedAt'] != null,
-        locked:
-            (step['canComplete'] ?? task['canComplete']) != true ||
-            task['preparedOutputMovementId'] != null,
-        onCheck: () {
-          setState(() => selectedStepId = step['id']);
-          _toggle(task, step);
-        },
+        ],
       ),
     );
     Widget list =
-        ops.canEditTasks &&
-            !ops.busy &&
-            task['settings']?['enforceSequence'] != true
+        ops.canEditTasks && task['settings']?['enforceSequence'] != true
         ? ReorderableListView(
+            primary: false,
+            padding: EdgeInsets.zero,
             buildDefaultDragHandles: false,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             onReorder: (oldIndex, newIndex) async {
+              if (ops.busy) return;
               final ids = all.map((s) => s['id'] as String).toList();
               if (newIndex > oldIndex) newIndex--;
               ids.insert(newIndex, ids.removeAt(oldIndex));
@@ -1225,6 +1072,77 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                 ),
               );
             },
+          ),
+        ),
+      ],
+    );
+  }
+
+  String? _methodBlocked(Json task, Json step) {
+    if (task['preparedOutputMovementId'] != null) {
+      return context.t('ui.audit1211');
+    }
+    if (step['completedAt'] != null) {
+      if (ops.readOnly && step['preview'] != true) {
+        return context.t('ui.audit1217');
+      }
+      if (!ops.canEditTasks && step['completedBy']?['id'] != ops.actorId) {
+        return context.t('work.undoRestricted');
+      }
+      return null;
+    }
+    if (task['workIssue']?['status'] == 'open' &&
+        task['workIssue']?['blocksCompletion'] != false) {
+      return context.t('work.issueBlocked');
+    }
+    if ((step['canComplete'] ?? task['canComplete']) != true) {
+      return context.t('work.blocked');
+    }
+    final all = steps(task);
+    final at = all.indexWhere((s) => s['id'] == step['id']);
+    if (task['settings']?['enforceSequence'] == true &&
+        all.take(at < 0 ? 0 : at).any((s) => s['completedAt'] == null)) {
+      return context.t('work.sequence');
+    }
+    return null;
+  }
+
+  Widget _inlineMethod(Json task, Json step) {
+    final blocked = _methodBlocked(task, step);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _manual(task, step),
+        const SizedBox(height: 16),
+        if (blocked != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(blocked, style: AppText.caption),
+          ),
+        if (ops.error != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              '${actionFailureText(context, ops)}\n${ops.error}',
+              style: AppText.caption.copyWith(color: AppColors.accent),
+            ),
+          ),
+        PressBounce(
+          child: FilledButton.icon(
+            key: ValueKey('method-check-${task['id']}-${step['id']}'),
+            onPressed: ops.busy || blocked != null
+                ? null
+                : () => _toggle(task, step),
+            icon: Icon(step['completedAt'] != null ? Icons.undo : Icons.check),
+            label: Text(
+              context.t(
+                ops.busy
+                    ? 'common.saving'
+                    : step['completedAt'] != null
+                    ? 'manual.undoCompletion'
+                    : 'work.completeAction',
+              ),
+            ),
           ),
         ),
       ],

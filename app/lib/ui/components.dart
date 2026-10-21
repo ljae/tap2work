@@ -98,6 +98,97 @@ class AppToolbarDivider extends StatelessWidget {
   );
 }
 
+/// Two views of the same content, aligned with the contextual toolbar action.
+class AppViewToggle<T> extends StatelessWidget {
+  const AppViewToggle({
+    super.key,
+    required this.values,
+    required this.selected,
+    required this.labelOf,
+    required this.onSelected,
+  });
+
+  final List<T> values;
+  final T selected;
+  final String Function(T) labelOf;
+  final ValueChanged<T> onSelected;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(AppShape.control),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final value in values)
+          Flexible(
+            child: Semantics(
+              selected: selected == value,
+              child: PressBounce(
+                child: TextButton(
+                  key: ValueKey('view-toggle-option-$value'),
+                  onPressed: () => onSelected(value),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
+                    backgroundColor: selected == value
+                        ? AppColors.lime
+                        : Colors.transparent,
+                    foregroundColor: selected == value
+                        ? AppColors.green
+                        : AppColors.muted,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppShape.control),
+                    ),
+                  ),
+                  child: Text(
+                    labelOf(value),
+                    textAlign: TextAlign.center,
+                    style: AppText.caption.copyWith(
+                      color: selected == value
+                          ? AppColors.green
+                          : AppColors.muted,
+                      fontWeight: selected == value
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
+class AppViewToolbar extends StatelessWidget {
+  const AppViewToolbar({super.key, this.leading, required this.toggle});
+  final Widget? leading;
+  final Widget toggle;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => Row(
+      children: [
+        Expanded(
+          child: Align(alignment: Alignment.centerLeft, child: leading),
+        ),
+        const SizedBox(width: 8),
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: constraints.maxWidth * .56),
+          child: toggle,
+        ),
+      ],
+    ),
+  );
+}
+
 class BrandLogo extends StatelessWidget {
   const BrandLogo({super.key, this.compact = false});
   final bool compact;

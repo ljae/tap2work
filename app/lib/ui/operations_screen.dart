@@ -649,29 +649,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                 ),
                               ],
                             ),
-                          if (tab == 0 &&
-                              manualQuery.trim().isEmpty &&
-                              ops.actor['role'] == 'owner' &&
-                              ops.data?['ownerWorkflow'] != null)
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton.icon(
-                                icon: const Icon(Icons.auto_awesome_outlined),
-                                label: Text(context.t('ui.audit408')),
-                                onPressed: () async {
-                                  final destination = await openOwnerWorkflow(
-                                    context,
-                                    ops,
-                                  );
-                                  if (mounted && destination != null) {
-                                    updateView(() {
-                                      tab = destination == 'manual' ? 1 : 0;
-                                      manualQuery = '';
-                                    });
-                                  }
-                                },
-                              ),
-                            ),
                           if (tab == 0 && manualQuery.trim().isEmpty)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
@@ -1273,9 +1250,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
   ];
 
   List<Widget> tasks() => [
-    Align(
-      alignment: Alignment.centerLeft,
-      child: AppToolbarButton(
+    TapWorkspace(
+      key: ValueKey(ops.actorId),
+      ops: ops,
+      partFilter: taskPart,
+      toolbarLeading: AppToolbarButton(
         icon: CupertinoIcons.person_2,
         label: context.t('service.title'),
         onPressed: () => showAppPage(
@@ -1283,11 +1262,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
           builder: (_) => ServiceWorkflowScreen(ops: ops),
         ),
       ),
-    ),
-    TapWorkspace(
-      key: ValueKey(ops.actorId),
-      ops: ops,
-      partFilter: taskPart,
       onStock: (task) async {
         final stock = item(task['itemId']);
         if (stock != null) await checkStock(stock, taskId: task['id']);
