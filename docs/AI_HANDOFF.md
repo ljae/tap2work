@@ -1,3 +1,7 @@
+## 2026-10-21 업무·매뉴얼 웹·앱 배포 완료
+
+웹code4b0f857/Pages39613122967 build+deploy job 성공·공개267SHA일치. CIFlutter635pass/3browser skip·Node394·analysis0/UI89/Edge/SQL5/번역/web 통과. 실제390Chrome에서 할일/완료·TAP/방법 본문 펼침·매뉴얼/레시피 확인, pageerror0/operationsPOST0. iOS23VALID/내부TestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL, 이전22취소COMPLETE 후 새 제출17c1437e-cc5c-4c9c-93e5-7306155280a3를10/21 23:14KST접수.8현재화면/MD5/순서·메모확인, 심사계정·연락처보존. Android22 internal+alpha completed·production없음. GH전체run집계만 마지막조회in_progress이나 두job·공개반영 검증완료. rootdirty보존·격리.local/work-menu-release. 이번native실행/실기기/OAuth/카메라/원어민미검증. [상세](WORK_MENU_RELEASE_2026-10-21.md), canonical revision328, 비공개증거.local/work-menu-deployment-20261021.
+
 ## 2026-10-21 업무·매뉴얼 보기 개편 로컬 완료
 
 업무는 근무 준비·인계 행 오른쪽 할일/완료 토글과 한 열 목록이다. TAP 할일과 방법·체크는 바로 아래 펼치며 별도 실행 페이지/자동 다음 장을 대체한다. TAP/할일 손잡이는 같은 ReorderableListView, 저장 대기 위치/컨트롤 크기 유지·실패 복원. 업무 운영 준비·내일 미리보기 버튼 제거. 매뉴얼 메인 분류 버튼 제거, 사장님 검토 오른쪽 매뉴얼/레시피 토글. 원본/마켓 분류·등록·검색·매뉴얼 가로 읽기·권한/수량/완료 기록 유지. 최종 수량 전 TAP은 할일에 남는다. Flutter635pass/3browser-onlyskip, 최종 관련45pass·analysis0, Node64·npmcheck/UI89, 24widget capture/9test와 최종 웹빌드 통과. 로컬 소스/빌드이며 운영 배포·네이티브 빌드·실기기/실브라우저 검증 없음. canonical D-140/revision327, 증거 `.local/work-menu-20261021/`. 기존 dirty 보존.

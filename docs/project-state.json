@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 327,
+  "revision": 328,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1567,8 +1567,8 @@
       "decision": "사용자가 업무 2열을 1열로 바꾸고 새 화면 대신 할일·방법을 바로 아래 펼치기, 할일과 같은 TAP 드래그, 두 화면의 우측 토글과 지정 버튼 제거를 명시했다.",
       "reason": "업무를 같은 화면에서 짧게 확인하고 일관된 이동 방식으로 조작하도록 사용자의 구체적 UI 요청을 반영한다. 과거 업무 슬라이드/자동 다음 페이지와 메인 분류 버튼 규칙을 이 범위에서 대체한다.",
       "source": "User conversation 2026-10-21",
-      "updatedAt": "2026-10-21T13:59:10.596720+00:00",
-      "implementation": "Local Flutter implementation. AppViewToolbar/AppViewToggle and ManualFoldGroup reuse common tokens, 48px actions and reduced motion. Pending reorder preserves card size/position and restores server order or failure; only move_tap(status:keep) and existing completion APIs. Domain manual categories, market filters, source editing, manual reading pages, owner registration, historical records and read-only no-POST boundary preserved. Completed lane uses task.completedAt so pending final quantity stays todo. Full Flutter635pass/3browser-onlyskip, final related45pass, analysis0; Node64pass; npmcheck/UI89pass; 24widget captures at320/390/1200px,1.0/1.5scale; final webbuild passed. No deployment/native build/device/browser or production-data writes."
+      "updatedAt": "2026-10-21T14:18:59.101462+00:00",
+      "implementation": "Deployed code4b0f857: Pages build/deploy jobs success,267publicSHA match, actual390px Chrome todo/done + inline task/method + manual/recipe verified/pageerror0/operationsPOST0. CI Flutter635pass/3browser-onlyskip,Node394,analysis0,UI89/Edge/5SQL/translations/web pass. iOS1.0.0(23) VALID/internalTestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL,new submission2026-10-21T14:14:09Z with8current checksum-verified screenshots and review notes; credentials/contact preserved. Android1.0.0(22) internal+alpha completed,production empty. See WORK_MENU_RELEASE_2026-10-21.md. Physical-device/native runtime/OAuth/field validation not performed."
     }
   ],
   "milestones": [
@@ -9078,7 +9078,13 @@
       "type": "implementation",
       "title": "업무 한 열 펼침·동일 드래그와 업무/매뉴얼 우측 토글 구현·로컬 검증",
       "detail": "D-140. Requested work todo/done and manual/recipe same-row toggles implemented; removed work owner preparation/tomorrow link and manual home category picker. Work TAP/action method remain inline with existing photo/editor/report/quantity/undo/permission/sequence behavior. Top TAP reorder uses native reorder gap animation, optimistic pending order, fixed controls during save and failure rollback. Actor/workspace/day resets ephemeral expansion/order. Updated architecture, product, shared UI guidelines/template and source→control→action→consumer links. Initial regression failures were stale lane/page/category selectors and changed raw-error expectations; corrected to inline behavior and retained error detail. Initial analyzer style findings fixed. Full Flutter635pass/3browser-onlyskip; final followup45pass+analysis0 after save-control stability refinement; Node64pass, npmcheck/UI89pass; capture test9pass/24PNG at320,390,1200px and1.0/1.5text, selected captures visually inspected and Korean enlarged toggle wrapping improved. Final npmrunbuild:app succeeded (27.8s compile); existing PWA deprecation/Wasm dry-run warnings, JS web artifact built. No native build, physical-device/real browser run, deployment, live API or production-data changes. Existing dirty work preserved. Evidence .local/work-menu-20261021/; original edited UI files copied before changes."
+    },
+    {
+      "at": "2026-10-21T14:18:59.101462+00:00",
+      "type": "deployment",
+      "title": "업무·매뉴얼 개편 웹 공개·iOS23 심사 제출·Android22 테스트 배포 완료",
+      "detail": "User explicitly requested web/app deployment. Isolated21selected files from latestorigin; code4b0f857/Pages39613122967 build+deploy jobs success, public267CI-artifactSHA matched. GitHub overallrun remained in_progress at final query despite bothjobs completed/success; do not conflate aggregator delay with deployment failure. CIFlutter635pass/3browser-onlyskip,Node394,analysis0,UI89/JS/Edge/5SQL/7language translations/web passed. Actual390px Chrome sample confirmed todo/done,inline tasks/method,manual/recipe and removed categories; pageerror0/operationsPOST0. Signed iOS1.0.0(23)IPA/codesign/publicauth4/8locales verified; direct upload initialcomposite409 fixed by byte-offset ordering,same file COMPLETE/VALID. Existing22 canceledCOMPLETE; new23submission17c1437e-cc5c-4c9c-93e5-7306155280a3 accepted2026-10-21T14:14:09.049Z,WAITING_FOR_REVIEW/AFTER_APPROVAL/internalTestFlight.8new screenshot COMPLETE/MD5/order and notes confirmed; old8privately preserved, reviewcredentials/contact unchanged. Transient beta404,canceledreviewGET404 and iPadprocessing timeout resolved by same-resource rereads/resume. Android22signedAAB reusedkeystore/publicAndroiddefines3/sevendictionaries,uploadSHA matched; realinternal/alpha22completed,production/betaempty. Initialcapturecwd and browserselectors corrected, finalcapture1/browser checks pass. No new native device/runtime/OAuth/camera/deletion/field review,backend/catalog/productiondata writes or userfile deletion. Rootdirtypreserved. docs/WORK_MENU_RELEASE_2026-10-21.md; privateevidence.local/work-menu-deployment-20261021."
     }
   ],
-  "updatedAt": "2026-10-21T13:59:10.596720+00:00"
+  "updatedAt": "2026-10-21T14:18:59.101462+00:00"
 }
