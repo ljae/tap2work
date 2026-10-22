@@ -1755,7 +1755,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     }
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 880),
+        constraints: const BoxConstraints(maxWidth: AppLayout.pageMaxWidth),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
           child: Column(

@@ -8,6 +8,8 @@ import 'package:http/testing.dart';
 import 'package:tap2work/main.dart';
 import 'package:tap2work/state/operations_controller.dart';
 import 'package:tap2work/state/work_controller.dart';
+import 'package:tap2work/ui/components.dart';
+import 'package:tap2work/ui/water_search.dart';
 import 'calendar_test.dart' show calendarData;
 import 'checklist_test.dart' show fixture;
 import 'manual_workspace_test.dart' show directoryData;
@@ -15,6 +17,10 @@ import 'operations_test.dart' show response;
 import 'work_controller_test.dart' show MemoryStore;
 
 const capture = bool.fromEnvironment('CAPTURE_MOBILE_SPACE');
+const captureDirectory = String.fromEnvironment(
+  'CAPTURE_DIRECTORY',
+  defaultValue: '../.local/mobile-space-20261022/captures',
+);
 
 void main() {
   setUpAll(() async {
@@ -28,7 +34,7 @@ void main() {
       await (FontLoader(font.key)..addFont(rootBundle.load(font.value))).load();
     }
   });
-  for (final width in [320.0, 390.0, 1200.0]) {
+  for (final width in [320.0, 390.0, 1200.0, 1600.0]) {
     for (final scale in [1.0, 1.5]) {
       testWidgets(
         'scroll frees content space and navigation survives at $width/$scale',
@@ -97,7 +103,7 @@ void main() {
               final bytes = await image.toByteData(
                 format: ui.ImageByteFormat.png,
               );
-              final out = Directory('../.local/mobile-space-20261022/captures')
+              final out = Directory(captureDirectory)
                 ..createSync(recursive: true);
               File(
                 '${out.path}/$name-${width.toInt()}-$scale.png',
@@ -109,6 +115,18 @@ void main() {
           final top = find.byKey(const ValueKey('workspace-top-header'));
           final originalHeight = t.getSize(top).height;
           expect(originalHeight, greaterThan(120));
+          final contentWidth = (width - 48).clamp(0.0, 1240.0);
+          void expectContentBounds(Finder finder) {
+            final bounds = t.getRect(finder);
+            expect(bounds.width, closeTo(contentWidth, .01));
+            expect(bounds.left, closeTo((width - contentWidth) / 2, .01));
+          }
+
+          expectContentBounds(find.byType(WaterSearch));
+          expectContentBounds(find.byKey(const ValueKey('work-view-toolbar')));
+          final brand = t.getRect(find.byType(BrandHeader));
+          expect(brand.width, closeTo(contentWidth + 48, .01));
+          expect(brand.left, closeTo((width - contentWidth - 48) / 2, .01));
           await shot('work');
           await t.drag(find.byKey(const ValueKey(0)), const Offset(0, -330));
           await t.pumpAndSettle();
@@ -130,6 +148,7 @@ void main() {
           await t.tap(find.byKey(const ValueKey('floating-menu-1')));
           await t.pumpAndSettle();
           await shot('manual');
+          expectContentBounds(find.byKey(const ValueKey('manual-controls')));
           expect(find.byKey(const ValueKey('manual-results')), findsNothing);
           await t.drag(
             find.byKey(const ValueKey('manual-directory')),
@@ -174,6 +193,7 @@ void main() {
           await t.pumpAndSettle();
           final controls = find.byKey(const ValueKey('schedule-header'));
           expect(t.getSize(top).height, originalHeight);
+          expectContentBounds(controls);
           await shot('week');
           await t.drag(
             find.byKey(const ValueKey('schedule-scroll')),
@@ -198,6 +218,14 @@ void main() {
           await t.tap(find.widgetWithText(TextButton, '월간'));
           await t.pumpAndSettle();
           await shot('month');
+          expectContentBounds(controls);
+          await t.tap(find.byKey(const ValueKey('floating-menu-3')));
+          await t.pumpAndSettle();
+          expectContentBounds(
+            find.byKey(const ValueKey('workspace-content-3')),
+          );
+          expectContentBounds(find.byType(WaterSearch));
+          await shot('store');
           expect(writes, 0);
         },
       );

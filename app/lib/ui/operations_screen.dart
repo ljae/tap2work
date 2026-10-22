@@ -293,7 +293,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
     child: Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1240),
+        constraints: const BoxConstraints(maxWidth: AppLayout.contentMaxWidth),
         child: WaterSearch(
           controller: manualSearch,
           onChanged: (value) => updateView(() => manualQuery = value),
@@ -312,7 +312,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1240),
+          constraints: const BoxConstraints(
+            maxWidth: AppLayout.contentMaxWidth,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -631,9 +633,17 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               key: const ValueKey('workspace-top-header'),
                               child: Column(
                                 children: [
-                                  SizedBox(
-                                    height: 72,
-                                    child: workspaceHeader(),
+                                  Center(
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: AppLayout.pageMaxWidth,
+                                      ),
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        height: 72,
+                                        child: workspaceHeader(),
+                                      ),
+                                    ),
                                   ),
                                   manualSearchBar(),
                                 ],
@@ -669,7 +679,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                   child: Center(
                                     child: ConstrainedBox(
                                       constraints: const BoxConstraints(
-                                        maxWidth: 1240,
+                                        maxWidth: AppLayout.contentMaxWidth,
                                       ),
                                       child: SizedBox(
                                         width: double.infinity,
@@ -777,9 +787,17 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                           24,
                                           0,
                                         ),
-                                        child: StaffWorkspace(
-                                          ops: ops,
-                                          work: widget.work,
+                                        child: Center(
+                                          child: ConstrainedBox(
+                                            constraints: const BoxConstraints(
+                                              maxWidth:
+                                                  AppLayout.contentMaxWidth,
+                                            ),
+                                            child: StaffWorkspace(
+                                              ops: ops,
+                                              work: widget.work,
+                                            ),
+                                          ),
                                         ),
                                       )
                                     : RefreshIndicator(
@@ -796,14 +814,16 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                           ),
                                           child: Center(
                                             child: ConstrainedBox(
-                                              constraints: BoxConstraints(
-                                                maxWidth: tab == 2
-                                                    ? double.infinity
-                                                    : 1240,
+                                              constraints: const BoxConstraints(
+                                                maxWidth:
+                                                    AppLayout.contentMaxWidth,
                                               ),
                                               child: Column(
+                                                key: ValueKey(
+                                                  'workspace-content-$tab',
+                                                ),
                                                 crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                                    CrossAxisAlignment.stretch,
                                                 children: [
                                                   ...switch (tab) {
                                                     0 => tasks(),

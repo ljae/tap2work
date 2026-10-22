@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 330,
+  "revision": 331,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1582,6 +1582,19 @@
       "source": "User conversation 2026-10-22; docs/MOBILE_WORKSPACE_REDESIGN_2026-10-22.md",
       "updatedAt": "2026-10-22T14:56:15.472Z",
       "implementation": "Web deployed codea40eab1/Actions39798383504 completed-success; Pages7255412881 success2026-10-22T14:53:23Z,267publicSHA matches. GitHub results incident caused stale build job aggregate in_progress despite all steps/deploy success. Isolated Flutter645pass/3browser-onlyskip,analysis0,Node394,UI92/JS; CI Edge/SQL5/translations/web pass. Actual390Chrome public sample expanded work scroll collapse/restore,folder select,week/month/options rendering verified with0pageerrors/0operationsPOST. Browser popup option selection remains widget-tested only. Web only; no native/backend/data changes. docs/MOBILE_WORKSPACE_WEB_RELEASE_2026-10-22.md."
+    },
+    {
+      "id": "D-142",
+      "category": "Shared destination layout",
+      "title": "네 메뉴 본문·상단의 가로 폭 통일",
+      "status": "confirmed",
+      "previous": "업무·우리매장/검색은 본문1240px, 매뉴얼은 여백 포함880px, 근무표와 브랜드는 별도 최대 폭 없이 표시.",
+      "next": "업무·매뉴얼·근무표·우리매장과 검색/도구는 공통 본문 최대1240px 및 좌우24px. 브랜드/매뉴얼 외곽1288px 중앙 정렬, 작은 화면은 같은 여백 안을 채움.",
+      "decision": "사용자가 메뉴별 width를 맞추어 달라고 요청했다.",
+      "reason": "메뉴를 바꿀 때 본문과 상단의 좌우 기준이 달라지지 않도록 공통 AppLayout 토큰을 사용한다. D-141의 한 열 매뉴얼과 스크롤 접기는 유지한다.",
+      "source": "User conversation 2026-10-22 menu-width follow-up",
+      "updatedAt": "2026-10-22T15:01:09.444Z",
+      "implementation": "Local layout complete;26relevant tests pass at320/390/1200/1600px x1.0/1.5text including actual bounds for four destinations/search/brand,analysis0,UI92pass.88captures generated/desktop manual and roster visually reviewed. No data/action changes. Web follow-up pending."
     }
   ],
   "milestones": [
@@ -9115,7 +9128,13 @@
       "type": "deployment",
       "title": "휴대폰 작업 공간 리디자인 웹 공개 반영·검증 완료",
       "detail": "User requested web deployment. Isolated25selected files from origin034d023,codea40eab11cf0943eaa1d897caaff08a4b6fc7cc61 pushedmain; Actions39798383504 overallcompleted/success,Pages7255412881 success2026-10-22T14:53:23Z. Official GitHub Actions results incident caused stale queued/buildjob aggregate; all build steps and deploy success,267publicCIartifactSHA matches independently confirm release. Artifact12435396081 ZIPdigest matched. IsolatedFlutter645pass/3browser-onlyskip,analysis0,Node394,npmcheck/UI92;CI alsoEdge/SQL5/translations/reviewweb passed. Actual390x844Chrome public sample work expansion→wheel collapse/current-menu restore,manual folder select,week/month/options rendering pass;pageerror0/operationsPOST0. Initial browser short list produced no scroll; expanding task and method fixed harness. Python old tarfilter unsupported fixed with path/type validation; productsource unchanged. Browser popup selection not claimed beyond existing widgettests. Web only: no iOS/Android,backend/catalog/productiondata changes. Rootdirty preserved; private evidence.local/mobile-space-deployment-20261022; docs/MOBILE_WORKSPACE_WEB_RELEASE_2026-10-22.md."
+    },
+    {
+      "at": "2026-10-22T15:01:09.444Z",
+      "type": "implementation",
+      "title": "네 메뉴·검색·브랜드의 공통 가로 폭 적용",
+      "detail": "D-142. AppLayout.contentMaxWidth1240/pageMaxWidth1288; manual old880 cap replaced, roster and brand centered to shared bounds,work/store Column stretches. Search and part toolbar reuse token; mobile24px gutters preserved. Related26tests/analysis0/UI92 pass with320/390/1200/1600px x1.0/1.5text;88captures and desktop manual/roster review. Initial new-test WaterSearch import missing fixed then passing. Shared architecture/guideline/template updated; no settings/actions/APIs/schema/native changes. Private.local/menu-width-20261022/before preserves baseline; web deployment follows."
     }
   ],
-  "updatedAt": "2026-10-22T14:56:15.472Z"
+  "updatedAt": "2026-10-22T15:01:09.444Z"
 }

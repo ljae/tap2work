@@ -32,6 +32,12 @@ abstract final class AppSpacing {
   static const section = 32.0;
 }
 
+/// Shared horizontal bounds for the four main destinations and their header.
+abstract final class AppLayout {
+  static const contentMaxWidth = 1240.0;
+  static const pageMaxWidth = contentMaxWidth + AppSpacing.large * 2;
+}
+
 abstract final class AppText {
   static const section = TextStyle(
     fontFamily: 'Pretendard',
