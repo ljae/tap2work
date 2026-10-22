@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 331,
+  "revision": 332,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1593,8 +1593,8 @@
       "decision": "사용자가 메뉴별 width를 맞추어 달라고 요청했다.",
       "reason": "메뉴를 바꿀 때 본문과 상단의 좌우 기준이 달라지지 않도록 공통 AppLayout 토큰을 사용한다. D-141의 한 열 매뉴얼과 스크롤 접기는 유지한다.",
       "source": "User conversation 2026-10-22 menu-width follow-up",
-      "updatedAt": "2026-10-22T15:01:09.444Z",
-      "implementation": "Local layout complete;26relevant tests pass at320/390/1200/1600px x1.0/1.5text including actual bounds for four destinations/search/brand,analysis0,UI92pass.88captures generated/desktop manual and roster visually reviewed. No data/action changes. Web follow-up pending."
+      "updatedAt": "2026-10-22T15:10:49.788Z",
+      "implementation": "Web deployed2ad0874/Actions39800888397 overall/build/deploy completed-success,Pages7255788521 success2026-10-22T15:08:41Z,267publicSHA matches. CIFlutter647pass/3browser-onlyskip,analysis0,Node394,UI92/JS/Edge/SQL5/translations/web pass. Local26+8tests/88captures verify bounds320/390/1200/1600px x1.0/1.5text;390Chrome scroll/folder/calendar and1600Chrome four destinations/search alignment visually verified,pageerrors0/operationsPOST0. Web only; docs/MENU_WIDTH_WEB_RELEASE_2026-10-23.md."
     }
   ],
   "milestones": [
@@ -9134,7 +9134,13 @@
       "type": "implementation",
       "title": "네 메뉴·검색·브랜드의 공통 가로 폭 적용",
       "detail": "D-142. AppLayout.contentMaxWidth1240/pageMaxWidth1288; manual old880 cap replaced, roster and brand centered to shared bounds,work/store Column stretches. Search and part toolbar reuse token; mobile24px gutters preserved. Related26tests/analysis0/UI92 pass with320/390/1200/1600px x1.0/1.5text;88captures and desktop manual/roster review. Initial new-test WaterSearch import missing fixed then passing. Shared architecture/guideline/template updated; no settings/actions/APIs/schema/native changes. Private.local/menu-width-20261022/before preserves baseline; web deployment follows."
+    },
+    {
+      "at": "2026-10-22T15:10:49.788Z",
+      "type": "deployment",
+      "title": "네 메뉴 너비 통일 웹 공개 반영·휴대폰/데스크톱 검증 완료",
+      "detail": "D-142. Isolated8selected files from prior web release,code2ad0874edfd663df9ef9bb9401cf9488f478bc51. Actions39800888397 run/build/deploy completed-success,Pages7255788521 success2026-10-22T15:08:41Z;267publicCIartifactSHA and artifact12435867217 ZIPdigest match. CIFlutter647pass/3browser-onlyskip,analysis0,Node394,UI92/JS/Edge/SQL5/translations/web pass. Local26+8tests,88widget captures320/390/1200/1600px x1.0/1.5text including actual bounds for four destinations/search/brand. Public390Chrome scrollcollapse/restore/folder/week-month/options rendering,1600Chrome fourdestinations/same searchbounds and visual alignment confirmed;bothpageerrors0/operationsPOST0. GitHub queued status delayed actual execution; inspected logs/artifact/deployment/finalsuccess. Initial missing test import fixed before passing. Originaldirty preserved; no native/backend/catalog/live-data changes. docs/MENU_WIDTH_WEB_RELEASE_2026-10-23.md;private.local/menu-width-20261022 and.local/menu-width-deployment-20261023."
     }
   ],
-  "updatedAt": "2026-10-22T15:01:09.444Z"
+  "updatedAt": "2026-10-22T15:10:49.788Z"
 }
