@@ -1,3 +1,7 @@
+## 2026-10-22 휴대폰 작업 공간 리디자인 로컬 완료
+
+D-141/revision329. 세로 스크롤에 브랜드·검색·파트/매뉴얼/근무표 도구를 함께 접고 역방향/현재 하단 메뉴 재선택으로 복귀한다. 키보드·접근성 탐색·줄어든 모션 대응. 매뉴얼은 한 열880px 목록, 폴더 이동 시트와 직접 편집 연필. 근무표 날짜/보기/설정 행·선택 날짜·월간 상태 표현 개선, 기존 내용/저장 계약 유지. 최종 Flutter645pass/3browser-onlyskip·analysis0·관련 서버36·UI92/npmcheck·JS web build 통과.60widget capture(320/390/1200px×1.0/1.5), 실제390Chrome 접기/복귀·폴더·주간/월간·설정 표시 확인(pageerror0/operationsPOST0). 브라우저 팝업 선택의 접근성 barrier/selector timeout으로 선택 동작은 위젯 검증으로 한정한다. 운영 배포/native build/실기기/실계정 저장 미수행. 기존 dirty 보존. [상세](MOBILE_WORKSPACE_REDESIGN_2026-10-22.md), 비공개 증거 `.local/mobile-space-20261022/`. 아래 배포 이력은 기존 공개 버전이다.
+
 ## 2026-10-21 업무·매뉴얼 웹·앱 배포 완료
 
 웹code4b0f857/Pages39613122967 build+deploy job 성공·공개267SHA일치. CIFlutter635pass/3browser skip·Node394·analysis0/UI89/Edge/SQL5/번역/web 통과. 실제390Chrome에서 할일/완료·TAP/방법 본문 펼침·매뉴얼/레시피 확인, pageerror0/operationsPOST0. iOS23VALID/내부TestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL, 이전22취소COMPLETE 후 새 제출17c1437e-cc5c-4c9c-93e5-7306155280a3를10/21 23:14KST접수.8현재화면/MD5/순서·메모확인, 심사계정·연락처보존. Android22 internal+alpha completed·production없음. GH전체run집계만 마지막조회in_progress이나 두job·공개반영 검증완료. rootdirty보존·격리.local/work-menu-release. 이번native실행/실기기/OAuth/카메라/원어민미검증. [상세](WORK_MENU_RELEASE_2026-10-21.md), canonical revision328, 비공개증거.local/work-menu-deployment-20261021.

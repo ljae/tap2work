@@ -104,6 +104,8 @@ void main() {
         expect(rects[1].left, rects[4].left);
         expect(rects[2].left, rects[5].left);
         expect(rects[0].left, rects[6].left);
+        await tester.tap(find.byKey(const ValueKey('calendar-options')));
+        await tester.pumpAndSettle();
         await tester.ensureVisible(
           find.byKey(const ValueKey('calendar-add-crew')),
         );
@@ -186,7 +188,9 @@ void main() {
       expect(sent?['start'], '08:00');
       expect(sent?['scheduleDate'], '2026-09-28');
       expect(sent?['dayOffset'], 0);
-      await tester.tap(find.text('24시간 보기'));
+      await tester.tap(find.byKey(const ValueKey('calendar-options')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('calendar-full-day')));
       await tester.pumpAndSettle();
       await tester.longPress(source);
       await tester.pumpAndSettle();

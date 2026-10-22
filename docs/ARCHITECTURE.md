@@ -1,3 +1,11 @@
+## 2026-10-22 스크롤 헤더·한 열 매뉴얼·근무표 표현
+
+`OperationsScreen`의 `AppScrollHeaderScope`는 브랜드/검색, 업무 파트 필터, 매뉴얼·근무표 도구의 `AppScrollHeader`를 하나의 상태로 제어한다. 세로 사용자 스크롤18px 이후 접고 역방향12px/위쪽 overscroll에서 펼친다. 가로 스크롤·프로그램 이동은 접힘을 만들지 않는다. actor/workspace/목적지 변경 및 현재 하단 메뉴 재선택은 복귀한다. 헤더를 unmount하지 않아 검색/도구 상태가 유지되며 숨긴 조작은 포커스·접근성·포인터 대상에서 제외한다. 공통260ms와 reduced motion을 따르고 키보드/accessibleNavigation 사용 시 스크롤에 의해 숨기지 않는다. 오류·저장 진행·하단 목적지와 근무표의 pinned 날짜/파트 정보는 이 상태와 분리한다.
+
+`ManualWorkspace`는 최대880px 한 열 디렉토리다. 별도 오른쪽 내용 목록/폰 화면 전환을 제거하고 `browsingFolder`로 전체 또는 선택 폴더를 표시한다. `chooseFolder`는 기존 폴더 ID·번역 이름·개수를 읽는 시트이며 쓰기 없이 스크롤을 처음으로 되돌린다. 닫기/매장 변경의 늦은 결과를 무시한다. 기존 폴더/TAP/Task ID, 펼침, 직접 편집·이동 메뉴/드래그와 임시 체험 상태를 유지한다. `navigateHierarchy`는 실제 폴더를 선택·TAP을 펼치고 기존 가로 읽기 경로를 유지한다. 목록 연필은 정확한 `ManualTapEditor` 또는 `ManualTaskEditor(templateId,sourceStepId)`를 연다. 편집모드에서도 폴더 선택은 유지되며 역할/매장 변경은 보기 상태를 초기화한다.
+
+`CalendarScreen.viewControls`는 날짜 행과 오늘/주간·월간/설정 행을 분리한다. 설정 메뉴는 기존 fullDay 임시 값, `openWorkplaceHours`, `addShift`로 연결한다. 영업/브레이크 범례, 요일 선택, 선택 날짜/파트 고정 헤더, 시간축과 배정 편집·신청·실제 출퇴근 계약은 유지한다. 월간은 기존42칸·추가 휴무/영업/과거 날짜 동작을 유지한다. 작은 칸에서는 상태 아이콘과 범례/날짜 전체 tooltip·semantics, 공휴일 이름 목록으로 내용을 보존한다. 두 자리 날짜의 실제 확대 글자 폭을 측정하고 필요할 때만 내부 가로 스크롤을 제공한다. `AppViewToggle(fill:true)`는 근무표 두 선택지의 폭을 균등하게 채운다. 서버/API/데이터 스키마 변경 없음.
+
 ## 2026-10-21 업무 한 열 펼침·보기 토글
 
 `TapWorkspace`는 `showCompleted`로 할일/완료 중 한 목록을 표시한다. `OperationsScreen.tasks`가 전달한 근무 준비·인계와 토글을 공통 `AppViewToolbar` 같은 행에 배치한다. `expandedTaps`와 TAP별 `expandedMethods`는 `ManualFoldGroup`을 통해 TAP→할일→방법을 기존 본문 안에 펼치며 읽기에서 route를 만들지 않는다. 펼친 방법에는 기존 본문·사진·이상·편집과 완료/되돌리기를 제공하고 선택한 방법을 유지한다. 이는 과거 업무의 별도 행동 슬라이드/자동 다음 페이지 규칙을 대체한다. 매뉴얼 목적지의 가로 읽기 페이지는 유지한다.

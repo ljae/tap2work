@@ -47,9 +47,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   List<Json> rows = [], folders = [], taps = [];
   int revision = -1;
   String actor = '';
-  String? scopeGroup, scopeTap, selectedId, category;
+  Object? workspace;
+  String? scopeGroup, scopeTap, selectedId, category, browsingFolder;
   bool editing = false;
-  bool showTree = true, previewDirty = false, recipes = false;
+  bool previewDirty = false, recipes = false;
   final expanded = <String>{};
   OperationsController get ops => widget.ops;
   bool get canEdit => ops.canEditTasks && !ops.busy;
@@ -141,14 +142,15 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       scopeGroup = recipes ? null : added.first['folderId'];
       scopeTap = recipes ? null : added.first['id'];
       selectedId = null;
-      showTree = false;
+      browsingFolder = scopeGroup;
       expanded.addAll(folders.map((f) => 'group:${f['id']}'));
       expanded.addAll(taps.map((t) => 'tap:${t['tapId']}'));
     });
   }
 
   void sync({bool force = false}) {
-    final changedActor = actor != ops.actorId;
+    final changedActor =
+        actor != ops.actorId || workspace != ops.data?['workspaceId'];
     if (!force &&
         !changedActor &&
         (previewDirty || revision == ops.data?['revision'])) {
@@ -233,8 +235,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     }
     revision = ops.data?['revision'] ?? 0;
     actor = ops.actorId;
+    workspace = ops.data?['workspaceId'];
     previewDirty = false;
     if (changedActor) {
+      browsingFolder = null;
       editing = false;
       scopeGroup = null;
       scopeTap = null;
@@ -297,14 +301,6 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     return '${context.t('work.approxMinutes', args: {'minutes': total})}${known.length == tasks.length ? '' : '+'}';
   }
 
-  List<Json> get results => rows
-      .where(
-        (row) =>
-            (scopeGroup == null || row['folderId'] == scopeGroup) &&
-            (scopeTap == null || row['tapId'] == scopeTap) &&
-            matches(row),
-      )
-      .toList();
   void notice(String value) => ScaffoldMessenger.of(
     context,
   ).showSnackBar(SnackBar(content: Text(value)));
@@ -669,7 +665,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               tooltip: expanded.contains(key)
                   ? context.t('ui.audit779')
                   : context.t('ui.audit778'),
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 44),
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               icon: Icon(
                 expanded.contains(key) || widget.query.isNotEmpty
                     ? Icons.expand_more
@@ -786,10 +782,12 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           if (!editing && editable && canEdit && kind != 'group')
             IconButton(
               key: ValueKey('manual-detail-$key'),
-              tooltip: kind == 'tap'
-                  ? context.t('ui.audit846')
-                  : context.t('ui.audit297'),
-              icon: const Icon(Icons.tune, size: 18),
+              tooltip: context.t('manual.edit'),
+              icon: const Icon(
+                CupertinoIcons.pencil,
+                size: 18,
+                color: AppColors.accent,
+              ),
               onPressed: () => showAppSheet(
                 context,
                 builder: (_) => kind == 'tap'
@@ -956,7 +954,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     scopeGroup = null;
     scopeTap = null;
     selectedId = null;
-    showTree = true;
+    browsingFolder = null;
   });
   void navigateHierarchy(Json row, ManualHierarchyDestination destination) {
     setState(() {
@@ -967,7 +965,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
           ? row['tapId'] ?? row['templateId']
           : null;
       selectedId = null;
-      showTree = destination == ManualHierarchyDestination.folder;
+      browsingFolder = scopeGroup;
       expanded.add('group:$scopeGroup');
       if (scopeTap != null) expanded.add('tap:$scopeTap');
     });
@@ -1020,25 +1018,12 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   }
 
   Widget directory() {
-    final nodes = <Widget>[
-      if (!editing && MediaQuery.sizeOf(context).height >= 600)
-        Padding(padding: const EdgeInsets.all(8), child: hierarchy()),
-      if (MediaQuery.sizeOf(context).height >= 600)
-        ListTile(
-          dense: true,
-          leading: const Icon(CupertinoIcons.folder),
-          title: Text(context.t('manual.all')),
-          selected: scopeGroup == null && scopeTap == null,
-          onTap: () => setState(() {
-            scopeGroup = null;
-            scopeTap = null;
-            selectedId = null;
-          }),
-        ),
-    ];
+    final nodes = <Widget>[];
     for (final folder in folders) {
       if (folder['id'] == 'store-recipes') continue;
+      if (browsingFolder != null && folder['id'] != browsingFolder) continue;
       if (!editing &&
+          browsingFolder == null &&
           ops.data?['manualBusinessProfile'] != null &&
           !taps.any((t) => t['folderId'] == folder['id'])) {
         continue;
@@ -1155,6 +1140,14 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
               ),
               depth: 2,
               editable: task['editable'] == true,
+              durationText: task['editable'] == true
+                  ? duration([task])
+                  : context.t(
+                      'ui.audit1089',
+                      args: {
+                        'p0': duration([task]),
+                      },
+                    ),
               selected: selectedId == task['id'],
               onTap: () {
                 setState(() {
@@ -1232,265 +1225,145 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
   }
 
   Widget content({
-    Json? selected,
+    required Json selected,
     ValueChanged<ManualHierarchyDestination>? onNavigate,
   }) {
-    final found = results;
-    if (selected != null) {
-      return ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          hierarchy(selected: selected, onNavigate: onNavigate),
-          const SizedBox(height: 16),
-          ManualCustomizationBadge(value: selected['manualCustomization']),
-          SharedPlaceLinks(ops: ops, row: selected),
-          Text(
-            '${folderLabel(selected['folderId'], selected['folderName'])} / ${tapLabel(selected)} / ${context.t(['recipe', 'startup', 'reference'].contains(manualCategoryOf(selected)) ? 'manual.structure.section' : 'manual.structure.task')}',
-            style: const TextStyle(fontSize: 13, color: AppColors.muted),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            duration([selected]),
-            style: const TextStyle(fontSize: 13, color: AppColors.muted),
-          ),
-          for (final id in (selected['knowledgeIds'] as List? ?? []))
-            ExpansionTile(
-              title: Text(
-                context.t(
-                  'ui.audit1032',
-                  args: {
-                    'p0':
-                        ops
-                            .rows('manualSearch')
-                            .where((r) => r['templateId'] == id)
-                            .firstOrNull?['tapTitle'] ??
-                        context.t('ui.audit1233'),
-                  },
-                ),
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        hierarchy(selected: selected, onNavigate: onNavigate),
+        const SizedBox(height: 16),
+        ManualCustomizationBadge(value: selected['manualCustomization']),
+        SharedPlaceLinks(ops: ops, row: selected),
+        Text(
+          '${folderLabel(selected['folderId'], selected['folderName'])} / ${tapLabel(selected)} / ${context.t(['recipe', 'startup', 'reference'].contains(manualCategoryOf(selected)) ? 'manual.structure.section' : 'manual.structure.task')}',
+          style: const TextStyle(fontSize: 13, color: AppColors.muted),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          duration([selected]),
+          style: const TextStyle(fontSize: 13, color: AppColors.muted),
+        ),
+        for (final id in (selected['knowledgeIds'] as List? ?? []))
+          ExpansionTile(
+            title: Text(
+              context.t(
+                'ui.audit1032',
+                args: {
+                  'p0':
+                      ops
+                          .rows('manualSearch')
+                          .where((r) => r['templateId'] == id)
+                          .firstOrNull?['tapTitle'] ??
+                      context.t('ui.audit1233'),
+                },
               ),
-              children: [
-                for (final row
-                    in ops
-                        .rows('manualSearch')
-                        .where((r) => r['templateId'] == id))
-                  ListTile(
-                    title: Text('${row['title']}'),
-                    subtitle: Text('${row['manual']}'),
-                  ),
-              ],
             ),
-          if (canEdit &&
-              selected['editable'] == true &&
-              selected['templateId'] != null &&
-              selected['sourceStepId'] != null)
-            Wrap(
-              spacing: 8,
-              children: [
-                PressBounce(
-                  child: TextButton.icon(
-                    icon: const Icon(CupertinoIcons.clock),
-                    label: Text(context.t('manual.tapSettings')),
-                    onPressed: () async {
-                      await showAppSheet(
-                        context,
-                        builder: (_) => TapSettingsScreen(
-                          ops: ops,
-                          initialTemplateId: selected['templateId'],
-                        ),
-                      );
-                      if (mounted) setState(() => sync(force: true));
-                    },
-                  ),
+            children: [
+              for (final row
+                  in ops
+                      .rows('manualSearch')
+                      .where((r) => r['templateId'] == id))
+                ListTile(
+                  title: Text('${row['title']}'),
+                  subtitle: Text('${row['manual']}'),
                 ),
-                PressBounce(
-                  child: TextButton.icon(
-                    icon: const Icon(CupertinoIcons.pencil),
-                    label: Text(context.t('manual.edit')),
-                    onPressed: () async {
-                      await showAppSheet(
-                        context,
-                        builder: (_) => ManualTaskEditor(
-                          ops: ops,
-                          templateId: selected['templateId'],
-                          sourceStepId: selected['sourceStepId'],
-                        ),
-                      );
-                      if (mounted) setState(() => sync(force: true));
-                    },
-                  ),
-                ),
-              ],
-            ),
-          TranslatedContent(
-            ops: ops,
-            kind: 'manual',
-            entityId: selected['templateId'],
-            stepId: selected['sourceStepId'],
-            source: selected,
-            builder: (context, displayed) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${displayed['title']}',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SelectableText(
-                  '${displayed['manual'] ?? ''}',
-                  style: const TextStyle(fontSize: 16, height: 1.65),
-                ),
-                if ('${displayed['tip'] ?? ''}'.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  Information('${displayed['tip']}'),
-                ],
-              ],
-            ),
+            ],
           ),
-          if (selected['linkedPlace'] is Map)
-            LinkedPlaceGuide(
-              ops: ops,
-              place: Map<String, dynamic>.from(selected['linkedPlace']),
-            ),
-          if ('${selected['imageUrl'] ?? ''}'.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            placePhoto(selected['imageUrl'], ops: ops),
-          ],
-          for (final link in {'videoUrl': '영상', 'sourceUrl': '참고 자료'}.entries)
-            if ('${selected[link.key] ?? ''}'.isNotEmpty)
+        if (canEdit &&
+            selected['editable'] == true &&
+            selected['templateId'] != null &&
+            selected['sourceStepId'] != null)
+          Wrap(
+            spacing: 8,
+            children: [
               PressBounce(
                 child: TextButton.icon(
-                  icon: const Icon(CupertinoIcons.arrow_up_right),
-                  label: Text(link.value),
+                  icon: const Icon(CupertinoIcons.clock),
+                  label: Text(context.t('manual.tapSettings')),
                   onPressed: () async {
-                    final uri = Uri.tryParse(selected[link.key]);
-                    if (uri != null && uri.scheme == 'https') {
-                      await launchUrl(
-                        uri,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    }
+                    await showAppSheet(
+                      context,
+                      builder: (_) => TapSettingsScreen(
+                        ops: ops,
+                        initialTemplateId: selected['templateId'],
+                      ),
+                    );
+                    if (mounted) setState(() => sync(force: true));
                   },
                 ),
               ),
-        ],
-      );
-    }
-    return ListView.builder(
-      key: const ValueKey('manual-results'),
-      padding: const EdgeInsets.all(12),
-      itemCount: found.isEmpty ? 1 : found.length,
-      itemBuilder: (_, index) {
-        if (found.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              widget.query.trim().isNotEmpty
-                  ? context.t('manual.noResults')
-                  : canEdit
-                  ? context.t('ui.audit1088')
-                  : context.t('manual.empty'),
-            ),
-          );
-        }
-        final row = found[index];
-        final source = ops
-            .rows('taskTemplates')
-            .where((t) => t['id'] == row['templateId'])
-            .firstOrNull;
-        final linked = source?['menuManualId'] != null;
-        return DirectEditFrame(
-          enabled: canEdit,
-          key: ValueKey('manual-content-frame-${row['id']}'),
-          active: editing && row['editable'] == true,
-          onEnter: () => setState(() => editing = true),
-          onRename: () => directEditNode(context, ops, 'edit_manual_node', {
-            'kind': 'task',
-            'id': row['sourceStepId'],
-            'parentId': row['templateId'],
-            'operation': 'rename',
-          }, row['title']),
-          onDelete: linked
-              ? null
-              : () => directEditNode(context, ops, 'edit_manual_node', {
-                  'kind': 'task',
-                  'id': row['sourceStepId'],
-                  'parentId': row['templateId'],
-                  'operation': 'delete',
-                }, row['title']),
-          onMove: () => chooseDestination(
-            drag('task', row['sourceStepId'], tapId: row['templateId']),
-          ),
-          onSettings: () => showAppSheet(
-            context,
-            builder: (_) => ManualTaskEditor(
-              ops: ops,
-              templateId: row['templateId'],
-              sourceStepId: row['sourceStepId'],
-            ),
-          ),
-          child: AppCard(
-            margin: const EdgeInsets.only(bottom: 8),
-            child: ListTile(
-              title: Text(
-                manualDisplayText(
-                  context,
-                  row['title'],
-                  translations: ops.data?['manualContentTranslations'],
-                  templateId: row['templateId'],
-                  stepId: row['sourceStepId'],
+              PressBounce(
+                child: TextButton.icon(
+                  icon: const Icon(CupertinoIcons.pencil),
+                  label: Text(context.t('manual.edit')),
+                  onPressed: () async {
+                    await showAppSheet(
+                      context,
+                      builder: (_) => ManualTaskEditor(
+                        ops: ops,
+                        templateId: selected['templateId'],
+                        sourceStepId: selected['sourceStepId'],
+                      ),
+                    );
+                    if (mounted) setState(() => sync(force: true));
+                  },
                 ),
-                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ManualCustomizationBadge(value: row['manualCustomization']),
-                  Text(
-                    row['editable'] == true
-                        ? duration([row])
-                        : context.t(
-                            'ui.audit1089',
-                            args: {
-                              'p0': duration([row]),
-                            },
-                          ),
-                    maxLines: 2,
-                  ),
-                ],
-              ),
-              trailing: Icon(
-                editing && row['editable'] == true
-                    ? CupertinoIcons.pencil
-                    : CupertinoIcons.chevron_right,
-                size: 16,
-              ),
-              onTap: () {
-                if (editing && canEdit && row['editable'] == true) {
-                  showAppSheet(
-                    context,
-                    builder: (_) => ManualTaskEditor(
-                      ops: ops,
-                      templateId: row['templateId'],
-                      sourceStepId: row['sourceStepId'],
-                    ),
-                  );
-                  return;
-                }
-                setState(() {
-                  selectedId = row['id'];
-                  expanded.add('group:${row['folderId']}');
-                  expanded.add('tap:${row['tapId']}');
-                  showTree = false;
-                });
-                openManual(row);
-              },
-            ),
+            ],
           ),
-        );
-      },
+        TranslatedContent(
+          ops: ops,
+          kind: 'manual',
+          entityId: selected['templateId'],
+          stepId: selected['sourceStepId'],
+          source: selected,
+          builder: (context, displayed) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${displayed['title']}',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 20),
+              SelectableText(
+                '${displayed['manual'] ?? ''}',
+                style: const TextStyle(fontSize: 16, height: 1.65),
+              ),
+              if ('${displayed['tip'] ?? ''}'.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                Information('${displayed['tip']}'),
+              ],
+            ],
+          ),
+        ),
+        if (selected['linkedPlace'] is Map)
+          LinkedPlaceGuide(
+            ops: ops,
+            place: Map<String, dynamic>.from(selected['linkedPlace']),
+          ),
+        if ('${selected['imageUrl'] ?? ''}'.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          placePhoto(selected['imageUrl'], ops: ops),
+        ],
+        for (final link in {'videoUrl': '영상', 'sourceUrl': '참고 자료'}.entries)
+          if ('${selected[link.key] ?? ''}'.isNotEmpty)
+            PressBounce(
+              child: TextButton.icon(
+                icon: const Icon(CupertinoIcons.arrow_up_right),
+                label: Text(link.value),
+                onPressed: () async {
+                  final uri = Uri.tryParse(selected[link.key]);
+                  if (uri != null && uri.scheme == 'https') {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+              ),
+            ),
+      ],
     );
   }
 
@@ -1742,7 +1615,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                               widget.onClearSearch?.call();
                               setState(() {
                                 editing = true;
-                                showTree = true;
+                                browsingFolder = null;
                               });
                               await directEditNode(
                                 context,
@@ -1802,162 +1675,201 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
     ],
   );
 
+  List<Json> get visibleFolders => folders
+      .where(
+        (folder) =>
+            folder['id'] != 'store-recipes' &&
+            (editing ||
+                ops.data?['manualBusinessProfile'] == null ||
+                taps.any((tap) => tap['folderId'] == folder['id'])),
+      )
+      .toList();
+
+  Future<void> chooseFolder() async {
+    final openingScope = (ops.actorId, ops.data?['workspaceId']);
+    final folder = await showAppSheet<String>(
+      context,
+      builder: (context) => AppEditorScaffold(
+        title: context.t('manual.chooseFolder'),
+        body: ListView(
+          children: [
+            ListTile(
+              key: const ValueKey('manual-folder-all'),
+              leading: const Icon(CupertinoIcons.folder),
+              title: Text(context.t('manual.all')),
+              trailing: browsingFolder == null
+                  ? const Icon(Icons.check, color: AppColors.green)
+                  : null,
+              onTap: () => Navigator.pop(context, ''),
+            ),
+            for (final folder in visibleFolders)
+              ListTile(
+                key: ValueKey('manual-folder-choice-${folder['id']}'),
+                leading: const Icon(CupertinoIcons.folder),
+                title: Text(folderLabel(folder['id'])),
+                subtitle: Text(
+                  context.t(
+                    'manual.count',
+                    args: {
+                      'count': taps
+                          .where((t) => t['folderId'] == folder['id'])
+                          .length,
+                    },
+                  ),
+                ),
+                trailing: browsingFolder == folder['id']
+                    ? const Icon(Icons.check, color: AppColors.green)
+                    : null,
+                onTap: () => Navigator.pop(context, folder['id'] as String),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted ||
+        folder == null ||
+        openingScope != (ops.actorId, ops.data?['workspaceId'])) {
+      return;
+    }
+    setState(() {
+      browsingFolder = folder.isEmpty ? null : folder;
+      scopeGroup = browsingFolder;
+      scopeTap = null;
+      selectedId = null;
+      if (browsingFolder != null) expanded.add('group:$browsingFolder');
+    });
+    if (directoryScroll.hasClients) directoryScroll.jumpTo(0);
+  }
+
   @override
   Widget build(BuildContext context) {
     sync();
     if (!ops.canEditTasks) editing = false;
-    // Keep the directory draft/selection mounted while global search is open.
+    if (browsingFolder != null &&
+        !folders.any((f) => f['id'] == browsingFolder)) {
+      browsingFolder = null;
+    }
+    // Keep the directory selection mounted while global search is open.
     if (widget.query.trim().isNotEmpty && widget.searchResultsBuilder != null) {
       return widget.searchResultsBuilder!(context);
     }
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1240),
+        constraints: const BoxConstraints(maxWidth: 880),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final wide = constraints.maxWidth >= 760;
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  header(),
-                  AppViewToolbar(
-                    key: const ValueKey('manual-view-toolbar'),
-                    leading:
-                        ops.actor['role'] == 'owner' &&
-                            ops.data?['ownerWorkflow'] != null
-                        ? AppToolbarButton(
-                            onPressed: () => openOwnerWorkflow(context, ops),
-                            icon: Icons.fact_check_outlined,
-                            label: context.t(
-                              'ui.audit1090',
-                              args: {
-                                'p0':
-                                    (ops.data?['ownerWorkflow']?['pending']
-                                                as List? ??
-                                            [])
-                                        .length,
-                              },
-                            ),
-                          )
-                        : null,
-                    toggle: AppViewToggle<bool>(
-                      key: const ValueKey('manual-view-toggle'),
-                      values: const [false, true],
-                      selected: recipes,
-                      labelOf: (value) => context.t(
-                        value ? 'manual.category.recipe' : 'nav.manual',
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppScrollHeader(
+                key: const ValueKey('manual-controls'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppViewToolbar(
+                      key: const ValueKey('manual-view-toolbar'),
+                      leading:
+                          ops.actor['role'] == 'owner' &&
+                              ops.data?['ownerWorkflow'] != null
+                          ? AppToolbarButton(
+                              onPressed: () => openOwnerWorkflow(context, ops),
+                              icon: Icons.fact_check_outlined,
+                              label: context.t(
+                                'ui.audit1090',
+                                args: {
+                                  'p0':
+                                      (ops.data?['ownerWorkflow']?['pending']
+                                                  as List? ??
+                                              [])
+                                          .length,
+                                },
+                              ),
+                            )
+                          : null,
+                      toggle: AppViewToggle<bool>(
+                        key: const ValueKey('manual-view-toggle'),
+                        values: const [false, true],
+                        selected: recipes,
+                        labelOf: (value) => context.t(
+                          value ? 'manual.category.recipe' : 'nav.manual',
+                        ),
+                        onSelected: (value) =>
+                            chooseCategory(value ? 'recipe' : null),
                       ),
-                      onSelected: (value) =>
-                          chooseCategory(value ? 'recipe' : null),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  if (!recipes)
-                    Wrap(
-                      spacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        if (!wide)
-                          PressBounce(
-                            child: TextButton.icon(
-                              icon: Icon(
-                                showTree
-                                    ? CupertinoIcons.doc_text
-                                    : CupertinoIcons.folder,
+                    header(),
+                    if (!recipes)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton.icon(
+                                key: const ValueKey('manual-folder-picker'),
+                                icon: const Icon(
+                                  CupertinoIcons.folder,
+                                  size: 20,
+                                ),
+                                label: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        browsingFolder == null
+                                            ? context.t('manual.all')
+                                            : folderLabel(browsingFolder),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(Icons.expand_more, size: 18),
+                                  ],
+                                ),
+                                onPressed: chooseFolder,
                               ),
-                              label: Text(
-                                showTree
-                                    ? context.t(
-                                        'manual.count',
-                                        args: {'count': results.length},
-                                      )
-                                    : context.t('manual.directory'),
+                            ),
+                          ),
+                          if (canEdit && !editing)
+                            IconButton(
+                              key: const ValueKey('manual-organize'),
+                              tooltip: context.t('manual.edit'),
+                              icon: const Icon(
+                                Icons.drive_file_rename_outline,
+                                color: AppColors.accent,
                               ),
-                              onPressed: () => setState(() {
-                                showTree = !showTree;
-                              }),
+                              onPressed: () => setState(() => editing = true),
                             ),
-                          ),
-                        if (scopeGroup != null || scopeTap != null)
-                          InputChip(
-                            chipAnimationStyle: AppMotion.chipStyle(context),
-                            label: Text(
-                              scopeTap == null
-                                  ? folderLabel(scopeGroup, 'TAP그룹')
-                                  : '${taps.where((r) => r['tapId'] == scopeTap).firstOrNull?['tapTitle'] ?? 'TAP'}',
-                            ),
-                            onDeleted: () => setState(() {
-                              scopeGroup = null;
-                              scopeTap = null;
-                              selectedId = null;
-                            }),
-                          ),
-                        if (editing && ops.readOnly)
-                          Text(
-                            context.t('ui.audit503'),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.muted,
-                            ),
-                          ),
-                        if (previewDirty)
-                          PressBounce(
-                            child: TextButton(
+                          if (previewDirty)
+                            TextButton(
                               onPressed: () =>
                                   setState(() => sync(force: true)),
                               child: Text(context.t('common.reset')),
                             ),
+                        ],
+                      ),
+                    if (editing)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          context.t(
+                            ops.readOnly ? 'ui.audit503' : 'ui.audit1091',
                           ),
-                      ],
-                    ),
-                  if (editing)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        context.t('ui.audit1091'),
-                        style: TextStyle(fontSize: 13, color: AppColors.muted),
+                          style: AppText.caption,
+                        ),
                       ),
-                    ),
-                  Expanded(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        boxShadow: appCardShadow,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: recipes
-                          ? recipeList()
-                          : wide
-                          ? Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                SizedBox(width: 340, child: directory()),
-                                const VerticalDivider(width: 1),
-                                Expanded(
-                                  child: AppContentTransition(
-                                    trigger: (category, scopeGroup, scopeTap),
-                                    child: content(),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : AppContentTransition(
-                              trigger: (
-                                category,
-                                showTree,
-                                scopeGroup,
-                                scopeTap,
-                              ),
-                              child: showTree ? directory() : content(),
-                            ),
-                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    boxShadow: appCardShadow,
+                    borderRadius: BorderRadius.circular(AppShape.card),
                   ),
-                ],
-              );
-            },
+                  child: recipes ? recipeList() : directory(),
+                ),
+              ),
+            ],
           ),
         ),
       ),

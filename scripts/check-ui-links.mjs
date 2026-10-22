@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const document = await readFile(path.join(root, 'docs/UI_SETTINGS_RELATIONSHIP_MAP.md'), 'utf8');
 const contracts = [
+  ['U04','app/lib/ui/operations_screen.dart','AppScrollHeaderScope','app/lib/ui/scroll_header.dart','class AppScrollHeader'],
+  ['S98','app/lib/ui/manual_workspace.dart','manual-folder-picker','app/lib/ui/manual_workspace.dart','browsingFolder'],
+  ['S99','app/lib/ui/calendar_screen.dart','calendar-options','app/lib/ui/workplace_screens.dart','openWorkplaceHours'],
   ['S96', 'app/lib/ui/tap_workspace.dart', "ValueKey('work-view-toggle')", 'app/lib/ui/components.dart', 'class AppViewToggle'],
   ['S97', 'app/lib/ui/manual_workspace.dart', "ValueKey('manual-view-toggle')", 'app/lib/ui/manual_workspace.dart', 'recipeList()'],
   ['S92', 'app/lib/ui/operations_screen.dart', 'ServiceWorkflowScreen(ops: ops)', 'developer/operations.mjs', 'serviceWorkflowView(state, actor)'],

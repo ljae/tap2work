@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'design_tokens.dart';
 export 'design_tokens.dart';
 export 'design_system.dart';
+export 'scroll_header.dart';
 import 'design_system.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -106,8 +107,10 @@ class AppViewToggle<T> extends StatelessWidget {
     required this.selected,
     required this.labelOf,
     required this.onSelected,
+    this.fill = false,
   });
 
+  final bool fill;
   final List<T> values;
   final T selected;
   final String Function(T) labelOf;
@@ -124,6 +127,7 @@ class AppViewToggle<T> extends StatelessWidget {
       children: [
         for (final value in values)
           Flexible(
+            fit: fill ? FlexFit.tight : FlexFit.loose,
             child: Semantics(
               selected: selected == value,
               child: PressBounce(

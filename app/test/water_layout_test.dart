@@ -43,19 +43,23 @@ void main() {
       final initialControls = tester.getRect(controls);
       final weekly = tester.getRect(find.text('주간'));
       final today = tester.getRect(find.text('오늘'));
-      final fullDay = tester.getRect(find.text('24시간 보기'));
       expect(weekly.center.dy, closeTo(today.center.dy, 1));
-      expect(fullDay.center.dy, closeTo(today.center.dy, 1));
-      expect(tester.getRect(find.text('이전')).left, lessThan(weekly.left));
-      expect(tester.getRect(find.text('다음')).right, lessThan(weekly.left));
+      expect(
+        tester.getRect(find.byKey(const ValueKey('calendar-previous'))).top,
+        lessThan(weekly.top),
+      );
+      expect(
+        tester.getRect(find.byKey(const ValueKey('calendar-next'))).top,
+        lessThan(weekly.top),
+      );
       final scroll = tester
           .widget<CustomScrollView>(
             find.byKey(const ValueKey('schedule-scroll')),
           )
           .controller!;
-      await tester.ensureVisible(find.text('24시간 보기'));
+      await tester.tap(find.byKey(const ValueKey('calendar-options')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('24시간 보기'));
+      await tester.tap(find.byKey(const ValueKey('calendar-full-day')));
       await tester.pumpAndSettle();
       scroll.jumpTo(400);
       await tester.pumpAndSettle();

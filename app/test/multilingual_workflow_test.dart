@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -350,19 +349,17 @@ void main() {
           body: ManualWorkspace(ops: ops, query: 'colleague'),
         ),
       );
-      // Open the result list using its existing phone navigation toggle.
-      await t.tap(find.widgetWithIcon(TextButton, CupertinoIcons.doc_text));
-      await t.pumpAndSettle();
+      // Matching content is directly available in the single column.
       expect(
-        find.byKey(const ValueKey('manual-content-frame-prep/s1')),
+        find.byKey(const ValueKey('manual-tree-frame-task:s1:prep')),
         findsOneWidget,
       );
       expect(
-        find.byKey(const ValueKey('manual-content-frame-prep/s2')),
+        find.byKey(const ValueKey('manual-tree-frame-task:s2:prep')),
         findsNothing,
       );
       expect(
-        find.byKey(const ValueKey('manual-content-frame-broth/b1')),
+        find.byKey(const ValueKey('manual-tree-frame-task:b1:broth')),
         findsNothing,
       );
       expect(

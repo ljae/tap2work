@@ -305,7 +305,7 @@ void main() {
     (320.0, 1.5),
   ]) {
     testWidgets(
-      'calendar fills width and opens shared hours in fixed toolbar at $size',
+      'calendar fills width and opens shared hours from calendar options at $size',
       (tester) async {
         await calendar.mount(
           tester,
@@ -324,7 +324,7 @@ void main() {
           find.byKey(const ValueKey('roster-part-heading-kitchen')),
         );
         expect(dateHeading.bottom, closeTo(partHeading.top, .1));
-        expect(partHeading.height, greaterThanOrEqualTo(40));
+        expect(partHeading.height, greaterThanOrEqualTo(36));
         expect(
           find.byKey(const ValueKey('roster-time-tick-570')),
           findsOneWidget,
@@ -335,14 +335,14 @@ void main() {
               .right,
           lessThanOrEqualTo(52),
         );
-        expect(tester.getSize(hours).width, greaterThan(100));
-        final add = find.byKey(const ValueKey('calendar-add-crew'));
-        expect(tester.getRect(hours).center.dy, tester.getRect(add).center.dy);
+
         final first = find.byKey(const ValueKey('roster-day-2026-09-28'));
         final last = find.byKey(const ValueKey('roster-day-2026-10-04'));
         expect(tester.getRect(first).left, 0);
         expect(tester.getRect(last).right, closeTo(size.$1, 0.01));
-        expect(tester.getRect(hours).top, lessThan(tester.getRect(first).top));
+        await tester.tap(find.byKey(const ValueKey('calendar-options')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('calendar-add-crew')), findsOneWidget);
         await tester.ensureVisible(hours);
         await tester.tap(hours);
         await tester.pumpAndSettle();

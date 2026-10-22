@@ -48,7 +48,7 @@ flowchart LR
 | S11 | `checklistFolders[]`, `taskTemplates[]` | 매뉴얼 항목 길게 누르기 → 폴더 추가 / 항목 ⋯ → 추가·이름·상세·이동·삭제 | 정의 편집은 매뉴얼에 집중. 업무의 내용 편집 진입 제거 | `manual_authoring_test.dart`, `task_inline_edit_test.dart` |
 | S12 | `taskTemplates[id].steps[id]` | 매뉴얼 > Task > **매뉴얼 편집** → `ManualTaskEditor(templateId, sourceStepId)` → `save_checklists` | 해당 Task의 제목·본문·팁·링크·태그만 갱신, `manualSearch` 재투영. 다른 Task와 기존 진행 기록 불변 | `manual_workspace_test.dart` 단일 Task/형제 불변/POST 검사 |
 | S13 | `taskTemplates[id].settings` | 매뉴얼 > Task > TAP 설정 → `TapSettingsScreen(initialTemplateId)` → `save_tap_settings` v2 | 부모 TAP의 시간대·파트·장소·완료 조건·소요 시간을 전체 Task에 적용; Task별 운영 컨트롤 없음 | `settings_screens_test.dart`, `tap_policy.test.mjs` |
-| S14 | 매뉴얼 폴더/TAP/Task 순서 | 왼쪽 트리 길게 누르기 → 같은 계층 행의 손잡이/⋯ 이동 → `move_manual_node` | TAP→폴더, Task→TAP. Task를 폴더에 놓으면 해당 폴더의 TAP 선택. 같은 단계는 앞 순서. 오른쪽 편집은 독립이며 본문·오늘 실행 보존 | `manual_workspace_test.dart` 양쪽 격리/계층/폴더 드롭/320px/충돌, `manual_directory.test.mjs` |
+| S14 | 매뉴얼 폴더/TAP/Task 순서 | 한 열 디렉토리 길게 누르기 → 같은 계층 행의 손잡이/⋯ 이동 → `move_manual_node` | TAP→폴더, Task→TAP. Task를 폴더에 놓으면 해당 폴더의 TAP 선택. 같은 단계는 앞 순서. 폴더 선택 중에도 편집 모드 유지; 본문·오늘 실행 보존 | `manual_workspace_test.dart` 양쪽 격리/계층/폴더 드롭/320px/충돌, `manual_directory.test.mjs` |
 | S15 | `tasks[].steps[]` 실행 스냅샷 | 업무 카드/단계 상세 → `complete_step`, `reopen_step`, `complete_task`, `save_step_manual` | 오늘 업무 완료 상태·기록; 정의 매뉴얼 수정과 별개. 서버가 완료 규칙 검사 | `operations_test.dart`, `checklists.test.mjs` |
 | S16 | `items[]`, `orders[]`, `preparedItems[]` | 재고/발주/입고/준비품 → `save_inventory_item`, `check_stock`, `place_order`, `receive_order`, `save_prepared_item`, `count_prepared_item` | 우리매장 재고, 부족 알림, 준비품·업무 카드. 주문만으로 재고 증가 없음 | `operations.test.mjs`, `prepared_items.test.mjs` |
 | S17 | `menus[]`, 주문 양식 | 메뉴 편집 → `save_menu` | 우리매장 메뉴·메뉴 연계 레시피. 주문별 실행 생성 없음 | `catalog.test.mjs`, `menu_layout_test.dart` |
@@ -591,4 +591,13 @@ S48 기존 PDF/인쇄를 CS·개선 화면에서 재사용한다. 등록한 안�
 | ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
 |---|---|---|---|
 | S96 | tasks/selectedPart → 근무 준비·인계 오른쪽 할일·완료 토글 → TapWorkspace.showCompleted | 선택 상태의 TAP만 한 열로 표시. TAP 바로 아래 할일, 할일 바로 아래 방법·체크. 폴링·펼침은 완료를 만들지 않으며 actor/workspace/day 변경 시 펼침·임시 순서 초기화. 업무의 운영 준비·내일 미리보기 진입 제거 | work_menu_views_test.dart, tap_workspace_test.dart, motion_test.dart |
-| S97 | taskTemplates/manualSearch → 사장님 검토·등록 대기 오른쪽 매뉴얼·레시피 토글 → recipes/chooseCategory → directory/content 또는 recipeList | 전체·처음 설정·정기 관리·루틴 업무·교육/참고의 상단 분류 버튼 제거. 분류 데이터·마켓·TAP 분류 편집은 보존. 보기 전환은 저장하지 않음, 크루도 등록된 레시피 조회 가능 | work_menu_views_test.dart, manual_workspace_test.dart, manual_common_operations_test.dart |
+| S97 | taskTemplates/manualSearch → 사장님 검토·등록 대기 오른쪽 매뉴얼·레시피 토글 → recipes/chooseCategory → 한 열 directory 또는 recipeList | 전체·처음 설정·정기 관리·루틴 업무·교육/참고의 상단 분류 버튼 제거. 분류 데이터·마켓·TAP 분류 편집은 보존. 보기 전환은 저장하지 않음, 크루도 등록된 레시피 조회 가능 | work_menu_views_test.dart, manual_workspace_test.dart, manual_common_operations_test.dart |
+
+
+## 2026-10-22 모바일 상단 접힘·매뉴얼 한 열·캘린더 도구
+
+| ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
+|---|---|---|---|
+| U04 | 세로 사용자 스크롤·actor/workspace/선택 목적지 → AppScrollHeaderScope / AppScrollHeader → 접힘·복귀, 현재 하단 메뉴 재선택 reveal | OperationsScreen 브랜드/검색/파트, ManualWorkspace 도구, CalendarScreen 도구의 표시 높이만 변경. 검색/폴더/보기 상태 유지. 가로 스크롤·프로그램 이동·키보드·접근성 탐색 분리; 서버 쓰기 없음 | mobile_workspace_test.dart, scroll_header_test.dart, ui_ux_audit_test.dart, header_test.dart |
+| S98 | checklistFolders / manualSearch / taskTemplates → manual-folder-picker 시트·한 열 목록·코랄 연필 → browsingFolder / navigateHierarchy / ManualTapEditor / ManualTaskEditor | 폴더 탐색은 쓰기 없음. 기존 S12/S14/S22의 ID·revision·권한·미완료/기존 기록 보호와 체험 저장 정책 유지. 읽기 페이지에서 실제 폴더/TAP으로 복귀 | manual_workspace_test.dart, manual_edit_mode_test.dart, manual_common_operations_test.dart, manual_directory.test.mjs |
+| S99 | ScheduleController.selected/month·fullDay·현재 권한 → 날짜 이동/오늘/주간·월간/calendar-options → move/selectDay/setMonth, openWorkplaceHours, addShift | 보기 변경은 임시 상태. 시간·인원 저장 S03, 개별 배정 S05, 실제 출퇴근 S42, 휴무/추가 영업의 기존 계약 유지. 월간42칸 상태/공휴일 정보는 아이콘·범례·설명과 연결 | calendar_test.dart, schedule_workflow_test.dart, schedule_fine_edit_test.dart, mobile_workspace_test.dart, workplace.test.mjs |

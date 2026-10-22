@@ -133,6 +133,8 @@ void main() {
           )
           .top!;
       final oldStart = marker('영업 시작'), oldEnd = marker('영업 종료');
+      await tester.tap(find.byKey(const ValueKey('calendar-options')));
+      await tester.pumpAndSettle();
       final settings = find.byKey(const ValueKey('calendar-hours-button'));
       await tester.ensureVisible(settings);
       await tester.tap(settings);

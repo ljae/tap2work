@@ -8,7 +8,6 @@ import 'package:tap2work/domain/manual_market_catalog.dart';
 import 'package:tap2work/l10n/app_localizations.dart';
 import 'package:tap2work/state/operations_controller.dart';
 import 'package:tap2work/ui/manual_action_slides.dart';
-import 'package:tap2work/ui/manual_hierarchy.dart';
 import 'package:tap2work/ui/manual_market_screen.dart';
 import 'package:tap2work/ui/manual_workspace.dart';
 import 'checklist_test.dart' show fixture;
@@ -43,12 +42,23 @@ void main() {
           await tester.tap(find.byKey(ValueKey('manual-path-$destination')));
           await tester.pumpAndSettle();
           expect(detail, findsNothing);
-          if (width >= 760 || destination == 'folder') {
-            final path = tester.widget<ManualHierarchyPath>(
-              find.byType(ManualHierarchyPath).first,
+          expect(
+            find.byKey(const ValueKey('manual-node-group:general')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const ValueKey('manual-node-group:close')),
+            findsNothing,
+          );
+          expect(
+            find.byKey(const ValueKey('manual-node-tap:a')),
+            findsOneWidget,
+          );
+          if (destination == 'tap') {
+            expect(
+              find.byKey(const ValueKey('manual-node-task:s1:a')),
+              findsOneWidget,
             );
-            expect(path.folder, '오픈');
-            expect(path.tap, destination == 'folder' ? null : '위생 TAP');
           }
           expect(writes, 0);
           expect(tester.takeException(), isNull);

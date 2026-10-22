@@ -460,6 +460,155 @@ class _OperationsScreenState extends State<OperationsScreen> {
     updateView(() => tab = value == 1 ? 0 : 2);
   }
 
+  Widget workspaceHeader() => BrandHeader(
+    compact: ops.cloud && MediaQuery.sizeOf(context).width < 600,
+    action: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (ops.cloud) ...[
+          WorkspaceMenu(ops: ops, onWelcome: () => openWelcome()),
+          const SizedBox(width: 8),
+        ],
+        const AppLanguageButton(compact: true),
+        const SizedBox(width: 8),
+        PopupMenuButton<String>(
+          popUpAnimationStyle: AppMotion.dialogStyle(context),
+          key: const ValueKey('header-account-menu'),
+          enabled: !ops.busy,
+          constraints: BoxConstraints(
+            minWidth: 200,
+            maxWidth: (MediaQuery.sizeOf(context).width - 32).clamp(
+              200.0,
+              320.0,
+            ),
+          ),
+          tooltip: context.t(
+            ops.cloud ? 'store.account' : 'store.accountPreview',
+          ),
+          onSelected: (id) async {
+            if (id == 'owner-workflow') {
+              final destination = await openOwnerWorkflow(context, ops);
+              if (mounted && destination != null) {
+                updateView(() {
+                  tab = destination == 'manual' ? 1 : 0;
+                  manualQuery = '';
+                });
+              }
+            } else if (id == 'account') {
+              await widget.onAccountPressed?.call(context);
+            } else if (id == 'welcome') {
+              await openWelcome();
+            } else if (id == 'language') {
+              await openAppLanguagePicker(context);
+            } else if (id == 'catalog') {
+              if (mounted) {
+                showAppSheet(context, builder: (_) => CatalogEditor(ops: ops));
+              }
+            } else {
+              cart.clear();
+              ops.selectActor(id);
+            }
+          },
+          itemBuilder: (_) => [
+            if (ops.actor['role'] == 'owner')
+              PopupMenuItem(
+                value: 'owner-workflow',
+                child: Text(context.t('ui.audit408')),
+              ),
+            PopupMenuItem<String>(
+              key: const ValueKey('header-language-menu'),
+              value: 'language',
+              child: Text(context.t('language.title')),
+            ),
+            if (ops.data != null)
+              PopupMenuItem<String>(
+                value: 'welcome',
+                child: Text(context.t('welcome.reopen')),
+              ),
+            if (ops.data != null && ops.isLeader && !ops.readOnly)
+              PopupMenuItem<String>(
+                value: 'catalog',
+                child: Text(context.t('store.editCatalog')),
+              ),
+            if (ops.cloud)
+              PopupMenuItem<String>(
+                enabled: false,
+                child: Text(
+                  context.t(
+                    'store.myStoreRole',
+                    args: {
+                      'role': context.t(
+                        '${ops.actor['label'] ?? ops.actor['role'] ?? ''}',
+                      ),
+                    },
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            if (widget.onAccountPressed != null)
+              PopupMenuItem<String>(
+                value: 'account',
+                child: Text(
+                  widget.accountEmail == null
+                      ? context.t('store.login')
+                      : context.t(
+                          'store.emailAccount',
+                          args: {'email': widget.accountEmail!},
+                        ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            if (!ops.cloud) ...[
+              PopupMenuItem<String>(
+                enabled: false,
+                child: Text(context.t('store.previewRoles')),
+              ),
+              PopupMenuItem(
+                value: 'owner',
+                child: Text(
+                  context.t(
+                    'ui.audit982',
+                    args: {'p0': context.t('store.owner')},
+                  ),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'manager',
+                child: Text(
+                  context.t(
+                    'ui.audit983',
+                    args: {'p0': context.t('store.manager')},
+                  ),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'cook',
+                child: Text(
+                  context.t(
+                    'ui.audit984',
+                    args: {'p0': context.t('store.cook')},
+                  ),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'crew',
+                child: Text(
+                  context.t(
+                    'ui.audit985',
+                    args: {'p0': context.t('store.crew')},
+                  ),
+                ),
+              ),
+            ],
+          ],
+          child: const HeaderAccountButton(),
+        ),
+      ],
+    ),
+  );
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: ops,
@@ -467,366 +616,247 @@ class _OperationsScreenState extends State<OperationsScreen> {
       trigger: ops.data != null,
       child: ops.data == null && !ops.cloud
           ? AppLoadingScreen(error: ops.error, onRetry: () => ops.refresh())
-          : Scaffold(
-              appBar: BrandHeader(
-                compact: ops.cloud && MediaQuery.sizeOf(context).width < 600,
-                action: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (ops.cloud) ...[
-                      WorkspaceMenu(ops: ops, onWelcome: () => openWelcome()),
-                      const SizedBox(width: 8),
-                    ],
-                    const AppLanguageButton(compact: true),
-                    const SizedBox(width: 8),
-                    PopupMenuButton<String>(
-                      popUpAnimationStyle: AppMotion.dialogStyle(context),
-                      key: const ValueKey('header-account-menu'),
-                      enabled: !ops.busy,
-                      constraints: BoxConstraints(
-                        minWidth: 200,
-                        maxWidth: (MediaQuery.sizeOf(context).width - 32).clamp(
-                          200.0,
-                          320.0,
-                        ),
-                      ),
-                      tooltip: context.t(
-                        ops.cloud ? 'store.account' : 'store.accountPreview',
-                      ),
-                      onSelected: (id) async {
-                        if (id == 'owner-workflow') {
-                          final destination = await openOwnerWorkflow(
-                            context,
-                            ops,
-                          );
-                          if (mounted && destination != null) {
-                            updateView(() {
-                              tab = destination == 'manual' ? 1 : 0;
-                              manualQuery = '';
-                            });
-                          }
-                        } else if (id == 'account') {
-                          await widget.onAccountPressed?.call(context);
-                        } else if (id == 'welcome') {
-                          await openWelcome();
-                        } else if (id == 'language') {
-                          await openAppLanguagePicker(context);
-                        } else if (id == 'catalog') {
-                          if (mounted) {
-                            showAppSheet(
-                              context,
-                              builder: (_) => CatalogEditor(ops: ops),
-                            );
-                          }
-                        } else {
-                          cart.clear();
-                          ops.selectActor(id);
-                        }
-                      },
-                      itemBuilder: (_) => [
-                        if (ops.actor['role'] == 'owner')
-                          PopupMenuItem(
-                            value: 'owner-workflow',
-                            child: Text(context.t('ui.audit408')),
-                          ),
-                        PopupMenuItem<String>(
-                          key: const ValueKey('header-language-menu'),
-                          value: 'language',
-                          child: Text(context.t('language.title')),
-                        ),
-                        if (ops.data != null)
-                          PopupMenuItem<String>(
-                            value: 'welcome',
-                            child: Text(context.t('welcome.reopen')),
-                          ),
-                        if (ops.data != null && ops.isLeader && !ops.readOnly)
-                          PopupMenuItem<String>(
-                            value: 'catalog',
-                            child: Text(context.t('store.editCatalog')),
-                          ),
-                        if (ops.cloud)
-                          PopupMenuItem<String>(
-                            enabled: false,
-                            child: Text(
-                              context.t(
-                                'store.myStoreRole',
-                                args: {
-                                  'role': context.t(
-                                    '${ops.actor['label'] ?? ops.actor['role'] ?? ''}',
+          : AppScrollHeaderScope(
+              resetKey: (tab, ops.actorId, ops.data?['workspaceId']),
+              child: Scaffold(
+                body: ops.data == null
+                    ? AppLoadingScreen(
+                        error: ops.error,
+                        onRetry: () => ops.refresh(),
+                      )
+                    : SafeArea(
+                        child: Column(
+                          children: [
+                            AppScrollHeader(
+                              key: const ValueKey('workspace-top-header'),
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 72,
+                                    child: workspaceHeader(),
                                   ),
-                                },
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        if (widget.onAccountPressed != null)
-                          PopupMenuItem<String>(
-                            value: 'account',
-                            child: Text(
-                              widget.accountEmail == null
-                                  ? context.t('store.login')
-                                  : context.t(
-                                      'store.emailAccount',
-                                      args: {'email': widget.accountEmail!},
-                                    ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        if (!ops.cloud) ...[
-                          PopupMenuItem<String>(
-                            enabled: false,
-                            child: Text(context.t('store.previewRoles')),
-                          ),
-                          PopupMenuItem(
-                            value: 'owner',
-                            child: Text(
-                              context.t(
-                                'ui.audit982',
-                                args: {'p0': context.t('store.owner')},
+                                  manualSearchBar(),
+                                ],
                               ),
                             ),
-                          ),
-                          PopupMenuItem(
-                            value: 'manager',
-                            child: Text(
-                              context.t(
-                                'ui.audit983',
-                                args: {'p0': context.t('store.manager')},
-                              ),
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'cook',
-                            child: Text(
-                              context.t(
-                                'ui.audit984',
-                                args: {'p0': context.t('store.cook')},
-                              ),
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'crew',
-                            child: Text(
-                              context.t(
-                                'ui.audit985',
-                                args: {'p0': context.t('store.crew')},
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                      child: const HeaderAccountButton(),
-                    ),
-                  ],
-                ),
-              ),
-              body: ops.data == null
-                  ? AppLoadingScreen(
-                      error: ops.error,
-                      onRetry: () => ops.refresh(),
-                    )
-                  : SafeArea(
-                      child: Column(
-                        children: [
-                          if (ops.data != null) manualSearchBar(),
-                          if (ops.busy) const AppLinearProgress(minHeight: 2),
-                          if (ops.error != null && ops.data != null)
-                            MaterialBanner(
-                              content: Text(
-                                ops.error!,
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              actions: [
-                                PressBounce(
-                                  child: TextButton(
-                                    onPressed: ops.busy
-                                        ? null
-                                        : () => ops.refresh(),
-                                    child: Text(context.t('store.refresh')),
-                                  ),
+                            if (ops.busy) const AppLinearProgress(minHeight: 2),
+                            if (ops.error != null && ops.data != null)
+                              MaterialBanner(
+                                content: Text(
+                                  ops.error!,
+                                  style: const TextStyle(fontSize: 13),
                                 ),
-                              ],
-                            ),
-                          if (tab == 0 && manualQuery.trim().isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
-                              child: Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 1240,
+                                actions: [
+                                  PressBounce(
+                                    child: TextButton(
+                                      onPressed: ops.busy
+                                          ? null
+                                          : () => ops.refresh(),
+                                      child: Text(context.t('store.refresh')),
+                                    ),
                                   ),
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    height:
-                                        48 *
-                                        (MediaQuery.textScalerOf(
-                                              context,
-                                            ).scale(13) /
-                                            13),
-                                    child: ValueListenableBuilder<String?>(
-                                      valueListenable: taskPart,
-                                      builder: (context, selected, _) =>
-                                          AppToolbarScroll(
-                                            child: Row(
-                                              spacing: 8,
-                                              children: [
-                                                AppToolbarButton(
-                                                  icon: Icons.groups_outlined,
-                                                  label: context.t(
-                                                    'store.allParts',
-                                                  ),
-                                                  selected: selected == null,
-                                                  onPressed: () =>
-                                                      taskPart.value = null,
-                                                ),
-                                                const AppToolbarDivider(),
-                                                for (final part
-                                                    in storeParts(ops).where(
-                                                      (p) =>
-                                                          p['hidden'] != true,
-                                                    ))
-                                                  AppToolbarButton(
-                                                    icon: Icons.work_outline,
-                                                    label: entityDisplayName(
-                                                      context,
-                                                      ops,
-                                                      'part',
-                                                      part['id'],
-                                                      part['name'],
+                                ],
+                              ),
+                            if (tab == 0 && manualQuery.trim().isEmpty)
+                              AppScrollHeader(
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    24,
+                                    8,
+                                    24,
+                                    4,
+                                  ),
+                                  child: Center(
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 1240,
+                                      ),
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        height:
+                                            48 *
+                                            (MediaQuery.textScalerOf(
+                                                  context,
+                                                ).scale(13) /
+                                                13),
+                                        child: ValueListenableBuilder<String?>(
+                                          valueListenable: taskPart,
+                                          builder: (context, selected, _) =>
+                                              AppToolbarScroll(
+                                                child: Row(
+                                                  spacing: 8,
+                                                  children: [
+                                                    AppToolbarButton(
+                                                      icon:
+                                                          Icons.groups_outlined,
+                                                      label: context.t(
+                                                        'store.allParts',
+                                                      ),
+                                                      selected:
+                                                          selected == null,
+                                                      onPressed: () =>
+                                                          taskPart.value = null,
                                                     ),
-                                                    selected:
-                                                        selected == part['id'],
-                                                    onPressed: () =>
-                                                        taskPart.value =
+                                                    const AppToolbarDivider(),
+                                                    for (final part
+                                                        in storeParts(
+                                                          ops,
+                                                        ).where(
+                                                          (p) =>
+                                                              p['hidden'] !=
+                                                              true,
+                                                        ))
+                                                      AppToolbarButton(
+                                                        icon:
+                                                            Icons.work_outline,
+                                                        label:
+                                                            entityDisplayName(
+                                                              context,
+                                                              ops,
+                                                              'part',
+                                                              part['id'],
+                                                              part['name'],
+                                                            ),
+                                                        selected:
+                                                            selected ==
                                                             part['id'],
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          Expanded(
-                            child: AppContentTransition(
-                              trigger: (
-                                tab,
-                                manualQuery.trim().isNotEmpty,
-                                ops.data == null,
-                              ),
-                              child: ops.data == null
-                                  ? Center(
-                                      child: ops.error == null
-                                          ? const WorkspaceSkeleton()
-                                          : PressBounce(
-                                              child: OutlinedButton(
-                                                onPressed: () => ops.refresh(),
-                                                child: Text(
-                                                  context.t('store.reconnect'),
+                                                        onPressed: () =>
+                                                            taskPart.value =
+                                                                part['id'],
+                                                      ),
+                                                  ],
                                                 ),
                                               ),
-                                            ),
-                                    )
-                                  : tab == 1
-                                  ? ManualWorkspace(
-                                      ops: ops,
-                                      query: manualQuery,
-                                      searchResultsBuilder: (_) =>
-                                          manualResultList(),
-                                      onClearSearch: () => updateView(() {
-                                        manualSearch.clear();
-                                        manualQuery = '';
-                                      }),
-                                    )
-                                  : manualQuery.trim().isNotEmpty
-                                  ? manualResultList()
-                                  : tab == 2
-                                  ? Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        24,
-                                        16,
-                                        24,
-                                        0,
+                                        ),
                                       ),
-                                      child: StaffWorkspace(
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            Expanded(
+                              child: AppContentTransition(
+                                trigger: (
+                                  tab,
+                                  manualQuery.trim().isNotEmpty,
+                                  ops.data == null,
+                                ),
+                                child: ops.data == null
+                                    ? Center(
+                                        child: ops.error == null
+                                            ? const WorkspaceSkeleton()
+                                            : PressBounce(
+                                                child: OutlinedButton(
+                                                  onPressed: () =>
+                                                      ops.refresh(),
+                                                  child: Text(
+                                                    context.t(
+                                                      'store.reconnect',
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                      )
+                                    : tab == 1
+                                    ? ManualWorkspace(
                                         ops: ops,
-                                        work: widget.work,
-                                      ),
-                                    )
-                                  : RefreshIndicator(
-                                      onRefresh: () => ops.refresh(),
-                                      child: SingleChildScrollView(
-                                        key: ValueKey(tab),
-                                        physics:
-                                            const AlwaysScrollableScrollPhysics(),
+                                        query: manualQuery,
+                                        searchResultsBuilder: (_) =>
+                                            manualResultList(),
+                                        onClearSearch: () => updateView(() {
+                                          manualSearch.clear();
+                                          manualQuery = '';
+                                        }),
+                                      )
+                                    : manualQuery.trim().isNotEmpty
+                                    ? manualResultList()
+                                    : tab == 2
+                                    ? Padding(
                                         padding: const EdgeInsets.fromLTRB(
                                           24,
-                                          12,
+                                          16,
                                           24,
-                                          24,
+                                          0,
                                         ),
-                                        child: Center(
-                                          child: ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              maxWidth: tab == 2
-                                                  ? double.infinity
-                                                  : 1240,
-                                            ),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                ...switch (tab) {
-                                                  0 => tasks(),
-                                                  1 => const <Widget>[],
-                                                  2 => [
-                                                    StaffWorkspace(
-                                                      ops: ops,
-                                                      work: widget.work,
-                                                    ),
-                                                  ],
-                                                  _ => storeHome(),
-                                                },
-                                              ],
+                                        child: StaffWorkspace(
+                                          ops: ops,
+                                          work: widget.work,
+                                        ),
+                                      )
+                                    : RefreshIndicator(
+                                        onRefresh: () => ops.refresh(),
+                                        child: SingleChildScrollView(
+                                          key: ValueKey(tab),
+                                          physics:
+                                              const AlwaysScrollableScrollPhysics(),
+                                          padding: const EdgeInsets.fromLTRB(
+                                            24,
+                                            12,
+                                            24,
+                                            24,
+                                          ),
+                                          child: Center(
+                                            child: ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                maxWidth: tab == 2
+                                                    ? double.infinity
+                                                    : 1240,
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  ...switch (tab) {
+                                                    0 => tasks(),
+                                                    1 => const <Widget>[],
+                                                    2 => [
+                                                      StaffWorkspace(
+                                                        ops: ops,
+                                                        work: widget.work,
+                                                      ),
+                                                    ],
+                                                    _ => storeHome(),
+                                                  },
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-              bottomNavigationBar: FloatingMenu(
-                selectedIndex: tab,
-                onSelected: (value) => updateView(() {
-                  tab = value;
-                  manualSearch.clear();
-                  manualQuery = '';
-                  FocusScope.of(context).unfocus();
-                }),
-                items: [
-                  FloatingMenuItem(
-                    context.t('nav.work'),
-                    CupertinoIcons.checkmark_alt_circle,
+                bottomNavigationBar: Builder(
+                  builder: (headerContext) => FloatingMenu(
+                    selectedIndex: tab,
+                    onSelected: (value) => updateView(() {
+                      AppScrollHeaderScope.reveal(headerContext);
+                      tab = value;
+                      manualSearch.clear();
+                      manualQuery = '';
+                      FocusScope.of(context).unfocus();
+                    }),
+                    items: [
+                      FloatingMenuItem(
+                        context.t('nav.work'),
+                        CupertinoIcons.checkmark_alt_circle,
+                      ),
+                      FloatingMenuItem(
+                        context.t('nav.manual'),
+                        CupertinoIcons.book,
+                      ),
+                      FloatingMenuItem(
+                        context.t('nav.roster'),
+                        CupertinoIcons.calendar,
+                      ),
+                      FloatingMenuItem(
+                        context.t('nav.store'),
+                        CupertinoIcons.square_grid_2x2,
+                      ),
+                    ],
                   ),
-                  FloatingMenuItem(
-                    context.t('nav.manual'),
-                    CupertinoIcons.book,
-                  ),
-                  FloatingMenuItem(
-                    context.t('nav.roster'),
-                    CupertinoIcons.calendar,
-                  ),
-                  FloatingMenuItem(
-                    context.t('nav.store'),
-                    CupertinoIcons.square_grid_2x2,
-                  ),
-                ],
+                ),
               ),
             ),
     ),

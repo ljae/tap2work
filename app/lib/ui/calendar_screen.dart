@@ -937,90 +937,201 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget month() {
     final first = DateTime(model.selected.year, model.selected.month, 1);
     final origin = first.subtract(Duration(days: first.weekday - 1));
+    String status(DateTime day) => context.t(
+      isClosedDay(day)
+          ? (model.isPast(day) ? 'ui.audit531' : 'ui.audit668')
+          : (model.isPast(day) ? 'ui.audit763' : 'ui.audit764'),
+    );
     return LayoutBuilder(
-      builder: (context, box) => Wrap(
-        children: [
-          for (var w = 0; w < 7; w++)
-            SizedBox(
-              width: box.maxWidth / 7,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  weekdays[w],
-                  textAlign: TextAlign.center,
-                  style: AppText.caption.copyWith(
-                    color: w == 6
-                        ? AppColors.accent
-                        : w == 5
-                        ? AppColors.blue
-                        : AppColors.ink,
-                  ),
-                ),
-              ),
-            ),
-          for (var n = 0; n < 42; n++)
-            Builder(
-              builder: (context) {
-                final day = origin.add(Duration(days: n));
-                return SizedBox(
-                  width: box.maxWidth / 7,
-                  height:
-                      80 * (MediaQuery.textScalerOf(context).scale(14) / 14),
-                  child: InkWell(
-                    onTap: () => !model.isPast(day) && model.editable
-                        ? editCalendarDay(day)
-                        : model.selectDay(day),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.line),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            '${day.day}',
-                            style: TextStyle(
-                              color: day.month == first.month
-                                  ? dayColor(day)
-                                  : AppColors.muted.withValues(alpha: .4),
+      builder: (context, box) {
+        final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+        final measure = TextPainter(
+          text: TextSpan(
+            text: '30',
+            style: AppText.body.copyWith(fontWeight: FontWeight.w700),
+          ),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout();
+        final gridWidth = ((measure.width + 8) * 7).clamp(
+          box.maxWidth,
+          double.infinity,
+        );
+        measure.dispose();
+        final compact = gridWidth / 7 < 64 * scale;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppToolbarScroll(
+              child: SizedBox(
+                width: gridWidth,
+                child: Wrap(
+                  children: [
+                    for (var w = 0; w < 7; w++)
+                      SizedBox(
+                        width: gridWidth / 7,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Text(
+                            weekdays[w],
+                            textAlign: TextAlign.center,
+                            style: AppText.caption.copyWith(
+                              color: w == 6
+                                  ? AppColors.accent
+                                  : w == 5
+                                  ? AppColors.blue
+                                  : AppColors.ink,
                             ),
                           ),
-                          Text(
-                            isClosedDay(day)
-                                ? (model.isPast(day)
-                                      ? context.t('ui.audit531')
-                                      : context.t('ui.audit668'))
-                                : (model.isPast(day)
-                                      ? context.t('ui.audit763')
-                                      : context.t('ui.audit764')),
-                            style: AppText.caption,
-                            maxLines: 1,
-                          ),
-                          if (dayNote(day).isNotEmpty)
-                            Expanded(
-                              child: Tooltip(
-                                message: dayNote(day),
-                                child: Text(
-                                  dayNote(day),
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppText.caption.copyWith(
-                                    color: day.month == first.month
-                                        ? dayColor(day)
-                                        : AppColors.muted.withValues(alpha: .4),
+                        ),
+                      ),
+                    for (var n = 0; n < 42; n++)
+                      Builder(
+                        builder: (context) {
+                          final day = origin.add(Duration(days: n));
+                          final selected =
+                              rosterDate(day) == rosterDate(model.selected);
+                          final today = rosterDate(day) == ops.data?['day'];
+                          final currentMonth = day.month == first.month;
+                          final note = dayNote(day);
+                          final description =
+                              '${rosterDate(day)} · ${status(day)}${note.isEmpty ? '' : ' · $note'}';
+                          final color = currentMonth
+                              ? dayColor(day)
+                              : AppColors.muted.withValues(alpha: .4);
+                          return Semantics(
+                            selected: selected,
+                            label: description,
+                            child: Tooltip(
+                              message: description,
+                              child: SizedBox(
+                                width: gridWidth / 7,
+                                height: (compact ? 66 : 80) * scale,
+                                child: InkWell(
+                                  key: ValueKey(
+                                    'calendar-month-day-${rosterDate(day)}',
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  onTap: () =>
+                                      !model.isPast(day) && model.editable
+                                      ? editCalendarDay(day)
+                                      : model.selectDay(day),
+                                  child: Container(
+                                    margin: const EdgeInsets.all(1),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                      horizontal: 0,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: selected
+                                          ? AppColors.lime
+                                          : currentMonth
+                                          ? AppColors.surface
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: today
+                                          ? Border.all(color: AppColors.green)
+                                          : null,
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          '${day.day}',
+                                          style: AppText.body.copyWith(
+                                            color: color,
+                                            fontWeight: selected || today
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                          ),
+                                        ),
+                                        if (compact)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 4,
+                                            ),
+                                            child: Icon(
+                                              isClosedDay(day)
+                                                  ? Icons.coffee_outlined
+                                                  : model.isPast(day)
+                                                  ? Icons.history
+                                                  : Icons.work_outline,
+                                              size: 14,
+                                              color: color,
+                                            ),
+                                          )
+                                        else
+                                          Text(
+                                            status(day),
+                                            style: AppText.caption.copyWith(
+                                              color: color,
+                                            ),
+                                            maxLines: 1,
+                                          ),
+                                        if (note.isNotEmpty)
+                                          Expanded(
+                                            child: compact
+                                                ? Icon(
+                                                    Icons.circle,
+                                                    size: 5,
+                                                    color: color,
+                                                  )
+                                                : Text(
+                                                    note,
+                                                    maxLines: 3,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: AppText.caption
+                                                        .copyWith(color: color),
+                                                  ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                        ],
+                          );
+                        },
                       ),
+                  ],
+                ),
+              ),
+            ),
+            if (compact) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 16,
+                runSpacing: 8,
+                children: [
+                  for (final entry in [
+                    (Icons.work_outline, 'ui.audit764'),
+                    (Icons.coffee_outlined, 'ui.audit668'),
+                    (Icons.history, 'ui.audit763'),
+                  ])
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(entry.$1, size: 14, color: AppColors.muted),
+                        const SizedBox(width: 4),
+                        Text(context.t(entry.$2), style: AppText.caption),
+                      ],
+                    ),
+                ],
+              ),
+              for (var n = 0; n < 42; n++)
+                if (origin.add(Duration(days: n)).month == first.month &&
+                    dayNote(origin.add(Duration(days: n))).isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      '${origin.add(Duration(days: n)).day} · ${dayNote(origin.add(Duration(days: n)))}',
+                      style: AppText.caption,
                     ),
                   ),
-                );
-              },
-            ),
-        ],
-      ),
+            ],
+          ],
+        );
+      },
     );
   }
 
@@ -1039,12 +1150,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     selected: selected,
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: selected ? AppColors.green : AppColors.line,
-                            width: selected ? 2 : 1,
-                          ),
-                        ),
+                        color: selected ? AppColors.lime : Colors.transparent,
+                        borderRadius: BorderRadius.circular(AppShape.control),
                       ),
                       child: TextButton(
                         key: ValueKey('roster-day-${rosterDate(day)}'),
@@ -1062,7 +1169,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           ),
                         ),
                         child: Text(
-                          '${day.day}\n${weekdays[i]}',
+                          '${weekdays[i]}\n${day.day}',
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -1243,7 +1350,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         part.id: (availableWidth - 36) * laneCounts[part.id]! / totalLanes,
     };
     final headerHeight =
-        (dayNote(model.selected).isEmpty ? 80.0 : 112.0) * textScale;
+        (dayNote(model.selected).isEmpty ? 72.0 : 104.0) * textScale;
     final header = ColoredBox(
       color: AppColors.paper,
       child: Row(
@@ -1736,130 +1843,160 @@ class _CalendarScreenState extends State<CalendarScreen> {
               'p4': end.day,
             },
           );
-    return SizedBox(
+    final monthLabel = AppStrings.of(context).languageTag == 'ko'
+        ? context.t(
+            'ui.audit771',
+            args: {'p0': model.selected.year, 'p1': model.selected.month},
+          )
+        : MaterialLocalizations.of(context).formatMonthYear(model.selected);
+    return AppScrollHeader(
       key: const ValueKey('schedule-header'),
-      height: 48 * (MediaQuery.textScalerOf(context).scale(13) / 13),
-      child: AppToolbarScroll(
-        child: Row(
-          children: [
-            AppToolbarButton(
-              icon: CupertinoIcons.chevron_left,
-              label: context.t('common.previous'),
-              onPressed: () {
-                model.move(-1);
-                loadHolidays();
-              },
-            ),
-            Tooltip(
-              message: model.month
-                  ? (AppStrings.of(context).languageTag == 'ko'
-                        ? context.t(
-                            'ui.audit771',
-                            args: {
-                              'p0': model.selected.year,
-                              'p1': model.selected.month,
-                            },
-                          )
-                        : MaterialLocalizations.of(
-                            context,
-                          ).formatMonthYear(model.selected))
-                  : fullRange,
-              child: Text(
-                model.month
-                    ? (AppStrings.of(context).languageTag == 'ko'
-                          ? context.t(
-                              'ui.audit771',
-                              args: {
-                                'p0': model.selected.year,
-                                'p1': model.selected.month,
-                              },
-                            )
-                          : MaterialLocalizations.of(
-                              context,
-                            ).formatMonthYear(model.selected))
-                    : shortRange,
-                style: AppText.caption,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                key: const ValueKey('calendar-previous'),
+                tooltip: context.t('common.previous'),
+                onPressed: () {
+                  model.move(-1);
+                  loadHolidays();
+                },
+                icon: const Icon(CupertinoIcons.chevron_left, size: 20),
               ),
-            ),
-            AppToolbarButton(
-              icon: CupertinoIcons.chevron_right,
-              label: context.t('common.next'),
-              onPressed: () {
-                model.move(1);
-                loadHolidays();
-              },
-            ),
-            AppToolbarButton(
-              icon: Icons.today_outlined,
-              label: context.t('calendar.today'),
-              onPressed: () => model.selectDay(
-                DateTime.tryParse(ops.data?['day'] ?? '') ?? DateTime.now(),
+              Expanded(
+                child: Tooltip(
+                  message: model.month ? monthLabel : fullRange,
+                  child: Text(
+                    model.month ? monthLabel : shortRange,
+                    textAlign: TextAlign.center,
+                    style: AppText.section,
+                  ),
+                ),
               ),
-            ),
-            const AppToolbarDivider(),
-            AppToolbarButton(
-              icon: Icons.view_week_outlined,
-              label: context.t('calendar.week'),
-              selected: !model.month,
-              onPressed: () => model.setMonth(false),
-            ),
-            AppToolbarButton(
-              icon: Icons.calendar_month_outlined,
-              label: context.t('calendar.month'),
-              selected: model.month,
-              onPressed: () => model.setMonth(true),
-            ),
-            const AppToolbarDivider(),
-            const Icon(Icons.horizontal_rule, size: 18, color: AppColors.green),
-            Text(
-              context.t('ui.audit772'),
-              style: AppText.caption.copyWith(color: AppColors.green),
-            ),
-            if (ops.data?['workplace']?['breaks']?['$sourceDay'] != null) ...[
-              const SizedBox(width: 8),
-              const Icon(Icons.square, size: 18, color: Colors.orange),
-              Text(
-                context.t('ui.audit773'),
-                style: AppText.caption.copyWith(color: Colors.orange),
+              IconButton(
+                key: const ValueKey('calendar-next'),
+                tooltip: context.t('common.next'),
+                onPressed: () {
+                  model.move(1);
+                  loadHolidays();
+                },
+                icon: const Icon(CupertinoIcons.chevron_right, size: 20),
               ),
             ],
-            AppToolbarButton(
-              icon: Icons.schedule,
-              label: fullDay
-                  ? context.t('calendar.workHours')
-                  : context.t('calendar.fullDay'),
-              selected: fullDay,
-              onPressed: () => setState(() => fullDay = !fullDay),
-            ),
-            const AppToolbarDivider(),
-            AppToolbarButton(
-              key: const ValueKey('calendar-hours-button'),
-              icon: Icons.tune,
-              label: context.t('calendar.hoursStaff'),
-              onPressed: () => openWorkplaceHours(context, ops),
-            ),
-            if (model.editable &&
-                !model.history &&
-                !isClosedDay(model.selected))
-              AppToolbarButton(
-                key: const ValueKey('calendar-add-crew'),
-                icon: Icons.person_add_outlined,
-                label: context.t('calendar.addCrew'),
-                onPressed: model.visibleParts.where((p) => !p.hidden).isEmpty
-                    ? null
-                    : () => addShift(
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () {
+                  model.selectDay(
+                    DateTime.tryParse(ops.data?['day'] ?? '') ?? DateTime.now(),
+                  );
+                  loadHolidays();
+                },
+                child: Text(context.t('calendar.today')),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: AppViewToggle<bool>(
+                  key: const ValueKey('calendar-view-toggle'),
+                  fill: true,
+                  values: const [false, true],
+                  selected: model.month,
+                  labelOf: (month) =>
+                      context.t(month ? 'calendar.month' : 'calendar.week'),
+                  onSelected: model.setMonth,
+                ),
+              ),
+              const SizedBox(width: 8),
+              PopupMenuButton<String>(
+                key: const ValueKey('calendar-options'),
+                tooltip: context.t('calendar.hoursStaff'),
+                icon: const Icon(Icons.tune, size: 22),
+                onSelected: (action) {
+                  switch (action) {
+                    case 'hours':
+                      openWorkplaceHours(context, ops);
+                    case 'full-day':
+                      setState(() => fullDay = !fullDay);
+                    case 'add':
+                      addShift(
                         model.visibleParts.firstWhere((p) => !p.hidden),
                         9 * 60,
-                      ),
+                      );
+                  }
+                },
+                itemBuilder: (_) => [
+                  CheckedPopupMenuItem(
+                    key: const ValueKey('calendar-full-day'),
+                    value: 'full-day',
+                    checked: fullDay,
+                    child: Text(context.t('calendar.fullDay')),
+                  ),
+                  PopupMenuItem(
+                    key: const ValueKey('calendar-hours-button'),
+                    value: 'hours',
+                    child: Text(context.t('calendar.hoursStaff')),
+                  ),
+                  if (model.editable &&
+                      !model.history &&
+                      !isClosedDay(model.selected))
+                    PopupMenuItem(
+                      key: const ValueKey('calendar-add-crew'),
+                      value: 'add',
+                      enabled: model.visibleParts.any((p) => !p.hidden),
+                      child: Text(context.t('calendar.addCrew')),
+                    ),
+                ],
               ),
-            if (editMode)
-              AppToolbarButton(
-                icon: Icons.check,
-                label: context.t('manual.editDone'),
+            ],
+          ),
+          if (editMode)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                icon: const Icon(Icons.check),
+                label: Text(context.t('manual.editDone')),
                 onPressed: finishEdit,
               ),
-          ],
-        ),
+            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Wrap(
+              spacing: 16,
+              runSpacing: 4,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.horizontal_rule,
+                      size: 18,
+                      color: AppColors.green,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(context.t('ui.audit772'), style: AppText.caption),
+                  ],
+                ),
+                if (ops.data?['workplace']?['breaks']?['$sourceDay'] != null)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.square,
+                        size: 12,
+                        color: AppColors.amber,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(context.t('ui.audit773'), style: AppText.caption),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

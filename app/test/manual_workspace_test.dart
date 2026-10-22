@@ -315,7 +315,7 @@ void main() {
     },
   );
 
-  testWidgets('editing keeps tree rows compact and activates both panes', (
+  testWidgets('editing keeps the single column compact and retains hierarchy', (
     tester,
   ) async {
     final ops = OperationsController(
@@ -334,7 +334,6 @@ void main() {
     expect(frame('manual-tree-frame-task:s1:a').active, isTrue);
     expect(frame('manual-tree-frame-task:s1:a').controls, isFalse);
     expect(frame('manual-tree-frame-task:s1:a').outline, isFalse);
-    expect(frame('manual-content-frame-a/s1').active, isTrue);
     expect(tester.getSize(task).height, lessThanOrEqualTo(height));
     expect(
       tester.getTopLeft(task).dx,
@@ -351,20 +350,14 @@ void main() {
     expect(find.text('삭제'), findsOneWidget);
     await tester.tapAt(const Offset(1100, 20));
     await tester.pumpAndSettle();
-    await tester.longPress(
-      find.descendant(
-        of: find.byKey(const ValueKey('manual-results')),
-        matching: find.text('손 씻기'),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(frame('manual-tree-frame-task:s1:a').active, isTrue);
-    expect(frame('manual-content-frame-a/s1').active, isTrue);
     expect(
       find.byKey(const ValueKey('manual-actions-task:s1:a')),
       findsOneWidget,
     );
-    expect(find.byTooltip('이름 변경'), findsWidgets);
+    expect(
+      find.byKey(const ValueKey('manual-rename-task:s1:a')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -407,9 +400,7 @@ void main() {
     },
   );
 
-  testWidgets('phone tree edit menu fits and pane switch preserves editing', (
-    tester,
-  ) async {
+  testWidgets('phone folder picker preserves editing', (tester) async {
     final ops = OperationsController(
       readOnly: true,
       client: MockClient((_) async => response(directoryData())),
@@ -420,12 +411,14 @@ void main() {
     await tester.longPress(find.byKey(const ValueKey('manual-node-task:s1:a')));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    await tester.tap(find.text('매뉴얼 2'));
-    await tester.pumpAndSettle();
+    await click(tester, 'manual-folder-picker');
+    await click(tester, 'manual-folder-choice-close');
+    await click(tester, 'manual-folder-picker');
+    await click(tester, 'manual-folder-choice-general');
     expect(
       tester
           .widget<DirectEditFrame>(
-            find.byKey(const ValueKey('manual-content-frame-a/s1')),
+            find.byKey(const ValueKey('manual-tree-frame-task:s1:a')),
           )
           .active,
       isTrue,
@@ -555,15 +548,10 @@ void main() {
     addTearDown(ops.dispose);
     await mount(tester, ops, query: '공통');
     await click(tester, 'manual-node-group:close');
-    final results = find.byKey(const ValueKey('manual-results'));
-    expect(
-      find.descendant(of: results, matching: find.text('청소')),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(of: results, matching: find.text('손 씻기')),
-      findsNothing,
-    );
+    await click(tester, 'manual-folder-picker');
+    await click(tester, 'manual-folder-choice-close');
+    expect(find.byKey(const ValueKey('manual-node-task:s3:b')), findsOneWidget);
+    expect(find.byKey(const ValueKey('manual-node-task:s1:a')), findsNothing);
     await click(tester, 'manual-node-task:s3:b');
     expect(find.text('청소 상세 매뉴얼'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -579,7 +567,7 @@ void main() {
       await mount(tester, ops);
       await click(tester, 'manual-node-tap:a');
       expect(find.text('약 15분'), findsOneWidget);
-      final results = find.byKey(const ValueKey('manual-results'));
+      final results = find.byKey(const ValueKey('manual-directory'));
       expect(
         find.descendant(of: results, matching: find.text('약 5분')),
         findsOneWidget,

@@ -1,5 +1,16 @@
 // AI-reviewed draft; ko, en, vi, zh-Hans, ja, th, ne, id.
 const manualModelMessageRows = <String, List<String>>{
+  'manual.chooseFolder': [
+    '폴더 이동',
+    'Choose folder',
+    'Chọn thư mục',
+    '选择文件夹',
+    'フォルダーを選択',
+    'เลือกโฟลเดอร์',
+    'फोल्डर छान्नुहोस्',
+    'Pilih folder',
+  ],
+
   'manual.recipeLibrary': [
     '레시피 가져오기',
     'Import recipes',

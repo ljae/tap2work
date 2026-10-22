@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 328,
+  "revision": 329,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1569,6 +1569,19 @@
       "source": "User conversation 2026-10-21",
       "updatedAt": "2026-10-21T14:18:59.101462+00:00",
       "implementation": "Deployed code4b0f857: Pages build/deploy jobs success,267publicSHA match, actual390px Chrome todo/done + inline task/method + manual/recipe verified/pageerror0/operationsPOST0. CI Flutter635pass/3browser-onlyskip,Node394,analysis0,UI89/Edge/5SQL/translations/web pass. iOS1.0.0(23) VALID/internalTestFlight/WAITING_FOR_REVIEW/AFTER_APPROVAL,new submission2026-10-21T14:14:09Z with8current checksum-verified screenshots and review notes; credentials/contact preserved. Android1.0.0(22) internal+alpha completed,production empty. See WORK_MENU_RELEASE_2026-10-21.md. Physical-device/native runtime/OAuth/field validation not performed."
+    },
+    {
+      "id": "D-141",
+      "category": "Mobile workspace navigation",
+      "title": "스크롤 상단 접기·한 열 매뉴얼·근무표 가독성 개선",
+      "status": "confirmed",
+      "previous": "브랜드·검색·화면 도구가 본문 스크롤 중 공간을 차지하고 매뉴얼은 화면 폭에 따라 트리/내용을 나눔. 근무표 도구와 월간 상태 표현이 작은 화면에서 혼잡함.",
+      "next": "세로 스크롤에 상단 브랜드·검색·도구를 함께 접고 역방향 또는 하단 메뉴 재선택으로 복귀. 매뉴얼은 한 열 목록과 폴더 이동 시트·직접 편집. 근무표는 날짜/보기/설정 행·선택 날짜 강조·월간 상태 아이콘을 사용하되 기존 캘린더 내용과 기능을 유지.",
+      "decision": "사용자가 핸드폰 화면을 넓게 쓰도록 상단 메뉴 자동 접기, 한 열 매뉴얼·폴더 이동·내용 변경 개선, 기존 캘린더 내용을 유지한 근무표 UI 리디자인을 요청했다.",
+      "reason": "휴대폰 업무 표시 영역을 확보하고 폴더 이동·편집과 날짜별 근무 확인을 단순하게 만든다. D-140의 업무 한 열 펼침과 네 목적지는 유지한다.",
+      "source": "User conversation 2026-10-22; docs/MOBILE_WORKSPACE_REDESIGN_2026-10-22.md",
+      "updatedAt": "2026-10-22T14:43:11.000Z",
+      "implementation": "Local Flutter and JS web build complete. Final full Flutter645pass/3browser-onlyskip; analysis0; relevant server36/UI92/npmcheck pass.60widget captures320/390/1200px x1.0/1.5text;390px Chrome scroll collapse/restore,folder selection,week/month,options rendering verified with0pageerrors/0operationsPOST. Popup selection verified by widgets; browser semantics clicks hit barrier/selector timeouts. No deployment/native build/physical-device/live-data changes."
     }
   ],
   "milestones": [
@@ -1787,6 +1800,12 @@
       "title": "서비스 품질·근무 준비·인계 개편과 현장 검증",
       "status": "in_progress",
       "description": "로컬 첫 소프트웨어 흐름과 주문별 처리 종료 완료; Flutter622/3skip·analysis0·Node393·UI87·web build/skill validator 통과. 프로젝트 개선 스킬과 현장 실행표 준비. 운영 배포·실계정 버디/실기기·원어민·현장효과 검증은 미수행, 앱 offline/kiosk/AI runtime는 후속. 상세 SERVICE_WORKFLOW_IMPLEMENTATION_2026-10-14.md."
+    },
+    {
+      "id": "M-037",
+      "title": "휴대폰 작업 공간 리디자인 로컬 구현·검증",
+      "status": "complete",
+      "description": "D-141 상단 스크롤 접기, 한 열 매뉴얼/폴더 이동/직접 편집, 기존 내용 유지 근무표 UI 구현. 최종 Flutter645pass/3browser-onlyskip,analysis0,관련 서버36/UI92/JS/web build·390px Chrome 주요 탐색 확인. 로컬 구현 범위이며 운영 배포·네이티브 빌드·실기기는 미포함. docs/MOBILE_WORKSPACE_REDESIGN_2026-10-22.md."
     }
   ],
   "history": [
@@ -9084,7 +9103,13 @@
       "type": "deployment",
       "title": "업무·매뉴얼 개편 웹 공개·iOS23 심사 제출·Android22 테스트 배포 완료",
       "detail": "User explicitly requested web/app deployment. Isolated21selected files from latestorigin; code4b0f857/Pages39613122967 build+deploy jobs success, public267CI-artifactSHA matched. GitHub overallrun remained in_progress at final query despite bothjobs completed/success; do not conflate aggregator delay with deployment failure. CIFlutter635pass/3browser-onlyskip,Node394,analysis0,UI89/JS/Edge/5SQL/7language translations/web passed. Actual390px Chrome sample confirmed todo/done,inline tasks/method,manual/recipe and removed categories; pageerror0/operationsPOST0. Signed iOS1.0.0(23)IPA/codesign/publicauth4/8locales verified; direct upload initialcomposite409 fixed by byte-offset ordering,same file COMPLETE/VALID. Existing22 canceledCOMPLETE; new23submission17c1437e-cc5c-4c9c-93e5-7306155280a3 accepted2026-10-21T14:14:09.049Z,WAITING_FOR_REVIEW/AFTER_APPROVAL/internalTestFlight.8new screenshot COMPLETE/MD5/order and notes confirmed; old8privately preserved, reviewcredentials/contact unchanged. Transient beta404,canceledreviewGET404 and iPadprocessing timeout resolved by same-resource rereads/resume. Android22signedAAB reusedkeystore/publicAndroiddefines3/sevendictionaries,uploadSHA matched; realinternal/alpha22completed,production/betaempty. Initialcapturecwd and browserselectors corrected, finalcapture1/browser checks pass. No new native device/runtime/OAuth/camera/deletion/field review,backend/catalog/productiondata writes or userfile deletion. Rootdirtypreserved. docs/WORK_MENU_RELEASE_2026-10-21.md; privateevidence.local/work-menu-deployment-20261021."
+    },
+    {
+      "at": "2026-10-22T14:43:11.000Z",
+      "type": "implementation",
+      "title": "상단 스크롤 접기·한 열 매뉴얼·근무표 UI 로컬 완료",
+      "detail": "D-141. Shared AppScrollHeaderScope collapses brand/search/part/manual/calendar tools on vertical input; reverse/current bottom destination restore; keyboard/accessibility/reduced-motion covered. Manual single880px directory,localized folder sheet,exact TAP/task pencil editors preserve IDs/permissions/revision/drag/read routes. Calendar date/view/settings rows,selected dates,42cell compact statuses/holiday list and measured large-text width preserve data/actions. Final full Flutter645pass/3browser-onlyskip(full-latest.log),analysis0,relevant server36,npmcheck/UI92 pass; followups63/25pass;60widget captures320/390/1200px x1.0/1.5text. Final JS web build30.0s success with existing PWA deprecation.390x844 headless Chrome read-only sample validates wheel collapse/current-menu restore/folder/week-month/options rendering;0pageerrors/0operationsPOST. Initial reduced-motion AnimatedSize self-layout fixed with height tween; wheel ordering/stale layout tests/date clipping corrected. Browser semantics popup clicks hit modal barrier/selector timeouts; display verified in browser, actions in widgets only. Architecture/product/guidelines/template/UI map updated. No deployment/native build/physical-device/native-speaker/live-save/production-data changes. Existing dirty work preserved. Evidence .local/mobile-space-20261022/ and before/; docs/MOBILE_WORKSPACE_REDESIGN_2026-10-22.md."
     }
   ],
-  "updatedAt": "2026-10-21T14:18:59.101462+00:00"
+  "updatedAt": "2026-10-22T14:43:11.000Z"
 }

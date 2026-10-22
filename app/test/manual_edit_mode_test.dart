@@ -26,8 +26,9 @@ void main() {
       );
       addTearDown(ops.dispose);
       await mount(tester, ops);
+      await click(tester, 'manual-node-tap:today');
       final today = find.byKey(
-        const ValueKey('manual-content-frame-today/prep'),
+        const ValueKey('manual-tree-frame-task:today/prep:today'),
       );
       await tester.longPress(today);
       await tester.pumpAndSettle();
@@ -60,7 +61,7 @@ void main() {
       await mount(tester, ops);
       await click(tester, 'manual-node-tap:a');
       await tester.longPress(
-        find.byKey(const ValueKey('manual-content-frame-a/s1')),
+        find.byKey(const ValueKey('manual-tree-frame-task:s1:a')),
       );
       await tester.pumpAndSettle();
       for (final id in ['group:general', 'tap:a', 'task:s1:a']) {
@@ -85,7 +86,7 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
-  testWidgets('phone pane navigation retains editing until done', (
+  testWidgets('phone folder navigation retains editing until done', (
     tester,
   ) async {
     final ops = OperationsController(
@@ -97,19 +98,18 @@ void main() {
     await click(tester, 'manual-node-tap:a');
     await tester.longPress(find.byKey(const ValueKey('manual-node-task:s1:a')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('매뉴얼 2'));
-    await tester.pumpAndSettle();
+    await click(tester, 'manual-folder-picker');
+    await click(tester, 'manual-folder-choice-close');
+    await click(tester, 'manual-folder-picker');
+    await click(tester, 'manual-folder-choice-general');
     expect(
       tester
           .widget<DirectEditFrame>(
-            find.byKey(const ValueKey('manual-content-frame-a/s1')),
+            find.byKey(const ValueKey('manual-tree-frame-task:s1:a')),
           )
           .active,
       isTrue,
     );
-    expect(find.byTooltip('위치 이동'), findsWidgets);
-    await tester.tap(find.text('디렉토리'));
-    await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('manual-actions-task:s1:a')),
       findsOneWidget,
