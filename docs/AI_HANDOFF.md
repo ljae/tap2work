@@ -1,3 +1,7 @@
+## 2026-10-22 휴대폰 작업 공간 웹 배포 완료
+
+D-141/revision330. 웹 코드a40eab1·Actions39798383504 completed/success, Pages7255412881 success(23:53:23KST), 공개267파일 CI artifact SHA256 일치. 당시 GitHub Actions 결과 지연으로 build job 집계만 마지막 조회in_progress였지만 모든 build step/deploy 성공과 실제 공개 반영을 확인했다. 격리 배포 소스 Flutter645pass/3browser-onlyskip·analysis0·Node394·UI92/JS, CI Edge/SQL5/번역/web 포함 통과. 실제390Chrome 공개 샘플의 할일/방법 펼침 후 상단 접기·복귀, 폴더 선택·주간/월간·설정 표시 확인(pageerror0/operationsPOST0). 원래 dirty 보존·25파일 격리. 웹만 배포, 앱/백엔드/운영데이터 변경 없음. [배포 기록](MOBILE_WORKSPACE_WEB_RELEASE_2026-10-22.md), 증거 `.local/mobile-space-deployment-20261022/`.
+
 ## 2026-10-22 휴대폰 작업 공간 리디자인 로컬 완료
 
 D-141/revision329. 세로 스크롤에 브랜드·검색·파트/매뉴얼/근무표 도구를 함께 접고 역방향/현재 하단 메뉴 재선택으로 복귀한다. 키보드·접근성 탐색·줄어든 모션 대응. 매뉴얼은 한 열880px 목록, 폴더 이동 시트와 직접 편집 연필. 근무표 날짜/보기/설정 행·선택 날짜·월간 상태 표현 개선, 기존 내용/저장 계약 유지. 최종 Flutter645pass/3browser-onlyskip·analysis0·관련 서버36·UI92/npmcheck·JS web build 통과.60widget capture(320/390/1200px×1.0/1.5), 실제390Chrome 접기/복귀·폴더·주간/월간·설정 표시 확인(pageerror0/operationsPOST0). 브라우저 팝업 선택의 접근성 barrier/selector timeout으로 선택 동작은 위젯 검증으로 한정한다. 운영 배포/native build/실기기/실계정 저장 미수행. 기존 dirty 보존. [상세](MOBILE_WORKSPACE_REDESIGN_2026-10-22.md), 비공개 증거 `.local/mobile-space-20261022/`. 아래 배포 이력은 기존 공개 버전이다.
