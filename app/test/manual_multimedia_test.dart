@@ -2,16 +2,50 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
+import 'package:image/image.dart' as img;
 import 'package:tap2work/domain/manual_media_assets.dart';
 import 'package:tap2work/state/operations_controller.dart';
 import 'package:tap2work/ui/manual_market_screen.dart';
 import 'package:tap2work/ui/manual_media_view.dart';
+import 'package:tap2work/ui/place_guide.dart';
 import 'manual_market_test.dart' show fixture, mount;
 import 'manual_media_editor_test.dart'
     show MediaEditorRepository, mountMediaEditor, saveMediaEditor, mediaFixture;
 import 'operations_test.dart' show response;
 
 void main() {
+  testWidgets(
+    'photo semantics remain inside the image instead of covering adjacent video controls',
+    (t) async {
+      final semantics = t.ensureSemantics();
+      final bytes = img.encodePng(img.Image(width: 60, height: 40));
+      await t.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                const Text('상세 매뉴얼 본문'),
+                placePhoto('data:image/png;base64,${base64Encode(bytes)}'),
+                const SizedBox(height: 170, child: Text('인접한 동영상 컨트롤')),
+              ],
+            ),
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      final node = t.getSemantics(find.byType(Image));
+      expect(node.rect.height, lessThanOrEqualTo(300));
+      expect(
+        node.getSemanticsData().attributedLabel.string,
+        isNot(contains('인접한 동영상')),
+      );
+      expect(
+        node.getSemanticsData().attributedLabel.string,
+        isNot(contains('상세 매뉴얼')),
+      );
+      semantics.dispose();
+    },
+  );
   const custom = '${manualMediaRoot}player.html#p=eyJmb3JtYXQiOiJ0YXAifQ';
   test(
     'media attribution and iframe classification require the exact trusted origin',

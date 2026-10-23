@@ -609,3 +609,5 @@ S48 기존 PDF/인쇄를 CS·개선 화면에서 재사용한다. 등록한 안�
 |---|---|---|---|
 | S45/S69/S70 | DB manualCatalog.steps.imageUrl/videoUrl/sourceUrl → 사진·영상·모션 예시 필터/상세 미리보기 → 기존 import_market_taps → 등록 대기·OFF | 공용5개 기존ID, exact release/revision. 우리 매장 편집은 기존 save_manual_tap/save_step_manual로 개인화하며 실행 완료/정책과 독립 | manual_multimedia_test.dart, manual_multimedia.test.mjs, manual_media_editor_test.dart |
 | S69/S70/S71 | 공개 원본·장면JSON → 모션 문구/순서/시간/색상 편집 → 수정본 HTTPS 링크 → 기존 영상 링크 필드/저장 → ManualMediaView/백업 복원 | 브라우저 초안/JSON을 자동 서버 저장하지 않음. exact owned player만 iframe, 외부 영상 링크·사진 업로드 권한 유지. 출처/이용 조건 및 원본ZIP 제공 | manual_multimedia_test.dart, manual_multimedia.test.mjs, Ego Lite390 편집/MP4 내보내기 |
+
+S69/S70 보완: 사진·편집 미리보기의 semantics는 이미지 경계 안에 유지해 인접 웹 영상 컨트롤을 가리지 않는다. media semantics 회귀 및 관련22개/analysis0 검증.

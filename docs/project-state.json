@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 338,
+  "revision": 339,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -9228,7 +9228,13 @@
       "type": "implementation",
       "title": "수정 가능한 멀티미디어 매뉴얼5종 로컬 구현·검증",
       "detail": "D-146. Five existing food manuals/23 steps gain2 licensed photos, untouched English CDC video and5 original editable Korean motion examples; other142 unchanged. Source kit contains actual EPUB2/photo2/video originals, JSON/editor/player/backup and37-file hash manifest/ZIP. Existing import/owner registration OFF/personalization/revision/execution contracts retained. Flutter656pass/3skip,analysis0,Node398,UI92/JS/media/translation checks pass; Ego Lite390 title edit/play/copy/JSON/MP4 export verified. Web and DB stable publication pending, native/physicalSafari/live-save/independent field review not performed. docs/MULTIMEDIA_MANUALS_2026-10-23.md; private.local/media-manual-20261023."
+    },
+    {
+      "at": "2026-10-23T15:00:33.489Z",
+      "type": "verification",
+      "title": "사진 접근성 영역 보완·5개 멀티미디어 매뉴얼 검토 생략 발행 승인",
+      "detail": "D-146. User explicitly approved skipping separate reviewer for these five examples. Runtime stable read147/revision3/394a7e42; prepared exact a5458fd3/expectedRevision3/request8c614f9c-10f4-4aff-85e7-8e72da18297a and isolated PGlite publication4/idempotency/stale CAS/null actor audit passed. First web candidate18a9410/Actions39973125347 cancelled before deployment after Ego Lite reproduced merged photo semantics blocking native video. Scoped photo semantics added; regression and relevant22pass,analysis0,web36.7s. Corrected web deployment and DB publication pending."
     }
   ],
-  "updatedAt": "2026-10-23T14:45:10.370Z"
+  "updatedAt": "2026-10-23T15:00:33.489Z"
 }

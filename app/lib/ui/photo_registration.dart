@@ -89,22 +89,30 @@ class _PhotoRegistrationFieldState extends State<PhotoRegistrationField> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (widget.pending != null)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.memory(
-              widget.pending!.bytes,
-              height: 240,
-              fit: BoxFit.contain,
+          Semantics(
+            container: true,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.memory(
+                widget.pending!.bytes,
+                height: 240,
+                fit: BoxFit.contain,
+              ),
             ),
           )
         else if (widget.value.isNotEmpty)
-          widget.previewBuilder?.call(widget.value) ??
-              Image.network(
-                widget.value,
-                height: 240,
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => Text(context.t('photo.loadFailed')),
-              ),
+          Semantics(
+            container: true,
+            child:
+                widget.previewBuilder?.call(widget.value) ??
+                Image.network(
+                  widget.value,
+                  height: 240,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, _, _) =>
+                      Text(context.t('photo.loadFailed')),
+                ),
+          ),
         if (hasPhoto) const SizedBox(height: 16),
         if (service.supportsCamera)
           FilledButton.icon(

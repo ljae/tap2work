@@ -10,7 +10,12 @@ import '../state/operations_controller.dart';
 import 'components.dart';
 import 'photo_registration.dart';
 
-Widget placePhoto(String value, {OperationsController? ops}) {
+// Keep the image's semantic hit area bounded to the photo. Otherwise Flutter
+// web can merge it into the surrounding reader and cover native video controls.
+Widget placePhoto(String value, {OperationsController? ops}) =>
+    Semantics(container: true, child: _placePhoto(value, ops: ops));
+
+Widget _placePhoto(String value, {OperationsController? ops}) {
   Widget fallback(BuildContext context, Object error, StackTrace? stack) =>
       Padding(
         padding: const EdgeInsets.all(16),

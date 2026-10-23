@@ -1036,6 +1036,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Semantics(
+          container: true,
           label: '${step['title']} ${context.t('manual.photo')}',
           image: true,
           child: placePhoto(value, ops: ops),
