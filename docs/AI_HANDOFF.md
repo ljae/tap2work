@@ -1,3 +1,7 @@
+## 2026-10-23 휴대폰 웹 접힘·로딩·공통 디자인 배포 완료
+
+D-145/revision337. 웹8842165/Actions39957812745 run·build·deploy success,Pages7278961839 success22:07:06KST. 공개13관련파일 SHA가CIartifact12503451899와 일치. 최종CIFlutter652/3skip·analysis0·Node394·UI92/JS/Edge/SQL5/번역/web 통과. Ego Lite390DPR2 공개 긴 목록/짧은2-TAP폴더/상단도구 터치 후1.2초 접힘 유지·역방향/하단재선택 복귀,주간근무표 접힘·검색범위 확인(error/rejection0). 로컬1-TAP·레시피 확인,97반응형/로딩캡처. 실기기Safari/native/실계정저장·백엔드 배포는 미수행. 기존rootdirty 보존·격리22파일 배포. [상세](MOBILE_DESIGN_REFRESH_2026-10-23.md), 비공개.local/design-refresh-20261023/.
+
 ## 2026-10-23 휴대폰 웹 접힘·로딩·공통 디자인 로컬 완료
 
 D-145/revision336. 사용자가 문제 환경을 휴대폰 웹으로 확인. 짧은 폴더/빈 레시피·검색 터치, 상단 도구 스와이프, 작은 연속 휠을 수정 전 실패로 재현 후 해결. global drag 좌표로 헤더 크기 변경과 사용자 입력을 분리. 공통 forest/mint/coral 표면·폴더·하단 선택 메뉴와 브랜드/단계/작은 물컵/스켈레톤 로딩 개선. 전체 Flutter652/3skip 뒤 최종 검색 보완 관련33·격리analysis0·Node8·UI92·webrelease 통과, 반응형88/로딩9캡처. Ego Lite390DPR2 Chromium 긴 목록/한 TAP 폴더/도구 스와이프 후1.2초 접힘 유지·복귀 확인. 웹 배포 예정, 실기기Safari/native/실계정저장 미수행. rootdirty 보존/격리.local/mobile-space-release. [상세](MOBILE_DESIGN_REFRESH_2026-10-23.md).

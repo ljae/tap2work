@@ -23,8 +23,17 @@
 - 전체 Flutter 652개 통과, 브라우저 전용 3개 skip. 이후 빈 검색 결과 physics 보완 후 최종 관련 33개 통과. 최종 source의 격리 분석 오류 0.
 - 초기 관련 60개, 렌더 캡처 검사 9개/88장(320·390·1200·1600px × 글자1.0/1.5), 로딩 1개/9장(320·390·1200px, 짧은560px 높이/글자1.5) 통과. 로딩 재시도·오류·최신 시도 보호·동작 줄이기 기존 검사 유지.
 - `npm run check`(UI 관계92개 포함), 매뉴얼 서버/웹 초기화 관련8개 통과. 최종 Flutter web release 및 새 정적 샘플 빌드 성공.
-- Ego Lite 한 task space에서 로컬 390px/DPR2 Chromium 터치 입력으로 긴 매뉴얼·TAP 1개 짧은 폴더·상단 도구 스와이프의 접힘과1.2초 뒤 유지, 역방향/현재 메뉴 재선택 복귀를 확인했다. 공개 배포 검증은 후속 기록한다. 캡처·로그는 `.local/design-refresh-20261023/`.
+- Ego Lite 한 task space에서 로컬 390px/DPR2 Chromium 터치 입력으로 긴 매뉴얼·TAP 1개 짧은 폴더·상단 도구 스와이프의 접힘과1.2초 뒤 유지, 역방향/현재 메뉴 재선택 복귀를 확인했다. 공개 배포 검증은 아래에 기록한다. 캡처·로그는 `.local/design-refresh-20261023/`.
 - 중간 분석의 if 중괄호 lint1건은 수정 후 해소. 추가 검사에 존재하지 않는 검색 테스트 경로를 넣은 실행1건은 실제 header/language_controls 테스트로 수정해 최종33개 통과. 서버·앱 기능 실패로 보고하지 않는다.
 - iPhone Safari 실기기, 네이티브 빌드·스토어 배포·실계정 저장 왕복은 이번 검증에 포함하지 않았다.
 
 기존 큰 미커밋 작업 트리는 보존했다. 배포 검증은 기존 격리 worktree `.local/mobile-space-release`를 main `bc9ddb1`까지 fast-forward한 뒤 이번 선택 파일만 복사해 수행한다.
+
+## 웹 배포 완료
+
+- 코드 `884216512adf6646386393ed9958114e1c790067`를 `main`에 배포했다. [Actions 39957812745](https://github.com/ljae/tap2work/actions/runs/39957812745) run/build/deploy 모두 success. Pages deployment `7278961839`는 2026-10-23 22:07:06 KST success이며 주소는 https://tap2.work/ 이다.
+- 최종 CI 소스에서 **Flutter 652개 통과 / 브라우저 전용3개 skip**, 분석 오류0, Node394개 통과. UI 관계92개·JS·Edge·SQL5개·번역·웹 빌드 통과. GitHub의 기존 Node20 action/Ubuntu26 전환 안내는 비차단이며 이번 코드 오류가 아니다.
+- GitHub Pages artifact `12503451899`에서 index·manifest·version·bootstrap·main JS·폰트 manifests/실제 폰트·아이콘·정적 샘플 등 관련 **13개 공개 응답 SHA256 전부 일치**. 전체 자산 검증을 의미하지 않는다.
+- 같은 Ego Lite task space에서 공개 앱을390px/DPR2로 새로 열어 매뉴얼 전체 목록,2-TAP 짧은 폴더의 빈 공간,상단 도구 영역을 CDP touch로 쓸어 올렸다. 각각 손을 뗀1.2초 뒤에도 브랜드/검색/도구가 접혀 유지됨을 캡처했다. 역방향 터치와 현재 하단 메뉴 재선택 복귀 확인. 주간 근무표도 접힘 유지, 근무표/우리매장에 검색창 없음 확인.
+- 공개 로드부터 마지막 탐색까지 수집한 `error`/`unhandledrejection` 이벤트0. 매뉴얼·근무표 데이터 저장은 수행하지 않았으며 실계정 저장 왕복 검증을 의미하지 않는다. API/DB/네이티브 앱/Apple 심사 제출 변경 없음.
+- Ego Lite 업데이트 알림은 있었으나 브라우저 업그레이드는 수행하지 않았다. 실기기 iPhone Safari는 여전히 미검증이다. 배포 후 문서 기록은 `[skip ci]` 별도 커밋으로 보존한다.

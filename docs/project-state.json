@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 336,
+  "revision": 337,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1632,8 +1632,8 @@
       "decision": "사용자가 휴대폰 웹브라우저에서 매뉴얼 상단 접힘이 여전히 안 된다고 확인하고 로딩 및 전체 디자인 업그레이드를 요청했다.",
       "reason": "내용 길이와 터치 시작 위치에 관계없이 휴대폰 작업 공간을 확보하고 로딩·내용·선택 상태의 구분을 명확히 한다.",
       "source": "User conversation 2026-10-23",
-      "updatedAt": "2026-10-23T13:01:07.460Z",
-      "implementation": "D-145. Mobile web clarified by user. Short directory/empty recipe/search AlwaysScrollable physics; toolbar vertical gesture and global drag coordinates; small wheel ticks accumulate, no ballistic/layout reopen. Shared forest/mint/coral tokens, rounded folder/selected navigation, brand/status/compact water/skeleton loading with real retry/reduced motion. Initial3 plus empty-search regressions fail before/pass after. Full Flutter652pass/3browser-onlyskip before final search fix; final relevant33pass and isolatedanalysis0; related60, responsive9/88captures/loading1/9captures, Node8/npmcheckUI92/finalwebrelease pass. Ego Lite390DPR2 actual Chromium touch confirms long/one-TAP folder and toolbar collapse stable1.2s/current menu restore. Web deployment pending; physicalSafari/native/live-save not performed. Rootdirty preserved, selected files isolated frombc9ddb1. docs/MOBILE_DESIGN_REFRESH_2026-10-23.md."
+      "updatedAt": "2026-10-23T13:11:17.777Z",
+      "implementation": "D-145. Web code884216512adf6646386393ed9958114e1c790067, Actions39957812745 run/build/deploy success, Pages7278961839 success2026-10-23T13:07:06Z. CIFlutter652pass/3browser-onlyskip,analysis0,Node394,UI92/JS/Edge/SQL5/translations/web pass. Public13relevant files(index/manifest/version/bootstrap/main/font manifests/font/icon/seeded samples) SHA256 match CIartifact12503451899. Ego Lite390DPR2 Chromium public long/short2-TAP folder and toolbar touch collapse stable1.2s,reverse/current destination restore; weekly roster collapse and search scope preserved; pageerror/unhandledrejection0. Local one-TAP folder and recipe verified; before/after4regressions,97responsive/loadingcaptures. No live-save/native/physicalSafari/backend rollout. Existing rootdirty preserved; selected22files isolated frombc9ddb1. docs/MOBILE_DESIGN_REFRESH_2026-10-23.md;private.local/design-refresh-20261023/."
     }
   ],
   "milestones": [
@@ -9203,7 +9203,13 @@
       "type": "implementation",
       "title": "휴대폰 웹 매뉴얼 접힘·공통 디자인 로컬 검증 완료",
       "detail": "D-145. Mobile web clarified by user. Short directory/empty recipe/search AlwaysScrollable physics; toolbar vertical gesture and global drag coordinates; small wheel ticks accumulate, no ballistic/layout reopen. Shared forest/mint/coral tokens, rounded folder/selected navigation, brand/status/compact water/skeleton loading with real retry/reduced motion. Initial3 plus empty-search regressions fail before/pass after. Full Flutter652pass/3browser-onlyskip before final search fix; final relevant33pass and isolatedanalysis0; related60, responsive9/88captures/loading1/9captures, Node8/npmcheckUI92/finalwebrelease pass. Ego Lite390DPR2 actual Chromium touch confirms long/one-TAP folder and toolbar collapse stable1.2s/current menu restore. Web deployment pending; physicalSafari/native/live-save not performed. Rootdirty preserved, selected files isolated frombc9ddb1. docs/MOBILE_DESIGN_REFRESH_2026-10-23.md."
+    },
+    {
+      "at": "2026-10-23T13:11:17.777Z",
+      "type": "deployment",
+      "title": "휴대폰 웹 매뉴얼 접힘·로딩·공통 디자인 배포 완료",
+      "detail": "D-145. Web code884216512adf6646386393ed9958114e1c790067, Actions39957812745 run/build/deploy success, Pages7278961839 success2026-10-23T13:07:06Z. CIFlutter652pass/3browser-onlyskip,analysis0,Node394,UI92/JS/Edge/SQL5/translations/web pass. Public13relevant files(index/manifest/version/bootstrap/main/font manifests/font/icon/seeded samples) SHA256 match CIartifact12503451899. Ego Lite390DPR2 Chromium public long/short2-TAP folder and toolbar touch collapse stable1.2s,reverse/current destination restore; weekly roster collapse and search scope preserved; pageerror/unhandledrejection0. Local one-TAP folder and recipe verified; before/after4regressions,97responsive/loadingcaptures. No live-save/native/physicalSafari/backend rollout. Existing rootdirty preserved; selected22files isolated frombc9ddb1. docs/MOBILE_DESIGN_REFRESH_2026-10-23.md;private.local/design-refresh-20261023/."
     }
   ],
-  "updatedAt": "2026-10-23T13:01:07.460Z"
+  "updatedAt": "2026-10-23T13:11:17.777Z"
 }
