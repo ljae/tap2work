@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  static const paper = Color(0xFF171C1C);
-  static const surface = Color(0xFF232B2A);
-  static const elevated = Color(0xFF303B38);
+  static const paper = Color(0xFF111C18);
+  static const surface = Color(0xFF1D2C25);
+  static const elevated = Color(0xFF2A3D33);
   static const white = Color(0xFFFFFFFF);
-  static const accent = Color(0xFFFFA28E);
-  static const accentSoft = Color(0xFF44312D);
-  static const green = Color(0xFF79E2BA);
+  static const accent = Color(0xFFFFAF98);
+  static const accentSoft = Color(0xFF46342E);
+  static const green = Color(0xFF8AE4BA);
   static const primary = Color(0xFF087568);
-  static const ink = Color(0xFFF2F5EF);
-  static const muted = Color(0xFFADBAB4);
-  static const lime = Color(0xFF29483D);
+  static const ink = Color(0xFFF1F6F0);
+  static const muted = Color(0xFFB1C5B8);
+  static const lime = Color(0xFF264A39);
   static const peach = Color(0xFF403729);
   static const amber = Color(0xFFE9AC4C);
   static const blue = Color(0xFF8DBAEA);
-  static const line = Color(0xFF3A4742);
-  static const controlLine = Color(0xFF72877C);
+  static const line = Color(0xFF3B5144);
+  static const controlLine = Color(0xFF819C8B);
 }
 
 abstract final class AppShape {
@@ -95,5 +95,5 @@ abstract final class AppText {
 }
 
 const appCardShadow = [
-  BoxShadow(color: Color(0x18000000), blurRadius: 24, offset: Offset(0, 6)),
+  BoxShadow(color: Color(0x20000000), blurRadius: 24, offset: Offset(0, 8)),
 ];

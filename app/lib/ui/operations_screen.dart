@@ -311,6 +311,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   Widget manualResultList() {
     final results = manualResults;
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
       child: Center(
         child: ConstrainedBox(

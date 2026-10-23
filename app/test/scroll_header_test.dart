@@ -4,6 +4,75 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tap2work/ui/scroll_header.dart';
 
 void main() {
+  testWidgets('small wheel ticks accumulate across a continuous gesture', (
+    t,
+  ) async {
+    await t.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AppScrollHeaderScope(
+            resetKey: 0,
+            child: Column(
+              children: [
+                const AppScrollHeader(
+                  key: ValueKey('header'),
+                  child: SizedBox(height: 120),
+                ),
+                Expanded(
+                  child: ListView(children: const [SizedBox(height: 3000)]),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    for (var i = 0; i < 6; i++) {
+      await t.sendEventToBinding(
+        PointerScrollEvent(
+          timeStamp: Duration(milliseconds: 30 * i),
+          position: t.getCenter(find.byType(ListView)),
+          scrollDelta: const Offset(0, 5),
+        ),
+      );
+      await t.pump(const Duration(milliseconds: 30));
+    }
+    await t.pumpAndSettle();
+    expect(t.getSize(find.byKey(const ValueKey('header'))).height, 0);
+  });
+
+  testWidgets('a vertical swipe on header tools collapses the header', (
+    t,
+  ) async {
+    await t.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AppScrollHeaderScope(
+            resetKey: 0,
+            child: Column(
+              children: [
+                AppScrollHeader(
+                  key: const ValueKey('header'),
+                  child: SizedBox(
+                    height: 180,
+                    child: TextButton(
+                      onPressed: () {},
+                      child: const Text('도구'),
+                    ),
+                  ),
+                ),
+                const Expanded(child: SizedBox()),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await t.drag(find.byKey(const ValueKey('header')), const Offset(0, -100));
+    await t.pumpAndSettle();
+    expect(t.getSize(find.byKey(const ValueKey('header'))).height, 0);
+  });
+
   for (final bouncing in [false, true]) {
     testWidgets('viewport growth does not reopen header; bouncing=$bouncing', (
       t,

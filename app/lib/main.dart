@@ -216,7 +216,7 @@ class Tap2workApp extends StatelessWidget {
             elevation: 1,
             shadowColor: Color(0x0A000000),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(16)),
+              borderRadius: BorderRadius.all(Radius.circular(AppShape.card)),
             ),
           ),
           pageTransitionsTheme: const PageTransitionsTheme(

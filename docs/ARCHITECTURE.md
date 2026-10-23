@@ -1,3 +1,9 @@
+## 2026-10-23 휴대폰 웹 상단 제스처·시각 시스템 후속
+
+매뉴얼 directory/recipeList 및 OperationsScreen.manualResultList는 AlwaysScrollableScrollPhysics로 짧은 목록에서도 드래그를 받는다. AppScrollHeader의 세로 GestureDetector는 도구 영역 스와이프도 같은 scope로 전달한다. AppScrollHeaderScope는 dragDetails.globalPosition의 차이로 방향을 판단해 애니메이션 중 로컬 좌표 이동을 분리하고, Listener의 직접 PointerScrollEvent는 240ms 이내 연속 입력만 누적한다. ScrollStart/End로 각 휠 입력을 초기화하지 않으며 스크롤 업데이트만으로 숨김을 뒤집지 않는다. 기존18px 접기/12px 복귀·가로/프로그램 이동 제외·접근성/키보드/줄어든 모션·현재 메뉴 reveal을 보존한다. 이전 휠 방향 통지 1회 소비 방식은 이 구현으로 대체한다.
+
+AppColors가 forest/mint/coral 계열의 배경·표면·텍스트 원본이고, 일반 카드/검색/폴더/하단 캡슐은 기존 토큰과 컴포넌트를 사용한다. AppLoadingScreen은 항상 스크롤 가능한 브랜드/실제 상태/재시도 본문과 선택적2행 WorkspaceSkeleton을 사용하며 웹 초기화 덮개와 manifest 색도 맞춘다. 로딩 성공·실패·12초 타이머·최신 시도 확인 및 데이터 계약은 변경하지 않는다. 검증/배포는 `MOBILE_DESIGN_REFRESH_2026-10-23.md`와 canonical history를 따른다.
+
 ## 2026-10-23 검색 범위·스크롤 복귀 안정화
 
 `OperationsScreen.showManualSearch`는 업무/매뉴얼에서만 검색창을 만들며 `hasManualQuery`도 같은 범위를 적용한다. 근무표/우리매장은72px 브랜드 헤더만 사용하고 기존 네 메뉴 전환의 검색 초기화는 유지한다. 데이터 검색 투영/저장은 변경하지 않는다.

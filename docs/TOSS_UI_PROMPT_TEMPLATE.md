@@ -1,3 +1,5 @@
+2026-10-23 후속 최신: 휴대폰 웹의 짧은 매뉴얼/빈 레시피/검색 결과는 AlwaysScrollableScrollPhysics, 상단 도구는 세로 스와이프 접힘을 지원한다. dragDetails.globalPosition과 직접 PointerScrollEvent 누적으로 입력을 판별하고 관성/크기 보정은 제외한다. AppColors 새 forest/mint/coral 팔레트·은은한 하단 선택 캡슐·폴더 섹션 배경을 공유한다. 웹/Flutter 로딩은 BrandLogo+작은 컵+항상 보이는 실제 상태+2행 skeleton, 기존 지연/실패 재시도·동작 줄이기를 유지한다. 세부 수치는 UI_UX_GUIDELINES 최신 절을 우선한다.
+
 2026-10-23 최신: 검색창/검색 결과는 업무·매뉴얼만 제공하고 근무표·우리매장에서는 제거한다. 상단 접힘은 실제 드래그/휠 입력만 소비하며 관성·바운스·뷰포트 보정으로 다시 펼치지 않는다. 위 방향 실제 입력/하단 메뉴 재선택 복귀와 기존 모션·접근성 보호를 유지한다.
 
 2026-10-22 너비 후속: 네 메뉴 본문·검색·도구의 최대 폭은 AppLayout.contentMaxWidth=1240px, 좌우24px. 브랜드/매뉴얼 외곽은 pageMaxWidth=1288px로 중앙 정렬하고 작은 화면은 같은 여백 안을 채운다. 이전 매뉴얼880px 규칙을 대체한다.

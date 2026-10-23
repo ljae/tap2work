@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/gestures.dart';
 import 'app_motion.dart';
 
 /// One scroll policy for the brand, search and destination toolbars.
@@ -23,11 +23,13 @@ class AppScrollHeaderScope extends StatefulWidget {
 class _AppScrollHeaderScopeState extends State<AppScrollHeaderScope> {
   final hidden = ValueNotifier(false);
   double travel = 0;
-  bool pendingUserScroll = false;
+  Offset? lastDragPosition;
+  Duration? lastWheelTime;
 
   void reveal() {
     travel = 0;
-    pendingUserScroll = false;
+    lastDragPosition = null;
+    lastWheelTime = null;
     hidden.value = false;
   }
 
@@ -37,52 +39,71 @@ class _AppScrollHeaderScopeState extends State<AppScrollHeaderScope> {
     if (widget.resetKey != oldWidget.resetKey) reveal();
   }
 
-  bool onScroll(ScrollNotification event) {
-    if (event.metrics.axis != Axis.vertical) return false;
-    if (MediaQuery.accessibleNavigationOf(context) ||
-        MediaQuery.viewInsetsOf(context).bottom > 0) {
+  bool get protectedNavigation =>
+      MediaQuery.accessibleNavigationOf(context) ||
+      MediaQuery.viewInsetsOf(context).bottom > 0;
+
+  void applyInput(double delta) {
+    if (protectedNavigation) {
       reveal();
-      return false;
+      return;
     }
-    if (event is ScrollStartNotification) {
+    if (delta == 0) return;
+    if (delta.sign != travel.sign) travel = 0;
+    travel += delta;
+    if (travel > 18) {
+      hidden.value = true;
+    } else if (travel < -12) {
+      hidden.value = false;
+    }
+  }
+
+  void startDrag(DragStartDetails details) {
+    travel = 0;
+    lastDragPosition = details.globalPosition;
+  }
+
+  void updateDrag(DragUpdateDetails details) {
+    // Global coordinates stay stable while the header resizes the viewport.
+    // Local deltas can include the moving list's transform during that resize.
+    final previous = lastDragPosition;
+    lastDragPosition = details.globalPosition;
+    applyInput(
+      previous == null
+          ? -(details.primaryDelta ?? details.delta.dy)
+          : previous.dy - details.globalPosition.dy,
+    );
+  }
+
+  void onPointerSignal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent ||
+        event.scrollDelta.dy.abs() <= event.scrollDelta.dx.abs()) {
+      return;
+    }
+    final previous = lastWheelTime;
+    if (previous == null ||
+        event.timeStamp - previous > const Duration(milliseconds: 240)) {
       travel = 0;
     }
-    if (event is UserScrollNotification) {
-      // A wheel tick announces its direction before its one position update.
-      // Consume this once, so inertia/layout corrections cannot reuse it.
-      pendingUserScroll = event.direction != ScrollDirection.idle;
+    lastWheelTime = event.timeStamp;
+    // A wheel/trackpad gesture produces many small ticks, each with its own
+    // ScrollStart/End. Read input once, even when a short list cannot move.
+    applyInput(event.scrollDelta.dy);
+  }
+
+  bool onScroll(ScrollNotification event) {
+    if (event.metrics.axis != Axis.vertical) return false;
+    if (event is ScrollStartNotification && event.dragDetails != null) {
+      startDrag(event.dragDetails!);
+    } else if (event is ScrollUpdateNotification && event.dragDetails != null) {
+      updateDrag(event.dragDetails!);
+    } else if (event is OverscrollNotification && event.dragDetails != null) {
+      updateDrag(event.dragDetails!);
+    } else if (event is ScrollEndNotification) {
+      lastDragPosition = null;
     }
-    double? delta;
-    if (event is ScrollUpdateNotification) {
-      final drag = event.dragDetails;
-      delta = drag != null
-          ? -(drag.primaryDelta ?? drag.delta.dy)
-          : pendingUserScroll
-          ? event.scrollDelta
-          : null;
-      pendingUserScroll = false;
-    }
-    if (event is OverscrollNotification) {
-      final drag = event.dragDetails;
-      delta = drag != null
-          ? -(drag.primaryDelta ?? drag.delta.dy)
-          : pendingUserScroll
-          ? event.overscroll
-          : null;
-      pendingUserScroll = false;
-    }
-    if (delta != null && delta != 0) {
-      if (delta.sign != travel.sign) travel = 0;
-      travel += delta;
-      // Only input direction changes visibility. Resizing a viewport can clamp
-      // its offset to zero or reverse a ballistic bounce without new input.
-      if (travel > 18) {
-        hidden.value = true;
-      } else if (travel < -12) {
-        reveal();
-      }
-    }
-    if (event is ScrollEndNotification) pendingUserScroll = false;
+    // Ballistic bounces, programmatic jumps and layout corrections contain no
+    // drag details and therefore cannot reopen or collapse the header.
     return false;
   }
 
@@ -95,9 +116,12 @@ class _AppScrollHeaderScopeState extends State<AppScrollHeaderScope> {
   @override
   Widget build(BuildContext context) => _HeaderVisibility(
     hidden: hidden,
-    child: NotificationListener<ScrollNotification>(
-      onNotification: onScroll,
-      child: widget.child,
+    child: Listener(
+      onPointerSignal: onPointerSignal,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: onScroll,
+        child: widget.child,
+      ),
     ),
   );
 }
@@ -120,25 +144,31 @@ class AppScrollHeader extends StatelessWidget {
     final visibility = context
         .dependOnInheritedWidgetOfExactType<_HeaderVisibility>();
     if (visibility == null) return child;
-    return ValueListenableBuilder<bool>(
-      valueListenable: visibility.hidden,
-      child: child,
-      builder: (context, hidden, child) => ExcludeFocus(
-        excluding: hidden,
-        child: ExcludeSemantics(
+    final scope = context.findAncestorStateOfType<_AppScrollHeaderScopeState>();
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onVerticalDragStart: scope?.startDrag,
+      onVerticalDragUpdate: scope?.updateDrag,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: visibility.hidden,
+        child: child,
+        builder: (context, hidden, child) => ExcludeFocus(
           excluding: hidden,
-          child: IgnorePointer(
-            ignoring: hidden,
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(end: hidden ? 0 : 1),
-              duration: AppMotion.duration(context, AppMotion.content),
-              curve: AppMotion.enterCurve,
-              child: child,
-              builder: (context, heightFactor, child) => ClipRect(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  heightFactor: heightFactor,
-                  child: child,
+          child: ExcludeSemantics(
+            excluding: hidden,
+            child: IgnorePointer(
+              ignoring: hidden,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(end: hidden ? 0 : 1),
+                duration: AppMotion.duration(context, AppMotion.content),
+                curve: AppMotion.enterCurve,
+                child: child,
+                builder: (context, heightFactor, child) => ClipRect(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    heightFactor: heightFactor,
+                    child: child,
+                  ),
                 ),
               ),
             ),

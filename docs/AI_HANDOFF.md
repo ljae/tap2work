@@ -1,3 +1,7 @@
+## 2026-10-23 휴대폰 웹 접힘·로딩·공통 디자인 로컬 완료
+
+D-145/revision336. 사용자가 문제 환경을 휴대폰 웹으로 확인. 짧은 폴더/빈 레시피·검색 터치, 상단 도구 스와이프, 작은 연속 휠을 수정 전 실패로 재현 후 해결. global drag 좌표로 헤더 크기 변경과 사용자 입력을 분리. 공통 forest/mint/coral 표면·폴더·하단 선택 메뉴와 브랜드/단계/작은 물컵/스켈레톤 로딩 개선. 전체 Flutter652/3skip 뒤 최종 검색 보완 관련33·격리analysis0·Node8·UI92·webrelease 통과, 반응형88/로딩9캡처. Ego Lite390DPR2 Chromium 긴 목록/한 TAP 폴더/도구 스와이프 후1.2초 접힘 유지·복귀 확인. 웹 배포 예정, 실기기Safari/native/실계정저장 미수행. rootdirty 보존/격리.local/mobile-space-release. [상세](MOBILE_DESIGN_REFRESH_2026-10-23.md).
+
 ## 2026-10-23 ITMS-90068 수정·Ego Lite Apple 점검 완료
 
 D-144/revision335. Runner3설정·Podfile 최소iOS13→15.0, signed1.0.0(24) 업로드 COMPLETE/경고0·VALID/minOS15.0, 수출규정false/Ready to Submit. 기존23 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL·10/21 23:14KST 접수 유지(약40h). Ego Lite로 이전10 Removed/현재메시지없음·계약/세금/은행/DSA Active·무료175지역·14개privacy·8스크린샷 COMPLETE 확인. 심사 취소·교체·지원메시지·내부초대 없음. Archive/IPA서명·4공개auth/8언어/15manifest확인,analysis0·관련12·iPhone17Pro iOS26.5공개샘플통합1·npmcheck(UI92) 통과. iOS15실행/실기기OAuth·삭제·카메라·iPad/Mac/Vision미검증;기존LaunchImageplaceholder경고 별도. Rootdirty보존·격리.local/apple-target-release,웹/Android/DB배포없음. [상세](APPLE_REVIEW_AUDIT_2026-10-23.md), 비공개.local/apple-status-20261023/.

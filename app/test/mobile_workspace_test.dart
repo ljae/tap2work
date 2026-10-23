@@ -34,6 +34,62 @@ void main() {
       await (FontLoader(font.key)..addFont(rootBundle.load(font.value))).load();
     }
   });
+  testWidgets(
+    'short manual and empty recipes accept collapse and restore swipes',
+    (t) async {
+      t.view.physicalSize = const Size(390, 844);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      final data = directoryData();
+      final ops = OperationsController(
+        readOnly: true,
+        client: MockClient((_) async => response(data)),
+      );
+      final work = WorkController(MemoryStore());
+      addTearDown(ops.dispose);
+      addTearDown(work.dispose);
+      await ops.refresh();
+      await t.pumpWidget(Tap2workApp(controller: work, operations: ops));
+      await t.pumpAndSettle();
+      await t.tap(find.byKey(const ValueKey('floating-menu-1')));
+      await t.pumpAndSettle();
+      final header = find.byKey(const ValueKey('workspace-top-header'));
+      final directory = find.byKey(const ValueKey('manual-directory'));
+      final scrollable = find
+          .descendant(of: directory, matching: find.byType(Scrollable))
+          .first;
+      expect(t.state<ScrollableState>(scrollable).position.maxScrollExtent, 0);
+      await t.drag(directory, const Offset(0, -100));
+      await t.pumpAndSettle();
+      expect(t.getSize(header).height, 0);
+      await t.drag(directory, const Offset(0, 90));
+      await t.pumpAndSettle();
+      expect(t.getSize(header).height, greaterThan(120));
+      await t.tap(find.byKey(const ValueKey('view-toggle-option-true')));
+      await t.pumpAndSettle();
+      final recipes = find.byType(ListView).last;
+      await t.drag(recipes, const Offset(0, -100));
+      await t.pumpAndSettle();
+      expect(t.getSize(header).height, 0);
+      await t.drag(recipes, const Offset(0, 90));
+      await t.pumpAndSettle();
+      expect(t.getSize(header).height, greaterThan(120));
+      await t.enterText(
+        find.byKey(const ValueKey('global-manual-search')),
+        '없는 검색 결과',
+      );
+      FocusManager.instance.primaryFocus?.unfocus();
+      await t.pumpAndSettle();
+      await t.drag(
+        find.byType(SingleChildScrollView).last,
+        const Offset(0, -100),
+      );
+      await t.pumpAndSettle();
+      expect(t.getSize(header).height, 0);
+      expect(t.takeException(), isNull);
+    },
+  );
+
   for (final width in [320.0, 390.0, 1200.0, 1600.0]) {
     for (final scale in [1.0, 1.5]) {
       testWidgets(

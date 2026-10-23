@@ -420,14 +420,15 @@ class WorkspaceSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rows = ListView.separated(
-      padding: const EdgeInsets.all(24),
-      itemCount: 4,
-      separatorBuilder: (_, _) => const SizedBox(height: 16),
+      padding: const EdgeInsets.all(8),
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 2,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (_, _) => Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppShape.card),
         ),
         child: Shimmer.fromColors(
           enabled:
@@ -438,9 +439,13 @@ class WorkspaceSkeleton extends StatelessWidget {
           period: const Duration(milliseconds: 1800),
           child: Row(
             children: [
-              const CircleAvatar(
-                radius: 22,
-                backgroundColor: AppColors.elevated,
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.elevated,
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(

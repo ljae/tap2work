@@ -35,7 +35,9 @@ class AppToolbarButton extends StatelessWidget {
           backgroundColor: selected == true
               ? AppColors.lime
               : Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppShape.control),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         ),
         icon: Icon(icon, size: 18),
@@ -416,7 +418,7 @@ class FloatingMenu extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: AppColors.surface,
-              border: Border.all(color: AppColors.line),
+              border: Border.all(color: AppColors.line.withValues(alpha: .65)),
               borderRadius: BorderRadius.circular(26),
               boxShadow: appCardShadow,
             ),
@@ -445,7 +447,10 @@ class FloatingMenu extends StatelessWidget {
                             heightFactor: 1,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                color: AppColors.green,
+                                color: AppColors.lime,
+                                border: Border.all(
+                                  color: AppColors.green.withValues(alpha: .2),
+                                ),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                             ),
@@ -490,7 +495,7 @@ class FloatingMenu extends StatelessWidget {
                                             items[i].icon,
                                             size: 21,
                                             color: i == selectedIndex
-                                                ? AppColors.paper
+                                                ? AppColors.green
                                                 : AppColors.muted,
                                           ),
                                         ),
@@ -499,9 +504,11 @@ class FloatingMenu extends StatelessWidget {
                                           items[i].label,
                                           textAlign: TextAlign.center,
                                           style: AppText.caption.copyWith(
-                                            fontWeight: FontWeight.w700,
+                                            fontWeight: i == selectedIndex
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
                                             color: i == selectedIndex
-                                                ? AppColors.paper
+                                                ? AppColors.green
                                                 : AppColors.muted,
                                           ),
                                         ),

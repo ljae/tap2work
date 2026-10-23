@@ -650,13 +650,11 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             ? AppColors.lime
             : selected
             ? AppColors.green.withValues(alpha: .08)
+            : kind == 'group'
+            ? AppColors.elevated.withValues(alpha: .6)
             : null,
-        border: Border(
-          left: BorderSide(
-            color: hovering ? AppColors.green : AppColors.line,
-            width: hovering ? 3 : 1,
-          ),
-        ),
+        borderRadius: BorderRadius.circular(AppShape.control),
+        border: hovering ? Border.all(color: AppColors.green, width: 2) : null,
       ),
       child: Row(
         children: [
@@ -743,7 +741,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                                       : kind == 'group'
                                       ? 16
                                       : 15,
-                                  fontWeight: selected
+                                  fontWeight: selected || kind == 'group'
                                       ? FontWeight.w700
                                       : FontWeight.w500,
                                 ),
@@ -1176,6 +1174,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
       child: ListView.builder(
         controller: directoryScroll,
         key: const ValueKey('manual-directory'),
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(8),
         itemCount: nodes.length,
         itemBuilder: (_, index) => nodes[index],
@@ -1517,6 +1516,8 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
         )
         .toList();
     return ListView(
+      key: const ValueKey('manual-recipes'),
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       children: [
         Text(context.t('ui.audit498'), style: AppText.section),
@@ -1866,7 +1867,10 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
                     boxShadow: appCardShadow,
                     borderRadius: BorderRadius.circular(AppShape.card),
                   ),
-                  child: recipes ? recipeList() : directory(),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppShape.card),
+                    child: recipes ? recipeList() : directory(),
+                  ),
                 ),
               ),
             ],

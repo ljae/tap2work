@@ -27,7 +27,7 @@ flowchart LR
 | E03 | 로컬 `/api/operations`, `.local/operations-demo.json` | 개발 서버 샘플에서 편집 연습 | 서버 revision 검사; 데모 actor는 실제 인증 아님 | `developer/test/*.test.mjs` |
 | E04 | `CloudWorkspace`, `developer/supabase_backend.mjs` | 개인 로그인 후 본인 소속 매장 읽기·수정·저장 | JWT 및 매장 멤버십 검증 후 저장. 샘플 진입에서 Supabase 쓰기 없음 | `cloud_workspace_test.dart`, `developer/test/cloud.test.mjs` |
 | E05 | `app/lib/ui/components.dart`, `operations_screen.dart` | 업무, 매뉴얼, 근무표, 우리매장 네 목적지 | 탭 변경은 설정 저장 아님. 공통 `AppMotionScope`와 시트 사용 | `operations_test.dart`, `app_motion_test.dart` |
-| E06 | `app/web/index.html`, `flutter_bootstrap.js`, `AppStartup`, `AppLoadingScreen` | 웹 엔진 → 기기/인증 초기화 → 매장 읽기 → 실제 메뉴 | 첫 프레임에서 웹 덮개 제거, snapshot 수신 후 메뉴 표시, 실패 시 재시도 | `startup_and_sheet_test.dart`, `startup.test.mjs` |
+| E06 | `app/web/index.html`, `flutter_bootstrap.js`, `AppStartup`, `AppLoadingScreen` | 웹 엔진 → 기기/인증 초기화 → 매장 읽기 → 실제 메뉴 | 브랜드·실제 상태 문구·2행 skeleton 표시, 첫 프레임에서 웹 덮개 제거, snapshot 수신 후 메뉴 표시. 실패/12초 지연 시 재시도·확대 글자 스크롤·동작 줄이기 정지 유지 | `startup_and_sheet_test.dart`, `startup.test.mjs` |
 | U01 | `AppEditorScaffold`, `AppSheetFooter`, `AppSheetPanel` | 매뉴얼/급여/설정/크루 폼의 제목·본문·저장 영역 | 저장 callback·ID·revision은 그대로 전달, snackbar와 키보드가 버튼을 가리지 않음 | 키보드/초안 보호/기존 저장 테스트 |
 | U02 | `AppFormSection`, 전역 `InputDecorationTheme`, `AppMotion` | 전체 폼 라벨·간격·모션, 동작 줄이기 | UI 표현만 변경, 저장 또는 권한을 animation에 연결하지 않음 | 가독성 캡처/확대 글자/모션 테스트 |
 
@@ -598,6 +598,6 @@ S48 기존 PDF/인쇄를 CS·개선 화면에서 재사용한다. 등록한 안�
 
 | ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
 |---|---|---|---|
-| U04 | 세로 사용자 스크롤·actor/workspace/선택 목적지 → AppScrollHeaderScope / AppScrollHeader → 접힘·복귀, 현재 하단 메뉴 재선택 reveal | OperationsScreen 브랜드/검색/파트, ManualWorkspace 도구, CalendarScreen 도구의 표시 높이만 변경. 검색은 업무/매뉴얼만, 폴더/보기 상태 유지. 직접 dragDetails·휠 한 번만 소비하고 관성·바운스·크기 보정을 제외. 가로 스크롤·프로그램 이동·키보드·접근성 탐색 분리; 서버 쓰기 없음 | mobile_workspace_test.dart, scroll_header_test.dart, ui_ux_audit_test.dart, header_test.dart |
+| U04 | 세로 사용자 스크롤·actor/workspace/선택 목적지 → AppScrollHeaderScope / AppScrollHeader → 접힘·복귀, 현재 하단 메뉴 재선택 reveal | OperationsScreen 브랜드/검색/파트, ManualWorkspace 도구, CalendarScreen 도구의 표시 높이만 변경. 검색은 업무/매뉴얼만, 폴더/보기 상태 유지. 직접 dragDetails.globalPosition·상단 세로 제스처·PointerScrollEvent 연속 입력을 소비하고 관성·바운스·크기 보정을 제외. 매뉴얼/레시피/검색은 짧아도 AlwaysScrollableScrollPhysics로 입력을 받음. 가로 스크롤·프로그램 이동·키보드·접근성 탐색 분리; 서버 쓰기 없음 | mobile_workspace_test.dart, scroll_header_test.dart, ui_ux_audit_test.dart, header_test.dart |
 | S98 | checklistFolders / manualSearch / taskTemplates → manual-folder-picker 시트·한 열 목록·코랄 연필 → browsingFolder / navigateHierarchy / ManualTapEditor / ManualTaskEditor | 폴더 탐색은 쓰기 없음. 기존 S12/S14/S22의 ID·revision·권한·미완료/기존 기록 보호와 체험 저장 정책 유지. 읽기 페이지에서 실제 폴더/TAP으로 복귀 | manual_workspace_test.dart, manual_edit_mode_test.dart, manual_common_operations_test.dart, manual_directory.test.mjs |
 | S99 | ScheduleController.selected/month·fullDay·현재 권한 → 날짜 이동/오늘/주간·월간/calendar-options → move/selectDay/setMonth, openWorkplaceHours, addShift | 보기 변경은 임시 상태. 시간·인원 저장 S03, 개별 배정 S05, 실제 출퇴근 S42, 휴무/추가 영업의 기존 계약 유지. 월간42칸 상태/공휴일 정보는 아이콘·범례·설명과 연결 | calendar_test.dart, schedule_workflow_test.dart, schedule_fine_edit_test.dart, mobile_workspace_test.dart, workplace.test.mjs |

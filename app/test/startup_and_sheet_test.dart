@@ -82,7 +82,7 @@ void main() {
       expect(find.text('매장을 준비하고 있어요'), findsNothing);
       expect(find.text('ready'), findsNothing);
       expect(find.text('앱을 준비하고 있어요'), findsOneWidget);
-      expect(find.byType(BrandLogo), findsNothing);
+      expect(find.byType(BrandLogo), findsOneWidget);
       expect(find.byType(TapWaterLoading), findsOneWidget);
       ready.completeError(StateError('offline'));
       await tester.pump();
@@ -112,7 +112,7 @@ void main() {
       final loading = ops.refresh();
       await tester.pump();
       expect(find.byType(AppLoadingScreen), findsOneWidget);
-      expect(find.byType(BrandLogo), findsNothing);
+      expect(find.byType(BrandLogo), findsOneWidget);
       expect(find.byType(WorkspaceSkeleton), findsOneWidget);
       expect(find.byKey(const ValueKey('floating-menu-0')), findsNothing);
       await tester.pump(const Duration(seconds: 2));

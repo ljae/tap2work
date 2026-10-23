@@ -41,15 +41,19 @@ class _WaterSearchState extends State<WaterSearch> {
     duration: AppMotion.duration(context, AppMotion.sheet),
     curve: AppMotion.enterCurve,
     builder: (context, value, child) => ClipRRect(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppShape.card),
       child: CustomPaint(
         foregroundPainter: _Waterline(value),
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: Color.lerp(AppColors.surface, AppColors.lime, value * .45),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppShape.card),
             border: Border.all(
-              color: Color.lerp(AppColors.line, AppColors.green, value)!,
+              color: Color.lerp(
+                AppColors.line.withValues(alpha: .6),
+                AppColors.green,
+                value,
+              )!,
             ),
           ),
           child: child,

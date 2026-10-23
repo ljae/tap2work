@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 335,
+  "revision": 336,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1621,6 +1621,19 @@
       "source": "User conversation 2026-10-23",
       "updatedAt": "2026-10-23T06:33:25.865Z",
       "implementation": "D-144. Ego Lite space7 App Review/App Information/Privacy/Pricing/Business/TestFlight and API audit: current iOS23 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL, submission17c1437e-cc5c-4c9c-93e5-7306155280a3 submitted2026-10-21T14:14:09.049Z (~40h), preserved. Prior10 Removed, no current Apple message; contacts/account fields and8screenshots COMPLETE,14privacy types,free175territories,agreements/bank/tax/DSA/Korea eCommerce Active. ITMS90068 in23 was warning(errors0) aboutfutureminimumOS. Runner3configs+Podfile13→15.0/lock checksum. Isolated8b8377b source→signed1.0.0(24), IPA8d3eed9bc1757fb38f54e610fcb84e10a970a49d956c8f901ab5ade54e349039,officialupload COMPLETE/errors0/warnings0 and24VALID/minOS15.0,nonExemptEncryption=false/ReadytoSubmit. No cancellation/replacement/reviewmessage/internal-group invite. Archive+IPA codesign/deploymententitlements4publicauthdefines/8locales/15unchangedprivacyManifests verified. Flutteranalysis0/relevant12pass/iPhone17Pro iOS26.5 nativepreviewintegration1pass/npmcheck(UI92)/plist/ruby/diff pass. SameDartsource priorCI649pass3skip;notrerunfullsuite. iOS15runtimeunavailable;physicalOAuth/deletion/camera/iPad/Mac/Vision untested;existingLaunchImageplaceholder warning remains. Rootdirtypreserved;no web/Android/DB rollout. docs/APPLE_REVIEW_AUDIT_2026-10-23.md;private.local/apple-status-20261023/."
+    },
+    {
+      "id": "D-145",
+      "category": "Mobile web header and shared design",
+      "title": "휴대폰 웹 매뉴얼 접힘 보완·로딩과 공통 디자인 개선",
+      "status": "confirmed",
+      "previous": "긴 본문 스크롤 중심 접힘과 단일 휠 방향 소비. 짧은 매뉴얼/빈 결과는 터치 시작이 안 되고 상단 도구 스와이프와 작은 휠 입력을 놓침. 기존 공유 표면/로딩 디자인.",
+      "next": "짧거나 빈 목록도 터치 입력을 받고 상단 세로 스와이프·연속 작은 휠로 안정적으로 접힘/복귀. 초록·코랄 및 네 메뉴를 유지한 공통 표면/폴더/선택 메뉴와 실제 로딩 상태 디자인 개선.",
+      "decision": "사용자가 휴대폰 웹브라우저에서 매뉴얼 상단 접힘이 여전히 안 된다고 확인하고 로딩 및 전체 디자인 업그레이드를 요청했다.",
+      "reason": "내용 길이와 터치 시작 위치에 관계없이 휴대폰 작업 공간을 확보하고 로딩·내용·선택 상태의 구분을 명확히 한다.",
+      "source": "User conversation 2026-10-23",
+      "updatedAt": "2026-10-23T13:01:07.460Z",
+      "implementation": "D-145. Mobile web clarified by user. Short directory/empty recipe/search AlwaysScrollable physics; toolbar vertical gesture and global drag coordinates; small wheel ticks accumulate, no ballistic/layout reopen. Shared forest/mint/coral tokens, rounded folder/selected navigation, brand/status/compact water/skeleton loading with real retry/reduced motion. Initial3 plus empty-search regressions fail before/pass after. Full Flutter652pass/3browser-onlyskip before final search fix; final relevant33pass and isolatedanalysis0; related60, responsive9/88captures/loading1/9captures, Node8/npmcheckUI92/finalwebrelease pass. Ego Lite390DPR2 actual Chromium touch confirms long/one-TAP folder and toolbar collapse stable1.2s/current menu restore. Web deployment pending; physicalSafari/native/live-save not performed. Rootdirty preserved, selected files isolated frombc9ddb1. docs/MOBILE_DESIGN_REFRESH_2026-10-23.md."
     }
   ],
   "milestones": [
@@ -9184,7 +9197,13 @@
       "type": "deployment",
       "title": "ITMS-90068 수정 빌드24 VALID·Ego Lite Apple 전체 점검·기존 심사 대기 유지",
       "detail": "D-144. Ego Lite space7 App Review/App Information/Privacy/Pricing/Business/TestFlight and API audit: current iOS23 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL, submission17c1437e-cc5c-4c9c-93e5-7306155280a3 submitted2026-10-21T14:14:09.049Z (~40h), preserved. Prior10 Removed, no current Apple message; contacts/account fields and8screenshots COMPLETE,14privacy types,free175territories,agreements/bank/tax/DSA/Korea eCommerce Active. ITMS90068 in23 was warning(errors0) aboutfutureminimumOS. Runner3configs+Podfile13→15.0/lock checksum. Isolated8b8377b source→signed1.0.0(24), IPA8d3eed9bc1757fb38f54e610fcb84e10a970a49d956c8f901ab5ade54e349039,officialupload COMPLETE/errors0/warnings0 and24VALID/minOS15.0,nonExemptEncryption=false/ReadytoSubmit. No cancellation/replacement/reviewmessage/internal-group invite. Archive+IPA codesign/deploymententitlements4publicauthdefines/8locales/15unchangedprivacyManifests verified. Flutteranalysis0/relevant12pass/iPhone17Pro iOS26.5 nativepreviewintegration1pass/npmcheck(UI92)/plist/ruby/diff pass. SameDartsource priorCI649pass3skip;notrerunfullsuite. iOS15runtimeunavailable;physicalOAuth/deletion/camera/iPad/Mac/Vision untested;existingLaunchImageplaceholder warning remains. Rootdirtypreserved;no web/Android/DB rollout. docs/APPLE_REVIEW_AUDIT_2026-10-23.md;private.local/apple-status-20261023/."
+    },
+    {
+      "at": "2026-10-23T13:01:07.460Z",
+      "type": "implementation",
+      "title": "휴대폰 웹 매뉴얼 접힘·공통 디자인 로컬 검증 완료",
+      "detail": "D-145. Mobile web clarified by user. Short directory/empty recipe/search AlwaysScrollable physics; toolbar vertical gesture and global drag coordinates; small wheel ticks accumulate, no ballistic/layout reopen. Shared forest/mint/coral tokens, rounded folder/selected navigation, brand/status/compact water/skeleton loading with real retry/reduced motion. Initial3 plus empty-search regressions fail before/pass after. Full Flutter652pass/3browser-onlyskip before final search fix; final relevant33pass and isolatedanalysis0; related60, responsive9/88captures/loading1/9captures, Node8/npmcheckUI92/finalwebrelease pass. Ego Lite390DPR2 actual Chromium touch confirms long/one-TAP folder and toolbar collapse stable1.2s/current menu restore. Web deployment pending; physicalSafari/native/live-save not performed. Rootdirty preserved, selected files isolated frombc9ddb1. docs/MOBILE_DESIGN_REFRESH_2026-10-23.md."
     }
   ],
-  "updatedAt": "2026-10-23T06:33:25.865Z"
+  "updatedAt": "2026-10-23T13:01:07.460Z"
 }

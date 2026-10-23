@@ -37,9 +37,7 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> {
     slow = false;
     if (widget.error != null) return;
     timer = Timer(const Duration(seconds: 12), () {
-      if (mounted) {
-        setState(() => slow = true);
-      }
+      if (mounted) setState(() => slow = true);
     });
   }
 
@@ -60,85 +58,95 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> {
   @override
   Widget build(BuildContext context) {
     final failed = widget.error != null;
-    final loading = Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  (failed ? AppColors.accent : AppColors.green).withValues(
-                    alpha: .1,
-                  ),
-                  AppColors.paper,
-                ],
-              ),
-            ),
-            child: TapWaterLoading(animate: !failed),
-          ),
-        ),
-        const SizedBox(height: 20),
-        Semantics(
-          liveRegion: true,
-          child: Text(
-            failed ? context.t('ui.audit1065') : widget.title,
-            textAlign: TextAlign.center,
-            style: AppText.section,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          widget.error ?? (slow ? context.t('ui.audit1066') : widget.message),
-          textAlign: TextAlign.center,
-          style: AppText.caption,
-        ),
-        const SizedBox(height: 24),
-        if ((failed || slow) && widget.onRetry != null) ...[
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: widget.onRetry,
-            icon: const Icon(Icons.refresh),
-            label: Text(context.t('ui.audit473')),
-          ),
-        ],
-      ],
-    );
     return Scaffold(
       backgroundColor: AppColors.paper,
       body: SafeArea(
         child: LayoutBuilder(
-          builder: (context, constraints) =>
-              widget.showSkeleton &&
-                  !failed &&
-                  !slow &&
-                  constraints.maxHeight >= 600
-              ? Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 440),
-                          child: loading,
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 32,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Center(child: BrandLogo()),
+                        const SizedBox(height: 32),
+                        Center(
+                          child: Container(
+                            width: 156,
+                            height: 156,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(40),
+                              gradient: RadialGradient(
+                                colors: [
+                                  (failed ? AppColors.accent : AppColors.green)
+                                      .withValues(alpha: .12),
+                                  AppColors.paper,
+                                ],
+                              ),
+                            ),
+                            child: Center(
+                              child: SizedBox(
+                                width: 120,
+                                height: 135,
+                                child: FittedBox(
+                                  child: TapWaterLoading(animate: !failed),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const Expanded(child: WorkspaceSkeleton()),
-                  ],
-                )
-              : Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 440),
-                      child: loading,
+                        const SizedBox(height: 24),
+                        Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            failed ? context.t('ui.audit1065') : widget.title,
+                            textAlign: TextAlign.center,
+                            style: AppText.title,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          widget.error ??
+                              (slow
+                                  ? context.t('ui.audit1066')
+                                  : widget.message),
+                          textAlign: TextAlign.center,
+                          style: AppText.caption,
+                        ),
+                        if ((failed || slow) && widget.onRetry != null) ...[
+                          const SizedBox(height: 24),
+                          FilledButton.icon(
+                            onPressed: widget.onRetry,
+                            icon: const Icon(Icons.refresh),
+                            label: Text(context.t('ui.audit473')),
+                          ),
+                        ],
+                        if (widget.showSkeleton &&
+                            !failed &&
+                            !slow &&
+                            constraints.maxHeight >= 600) ...[
+                          const SizedBox(height: 32),
+                          const SizedBox(
+                            height: 216,
+                            child: WorkspaceSkeleton(),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ),
+              ),
+            ),
+          ),
         ),
       ),
     );
