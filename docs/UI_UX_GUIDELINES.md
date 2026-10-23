@@ -443,3 +443,10 @@ Loading retains actual readiness/retry/error state, uses a quiet mint ambient su
 폴더명과 파트명도 현재 앱 언어로 표시한다. 직접 이름 편집은 저장된 원문을 유지한다. 폴더의 공통 편집 ⋯ 메뉴와 파트 관리의 번역 아이콘에서 기존 번역 편집기와 언어 선택을 재사용한다. 새 항목·미저장 이름은 먼저 저장해야 번역을 등록할 수 있다. ID·권한·근무표 연결은 표시 번역과 분리한다.
 
 Short phone example navigation (width below600 and height below850) uses48px view/category dropdowns. Count and draft metadata scroll with the content instead of reducing the list viewport. Larger screens retain choice chips. Keep enlarged labels scrollable and preserve explicit selection/back controls.
+
+
+### 2026-10-23 사진·영상·모션 매뉴얼
+
+마켓에서 사진·영상·모션 예시 필터로 기존 문서를 찾고, 상세 절차 아래 같은 미디어 컴포넌트로 확인한다. 사진의 저자·이용 조건·원본, 영상의 명시적 재생·실패 재시도·새 창, 모션의 문구·시간 수정, 원본 묶음을 내용 가까이에 둔다. 자동 재생과 무조건 파일 다운로드는 하지 않는다. 미디어를 교체하면 이전 저작자 표시를 붙이지 않는다. 휴대폰 한 열과 확대 글자 줄바꿈·48px 동작을 유지한다.
+
+원본 도구는 기존 charcoal/mint/coral·Pretendard·14px 버튼·20px 카드·24px 여백을 재사용하고 760px 이하 한 열이다. 편집은 단계별 제목/설명/길이와 순서·추가·삭제, 실제 미리보기, 수정본 링크/JSON 저장으로 구성한다. 수정본 링크는 기존 매뉴얼의 영상 링크에 붙여 넣은 뒤 저장해야 매장에 반영된다. 한국어 모션/영어 원본 영상 구분 및 실제 현장 기준 확인 안내를 제공한다.

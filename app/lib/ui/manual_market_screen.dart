@@ -5,6 +5,8 @@ import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../domain/manual_market_catalog.dart';
+import '../domain/manual_media_assets.dart';
+import 'manual_media_view.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
 import 'manual_tap_editor.dart';
@@ -40,6 +42,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
   bool replaceExisting = false, enableOperations = false;
   String? industry, useCase, purpose, error;
   bool saving = false, reviewing = false;
+  bool mediaOnly = false;
   final operationId = 'import-${DateTime.now().microsecondsSinceEpoch}';
 
   @override
@@ -286,7 +289,9 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
       query: search.text,
       industry: industry,
     );
-    if (search.text.trim().isEmpty) return original;
+    if (search.text.trim().isEmpty) {
+      return mediaOnly ? original.where(hasManualMedia).toList() : original;
+    }
     String norm(String value) =>
         value.toLowerCase().replaceAll(RegExp(r'\s+'), '');
     final words = search.text.trim().split(RegExp(r'\s+')).map(norm);
@@ -308,7 +313,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
     return {
       for (final entry in [...original, ...translated])
         entry['sourceId']: entry,
-    }.values.toList();
+    }.values.where((entry) => !mediaOnly || hasManualMedia(entry)).toList();
   }
 
   Widget exampleFeature(Json profile) => Padding(
@@ -375,6 +380,17 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                 children: [
                   if (entry['summary'] != null)
                     Text(display(entry['summary']), style: AppText.body),
+                  if (hasManualMedia(entry)) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      context.t('media.exampleHelp'),
+                      style: AppText.caption,
+                    ),
+                    Text(
+                      context.t('media.sampleLanguage'),
+                      style: AppText.caption,
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   Text(context.t('ui.audit681'), style: AppText.section),
                   Text(
@@ -398,6 +414,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                     Text(display(steps[i]['manual']), style: AppText.caption),
                     if ((steps[i]['tip'] ?? '').isNotEmpty)
                       Text(display(steps[i]['tip']), style: AppText.caption),
+                    ManualMediaView(step: steps[i], ops: widget.ops),
                   ],
                   const SizedBox(height: 16),
                   Text(
@@ -460,6 +477,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
       groups.putIfAbsent(name, () => []).add(entry);
     }
     final narrowed =
+        mediaOnly ||
         industry != null ||
         useCase != null ||
         purpose != null ||
@@ -643,6 +661,24 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                             [])
                         .cast<Json>())
                   exampleFeature(profile),
+                if (catalog.entries.any(hasManualMedia)) ...[
+                  FilterChip(
+                    key: const ValueKey('market-media-examples'),
+                    avatar: const Icon(Icons.perm_media_outlined, size: 18),
+                    label: Text(context.t('media.examples')),
+                    selected: mediaOnly,
+                    onSelected: (value) => setState(() {
+                      mediaOnly = value;
+                      if (value) {
+                        useCase = null;
+                        purpose = null;
+                        industry = null;
+                        search.clear();
+                      }
+                    }),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 TextField(
                   controller: search,
                   decoration: InputDecoration(
@@ -761,6 +797,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                   TextButton(
                     onPressed: () => setState(() {
                       search.clear();
+                      mediaOnly = false;
                       industry = null;
                       useCase = null;
                       purpose = null;
@@ -771,7 +808,7 @@ class _ManualMarketScreenState extends State<ManualMarketScreen> {
                 for (final group in orderedGroups)
                   ExpansionTile(
                     key: ValueKey(
-                      'market-group-${industry ?? ''}-${useCase ?? ''}-${purpose ?? ''}-${search.text}-${group.key}',
+                      'market-group-$mediaOnly-${industry ?? ''}-${useCase ?? ''}-${purpose ?? ''}-${search.text}-${group.key}',
                     ),
                     initiallyExpanded: narrowed || groups.length == 1,
                     tilePadding: EdgeInsets.zero,

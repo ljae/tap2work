@@ -1,3 +1,4 @@
+import 'manual_media_view.dart';
 import '../l10n/app_localizations.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -239,6 +240,7 @@ class _ManualActionEditorState extends State<ManualActionEditor> {
             field('videoUrl', context.t('ui.audit1109')),
             const SizedBox(height: 20),
             field('sourceUrl', context.t('ui.audit1110')),
+            ManualMediaView(step: draft, ops: widget.ops, showPhoto: false),
             const SizedBox(height: 20),
             field('tags', context.t('ui.audit1137')),
             const SizedBox(height: 16),

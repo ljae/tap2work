@@ -1,0 +1,39 @@
+{
+  "format": "tap2work-motion",
+  "version": 1,
+  "id": "opening",
+  "title": "주방 오픈",
+  "accent": "#8ae4ba",
+  "scenes": [
+    {
+      "title": "작업대·도구 청결 확인",
+      "detail": "작업대와 도구가 깨끗하고 제자리에 있는지 확인해요.",
+      "seconds": 5,
+      "icon": "check"
+    },
+    {
+      "title": "당일 재료·준비량 대조",
+      "detail": "당일 메뉴와 실제 재료·준비량을 대조해요.",
+      "seconds": 5,
+      "icon": "box"
+    },
+    {
+      "title": "보관 장비 표시·문 닫힘 확인",
+      "detail": "냉장·냉동 장비 표시와 문 닫힘을 확인해요.",
+      "seconds": 5,
+      "icon": "power"
+    },
+    {
+      "title": "가열 장비 준비와 안전 동선 확인",
+      "detail": "장비별 승인된 시작 순서와 안전 동선을 확인해요.",
+      "seconds": 5,
+      "icon": "power"
+    },
+    {
+      "title": "조리·배식·설거지 동선 맞추기",
+      "detail": "조리·배식·설거지 동선이 겹치지 않도록 맞춰요.",
+      "seconds": 5,
+      "icon": "check"
+    }
+  ]
+}

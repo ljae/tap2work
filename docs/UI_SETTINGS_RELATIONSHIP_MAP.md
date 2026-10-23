@@ -601,3 +601,11 @@ S48 기존 PDF/인쇄를 CS·개선 화면에서 재사용한다. 등록한 안�
 | U04 | 세로 사용자 스크롤·actor/workspace/선택 목적지 → AppScrollHeaderScope / AppScrollHeader → 접힘·복귀, 현재 하단 메뉴 재선택 reveal | OperationsScreen 브랜드/검색/파트, ManualWorkspace 도구, CalendarScreen 도구의 표시 높이만 변경. 검색은 업무/매뉴얼만, 폴더/보기 상태 유지. 직접 dragDetails.globalPosition·상단 세로 제스처·PointerScrollEvent 연속 입력을 소비하고 관성·바운스·크기 보정을 제외. 매뉴얼/레시피/검색은 짧아도 AlwaysScrollableScrollPhysics로 입력을 받음. 가로 스크롤·프로그램 이동·키보드·접근성 탐색 분리; 서버 쓰기 없음 | mobile_workspace_test.dart, scroll_header_test.dart, ui_ux_audit_test.dart, header_test.dart |
 | S98 | checklistFolders / manualSearch / taskTemplates → manual-folder-picker 시트·한 열 목록·코랄 연필 → browsingFolder / navigateHierarchy / ManualTapEditor / ManualTaskEditor | 폴더 탐색은 쓰기 없음. 기존 S12/S14/S22의 ID·revision·권한·미완료/기존 기록 보호와 체험 저장 정책 유지. 읽기 페이지에서 실제 폴더/TAP으로 복귀 | manual_workspace_test.dart, manual_edit_mode_test.dart, manual_common_operations_test.dart, manual_directory.test.mjs |
 | S99 | ScheduleController.selected/month·fullDay·현재 권한 → 날짜 이동/오늘/주간·월간/calendar-options → move/selectDay/setMonth, openWorkplaceHours, addShift | 보기 변경은 임시 상태. 시간·인원 저장 S03, 개별 배정 S05, 실제 출퇴근 S42, 휴무/추가 영업의 기존 계약 유지. 월간42칸 상태/공휴일 정보는 아이콘·범례·설명과 연결 | calendar_test.dart, schedule_workflow_test.dart, schedule_fine_edit_test.dart, mobile_workspace_test.dart, workplace.test.mjs |
+
+
+### 2026-10-23 멀티미디어 원본과 매장별 편집 연결
+
+| ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
+|---|---|---|---|
+| S45/S69/S70 | DB manualCatalog.steps.imageUrl/videoUrl/sourceUrl → 사진·영상·모션 예시 필터/상세 미리보기 → 기존 import_market_taps → 등록 대기·OFF | 공용5개 기존ID, exact release/revision. 우리 매장 편집은 기존 save_manual_tap/save_step_manual로 개인화하며 실행 완료/정책과 독립 | manual_multimedia_test.dart, manual_multimedia.test.mjs, manual_media_editor_test.dart |
+| S69/S70/S71 | 공개 원본·장면JSON → 모션 문구/순서/시간/색상 편집 → 수정본 HTTPS 링크 → 기존 영상 링크 필드/저장 → ManualMediaView/백업 복원 | 브라우저 초안/JSON을 자동 서버 저장하지 않음. exact owned player만 iframe, 외부 영상 링크·사진 업로드 권한 유지. 출처/이용 조건 및 원본ZIP 제공 | manual_multimedia_test.dart, manual_multimedia.test.mjs, Ego Lite390 편집/MP4 내보내기 |

@@ -1,3 +1,5 @@
+import 'manual_media_view.dart';
+import '../domain/manual_media_assets.dart';
 import '../l10n/entity_name_scope.dart';
 import '../l10n/manual_text_scope.dart';
 import '../l10n/app_localizations.dart';
@@ -8,7 +10,6 @@ import 'workplace_screens.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../domain/checklist_draft.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import 'checklist_board.dart' show rowsOf, stampOf;
 import 'components.dart';
@@ -1030,7 +1031,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
   }
 
   Widget _actionPhoto(Json step) {
-    final value = step['imageUrl'] as String;
+    final value = resolveManualMediaUrl(step['imageUrl'] as String);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1254,39 +1255,7 @@ class _TapWorkspaceState extends State<TapWorkspace> {
                   ),
           ),
         ),
-      for (final field in ['videoUrl', 'imageUrl', 'sourceUrl'])
-        if (Uri.tryParse((step[field] ?? '').toString())?.scheme == 'https')
-          PressBounce(
-            child: TextButton.icon(
-              icon: Icon(
-                field == 'videoUrl'
-                    ? Icons.play_circle_outline
-                    : Icons.image_outlined,
-              ),
-              label: Text(
-                field == 'videoUrl'
-                    ? context.t('manual.openVideo')
-                    : field == 'imageUrl'
-                    ? context.t('manual.openPhoto')
-                    : context.t('photo.officialGuide'),
-              ),
-              onPressed: () async {
-                final uri = Uri.tryParse(step[field]);
-                if (uri == null || uri.scheme != 'https') return;
-                try {
-                  if (!await launchUrl(
-                        uri,
-                        mode: LaunchMode.externalApplication,
-                      ) &&
-                      mounted) {
-                    notice(context.t('ui.audit1216'));
-                  }
-                } catch (_) {
-                  if (mounted) notice(context.t('ui.audit1216'));
-                }
-              },
-            ),
-          ),
+      ManualMediaView(step: step, ops: ops, showPhoto: false),
     ],
   );
   Future<bool> _toggle(Json task, Json step) async {

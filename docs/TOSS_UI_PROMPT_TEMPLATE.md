@@ -121,3 +121,6 @@ AppShape: controls14, cards20, sheets28. Press0.975/80ms, release220ms easeOutCu
 Shared time sheet: large tabular HH:mm draft, labeled hour/minute wheels, +/-30min controls. 24-hour half-hour steps and midnight wrap; apply returns the draft, cancel returns null. Final persistence belongs to the existing form. Large text/short screens scroll the body with actions fixed. All eight fixed-label locales are covered.
 
 Loading retains actual readiness/retry/error state, uses a quiet mint ambient surface and1800ms skeleton, disabled under reduced motion/TickerMode. No fabricated progress or artificial delay. Task lane icons distinguish outstanding/coral and completed/mint; existing assignee color semantics are retained. Store links use42px mint icon containers.
+
+
+2026-10-23 multimedia addition: reuse ManualMediaView for manual media across market/read/edit. Explicit playback, attributed source/original links and motion editing sit next to their step. Buttons wrap at small widths/large text; no autoplay or fake progress. The source companion uses the same mint/coral palette, Pretendard,14/20px shapes,24px spacing and48px targets, one column on phones. Animation is user-started; hidden pages pause. Source video language and example status are explicit.

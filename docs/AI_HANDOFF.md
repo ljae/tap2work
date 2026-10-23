@@ -1,3 +1,7 @@
+# 2026-10-23 멀티미디어 매뉴얼 로컬 완료·웹/DB 발행 준비
+
+D-146. Five existing food manuals/23 steps gain2 licensed photos, untouched English CDC video and5 original editable Korean motion examples; other142 unchanged. Source kit contains actual EPUB2/photo2/video originals, JSON/editor/player/backup and37-file hash manifest/ZIP. Existing import/owner registration OFF/personalization/revision/execution contracts retained. Flutter656pass/3skip,analysis0,Node398,UI92/JS/media/translation checks pass; Ego Lite390 title edit/play/copy/JSON/MP4 export verified. Web and DB stable publication pending, native/physicalSafari/live-save/independent field review not performed. docs/MULTIMEDIA_MANUALS_2026-10-23.md; private.local/media-manual-20261023.
+
 ## 2026-10-23 휴대폰 웹 접힘·로딩·공통 디자인 배포 완료
 
 D-145/revision337. 웹8842165/Actions39957812745 run·build·deploy success,Pages7278961839 success22:07:06KST. 공개13관련파일 SHA가CIartifact12503451899와 일치. 최종CIFlutter652/3skip·analysis0·Node394·UI92/JS/Edge/SQL5/번역/web 통과. Ego Lite390DPR2 공개 긴 목록/짧은2-TAP폴더/상단도구 터치 후1.2초 접힘 유지·역방향/하단재선택 복귀,주간근무표 접힘·검색범위 확인(error/rejection0). 로컬1-TAP·레시피 확인,97반응형/로딩캡처. 실기기Safari/native/실계정저장·백엔드 배포는 미수행. 기존rootdirty 보존·격리22파일 배포. [상세](MOBILE_DESIGN_REFRESH_2026-10-23.md), 비공개.local/design-refresh-20261023/.

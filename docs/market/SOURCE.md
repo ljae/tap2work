@@ -6017,9 +6017,20 @@
 
 ```tap2work-tap
 {
-  "sourceId": "food/shift",
-  "collectionId": "food",
-  "collectionName": "외식업 공통",
+  "knowledge": {
+    "useCase": "routine",
+    "scope": "food",
+    "topics": [
+      "people"
+    ],
+    "menuNames": [],
+    "ingredientNames": [],
+    "requiresBreak": false,
+    "suggestedUse": "routine",
+    "eventKind": null,
+    "safetyReviewRequired": false,
+    "supersededBy": []
+  },
   "industryIds": [
     "food"
   ],
@@ -6029,7 +6040,11 @@
   "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
   "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
   "keywords": [
-    "근무 시작·교대 인수인계"
+    "근무 시작·교대 인수인계",
+    "사진",
+    "영상",
+    "모션그래픽",
+    "편집 원본"
   ],
   "references": [
     {
@@ -6043,20 +6058,34 @@
       "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
       "checkedAt": "2026-10-09",
       "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    },
+    {
+      "title": "Basic Kitchen and Food Service Management — editable EPUB",
+      "url": "https://opentextbc.ca/basickitchenandfoodservicemanagement/",
+      "checkedAt": "2026-10-23",
+      "scope": "BC Cook Articulation Committee, CC BY 4.0. Inventory and receiving principles; adapted into Korean store examples. Original EPUB and attribution are in the source pack. Not Korean legal or product-specific operating limits."
+    },
+    {
+      "title": "Food Safety, Sanitation, and Personal Hygiene — editable EPUB",
+      "url": "https://opentextbc.ca/foodsafety/",
+      "checkedAt": "2026-10-23",
+      "scope": "BC Cook Articulation Committee / go2HR, CC BY 4.0. Receiving and sanitation context; retain product labels and the store-approved procedure. The pack preserves the original publisher file and third-party credits."
+    },
+    {
+      "title": "TAP Work — editable media, originals and licenses",
+      "url": "https://tap2.work/manual-media/v1/",
+      "checkedAt": "2026-10-23",
+      "scope": "Original photos, CDC video, source EPUBs and editable motion scenes. Photos are illustrative. Each asset retains its own credit/license; no endorsement or completed field review is claimed."
     }
   ],
+  "sourceId": "food/shift",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "title": "근무 시작·교대 인수인계",
   "emoji": "📋",
   "slot": "오픈",
-  "reviewedAt": "2026-10-13",
+  "reviewedAt": "2026-10-23",
   "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
-  "knowledge": {
-    "scope": "food",
-    "topics": [
-      "people"
-    ],
-    "suggestedUse": "routine",
-    "safetyReviewRequired": false
-  },
   "steps": [
     {
       "id": "ready",
@@ -6066,9 +6095,9 @@
       "tags": [
         "손 씻기"
       ],
-      "imageUrl": "",
-      "videoUrl": "",
-      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+      "imageUrl": "https://tap2.work/manual-media/v1/handwashing.jpg",
+      "videoUrl": "https://tap2.work/manual-media/v1/handwashing.mp4",
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=shift"
     },
     {
       "id": "handover",
@@ -6079,8 +6108,8 @@
         "미완료"
       ],
       "imageUrl": "",
-      "videoUrl": "",
-      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+      "videoUrl": "https://tap2.work/manual-media/v1/shift.mp4",
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=shift"
     },
     {
       "id": "detail-step-3",
@@ -6092,7 +6121,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=shift"
     },
     {
       "id": "detail-step-4",
@@ -6104,10 +6133,9 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=shift"
     }
-  ],
-  "title": "근무 시작·교대 인수인계"
+  ]
 }
 ```
 
@@ -6222,9 +6250,20 @@
 
 ```tap2work-tap
 {
-  "sourceId": "food/kitchen-open",
-  "collectionId": "food",
-  "collectionName": "외식업 공통",
+  "knowledge": {
+    "useCase": "routine",
+    "scope": "food",
+    "topics": [
+      "opening"
+    ],
+    "menuNames": [],
+    "ingredientNames": [],
+    "requiresBreak": false,
+    "suggestedUse": "routine",
+    "eventKind": null,
+    "safetyReviewRequired": true,
+    "supersededBy": []
+  },
   "industryIds": [
     "food"
   ],
@@ -6234,7 +6273,11 @@
   "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
   "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
   "keywords": [
-    "주방 오픈"
+    "주방 오픈",
+    "사진",
+    "영상",
+    "모션그래픽",
+    "편집 원본"
   ],
   "references": [
     {
@@ -6248,20 +6291,34 @@
       "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
       "checkedAt": "2026-10-09",
       "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    },
+    {
+      "title": "Basic Kitchen and Food Service Management — editable EPUB",
+      "url": "https://opentextbc.ca/basickitchenandfoodservicemanagement/",
+      "checkedAt": "2026-10-23",
+      "scope": "BC Cook Articulation Committee, CC BY 4.0. Inventory and receiving principles; adapted into Korean store examples. Original EPUB and attribution are in the source pack. Not Korean legal or product-specific operating limits."
+    },
+    {
+      "title": "Food Safety, Sanitation, and Personal Hygiene — editable EPUB",
+      "url": "https://opentextbc.ca/foodsafety/",
+      "checkedAt": "2026-10-23",
+      "scope": "BC Cook Articulation Committee / go2HR, CC BY 4.0. Receiving and sanitation context; retain product labels and the store-approved procedure. The pack preserves the original publisher file and third-party credits."
+    },
+    {
+      "title": "TAP Work — editable media, originals and licenses",
+      "url": "https://tap2.work/manual-media/v1/",
+      "checkedAt": "2026-10-23",
+      "scope": "Original photos, CDC video, source EPUBs and editable motion scenes. Photos are illustrative. Each asset retains its own credit/license; no endorsement or completed field review is claimed."
     }
   ],
+  "sourceId": "food/kitchen-open",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "title": "주방 오픈",
   "emoji": "📋",
   "slot": "오픈",
-  "reviewedAt": "2026-10-13",
+  "reviewedAt": "2026-10-23",
   "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
-  "knowledge": {
-    "scope": "food",
-    "topics": [
-      "opening"
-    ],
-    "suggestedUse": "routine",
-    "safetyReviewRequired": true
-  },
   "steps": [
     {
       "id": "workbench",
@@ -6271,9 +6328,9 @@
       "tags": [
         "작업대"
       ],
-      "imageUrl": "",
-      "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "imageUrl": "https://tap2.work/manual-media/v1/kitchen.jpg",
+      "videoUrl": "https://tap2.work/manual-media/v1/opening.mp4",
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=opening"
     },
     {
       "id": "stock",
@@ -6285,7 +6342,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=opening"
     },
     {
       "id": "detail-step-3",
@@ -6297,7 +6354,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=opening"
     },
     {
       "id": "detail-step-4",
@@ -6309,7 +6366,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=opening"
     },
     {
       "id": "detail-step-5",
@@ -6321,10 +6378,9 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=opening"
     }
-  ],
-  "title": "주방 오픈"
+  ]
 }
 ```
 
@@ -6426,9 +6482,20 @@
 
 ```tap2work-tap
 {
-  "sourceId": "food/receiving",
-  "collectionId": "food",
-  "collectionName": "외식업 공통",
+  "knowledge": {
+    "useCase": "reference",
+    "scope": "food",
+    "topics": [
+      "inventory"
+    ],
+    "menuNames": [],
+    "ingredientNames": [],
+    "requiresBreak": false,
+    "suggestedUse": "reference",
+    "eventKind": null,
+    "safetyReviewRequired": true,
+    "supersededBy": []
+  },
   "industryIds": [
     "food"
   ],
@@ -6438,7 +6505,11 @@
   "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
   "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
   "keywords": [
-    "입고 확인"
+    "입고 확인",
+    "사진",
+    "영상",
+    "모션그래픽",
+    "편집 원본"
   ],
   "references": [
     {
@@ -6452,20 +6523,34 @@
       "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
       "checkedAt": "2026-10-09",
       "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    },
+    {
+      "title": "Basic Kitchen and Food Service Management — editable EPUB",
+      "url": "https://opentextbc.ca/basickitchenandfoodservicemanagement/",
+      "checkedAt": "2026-10-23",
+      "scope": "BC Cook Articulation Committee, CC BY 4.0. Inventory and receiving principles; adapted into Korean store examples. Original EPUB and attribution are in the source pack. Not Korean legal or product-specific operating limits."
+    },
+    {
+      "title": "Food Safety, Sanitation, and Personal Hygiene — editable EPUB",
+      "url": "https://opentextbc.ca/foodsafety/",
+      "checkedAt": "2026-10-23",
+      "scope": "BC Cook Articulation Committee / go2HR, CC BY 4.0. Receiving and sanitation context; retain product labels and the store-approved procedure. The pack preserves the original publisher file and third-party credits."
+    },
+    {
+      "title": "TAP Work — editable media, originals and licenses",
+      "url": "https://tap2.work/manual-media/v1/",
+      "checkedAt": "2026-10-23",
+      "scope": "Original photos, CDC video, source EPUBs and editable motion scenes. Photos are illustrative. Each asset retains its own credit/license; no endorsement or completed field review is claimed."
     }
   ],
+  "sourceId": "food/receiving",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "title": "입고 확인",
   "emoji": "📋",
   "slot": "준비",
-  "reviewedAt": "2026-10-13",
+  "reviewedAt": "2026-10-23",
   "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
-  "knowledge": {
-    "scope": "food",
-    "topics": [
-      "inventory"
-    ],
-    "suggestedUse": "reference",
-    "safetyReviewRequired": true
-  },
   "steps": [
     {
       "id": "match",
@@ -6476,8 +6561,8 @@
         "주문서와 납품 실물 대조"
       ],
       "imageUrl": "",
-      "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "videoUrl": "https://tap2.work/manual-media/v1/receiving.mp4",
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=receiving"
     },
     {
       "id": "condition",
@@ -6489,7 +6574,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=receiving"
     },
     {
       "id": "detail-step-3",
@@ -6501,7 +6586,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=receiving"
     },
     {
       "id": "detail-step-4",
@@ -6513,7 +6598,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=receiving"
     },
     {
       "id": "detail-step-5",
@@ -6525,10 +6610,9 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=receiving"
     }
-  ],
-  "title": "입고 확인"
+  ]
 }
 ```
 
@@ -7497,9 +7581,20 @@
 
 ```tap2work-tap
 {
-  "sourceId": "food/kitchen-close",
-  "collectionId": "food",
-  "collectionName": "외식업 공통",
+  "knowledge": {
+    "useCase": "routine",
+    "scope": "food",
+    "topics": [
+      "closing"
+    ],
+    "menuNames": [],
+    "ingredientNames": [],
+    "requiresBreak": false,
+    "suggestedUse": "routine",
+    "eventKind": null,
+    "safetyReviewRequired": true,
+    "supersededBy": []
+  },
   "industryIds": [
     "food"
   ],
@@ -7509,7 +7604,11 @@
   "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
   "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
   "keywords": [
-    "주방 마감"
+    "주방 마감",
+    "사진",
+    "영상",
+    "모션그래픽",
+    "편집 원본"
   ],
   "references": [
     {
@@ -7523,20 +7622,34 @@
       "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
       "checkedAt": "2026-10-09",
       "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    },
+    {
+      "title": "Basic Kitchen and Food Service Management — editable EPUB",
+      "url": "https://opentextbc.ca/basickitchenandfoodservicemanagement/",
+      "checkedAt": "2026-10-23",
+      "scope": "BC Cook Articulation Committee, CC BY 4.0. Inventory and receiving principles; adapted into Korean store examples. Original EPUB and attribution are in the source pack. Not Korean legal or product-specific operating limits."
+    },
+    {
+      "title": "Food Safety, Sanitation, and Personal Hygiene — editable EPUB",
+      "url": "https://opentextbc.ca/foodsafety/",
+      "checkedAt": "2026-10-23",
+      "scope": "BC Cook Articulation Committee / go2HR, CC BY 4.0. Receiving and sanitation context; retain product labels and the store-approved procedure. The pack preserves the original publisher file and third-party credits."
+    },
+    {
+      "title": "TAP Work — editable media, originals and licenses",
+      "url": "https://tap2.work/manual-media/v1/",
+      "checkedAt": "2026-10-23",
+      "scope": "Original photos, CDC video, source EPUBs and editable motion scenes. Photos are illustrative. Each asset retains its own credit/license; no endorsement or completed field review is claimed."
     }
   ],
+  "sourceId": "food/kitchen-close",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "title": "주방 마감",
   "emoji": "📋",
   "slot": "마감",
-  "reviewedAt": "2026-10-13",
+  "reviewedAt": "2026-10-23",
   "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
-  "knowledge": {
-    "scope": "food",
-    "topics": [
-      "closing"
-    ],
-    "suggestedUse": "routine",
-    "safetyReviewRequired": true
-  },
   "steps": [
     {
       "id": "remaining",
@@ -7546,9 +7659,9 @@
       "tags": [
         "남은 식재료 사용 이력 확인"
       ],
-      "imageUrl": "",
-      "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "imageUrl": "https://tap2.work/manual-media/v1/kitchen.jpg",
+      "videoUrl": "https://tap2.work/manual-media/v1/closing.mp4",
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=closing"
     },
     {
       "id": "detail-step-2",
@@ -7560,7 +7673,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=closing"
     },
     {
       "id": "clean",
@@ -7572,7 +7685,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=closing"
     },
     {
       "id": "detail-step-4",
@@ -7584,7 +7697,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=closing"
     },
     {
       "id": "storage",
@@ -7596,10 +7709,9 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.mfds.go.kr/brd/m_218/view.do?seq=20196"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=closing"
     }
-  ],
-  "title": "주방 마감"
+  ]
 }
 ```
 
@@ -8232,9 +8344,20 @@
 
 ```tap2work-tap
 {
-  "sourceId": "food/complaint-service",
-  "collectionId": "food",
-  "collectionName": "외식업 공통",
+  "knowledge": {
+    "useCase": "reference",
+    "scope": "food",
+    "topics": [
+      "service"
+    ],
+    "menuNames": [],
+    "ingredientNames": [],
+    "requiresBreak": false,
+    "suggestedUse": "reference",
+    "eventKind": null,
+    "safetyReviewRequired": false,
+    "supersededBy": []
+  },
   "industryIds": [
     "food"
   ],
@@ -8244,7 +8367,11 @@
   "applicability": "해당 업무를 운영하는 음식점. 시설·서비스 방식·제품·제조사 지침에 맞게 확인 후 사용하세요.",
   "jurisdiction": "운영 참고 · 매장별 적용 기준 확인",
   "keywords": [
-    "홀 서비스·고객 요청"
+    "홀 서비스·고객 요청",
+    "사진",
+    "영상",
+    "모션그래픽",
+    "편집 원본"
   ],
   "references": [
     {
@@ -8258,21 +8385,34 @@
       "url": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm",
       "checkedAt": "2026-10-09",
       "scope": "공개 업무 범위 설명 참고. 회원 전용 양식 미열람"
+    },
+    {
+      "title": "Basic Kitchen and Food Service Management — editable EPUB",
+      "url": "https://opentextbc.ca/basickitchenandfoodservicemanagement/",
+      "checkedAt": "2026-10-23",
+      "scope": "BC Cook Articulation Committee, CC BY 4.0. Inventory and receiving principles; adapted into Korean store examples. Original EPUB and attribution are in the source pack. Not Korean legal or product-specific operating limits."
+    },
+    {
+      "title": "Food Safety, Sanitation, and Personal Hygiene — editable EPUB",
+      "url": "https://opentextbc.ca/foodsafety/",
+      "checkedAt": "2026-10-23",
+      "scope": "BC Cook Articulation Committee / go2HR, CC BY 4.0. Receiving and sanitation context; retain product labels and the store-approved procedure. The pack preserves the original publisher file and third-party credits."
+    },
+    {
+      "title": "TAP Work — editable media, originals and licenses",
+      "url": "https://tap2.work/manual-media/v1/",
+      "checkedAt": "2026-10-23",
+      "scope": "Original photos, CDC video, source EPUBs and editable motion scenes. Photos are illustrative. Each asset retains its own credit/license; no endorsement or completed field review is claimed."
     }
   ],
+  "sourceId": "food/complaint-service",
+  "collectionId": "food",
+  "collectionName": "외식업 공통",
+  "title": "불만·오주문·환불 요청 응대",
   "emoji": "📖",
   "slot": "준비",
-  "reviewedAt": "2026-10-13",
+  "reviewedAt": "2026-10-23",
   "basis": "공개 자료의 업무 범위를 참고하여 새로 작성한 운영 초안. 현장 방법·완료 기준은 책임자 확인 필요.",
-  "knowledge": {
-    "scope": "food",
-    "topics": [
-      "service"
-    ],
-    "suggestedUse": "reference",
-    "safetyReviewRequired": false,
-    "useCase": "reference"
-  },
   "steps": [
     {
       "id": "step-1",
@@ -8283,8 +8423,8 @@
         "불만·오주문·환불 요청 응대"
       ],
       "imageUrl": "",
-      "videoUrl": "",
-      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+      "videoUrl": "https://tap2.work/manual-media/v1/service.mp4",
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=service"
     },
     {
       "id": "step-2",
@@ -8296,7 +8436,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=service"
     },
     {
       "id": "step-3",
@@ -8308,7 +8448,7 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=service"
     },
     {
       "id": "step-4",
@@ -8320,10 +8460,9 @@
       ],
       "imageUrl": "",
       "videoUrl": "",
-      "sourceUrl": "https://www.restaurantowner.com/public/DOWNLOAD-Restaurant-Checklists.cfm"
+      "sourceUrl": "https://tap2.work/manual-media/v1/?guide=service"
     }
-  ],
-  "title": "불만·오주문·환불 요청 응대"
+  ]
 }
 ```
 

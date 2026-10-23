@@ -1,3 +1,4 @@
+import 'manual_media_view.dart';
 import '../domain/manual_categories.dart';
 import 'manual_hierarchy.dart';
 import 'entity_name_translation.dart';
@@ -19,7 +20,6 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import 'components.dart';
 import 'direct_edit.dart';
@@ -1344,24 +1344,7 @@ class _ManualWorkspaceState extends State<ManualWorkspace> {
             ops: ops,
             place: Map<String, dynamic>.from(selected['linkedPlace']),
           ),
-        if ('${selected['imageUrl'] ?? ''}'.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          placePhoto(selected['imageUrl'], ops: ops),
-        ],
-        for (final link in {'videoUrl': '영상', 'sourceUrl': '참고 자료'}.entries)
-          if ('${selected[link.key] ?? ''}'.isNotEmpty)
-            PressBounce(
-              child: TextButton.icon(
-                icon: const Icon(CupertinoIcons.arrow_up_right),
-                label: Text(link.value),
-                onPressed: () async {
-                  final uri = Uri.tryParse(selected[link.key]);
-                  if (uri != null && uri.scheme == 'https') {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                },
-              ),
-            ),
+        ManualMediaView(step: selected, ops: ops),
       ],
     );
   }

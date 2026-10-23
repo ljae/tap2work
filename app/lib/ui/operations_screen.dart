@@ -1,3 +1,4 @@
+import 'manual_media_view.dart';
 import 'service_workflow_screen.dart';
 import '../l10n/entity_name_scope.dart';
 import 'owner_workflow_screen.dart';
@@ -15,7 +16,6 @@ import 'labor_panel.dart';
 import 'manual_workspace.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../state/operations_controller.dart';
 import '../state/work_controller.dart';
 import 'components.dart';
@@ -29,7 +29,6 @@ import 'staff_workspace.dart';
 import 'recommended_taps_screen.dart';
 import '../l10n/app_localizations.dart';
 import 'shared_welcome_screen.dart';
-import 'place_guide.dart';
 import 'translated_content.dart';
 import 'app_language_picker.dart';
 
@@ -235,11 +234,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       '${displayed['manual']}',
                       style: AppText.body,
                     ),
-                    if ('${displayed['imageUrl'] ?? ''}'.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: placePhoto(displayed['imageUrl'], ops: ops),
-                      ),
                     if ('${displayed['tip'] ?? ''}'.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 16),
@@ -258,29 +252,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                           ],
                         ),
                       ),
-                    for (final field in ['sourceUrl', 'imageUrl', 'videoUrl'])
-                      if (Uri.tryParse('${displayed[field] ?? ''}')?.scheme ==
-                          'https')
-                        PressBounce(
-                          child: TextButton.icon(
-                            onPressed: () => launchUrl(
-                              Uri.parse(displayed[field]),
-                              mode: LaunchMode.externalApplication,
-                            ),
-                            icon: Icon(
-                              field == 'videoUrl'
-                                  ? Icons.play_circle_outline
-                                  : Icons.open_in_new,
-                            ),
-                            label: Text(
-                              field == 'sourceUrl'
-                                  ? context.t('manual.photo')
-                                  : field == 'imageUrl'
-                                  ? context.t('manual.openPhoto')
-                                  : context.t('manual.openVideo'),
-                            ),
-                          ),
-                        ),
+                    ManualMediaView(step: displayed, ops: ops),
                   ],
                 ),
               ),

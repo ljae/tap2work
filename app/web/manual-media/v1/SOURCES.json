@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-23",
+  "referenceOnly": "https://kmong.com/gig/317668",
+  "sources": [
+    {
+      "id": "kitchen-book",
+      "title": "Basic Kitchen and Food Service Management",
+      "author": "BC Cook Articulation Committee / BCcampus (2015)",
+      "license": "CC BY 4.0, except where otherwise noted",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://opentextbc.ca/basickitchenandfoodservicemanagement/",
+      "file": "originals/kitchen-management.epub",
+      "originalUrl": "https://opentextbc.ca/basickitchenandfoodservicemanagement/open/download?type=epub",
+      "changes": "Publisher EPUB unchanged; internal third-party credits retained. General inventory principles inform the examples."
+    },
+    {
+      "id": "hygiene-book",
+      "title": "Food Safety, Sanitation, and Personal Hygiene",
+      "author": "BC Cook Articulation Committee / go2HR / BCcampus (2015)",
+      "license": "CC BY 4.0, except where otherwise noted",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://opentextbc.ca/foodsafety/",
+      "file": "originals/food-safety.epub",
+      "originalUrl": "https://opentextbc.ca/foodsafety/open/download?type=epub",
+      "changes": "Publisher EPUB unchanged; internal third-party credits retained. Overseas numeric/legal requirements are not asserted as Korean requirements."
+    },
+    {
+      "id": "kitchen-photo",
+      "title": "RestaurantKitchen.jpg",
+      "author": "Raysonho @ Open Grid Scheduler / Grid Engine",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://commons.wikimedia.org/wiki/File:RestaurantKitchen.jpg",
+      "file": "originals/kitchen.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3c/RestaurantKitchen.jpg",
+      "changes": "Original unchanged. kitchen.jpg is the 960px thumbnail supplied by Wikimedia. Illustrative setting, not a verified store layout."
+    },
+    {
+      "id": "hands-photo",
+      "title": "Washing hands (cropped).jpg",
+      "author": "Sgt. Grace L. Waladkewics / United States Marine Corps",
+      "license": "Public domain (US federal government work)",
+      "url": "https://commons.wikimedia.org/wiki/File:Washing_hands_(cropped).jpg",
+      "file": "originals/handwashing.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/8/86/Washing_hands_%28cropped%29.jpg",
+      "changes": "Public Wikimedia crop retained unchanged. handwashing.jpg is its Wikimedia 500px thumbnail. Original photographer credit preserved."
+    },
+    {
+      "id": "hands-video",
+      "title": "Fight Germs. Wash Your Hands!",
+      "author": "Centers for Disease Control and Prevention (2017)",
+      "license": "Public domain (US federal government work)",
+      "url": "https://commons.wikimedia.org/wiki/File:Fight_Germs._Wash_Your_Hands!.webm",
+      "file": "handwashing.mp4",
+      "originalUrl": "https://www.cdc.gov/wcms/video/low-res/cdctv/2017/34753475Handwashing.mp4",
+      "changes": "Complete official English MP4 unchanged. Poster extracted at 79 seconds. No endorsement by CDC is implied."
+    },
+    {
+      "id": "motion",
+      "title": "TAP Work editable motion examples",
+      "author": "TAP Work (2026)",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://tap2.work/manual-media/v1/",
+      "file": "projects.json",
+      "changes": "New Korean scene summaries, vector animation, renderer and editor. Original authoring files included; customized versions should identify changes."
+    }
+  ],
+  "files": [
+    {
+      "path": "FONT-LICENSE.txt",
+      "bytes": 4417,
+      "sha256": "3b8ac478fa32708ecd929cd7eae8cc32aba1710ca8ec95386d0db9db89ce57dd"
+    },
+    {
+      "path": "PretendardVariable.ttf",
+      "bytes": 6739336,
+      "sha256": "3090ccde0442bb347aa7685d9ba8b17436a60682df6e8f92a9a670de14056e22"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4441,
+      "sha256": "643b33c00df520ad15499a415fd5f924ba7231be2e155442b8fdc52689e54486"
+    },
+    {
+      "path": "closing-poster.png",
+      "bytes": 53235,
+      "sha256": "544fabc31dac7f44be5c3cdb6d3cb2f5ed1863015c8098ddb06041671f61e62a"
+    },
+    {
+      "path": "closing.json",
+      "bytes": 1113,
+      "sha256": "afb5e5c01117a9e106089ab271a773b81d1f62d25e3c76044b6421858a036af0"
+    },
+    {
+      "path": "closing.mp4",
+      "bytes": 151064,
+      "sha256": "c30c2bf1e6794581b0eb990887c6fa8d6c548f7309d51b3c9944b2e90deebdbb"
+    },
+    {
+      "path": "handwashing-poster.jpg",
+      "bytes": 28196,
+      "sha256": "f44651145a688e9f875d98e62340d37f52f2faf668e65cbbe52a4ec76bf58d7e"
+    },
+    {
+      "path": "handwashing.jpg",
+      "bytes": 58253,
+      "sha256": "8c17586f2ea80e9412518b390f3725e2b36f58184ff3d114eb8597030058032e"
+    },
+    {
+      "path": "handwashing.mp4",
+      "bytes": 8721258,
+      "sha256": "c57a7fe1542ec1bfd970ec7034ad7cc8473b8b2aa61203e732765093886cbbc1"
+    },
+    {
+      "path": "index.html",
+      "bytes": 3700,
+      "sha256": "3c0696a9dd5802a2457ca0d369f08d25c6a609beeb62015d73ab16ac71798098"
+    },
+    {
+      "path": "index.mjs",
+      "bytes": 2969,
+      "sha256": "4d502921582fb78e7ccd17ab679ff98992c8f780cfa90bf919b551b4bbe18de7"
+    },
+    {
+      "path": "kitchen.jpg",
+      "bytes": 148696,
+      "sha256": "a3c64993335ac71e5079dcfbdae3abbd45b3c62fcfd12e749b634c96f13c8fd3"
+    },
+    {
+      "path": "manual-backup.json",
+      "bytes": 22000,
+      "sha256": "20488e064ad18fb8137e77853205277bb992d9bb0fd09ad7ec9709f1c0e0f84f"
+    },
+    {
+      "path": "manuals.json",
+      "bytes": 32399,
+      "sha256": "d2bd51a3ee22c9f8a65e508c565be7bdd98e643e39e0a7cf53b69ff3bfec0366"
+    },
+    {
+      "path": "motion.mjs",
+      "bytes": 6094,
+      "sha256": "7fdfac9a1432a3438c47156e4b6a7c8cc3c35414431ec10476daacf6d3d36f71"
+    },
+    {
+      "path": "opening-poster.png",
+      "bytes": 54413,
+      "sha256": "d6df9e241dc0ab68c0ae5311a9a4575952f0c21912edf8ed78da600d0f0aa4c1"
+    },
+    {
+      "path": "opening.json",
+      "bytes": 1115,
+      "sha256": "31c54854acfea7b40d0399566339ff0bf81d63baff54867317603347fe22e9f5"
+    },
+    {
+      "path": "opening.mp4",
+      "bytes": 150109,
+      "sha256": "e4fe7125717f2f276c38522e232eb917b4c61bcc2901c308f607a6544a669fdf"
+    },
+    {
+      "path": "originals/food-safety.epub",
+      "bytes": 1332169,
+      "sha256": "1b0693808a98560b9e65573034226cdaecca12bdfd68d67e978ece240bba6b78"
+    },
+    {
+      "path": "originals/handwashing.jpg",
+      "bytes": 2915174,
+      "sha256": "33725d813069fc0775033cd470ff6c016b251f00aa7bac3c759be7ad657232e7"
+    },
+    {
+      "path": "originals/kitchen-management.epub",
+      "bytes": 1447057,
+      "sha256": "a9bdcf8679cf68793069bc08b050d2c8d976de33fbe0a8028fa458307cdf5887"
+    },
+    {
+      "path": "originals/kitchen.jpg",
+      "bytes": 10189109,
+      "sha256": "2abf1a7e0a9f31e59de56d6d7c017cc06829ba286d4b741d20435d87faba68e4"
+    },
+    {
+      "path": "player.html",
+      "bytes": 801,
+      "sha256": "2944dd2808ba9d19c0ed5665e714753102c39da9c8537854082cbbc30df66d7d"
+    },
+    {
+      "path": "player.mjs",
+      "bytes": 1620,
+      "sha256": "cf5e46cc9db7dfc18f12c0c88541b7e223956d4ed8273de68a720a4c183f0e82"
+    },
+    {
+      "path": "projects.json",
+      "bytes": 5580,
+      "sha256": "04152e888ab70b1ace4efc6da458388cc21ab4097e7a76dfae99e26545c0c79e"
+    },
+    {
+      "path": "receiving-poster.png",
+      "bytes": 51419,
+      "sha256": "ef9da965ebd2267619fdf21a283f8c62ed41b400dfb17789dd63b47bcd86d970"
+    },
+    {
+      "path": "receiving.json",
+      "bytes": 1109,
+      "sha256": "d970ca1ea0c622eaa2298ef1691c532dbcf1f7c8ddfad9426a9b58d93790acb8"
+    },
+    {
+      "path": "receiving.mp4",
+      "bytes": 148753,
+      "sha256": "22e8bd1949578eb6d00860a4d253cf0543ee38a9361be49a64df7fb9da8d2e77"
+    },
+    {
+      "path": "service-poster.png",
+      "bytes": 58437,
+      "sha256": "0c547564e68f4f8f1087919069b5aa051868dbc5ae7a91e048cfea3fa7d7bf0f"
+    },
+    {
+      "path": "service.json",
+      "bytes": 945,
+      "sha256": "5a7c45b7f460bc63d1b90b1ddd044e86ec46a906286a1c47858215adb47d869b"
+    },
+    {
+      "path": "service.mp4",
+      "bytes": 114738,
+      "sha256": "6092bb751e5a6000c585fbeb984eb8c9a0c1cce5762add7ec184e3bf0b1ab3be"
+    },
+    {
+      "path": "shift-poster.png",
+      "bytes": 54894,
+      "sha256": "40ec718ddc352cdd6581ed5861692e52747fadc824eb5c75913f71d286ca764c"
+    },
+    {
+      "path": "shift.json",
+      "bytes": 924,
+      "sha256": "117929b115ca3aebc0cb08afa24e3bb3ad39f84fb206ef039aac1d6608b57a6e"
+    },
+    {
+      "path": "shift.mp4",
+      "bytes": 110267,
+      "sha256": "37339a50f38b2092472bdd3601a6972617a2ded28a4a64171a8863728d5eabaf"
+    },
+    {
+      "path": "studio.html",
+      "bytes": 2414,
+      "sha256": "719732530e736df35784879b10e64fca442528e5ab84c85d57873659812741bb"
+    },
+    {
+      "path": "studio.mjs",
+      "bytes": 8740,
+      "sha256": "cd62c475477d145802c56842df031b943d876f36f091d6a7474e74ffb79cbe76"
+    },
+    {
+      "path": "style.css",
+      "bytes": 3172,
+      "sha256": "f9ab7a5688088c138208253de985b2f0d54868ba3cf93cd6fd2671dc09aa52a4"
+    }
+  ]
+}

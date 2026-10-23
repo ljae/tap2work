@@ -1,0 +1,39 @@
+{
+  "format": "tap2work-motion",
+  "version": 1,
+  "id": "receiving",
+  "title": "입고 확인",
+  "accent": "#8ae4ba",
+  "scenes": [
+    {
+      "title": "주문서와 납품 실물 대조",
+      "detail": "주문한 품명·규격·수량과 도착한 실물을 대조해요.",
+      "seconds": 5,
+      "icon": "box"
+    },
+    {
+      "title": "포장·상태와 보관 조건 확인",
+      "detail": "포장·손상·표시와 제품별 보관 조건을 확인해요.",
+      "seconds": 5,
+      "icon": "check"
+    },
+    {
+      "title": "반품·보류품 표시",
+      "detail": "문제가 있으면 정상 입고분과 나누고 담당자에게 알려요.",
+      "seconds": 5,
+      "icon": "check"
+    },
+    {
+      "title": "승인된 입고분 즉시 보관",
+      "detail": "승인된 물품은 정해진 보관 장소로 바로 옮겨요.",
+      "seconds": 5,
+      "icon": "box"
+    },
+    {
+      "title": "실제 받은 수량으로 입고 기록",
+      "detail": "주문량이 아니라 실제 받은 수량을 기록해요.",
+      "seconds": 5,
+      "icon": "check"
+    }
+  ]
+}

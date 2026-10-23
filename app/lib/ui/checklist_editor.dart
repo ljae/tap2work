@@ -1,3 +1,4 @@
+import 'manual_media_view.dart';
 import '../l10n/entity_name_scope.dart';
 import '../l10n/app_localizations.dart';
 import 'workplace_screens.dart';
@@ -1328,6 +1329,11 @@ class _ActivityEditorState extends State<_ActivityEditor> {
                       field('imageUrl', context.t('ui.audit1108')),
                     field('videoUrl', context.t('ui.audit1109')),
                     field('sourceUrl', context.t('ui.audit1110')),
+                    ManualMediaView(
+                      step: step,
+                      ops: widget.ops,
+                      showPhoto: false,
+                    ),
                   ],
                 ),
                 Text(

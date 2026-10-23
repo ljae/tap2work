@@ -1,0 +1,12 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>TAP Work · 모션 원본 편집</title><link rel="stylesheet" href="style.css"><body><main>
+<header><a href="index.html">TAP Work · 미디어 원본</a><span class="tag">매장별 수정</span></header>
+<h1>우리 매장 방식으로<br>설명하는 모션</h1><p>문구와 장면 시간을 바꾸고 <strong>수정본 링크</strong>를 매뉴얼 편집의 영상 링크에 붙여 넣으세요. 기존 공용 원본은 바뀌지 않습니다.</p>
+<div class="studio"><div class="studio-preview"><canvas id="canvas" width="1280" height="720" aria-label="편집 중인 작업 흐름 미리보기"></canvas>
+<div class="actions"><button id="play" class="primary">미리보기 재생</button><button id="restart">처음부터</button></div>
+<div class="card"><h2>수정본 가져가기</h2><div class="actions"><button id="copy" class="primary">수정본 링크 복사</button><button id="save">JSON 원본 저장</button><button id="record">영상 파일 저장</button><button id="poster">표지 PNG 저장</button></div>
+<label for="share">수정본 영상 링크</label><textarea id="share" readonly rows="3"></textarea><small>링크에는 입력한 문구가 포함됩니다. 공개할 안내만 넣어 주세요. 매뉴얼의 저장 버튼을 눌러야 매장에 반영됩니다.</small>
+<p id="status" role="status" aria-live="polite"></p></div></div>
+<div><div class="card"><label for="template">예시 선택</label><select id="template"></select><label for="load">저장한 JSON 원본 불러오기</label><input id="load" type="file" accept="application/json,.json">
+<label for="title">영상 제목 · 최대 40자</label><input id="title" maxlength="40"><label for="accent">강조색</label><input id="accent" type="color"></div><div id="scenes"></div><div class="actions"><button id="add">장면 추가</button></div></div></div>
+<footer>원본 예시·모션 소스: TAP Work · CC BY 4.0. 이 화면에서 변경한 내용은 브라우저 초안입니다. JSON 또는 수정본 링크로 보관해 주세요. 동영상 내보내기는 이 화면에서 실제 길이만큼 재생하며, 기기 지원에 따라 MP4 또는 WebM으로 저장됩니다.</footer>
+</main><script type="module" src="studio.mjs"></script></body></html>

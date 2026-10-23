@@ -1,0 +1,39 @@
+{
+  "format": "tap2work-motion",
+  "version": 1,
+  "id": "closing",
+  "title": "주방 마감",
+  "accent": "#8ae4ba",
+  "scenes": [
+    {
+      "title": "남은 식재료 사용 이력 확인",
+      "detail": "남은 재료의 개봉·사용 이력과 상태를 확인해요.",
+      "seconds": 5,
+      "icon": "box"
+    },
+    {
+      "title": "보관할 조리식품 냉각·표시",
+      "detail": "매장 승인 기준에 따라 보관·냉각·표시해요.",
+      "seconds": 5,
+      "icon": "box"
+    },
+    {
+      "title": "작업대·식기·설비 청소",
+      "detail": "제품 설명과 매장 순서에 따라 세척하고 정리해요.",
+      "seconds": 5,
+      "icon": "check"
+    },
+    {
+      "title": "종료 장비와 상시 가동 장비 구분",
+      "detail": "종료할 장비와 계속 켜 둘 장비를 구분해요.",
+      "seconds": 5,
+      "icon": "power"
+    },
+    {
+      "title": "냉장·냉동고와 바닥 최종 확인",
+      "detail": "냉장·냉동고 문과 바닥 상태를 확인하고 인계해요.",
+      "seconds": 5,
+      "icon": "check"
+    }
+  ]
+}

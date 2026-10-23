@@ -1,0 +1,33 @@
+{
+  "format": "tap2work-motion",
+  "version": 1,
+  "id": "service",
+  "title": "불만·오주문·환불 요청 응대",
+  "accent": "#8ae4ba",
+  "scenes": [
+    {
+      "title": "방어하지 않고 불편을 확인",
+      "detail": "고객의 말을 끊지 않고 불편한 점을 다시 확인해요.",
+      "seconds": 5,
+      "icon": "chat"
+    },
+    {
+      "title": "주문·제공·결제 사실 대조",
+      "detail": "주문·제공·결제 기록으로 사실을 대조해요.",
+      "seconds": 5,
+      "icon": "check"
+    },
+    {
+      "title": "권한 안에서 해결안 제시",
+      "detail": "권한 안에서 해결안을 제시하고 고객의 뜻을 확인해요.",
+      "seconds": 5,
+      "icon": "chat"
+    },
+    {
+      "title": "해결 결과와 다음 조치 남기기",
+      "detail": "해결 결과와 남은 일·다음 담당자를 기록해요.",
+      "seconds": 5,
+      "icon": "check"
+    }
+  ]
+}

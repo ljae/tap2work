@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 337,
+  "revision": 338,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1634,6 +1634,19 @@
       "source": "User conversation 2026-10-23",
       "updatedAt": "2026-10-23T13:11:17.777Z",
       "implementation": "D-145. Web code884216512adf6646386393ed9958114e1c790067, Actions39957812745 run/build/deploy success, Pages7278961839 success2026-10-23T13:07:06Z. CIFlutter652pass/3browser-onlyskip,analysis0,Node394,UI92/JS/Edge/SQL5/translations/web pass. Public13relevant files(index/manifest/version/bootstrap/main/font manifests/font/icon/seeded samples) SHA256 match CIartifact12503451899. Ego Lite390DPR2 Chromium public long/short2-TAP folder and toolbar touch collapse stable1.2s,reverse/current destination restore; weekly roster collapse and search scope preserved; pageerror/unhandledrejection0. Local one-TAP folder and recipe verified; before/after4regressions,97responsive/loadingcaptures. No live-save/native/physicalSafari/backend rollout. Existing rootdirty preserved; selected22files isolated frombc9ddb1. docs/MOBILE_DESIGN_REFRESH_2026-10-23.md;private.local/design-refresh-20261023/."
+    },
+    {
+      "id": "D-146",
+      "category": "Editable multimedia manuals",
+      "title": "공개 원본 기반 사진·영상·모션 매뉴얼 예시와 매장별 편집",
+      "status": "confirmed",
+      "previous": "기존 마켓 매뉴얼의 텍스트 절차와 외부 미디어 링크 편집. 재사용 원본 묶음과 모션 편집 도구 없음.",
+      "next": "기존5개 매뉴얼23단계에 출처를 보존한 사진·영상·모션 예시, 공개 원본 묶음과 장면 편집 도구, 마켓 필터/미리보기 및 기존 저장 경로 연결.",
+      "decision": "사용자가 크몽 사례와 유사한 상세 멀티미디어 예시를 재사용 가능한 원본으로 만들고 마켓에서 가져와 수정하도록 요청했다.",
+      "reason": "유료 사례를 복제하지 않고 원본/조건을 확인한 재사용 자료와 직접 만든 편집 원본으로 매장별 교육 내용을 쉽게 조정한다.",
+      "source": "User conversation 2026-10-23",
+      "updatedAt": "2026-10-23T14:45:10.370Z",
+      "implementation": "D-146. Five existing food manuals/23 steps gain2 licensed photos, untouched English CDC video and5 original editable Korean motion examples; other142 unchanged. Source kit contains actual EPUB2/photo2/video originals, JSON/editor/player/backup and37-file hash manifest/ZIP. Existing import/owner registration OFF/personalization/revision/execution contracts retained. Flutter656pass/3skip,analysis0,Node398,UI92/JS/media/translation checks pass; Ego Lite390 title edit/play/copy/JSON/MP4 export verified. Web and DB stable publication pending, native/physicalSafari/live-save/independent field review not performed. docs/MULTIMEDIA_MANUALS_2026-10-23.md; private.local/media-manual-20261023."
     }
   ],
   "milestones": [
@@ -9209,7 +9222,13 @@
       "type": "deployment",
       "title": "휴대폰 웹 매뉴얼 접힘·로딩·공통 디자인 배포 완료",
       "detail": "D-145. Web code884216512adf6646386393ed9958114e1c790067, Actions39957812745 run/build/deploy success, Pages7278961839 success2026-10-23T13:07:06Z. CIFlutter652pass/3browser-onlyskip,analysis0,Node394,UI92/JS/Edge/SQL5/translations/web pass. Public13relevant files(index/manifest/version/bootstrap/main/font manifests/font/icon/seeded samples) SHA256 match CIartifact12503451899. Ego Lite390DPR2 Chromium public long/short2-TAP folder and toolbar touch collapse stable1.2s,reverse/current destination restore; weekly roster collapse and search scope preserved; pageerror/unhandledrejection0. Local one-TAP folder and recipe verified; before/after4regressions,97responsive/loadingcaptures. No live-save/native/physicalSafari/backend rollout. Existing rootdirty preserved; selected22files isolated frombc9ddb1. docs/MOBILE_DESIGN_REFRESH_2026-10-23.md;private.local/design-refresh-20261023/."
+    },
+    {
+      "at": "2026-10-23T14:45:10.370Z",
+      "type": "implementation",
+      "title": "수정 가능한 멀티미디어 매뉴얼5종 로컬 구현·검증",
+      "detail": "D-146. Five existing food manuals/23 steps gain2 licensed photos, untouched English CDC video and5 original editable Korean motion examples; other142 unchanged. Source kit contains actual EPUB2/photo2/video originals, JSON/editor/player/backup and37-file hash manifest/ZIP. Existing import/owner registration OFF/personalization/revision/execution contracts retained. Flutter656pass/3skip,analysis0,Node398,UI92/JS/media/translation checks pass; Ego Lite390 title edit/play/copy/JSON/MP4 export verified. Web and DB stable publication pending, native/physicalSafari/live-save/independent field review not performed. docs/MULTIMEDIA_MANUALS_2026-10-23.md; private.local/media-manual-20261023."
     }
   ],
-  "updatedAt": "2026-10-23T13:11:17.777Z"
+  "updatedAt": "2026-10-23T14:45:10.370Z"
 }

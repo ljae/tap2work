@@ -1,0 +1,185 @@
+[
+  {
+    "format": "tap2work-motion",
+    "version": 1,
+    "id": "shift",
+    "title": "근무 시작·교대 인수인계",
+    "accent": "#8ae4ba",
+    "scenes": [
+      {
+        "title": "손 씻기·복장과 몸 상태 확인",
+        "detail": "손을 씻고 복장과 몸 상태를 확인해요.",
+        "seconds": 5,
+        "icon": "hands"
+      },
+      {
+        "title": "미완료·품절·고장 인계 읽기",
+        "detail": "미완료·품절·고장을 읽고 담당자에게 되물어요.",
+        "seconds": 5,
+        "icon": "chat"
+      },
+      {
+        "title": "내 구역과 교대 시간 확인",
+        "detail": "내 구역과 교대 시각을 동료와 맞춰요.",
+        "seconds": 5,
+        "icon": "check"
+      },
+      {
+        "title": "시작 전 담당 구역 한 바퀴 확인",
+        "detail": "시작 전 구역을 돌며 위험과 부족한 준비를 확인해요.",
+        "seconds": 5,
+        "icon": "check"
+      }
+    ]
+  },
+  {
+    "format": "tap2work-motion",
+    "version": 1,
+    "id": "opening",
+    "title": "주방 오픈",
+    "accent": "#8ae4ba",
+    "scenes": [
+      {
+        "title": "작업대·도구 청결 확인",
+        "detail": "작업대와 도구가 깨끗하고 제자리에 있는지 확인해요.",
+        "seconds": 5,
+        "icon": "check"
+      },
+      {
+        "title": "당일 재료·준비량 대조",
+        "detail": "당일 메뉴와 실제 재료·준비량을 대조해요.",
+        "seconds": 5,
+        "icon": "box"
+      },
+      {
+        "title": "보관 장비 표시·문 닫힘 확인",
+        "detail": "냉장·냉동 장비 표시와 문 닫힘을 확인해요.",
+        "seconds": 5,
+        "icon": "power"
+      },
+      {
+        "title": "가열 장비 준비와 안전 동선 확인",
+        "detail": "장비별 승인된 시작 순서와 안전 동선을 확인해요.",
+        "seconds": 5,
+        "icon": "power"
+      },
+      {
+        "title": "조리·배식·설거지 동선 맞추기",
+        "detail": "조리·배식·설거지 동선이 겹치지 않도록 맞춰요.",
+        "seconds": 5,
+        "icon": "check"
+      }
+    ]
+  },
+  {
+    "format": "tap2work-motion",
+    "version": 1,
+    "id": "receiving",
+    "title": "입고 확인",
+    "accent": "#8ae4ba",
+    "scenes": [
+      {
+        "title": "주문서와 납품 실물 대조",
+        "detail": "주문한 품명·규격·수량과 도착한 실물을 대조해요.",
+        "seconds": 5,
+        "icon": "box"
+      },
+      {
+        "title": "포장·상태와 보관 조건 확인",
+        "detail": "포장·손상·표시와 제품별 보관 조건을 확인해요.",
+        "seconds": 5,
+        "icon": "check"
+      },
+      {
+        "title": "반품·보류품 표시",
+        "detail": "문제가 있으면 정상 입고분과 나누고 담당자에게 알려요.",
+        "seconds": 5,
+        "icon": "check"
+      },
+      {
+        "title": "승인된 입고분 즉시 보관",
+        "detail": "승인된 물품은 정해진 보관 장소로 바로 옮겨요.",
+        "seconds": 5,
+        "icon": "box"
+      },
+      {
+        "title": "실제 받은 수량으로 입고 기록",
+        "detail": "주문량이 아니라 실제 받은 수량을 기록해요.",
+        "seconds": 5,
+        "icon": "check"
+      }
+    ]
+  },
+  {
+    "format": "tap2work-motion",
+    "version": 1,
+    "id": "service",
+    "title": "불만·오주문·환불 요청 응대",
+    "accent": "#8ae4ba",
+    "scenes": [
+      {
+        "title": "방어하지 않고 불편을 확인",
+        "detail": "고객의 말을 끊지 않고 불편한 점을 다시 확인해요.",
+        "seconds": 5,
+        "icon": "chat"
+      },
+      {
+        "title": "주문·제공·결제 사실 대조",
+        "detail": "주문·제공·결제 기록으로 사실을 대조해요.",
+        "seconds": 5,
+        "icon": "check"
+      },
+      {
+        "title": "권한 안에서 해결안 제시",
+        "detail": "권한 안에서 해결안을 제시하고 고객의 뜻을 확인해요.",
+        "seconds": 5,
+        "icon": "chat"
+      },
+      {
+        "title": "해결 결과와 다음 조치 남기기",
+        "detail": "해결 결과와 남은 일·다음 담당자를 기록해요.",
+        "seconds": 5,
+        "icon": "check"
+      }
+    ]
+  },
+  {
+    "format": "tap2work-motion",
+    "version": 1,
+    "id": "closing",
+    "title": "주방 마감",
+    "accent": "#8ae4ba",
+    "scenes": [
+      {
+        "title": "남은 식재료 사용 이력 확인",
+        "detail": "남은 재료의 개봉·사용 이력과 상태를 확인해요.",
+        "seconds": 5,
+        "icon": "box"
+      },
+      {
+        "title": "보관할 조리식품 냉각·표시",
+        "detail": "매장 승인 기준에 따라 보관·냉각·표시해요.",
+        "seconds": 5,
+        "icon": "box"
+      },
+      {
+        "title": "작업대·식기·설비 청소",
+        "detail": "제품 설명과 매장 순서에 따라 세척하고 정리해요.",
+        "seconds": 5,
+        "icon": "check"
+      },
+      {
+        "title": "종료 장비와 상시 가동 장비 구분",
+        "detail": "종료할 장비와 계속 켜 둘 장비를 구분해요.",
+        "seconds": 5,
+        "icon": "power"
+      },
+      {
+        "title": "냉장·냉동고와 바닥 최종 확인",
+        "detail": "냉장·냉동고 문과 바닥 상태를 확인하고 인계해요.",
+        "seconds": 5,
+        "icon": "check"
+      }
+    ]
+  }
+]

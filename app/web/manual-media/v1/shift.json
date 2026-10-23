@@ -1,0 +1,33 @@
+{
+  "format": "tap2work-motion",
+  "version": 1,
+  "id": "shift",
+  "title": "근무 시작·교대 인수인계",
+  "accent": "#8ae4ba",
+  "scenes": [
+    {
+      "title": "손 씻기·복장과 몸 상태 확인",
+      "detail": "손을 씻고 복장과 몸 상태를 확인해요.",
+      "seconds": 5,
+      "icon": "hands"
+    },
+    {
+      "title": "미완료·품절·고장 인계 읽기",
+      "detail": "미완료·품절·고장을 읽고 담당자에게 되물어요.",
+      "seconds": 5,
+      "icon": "chat"
+    },
+    {
+      "title": "내 구역과 교대 시간 확인",
+      "detail": "내 구역과 교대 시각을 동료와 맞춰요.",
+      "seconds": 5,
+      "icon": "check"
+    },
+    {
+      "title": "시작 전 담당 구역 한 바퀴 확인",
+      "detail": "시작 전 구역을 돌며 위험과 부족한 준비를 확인해요.",
+      "seconds": 5,
+      "icon": "check"
+    }
+  ]
+}

@@ -486,3 +486,8 @@ iOS App Store에서 무료 다운로드를 제공하고 향후 추가 기능에 
 Manuals are grouped as first setup, periodic management, routine work, recipes, and training/reference. Daily crew checks mainly use routines. Setup, recipes and references remain readable documents; periodic checks use explicit weekly/monthly schedules and receipt/production checks use actual events. Parts classify work and ranks authorize access. Existing manual IDs and execution histories remain intact.
 
 The manual market source includes the explicitly fictional Soldam restaurant example (26 TAPs,108 sections,15 folders). Users can inspect its folder/TAP/action/method structure, configured store/roles/places and example dates before selecting documents. Import remains pending and OFF until owner review. Quantities and recipes illustrate documentation depth and require actual store confirmation. New catalog publication follows independent exact-hash review; implementation alone does not establish live publication.
+
+
+### 2026-10-23 수정 가능한 사진·영상·모션 매뉴얼
+
+사용자는 크몽 사례처럼 상세한 멀티미디어 매뉴얼을 원하며, 수정 가능한 공개 원본을 찾아 마켓에서 가져오도록 요청했다. 해당 유료 자료를 복제하지 않고 재사용 가능한 사진2종·CDC 원본 영상·CC BY4.0 공개 교재 EPUB2종을 조사·보존했다. 기존 근무 시작/주방 오픈/입고 확인/고객 불만 응대/주방 마감의23단계에 미디어를 연결하고 편집 가능한 모션5종을 만들었다. 원본과 출처/조건을 함께 제공하며 매장별 내용·사진·영상 링크 수정, 모션 문구·순서·시간·색상 편집과 JSON/영상 내보내기를 지원한다. 기존 가져오기·사장님 검토·OFF/개인화·실행 이력 계약을 유지한다. 운영 DB 발행은 웹 배포와 별도이며 정확한 상태는 [검증 기록](docs/MULTIMEDIA_MANUALS_2026-10-23.md)을 따른다.
