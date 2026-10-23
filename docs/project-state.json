@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 334,
+  "revision": 335,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1608,6 +1608,19 @@
       "source": "User conversation 2026-10-23",
       "updatedAt": "2026-10-23T04:54:23.236Z",
       "implementation": "Web deployedb611e7f/Actions39901993882 run/build/deploy completed-success,Pages7270506548 success2026-10-23T04:52:26Z;267publicSHA+artifactZIPdigest matches. CIFlutter649pass/3browser-onlyskip,analysis0,Node394,UI92/JS/Edge/SQL5/translations/web pass. Public390ChromeCDP touch manual/week/month fast flick→1.2s stable collapse/current destination restore and search scope confirmed;pageerrors0/operationsPOST0. Web only; no native/backend/data changes. docs/SEARCH_HEADER_FIX_2026-10-23.md."
+    },
+    {
+      "id": "D-144",
+      "category": "iOS release compatibility",
+      "title": "ITMS-90068 수정과 App Store 등록·심사 상태 점검",
+      "status": "confirmed",
+      "previous": "Runner 최소 iOS 13.0 / Podfile 플랫폼 미지정. 빌드 23에 2027-04 iOS15 요구 사전 경고 90068이 있으나 VALID·심사 대기.",
+      "next": "Runner Debug/Profile/Release·Podfile 최소 iOS 15.0. 새 빌드 24를 경고 없이 업로드·검증하며 기존 빌드 23의 대기 중 제출을 유지.",
+      "decision": "사용자가 ITMS-90068 수정과 오래 걸리는 Apple 등록·심사 전체 점검을 요청하고 브라우저로 Ego Lite를 지정했다.",
+      "reason": "요청된 경고의 실제 원인을 수정하고, 비차단 경고 때문에 현재 심사를 취소해 대기 시간을 다시 시작하지 않는다. 최소 버전 변경은 새 빌드부터 적용한다.",
+      "source": "User conversation 2026-10-23",
+      "updatedAt": "2026-10-23T06:33:25.865Z",
+      "implementation": "D-144. Ego Lite space7 App Review/App Information/Privacy/Pricing/Business/TestFlight and API audit: current iOS23 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL, submission17c1437e-cc5c-4c9c-93e5-7306155280a3 submitted2026-10-21T14:14:09.049Z (~40h), preserved. Prior10 Removed, no current Apple message; contacts/account fields and8screenshots COMPLETE,14privacy types,free175territories,agreements/bank/tax/DSA/Korea eCommerce Active. ITMS90068 in23 was warning(errors0) aboutfutureminimumOS. Runner3configs+Podfile13→15.0/lock checksum. Isolated8b8377b source→signed1.0.0(24), IPA8d3eed9bc1757fb38f54e610fcb84e10a970a49d956c8f901ab5ade54e349039,officialupload COMPLETE/errors0/warnings0 and24VALID/minOS15.0,nonExemptEncryption=false/ReadytoSubmit. No cancellation/replacement/reviewmessage/internal-group invite. Archive+IPA codesign/deploymententitlements4publicauthdefines/8locales/15unchangedprivacyManifests verified. Flutteranalysis0/relevant12pass/iPhone17Pro iOS26.5 nativepreviewintegration1pass/npmcheck(UI92)/plist/ruby/diff pass. SameDartsource priorCI649pass3skip;notrerunfullsuite. iOS15runtimeunavailable;physicalOAuth/deletion/camera/iPad/Mac/Vision untested;existingLaunchImageplaceholder warning remains. Rootdirtypreserved;no web/Android/DB rollout. docs/APPLE_REVIEW_AUDIT_2026-10-23.md;private.local/apple-status-20261023/."
     }
   ],
   "milestones": [
@@ -9165,7 +9178,13 @@
       "type": "deployment",
       "title": "검색 표시 범위·상단 스크롤 재펼침 수정 웹 배포 완료",
       "detail": "D-143. Isolated14selected files fromba3915a,codeb611e7fb319f3271d629ba202e0eb12b721424d1. Actions39901993882 overall/build/deploy completed-success,Pages7270506548 success2026-10-23T04:52:26Z;267publicCIartifactSHA and artifact12479706383 ZIPdigest match. CIFlutter649pass/3browser-onlyskip,analysis0,Node394,UI92/JS/Edge/SQL5/translations/web pass. Actual public390ChromeCDP touch manual/week/month fast flick stays collapsed1.2s after release;current bottom destination restores;search present only work/manual. pageerrors0/operationsPOST0. Local2regressions fail before→pass after,full649/relevant35 passed. No native/physical-device/live-save/backend/catalog/productiondata changes;originaldirty preserved. docs/SEARCH_HEADER_FIX_2026-10-23.md;private.local/header-fix-20261023 and.local/header-fix-deployment-20261023."
+    },
+    {
+      "at": "2026-10-23T06:33:25.865Z",
+      "type": "deployment",
+      "title": "ITMS-90068 수정 빌드24 VALID·Ego Lite Apple 전체 점검·기존 심사 대기 유지",
+      "detail": "D-144. Ego Lite space7 App Review/App Information/Privacy/Pricing/Business/TestFlight and API audit: current iOS23 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL, submission17c1437e-cc5c-4c9c-93e5-7306155280a3 submitted2026-10-21T14:14:09.049Z (~40h), preserved. Prior10 Removed, no current Apple message; contacts/account fields and8screenshots COMPLETE,14privacy types,free175territories,agreements/bank/tax/DSA/Korea eCommerce Active. ITMS90068 in23 was warning(errors0) aboutfutureminimumOS. Runner3configs+Podfile13→15.0/lock checksum. Isolated8b8377b source→signed1.0.0(24), IPA8d3eed9bc1757fb38f54e610fcb84e10a970a49d956c8f901ab5ade54e349039,officialupload COMPLETE/errors0/warnings0 and24VALID/minOS15.0,nonExemptEncryption=false/ReadytoSubmit. No cancellation/replacement/reviewmessage/internal-group invite. Archive+IPA codesign/deploymententitlements4publicauthdefines/8locales/15unchangedprivacyManifests verified. Flutteranalysis0/relevant12pass/iPhone17Pro iOS26.5 nativepreviewintegration1pass/npmcheck(UI92)/plist/ruby/diff pass. SameDartsource priorCI649pass3skip;notrerunfullsuite. iOS15runtimeunavailable;physicalOAuth/deletion/camera/iPad/Mac/Vision untested;existingLaunchImageplaceholder warning remains. Rootdirtypreserved;no web/Android/DB rollout. docs/APPLE_REVIEW_AUDIT_2026-10-23.md;private.local/apple-status-20261023/."
     }
   ],
-  "updatedAt": "2026-10-23T04:54:23.236Z"
+  "updatedAt": "2026-10-23T06:33:25.865Z"
 }

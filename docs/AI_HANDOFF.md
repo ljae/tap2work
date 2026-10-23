@@ -1,3 +1,7 @@
+## 2026-10-23 ITMS-90068 수정·Ego Lite Apple 점검 완료
+
+D-144/revision335. Runner3설정·Podfile 최소iOS13→15.0, signed1.0.0(24) 업로드 COMPLETE/경고0·VALID/minOS15.0, 수출규정false/Ready to Submit. 기존23 VALID/WAITING_FOR_REVIEW/AFTER_APPROVAL·10/21 23:14KST 접수 유지(약40h). Ego Lite로 이전10 Removed/현재메시지없음·계약/세금/은행/DSA Active·무료175지역·14개privacy·8스크린샷 COMPLETE 확인. 심사 취소·교체·지원메시지·내부초대 없음. Archive/IPA서명·4공개auth/8언어/15manifest확인,analysis0·관련12·iPhone17Pro iOS26.5공개샘플통합1·npmcheck(UI92) 통과. iOS15실행/실기기OAuth·삭제·카메라·iPad/Mac/Vision미검증;기존LaunchImageplaceholder경고 별도. Rootdirty보존·격리.local/apple-target-release,웹/Android/DB배포없음. [상세](APPLE_REVIEW_AUDIT_2026-10-23.md), 비공개.local/apple-status-20261023/.
+
 ## 2026-10-23 검색 범위·상단 접힘 수정 웹 배포 완료
 
 D-143/revision334. 웹b611e7f/Actions39901993882 전체run/build/deploy success,Pages7270506548 success13:52:26KST·공개267SHA일치. CIFlutter649pass/3browser-onlyskip·analysis0·Node394·UI92/JS/Edge/SQL5/번역/web 통과. 실제공개390ChromeCDP 터치로 매뉴얼·주간·월간 빠른 스크롤 후1.2초 접힘 유지/현재 메뉴 복귀,검색은 업무/매뉴얼만 표시 확인(pageerror0/operationsPOST0). 원래 dirty 보존·14파일 격리 배포,웹만 변경. [상세](SEARCH_HEADER_FIX_2026-10-23.md), 증거 `.local/header-fix-deployment-20261023/`.

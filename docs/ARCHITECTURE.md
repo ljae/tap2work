@@ -219,7 +219,7 @@ AccountScreen → AccountController → SupabaseAccountRepository → `account` 
 
 로컬 백업은 기존 SharedPreferences 저장소의 해당 user scope만 지운다. 서버 삭제 이후 로컬 정리 오류는 삭제 실패로 되돌리지 않고 완료+기기 정리 안내를 표시한다. 개인정보 JSON을 앱과 정적 privacy/delete-account 페이지가 공유한다. [설정/배포/운영 확인](NATIVE_AUTH_SETUP.md).
 
-iOS file_picker는 JSON 문서 백업에만 사용한다. Podfile의 PICKER_MEDIA/PICKER_AUDIO를 false로 설정해 사용하지 않는 사진·오디오 API와 DKImagePickerController 의존성을 제외했다. 실제로 사용하지 않는 사진 권한 목적을 추가하지 않는다. 빌드 4의 Apple 처리 오류 90683을 이 변경으로 수정해 빌드 5를 업로드했고 Apple 처리 VALID를 통과했다. ITMS-90068은 iOS 13 최소 지원에 대한 경고로, 현재 처리를 막지 않는다. 2027-04부터 iOS 15 이상이 요구된다.
+iOS file_picker는 JSON 문서 백업에만 사용한다. Podfile의 PICKER_MEDIA/PICKER_AUDIO를 false로 설정해 사용하지 않는 사진·오디오 API와 DKImagePickerController 의존성을 제외했다. 실제로 사용하지 않는 사진 권한 목적을 추가하지 않는다. 빌드 4의 Apple 처리 오류 90683을 이 변경으로 수정해 빌드 5를 업로드했고 Apple 처리 VALID를 통과했다. 기존 빌드 23의 ITMS-90068은 iOS 13 최소 지원에 대한 사전 경고였으며 처리 VALID와 심사 접수를 막지 않았다. 2026-10-23 수정부터 Runner Debug/Profile/Release 및 Podfile의 최소 지원을 iOS 15.0으로 통일한다(이전 13.0). iOS 13/14는 새 빌드의 지원 범위에서 제외된다. 서명·인증·데이터 계약은 유지하며, 경고 수정 빌드 업로드와 현재 심사 제출 교체는 별개로 추적한다. 새 업로드만으로 기존 심사를 취소하지 않는다. 실제 결과는 `APPLE_REVIEW_AUDIT_2026-10-23.md`와 canonical history를 따른다.
 
 ## 임시 공용 로그인·저장 최적화 · 2026-09-29
 
