@@ -6,6 +6,12 @@
 
 `AppScrollHeaderScope`는 직접 dragDetails와 휠 방향 통지 다음 한 번의 이동만 소비한다. 관성·바운스·크기 보정은 접힘을 뒤집지 않는다. 실제 위 방향 입력/당기기와 하단 메뉴 재선택으로 복귀하며 키보드/접근성/줄어든 모션 보호는 유지한다.
 
+## 웹 배포
+
+[tap2.work](https://tap2.work/)에 코드 `b611e7fb319f3271d629ba202e0eb12b721424d1` 반영. [Actions39901993882](https://github.com/ljae/tap2work/actions/runs/39901993882)의 전체run/build/deploy completed/success, Pages7270506548은2026-10-23 13:52:26KST success다. 공개267파일이 CI artifact와 SHA256 전부 일치하고 ZIPdigest도 확인했다.
+
+CI Flutter649pass/3browser-onlyskip·analysis0·Node394·UI92/JS/Edge/격리SQL5/번역/web 통과. 실제 공개390Chrome/CDP 터치로 매뉴얼·주간·월간 각각 빠른 스크롤 후1.2초 접힘 유지와 현재 하단 메뉴 복귀를 확인했다. 네 메뉴의 검색 표시 범위도 검사했으며 pageerror0/operations POST0이다. 웹만 배포했고 원래 dirty 작업·앱/백엔드/운영 데이터는 보존했다. 공개 검증 증거 `.local/header-fix-deployment-20261023/`.
+
 ## 로컬 검증
 
 - 수정 전 빠른 스크롤 재현2개 실패 → 수정 후 해당2개와 기존 회귀4개 통과.
@@ -13,4 +19,4 @@
 - 최종 JavaScript 웹 빌드 성공(컴파일36.6초). 네이티브 빌드가 아니다.
 - 실제 headless Chrome390×844/CDP 터치 입력으로 매뉴얼·주간·월간에서 빠르게 밀고 손을 뗀1.2초 뒤에도 접힘 유지, 현재 하단 메뉴로 복귀 확인. 업무/매뉴얼 검색 있음·근무표/우리매장 검색 없음 검사. pageerror0/operations POST0. 캡처 시각 검토.
 
-원래 미커밋 작업을 보존했고 데이터/API/네이티브 변경은 없다. 실제 휴대폰 하드웨어·실계정 저장은 검사하지 않았다. 공개 배포 결과는 후속 이력에 기록한다. 비공개 재현 로그·수정 전 사본·브라우저 증거: `.local/header-fix-20261023/`.
+원래 미커밋 작업을 보존했고 데이터/API/네이티브 변경은 없다. 실제 휴대폰 하드웨어·실계정 저장은 검사하지 않았다. 비공개 재현 로그·수정 전 사본·브라우저 증거: `.local/header-fix-20261023/`.

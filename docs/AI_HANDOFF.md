@@ -1,3 +1,7 @@
+## 2026-10-23 검색 범위·상단 접힘 수정 웹 배포 완료
+
+D-143/revision334. 웹b611e7f/Actions39901993882 전체run/build/deploy success,Pages7270506548 success13:52:26KST·공개267SHA일치. CIFlutter649pass/3browser-onlyskip·analysis0·Node394·UI92/JS/Edge/SQL5/번역/web 통과. 실제공개390ChromeCDP 터치로 매뉴얼·주간·월간 빠른 스크롤 후1.2초 접힘 유지/현재 메뉴 복귀,검색은 업무/매뉴얼만 표시 확인(pageerror0/operationsPOST0). 원래 dirty 보존·14파일 격리 배포,웹만 변경. [상세](SEARCH_HEADER_FIX_2026-10-23.md), 증거 `.local/header-fix-deployment-20261023/`.
+
 ## 2026-10-23 검색 범위·상단 접힘 회귀 수정 로컬 완료
 
 D-143/revision333. 업무/매뉴얼만 검색창과 결과 표시, 근무표/우리매장은72px 브랜드 헤더. 짧은 목록의 빠른 스크롤 후 재펼침2개를 수정 전 실패로 재현하고 직접 dragDetails/휠 한 번만 소비하도록 수정했다. 관성/바운스/offset0/크기 보정으로 복귀하지 않는다. 실제 위 입력과 현재 메뉴 재선택 복귀,접근성/키보드/모션 보호 유지. Flutter649pass/3browser-onlyskip·analysis0·관련35/UI92/JS·web36.6s 통과. Chrome390CDP 터치로 매뉴얼/주간/월간 빠른 스크롤 후1.2초 접힘 유지와 복귀·검색 범위 확인(pageerror0/operationsPOST0). 웹 배포 진행 예정,실기기/native/실계정 저장 미수행. [상세](SEARCH_HEADER_FIX_2026-10-23.md), 증거 `.local/header-fix-20261023/`.
