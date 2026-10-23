@@ -66,7 +66,7 @@ class _ManualVideoState extends State<_ManualVideo> {
   static int serial = 0;
   late final String viewType = 'manual-video-${serial++}';
   late final web.HTMLVideoElement video;
-  late final JSFunction errorListener, visibilityListener;
+  late final JSFunction errorListener, visibilityListener, keyboardListener;
   @override
   void initState() {
     super.initState();
@@ -76,6 +76,7 @@ class _ManualVideoState extends State<_ManualVideo> {
       ..preload = 'metadata'
       ..setAttribute('playsinline', '')
       ..setAttribute('aria-label', widget.label)
+      ..tabIndex = 0
       ..style.width = '100%'
       ..style.height = '100%'
       ..style.objectFit = 'contain'
@@ -86,7 +87,12 @@ class _ManualVideoState extends State<_ManualVideo> {
     visibilityListener = ((web.Event _) {
       if (web.document.hidden) video.pause();
     }).toJS;
+    // Native media keys must not also toggle the focused Flutter expansion
+    // tile or scroll the surrounding reader. Keep browser default controls.
+    keyboardListener = ((web.Event event) => event.stopPropagation()).toJS;
     video.addEventListener('error', errorListener);
+    video.addEventListener('keydown', keyboardListener);
+    video.addEventListener('keyup', keyboardListener);
     web.document.addEventListener('visibilitychange', visibilityListener);
     ui.platformViewRegistry.registerViewFactory(viewType, (_) => video);
   }
@@ -95,6 +101,8 @@ class _ManualVideoState extends State<_ManualVideo> {
   void dispose() {
     video.pause();
     video.removeEventListener('error', errorListener);
+    video.removeEventListener('keydown', keyboardListener);
+    video.removeEventListener('keyup', keyboardListener);
     web.document.removeEventListener('visibilitychange', visibilityListener);
     video.removeAttribute('src');
     video.load();
