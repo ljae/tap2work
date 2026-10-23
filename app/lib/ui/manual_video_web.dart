@@ -66,6 +66,7 @@ class _ManualVideoState extends State<_ManualVideo> {
   static int serial = 0;
   late final String viewType = 'manual-video-${serial++}';
   late final web.HTMLVideoElement video;
+  final keyboardFocus = FocusNode(debugLabel: 'native manual video');
   late final JSFunction errorListener, visibilityListener, keyboardListener;
   @override
   void initState() {
@@ -95,6 +96,9 @@ class _ManualVideoState extends State<_ManualVideo> {
     video.addEventListener('keyup', keyboardListener);
     web.document.addEventListener('visibilitychange', visibilityListener);
     ui.platformViewRegistry.registerViewFactory(viewType, (_) => video);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) keyboardFocus.requestFocus();
+    });
   }
 
   @override
@@ -107,9 +111,15 @@ class _ManualVideoState extends State<_ManualVideo> {
     video.removeAttribute('src');
     video.load();
     video.remove();
+    keyboardFocus.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => HtmlElementView(viewType: viewType);
+  Widget build(BuildContext context) => Focus(
+    focusNode: keyboardFocus,
+    skipTraversal: true,
+    onKeyEvent: (_, _) => KeyEventResult.skipRemainingHandlers,
+    child: HtmlElementView(viewType: viewType),
+  );
 }
