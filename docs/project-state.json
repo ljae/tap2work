@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 332,
+  "revision": 333,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1595,6 +1595,19 @@
       "source": "User conversation 2026-10-22 menu-width follow-up",
       "updatedAt": "2026-10-22T15:10:49.788Z",
       "implementation": "Web deployed2ad0874/Actions39800888397 overall/build/deploy completed-success,Pages7255788521 success2026-10-22T15:08:41Z,267publicSHA matches. CIFlutter647pass/3browser-onlyskip,analysis0,Node394,UI92/JS/Edge/SQL5/translations/web pass. Local26+8tests/88captures verify bounds320/390/1200/1600px x1.0/1.5text;390Chrome scroll/folder/calendar and1600Chrome four destinations/search alignment visually verified,pageerrors0/operationsPOST0. Web only; docs/MENU_WIDTH_WEB_RELEASE_2026-10-23.md."
+    },
+    {
+      "id": "D-143",
+      "category": "Search placement and scroll stability",
+      "title": "검색은 업무·매뉴얼에만 표시·상단 접힘 복귀 오류 수정",
+      "status": "confirmed",
+      "previous": "네 메뉴에 공통 매뉴얼·레시피 검색창/검색 결과 표시. 헤더가 관성·바운스/offset0/크기 보정을 사용자 역방향 스크롤로 해석해 다시 펼쳐질 수 있음.",
+      "next": "업무/매뉴얼만 상단 검색창과 검색 결과 제공. 근무표/우리매장은 검색창 제거. 실제 직접 드래그·휠 입력만 접힘을 바꾸며 위 방향 사용자 입력과 하단 메뉴 재선택으로 복귀.",
+      "decision": "사용자가 검색창을 업무·매뉴얼 상단에만 두고 근무표·우리매장에서는 삭제하며 매뉴얼·근무표의 상단이 다시 튕기는 현상을 고치도록 요청했다.",
+      "reason": "검색이 필요한 메뉴에만 공간을 사용하고 빠른 스크롤·헤더 크기 변경 후에도 접힘 상태를 안정적으로 유지한다.",
+      "source": "User conversation 2026-10-23",
+      "updatedAt": "2026-10-23T04:44:59.364Z",
+      "implementation": "Local complete.2short-list fling regressions fail before/pass after on clamping/bouncing physics. FullFlutter649pass/3browser-onlyskip,analysis0,relevant35/UI92/JS/web36.6s pass.390ChromeCDP touch manual/week/month fast fling→1.2s stable collapse/current-menu restore and search scope verified;pageerrors0/operationsPOST0. Web release pending; no APIs/data/native changes."
     }
   ],
   "milestones": [
@@ -9140,7 +9153,13 @@
       "type": "deployment",
       "title": "네 메뉴 너비 통일 웹 공개 반영·휴대폰/데스크톱 검증 완료",
       "detail": "D-142. Isolated8selected files from prior web release,code2ad0874edfd663df9ef9bb9401cf9488f478bc51. Actions39800888397 run/build/deploy completed-success,Pages7255788521 success2026-10-22T15:08:41Z;267publicCIartifactSHA and artifact12435867217 ZIPdigest match. CIFlutter647pass/3browser-onlyskip,analysis0,Node394,UI92/JS/Edge/SQL5/translations/web pass. Local26+8tests,88widget captures320/390/1200/1600px x1.0/1.5text including actual bounds for four destinations/search/brand. Public390Chrome scrollcollapse/restore/folder/week-month/options rendering,1600Chrome fourdestinations/same searchbounds and visual alignment confirmed;bothpageerrors0/operationsPOST0. GitHub queued status delayed actual execution; inspected logs/artifact/deployment/finalsuccess. Initial missing test import fixed before passing. Originaldirty preserved; no native/backend/catalog/live-data changes. docs/MENU_WIDTH_WEB_RELEASE_2026-10-23.md;private.local/menu-width-20261022 and.local/menu-width-deployment-20261023."
+    },
+    {
+      "at": "2026-10-23T04:44:59.364Z",
+      "type": "implementation",
+      "title": "업무·매뉴얼 검색 범위와 빠른 스크롤 상단 재펼침 수정",
+      "detail": "D-143. showManualSearch/hasManualQuery scope both UI and results to work/manual; roster/store brand-only72px. AppScrollHeaderScope consumes dragDetails or one direct wheel update; ignores inertia/bounce/layout correction,removes unconditional offset0/passiveoverscroll reveal. Repro2fail before→pass after,regression6pass;related35/full649pass3browser-onlyskip/analysis0/UI92/npmcheck/webbuild36.6s. Actual390ChromeCDP touch manual/week/month fast flick remains hidden after1.2s and current destination restores;search presence across4tabs correct;pageerrors0/operationsPOST0. Architecture/product/UIguide/template/relationship map updated. Originaldirty preserved,private.local/header-fix-20261023/before and logs. No productiondata/API/native/physical-device/live-save changes. docs/SEARCH_HEADER_FIX_2026-10-23.md."
     }
   ],
-  "updatedAt": "2026-10-22T15:10:49.788Z"
+  "updatedAt": "2026-10-23T04:44:59.364Z"
 }

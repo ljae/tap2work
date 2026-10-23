@@ -4,6 +4,68 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tap2work/ui/scroll_header.dart';
 
 void main() {
+  for (final bouncing in [false, true]) {
+    testWidgets('viewport growth does not reopen header; bouncing=$bouncing', (
+      t,
+    ) async {
+      t.view.physicalSize = const Size(390, 700);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+      await t.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AppScrollHeaderScope(
+              resetKey: 0,
+              child: Column(
+                children: [
+                  const AppScrollHeader(
+                    key: ValueKey('header'),
+                    child: SizedBox(height: 260),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      physics: bouncing
+                          ? const BouncingScrollPhysics(
+                              parent: AlwaysScrollableScrollPhysics(),
+                            )
+                          : const ClampingScrollPhysics(
+                              parent: AlwaysScrollableScrollPhysics(),
+                            ),
+                      children: const [SizedBox(height: 580)],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      final list = find.byType(ListView);
+      final header = find.byKey(const ValueKey('header'));
+      final gesture = await t.startGesture(t.getCenter(list));
+      await gesture.moveBy(const Offset(0, -80));
+      await t.pump();
+      var previous = t.getSize(header).height;
+      for (var frame = 0; frame < 30; frame++) {
+        await t.pump(const Duration(milliseconds: 16));
+        final height = t.getSize(header).height;
+        expect(height, lessThanOrEqualTo(previous + .01));
+        previous = height;
+      }
+      await gesture.up();
+      await t.pumpAndSettle();
+      expect(t.getSize(header).height, 0);
+      // The expanded viewport now fits the list. An upward pull still restores it.
+      await t.drag(list, const Offset(0, 90));
+      await t.pumpAndSettle();
+      expect(t.getSize(header).height, 260);
+      await t.fling(list, const Offset(0, -300), 1500);
+      await t.pumpAndSettle();
+      expect(t.getSize(header).height, 0);
+      expect(t.takeException(), isNull);
+    });
+  }
   for (final reduced in [false, true]) {
     testWidgets(
       'header follows vertical gestures and ignores other movement; reduced=$reduced',

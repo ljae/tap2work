@@ -1,3 +1,7 @@
+## 2026-10-23 검색 범위·상단 접힘 회귀 수정 로컬 완료
+
+D-143/revision333. 업무/매뉴얼만 검색창과 결과 표시, 근무표/우리매장은72px 브랜드 헤더. 짧은 목록의 빠른 스크롤 후 재펼침2개를 수정 전 실패로 재현하고 직접 dragDetails/휠 한 번만 소비하도록 수정했다. 관성/바운스/offset0/크기 보정으로 복귀하지 않는다. 실제 위 입력과 현재 메뉴 재선택 복귀,접근성/키보드/모션 보호 유지. Flutter649pass/3browser-onlyskip·analysis0·관련35/UI92/JS·web36.6s 통과. Chrome390CDP 터치로 매뉴얼/주간/월간 빠른 스크롤 후1.2초 접힘 유지와 복귀·검색 범위 확인(pageerror0/operationsPOST0). 웹 배포 진행 예정,실기기/native/실계정 저장 미수행. [상세](SEARCH_HEADER_FIX_2026-10-23.md), 증거 `.local/header-fix-20261023/`.
+
 ## 2026-10-23 네 메뉴 너비 통일 웹 배포 완료
 
 D-142/revision332. 업무·매뉴얼·근무표·우리매장과 검색/도구를 본문1240px·좌우24px, 브랜드/매뉴얼 외곽1288px로 통일했다. AppLayout 토큰 사용, 작은 화면 동일 여백·기존 스크롤/데이터 계약 유지. 웹2ad0874/Actions39800888397 전체build/deploy success,Pages7255788521 success00:08:41KST·공개267SHA일치. CIFlutter647pass/3browser-onlyskip·analysis0·Node394·UI92/JS/Edge/SQL5/번역/web 통과. 로컬26+8검사·88캡처320/390/1200/1600px×1.0/1.5, 실제공개390Chrome 동작·1600Chrome 네 메뉴 정렬 확인(pageerror0/operationsPOST0). 원래 dirty 보존·8파일 격리, 웹만 배포. [상세](MENU_WIDTH_WEB_RELEASE_2026-10-23.md), 비공개 `.local/menu-width-deployment-20261023/`.

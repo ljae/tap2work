@@ -148,6 +148,7 @@ void main() {
           await t.tap(find.byKey(const ValueKey('floating-menu-1')));
           await t.pumpAndSettle();
           await shot('manual');
+          expect(find.byType(WaterSearch), findsOneWidget);
           expectContentBounds(find.byKey(const ValueKey('manual-controls')));
           expect(find.byKey(const ValueKey('manual-results')), findsNothing);
           await t.drag(
@@ -192,7 +193,8 @@ void main() {
           await t.tap(find.byKey(const ValueKey('floating-menu-2')));
           await t.pumpAndSettle();
           final controls = find.byKey(const ValueKey('schedule-header'));
-          expect(t.getSize(top).height, originalHeight);
+          expect(t.getSize(top).height, 72);
+          expect(find.byType(WaterSearch), findsNothing);
           expectContentBounds(controls);
           await shot('week');
           await t.drag(
@@ -214,7 +216,7 @@ void main() {
             const Offset(0, 100),
           );
           await t.pumpAndSettle();
-          expect(t.getSize(top).height, originalHeight);
+          expect(t.getSize(top).height, 72);
           await t.tap(find.widgetWithText(TextButton, '월간'));
           await t.pumpAndSettle();
           await shot('month');
@@ -224,8 +226,11 @@ void main() {
           expectContentBounds(
             find.byKey(const ValueKey('workspace-content-3')),
           );
-          expectContentBounds(find.byType(WaterSearch));
+          expect(find.byType(WaterSearch), findsNothing);
           await shot('store');
+          await t.tap(find.byKey(const ValueKey('floating-menu-0')));
+          await t.pumpAndSettle();
+          expectContentBounds(find.byType(WaterSearch));
           expect(writes, 0);
         },
       );

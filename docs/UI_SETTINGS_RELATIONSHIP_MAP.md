@@ -386,7 +386,7 @@ S52 삭제 범위는 모든 소속 매장의 목록으로 확장한다. 유일 �
 | 업무 파트 | workplace.parts → 업무 제목 대신 고정 전체파트/파트 chip → taskPart notifier → TapWorkspace.matchesPart | 화면 필터만 변경, 권한·데이터 변경 없음. 준비수량/하단 재고 확인은 업무에서 제거하고 우리매장 재고와 발주 유지 | menu_layout_test, tap_workspace_test, operations_test |
 | S11/S14/S45/S48 | 매뉴얼 현재 범위/권한 → 제목 없는 오른쪽 동작 행 → 폴더 추가/edit_manual_node, TAP 추가/save_manual_tap, 백업 복원, 마켓/인쇄 → 기존 저장 및 조회 | 18px/13px, 작은 폭 가로 스크롤. 업종 배너 제거. 길게 누르기 공통 편집/완료 유지 | manual_authoring_test, manual_phone_fix_test, manual_edit_mode_test |
 | S05/S27 | ScheduleController/날짜/visibleParts → 고정 주간·월간 선택 + pinned 날짜/파트 → setMonth/selectDay 및 기존 배정 편집 → 시간표 | SliverPersistentHeader와 본문 같은 열 너비. 안내·보기·정보 아이콘 제거. 영업시간·인원은 기존 저장 편집기로 연결 | water_layout_test, calendar_test, schedule_workflow_test, schedule_gesture_test |
-| 검색 | manualSearch projection → WaterSearch → manualQuery → 각 화면의 검색 결과 | 어두운 배경의 사용자 제공 녹색 컵 PNG/물결 표현, 입력·지우기·접근성 유지 | water_layout_test, menu_layout_test, ui_ux_audit_test |
+| 검색 | manualSearch projection + showManualSearch(업무/매뉴얼) → WaterSearch → hasManualQuery/manualQuery → 업무·매뉴얼 검색 결과 | 어두운 배경의 사용자 제공 녹색 컵 PNG/물결 표현, 입력·지우기·접근성 유지 | water_layout_test, menu_layout_test, ui_ux_audit_test |
 
 2026-10-07 S03/S05/S27 고정 행: ScheduleController.selected/month → 날짜 이전/다음·주간/월간·오늘 → move/setMonth/selectDay → 기존 showScheduleRange 조회. fullDay → 아이콘+문자 보기 버튼 → 로컬 setState → 시간축 범위. workplace.days/breaks → 같은 행 범례 → 읽기 전용 표시. 영업시간·인원은 상단 AppToolbarButton → openWorkplaceHours → 기존 S03 저장/근무표 소비; 크루 추가는 같은 행 → addShift → 기존 save_staff_shift. 업무 파트와 매뉴얼 동작도 18px/13sp 공통 형식, 기존 액션·권한 유지. 검증: water_layout_test, calendar_test, menu_layout_test, schedule_workflow_test 및 check:ui-links.
 
@@ -598,6 +598,6 @@ S48 기존 PDF/인쇄를 CS·개선 화면에서 재사용한다. 등록한 안�
 
 | ID | 원본 → 컨트롤 → 액션 | 소비 화면·저장 경계 | 검증 |
 |---|---|---|---|
-| U04 | 세로 사용자 스크롤·actor/workspace/선택 목적지 → AppScrollHeaderScope / AppScrollHeader → 접힘·복귀, 현재 하단 메뉴 재선택 reveal | OperationsScreen 브랜드/검색/파트, ManualWorkspace 도구, CalendarScreen 도구의 표시 높이만 변경. 검색/폴더/보기 상태 유지. 가로 스크롤·프로그램 이동·키보드·접근성 탐색 분리; 서버 쓰기 없음 | mobile_workspace_test.dart, scroll_header_test.dart, ui_ux_audit_test.dart, header_test.dart |
+| U04 | 세로 사용자 스크롤·actor/workspace/선택 목적지 → AppScrollHeaderScope / AppScrollHeader → 접힘·복귀, 현재 하단 메뉴 재선택 reveal | OperationsScreen 브랜드/검색/파트, ManualWorkspace 도구, CalendarScreen 도구의 표시 높이만 변경. 검색은 업무/매뉴얼만, 폴더/보기 상태 유지. 직접 dragDetails·휠 한 번만 소비하고 관성·바운스·크기 보정을 제외. 가로 스크롤·프로그램 이동·키보드·접근성 탐색 분리; 서버 쓰기 없음 | mobile_workspace_test.dart, scroll_header_test.dart, ui_ux_audit_test.dart, header_test.dart |
 | S98 | checklistFolders / manualSearch / taskTemplates → manual-folder-picker 시트·한 열 목록·코랄 연필 → browsingFolder / navigateHierarchy / ManualTapEditor / ManualTaskEditor | 폴더 탐색은 쓰기 없음. 기존 S12/S14/S22의 ID·revision·권한·미완료/기존 기록 보호와 체험 저장 정책 유지. 읽기 페이지에서 실제 폴더/TAP으로 복귀 | manual_workspace_test.dart, manual_edit_mode_test.dart, manual_common_operations_test.dart, manual_directory.test.mjs |
 | S99 | ScheduleController.selected/month·fullDay·현재 권한 → 날짜 이동/오늘/주간·월간/calendar-options → move/selectDay/setMonth, openWorkplaceHours, addShift | 보기 변경은 임시 상태. 시간·인원 저장 S03, 개별 배정 S05, 실제 출퇴근 S42, 휴무/추가 영업의 기존 계약 유지. 월간42칸 상태/공휴일 정보는 아이콘·범례·설명과 연결 | calendar_test.dart, schedule_workflow_test.dart, schedule_fine_edit_test.dart, mobile_workspace_test.dart, workplace.test.mjs |

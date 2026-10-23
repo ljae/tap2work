@@ -59,6 +59,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
 
   final taskPart = ValueNotifier<String?>(null);
   int tab = 0;
+  bool get showManualSearch => tab == 0 || tab == 1;
+  bool get hasManualQuery => showManualSearch && manualQuery.trim().isNotEmpty;
   final manualSearch = TextEditingController();
   String manualQuery = '';
   final presentedWelcomes = <String>{};
@@ -645,7 +647,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                       ),
                                     ),
                                   ),
-                                  manualSearchBar(),
+                                  if (showManualSearch) manualSearchBar(),
                                 ],
                               ),
                             ),
@@ -747,7 +749,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                               child: AppContentTransition(
                                 trigger: (
                                   tab,
-                                  manualQuery.trim().isNotEmpty,
+                                  hasManualQuery,
                                   ops.data == null,
                                 ),
                                 child: ops.data == null
@@ -777,7 +779,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                                           manualQuery = '';
                                         }),
                                       )
-                                    : manualQuery.trim().isNotEmpty
+                                    : hasManualQuery
                                     ? manualResultList()
                                     : tab == 2
                                     ? Padding(

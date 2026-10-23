@@ -23,10 +23,11 @@ class AppScrollHeaderScope extends StatefulWidget {
 class _AppScrollHeaderScopeState extends State<AppScrollHeaderScope> {
   final hidden = ValueNotifier(false);
   double travel = 0;
-  bool userScrolling = false;
+  bool pendingUserScroll = false;
 
   void reveal() {
     travel = 0;
+    pendingUserScroll = false;
     hidden.value = false;
   }
 
@@ -44,29 +45,44 @@ class _AppScrollHeaderScopeState extends State<AppScrollHeaderScope> {
       return false;
     }
     if (event is ScrollStartNotification) {
-      // Wheel scrolling sends UserScrollNotification before this event.
-      if (event.dragDetails != null) userScrolling = true;
       travel = 0;
     }
     if (event is UserScrollNotification) {
-      // Includes wheel/trackpad scrolling, which has no drag details.
-      userScrolling = event.direction != ScrollDirection.idle;
+      // A wheel tick announces its direction before its one position update.
+      // Consume this once, so inertia/layout corrections cannot reuse it.
+      pendingUserScroll = event.direction != ScrollDirection.idle;
     }
-    if (event is ScrollUpdateNotification &&
-        (event.dragDetails != null || userScrolling)) {
-      final delta = event.scrollDelta ?? 0;
+    double? delta;
+    if (event is ScrollUpdateNotification) {
+      final drag = event.dragDetails;
+      delta = drag != null
+          ? -(drag.primaryDelta ?? drag.delta.dy)
+          : pendingUserScroll
+          ? event.scrollDelta
+          : null;
+      pendingUserScroll = false;
+    }
+    if (event is OverscrollNotification) {
+      final drag = event.dragDetails;
+      delta = drag != null
+          ? -(drag.primaryDelta ?? drag.delta.dy)
+          : pendingUserScroll
+          ? event.overscroll
+          : null;
+      pendingUserScroll = false;
+    }
+    if (delta != null && delta != 0) {
       if (delta.sign != travel.sign) travel = 0;
       travel += delta;
-      if (event.metrics.pixels <= event.metrics.minScrollExtent) {
-        reveal();
-      } else if (travel > 18) {
+      // Only input direction changes visibility. Resizing a viewport can clamp
+      // its offset to zero or reverse a ballistic bounce without new input.
+      if (travel > 18) {
         hidden.value = true;
       } else if (travel < -12) {
         reveal();
       }
     }
-    if (event is OverscrollNotification && event.overscroll < 0) reveal();
-    if (event is ScrollEndNotification) userScrolling = false;
+    if (event is ScrollEndNotification) pendingUserScroll = false;
     return false;
   }
 
