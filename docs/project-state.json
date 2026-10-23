@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 339,
+  "revision": 340,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -1645,8 +1645,8 @@
       "decision": "사용자가 크몽 사례와 유사한 상세 멀티미디어 예시를 재사용 가능한 원본으로 만들고 마켓에서 가져와 수정하도록 요청했다.",
       "reason": "유료 사례를 복제하지 않고 원본/조건을 확인한 재사용 자료와 직접 만든 편집 원본으로 매장별 교육 내용을 쉽게 조정한다.",
       "source": "User conversation 2026-10-23",
-      "updatedAt": "2026-10-23T14:45:10.370Z",
-      "implementation": "D-146. Five existing food manuals/23 steps gain2 licensed photos, untouched English CDC video and5 original editable Korean motion examples; other142 unchanged. Source kit contains actual EPUB2/photo2/video originals, JSON/editor/player/backup and37-file hash manifest/ZIP. Existing import/owner registration OFF/personalization/revision/execution contracts retained. Flutter656pass/3skip,analysis0,Node398,UI92/JS/media/translation checks pass; Ego Lite390 title edit/play/copy/JSON/MP4 export verified. Web and DB stable publication pending, native/physicalSafari/live-save/independent field review not performed. docs/MULTIMEDIA_MANUALS_2026-10-23.md; private.local/media-manual-20261023."
+      "updatedAt": "2026-10-23T15:24:09.980Z",
+      "implementation": "D-146. Web1f602cf2ee02dc1aadcb850b95517f230b1e596d/Actions39975653653 run/build/deploy success; Pages7281845086 success2026-10-23T15:17:52Z. CIFlutter657pass/3browser-onlyskip,analysis0,Node398,UI92/JS/Edge/SQL5/translations/web pass. Public39media/source/ZIP files exact SHA256 and16app/loader/sample/translation files match CIartifact12511098710. Ego Lite390DPR2 public source kit5cards/no horizontal overflow and authenticated live market filter/attributed preview/native video keyboard play-pause verified, no store import/edit performed. DB stable147 revision3/394a7e42 -> revision4/a5458fd3aa6ff5ec0f5fa5207db9fb10154c8ddac8f1f2ae3fa8002d1d96db76; exact payload verified. User explicitly approved reviewer omission for these5 only; actor=null/request8c614f9c-10f4-4aff-85e7-8e72da18297a/immutable reason, normal independent review policy unchanged. Existing23procedure texts/other142entries and store registration/personalization/execution contracts retained. No native build/physicalSafari/field-native-speaker review. Root dirty preserved;76selected files isolated. docs/MULTIMEDIA_MANUALS_2026-10-23.md;private.local/media-manual-20261023/."
     }
   ],
   "milestones": [
@@ -1871,6 +1871,12 @@
       "title": "휴대폰 작업 공간 리디자인 로컬 구현·검증",
       "status": "complete",
       "description": "D-141 상단 스크롤 접기, 한 열 매뉴얼/폴더 이동/직접 편집, 기존 내용 유지 근무표 UI 구현. 최종 Flutter645pass/3browser-onlyskip,analysis0,관련 서버36/UI92/JS/web build·390px Chrome 주요 탐색 확인. 로컬 구현 범위이며 운영 배포·네이티브 빌드·실기기는 미포함. docs/MOBILE_WORKSPACE_REDESIGN_2026-10-22.md."
+    },
+    {
+      "id": "M-038",
+      "title": "사진·영상·모션 매뉴얼5종과 원본 편집 도구 웹·마켓 배포",
+      "status": "complete",
+      "description": "5개 기존 매뉴얼23단계·사진2·원본 영상1·편집 모션5·원본EPUB2/ZIP 제공. 웹과 운영stable147/revision4 발행, 최종CI657/3skip·Node398·공개SHA/실제브라우저 재생 검증. 네이티브/현장 검수는 미포함. docs/MULTIMEDIA_MANUALS_2026-10-23.md."
     }
   ],
   "history": [
@@ -9234,7 +9240,13 @@
       "type": "verification",
       "title": "사진 접근성 영역 보완·5개 멀티미디어 매뉴얼 검토 생략 발행 승인",
       "detail": "D-146. User explicitly approved skipping separate reviewer for these five examples. Runtime stable read147/revision3/394a7e42; prepared exact a5458fd3/expectedRevision3/request8c614f9c-10f4-4aff-85e7-8e72da18297a and isolated PGlite publication4/idempotency/stale CAS/null actor audit passed. First web candidate18a9410/Actions39973125347 cancelled before deployment after Ego Lite reproduced merged photo semantics blocking native video. Scoped photo semantics added; regression and relevant22pass,analysis0,web36.7s. Corrected web deployment and DB publication pending."
+    },
+    {
+      "at": "2026-10-23T15:24:09.980Z",
+      "type": "deployment",
+      "title": "수정 가능한 멀티미디어 매뉴얼5종 웹·운영 마켓 발행 완료",
+      "detail": "D-146. Web1f602cf2ee02dc1aadcb850b95517f230b1e596d/Actions39975653653 run/build/deploy success; Pages7281845086 success2026-10-23T15:17:52Z. CIFlutter657pass/3browser-onlyskip,analysis0,Node398,UI92/JS/Edge/SQL5/translations/web pass. Public39media/source/ZIP files exact SHA256 and16app/loader/sample/translation files match CIartifact12511098710. Ego Lite390DPR2 public source kit5cards/no horizontal overflow and authenticated live market filter/attributed preview/native video keyboard play-pause verified, no store import/edit performed. DB stable147 revision3/394a7e42 -> revision4/a5458fd3aa6ff5ec0f5fa5207db9fb10154c8ddac8f1f2ae3fa8002d1d96db76; exact payload verified. User explicitly approved reviewer omission for these5 only; actor=null/request8c614f9c-10f4-4aff-85e7-8e72da18297a/immutable reason, normal independent review policy unchanged. Existing23procedure texts/other142entries and store registration/personalization/execution contracts retained. No native build/physicalSafari/field-native-speaker review. Root dirty preserved;76selected files isolated. docs/MULTIMEDIA_MANUALS_2026-10-23.md;private.local/media-manual-20261023/."
     }
   ],
-  "updatedAt": "2026-10-23T15:00:33.489Z"
+  "updatedAt": "2026-10-23T15:24:09.980Z"
 }

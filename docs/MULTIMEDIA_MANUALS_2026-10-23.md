@@ -1,6 +1,6 @@
 # 수정 가능한 멀티미디어 매뉴얼 · 2026-10-23
 
-상태: 로컬 구현·검증 완료. 웹 배포 준비 중이며 운영 DB stable 발행은 아직 수행하지 않았다. 네이티브 빌드는 이번 범위에 없다.
+상태: 웹·운영 DB stable 발행 완료(2026-10-24 KST). 아래 로컬/후보 기록을 거쳐 최종 배포 검증까지 마쳤다. 네이티브 빌드는 이번 범위에 없다.
 
 ## 결과와 편집 경로
 
@@ -43,3 +43,15 @@ Ego Lite로 공개 페이지/이용 조건/실제 다운로드를 확인했다. 
 Ego Lite에서 접근성을 켠 실제 Flutter 마켓 상세의 사진 semantics가 전체 본문으로 병합되어 HTML 영상 컨트롤을 가리는 문제를 재현했다. 웹 첫 후보18a9410/Actions39973125347는 운영 배포 전에 취소했다. 사진 읽기와 사진 편집 미리보기, 실행 사진의 semantics를 실제 사진 경계로 한정했다. 인접 본문/영상 영역이 이미지 semantics에 들어가지 않는 회귀 테스트를 추가했다. 최종 관련22개/analysis0 통과, 새 웹 빌드36.7초 성공. 최초 테스트에서 SemanticsHandle을 teardown 뒤 해제하던 테스트 오류는 테스트 종료 전 해제로 수정했다.
 
 사용자가 ‘이번5종은 검토자 절차를 생략하고 발행’을 명시 선택했다. 기존 일반 제공자 API 정책을 변경하지 않고 이번 발행만 actor=null 관리자 경계에서 준비했다. 운영 stable147/revision3/394a7e42를 읽어 확인했으며, 정확한 새 발행본a5458fd3와 expectedRevision3/고정 request UUID로 CAS·재시도·불변 생략 이력을 격리 PGlite에서 통과했다. 실제 DB 발행은 새 웹 공개 파일 확인 후 수행한다.
+
+최종 재생 보완: 네이티브 영상의 키 이벤트가 Flutter에서 선택된 상위 접기 컨트롤로 전달되는 경로도 분리했다. HTML video에는 tabindex와 키 이벤트 경계를 두고, Flutter focus는 native media로 보내 KeyEventResult.skipRemainingHandlers로 브라우저 기본 동작을 유지한다. Ego Lite390 접근성 활성 상태에서 VIDEO focus→Space 재생(실제 currentTime 증가)→Space 일시정지와 본문 유지가 통과했다. 수정 프로젝트 player도 실제 키 입력 재생/정지와 편집 링크의 원본 fragment 보존을 확인했다. analysis0, 최종 로컬 웹34.8초 성공. 후보801fb04/7a6cbc1도 최종1f602cf로 교체되어 배포 전 취소됐다. 최종 CI/공개/DB 결과는 완료 후 아래에 기록한다.
+
+
+## 최종 웹·운영 마켓 발행 완료 · 2026-10-24 KST
+
+- 웹 코드 `1f602cf2ee02dc1aadcb850b95517f230b1e596d`, [Actions39975653653](https://github.com/ljae/tap2work/actions/runs/39975653653) run/build/deploy 성공. Pages7281845086 success2026-10-23T15:17:52Z. CI Flutter657pass/3browser-onlyskip·analysis0·Node398·UI92/JS·Edge·SQL5종·번역7종·웹 빌드 통과.
+- [공개 원본 도구](https://tap2.work/manual-media/v1/), [모션 편집기](https://tap2.work/manual-media/v1/studio.html), [ZIP](https://tap2.work/manual-media/v1/source-pack.zip) 제공. 공개39개 미디어/원본/ZIP 파일 SHA256이 선택 소스와 모두 일치했고, 공개 앱16파일(index/version/manifest/실제 loader/main/샘플4/번역7)이 최종 CIartifact12511098710과 일치했다.
+- Ego Lite 실제 공개390×844/DPR2에서 원본5카드·가로 overflow0, 기존 로그인 세션의 운영 마켓 필터·가져옴 상태·사진/출처/영상 미리보기를 확인했다. 공개 opening.mp4의 native keyboard 재생(currentTime0.59초)·일시정지·매뉴얼 유지 통과. 실계정 가져오기/편집/완료는 수행하지 않았다. 공개 스모크의 초기 로그인 선택자 대기는 기존 로그인 세션 때문에, 기존 문서 그룹 대기는 ‘가져옴’ 표시 때문에 실패해 현재 화면을 확인한 뒤 읽기만 진행했다.
+- 운영 stable147/revision3/394a7e42 →147/revision4/`a5458fd3aa6ff5ec0f5fa5207db9fb10154c8ddac8f1f2ae3fa8002d1d96db76`. 관리자 DB 경계에서 고정 request `8c614f9c-10f4-4aff-85e7-8e72da18297a`/expectedRevision3으로 발행했다. 실제 발행본 전체를 canonical 검증/선택 원본과 비교해 일치를 확인했다. actor=null·draft=null·이번5종에 한정한 사용자 검토 생략 지시가 불변 사건에 있다. 공급자/검토자 신원이나 승인을 만들지 않았고 일반 정책은 유지했다.
+- 기존 등록된 연결 매뉴얼은 기존 사장님 검토의 후보 비교/선택 적용, 개인화한 사본은 기존 보존 정책을 따른다. 신규 가져오기는 검토 대기/OFF. 공개 원본 갱신이 매장 수정본이나 이미 생성된 업무를 덮어쓰는 방식으로 계약을 바꾸지 않았다.
+- 원래 dirty tree 보존. 선택76개 소스/원본 파일을 격리 워크트리에 복사하고 후속 검증 문서만 추가 기록했다. 원본 묶음에 `.local`/계정/운영자료/인증값을 포함하지 않았다. 최종 결과는 project-state revision340/D-146/M-038.
