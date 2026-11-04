@@ -52,3 +52,11 @@ Runner Debug/Profile/Release의 `IPHONEOS_DEPLOYMENT_TARGET` 및 Podfile 플랫�
 최종 재조회: 빌드 24 VALID / iOS 15.0 / 경고 0, Ego Lite TestFlight 화면 Ready to Submit. 기존 버전·제출은 빌드 23 / WAITING_FOR_REVIEW / AFTER_APPROVAL / 접수 시각 유지. 웹·Android·운영 DB 변경 및 새 심사 제출은 하지 않았다.
 
 비공개 증거: `.local/apple-status-20261023/`. 심사 자격증명·API 키·은행/사업자 상세는 저장소와 공개 문서에 포함하지 않는다.
+
+## 2026-11-04 거절 확인
+
+개발자 Gmail의 10/30 제출 문제 안내와 App Store Connect 제출 `17c1437e-cc5c-4c9c-93e5-7306155280a3`를 직접 확인했다. 심사 대상은 1.0.0(23), 상태 REJECTED, Guideline 2.1 / App Completeness다. 첨부 화면은 Google 계정 로그인 중 전화/복구 수단으로 본인 확인을 요구했다. Apple이 제공 계정에 접근할 수 없었던 것이 확인된 원인이다. 계정 이메일·비밀번호·복구 수단은 이 문서에 기록하지 않는다.
+
+10/21 빌드23 메일의 ITMS-90068(iOS 13 target) 경고도 읽었다. 이는 앞서 빌드24에서 iOS 15로 수정한 별도 경고이며 현재 소스도 15.0이다. 기존 최신 업로드24는 VALID, 거절된 심사에는23이 연결되어 있다. 새 빌드 업로드만으로 Google 본인 확인 요구가 해소되지는 않는다. 심사자가 독립적으로 접근할 수 있는 데모 계정 또는 모든 기능이 작동하는 분리된 데모 모드가 필요하며 기존 읽기 전용 공개 샘플을 완전한 심사용 데모라고 보고하지 않는다. 로그인 정책 변경/심사 답변 전송/재심사는 아직 수행하지 않았다.
+
+2026-11-04 후속: signed iOS25를 업로드하여 Apple delivery 상태 VALID를 확인했다(minOS15.0, 수출규정false). 초기 전송500을 도구가 재시도한 뒤 성공했다. Xcode27에서 이전 Pod target9–13이 archive를 거절한 문제는 Podfile 최소15 clamp로 수정하여 실제 archive/export 성공. 기존 심사23은 교체/재심사하지 않았다. 새 빌드 업로드는 Google 본인 확인 문제 해결을 의미하지 않는다.

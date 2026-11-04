@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -33,6 +34,162 @@ class MemoryOperations implements OperationsRepository {
 }
 
 void main() {
+  test(
+    'unchanged fields restore an owned copy and permissions remove old fields',
+    () async {
+      var step = 0;
+      final requests = <http.Request>[];
+      final hash = 'a' * 64;
+      final repository = HttpOperationsRepository(
+        endpoint: Uri.parse('https://example.test/operations'),
+        readOnly: false,
+        accessToken: () async => 'token',
+        client: MockClient((request) async {
+          requests.add(request);
+          final body = <String, dynamic>{
+            'revision': ++step,
+            'syncWindow': step,
+            'workspaceId': 'w',
+            'actor': {'id': 'owner', 'role': step == 3 ? 'crew' : 'owner'},
+            'fieldHashes': step == 3 ? {} : {'manualCatalog': hash},
+            if (step == 1)
+              'manualCatalog': {
+                'entries': [
+                  {'title': 'Original'},
+                ],
+              },
+            if (step == 2) 'retainedFields': ['manualCatalog'],
+          };
+          return http.Response(jsonEncode(body), 200);
+        }),
+      );
+      addTearDown(repository.close);
+      final first = await repository.read(actorId: 'owner', workspaceId: 'w');
+      first.data['manualCatalog']['entries'][0]['title'] = 'Unsaved UI edit';
+      final saved = await repository.write(
+        actorId: 'owner',
+        values: {'action': 'save_store', 'workspaceId': 'w'},
+      );
+      expect(saved.data['manualCatalog']['entries'][0]['title'], 'Original');
+      expect(requests[1].url.queryParameters['sync'], 'fields-v1');
+      expect(jsonDecode(requests[1].url.queryParameters['fields']!), {
+        'manualCatalog': hash,
+      });
+      final reduced = await repository.read(actorId: 'owner', workspaceId: 'w');
+      expect(reduced.data.containsKey('manualCatalog'), isFalse);
+      await repository.read(actorId: 'owner', workspaceId: 'w');
+      expect(requests.last.url.queryParameters.containsKey('fields'), isFalse);
+    },
+  );
+
+  test(
+    'field cache never crosses actor or workspace and new content replaces it',
+    () async {
+      final requests = <http.Request>[];
+      var title = 'First';
+      var hash = 'b' * 64;
+      final repository = HttpOperationsRepository(
+        endpoint: Uri.parse('https://example.test/operations'),
+        readOnly: false,
+        accessToken: () async => 'token',
+        client: MockClient((request) async {
+          requests.add(request);
+          return http.Response(
+            jsonEncode({
+              'revision': 1,
+              'syncWindow': 1,
+              'workspaceId': request.url.queryParameters['workspace'],
+              'actor': {'role': 'owner'},
+              'manualCatalog': {'title': title},
+              'fieldHashes': {'manualCatalog': hash},
+            }),
+            200,
+          );
+        }),
+      );
+      addTearDown(repository.close);
+      await repository.read(actorId: 'a', workspaceId: 'one');
+      title = 'Published';
+      hash = 'c' * 64;
+      final updated = await repository.read(actorId: 'a', workspaceId: 'one');
+      expect(updated.data['manualCatalog']['title'], 'Published');
+      await repository.read(actorId: 'a', workspaceId: 'two');
+      expect(requests.last.url.queryParameters.containsKey('fields'), isFalse);
+      await repository.read(actorId: 'b', workspaceId: 'two');
+      expect(requests.last.url.queryParameters.containsKey('fields'), isFalse);
+      await repository.read(actorId: 'b', workspaceId: 'two', useCache: false);
+      expect(requests.last.url.queryParameters.containsKey('fields'), isFalse);
+    },
+  );
+
+  testWidgets(
+    'failed polling backs off and a successful explicit refresh restores it',
+    (tester) async {
+      var count = 0, status = 503;
+      final controller = OperationsController(
+        client: MockClient((_) async {
+          count++;
+          return http.Response(
+            jsonEncode(
+              status == 200
+                  ? {'revision': 1, 'tasks': []}
+                  : {'error': 'Unavailable'},
+            ),
+            status,
+          );
+        }),
+      );
+      await controller.start();
+      expect(count, 1);
+      await tester.pump(const Duration(seconds: 30));
+      expect(count, 1);
+      await tester.pump(const Duration(seconds: 30));
+      expect(count, 2);
+      await tester.pump(const Duration(seconds: 119));
+      expect(count, 2);
+      await tester.pump(const Duration(seconds: 1));
+      expect(count, 3);
+      status = 200;
+      await controller.refresh(force: true);
+      expect(count, 4);
+      await tester.pump(const Duration(seconds: 30));
+      expect(count, 5);
+      controller.didChangeAppLifecycleState(AppLifecycleState.paused);
+      await tester.pump(const Duration(minutes: 10));
+      expect(count, 5);
+      controller.dispose();
+    },
+  );
+
+  testWidgets(
+    'quota rejection stops automatic polling but explicit retry can recover',
+    (tester) async {
+      var count = 0, status = 402;
+      final controller = OperationsController(
+        client: MockClient((_) async {
+          count++;
+          return http.Response(
+            jsonEncode(
+              status == 200
+                  ? {'revision': 1, 'tasks': []}
+                  : {'error': 'Unavailable'},
+            ),
+            status,
+          );
+        }),
+      );
+      await controller.start();
+      await tester.pump(const Duration(minutes: 10));
+      expect(count, 1);
+      status = 200;
+      await controller.refresh(force: true);
+      expect(count, 2);
+      await tester.pump(const Duration(seconds: 30));
+      expect(count, 3);
+      controller.dispose();
+    },
+  );
+
   test(
     'native public preview reads HTTPS samples without authentication',
     () async {

@@ -183,11 +183,19 @@ setup.sourceIds는 외식 공통/선택 업종/배달 조건에 맞는 발행본
 
 DB 카탈로그 크기 검증은 전역 Node Buffer 대신 Web TextEncoder를 사용한다. 인증 이후 카탈로그를 실제로 읽는 경로를 Deno에서 Node 전역 없이 smoke test하며 CI도 동일 경로를 검사한다. 미인증401 확인만으로 인증된 운영 조회 성공을 대신하지 않는다. AppStartup은 초기화 시도 ID로 이전 지연 응답을 버리고, 초기 로딩/매장 조회의 단계 안내·진행/skeleton/오류 재시도를 표시한다. 기존 DB/실행을 재생성해 연결 오류를 복구하지 않는다.
 
+## Egress 절감 · 2026-11-04
+
+`DatabaseCatalogRepository.readVersion()`은 매 요청 stable 채널의 revision/release ID만 검증한다. 권한·매장·분 단위 조건부 조회가 unchanged이면 발행본 본문을 읽지 않는다. 본문이 필요한 경우 해시로 식별된 불변 발행본 최대 2개를 isolate 메모리에 보관하고 동시 요청을 하나로 합친다. 채널 조회 실패 시 낡은 발행본으로 대체하지 않으며 발행/rollback은 다음 요청에 반영한다. 매장 원문/직책별 snapshot은 서버 공유 캐시에 넣지 않는다.
+
+새 클라우드 클라이언트는 GET/POST에 `sync=fields-v1`과 이전 `fields` 해시를 보낸다. 서버는 현재 권한 투영 후 `manualCatalog`, `storeSetupCatalog`, `checklistLibrary`, `checklistBackup`, `manualPrintTemplates`, `manualSearch`, `taskTemplates`, `recommendedTaps`의 실제 JSON 내용을 SHA-256으로 비교한다. 동일 필드만 생략하고 `fieldHashes`/`retainedFields`를 반환한다. catalog revision만으로 매장별 installed/개인화 상태를 재사용하지 않는다. 앱은 계정·매장 범위 및 해시가 맞는 명시적 retainedFields만 독립 JSON 사본에서 복원한다. 권한으로 사라진 필드는 복원하지 않는다. 이전 앱/공개 샘플에는 기존 전체 응답을 유지한다.
+
+분 경계의 업무·시간 재계산, JWT/멤버십 검증, CAS는 유지한다. 활성 앱은 성공 시 30초, 연속 실패 시 60/120/300초로 재조회하며 401/402에는 자동 폴링을 멈춘다. 수동 새로고침/앱 복귀로 재시도하고 성공하면 정상 주기로 복구한다. 배경/공개 샘플은 자동 조회하지 않는다. upstream Auth의 quota 402/장애 5xx를 잘못된 로그인 401로 바꾸지 않는다.
+
 ## DB 공용 콘텐츠 런타임 · 2026-10-07 구현
 
 운영 operations는 `DatabaseCatalogRepository`로 Postgres `tap2work_catalog_channels/releases`의 발행본을 읽는다. 같은 요청에 고정된 catalog와 revision을 OperationsStore에 주입하고 sync/catalogView/import/configure 모두 공유한다. taxonomy 검증은 발행본을 따른다. 저장된 `catalogSync`보다 낮은 요청은409로 거절하여 최신 내용의 역전 적용을 막고, rollback은 증가 revision으로 동작한다. 신규 Flutter HTTP 캐시는 catalogRevision을 포함하고 구 앱은 full read로 호환한다. 기존 개인화/운영 설정/실행 snapshot은 유지한다.
 
-`catalog-admin` Edge → JWT 본인 → service-only 공급자 RPC → 등록 역할/초안revision·해시/독립 reviewer → 채널 CAS 발행/감사 경계다. 중앙 역할은 매장 membership과 분리된다. 공용 초안/검토/발행본/채널/감사 DB와 기존86 TAP seed를 구현했다. 출처는 release.entries.references에 보존한다. 로컬/정적 샘플 번들은 운영 DB 원본을 대체하지 않는다. 요청별 DB read이며 정상 cache fallback이나 푸시 업데이트는 아직 없다.
+`catalog-admin` Edge → JWT 본인 → service-only 공급자 RPC → 등록 역할/초안revision·해시/독립 reviewer → 채널 CAS 발행/감사 경계다. 중앙 역할은 매장 membership과 분리된다. 공용 초안/검토/발행본/채널/감사 DB와 기존86 TAP seed를 구현했다. 출처는 release.entries.references에 보존한다. 로컬/정적 샘플 번들은 운영 DB 원본을 대체하지 않는다. 채널 revision은 요청마다 DB에서 재검증하고 불변 발행본만 해시로 캐시한다. 장애 시 오래된 채널로 fallback하지 않는다. 푸시 업데이트는 아직 없다.
 
 팀 계약은 `.agents/content-team/`와 `scripts/content-team.mjs`에 저장한다. 연구→편집→검토→QA→조정 순서의 JSON/해시/재시도 큐이고 결과는 검토용 초안이다. 서비스 키·생산 발행 권한·정기 실행을 팀에 주지 않았다. [운영 계약](DB_CATALOG_OPERATIONS.md)과 [팀 실행](CONTENT_AGENT_TEAM.md) 참조. 관리자 CMS·별도 근거/철회/현장 피드백 테이블은 후속; 교육 모듈 없음.
 
