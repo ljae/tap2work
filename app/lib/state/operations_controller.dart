@@ -63,6 +63,8 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
   bool _disposed = false;
   int _generation = 0;
   Timer? _timer;
+  int _refreshFailures = 0;
+  bool _pollBlocked = false;
   bool _observing = false;
   bool _foreground = true;
   String? _token;
@@ -291,8 +293,11 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
 
   void scheduleRefresh() {
     _timer?.cancel();
-    if (_disposed || readOnly || !_foreground) return;
-    _timer = Timer(const Duration(seconds: 30), () async {
+    if (_disposed || !_observing || readOnly || !_foreground || _pollBlocked) {
+      return;
+    }
+    final delay = [30, 60, 120, 300][_refreshFailures.clamp(0, 3)];
+    _timer = Timer(Duration(seconds: delay), () async {
       await refresh();
       scheduleRefresh();
     });
@@ -371,11 +376,17 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
       if (_disposed || generation != _generation) return;
       _rememberWorkspace(response.data);
       if (response.statusCode == 304) {
+        _refreshFailures = 0;
+        _pollBlocked = false;
         error = null;
         return;
       }
       final body = response.data;
       if (response.statusCode != 200) {
+        _refreshFailures++;
+        // Retrying cannot repair a restricted service or expired session.
+        // Explicit refresh / app resume still makes a request and can recover.
+        _pollBlocked = response.statusCode == 401 || response.statusCode == 402;
         if (cloud && response.statusCode == 403 && body['workspaces'] is List) {
           data = null;
         }
@@ -386,17 +397,21 @@ class OperationsController extends ChangeNotifier with WidgetsBindingObserver {
         return;
       }
       data = body;
+      _refreshFailures = 0;
+      _pollBlocked = false;
       if (cloud && body['actor'] is Json) actorId = body['actor']['id'];
       _token = body['demoToken'] as String?;
       error = null;
     } catch (_) {
       if (generation == _generation && !_disposed) {
+        _refreshFailures++;
         error = '매장 서버에 연결하지 못했어요. 연결을 확인하고 다시 시도해 주세요.';
       }
     } finally {
       if (generation == _generation) {
         _refreshing = false;
         _emit();
+        scheduleRefresh();
       }
     }
   }

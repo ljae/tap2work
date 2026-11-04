@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 340,
+  "revision": 342,
   "product": {
     "name": "TAP Work",
     "tagline": "우리 팀부터 재료까지, 한곳에서 함께.",
@@ -9246,7 +9246,19 @@
       "type": "deployment",
       "title": "수정 가능한 멀티미디어 매뉴얼5종 웹·운영 마켓 발행 완료",
       "detail": "D-146. Web1f602cf2ee02dc1aadcb850b95517f230b1e596d/Actions39975653653 run/build/deploy success; Pages7281845086 success2026-10-23T15:17:52Z. CIFlutter657pass/3browser-onlyskip,analysis0,Node398,UI92/JS/Edge/SQL5/translations/web pass. Public39media/source/ZIP files exact SHA256 and16app/loader/sample/translation files match CIartifact12511098710. Ego Lite390DPR2 public source kit5cards/no horizontal overflow and authenticated live market filter/attributed preview/native video keyboard play-pause verified, no store import/edit performed. DB stable147 revision3/394a7e42 -> revision4/a5458fd3aa6ff5ec0f5fa5207db9fb10154c8ddac8f1f2ae3fa8002d1d96db76; exact payload verified. User explicitly approved reviewer omission for these5 only; actor=null/request8c614f9c-10f4-4aff-85e7-8e72da18297a/immutable reason, normal independent review policy unchanged. Existing23procedure texts/other142entries and store registration/personalization/execution contracts retained. No native build/physicalSafari/field-native-speaker review. Root dirty preserved;76selected files isolated. docs/MULTIMEDIA_MANUALS_2026-10-23.md;private.local/media-manual-20261023/."
+    },
+    {
+      "at": "2026-11-04T10:47:54.330Z",
+      "type": "implementation",
+      "title": "Egress 회귀 수정·operations v67 배포·Apple 거절 원인 확인",
+      "detail": "User requested optimization and Apple/Play uploads, explicitly approved operations deployment and selected keeping Free until November24 reset. Database catalog metadata-first check, immutable release cache/singleflight, permission-projected field retention and 60/120/300s retry backoff with 401/402 stop implemented. Baseline catalog regressions4 fail; Node405 pass; Flutter661 pass/3 existing skips; analyze0; npm check/UI92 and Deno2.1.4 full/compact Edge pass. Synthetic minute response1150946->155637 bytes; not measured billing savings. Operations67 ACTIVE; live402 prevents authenticated verification. Apple10/30 Guideline2.1 rejected23: attached Google phone-verification challenge; Gmail confirmed. ITMS90068 on23 already fixed in24/minIOS15. No reviewer reply/resubmission or new native/web upload yet. Xcode27.2 and Flutter3.41.2 on ORICO, admin setup confirmed; Android tooling/build/signing work in progress. Original TAP Work Android upload key and Apple distribution private key absent from searched local backups. Preserve existing dirty tree; scoped source copied from isolated branch. Follow-up: finish native signing/build/upload, then live same-minute/minute-boundary/permission regression after quota reset."
+    },
+    {
+      "at": "2026-11-04T11:12:00.434Z",
+      "type": "deployment",
+      "title": "iOS25 VALID·Android23 서명 검증·세 프로젝트 공유 업로드 키 전환",
+      "detail": "Signed iOS1.0.0(25), minimum15,15privacy manifests, codesign and four actual compiled public configurations verified. Apple upload delivery61e65fa2-a1ca-4b4b-b219-369939342273 VALID/nonexempt=false after transient uploader500 recovered. First archive failed on Pod min9–13 under Xcode27; Podfile now raises only lower targets to existing app minimum15 and native build passed. Android1.0.0(23) packagecom.tab2work.tab2work,min24,target36,74207817bytes signed and jarsigner/bundletool/manifest/certificate verified. User explicitly authorized shared replacement Android upload key and Play resets for TAP Work,runner,tosburger. TAP Work+runner requests pending; Android upload waits approval. Runner phone/Wear and tosburger app ignored signing configs point to private shared properties; old settings retained privately; no other app builds/releases. Tosburger console login requested; remote reset not yet submitted. SDKs installed on ORICO; new Apple distribution identity/profile added without revoking old identity. No physical-device/Simulator/live authenticated runtime validation, review reply/resubmission, web release, or billing change. User retains Free until Nov24; operations67 active but live402 persists."
     }
   ],
-  "updatedAt": "2026-10-23T15:24:09.980Z"
+  "updatedAt": "2026-11-04T11:12:00.434Z"
 }

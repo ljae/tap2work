@@ -1,3 +1,17 @@
+# 2026-11-04 iOS25 VALID·Android23 서명 완료·공유 업로드 키 변경 요청
+
+operations67 ACTIVE, 무료 quota402 유지/사용자11월24일 reset대기 선택. Egress 변경 Node405/Flutter661+기존3skip/analysis0/npmcheck·UI92/Deno 통과. Xcode27.2에서 이전 iOS9–13 Pod 최소버전 때문에 첫 archive가 실패하여 post_install에서 앱의 기존15.0 최솟값에 맞췄다(더 높은 최소버전은 유지). 이후 signed IPA25(46,629,629bytes), minOS15,15privacy manifests, 코드서명/실제4공개AOT설정 확인; Apple delivery61e65fa2-a1ca-4b4b-b219-369939342273 VALID/수출규정false. 원래 심사23의 Google 전화 본인 확인 문제와 재심사는 미해결이다.
+
+Android23(74,207,817bytes) com.tab2work.tab2work/minSDK24/target36을 새 공유 키로 서명하고 jarsigner/bundletool/실제manifest·인증서 검증. 사용자 승인으로 TAP Work와 runner Play upload-key reset 요청이pending. Google 승인 전 새키 AAB는 미업로드. 추가 사용자 지시에 따라 runner(폰/Wear)·tosburger(/Volumes/ORICO/Espeaking/app)의 무시된 key.properties를 ~/.private_keys/shared-android-upload/upload.properties에 연결하고 이전값은 비공개 migration-backups에 보존했다. Tosburger 콘솔계정 로그인은 사용자 진행 중; 원격 reset 아직 미요청. 기존 앱서명키/스토어배포는 유지했다.
+
+SSD 도구는 /Volumes/ORICO/Developer, 새 터미널은 env.zsh를 source. iOS/Android 준비·업로드 증거 및 서명된 AAB는 .local/egress-audit-20261104, 격리 소스 .local/egress-release-20261104. 실제 단말 로그인/새 시뮬레이터·월 청구량 감소 검증은 미수행. Native 수정도root에 동기화했다. 다음: tosburger reset, Google 승인 후 Android23 upload, quota복구 후 live 회귀. 아래 항목은 시점별 이력이다.
+
+# 2026-11-04 Egress 수정 서버 배포·스토어 업로드 준비 중
+
+operations v67 ACTIVE 배포 및 관리 API 확인. 무료 23.407GB/5GB 제한으로 live 요청402 유지; 사용자 선택은 무료 유지/11월24일 reset 대기. 카탈로그 메타데이터 우선 확인·불변 발행본 캐시, 권한별 필드 해시 재사용, 실패 폴링 backoff 구현. 합성 분 경계 응답1,150,946→155,637bytes. Node405/Flutter661+기존3skip/analysis0/npmcheck·UI92/DenoEdge 통과. 소스 변경은 root에 보존했고 격리 `.local/egress-release-20261104`도 동일하다. 아직 새 native/web 업로드 없음.
+
+Apple 1.0.0(23)의10/30 Guideline2.1 거절은 Google 전화 본인 확인 화면으로 확인; Gmail 읽음. 기존24 VALID/iOS15 경고 수정과 별개다. reviewer 접근 경로 미해결, 답변/재심사 없음. Xcode27.2/Flutter3.41.2는 `/Volumes/ORICO/Developer`에 설치; 사용자가 Xcode 관리자 초기설정 완료. Android 도구 설치 중, 기존 TAP Work upload keystore/Apple 배포 개인키는 이 Mac에서 찾지 못함. API 서비스 인증은 가능하지만 업로드 서명과 다르다. 다음은 native 빌드/서명 확보·스토어 업로드; 무료 제한 해제 뒤 live 회귀 검증. 비공개 증거 `.local/egress-audit-20261104/`. 상세 DATABASE_AND_PERFORMANCE.md, APPLE_REVIEW_AUDIT_2026-10-23.md.
+
 # 2026-10-24 멀티미디어 매뉴얼 웹·운영 마켓 배포 완료
 
 D-146. Web1f602cf2ee02dc1aadcb850b95517f230b1e596d/Actions39975653653 run/build/deploy success; Pages7281845086 success2026-10-23T15:17:52Z. CIFlutter657pass/3browser-onlyskip,analysis0,Node398,UI92/JS/Edge/SQL5/translations/web pass. Public39media/source/ZIP files exact SHA256 and16app/loader/sample/translation files match CIartifact12511098710. Ego Lite390DPR2 public source kit5cards/no horizontal overflow and authenticated live market filter/attributed preview/native video keyboard play-pause verified, no store import/edit performed. DB stable147 revision3/394a7e42 -> revision4/a5458fd3aa6ff5ec0f5fa5207db9fb10154c8ddac8f1f2ae3fa8002d1d96db76; exact payload verified. User explicitly approved reviewer omission for these5 only; actor=null/request8c614f9c-10f4-4aff-85e7-8e72da18297a/immutable reason, normal independent review policy unchanged. Existing23procedure texts/other142entries and store registration/personalization/execution contracts retained. No native build/physicalSafari/field-native-speaker review. Root dirty preserved;76selected files isolated. docs/MULTIMEDIA_MANUALS_2026-10-23.md;private.local/media-manual-20261023/.

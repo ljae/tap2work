@@ -36,11 +36,35 @@ export function validateRelease(value,{assignId=false}={}){
   return release;
 }
 export class DatabaseCatalogRepository {
-  constructor(rest,{channel='stable'}={}){this.rest=rest;this.channel=channel;}
-  async readPublished(){
-    const result=await this.rest('rpc/tap2work_catalog_read',{method:'POST',body:JSON.stringify({p_channel:this.channel})});
-    if(!result||!Number.isSafeInteger(result.revision)||result.revision<1)throw new StoreError('공용 매뉴얼을 불러오지 못했어요. 다시 시도해 주세요.',503);
-    const release=validateRelease(result.release);
-    return {revision:result.revision,release};
+  constructor(rest,{channel='stable'}={}){
+    this.rest=rest;this.channel=channel;this.releases=new Map();this.pending=new Map();
+  }
+  async readVersion(){
+    // Always revalidate the channel. Only immutable releases may be cached.
+    const rows=await this.rest(`tap2work_catalog_channels?channel=eq.${encodeURIComponent(this.channel)}&select=revision,active_release_id`);
+    const row=rows?.[0];
+    if(!Number.isSafeInteger(row?.revision)||row.revision<1||!/^[a-f0-9]{64}$/.test(row.active_release_id??''))throw new StoreError('공용 매뉴얼을 불러오지 못했어요. 다시 시도해 주세요.',503);
+    return {revision:row.revision,releaseId:row.active_release_id};
+  }
+  async readPublished(version){
+    version??=await this.readVersion();
+    const id=version.releaseId;
+    let release=this.releases.get(id);
+    if(!release){
+      let pending=this.pending.get(id);
+      if(!pending){
+        pending=(async()=>{
+          const rows=await this.rest(`tap2work_catalog_releases?release_id=eq.${id}&select=payload`);
+          const value=validateRelease(rows?.[0]?.payload);
+          if(value.releaseId!==id)throw new StoreError('공용 매뉴얼 버전을 확인해 주세요.',503);
+          this.releases.set(id,value);
+          while(this.releases.size>2)this.releases.delete(this.releases.keys().next().value);
+          return value;
+        })();
+        this.pending.set(id,pending);
+      }
+      try{release=await pending;}finally{if(this.pending.get(id)===pending)this.pending.delete(id);}
+    }
+    return {revision:version.revision,release:structuredClone(release)};
   }
 }

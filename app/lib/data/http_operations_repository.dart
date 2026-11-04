@@ -7,6 +7,22 @@ import '../domain/manual_media_repository.dart';
 import '../domain/content_translation_repository.dart';
 import '../domain/crew_invitation_repository.dart';
 
+const _retainedSnapshotFields = {
+  'manualCatalog',
+  'storeSetupCatalog',
+  'checklistLibrary',
+  'checklistBackup',
+  'manualPrintTemplates',
+  'manualSearch',
+  'taskTemplates',
+  'recommendedTaps',
+};
+typedef _SnapshotCache = ({
+  String workspaceId,
+  Map<String, String> hashes,
+  Map<String, String> payloads,
+});
+
 /// Reads public samples or the existing demo/cloud snapshot API.
 /// Provider webhooks belong on the server, never in this client adapter.
 class HttpOperationsRepository
@@ -29,6 +45,8 @@ class HttpOperationsRepository
   final http.Client _client;
   String? _syncActor;
   Json? _sync;
+  Map<String, String> _fieldHashes = {};
+  Map<String, String> _fieldPayloads = {};
   final Uri endpoint;
   // Uri.base is a file URI on iOS/Android. Only web previews resolve relative
   // to the hosting page (including review portals hosted in a subdirectory).
@@ -58,7 +76,76 @@ class HttpOperationsRepository
     if (result.statusCode == 200 && result.data['syncWindow'] != null) {
       _syncActor = actorId;
       _sync = result.data;
+      final hashes = result.data['fieldHashes'];
+      _fieldHashes = {};
+      _fieldPayloads = {};
+      if (hashes is Map) {
+        for (final field in _retainedSnapshotFields) {
+          final hash = hashes[field];
+          if (hash is String &&
+              RegExp(r'^[a-f0-9]{64}$').hasMatch(hash) &&
+              result.data.containsKey(field)) {
+            _fieldHashes[field] = hash;
+            // Own the cached value; optimistic UI edits cannot alter it.
+            _fieldPayloads[field] = jsonEncode(result.data[field]);
+          }
+        }
+      }
     }
+  }
+
+  _SnapshotCache? _cacheFor(String actorId, String? workspaceId) {
+    if (readOnly ||
+        accessToken == null ||
+        _syncActor != actorId ||
+        _sync?['workspaceId'] is! String ||
+        (workspaceId != null && _sync!['workspaceId'] != workspaceId)) {
+      return null;
+    }
+    return (
+      workspaceId: _sync!['workspaceId'] as String,
+      hashes: Map.of(_fieldHashes),
+      payloads: Map.of(_fieldPayloads),
+    );
+  }
+
+  Uri _withFieldCache(Uri uri, _SnapshotCache? cache) {
+    if (readOnly || accessToken == null) return uri;
+    return uri.replace(
+      queryParameters: {
+        ...uri.queryParameters,
+        'sync': 'fields-v1',
+        if (cache != null && cache.hashes.isNotEmpty)
+          'fields': jsonEncode(cache.hashes),
+      },
+    );
+  }
+
+  OperationsResult _restoreFields(
+    OperationsResult result,
+    _SnapshotCache? cache,
+  ) {
+    final retained = result.data['retainedFields'];
+    if (result.statusCode != 200 || retained == null) return result;
+    if (retained is! List ||
+        cache == null ||
+        result.data['workspaceId'] != cache.workspaceId) {
+      throw const FormatException('Invalid snapshot cache scope');
+    }
+    final body = Map<String, dynamic>.of(result.data)..remove('retainedFields');
+    final hashes = body['fieldHashes'];
+    for (final field in retained) {
+      if (field is! String ||
+          !_retainedSnapshotFields.contains(field) ||
+          body.containsKey(field) ||
+          !cache.payloads.containsKey(field) ||
+          hashes is! Map ||
+          hashes[field] != cache.hashes[field]) {
+        throw const FormatException('Invalid retained snapshot field');
+      }
+      body[field] = jsonDecode(cache.payloads[field]!);
+    }
+    return OperationsResult(result.statusCode, body);
   }
 
   @override
@@ -70,6 +157,7 @@ class HttpOperationsRepository
     String? workspaceId,
     bool useCache = true,
   }) async {
+    final cache = useCache ? _cacheFor(actorId, workspaceId) : null;
     var uri = readOnly
         ? sampleBase.resolve('review-data/$actorId.json')
         : endpoint;
@@ -105,10 +193,16 @@ class HttpOperationsRepository
         },
       );
     }
-    final result = _decode(
-      await _client
-          .get(uri, headers: await _headers(actorId, demoToken))
-          .timeout(const Duration(seconds: 10)),
+    final result = _restoreFields(
+      _decode(
+        await _client
+            .get(
+              _withFieldCache(uri, cache),
+              headers: await _headers(actorId, demoToken),
+            )
+            .timeout(const Duration(seconds: 10)),
+      ),
+      cache,
     );
     if (result.statusCode == 200 && result.data['unchanged'] == true) {
       return OperationsResult(304, result.data);
@@ -124,17 +218,23 @@ class HttpOperationsRepository
     required Json values,
   }) async {
     if (readOnly) throw StateError('공개 미리보기에서는 저장할 수 없어요.');
-    final result = _decode(
-      await _client
-          .post(
-            endpoint,
-            headers: {
-              ...await _headers(actorId, demoToken),
-              'Content-Type': 'application/json',
-            },
-            body: jsonEncode(values),
-          )
-          .timeout(const Duration(seconds: 10)),
+    final cache = values['action'] == 'create_workspace'
+        ? null
+        : _cacheFor(actorId, values['workspaceId'] as String?);
+    final result = _restoreFields(
+      _decode(
+        await _client
+            .post(
+              _withFieldCache(endpoint, cache),
+              headers: {
+                ...await _headers(actorId, demoToken),
+                'Content-Type': 'application/json',
+              },
+              body: jsonEncode(values),
+            )
+            .timeout(const Duration(seconds: 10)),
+      ),
+      cache,
     );
     remember(result, actorId);
     return result;

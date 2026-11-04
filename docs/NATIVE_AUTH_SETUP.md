@@ -135,3 +135,11 @@ Google Cloud `tap-work-510711`에 Android OAuth `TAP Work Android Play`를 생�
 번역 릴리스의 격리 작업 트리에서 기존 공개 Google define/콜백이 빠질 수 있음을 산출물 비교로 확인했다. 각 작업 트리의 native 빌드에는 SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID 네 공개 값을 명시적으로 전달한다. 기존 공개 native-auth JSON을 쓰더라도 그 작업 트리의 app/ios/Flutter/Auth.xcconfig는 별도로 생성해야 한다. configure-native-auth.mjs의 iOS client reversed callback 생성 계약을 따른다. 비밀키/서비스 키/Google client secret은 compile define에 포함하지 않는다.
 
 최종19/18에서 AOT 실제 문자열·iOS CFBundleURLTypes·기존 Android 업로드 인증서·번역 자산을 비교하고 배포를 확인했다. 공개 설정 파일을 전달했다는 사실만으로 산출물 포함을 가정하지 않는다. 실제 실기기/실계정 로그인은 별도 검증이다. signing properties는 기존 저장소 외부 비공개 값을 사용하고 상대 경로를 다른 프로젝트의 키로 추정하지 않는다.
+
+## 2026-11-04 ORICO 개발 도구와 공유 Android 업로드 키
+
+새 Mac의 Xcode27.2/Flutter3.41.2/Dart3.11.0/Android SDK36/JDK17/CocoaPods1.16.2는 `/Volumes/ORICO/Developer`에 설치했다. 새 터미널에서 `source /Volumes/ORICO/Developer/env.zsh`를 실행한다. Xcode 관리자 첫 설정은 사용자가 완료했다. 시뮬레이터 런타임은 설치하지 않았다.
+
+사용자가 TAP Work·runner·tosburger의 새 Android upload key 공유와 reset을 승인했다. `TAP_ANDROID_SIGNING_PROPERTIES`는 저장소 밖 `~/.private_keys/shared-android-upload/upload.properties`를 가리킨다. 키 원문/비밀번호는 소스나 기록에 넣지 않는다. 공개 인증서 SHA-256은 `1A:0E:C2:84:99:1D:6F:8A:F9:5A:F9:2A:DA:55:44:EC:AC:FE:30:C7:83:43:1C:C7:3F:B8:ED:D4:22:A3:5A:8E`이다. Play app signing key와 별개이며 기존 설치본/OAuth 배포 인증서는 바꾸지 않았다. TAP Work/runner reset pending; Google 승인 이후에만 새 키 업로드를 진행한다. Tosburger 원격 reset은 계정 로그인 대기다.
+
+이 Mac용 Apple Distribution 인증서/프로파일을 추가하여 기존 인증서를 폐기하지 않고 iOS25를 업로드했다. 로컬 비공개 native build helper는 임시 서명 설정으로 archive 후 원본 Xcode project를 복원한다. 공통 Pod 최소버전은 기존 앱 iOS15와 일치시킨다. 빌드25의 서명·15개privacy manifest·4공개AOT값 및 Apple VALID를 검증했다. Android23 서명 AAB의 실제 package/version/SDK와 서명 인증서도 검증했다. 사용자의 실제 로그인은 quota402 및 별도의 Google 심사 본인 확인 문제가 남아 있어 검증하지 못했다.
